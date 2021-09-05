@@ -74,7 +74,7 @@ public interface EventStore
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids );
 
-    Map<String, List<Relationship>> getRelationshipsByEventIds( List<String> uids );
+    Multimap<String, Relationship> getRelationshipsByEventIds( List<String> uids );
 
     Multimap<String, Note> getNotes( List<Long> eventIds );
 }

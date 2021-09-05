@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,14 +36,12 @@ import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.AbstractMapper;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.RelationshipRowCallbackHandler;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 /**
  * @author Luciano Fiandesio
@@ -53,11 +50,15 @@ public abstract class AbstractStore
 {
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private final static String GET_RELATIONSHIP_ID_BY_ENTITYTYPE_SQL = "select ri.%s as id, r.relationshipid "
+    private final static String GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL = "select ri.%s as id, r.relationshipid "
         + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
         + "where ri.%s in (:ids)";
 
-    private final static String GET_RELATIONSHIP_SQL = "select "
+    private final static String GET_RELATIONSHIP_ID_BY_ENTITY_UID_SQL = "select ri.%s as id, r.relationshipid "
+        + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
+        + "where ri.%s in (select programstageinstanceid from programstageinstance where uid in (:uids))";
+
+    private final static String GET_RELATIONSHIP_BY_EVENT_ID = "select "
         + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
         + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
         + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
@@ -80,26 +81,21 @@ public abstract class AbstractStore
         + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
         + "where r.relationshipid in (:ids)";
 
-    private final static String GET_ALL_RELATIONSHIPS = "select r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi,\n" +
-            "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid\n" +
-            " where ri.relationshipitemid = r.to_relationshipitemid) , (select 'pi|' || pi.uid from programinstance pi\n" +
-            "join relationshipitem ri on pi.programinstanceid = ri.programinstanceid\n" +
-            "where ri.relationshipitemid = r.to_relationshipitemid), (select 'psi|' || psi.uid\n" +
-            "from programstageinstance psi join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where ri.relationshipitemid = r.to_relationshipitemid)) to_uid,\n" +
-            "coalesce((select psi.uid from programstageinstance psi\n" +
-            "join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where ri.relationshipitemid = r.to_relationshipitemid)) to_plain_uid,\n" +
-            "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid\n" +
-            "  where ri.relationshipitemid = r.from_relationshipitemid) , (select 'pi|' || pi.uid from programinstance pi join relationshipitem ri\n" +
-            "  on pi.programinstanceid = ri.programinstanceid where ri.relationshipitemid = r.from_relationshipitemid), (select 'psi|' || psi.uid\n" +
-            "from programstageinstance psi join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where\n" +
-            "ri.relationshipitemid = r.from_relationshipitemid)) from_uid,\n" +
-            "coalesce( (select psi.uidfrom programstageinstance psi join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where\n" +
-            "ri.relationshipitemid = r.from_relationshipitemid)) from_plain_uid\n" +
-            "from relationship r join relationshiptype rst\n" +
-            "on r.relationshiptypeid = rst.relationshiptypeid where r.relationshipid in (select  r.relationshipid as relationshipid\n" +
-            "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid\n" +
-            "where ri.programstageinstanceid in (select programstageinstanceid from programstageinstance where uid in (:uids)))";
-
+    private final static String GET_RELATIONSHIPS_BY_EVENT_UID = "select r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi,\n"
+        + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid\n"
+        + " where ri.relationshipitemid = r.to_relationshipitemid) , (select 'pi|' || pi.uid from programinstance pi\n"
+        + "join relationshipitem ri on pi.programinstanceid = ri.programinstanceid\n"
+        + "where ri.relationshipitemid = r.to_relationshipitemid), (select 'psi|' || psi.uid\n"
+        + "from programstageinstance psi\n"
+        + "join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where ri.relationshipitemid = r.to_relationshipitemid)) to_uid,\n"
+        + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid\n"
+        + "  where ri.relationshipitemid = r.from_relationshipitemid) , (select 'pi|' || pi.uid from programinstance pi join relationshipitem ri\n"
+        + "  on pi.programinstanceid = ri.programinstanceid where ri.relationshipitemid = r.from_relationshipitemid), (select 'psi|' || psi.uid\n"
+        + "from programstageinstance psi join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid where\n"
+        + "ri.relationshipitemid = r.from_relationshipitemid)) from_uid from relationship r join relationshiptype rst\n"
+        + "on r.relationshiptypeid = rst.relationshiptypeid where r.relationshipid in (select  r.relationshipid as relationshipid\n"
+        + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid\n"
+        + "where ri.programstageinstanceid in (select programstageinstanceid from programstageinstance where uid in (:uids)))";
 
     public AbstractStore( JdbcTemplate jdbcTemplate )
     {
@@ -130,7 +126,7 @@ public abstract class AbstractStore
 
     public Multimap<String, Relationship> getRelationships( List<Long> ids )
     {
-        String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITYTYPE_SQL,
+        String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL,
             getRelationshipEntityColumn(), getRelationshipEntityColumn() );
 
         // Get all the relationship ids that have at least one relationship item
@@ -149,32 +145,40 @@ public abstract class AbstractStore
         if ( !relationshipIds.isEmpty() )
         {
             RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
-            jdbcTemplate.query( GET_RELATIONSHIP_SQL, createIdsParam( relationshipIds ), handler );
+            jdbcTemplate.query( GET_RELATIONSHIP_BY_EVENT_ID, createIdsParam( relationshipIds ), handler );
             return handler.getItems();
         }
         return ArrayListMultimap.create();
     }
 
     /**
-     * Method returns Map with event uid as key and its associated List of RelationShips as value.
+     * Method returns Map with event uid as key and its associated List of
+     * RelationShips as value.
+     *
      * @param eventIds event uids
      * @return Map of events and associated RelationShips
      */
-    public Map<String, List<Relationship>> getRelationshipsByEventIds( List<String> eventIds )
+    public Multimap<String, Relationship> getRelationshipsByEventIds( List<String> eventIds )
     {
-        //TODO make sure empty map is return if nothing is fetched from database
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( GET_ALL_RELATIONSHIPS,
-                createUidsParam( eventIds ) );
+        String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITY_UID_SQL,
+            getRelationshipEntityColumn(), getRelationshipEntityColumn() );
 
-        Map<String, List<Relationship>> eventRelationshipMap = new HashMap<>();
+        List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList( getRelationshipsHavingIdSQL,
+            createUidsParam( eventIds ) );
 
-        do
+        List<Long> relationshipIds = new ArrayList<>();
+        for ( Map<String, Object> relationshipIdsMap : relationshipIdsList )
         {
-
+            relationshipIds.add( (Long) relationshipIdsMap.get( "relationshipid" ) );
         }
-        while ( rowSet.next() );
 
-        return null;
+        if ( !relationshipIds.isEmpty() )
+        {
+            RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
+            jdbcTemplate.query( GET_RELATIONSHIPS_BY_EVENT_UID, createUidsParam( eventIds ), handler );
+            return handler.getItems();
+        }
+        return ArrayListMultimap.create();
     }
 
     abstract String getRelationshipEntityColumn();

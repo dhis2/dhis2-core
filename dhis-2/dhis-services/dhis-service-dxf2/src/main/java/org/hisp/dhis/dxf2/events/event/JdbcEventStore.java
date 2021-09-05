@@ -80,7 +80,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Multimap;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -140,6 +139,7 @@ import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -328,9 +328,9 @@ public class JdbcEventStore implements EventStore
                 continue;
             }
 
-            eventUids.add( rowSet.getString( "psi_uid" ) );
-
             String psiUid = rowSet.getString( "psi_uid" );
+
+            eventUids.add( psiUid );
 
             Event event;
 
@@ -478,18 +478,14 @@ public class JdbcEventStore implements EventStore
             }
         }
 
-        // Event to relationship mapper
-        final Map<String, List<Relationship>> relationshipsByEventIds;
-
         if ( !params.isSkipRelationship() )
         {
-            relationshipsByEventIds = eventStore
-                    .getRelationshipsByEventIds( Lists.newArrayList( eventUids ) );
+            final Multimap<String, Relationship> map = eventStore
+                .getRelationshipsByEventIds( Lists.newArrayList( eventUids ) );
 
-            if ( !relationshipsByEventIds.isEmpty() )
-            {
-                events.forEach( e -> e.getRelationships().addAll( relationshipsByEventIds.getOrDefault( e.getUid(), new ArrayList<>() ) ) );
-            }
+            events.stream()
+                .filter( e -> map.containsKey( e.getEvent() ) )
+                .forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
         }
 
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
