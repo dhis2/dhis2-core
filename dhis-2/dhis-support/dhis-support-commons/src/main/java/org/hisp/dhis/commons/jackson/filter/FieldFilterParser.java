@@ -236,11 +236,6 @@ public class FieldFilterParser
             || (fieldSplit.length > 1 && ":".equals( fieldSplit[idx] ) && ":".equals( fieldSplit[idx + 1] ));
     }
 
-    private static String toFullPath( String field, Stack<String> path )
-    {
-        return path.isEmpty() ? field : StringUtils.join( path, "." ) + "." + field;
-    }
-
     private FieldFilterParser()
     {
     }
