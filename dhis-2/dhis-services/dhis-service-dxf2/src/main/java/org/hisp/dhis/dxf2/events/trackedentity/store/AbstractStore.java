@@ -58,7 +58,7 @@ public abstract class AbstractStore
         + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
         + "where ri.%s in (select programstageinstanceid from programstageinstance where uid in (:uids))";
 
-    private final static String GET_RELATIONSHIP_BY_EVENT_ID = "select "
+    private final static String GET_RELATIONSHIP_BY_RELATIONSHIP_ID = "select "
         + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
         + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
         + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
@@ -133,19 +133,12 @@ public abstract class AbstractStore
         // having
         // the ids in the tei|pi|psi column (depending on the subclass)
 
-        List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList( getRelationshipsHavingIdSQL,
-            createIdsParam( ids ) );
-
-        List<Long> relationshipIds = new ArrayList<>();
-        for ( Map<String, Object> relationshipIdsMap : relationshipIdsList )
-        {
-            relationshipIds.add( (Long) relationshipIdsMap.get( "relationshipid" ) );
-        }
+        List<Long> relationshipIds = getRelationshipIds( getRelationshipsHavingIdSQL, createIdsParam( ids ) );
 
         if ( !relationshipIds.isEmpty() )
         {
             RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
-            jdbcTemplate.query( GET_RELATIONSHIP_BY_EVENT_ID, createIdsParam( relationshipIds ), handler );
+            jdbcTemplate.query( GET_RELATIONSHIP_BY_RELATIONSHIP_ID, createIdsParam( relationshipIds ), handler );
             return handler.getItems();
         }
         return ArrayListMultimap.create();
@@ -160,17 +153,10 @@ public abstract class AbstractStore
      */
     public Multimap<String, Relationship> getRelationshipsByEventIds( List<String> eventIds )
     {
-        String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITY_UID_SQL,
+        String sql = String.format( GET_RELATIONSHIP_ID_BY_ENTITY_UID_SQL,
             getRelationshipEntityColumn(), getRelationshipEntityColumn() );
 
-        List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList( getRelationshipsHavingIdSQL,
-            createUidsParam( eventIds ) );
-
-        List<Long> relationshipIds = new ArrayList<>();
-        for ( Map<String, Object> relationshipIdsMap : relationshipIdsList )
-        {
-            relationshipIds.add( (Long) relationshipIdsMap.get( "relationshipid" ) );
-        }
+        List<Long> relationshipIds = getRelationshipIds( sql, createUidsParam( eventIds ) );
 
         if ( !relationshipIds.isEmpty() )
         {
@@ -235,5 +221,19 @@ public abstract class AbstractStore
     {
         return "SELECT "
             + columnMap.values().stream().map( TableColumn::useInSelect ).collect( Collectors.joining( ", " ) ) + " ";
+    }
+
+    private List<Long> getRelationshipIds( String sql, MapSqlParameterSource parameterSource )
+    {
+        List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList( sql,
+            parameterSource );
+
+        List<Long> relationshipIds = new ArrayList<>();
+        for ( Map<String, Object> relationshipIdsMap : relationshipIdsList )
+        {
+            relationshipIds.add( (Long) relationshipIdsMap.get( "relationshipid" ) );
+        }
+
+        return relationshipIds;
     }
 }
