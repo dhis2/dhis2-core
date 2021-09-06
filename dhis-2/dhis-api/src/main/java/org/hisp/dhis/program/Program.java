@@ -28,8 +28,10 @@
 package org.hisp.dhis.program;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -276,12 +278,27 @@ public class Program
     }
 
     /**
+     * Returns all data elements which are part of the stages of this program
+     * and is not skipped in analytics.
+     */
+    public Set<DataElement> getAnalyticsDataElements()
+    {
+        return programStages.stream()
+            .map( ProgramStage::getProgramStageDataElements )
+            .flatMap( Collection::stream )
+            .filter( Objects::nonNull )
+            .filter( psde -> !psde.getSkipAnalytics() )
+            .map( ProgramStageDataElement::getDataElement )
+            .collect( Collectors.toSet() );
+    }
+
+    /**
      * Returns data elements which are part of the stages of this program which
      * have a legend set and is of numeric value type.
      */
-    public Set<DataElement> getDataElementsWithLegendSet()
+    public Set<DataElement> getAnalyticsDataElementsWithLegendSet()
     {
-        return getDataElements().stream()
+        return getAnalyticsDataElements().stream()
             .filter( de -> de.hasLegendSet() && de.isNumericType() )
             .collect( Collectors.toSet() );
     }
