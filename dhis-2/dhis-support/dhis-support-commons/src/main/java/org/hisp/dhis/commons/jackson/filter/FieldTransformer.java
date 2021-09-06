@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.commons.jackson.filter;
 
+import org.springframework.core.Ordered;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Morten Olav Hansen
  */
 @FunctionalInterface
-public interface FieldTransformer
+public interface FieldTransformer extends Ordered
 {
     JsonNode apply( String path, JsonNode value, JsonNode parent );
 
@@ -48,5 +50,10 @@ public interface FieldTransformer
         }
 
         return key;
+    }
+
+    default int getOrder()
+    {
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }

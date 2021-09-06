@@ -40,6 +40,7 @@ import org.hisp.dhis.commons.jackson.filter.transformers.PluckFieldTransformer;
 import org.hisp.dhis.commons.jackson.filter.transformers.RenameFieldTransformer;
 import org.hisp.dhis.commons.jackson.filter.transformers.SizeFieldTransformer;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -85,7 +86,12 @@ public class FieldFilterManager
         if ( parent != null && !parent.isArray() && !path.isEmpty() )
         {
             List<FieldTransformer> transformers = fieldTransformers.get( path.substring( 1 ) );
-            transformers.forEach( t -> t.apply( path.substring( 1 ), node, parent ) );
+
+            if ( transformers != null )
+            {
+                transformers.sort( OrderComparator.INSTANCE );
+                transformers.forEach( t -> t.apply( path.substring( 1 ), node, parent ) );
+            }
         }
 
         if ( node.isObject() )
@@ -125,26 +131,27 @@ public class FieldFilterManager
 
         for ( FieldPath fieldPath : fieldPaths )
         {
-            map.put( fieldPath.toFullPath(), new ArrayList<>() );
+            String fullPath = fieldPath.toFullPath();
+            map.put( fullPath, new ArrayList<>() );
 
             for ( FieldPathTransformer fieldPathTransformer : fieldPath.getTransformers() )
             {
                 switch ( fieldPathTransformer.getName() )
                 {
                 case "rename":
-                    map.get( fieldPath.toFullPath() ).add( new RenameFieldTransformer( fieldPathTransformer ) );
+                    map.get( fullPath ).add( new RenameFieldTransformer( fieldPathTransformer ) );
                     break;
                 case "size":
-                    map.get( fieldPath.toFullPath() ).add( new SizeFieldTransformer() );
+                    map.get( fullPath ).add( new SizeFieldTransformer() );
                     break;
                 case "isEmpty":
-                    map.get( fieldPath.toFullPath() ).add( new IsEmptyFieldTransformer() );
+                    map.get( fullPath ).add( new IsEmptyFieldTransformer() );
                     break;
                 case "isNotEmpty":
-                    map.get( fieldPath.toFullPath() ).add( new IsNotEmptyFieldTransformer() );
+                    map.get( fullPath ).add( new IsNotEmptyFieldTransformer() );
                     break;
                 case "pluck":
-                    map.get( fieldPath.toFullPath() ).add( new PluckFieldTransformer( fieldPathTransformer ) );
+                    map.get( fullPath ).add( new PluckFieldTransformer( fieldPathTransformer ) );
                     break;
                 default:
                     // invalid transformer

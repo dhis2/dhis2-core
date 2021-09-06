@@ -60,4 +60,10 @@ public class RenameFieldTransformer implements FieldTransformer
 
         return value;
     }
+
+    @Override
+    public int getOrder()
+    {
+        return 10; // rename needs to happen last
+    }
 }
