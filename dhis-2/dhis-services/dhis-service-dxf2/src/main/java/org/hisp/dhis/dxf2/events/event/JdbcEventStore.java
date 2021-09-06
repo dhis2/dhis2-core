@@ -138,7 +138,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
@@ -483,9 +482,10 @@ public class JdbcEventStore implements EventStore
             final Multimap<String, Relationship> map = eventStore
                 .getRelationshipsByEventIds( eventUids );
 
-            events.stream()
-                .filter( e -> map.containsKey( e.getEvent() ) )
-                .forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
+            if ( !map.isEmpty() )
+            {
+                events.forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
+            }
         }
 
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
