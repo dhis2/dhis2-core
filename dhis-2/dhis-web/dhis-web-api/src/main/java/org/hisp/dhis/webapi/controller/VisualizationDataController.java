@@ -37,6 +37,9 @@ import java.util.Date;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -72,18 +75,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.AllArgsConstructor;
-import lombok.NonNull;
-
 /**
  * Controller responsible to expose endpoints related to data export/extraction.
  * They are fully based on Visualizations and are able to extract data from
  * different visualization types (charts and pivot tables at this state).
- * 
+ *
  * The code is not new. It was moved in and re-adapted to support visualizations
  * and unify chart and pivot tables. This is mainly needed because of the
  * deprecation process of charts and pivot tables.
- * 
+ *
  * @author maikel arabori
  */
 @RestController
