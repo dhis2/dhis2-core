@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.Data;
 
 import org.hisp.dhis.common.DxfNamespaces;
@@ -51,8 +48,6 @@ public class PeriodType
     private final String isoFormat;
 
     private final int frequencyOrder;
-
-    private final List<PeriodType> periodTypes = new ArrayList<>();
 
     public PeriodType( org.hisp.dhis.period.PeriodType periodType )
     {
@@ -84,11 +79,5 @@ public class PeriodType
     public int getFrequencyOrder()
     {
         return frequencyOrder;
-    }
-
-    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<PeriodType> getPeriodTypes()
-    {
-        return periodTypes;
     }
 }
