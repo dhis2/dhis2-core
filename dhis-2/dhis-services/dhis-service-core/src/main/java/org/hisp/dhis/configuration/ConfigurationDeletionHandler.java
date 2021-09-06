@@ -95,7 +95,7 @@ public class ConfigurationDeletionHandler
     private DeletionVeto allowDeleteOrganisationUnitLevel( OrganisationUnitLevel level )
     {
         OrganisationUnitLevel offlineLevel = configService.getConfiguration().getOfflineOrganisationUnitLevel();
-        OrganisationUnitLevel defaultLevel = configService.getConfiguration().getOrgUnitMapDefaultLevel();
+        OrganisationUnitLevel defaultLevel = configService.getConfiguration().getFacilityOrgUnitLevel();
 
         return (offlineLevel != null && offlineLevel.equals( level )) ||
             (defaultLevel != null && defaultLevel.equals( level )) ? VETO : ACCEPT;
@@ -103,7 +103,7 @@ public class ConfigurationDeletionHandler
 
     private DeletionVeto allowDeleteOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
     {
-        OrganisationUnitGroupSet defaultGroupSet = configService.getConfiguration().getOrgUnitMapDefaultGroupSet();
+        OrganisationUnitGroupSet defaultGroupSet = configService.getConfiguration().getFacilityOrgUnitGroupSet();
 
         return defaultGroupSet != null && defaultGroupSet.equals( groupSet ) ? VETO : ACCEPT;
     }
