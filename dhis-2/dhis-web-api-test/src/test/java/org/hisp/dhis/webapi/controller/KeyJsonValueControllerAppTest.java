@@ -91,7 +91,7 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
 
         switchToNewUser( "has-no-app-authority" );
         assertEquals(
-            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'test-app-ns' is protected, access denied",
             GET( "/dataStore/test-app-ns" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
@@ -102,7 +102,7 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
 
         switchToNewUser( "has-no-app-authority" );
         assertEquals(
-            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'test-app-ns' is protected, access denied",
             DELETE( "/dataStore/test-app-ns" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
@@ -120,7 +120,7 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
 
         switchToNewUser( "has-no-app-authority" );
         assertEquals(
-            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'test-app-ns' is protected, access denied",
             GET( "/dataStore/test-app-ns/key1" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
@@ -135,7 +135,7 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
 
         switchToNewUser( "has-no-app-authority" );
         assertEquals(
-            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'test-app-ns' is protected, access denied",
             GET( "/dataStore/test-app-ns/key1/metaData" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
@@ -149,7 +149,7 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
 
         switchToNewUser( "has-no-app-authority" );
         assertEquals(
-            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'test-app-ns' is protected, access denied",
             POST( "/dataStore/test-app-ns/key3", "{}" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
@@ -164,7 +164,7 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
 
         switchToNewUser( "has-no-app-authority" );
         assertEquals(
-            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'test-app-ns' is protected, access denied",
             PUT( "/dataStore/test-app-ns/key1", "{}" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
@@ -181,7 +181,7 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         switchToNewUser( "has-no-app-authority" );
         assertEquals(
-            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'test-app-ns' is protected, access denied",
             DELETE( "/dataStore/test-app-ns/key1" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
