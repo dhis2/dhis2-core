@@ -30,7 +30,9 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.junit.Assert.assertEquals;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -171,39 +173,121 @@ public class DataValueSetServiceIntegrationTest
     // -------------------------------------------------------------------------
 
     /**
+     * Import 1 data value.
+     */
+    @Test
+    public void testImportValueJson()
+    {
+        assertDataValuesCount( 0 );
+
+        assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
+            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+
+        assertDataValuesCount( 1 );
+    }
+
+    /**
+     * Import 1 data value, then delete it by using import mode DELETE
+     */
+    @Test
+    public void testImportDeleteValueJson()
+    {
+        assertDataValuesCount( 0 );
+
+        assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
+            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+
+        assertDataValuesCount( 1 );
+
+        ImportOptions options = ImportOptions.getDefaultImportOptions();
+        options.setImportStrategy( ImportStrategy.DELETE );
+        assertSuccessWithImportedUpdatedDeleted( 0, 0, 1,
+            dataValueSetService.saveDataValueSetJson(
+                readFile( "datavalueset/dataValueSetJ.json" ), options ) );
+
+        assertDataValuesCount( 0 );
+    }
+
+    @Test
+    public void testImportDeleteValueJson_OmittingValue()
+    {
+        assertDataValuesCount( 0 );
+
+        assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
+            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+
+        assertDataValuesCount( 1 );
+
+        ImportOptions options = ImportOptions.getDefaultImportOptions();
+        options.setImportStrategy( ImportStrategy.DELETE );
+        assertSuccessWithImportedUpdatedDeleted( 0, 0, 1,
+            dataValueSetService.saveDataValueSetJson(
+                readFile( "datavalueset/dataValueSetJDeleteNoValue.json" ), options ) );
+
+        assertDataValuesCount( 0 );
+    }
+
+    @Test
+    public void testImportDeleteValueJson_NewValue()
+    {
+        assertDataValuesCount( 0 );
+
+        assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
+            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+
+        assertDataValuesCount( 1 );
+
+        ImportOptions options = ImportOptions.getDefaultImportOptions();
+        options.setImportStrategy( ImportStrategy.DELETE );
+        assertSuccessWithImportedUpdatedDeleted( 0, 0, 1,
+            dataValueSetService.saveDataValueSetJson(
+                readFile( "datavalueset/dataValueSetJDeleteNewValue.json" ), options ) );
+
+        assertDataValuesCount( 0 );
+    }
+
+    @Test
+    public void testImportDeleteValueJson_ZeroValue()
+    {
+        assertDataValuesCount( 0 );
+
+        assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
+            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+
+        assertDataValuesCount( 1 );
+
+        assertSuccessWithImportedUpdatedDeleted( 0, 0, 1,
+            dataValueSetService.saveDataValueSetJson(
+                readFile( "datavalueset/dataValueSetJDeleteZeroValue.json" ) ) );
+
+        assertDataValuesCount( 0 );
+    }
+
+    /**
      * Import 3 data values, then delete 3 data values.
      */
     @Test
     public void testImportDeleteValuesXml()
-        throws Exception
     {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
 
-        in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetA.xml" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 3, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
 
-        assertEquals( 3, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 3 );
 
         // Delete values
 
-        in = new ClassPathResource( "datavalueset/dataValueSetADeleted.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetADeleted.xml" );
 
         summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 0, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 3, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 0, 0, 3, summary );
 
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
     }
 
     /**
@@ -211,21 +295,16 @@ public class DataValueSetServiceIntegrationTest
      */
     @Test
     public void testImportValuesXml()
-        throws Exception
     {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
 
-        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetB.xml" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
 
-        assertEquals( 12, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 12 );
     }
 
     /**
@@ -233,31 +312,26 @@ public class DataValueSetServiceIntegrationTest
      */
     @Test
     public void testImportUpdateValuesXml()
-        throws Exception
     {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
 
-        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetB.xml" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
         assertEquals( 12, summary.getImportCount().getImported() );
 
-        assertEquals( 12, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 12 );
 
         // Update
 
-        in = new ClassPathResource( "datavalueset/dataValueSetBUpdate.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetBUpdate.xml" );
 
         summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 2, summary.getImportCount().getImported() );
-        assertEquals( 4, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 2, 4, 0, summary );
 
-        assertEquals( 14, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 14 );
     }
 
     /**
@@ -269,13 +343,12 @@ public class DataValueSetServiceIntegrationTest
      */
     @Test
     public void testUpdateCreatedDate()
-        throws Exception
     {
         // Insert:
         // deC, peA, ouA created = 2010-01-01
         // deC, peA, ouB created = 2010-01-01
 
-        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetB.xml" );
 
         dataValueSetService.saveDataValueSet( in );
 
@@ -283,7 +356,7 @@ public class DataValueSetServiceIntegrationTest
         // deC, peA, ouA created = not specified, should remain unchanged
         // deC, peA, ouB created = 2020-02-02
 
-        in = new ClassPathResource( "datavalueset/dataValueSetBUpdate.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetBUpdate.xml" );
 
         dataValueSetService.saveDataValueSet( in );
 
@@ -303,21 +376,16 @@ public class DataValueSetServiceIntegrationTest
      */
     @Test
     public void testImportDeletedValuesXml()
-        throws Exception
     {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
 
-        in = new ClassPathResource( "datavalueset/dataValueSetBDeleted.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetBDeleted.xml" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 12, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
 
-        assertEquals( 8, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 8 );
     }
 
     /**
@@ -327,31 +395,26 @@ public class DataValueSetServiceIntegrationTest
      */
     @Test
     public void testImportReverseDeletedValuesXml()
-        throws Exception
     {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
 
-        in = new ClassPathResource( "datavalueset/dataValueSetBDeleted.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetBDeleted.xml" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
         assertEquals( 12, summary.getImportCount().getImported() );
 
-        assertEquals( 8, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 8 );
 
         // Reverse deletion and update
 
-        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetB.xml" );
 
         summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 4, summary.getImportCount().getImported() );
-        assertEquals( 8, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 4, 8, 0, summary );
 
-        assertEquals( 12, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 12 );
     }
 
     /**
@@ -361,31 +424,26 @@ public class DataValueSetServiceIntegrationTest
      */
     @Test
     public void testImportAddAndReverseDeletedValuesXml()
-        throws Exception
     {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
 
-        in = new ClassPathResource( "datavalueset/dataValueSetBDeleted.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetBDeleted.xml" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
         assertEquals( 12, summary.getImportCount().getImported() );
 
-        assertEquals( 8, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 8 );
 
         // Reverse deletion and update
 
-        in = new ClassPathResource( "datavalueset/dataValueSetBNew.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetBNew.xml" );
 
         summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 8, summary.getImportCount().getImported() );
-        assertEquals( 4, summary.getImportCount().getUpdated() );
-        assertEquals( 0, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 8, 4, 0, summary );
 
-        assertEquals( 16, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 16 );
     }
 
     /**
@@ -394,31 +452,26 @@ public class DataValueSetServiceIntegrationTest
      */
     @Test
     public void testDeleteValuesXml()
-        throws Exception
     {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
 
-        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetB.xml" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
         assertEquals( 12, summary.getImportCount().getImported() );
 
-        assertEquals( 12, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 12 );
 
         // Delete 4 values
 
-        in = new ClassPathResource( "datavalueset/dataValueSetBDeleted.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetBDeleted.xml" );
 
         summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 0, summary.getImportCount().getImported() );
-        assertEquals( 8, summary.getImportCount().getUpdated() );
-        assertEquals( 4, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 0, 8, 4, summary );
 
-        assertEquals( 8, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 8 );
     }
 
     /**
@@ -427,31 +480,26 @@ public class DataValueSetServiceIntegrationTest
      */
     @Test
     public void testImportAndDeleteValuesXml()
-        throws Exception
     {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
 
-        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetB.xml" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
         assertEquals( 12, summary.getImportCount().getImported() );
 
-        assertEquals( 12, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 12 );
 
         // Delete 4 values, add 2 values
 
-        in = new ClassPathResource( "datavalueset/dataValueSetBNewDeleted.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetBNewDeleted.xml" );
 
         summary = dataValueSetService.saveDataValueSet( in );
 
-        assertEquals( 2, summary.getImportCount().getImported() );
-        assertEquals( 6, summary.getImportCount().getUpdated() );
-        assertEquals( 4, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 2, 6, 4, summary );
 
-        assertEquals( 10, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 10 );
     }
 
     /**
@@ -460,34 +508,46 @@ public class DataValueSetServiceIntegrationTest
      */
     @Test
     public void testImportValuesDeleteStrategyXml()
-        throws Exception
     {
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
 
-        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetB.xml" );
 
         ImportSummary summary = dataValueSetService.saveDataValueSet( in );
 
         assertEquals( 12, summary.getImportCount().getImported() );
 
-        assertEquals( 12, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 12 );
 
         // Import with delete strategy
 
-        in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
+        in = readFile( "datavalueset/dataValueSetB.xml" );
 
         ImportOptions options = new ImportOptions()
             .setStrategy( ImportStrategy.DELETE );
 
         summary = dataValueSetService.saveDataValueSet( in, options );
 
-        assertEquals( 0, summary.getImportCount().getImported() );
-        assertEquals( 0, summary.getImportCount().getUpdated() );
-        assertEquals( 12, summary.getImportCount().getDeleted() );
-        assertHasNoConflicts( summary );
-        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertSuccessWithImportedUpdatedDeleted( 0, 0, 12, summary );
 
-        assertEquals( 0, dataValueService.getAllDataValues().size() );
+        assertDataValuesCount( 0 );
+    }
+
+    private InputStream readFile( String filename )
+    {
+        try
+        {
+            return new ClassPathResource( filename ).getInputStream();
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
+
+    private void assertDataValuesCount( int expected )
+    {
+        assertEquals( expected, dataValueService.getAllDataValues().size() );
     }
 
     private static void assertHasNoConflicts( ImportConflicts summary )
@@ -496,5 +556,15 @@ public class DataValueSetServiceIntegrationTest
         {
             assertEquals( summary.getConflictsDescription(), 0, summary.getConflictCount() );
         }
+    }
+
+    private static void assertSuccessWithImportedUpdatedDeleted( int imported, int updated, int deleted,
+        ImportSummary summary )
+    {
+        assertHasNoConflicts( summary );
+        assertEquals( "unexpected import count", imported, summary.getImportCount().getImported() );
+        assertEquals( "unexpected update count", updated, summary.getImportCount().getUpdated() );
+        assertEquals( "unexpected deleted count", deleted, summary.getImportCount().getDeleted() );
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
     }
 }
