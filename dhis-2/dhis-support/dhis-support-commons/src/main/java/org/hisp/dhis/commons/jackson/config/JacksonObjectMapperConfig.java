@@ -33,7 +33,9 @@ import java.util.Date;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
+import org.hisp.dhis.commons.jsonfiltering.JsonFiltering;
 import org.hisp.dhis.commons.jsonfiltering.web.FieldFilterCustomizer;
+import org.hisp.dhis.commons.jsonfiltering.web.RequestJsonFilteringContextProvider;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.context.annotation.Bean;
@@ -97,19 +99,19 @@ public class JacksonObjectMapperConfig
     @Bean( "jsonMapper" )
     public ObjectMapper jsonMapper( Collection<FieldFilterCustomizer> fieldFilterCustomizers )
     {
-        /*
-         * TODO causes issues with new Field Filtering JsonFiltering.init(
-         * jsonMapper, new RequestJsonFilteringContextProvider(
-         * FIELDS_FILTER_PARAM_NAME, INCLUDE_ALL_FIELDS_FILTER ) {
-         *
-         * @Override protected String customizeFilter( String filter, String
-         * requestUri, Class beanClass ) { return
-         * fieldFilterCustomizers.stream() .filter( fieldFilterCustomizer ->
-         * fieldFilterCustomizer.isApplicable( requestUri, beanClass ) )
-         * .findFirst() .map( fieldFilterCustomizer ->
-         * fieldFilterCustomizer.customize( filter ) ) .orElse(
-         * INCLUDE_ALL_FIELDS_FILTER ); } } );
-         */
+        JsonFiltering.init(
+            jsonMapper, new RequestJsonFilteringContextProvider(
+                FIELDS_FILTER_PARAM_NAME, INCLUDE_ALL_FIELDS_FILTER )
+            {
+                @Override
+                protected String customizeFilter( String filter, String requestUri, Class beanClass )
+                {
+                    return fieldFilterCustomizers.stream()
+                        .filter( fieldFilterCustomizer -> fieldFilterCustomizer.isApplicable( requestUri, beanClass ) )
+                        .findFirst().map( fieldFilterCustomizer -> fieldFilterCustomizer.customize( filter ) ).orElse(
+                            INCLUDE_ALL_FIELDS_FILTER );
+                }
+            } );
 
         return jsonMapper;
     }
