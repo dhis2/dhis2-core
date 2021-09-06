@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +55,7 @@ import org.hisp.dhis.dataset.FormType;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
+import org.hisp.dhis.dxf2.utils.SectionUtils;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -116,6 +118,9 @@ public class LoadFormAction
     {
         this.i18n = i18n;
     }
+
+    @Autowired
+    private SectionUtils sectionUtils;
 
     // -------------------------------------------------------------------------
     // Input
@@ -216,7 +221,7 @@ public class LoadFormAction
         return orderedCategoryCombos;
     }
 
-    private Map<Long, Collection<Long>> sectionCombos = new HashMap<>();
+    private Map<Long, Collection<String>> sectionCombos = new HashMap<>();
 
     private Map<String, Boolean> optionComboAccessMap = new HashMap<>();
 
@@ -225,9 +230,16 @@ public class LoadFormAction
         return optionComboAccessMap;
     }
 
-    public Map<Long, Collection<Long>> getSectionCombos()
+    public Map<Long, Collection<String>> getSectionCombos()
     {
         return sectionCombos;
+    }
+
+    private Map<String, Long> orderedSectionCategoryCombos = new HashMap<>();
+
+    public Map<String, Long> getOrderedSectionCategoryCombos()
+    {
+        return orderedSectionCategoryCombos;
     }
 
     private Map<String, Boolean> greyedFields = new HashMap<>();
@@ -244,7 +256,7 @@ public class LoadFormAction
         return dataSet;
     }
 
-    private Map<String, Collection<DataElement>> sectionCategoryComboDataElements = new HashMap<>();
+    private Map<String, Collection<DataElement>> sectionCategoryComboDataElements = new LinkedHashMap<>();
 
     public Map<String, Collection<DataElement>> getSectionCategoryComboDataElements()
     {
@@ -425,12 +437,12 @@ public class LoadFormAction
 
             organisationUnits.addAll( organisationUnitChildren );
 
-            getSectionForm( dataElements, dataSet );
+            getSectionForm( dataSet );
 
             formType = FormType.SECTION_MULTIORG;
         }
 
-        getSectionForm( dataElements, dataSet );
+        getSectionForm( dataSet );
 
         return formType.toString();
     }
@@ -439,7 +451,7 @@ public class LoadFormAction
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void getSectionForm( Collection<DataElement> dataElements, DataSet dataSet )
+    private void getSectionForm( DataSet dataSet )
     {
         sections = new ArrayList<>( dataSet.getSections() );
 
@@ -449,16 +461,14 @@ public class LoadFormAction
         {
             if ( !section.getCategoryCombos().isEmpty() )
             {
-                List<CategoryCombo> sortedCategoryCombos = getSortedCategoryCombos( section.getCategoryCombos() );
-
-                for ( CategoryCombo categoryCombo : sortedCategoryCombos )
+                if ( section.isDisableDataElementAutoGroup() )
                 {
-                    sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
-                        section.getDataElementsByCategoryCombo( categoryCombo ) );
+                    processSectionForUserOrdering( section );
                 }
-
-                sectionCombos.put( section.getId(),
-                    sortedCategoryCombos.stream().map( CategoryCombo::getId ).collect( Collectors.toList() ) );
+                else
+                {
+                    processSectionForAutoOrdering( section );
+                }
             }
 
             for ( DataElementOperand operand : section.getGreyedFields() )
@@ -470,6 +480,47 @@ public class LoadFormAction
                 }
             }
         }
+    }
+
+    private void processSectionForUserOrdering( Section section )
+    {
+        Map<String, Collection<DataElement>> orderedDataElementsMap = sectionUtils.getOrderedDataElementsMap( section );
+
+        List<String> sectionCategoryCombos = new ArrayList<>();
+
+        for ( Map.Entry<String, Collection<DataElement>> entry : orderedDataElementsMap.entrySet() )
+        {
+            String key = entry.getKey();
+            String[] split = key.split( "-" );
+
+            if ( split.length > 0 )
+            {
+                sectionCategoryComboDataElements.put( section.getId() + "-" + key, entry.getValue() );
+
+                sectionCategoryCombos.add( key );
+
+                orderedSectionCategoryCombos.put( key, Long.parseLong( split[1] ) );
+            }
+        }
+
+        sectionCombos.put( section.getId(), sectionCategoryCombos );
+    }
+
+    private void processSectionForAutoOrdering( Section section )
+    {
+        List<CategoryCombo> sortedCategoryCombos = getSortedCategoryCombos( section.getCategoryCombos() );
+
+        for ( CategoryCombo categoryCombo : sortedCategoryCombos )
+        {
+            sectionCategoryComboDataElements.put( section.getId() + "-" + categoryCombo.getId(),
+                section.getDataElementsByCategoryCombo( categoryCombo ) );
+
+            orderedSectionCategoryCombos.put( String.valueOf( categoryCombo.getId() ), categoryCombo.getId() );
+        }
+
+        sectionCombos.put( section.getId(),
+            sortedCategoryCombos.stream().map( ca -> String.valueOf( ca.getId() ) )
+                .collect( Collectors.toList() ) );
     }
 
     private List<CategoryCombo> getCategoryCombos( List<DataElement> dataElements, DataSet dataSet )
