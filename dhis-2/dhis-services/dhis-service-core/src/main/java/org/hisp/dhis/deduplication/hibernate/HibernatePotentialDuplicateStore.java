@@ -182,7 +182,6 @@ public class HibernatePotentialDuplicateStore
                 // constraint, since hibernate does not respect order.
                 getSession().flush();
 
-                av.setEntityInstance( original );
                 getSession().save( nav );
             } );
     }
