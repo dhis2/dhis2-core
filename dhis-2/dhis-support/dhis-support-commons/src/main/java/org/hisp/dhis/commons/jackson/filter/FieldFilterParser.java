@@ -53,7 +53,7 @@ public class FieldFilterParser
     {
         List<FieldPath> fieldPaths = new ArrayList<>();
         Stack<String> path = new Stack<>();
-        StringBuilder builder = new StringBuilder();
+        StringBuilder tokenBuilder = new StringBuilder();
         List<FieldPathTransformer> fieldPathTransformers = new ArrayList<>();
 
         if ( prefix != null )
@@ -142,36 +142,36 @@ public class FieldFilterParser
             }
             else if ( isFieldSeparator( token ) )
             {
-                fieldPaths.add( getFieldPath( builder, path, fieldPathTransformers ) );
+                fieldPaths.add( getFieldPath( tokenBuilder, path, fieldPathTransformers ) );
 
                 fieldPathTransformers = new ArrayList<>();
-                builder = new StringBuilder();
+                tokenBuilder = new StringBuilder();
             }
             else if ( isBlockStart( token ) )
             {
-                fieldPaths.add( getFieldPath( builder, path, fieldPathTransformers ) );
-                path.push( builder.toString() );
+                fieldPaths.add( getFieldPath( tokenBuilder, path, fieldPathTransformers ) );
+                path.push( tokenBuilder.toString() );
 
                 fieldPathTransformers = new ArrayList<>();
-                builder = new StringBuilder();
+                tokenBuilder = new StringBuilder();
             }
             else if ( isBlockEnd( token ) )
             {
-                fieldPaths.add( getFieldPath( builder, path, fieldPathTransformers ) );
+                fieldPaths.add( getFieldPath( tokenBuilder, path, fieldPathTransformers ) );
                 path.pop();
 
                 fieldPathTransformers = new ArrayList<>();
-                builder = new StringBuilder();
+                tokenBuilder = new StringBuilder();
             }
             else if ( isAlphanumericOrSpecial( token ) )
             {
-                builder.append( token );
+                tokenBuilder.append( token );
             }
         }
 
-        if ( builder.length() > 0 )
+        if ( tokenBuilder.length() > 0 )
         {
-            fieldPaths.add( getFieldPath( builder, path, fieldPathTransformers ) );
+            fieldPaths.add( getFieldPath( tokenBuilder, path, fieldPathTransformers ) );
         }
 
         return fieldPaths;
