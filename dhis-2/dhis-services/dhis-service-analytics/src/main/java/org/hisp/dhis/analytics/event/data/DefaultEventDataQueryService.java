@@ -224,7 +224,7 @@ public class DefaultEventDataQueryService
 
         if ( request.getOutputType() == EventOutputType.ENROLLMENT )
         {
-            if ( request.getStartDate() == null || request.getEndDate() == null )
+            if ( !request.hasStartEndDate() )
             {
                 params.withStartEndDatesForPeriods( false );
             }
