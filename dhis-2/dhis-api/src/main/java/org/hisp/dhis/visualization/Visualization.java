@@ -1736,4 +1736,19 @@ public class Visualization
 
         return join( titleItems, DimensionalObjectUtils.TITLE_ITEM_SEP );
     }
+
+    public boolean isChart()
+    {
+        return type == VisualizationType.LINE ||
+            type == VisualizationType.COLUMN ||
+            type == VisualizationType.BAR ||
+            type == VisualizationType.AREA ||
+            type == VisualizationType.PIE ||
+            type == VisualizationType.STACKED_COLUMN ||
+            type == VisualizationType.STACKED_BAR ||
+            type == VisualizationType.RADAR ||
+            type == VisualizationType.GAUGE ||
+            type == VisualizationType.YEAR_OVER_YEAR_LINE ||
+            type == VisualizationType.YEAR_OVER_YEAR_COLUMN;
+    }
 }

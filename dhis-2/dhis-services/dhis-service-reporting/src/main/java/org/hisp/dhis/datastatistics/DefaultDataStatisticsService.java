@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import static java.util.Calendar.DATE;
+
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -107,7 +109,7 @@ public class DefaultDataStatisticsService
     {
         Calendar cal = Calendar.getInstance();
         cal.setTime( day );
-        cal.add( Calendar.DATE, -1 );
+        cal.add( DATE, -1 );
         Date startDate = cal.getTime();
         Date now = new Date();
         long diff = now.getTime() - startDate.getTime();
