@@ -171,7 +171,7 @@ public class DeduplicationHelper
 
         List<ProgramInstance> enrollments = programInstanceService.getProgramInstances( mergeObject.getEnrollments() );
 
-        if ( enrollments.stream().anyMatch( e -> !aclService.canDataWrite( user, e ) ) )
+        if ( enrollments.stream().anyMatch( e -> !aclService.canDataWrite( user, e.getProgram() ) ) )
         {
             return "Missing data write access to one or more Programs.";
         }
