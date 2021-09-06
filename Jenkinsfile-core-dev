@@ -20,16 +20,9 @@ pipeline {
         AWX_TEMPLATE = 37
         HOST = 'play.dhis2.org'
         INSTANCE_NAME = "${env.GIT_BRANCH == 'master' ? 'dev' : env.GIT_BRANCH + 'dev'}"
-        GITHUB_TOKEN = credentials('github-token')
     }
 
     stages {
-        stage ('Patch') {
-            steps {
-                sh './run-cve-patcher.sh'
-            }
-        }
-
         stage ('Build') {
             steps {
                 echo 'Building DHIS2 ...'
