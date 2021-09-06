@@ -34,6 +34,8 @@
     <property name="renderType" type="jbValueRenderType" column="rendertype" />
 
     <property name="skipSynchronization" column="skipsynchronization" not-null="false" />
+    
+    <property name="skipAnalytics" column="skipanalytics" not-null="true" />
 
   </class>
 
