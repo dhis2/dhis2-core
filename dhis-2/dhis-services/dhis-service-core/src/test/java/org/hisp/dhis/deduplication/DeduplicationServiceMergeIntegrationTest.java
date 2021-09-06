@@ -1,0 +1,162 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.deduplication;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+
+import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserService;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
+
+public class DeduplicationServiceMergeIntegrationTest
+    extends IntegrationTestBase
+{
+    @Autowired
+    private DeduplicationService deduplicationService;
+
+    @Autowired
+    private PotentialDuplicateStore potentialDuplicateStore;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @Autowired
+    private ProgramService programService;
+
+    @Autowired
+    private DeduplicationHelper deduplicationHelper;
+
+    @Override
+    public void setUpTest()
+    {
+        super.userService = this.userService;
+    }
+
+    @Test
+    public void shouldManualMerge()
+    {
+        OrganisationUnit ou = createOrganisationUnit( "OU_A" );
+        organisationUnitService.addOrganisationUnit( ou );
+
+        setUserAndAuthorities( new HashSet<>( Collections.singletonList( ou ) ), UserAuthorityGroup.AUTHORITY_ALL );
+
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+
+        TrackedEntityInstance original = createTrackedEntityInstance( ou );
+        TrackedEntityInstance duplicate = createTrackedEntityInstance( ou );
+
+        original.setTrackedEntityType( trackedEntityType );
+        duplicate.setTrackedEntityType( trackedEntityType );
+
+        trackedEntityInstanceService.addTrackedEntityInstance( original );
+        trackedEntityInstanceService.addTrackedEntityInstance( duplicate );
+
+        Program program = createProgram( 'A' );
+        Program program1 = createProgram( 'B' );
+
+        programService.addProgram( program );
+        programService.addProgram( program1 );
+
+        ProgramInstance programInstance1 = createProgramInstance( program, original, ou );
+        ProgramInstance programInstance2 = createProgramInstance( program1, duplicate, ou );
+
+        programInstanceService.addProgramInstance( programInstance1 );
+        programInstanceService.addProgramInstance( programInstance2 );
+
+        original.getProgramInstances().add( programInstance1 );
+        duplicate.getProgramInstances().add( programInstance2 );
+
+        trackedEntityInstanceService.updateTrackedEntityInstance( original );
+        trackedEntityInstanceService.updateTrackedEntityInstance( duplicate );
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( original.getUid(), duplicate.getUid() );
+        deduplicationService.addPotentialDuplicate( potentialDuplicate );
+
+        DeduplicationMergeParams deduplicationMergeParams = DeduplicationMergeParams.builder()
+            .potentialDuplicate( potentialDuplicate ).original( original )
+            .duplicate( duplicate ).build();
+
+        Date lastUpdatedOriginal = trackedEntityInstanceService
+            .getTrackedEntityInstance( original.getUid() ).getLastUpdated();
+
+        deduplicationService.autoMerge( deduplicationMergeParams );
+
+        assertEquals( deduplicationService
+            .getPotentialDuplicateByUid( potentialDuplicate.getUid() ).getStatus(), DeduplicationStatus.MERGED );
+
+        assertTrue( trackedEntityInstanceService
+            .getTrackedEntityInstance( original.getUid() ).getLastUpdated()
+            .getTime() > lastUpdatedOriginal.getTime() );
+    }
+
+    private void setUserAndAuthorities( HashSet<OrganisationUnit> ou, String... authorities )
+    {
+        User user = createUser( "testUser", authorities );
+
+        MockCurrentUserService currentUserService = new MockCurrentUserService( user );
+        ReflectionTestUtils.setField( potentialDuplicateStore, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( deduplicationHelper, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( deduplicationService, "currentUserService", currentUserService );
+
+        user.setOrganisationUnits( ou );
+    }
+}
