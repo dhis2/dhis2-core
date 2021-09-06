@@ -80,19 +80,19 @@ public class ConfigurationServiceTest
         Configuration config = configurationService.getConfiguration();
 
         assertNull( config.getFeedbackRecipients() );
-        assertNull( config.getOrgUnitMapDefaultGroupSet() );
+        assertNull( config.getFacilityOrgUnitGroupSet() );
 
         config.setFeedbackRecipients( group );
-        config.setOrgUnitMapDefaultGroupSet( groupSet );
+        config.setFacilityOrgUnitGroupSet( groupSet );
 
         configurationService.setConfiguration( config );
 
         config = configurationService.getConfiguration();
 
         assertNotNull( config.getFeedbackRecipients() );
-        assertNotNull( config.getOrgUnitMapDefaultGroupSet() );
+        assertNotNull( config.getFacilityOrgUnitGroupSet() );
         assertEquals( group, config.getFeedbackRecipients() );
-        assertEquals( groupSet, config.getOrgUnitMapDefaultGroupSet() );
+        assertEquals( groupSet, config.getFacilityOrgUnitGroupSet() );
     }
 
     @Test
