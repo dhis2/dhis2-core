@@ -390,16 +390,16 @@ public class ConfigurationController
         return (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
     }
 
-    @GetMapping( "/orgUnitMapDefaultGroupSet" )
-    public @ResponseBody OrganisationUnitGroupSet getOrgUnitMapDefaultGroupSet()
+    @GetMapping( "/facilityOrgUnitGroupSet" )
+    public @ResponseBody OrganisationUnitGroupSet getFacilityOrgUnitGroupSet()
     {
-        return configurationService.getConfiguration().getOrgUnitMapDefaultGroupSet();
+        return configurationService.getConfiguration().getFacilityOrgUnitGroupSet();
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/orgUnitMapDefaultGroupSet" )
+    @PostMapping( "/facilityOrgUnitGroupSet" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setOrgUnitMapDefaultGroupSet( @RequestBody String uid )
+    public void setFacilityOrgUnitGroupSet( @RequestBody String uid )
         throws NotFoundException
     {
         uid = trim( uid );
@@ -413,21 +413,21 @@ public class ConfigurationController
 
         Configuration config = configurationService.getConfiguration();
 
-        config.setOrgUnitMapDefaultGroupSet( groupSet );
+        config.setFacilityOrgUnitGroupSet( groupSet );
 
         configurationService.setConfiguration( config );
     }
 
-    @GetMapping( "/orgUnitMapDefaultLevel" )
-    public @ResponseBody OrganisationUnitLevel getOrgUnitMapDefaultLevel()
+    @GetMapping( "/facilityOrgUnitLevel" )
+    public @ResponseBody OrganisationUnitLevel getFacilityOrgUnitLevel()
     {
-        return configurationService.getConfiguration().getOrgUnitMapDefaultLevel();
+        return configurationService.getConfiguration().getFacilityOrgUnitLevel();
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    @PostMapping( "/orgUnitMapDefaultLevel" )
+    @PostMapping( "/facilityOrgUnitLevel" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void setOrgUnitMapDefaultLevel( @RequestBody String uid )
+    public void setFacilityOrgUnitLevel( @RequestBody String uid )
         throws NotFoundException
     {
         uid = trim( uid );
@@ -441,7 +441,7 @@ public class ConfigurationController
 
         Configuration config = configurationService.getConfiguration();
 
-        config.setOrgUnitMapDefaultLevel( level );
+        config.setFacilityOrgUnitLevel( level );
 
         configurationService.setConfiguration( config );
     }
