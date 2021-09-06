@@ -131,7 +131,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( true );
         when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( true );
         when( aclService.canDataWrite( user, attribute ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programInstance ) ).thenReturn( true );
+        when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( true );
         when( relationshipService.getRelationships( relationshipUids ) ).thenReturn( getRelationships() );
         when( trackedEntityAttributeService.getTrackedEntityAttributes( attributeUids ) ).thenReturn( getAttributes() );
         when( programInstanceService.getProgramInstances( enrollmentUids ) ).thenReturn( getEnrollments() );
@@ -230,7 +230,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     @Test
     public void shouldNotHasUserAccessWhenUserHasNoAccessToProgramInstance()
     {
-        when( aclService.canDataWrite( user, programInstance ) ).thenReturn( false );
+        when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( false );
 
         String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
