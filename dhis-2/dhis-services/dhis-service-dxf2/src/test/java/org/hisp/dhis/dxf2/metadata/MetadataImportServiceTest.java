@@ -780,6 +780,12 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         ProgramStage programStage = program.getProgramStages().iterator().next();
         assertNotNull( programStage.getProgram() );
 
+        assertEquals( 3, programStage.getProgramStageDataElements().size() );
+        programStage.getProgramStageDataElements().forEach( psde -> {
+            assertNotNull( psde.getSkipAnalytics() );
+            assertFalse( psde.getSkipAnalytics() );
+        } );
+
         Set<ProgramStageSection> programStageSections = programStage.getProgramStageSections();
         assertNotNull( programStageSections );
         assertEquals( 2, programStageSections.size() );
