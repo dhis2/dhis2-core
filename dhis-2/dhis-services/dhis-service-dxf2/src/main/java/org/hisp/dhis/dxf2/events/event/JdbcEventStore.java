@@ -481,7 +481,7 @@ public class JdbcEventStore implements EventStore
         if ( !params.isSkipRelationship() )
         {
             final Multimap<String, Relationship> map = eventStore
-                .getRelationshipsByEventIds( Lists.newArrayList( eventUids ) );
+                .getRelationshipsByEventIds( eventUids );
 
             events.stream()
                 .filter( e -> map.containsKey( e.getEvent() ) )
