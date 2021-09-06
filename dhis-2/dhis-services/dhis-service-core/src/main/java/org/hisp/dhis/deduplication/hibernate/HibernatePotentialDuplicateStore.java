@@ -32,7 +32,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -55,7 +54,6 @@ import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
@@ -70,20 +68,16 @@ public class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate>
     implements PotentialDuplicateStore
 {
-    private final RelationshipStore relationshipStore;
-
     private final AuditManager auditManager;
 
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        RelationshipStore relationshipStore, TrackedEntityInstanceStore trackedEntityInstanceStore,
-        AuditManager auditManager )
+        TrackedEntityInstanceStore trackedEntityInstanceStore, AuditManager auditManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
-        this.relationshipStore = relationshipStore;
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.auditManager = auditManager;
     }
@@ -171,48 +165,62 @@ public class HibernatePotentialDuplicateStore
     public void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> trackedEntityAttributes )
     {
-        List<TrackedEntityAttributeValue> attributeValuesToMove = duplicate.getTrackedEntityAttributeValues()
+        duplicate.getTrackedEntityAttributeValues()
             .stream()
             .filter( av -> trackedEntityAttributes.contains( av.getAttribute().getUid() ) )
-            .collect( Collectors.toList() );
-        duplicate.getTrackedEntityAttributeValues().removeAll( attributeValuesToMove );
+            .forEach( av -> {
+                TrackedEntityAttributeValue nav = new TrackedEntityAttributeValue();
 
-        attributeValuesToMove.forEach( av -> av.setEntityInstance( original ) );
+                nav.setAttribute( av.getAttribute() );
+                nav.setEntityInstance( original );
+                nav.setValue( av.getValue() );
 
-        original.getTrackedEntityAttributeValues().addAll( attributeValuesToMove );
+                getSession().delete( av );
+
+                // We need to flush to make sure the previous teav is deleted.
+                // Or else we might end up breaking a
+                // constraint, since hibernate does not respect order.
+                getSession().flush();
+
+                av.setEntityInstance( original );
+                getSession().save( nav );
+            } );
     }
 
     @Override
     public void moveRelationships( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> relationships )
     {
-        List<RelationshipItem> relationshipsToMove = duplicate.getRelationshipItems()
+        duplicate.getRelationshipItems()
             .stream()
             .filter( r -> relationships.contains( r.getRelationship().getUid() ) )
-            .collect( Collectors.toList() );
-        duplicate.getRelationshipItems().removeAll( relationshipsToMove );
-        relationshipsToMove.stream()
-            .forEach( r -> {
-                if ( Objects.equals( r.getTrackedEntityInstance().getUid(), duplicate.getUid() ) )
-                {
-                    r.setTrackedEntityInstance( original );
-                }
+            .forEach( ri -> {
+                ri.setTrackedEntityInstance( original );
+
+                getSession().update( ri );
             } );
-        original.getRelationshipItems().addAll( relationshipsToMove );
     }
 
     @Override
     public void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> enrollments )
     {
-        List<ProgramInstance> programInstancesToMove = duplicate.getProgramInstances()
+        List<ProgramInstance> pis = duplicate.getProgramInstances()
             .stream()
+            .filter( e -> !e.isDeleted() )
             .filter( e -> enrollments.contains( e.getUid() ) )
             .collect( Collectors.toList() );
-        duplicate.getProgramInstances().removeAll( programInstancesToMove );
-        programInstancesToMove
-            .forEach( e -> e.setEntityInstance( original ) );
-        original.getProgramInstances().addAll( programInstancesToMove );
+
+        pis.forEach( duplicate.getProgramInstances()::remove );
+
+        pis.forEach( e -> {
+            e.setEntityInstance( original );
+            getSession().update( e );
+        } );
+
+        // Flush to update records before we delete duplicate, or else it might
+        // be soft-deleted by hibernate.
+        getSession().flush();
     }
 
     @Override
