@@ -40,7 +40,6 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.hisp.dhis.utils.DataGenerator;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,6 +48,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 
@@ -165,7 +165,7 @@ public class PotentialDuplicatesEnrollmentsTests
     public void shouldMergeWithNonSuperUser()
     {
         // arrange
-        String teiB = createTeiWithoutEnrollment();
+        String teiB = createTeiWithoutEnrollment( Constants.ORG_UNIT_IDS[0] );
 
         TrackerApiResponse imported = trackerActions.postAndGetJobReport( trackerActions
             .buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr" ) )
@@ -173,6 +173,8 @@ public class PotentialDuplicatesEnrollmentsTests
 
         String teiA = imported.extractImportedTeis().get( 0 );
         String enrollment = imported.extractImportedEnrollments().get( 0 );
+        assertThat( enrollment, notNullValue() );
+
         String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
 
         String username = createUserWithAccessToMerge();
@@ -203,9 +205,9 @@ public class PotentialDuplicatesEnrollmentsTests
             .validateSuccessfulImport();
     }
 
-    private String createTeiWithoutEnrollment()
+    private String createTeiWithoutEnrollment( String ouId )
     {
-        JsonObject object = trackerActions.buildTei( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] );
+        JsonObject object = trackerActions.buildTei( Constants.TRACKED_ENTITY_TYPE, ouId );
 
         return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
     }

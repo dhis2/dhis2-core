@@ -310,7 +310,7 @@ public class RelationshipsTests
             .validate()
             .statusCode( 404 );
 
-        trackerActions.get( "/trackedEntities/" + teis.get( 0 ) + "?fields=relationships" )
+        trackerActions.getTrackedEntity( teis.get( 0 ) + "?fields=relationships" )
             .validate()
             .body( "relationships", Matchers.empty() );
     }
@@ -442,6 +442,7 @@ public class RelationshipsTests
         }
         }
     }
+
 
     private void validateRelationship( ApiResponse response, String relationshipTypeId, String fromInstance,
         String fromInstanceId,

@@ -79,7 +79,7 @@ public class TeiImportTests
         // assert that the tei was imported
         String teiId = response.extractImportedTeis().get( 0 );
 
-        ApiResponse teiResponse = trackerActions.get( "/trackedEntities/" + teiId );
+        ApiResponse teiResponse = trackerActions.getTrackedEntity( teiId );
 
         teiResponse.validate()
             .statusCode( 200 );
@@ -108,7 +108,7 @@ public class TeiImportTests
         // assert that the TEI was imported
         String teiId = response.extractImportedTeis().get( 0 );
 
-        ApiResponse teiResponse = trackerActions.get( "/trackedEntities/" + teiId );
+        ApiResponse teiResponse = trackerActions.getTrackedEntity( teiId );
 
         teiResponse.validate()
             .statusCode( 200 );
