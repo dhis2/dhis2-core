@@ -72,7 +72,7 @@ public class AccountExpiryAlertJobTest
     {
         // mock normal run conditions
         when( settingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) ).thenReturn( true );
-        when( settingManager.getIntegerSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS ) ).thenReturn( 7 );
+        when( settingManager.getIntSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS ) ).thenReturn( 7 );
     }
 
     @Test

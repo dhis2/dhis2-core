@@ -170,7 +170,7 @@ public interface SystemSettingManager
     @Transactional( readOnly = true )
     default boolean getBoolSetting( SettingKey key )
     {
-        return getSystemSetting( key, Boolean.class );
+        return getSystemSetting( key, Boolean.class ) == Boolean.TRUE;
     }
 
     @Transactional( readOnly = true )
