@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter.transformers;
+package org.hisp.dhis.fieldfiltering.transformers;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -33,7 +33,7 @@ import static org.junit.Assert.assertNull;
 import java.util.Collections;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.commons.jackson.filter.FieldPathTransformer;
+import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

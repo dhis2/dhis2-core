@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter;
+package org.hisp.dhis.fieldfiltering;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -34,11 +34,11 @@ import java.util.Map;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.commons.jackson.filter.transformers.IsEmptyFieldTransformer;
-import org.hisp.dhis.commons.jackson.filter.transformers.IsNotEmptyFieldTransformer;
-import org.hisp.dhis.commons.jackson.filter.transformers.PluckFieldTransformer;
-import org.hisp.dhis.commons.jackson.filter.transformers.RenameFieldTransformer;
-import org.hisp.dhis.commons.jackson.filter.transformers.SizeFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
+import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Component;

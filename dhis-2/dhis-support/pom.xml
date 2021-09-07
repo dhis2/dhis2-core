@@ -26,6 +26,7 @@
         <module>dhis-support-expression-parser</module>
         <module>dhis-support-artemis</module>
         <module>dhis-support-cache-invalidation</module>
+        <module>dhis-support-field-filtering</module>
     </modules>
 
     <properties>

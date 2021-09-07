@@ -25,19 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter;
+package org.hisp.dhis.fieldfiltering.transformers;
 
-import java.util.List;
+import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
-import lombok.Data;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
  */
-@Data
-public class FieldPathTransformer
+public class IsEmptyFieldTransformer implements FieldTransformer
 {
-    private final String name;
+    @Override
+    public JsonNode apply( String path, JsonNode value, JsonNode parent )
+    {
+        if ( !parent.isObject() )
+        {
+            return value;
+        }
 
-    private final List<String> parameters;
+        String fieldName = getFieldName( path );
+
+        if ( value.isArray() )
+        {
+            ((ObjectNode) parent).put( fieldName, value.isEmpty() );
+        }
+
+        return value;
+    }
 }

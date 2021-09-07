@@ -25,18 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter.transformers;
+package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.commons.jackson.filter.FieldTransformer;
+import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
+import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
  */
-public class IsNotEmptyFieldTransformer implements FieldTransformer
+public class PluckFieldTransformer implements FieldTransformer
 {
+    private final FieldPathTransformer fieldPathTransformer;
+
+    public PluckFieldTransformer( FieldPathTransformer fieldPathTransformer )
+    {
+        this.fieldPathTransformer = fieldPathTransformer;
+    }
+
     @Override
     public JsonNode apply( String path, JsonNode value, JsonNode parent )
     {
@@ -45,11 +54,32 @@ public class IsNotEmptyFieldTransformer implements FieldTransformer
             return value;
         }
 
+        String pluckFieldName = "id";
+
+        if ( !fieldPathTransformer.getParameters().isEmpty() )
+        {
+            pluckFieldName = fieldPathTransformer.getParameters().get( 0 );
+        }
+
         String fieldName = getFieldName( path );
 
         if ( value.isArray() )
         {
-            ((ObjectNode) parent).put( fieldName, !value.isEmpty() );
+            ArrayNode arrayNode = ((ArrayNode) value).arrayNode();
+
+            for ( JsonNode node : value )
+            {
+                if ( node.isObject() && node.has( pluckFieldName ) )
+                {
+                    arrayNode.add( node.get( pluckFieldName ) );
+                }
+                else
+                {
+                    arrayNode.add( node );
+                }
+            }
+
+            ((ObjectNode) parent).replace( fieldName, arrayNode );
         }
 
         return value;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter;
+package org.hisp.dhis.fieldfiltering;
 
-import org.springframework.core.Ordered;
+import java.util.List;
+import java.util.Set;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.Builder;
+import lombok.Data;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen
  */
-@FunctionalInterface
-public interface FieldTransformer extends Ordered
+@Data
+@Builder
+public class FieldFilterParams<T>
 {
-    JsonNode apply( String path, JsonNode value, JsonNode parent );
+    private final List<T> objects;
 
-    default String getFieldName( String path )
-    {
-        int idx = path.lastIndexOf( '.' );
-        String key = path;
-
-        if ( idx > -1 )
-        {
-            key = path.substring( idx + 1 );
-        }
-
-        return key;
-    }
-
-    default int getOrder()
-    {
-        return Ordered.HIGHEST_PRECEDENCE;
-    }
+    @Builder.Default
+    private final Set<String> filters = Sets.newHashSet( "*" );
 }

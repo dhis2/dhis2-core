@@ -25,9 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter.transformers;
+package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.commons.jackson.filter.FieldTransformer;
+import org.hisp.dhis.fieldfiltering.FieldTransformer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;

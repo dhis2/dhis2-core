@@ -25,45 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter.transformers;
+package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.commons.jackson.filter.FieldPathTransformer;
-import org.hisp.dhis.commons.jackson.filter.FieldTransformer;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
  */
-public class RenameFieldTransformer implements FieldTransformer
+public class IsNotEmptyFieldFilterTest
 {
-    private final FieldPathTransformer fieldPathTransformer;
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    public RenameFieldTransformer( FieldPathTransformer fieldPathTransformer )
+    @Test
+    public void isEmptyFieldNameTest()
     {
-        this.fieldPathTransformer = fieldPathTransformer;
-    }
+        ObjectNode objectNode = jsonMapper.createObjectNode();
+        objectNode.set( "a", jsonMapper.createArrayNode() );
 
-    @Override
-    public JsonNode apply( String path, JsonNode value, JsonNode parent )
-    {
-        if ( fieldPathTransformer.getParameters().isEmpty() && !parent.isObject() )
-        {
-            return value;
-        }
+        IsNotEmptyFieldTransformer transformer = new IsNotEmptyFieldTransformer();
+        transformer.apply( "a", objectNode.get( "a" ), objectNode );
 
-        String fieldName = getFieldName( path );
-
-        value = ((ObjectNode) parent).remove( fieldName );
-        ((ObjectNode) parent).set( fieldPathTransformer.getParameters().get( 0 ), value );
-
-        return value;
-    }
-
-    @Override
-    public int getOrder()
-    {
-        return 10; // rename needs to happen last
+        assertTrue( objectNode.has( "a" ) );
+        assertTrue( objectNode.get( "a" ).isBoolean() );
+        assertFalse( objectNode.get( "a" ).asBoolean() );
     }
 }

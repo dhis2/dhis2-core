@@ -25,35 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter.transformers;
+package org.hisp.dhis.fieldfiltering;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.junit.Test;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen
  */
-public class IsNotEmptyFieldFilterTest
+@Data
+@AllArgsConstructor
+public class FieldPath
 {
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+    private static final String FIELD_PATH_SEPARATOR = ".";
 
-    @Test
-    public void isEmptyFieldNameTest()
+    /**
+     * Name of field (excluding path).
+     */
+    private final String name;
+
+    /**
+     * Path to reach field name, can be empty for root level fields.
+     */
+    private final List<String> path;
+
+    /**
+     * Transformers to apply to field, can be empty.
+     */
+    private final List<FieldPathTransformer> transformers;
+
+    public FieldPath( String name, List<String> path )
     {
-        ObjectNode objectNode = jsonMapper.createObjectNode();
-        objectNode.set( "a", jsonMapper.createArrayNode() );
+        this.name = name;
+        this.path = path;
+        this.transformers = new ArrayList<>();
+    }
 
-        IsNotEmptyFieldTransformer transformer = new IsNotEmptyFieldTransformer();
-        transformer.apply( "a", objectNode.get( "a" ), objectNode );
-
-        assertTrue( objectNode.has( "a" ) );
-        assertTrue( objectNode.get( "a" ).isBoolean() );
-        assertFalse( objectNode.get( "a" ).asBoolean() );
+    /**
+     * @return Dot separated path + field name (i.e. path.to.field)
+     */
+    public String toFullPath()
+    {
+        return path.isEmpty() ? name : StringUtils.join( path, FIELD_PATH_SEPARATOR ) + FIELD_PATH_SEPARATOR + name;
     }
 }

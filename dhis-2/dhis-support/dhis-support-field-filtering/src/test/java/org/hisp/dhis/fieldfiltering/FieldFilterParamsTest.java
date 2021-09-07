@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter;
+package org.hisp.dhis.fieldfiltering;
 
-import java.util.List;
-import java.util.Set;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import lombok.Builder;
-import lombok.Data;
+import org.junit.Test;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen
  */
-@Data
-@Builder
-public class FieldFilterParams<T>
+public class FieldFilterParamsTest
 {
-    private final List<T> objects;
+    @Test
+    public void testBuilderWithObjectAndFilters()
+    {
+        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
+            .objects( Lists.newArrayList( "A", "B", "C" ) )
+            .filters( Sets.newHashSet( "id", "name" ) )
+            .build();
 
-    @Builder.Default
-    private final Set<String> filters = Sets.newHashSet( "*" );
+        assertTrue( params.getObjects().contains( "A" ) );
+        assertTrue( params.getObjects().contains( "B" ) );
+        assertTrue( params.getObjects().contains( "C" ) );
+
+        assertTrue( params.getFilters().contains( "id" ) );
+        assertTrue( params.getFilters().contains( "name" ) );
+    }
+
+    @Test
+    public void testBuilderWithDefault()
+    {
+        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
+            .objects( Lists.newArrayList( "A", "B", "C" ) )
+            .build();
+
+        assertTrue( params.getObjects().contains( "A" ) );
+        assertTrue( params.getObjects().contains( "B" ) );
+        assertTrue( params.getObjects().contains( "C" ) );
+
+        assertEquals( "*", params.getFilters().iterator().next() );
+    }
 }

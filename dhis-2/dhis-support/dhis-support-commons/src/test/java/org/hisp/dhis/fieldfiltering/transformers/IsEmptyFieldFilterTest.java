@@ -25,33 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.filter.transformers;
+package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.commons.jackson.filter.FieldTransformer;
+import static org.junit.Assert.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
  */
-public class IsEmptyFieldTransformer implements FieldTransformer
+public class IsEmptyFieldFilterTest
 {
-    @Override
-    public JsonNode apply( String path, JsonNode value, JsonNode parent )
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+
+    @Test
+    public void isEmptyFieldNameTest()
     {
-        if ( !parent.isObject() )
-        {
-            return value;
-        }
+        ObjectNode objectNode = jsonMapper.createObjectNode();
+        objectNode.set( "a", jsonMapper.createArrayNode() );
 
-        String fieldName = getFieldName( path );
+        IsEmptyFieldTransformer transformer = new IsEmptyFieldTransformer();
+        transformer.apply( "a", objectNode.get( "a" ), objectNode );
 
-        if ( value.isArray() )
-        {
-            ((ObjectNode) parent).put( fieldName, value.isEmpty() );
-        }
-
-        return value;
+        assertTrue( objectNode.has( "a" ) );
+        assertTrue( objectNode.get( "a" ).isBoolean() );
+        assertTrue( objectNode.get( "a" ).asBoolean() );
     }
 }
