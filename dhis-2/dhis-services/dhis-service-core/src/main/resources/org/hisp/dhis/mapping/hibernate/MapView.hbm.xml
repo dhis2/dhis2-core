@@ -179,6 +179,8 @@
       
     <property name="noDataColor" length="7" />
 
+    <property name="organisationUnitColor" length="7" />
+    
     <property name="radiusLow" />
 
     <property name="radiusHigh" />

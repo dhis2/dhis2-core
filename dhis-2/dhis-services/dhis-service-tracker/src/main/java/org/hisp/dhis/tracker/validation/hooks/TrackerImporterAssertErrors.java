@@ -56,6 +56,8 @@ public class TrackerImporterAssertErrors
 
     public static final String ORGANISATION_UNIT_CANT_BE_NULL = "OrganisationUnit can't be null";
 
+    public static final String OWNER_ORGANISATION_UNIT_CANT_BE_NULL = "Owner OrganisationUnit can't be null";
+
     public static final String TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL = "TrackedEntityAttributeValue can't be null";
 
     public static final String TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL = "TrackedEntityAttribute can't be null";

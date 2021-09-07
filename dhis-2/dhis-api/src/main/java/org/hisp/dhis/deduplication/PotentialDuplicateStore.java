@@ -30,6 +30,7 @@ package org.hisp.dhis.deduplication;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 public interface PotentialDuplicateStore
     extends IdentifiableObjectStore<PotentialDuplicate>
@@ -39,4 +40,16 @@ public interface PotentialDuplicateStore
     List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
 
     boolean exists( PotentialDuplicate potentialDuplicate );
+
+    void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+        List<String> trackedEntityAttributes );
+
+    void moveRelationships( TrackedEntityInstance originalUid, TrackedEntityInstance duplicateUid,
+        List<String> relationships );
+
+    void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate, List<String> enrollments );
+
+    void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance );
+
+    void auditMerge( DeduplicationMergeParams params );
 }

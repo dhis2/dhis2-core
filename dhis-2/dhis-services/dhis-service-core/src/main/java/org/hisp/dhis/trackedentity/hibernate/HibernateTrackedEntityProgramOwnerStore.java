@@ -29,17 +29,20 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 /**
@@ -96,14 +99,39 @@ public class HibernateTrackedEntityProgramOwnerStore
         Query<TrackedEntityProgramOwnerIds> q = getQuery( hql, TrackedEntityProgramOwnerIds.class );
 
         List<TrackedEntityProgramOwnerIds> trackedEntityProgramOwnerIds = new ArrayList<>();
-        for ( List<Long> partition : teiIdsPartitions )
-        {
-            q.setParameterList( "teiIds", partition );
-            q.setParameter( "programId", programId );
 
+        q.setParameter( "programId", programId );
+        teiIdsPartitions.forEach( partition -> {
+            q.setParameterList( "teiIds", partition );
             trackedEntityProgramOwnerIds.addAll( q.list() );
-        }
+        } );
         return trackedEntityProgramOwnerIds;
+    }
+
+    @Override
+    public List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits( Set<Long> teiIds,
+        Set<Long> programIds )
+    {
+        List<TrackedEntityProgramOwnerOrgUnit> trackedEntityProgramOwnerOrgUnits = new ArrayList<>();
+
+        if ( teiIds == null || programIds == null || teiIds.size() == 0 || programIds.size() == 0 )
+        {
+            return trackedEntityProgramOwnerOrgUnits;
+        }
+
+        Iterable<List<Long>> teiIdsPartitions = Iterables.partition( teiIds, 20000 );
+
+        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit( tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id in (:programIds)";
+
+        Query<TrackedEntityProgramOwnerOrgUnit> q = getQuery( hql, TrackedEntityProgramOwnerOrgUnit.class );
+
+        q.setParameter( "programIds", programIds );
+        teiIdsPartitions.forEach( partition -> {
+            q.setParameterList( "teiIds", partition );
+            trackedEntityProgramOwnerOrgUnits.addAll( q.list() );
+        } );
+
+        return trackedEntityProgramOwnerOrgUnits;
     }
 
 }

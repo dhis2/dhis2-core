@@ -63,22 +63,6 @@ public class DimItemDataElementAndOperand
         }
     }
 
-    @Override
-    public String getId( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        if ( isDataElementOperandSyntax( ctx ) )
-        {
-            return ctx.uid0.getText() + "." +
-                (ctx.uid1 == null ? "*" : ctx.uid1.getText()) +
-                (ctx.uid2 == null ? "" : "." + ctx.uid2.getText()) +
-                (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
-        }
-        else // Data element:
-        {
-            return ctx.uid0.getText() + (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------

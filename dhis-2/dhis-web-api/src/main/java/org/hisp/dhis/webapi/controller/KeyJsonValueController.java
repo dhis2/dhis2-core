@@ -91,10 +91,12 @@ public class KeyJsonValueController
         setNoStore( response );
 
         List<String> keys = service.getKeysInNamespace( namespace, lastUpdated );
+
         if ( keys.isEmpty() )
         {
-            throw new NotFoundException( ("The namespace '" + namespace + "' was not found.") );
+            throw new NotFoundException( String.format( "Namespace not found: '%s'", namespace ) );
         }
+
         return keys;
     }
 
@@ -108,12 +110,12 @@ public class KeyJsonValueController
     {
         if ( !service.isUsedNamespace( namespace ) )
         {
-            throw new NotFoundException( ("The namespace '" + namespace + "' was not found.") );
+            throw new NotFoundException( String.format( "Namespace not found: '%s'", namespace ) );
         }
 
         service.deleteNamespace( namespace );
 
-        return ok( "Namespace '" + namespace + "' deleted." );
+        return ok( String.format( "Namespace deleted: '%s'", namespace ) );
     }
 
     /**
@@ -165,7 +167,7 @@ public class KeyJsonValueController
 
         service.addKeyJsonValue( entry );
 
-        return created( "Key '" + key + "' created." );
+        return created( String.format( "Key created: '%s'", key ) );
     }
 
     /**
@@ -182,7 +184,7 @@ public class KeyJsonValueController
 
         service.updateKeyJsonValue( entry );
 
-        return ok( "Key '" + key + "' updated." );
+        return ok( String.format( "Key updated: '%s'", key ) );
     }
 
     /**
@@ -196,17 +198,19 @@ public class KeyJsonValueController
         KeyJsonValue entry = getExistingEntry( namespace, key );
         service.deleteKeyJsonValue( entry );
 
-        return ok( "Key '" + key + "' deleted from namespace '" + namespace + "'." );
+        return ok( String.format( "Key '%s' deleted from namespace '%s'", key, namespace ) );
     }
 
     private KeyJsonValue getExistingEntry( String namespace, String key )
         throws NotFoundException
     {
         KeyJsonValue entry = service.getKeyJsonValue( namespace, key );
+
         if ( entry == null )
         {
-            throw new NotFoundException( "The key '" + key + "' was not found in the namespace '" + namespace + "'." );
+            throw new NotFoundException( String.format( "Key '%s' not found in namespace '%s'", key, namespace ) );
         }
+
         return entry;
     }
 }

@@ -81,7 +81,9 @@ public class ProgramRuleActionController
                 .setDescription( result.getDescription() )
                 .setMessage( i18n.getString( ProgramIndicator.VALID ) );
         }
+
         String description = null;
+
         if ( result.getErrorMessage() != null )
         {
             description = result.getErrorMessage();
@@ -90,7 +92,8 @@ public class ProgramRuleActionController
         {
             description = result.getException().getMessage();
         }
-        return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
+
+        return new DescriptiveWebMessage( Status.ERROR, HttpStatus.CONFLICT )
             .setDescription( description )
             .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
     }
