@@ -162,7 +162,7 @@ public class DataValueSetControllerTest extends DhisControllerConvenienceTest
             POST( "/organisationUnits/",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', 'code':'OU1'}" ) );
 
-        JsonWebMessage response = GET( "/dataValueSets/?inputOrgUnitIdScheme=CODE&idScheme=NAME&orgUnit={ou}", "OU1" )
+        JsonWebMessage response = GET( "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}", "OU1" )
             .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
         assertEquals( String.format( "User is not allowed to view org unit: `%s`", ouId ), response.getMessage() );
     }

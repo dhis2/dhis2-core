@@ -92,31 +92,31 @@ public class DataValueSetUrlParams
      * output)
      */
 
-    private IdentifiableProperty idScheme;
+    private String idScheme;
 
-    private IdentifiableProperty dataElementIdScheme;
+    private String dataElementIdScheme;
 
-    private IdentifiableProperty categoryOptionComboIdScheme;
+    private String categoryOptionComboIdScheme;
 
-    private IdentifiableProperty categoryOptionIdScheme;
+    private String categoryOptionIdScheme;
 
-    private IdentifiableProperty categoryIdScheme;
+    private String categoryIdScheme;
 
-    private IdentifiableProperty orgUnitIdScheme;
+    private String orgUnitIdScheme;
 
-    private IdentifiableProperty programIdScheme;
+    private String programIdScheme;
 
-    private IdentifiableProperty programStageIdScheme;
+    private String programStageIdScheme;
 
-    private IdentifiableProperty trackedEntityIdScheme;
+    private String trackedEntityIdScheme;
 
-    private IdentifiableProperty trackedEntityAttributeIdScheme;
+    private String trackedEntityAttributeIdScheme;
 
-    private IdentifiableProperty dataSetIdScheme;
+    private String dataSetIdScheme;
 
-    private IdentifiableProperty attributeOptionComboIdScheme;
+    private String attributeOptionComboIdScheme;
 
-    private IdentifiableProperty programStageInstanceIdScheme;
+    private String programStageInstanceIdScheme;
 
     public IdSchemes getInputIdSchemes()
     {
@@ -147,12 +147,21 @@ public class DataValueSetUrlParams
         return schemes;
     }
 
-    private static void setNonNull( IdSchemes schemes, IdentifiableProperty idProperty,
+    private static void setNonNull( IdSchemes schemes, IdentifiableProperty property,
         BiFunction<IdSchemes, String, IdSchemes> setter )
     {
-        if ( idProperty != null )
+        if ( property != null )
         {
-            setter.apply( schemes, idProperty.name() );
+            setNonNull( schemes, property.name(), setter );
+        }
+    }
+
+    private static void setNonNull( IdSchemes schemes, String property,
+        BiFunction<IdSchemes, String, IdSchemes> setter )
+    {
+        if ( property != null )
+        {
+            setter.apply( schemes, property );
         }
     }
 }

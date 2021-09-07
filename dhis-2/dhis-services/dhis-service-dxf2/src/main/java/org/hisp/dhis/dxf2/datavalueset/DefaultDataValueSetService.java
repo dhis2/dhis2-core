@@ -199,7 +199,12 @@ public class DefaultDataValueSetService implements DataValueSetService
     // DataValueSet implementation
     // -------------------------------------------------------------------------
 
+    /**
+     * Note that this needs to be RW TX because
+     * {@link PeriodService#reloadIsoPeriods(List)} is RW.
+     */
     @Override
+    @Transactional
     public DataExportParams getFromUrl( DataValueSetUrlParams urlParams )
     {
         DataExportParams params = new DataExportParams();

@@ -445,7 +445,7 @@ public class AdxDataServiceIntegrationTest
             .includeDeleted( true )
             .lastUpdated( now )
             .lastUpdatedDuration( "10d" )
-            .idScheme( IdentifiableProperty.UID )
+            .idScheme( IdentifiableProperty.UID.name() )
             .build() );
 
         assertEquals( expected.toString(), actual.toString() );
