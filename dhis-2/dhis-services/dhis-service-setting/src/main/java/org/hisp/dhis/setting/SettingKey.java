@@ -211,7 +211,7 @@ public enum SettingKey
 
     private final Serializable defaultValue;
 
-    private final Class<?> clazz;
+    private final Class<? extends Serializable> clazz;
 
     private final boolean confidential;
 
@@ -360,7 +360,7 @@ public enum SettingKey
         return defaultValue;
     }
 
-    public Class<?> getClazz()
+    public Class<? extends Serializable> getClazz()
     {
         return clazz;
     }
