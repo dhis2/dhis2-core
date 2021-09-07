@@ -160,7 +160,7 @@ public class AssignValueImplementerTest
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
 
-        when( systemSettingManager.getBoolSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.FALSE );
     }
 
@@ -247,7 +247,7 @@ public class AssignValueImplementerTest
         List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
-        when( systemSettingManager.getBoolSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
 
@@ -335,7 +335,7 @@ public class AssignValueImplementerTest
     @Test
     public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTeiAndCanBeOverwritten()
     {
-        when( systemSettingManager.getBoolSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
         List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
@@ -387,7 +387,7 @@ public class AssignValueImplementerTest
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSet() );
         bundle.setEnrollments( enrollments );
         bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
-        when( systemSettingManager.getBoolSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
         Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
 
