@@ -178,7 +178,7 @@ public class PotentialDuplicatesEnrollmentsTests
         String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
 
         String username = createUserWithAccessToMerge();
-        new LoginActions().loginAsUser( username, userPassword );
+        //new LoginActions().loginAsUser( username, userPassword );
 
         // act
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate ).validate().statusCode( 200 );
