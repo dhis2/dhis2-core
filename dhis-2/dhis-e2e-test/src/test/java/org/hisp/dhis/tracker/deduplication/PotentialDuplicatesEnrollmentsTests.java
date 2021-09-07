@@ -223,11 +223,4 @@ public class PotentialDuplicatesEnrollmentsTests
 
         return username;
     }
-
-    @AfterEach
-    public void afterEach()
-    {
-
-    }
-
 }
