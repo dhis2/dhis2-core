@@ -231,18 +231,8 @@ public class HibernatePotentialDuplicateStore
     @Override
     public void auditMerge( DeduplicationMergeParams params )
     {
-        TrackedEntityInstance original = params.getOriginal();
         TrackedEntityInstance duplicate = params.getDuplicate();
         MergeObject mergeObject = params.getMergeObject();
-
-        auditManager.send( Audit.builder()
-            .auditScope( AuditScope.TRACKER )
-            .auditType( AuditType.UPDATE )
-            .createdAt( LocalDateTime.now() )
-            .object( original )
-            .uid( original.getUid() )
-            .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, original ) )
-            .build() );
 
         mergeObject.getRelationships().forEach( rel -> {
             duplicate.getRelationshipItems().stream()
@@ -258,14 +248,5 @@ public class HibernatePotentialDuplicateStore
                     .auditableEntity( new AuditableEntity( Relationship.class, relationship ) )
                     .build() ) );
         } );
-
-        auditManager.send( Audit.builder()
-            .auditScope( AuditScope.TRACKER )
-            .auditType( AuditType.DELETE )
-            .createdAt( LocalDateTime.now() )
-            .object( duplicate )
-            .uid( duplicate.getUid() )
-            .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, duplicate ) )
-            .build() );
     }
 }
