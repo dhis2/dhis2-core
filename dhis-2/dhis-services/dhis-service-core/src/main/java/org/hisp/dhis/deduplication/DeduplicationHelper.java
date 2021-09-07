@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -54,7 +54,7 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class DeduplicationHelper
 {
     private final CurrentUserService currentUserService;
@@ -67,7 +67,7 @@ public class DeduplicationHelper
 
     private final OrganisationUnitService organisationUnitService;
 
-    private ProgramInstanceService programInstanceService;
+    private final ProgramInstanceService programInstanceService;
 
     public String getInvalidReferenceErrors( DeduplicationMergeParams params )
     {
@@ -224,7 +224,7 @@ public class DeduplicationHelper
 
         List<ProgramInstance> enrollments = programInstanceService.getProgramInstances( mergeObject.getEnrollments() );
 
-        if ( enrollments.stream().anyMatch( e -> !aclService.canDataWrite( user, e ) ) )
+        if ( enrollments.stream().anyMatch( e -> !aclService.canDataWrite( user, e.getProgram() ) ) )
         {
             return "Missing data write access to one or more Programs.";
         }

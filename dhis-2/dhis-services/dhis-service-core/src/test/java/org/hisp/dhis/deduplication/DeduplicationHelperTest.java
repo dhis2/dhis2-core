@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -130,7 +131,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( true );
         when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( true );
         when( aclService.canDataWrite( user, attribute ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programInstance ) ).thenReturn( true );
+        when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( true );
         when( relationshipService.getRelationships( relationshipUids ) ).thenReturn( getRelationships() );
         when( trackedEntityAttributeService.getTrackedEntityAttributes( attributeUids ) ).thenReturn( getAttributes() );
         when( programInstanceService.getProgramInstances( enrollmentUids ) ).thenReturn( getEnrollments() );
@@ -229,7 +230,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     @Test
     public void shouldNotHasUserAccessWhenUserHasNoAccessToProgramInstance()
     {
-        when( aclService.canDataWrite( user, programInstance ) ).thenReturn( false );
+        when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( false );
 
         String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
@@ -322,6 +323,49 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         assertFalse( mergeObject.getTrackedEntityAttributes().isEmpty() );
 
         mergeObject.getTrackedEntityAttributes().forEach( a -> assertEquals( duplicateAttribute.getUid(), a ) );
+    }
+
+    @Test
+    public void testMergeObjectRelationship()
+    {
+        TrackedEntityInstance original = getTeiA();
+
+        TrackedEntityInstance another = getTeiA();
+
+        TrackedEntityInstance duplicate = getTeiA();
+
+        Relationship anotherBaseRelationship = getRelationship();
+
+        RelationshipItem relationshipItemAnotherTo = getRelationshipItem( anotherBaseRelationship, another );
+        RelationshipItem relationshipItemAnotherFrom = getRelationshipItem( anotherBaseRelationship, duplicate );
+
+        Relationship anotherRelationship = getRelationship( relationshipItemAnotherTo, relationshipItemAnotherFrom );
+        RelationshipItem anotherRelationshipItem = getRelationshipItem( anotherRelationship, duplicate );
+
+        duplicate.getRelationshipItems().add( anotherRelationshipItem );
+
+        MergeObject mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+
+        assertTrue( mergeObject.getTrackedEntityAttributes().isEmpty() );
+
+        assertFalse( mergeObject.getRelationships().isEmpty() );
+
+        mergeObject.getRelationships().forEach( r -> assertEquals( anotherRelationship.getUid(), r ) );
+
+        Relationship baseRelationship = getRelationship();
+
+        RelationshipItem relationshipItemTo = getRelationshipItem( baseRelationship, original );
+        RelationshipItem relationshipItemFrom = getRelationshipItem( baseRelationship, duplicate );
+
+        Relationship relationship = getRelationship( relationshipItemTo, relationshipItemFrom );
+        RelationshipItem relationshipItem = getRelationshipItem( relationship, duplicate );
+
+        duplicate.getRelationshipItems().add( relationshipItem );
+
+        mergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
+
+        assertEquals( 1, mergeObject.getRelationships().size() );
+
     }
 
     @Test

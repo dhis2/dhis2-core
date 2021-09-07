@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
@@ -49,7 +49,7 @@ public class DefaultDeduplicationService
 {
     private final PotentialDuplicateStore potentialDuplicateStore;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     private final DeduplicationHelper deduplicationHelper;
 
@@ -220,7 +220,7 @@ public class DefaultDeduplicationService
     {
         original.setLastUpdated( new Date() );
         original.setLastUpdatedBy( currentUserService.getCurrentUser() );
-        trackedEntityInstanceService.updateTrackedEntityInstance( original );
+        trackedEntityInstanceStore.update( original );
     }
 
     private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
