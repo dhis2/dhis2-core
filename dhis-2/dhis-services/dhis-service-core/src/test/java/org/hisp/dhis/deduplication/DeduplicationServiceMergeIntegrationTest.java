@@ -32,7 +32,9 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.mock.MockCurrentUserService;
@@ -42,13 +44,17 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -90,12 +96,12 @@ public class DeduplicationServiceMergeIntegrationTest
     }
 
     @Test
-    public void shouldManualMerge()
+    public void shouldManualMergeWithAuthorityAll()
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
 
-        setUserAndAuthorities( new HashSet<>( Collections.singletonList( ou ) ), UserAuthorityGroup.AUTHORITY_ALL );
+        creteUser( new HashSet<>( Collections.singletonList( ou ) ), UserAuthorityGroup.AUTHORITY_ALL );
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
 
@@ -148,15 +154,105 @@ public class DeduplicationServiceMergeIntegrationTest
             .getTime() > lastUpdatedOriginal.getTime() );
     }
 
-    private void setUserAndAuthorities( HashSet<OrganisationUnit> ou, String... authorities )
+    @Test
+    public void shouldManualMergeWithUserGroupOfProgram()
+    {
+        OrganisationUnit ou = createOrganisationUnit( "OU_A" );
+        organisationUnitService.addOrganisationUnit( ou );
+
+        User user = creteUser( new HashSet<>( Collections.singletonList( ou ) ), "F_TRACKED_ENTITY_MERGE" );
+        Sharing sharing = getUserSharing( user, AccessStringHelper.FULL );
+
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+        trackedEntityType.setSharing( sharing );
+        trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
+
+        TrackedEntityInstance original = createTrackedEntityInstance( ou );
+        TrackedEntityInstance duplicate = createTrackedEntityInstance( ou );
+
+        original.setTrackedEntityType( trackedEntityType );
+        duplicate.setTrackedEntityType( trackedEntityType );
+
+        trackedEntityInstanceService.addTrackedEntityInstance( original );
+        trackedEntityInstanceService.addTrackedEntityInstance( duplicate );
+
+        Program program = createProgram( 'A' );
+        Program program1 = createProgram( 'B' );
+
+        programService.addProgram( program );
+        programService.addProgram( program1 );
+
+        program.setSharing( sharing );
+        program1.setSharing( sharing );
+
+        ProgramInstance programInstance1 = createProgramInstance( program, original, ou );
+        ProgramInstance programInstance2 = createProgramInstance( program1, duplicate, ou );
+
+        programInstanceService.addProgramInstance( programInstance1 );
+        programInstanceService.addProgramInstance( programInstance2 );
+
+        programInstanceService.updateProgramInstance( programInstance1 );
+        programInstanceService.updateProgramInstance( programInstance2 );
+
+        original.getProgramInstances().add( programInstance1 );
+        duplicate.getProgramInstances().add( programInstance2 );
+
+        trackedEntityInstanceService.updateTrackedEntityInstance( original );
+        trackedEntityInstanceService.updateTrackedEntityInstance( duplicate );
+
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( original.getUid(), duplicate.getUid() );
+        deduplicationService.addPotentialDuplicate( potentialDuplicate );
+
+        DeduplicationMergeParams deduplicationMergeParams = DeduplicationMergeParams.builder()
+            .potentialDuplicate( potentialDuplicate ).original( original )
+            .duplicate( duplicate ).build();
+
+        Date lastUpdatedOriginal = trackedEntityInstanceService
+            .getTrackedEntityInstance( original.getUid() ).getLastUpdated();
+
+        deduplicationService.autoMerge( deduplicationMergeParams );
+
+        assertEquals( deduplicationService
+            .getPotentialDuplicateByUid( potentialDuplicate.getUid() ).getStatus(), DeduplicationStatus.MERGED );
+
+        assertTrue( trackedEntityInstanceService
+            .getTrackedEntityInstance( original.getUid() ).getLastUpdated()
+            .getTime() > lastUpdatedOriginal.getTime() );
+    }
+
+    private Sharing getUserSharing( User user, String accessStringHelper )
+    {
+        UserGroup userGroup = new UserGroup();
+        userGroup.setAutoFields();
+
+        user.getGroups().add( userGroup );
+
+        Map<String, org.hisp.dhis.user.sharing.UserAccess> userSharing = new HashMap<>();
+        userSharing.put( user.getUid(), new org.hisp.dhis.user.sharing.UserAccess( user, AccessStringHelper.DEFAULT ) );
+
+        Map<String, UserGroupAccess> userGroupSharing = new HashMap<>();
+        userGroupSharing.put( userGroup.getUid(), new UserGroupAccess( userGroup, accessStringHelper ) );
+
+        return Sharing.builder()
+            .external( false )
+            .publicAccess( AccessStringHelper.DEFAULT )
+            .owner( "testOwner" )
+            .userGroups( userGroupSharing )
+            .users( userSharing ).build();
+    }
+
+    private User creteUser( HashSet<OrganisationUnit> ou, String... authorities )
     {
         User user = createUser( "testUser", authorities );
+        user.setOrganisationUnits( ou );
 
         MockCurrentUserService currentUserService = new MockCurrentUserService( user );
         ReflectionTestUtils.setField( potentialDuplicateStore, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( deduplicationHelper, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( deduplicationService, "currentUserService", currentUserService );
 
-        user.setOrganisationUnits( ou );
+        return user;
     }
 }
