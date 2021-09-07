@@ -34,9 +34,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletRegistration;
 import javax.servlet.SessionTrackingMode;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -51,6 +48,8 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.DispatcherServlet;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Order( 10 )
 @Slf4j
@@ -103,9 +102,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
             .addMappingForUrlPatterns( null, true, "/*" );
 
         context.addFilter( "AppOverrideFilter", new DelegatingFilterProxy( "appOverrideFilter" ) )
-            .addMappingForUrlPatterns( null, true, "/*" );
-
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
             .addMappingForUrlPatterns( null, true, "/*" );
 
         context.addListener( new StartupListener() );
