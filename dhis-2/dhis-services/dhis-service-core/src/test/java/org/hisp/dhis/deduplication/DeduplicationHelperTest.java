@@ -539,4 +539,32 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         return createUser( 'A', Lists.newArrayList( "USELESS_AUTH" ) );
     }
 
+    private Relationship getRelationship()
+    {
+        Relationship relationship = new Relationship();
+        relationship.setAutoFields();
+        relationship.setRelationshipType( relationshipType );
+
+        return relationship;
+    }
+
+    private Relationship getRelationship( RelationshipItem to, RelationshipItem from )
+    {
+        Relationship relationship = getRelationship();
+        relationship.setTo( to );
+        relationship.setFrom( from );
+
+        return relationship;
+    }
+
+    private RelationshipItem getRelationshipItem( Relationship relationship,
+        TrackedEntityInstance trackedEntityInstance )
+    {
+        RelationshipItem relationshipItem = new RelationshipItem();
+        relationshipItem.setRelationship( relationship );
+        relationshipItem.setTrackedEntityInstance( trackedEntityInstance );
+
+        return relationshipItem;
+    }
+
 }
