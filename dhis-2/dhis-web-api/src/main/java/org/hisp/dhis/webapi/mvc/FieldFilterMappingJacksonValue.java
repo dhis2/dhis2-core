@@ -29,12 +29,15 @@ package org.hisp.dhis.webapi.mvc;
 
 import java.util.Set;
 
-import org.hisp.dhis.commons.jackson.filter.FieldFilterParser;
-import org.hisp.dhis.commons.jackson.filter.FieldFilterSimpleBeanPropertyFilter;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldFilterSimpleBeanPropertyFilter;
 import org.springframework.http.converter.json.MappingJacksonValue;
 
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
+/**
+ * @author Morten Olav Hansen
+ */
 public class FieldFilterMappingJacksonValue extends MappingJacksonValue
 {
     public FieldFilterMappingJacksonValue( final Object value, String prefix, Set<String> fieldFilters )
