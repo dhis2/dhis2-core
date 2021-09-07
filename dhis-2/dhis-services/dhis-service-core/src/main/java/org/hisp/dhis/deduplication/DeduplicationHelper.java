@@ -38,6 +38,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -66,7 +67,7 @@ public class DeduplicationHelper
 
     private ProgramInstanceService programInstanceService;
 
-    public boolean hasInvalidReference( DeduplicationMergeParams params )
+    public String getInvalidReferenceErrors( DeduplicationMergeParams params )
     {
         TrackedEntityInstance original = params.getOriginal();
         TrackedEntityInstance duplicate = params.getDuplicate();
@@ -82,7 +83,7 @@ public class DeduplicationHelper
         {
             if ( !validTrackedEntityAttributes.contains( tea ) )
             {
-                return true;
+                return "Invalid attribute '" + tea + "'";
             }
         }
 
@@ -90,7 +91,7 @@ public class DeduplicationHelper
         {
             if ( original.getUid().equals( rel ) || !validRelationships.contains( rel ) )
             {
-                return true;
+                return "Invalid relationship '" + rel + "'";
             }
         }
 
@@ -103,11 +104,12 @@ public class DeduplicationHelper
         {
             if ( programs.contains( programInstance.getProgram().getUid() ) )
             {
-                return true;
+                return "Invalid enrollment '" + programInstance.getUid() +
+                    "'. Can not merge when both tracked entities are enrolled in the same program.";
             }
         }
 
-        return false;
+        return null;
     }
 
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
@@ -131,32 +133,32 @@ public class DeduplicationHelper
             .build();
     }
 
-    public boolean hasUserAccess( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+    public String getUserAccessErrors( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         MergeObject mergeObject )
     {
         User user = currentUserService.getCurrentUser();
 
         if ( user == null || !(user.isAuthorized( "ALL" ) || user.isAuthorized( "F_TRACKED_ENTITY_MERGE" )) )
         {
-            return false;
+            return "Missing required authority for merging tracked entities.";
         }
 
         if ( !aclService.canDataWrite( user, original.getTrackedEntityType() ) ||
             !aclService.canDataWrite( user, duplicate.getTrackedEntityType() ) )
         {
-            return false;
+            return "Missing data write access to Tracked Entity Type.";
         }
 
         List<RelationshipType> relationshipTypes = relationshipService
             .getRelationships( mergeObject.getRelationships() )
             .stream()
-            .map( r -> r.getRelationshipType() )
+            .map( Relationship::getRelationshipType )
             .distinct()
             .collect( Collectors.toList() );
 
         if ( relationshipTypes.stream().anyMatch( rt -> !aclService.canDataWrite( user, rt ) ) )
         {
-            return false;
+            return "Missing data write access to one or more Relationship Types.";
         }
 
         List<TrackedEntityAttribute> trackedEntityAttributes = trackedEntityAttributeService
@@ -164,23 +166,23 @@ public class DeduplicationHelper
 
         if ( trackedEntityAttributes.stream().anyMatch( attr -> !aclService.canDataWrite( user, attr ) ) )
         {
-            return false;
+            return "Missing data write access to one or more Tracked Entity Attributes.";
         }
 
         List<ProgramInstance> enrollments = programInstanceService.getProgramInstances( mergeObject.getEnrollments() );
 
         if ( enrollments.stream().anyMatch( e -> !aclService.canDataWrite( user, e ) ) )
         {
-            return false;
+            return "Missing data write access to one or more Programs.";
         }
 
         if ( !organisationUnitService.isInUserHierarchyCached( user, original.getOrganisationUnit() ) ||
             !organisationUnitService.isInUserHierarchyCached( user, duplicate.getOrganisationUnit() ) )
         {
-            return false;
+            return "Missing access to organisation unit of one or both entities.";
         }
 
-        return true;
+        return null;
     }
 
     private List<String> getMergeableAttributes( TrackedEntityInstance original, TrackedEntityInstance duplicate )
@@ -239,6 +241,7 @@ public class DeduplicationHelper
 
         Set<String> programs = original.getProgramInstances()
             .stream()
+            .filter( e -> !e.isDeleted() )
             .map( e -> e.getProgram().getUid() )
             .collect( Collectors.toSet() );
 

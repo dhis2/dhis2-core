@@ -25,31 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.program;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dataelement.DataElement;
+import org.junit.Test;
 
-public interface PotentialDuplicateStore
-    extends IdentifiableObjectStore<PotentialDuplicate>
+/**
+ * @author Lars Helge Overland
+ */
+public class ProgramTest
 {
-    int getCountByQuery( PotentialDuplicateQuery query );
+    @Test
+    public void testGetAnalyticsDataElements()
+    {
+        DataElement deA = new DataElement( "DataElementA" );
+        deA.setAutoFields();
+        DataElement deB = new DataElement( "DataElementA" );
+        deB.setAutoFields();
+        Program prA = new Program( "ProgramA" );
+        prA.setAutoFields();
 
-    List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
+        ProgramStage psA = new ProgramStage( "ProgramStageA", prA );
+        psA.setAutoFields();
+        prA.getProgramStages().add( psA );
+        ProgramStageDataElement psdeA = new ProgramStageDataElement( psA, deA );
+        psdeA.setSkipAnalytics( false );
+        ProgramStageDataElement psdeB = new ProgramStageDataElement( psA, deB );
+        psdeB.setSkipAnalytics( true );
+        psA.getProgramStageDataElements().add( psdeA );
+        psA.getProgramStageDataElements().add( psdeB );
 
-    boolean exists( PotentialDuplicate potentialDuplicate );
-
-    void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
-        List<String> trackedEntityAttributes );
-
-    void moveRelationships( TrackedEntityInstance originalUid, TrackedEntityInstance duplicateUid,
-        List<String> relationships );
-
-    void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate, List<String> enrollments );
-
-    void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance );
-
-    void auditMerge( DeduplicationMergeParams params );
+        assertEquals( 2, prA.getDataElements().size() );
+        assertTrue( prA.getDataElements().contains( deA ) );
+        assertTrue( prA.getDataElements().contains( deB ) );
+        assertEquals( 1, prA.getAnalyticsDataElements().size() );
+        assertTrue( prA.getDataElements().contains( deA ) );
+    }
 }

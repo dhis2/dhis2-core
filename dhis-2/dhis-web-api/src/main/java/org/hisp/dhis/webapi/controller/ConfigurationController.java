@@ -46,6 +46,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -140,7 +141,8 @@ public class ConfigurationController
     public void setFeedbackRecipients( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         UserGroup group = identifiableObjectManager.get( UserGroup.class, uid );
 
         if ( group == null )
@@ -180,7 +182,8 @@ public class ConfigurationController
     public void setOfflineOrganisationUnitLevel( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         OrganisationUnitLevel organisationUnitLevel = identifiableObjectManager.get( OrganisationUnitLevel.class, uid );
 
         if ( organisationUnitLevel == null )
@@ -219,7 +222,8 @@ public class ConfigurationController
     public void setInfrastructuralIndicators( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         IndicatorGroup group = identifiableObjectManager.get( IndicatorGroup.class, uid );
 
         if ( group == null )
@@ -246,7 +250,8 @@ public class ConfigurationController
     public void setInfrastructuralDataElements( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         DataElementGroup group = identifiableObjectManager.get( DataElementGroup.class, uid );
 
         if ( group == null )
@@ -265,6 +270,7 @@ public class ConfigurationController
     public @ResponseBody BaseIdentifiableObject getInfrastructuralPeriodType( Model model, HttpServletRequest request )
     {
         String name = configurationService.getConfiguration().getInfrastructuralPeriodTypeDefaultIfNull().getName();
+
         return new BaseIdentifiableObject( name, name, name );
     }
 
@@ -274,7 +280,8 @@ public class ConfigurationController
     public void setInfrastructuralPeriodType( @RequestBody String name )
         throws NotFoundException
     {
-        name = StringUtils.remove( name, "\"" );
+        name = trim( name );
+
         PeriodType periodType = PeriodType.getPeriodTypeByName( name );
 
         if ( periodType == null )
@@ -303,7 +310,8 @@ public class ConfigurationController
     public void setSelfRegistrationRole( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         UserAuthorityGroup userGroup = identifiableObjectManager.get( UserAuthorityGroup.class, uid );
 
         if ( userGroup == null )
@@ -342,7 +350,8 @@ public class ConfigurationController
     public void setSelfRegistrationOrgUnit( @RequestBody String uid )
         throws NotFoundException
     {
-        uid = StringUtils.remove( uid, "\"" );
+        uid = trim( uid );
+
         OrganisationUnit orgunit = identifiableObjectManager.get( OrganisationUnit.class, uid );
 
         if ( orgunit == null )
@@ -381,6 +390,62 @@ public class ConfigurationController
         return (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
     }
 
+    @GetMapping( "/facilityOrgUnitGroupSet" )
+    public @ResponseBody OrganisationUnitGroupSet getFacilityOrgUnitGroupSet()
+    {
+        return configurationService.getConfiguration().getFacilityOrgUnitGroupSet();
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @PostMapping( "/facilityOrgUnitGroupSet" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void setFacilityOrgUnitGroupSet( @RequestBody String uid )
+        throws NotFoundException
+    {
+        uid = trim( uid );
+
+        OrganisationUnitGroupSet groupSet = identifiableObjectManager.get( OrganisationUnitGroupSet.class, uid );
+
+        if ( groupSet == null )
+        {
+            throw new NotFoundException( "Organisation unit group sets", uid );
+        }
+
+        Configuration config = configurationService.getConfiguration();
+
+        config.setFacilityOrgUnitGroupSet( groupSet );
+
+        configurationService.setConfiguration( config );
+    }
+
+    @GetMapping( "/facilityOrgUnitLevel" )
+    public @ResponseBody OrganisationUnitLevel getFacilityOrgUnitLevel()
+    {
+        return configurationService.getConfiguration().getFacilityOrgUnitLevel();
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @PostMapping( "/facilityOrgUnitLevel" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void setFacilityOrgUnitLevel( @RequestBody String uid )
+        throws NotFoundException
+    {
+        uid = trim( uid );
+
+        OrganisationUnitLevel level = identifiableObjectManager.get( OrganisationUnitLevel.class, uid );
+
+        if ( level == null )
+        {
+            throw new NotFoundException( "Organisation unit level", uid );
+        }
+
+        Configuration config = configurationService.getConfiguration();
+
+        config.setFacilityOrgUnitLevel( level );
+
+        configurationService.setConfiguration( config );
+    }
+
     @GetMapping( value = "/corsWhitelist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody Set<String> getCorsWhitelist( Model model, HttpServletRequest request )
     {
@@ -413,5 +478,16 @@ public class ConfigurationController
     public @ResponseBody String getAppHubUrl( Model model, HttpServletRequest request )
     {
         return appManager.getAppHubUrl();
+    }
+
+    /**
+     * Trims the given string payload by removing double qoutes.
+     *
+     * @param string the string.
+     * @return a trimmed string.
+     */
+    private String trim( String string )
+    {
+        return StringUtils.remove( string, "\"" );
     }
 }

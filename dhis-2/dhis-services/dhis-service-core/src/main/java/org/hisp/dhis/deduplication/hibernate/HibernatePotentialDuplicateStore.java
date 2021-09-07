@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -51,12 +52,14 @@ import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -92,7 +95,7 @@ public class HibernatePotentialDuplicateStore
 
         return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
             Query<Long> hibernateQuery = getTypedQuery(
-                queryString + " and ( pr.teiA in (:uids) or pr.teiB in (:uids) )" );
+                queryString + " and ( pr.original in (:uids) or pr.duplicate in (:uids) )" );
 
             hibernateQuery.setParameterList( "uids", teis );
 
@@ -116,7 +119,7 @@ public class HibernatePotentialDuplicateStore
 
         return Optional.ofNullable( query.getTeis() ).filter( teis -> !teis.isEmpty() ).map( teis -> {
             Query<PotentialDuplicate> hibernateQuery = getTypedQuery(
-                queryString + " and ( pr.teiA in (:uids) or pr.teiB in (:uids) )" );
+                queryString + " and ( pr.original in (:uids) or pr.duplicate in (:uids) )" );
 
             hibernateQuery.setParameterList( "uids", teis );
 
@@ -150,91 +153,66 @@ public class HibernatePotentialDuplicateStore
     @SuppressWarnings( "unchecked" )
     public boolean exists( PotentialDuplicate potentialDuplicate )
     {
-        if ( potentialDuplicate.getTeiA() == null || potentialDuplicate.getTeiB() == null )
+        if ( potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null )
             throw new PotentialDuplicateConflictException(
-                "Can't search for pair of potential duplicates: teiA and teiB must not be null" );
+                "Can't search for pair of potential duplicates: original and duplicate must not be null" );
 
         NativeQuery<BigInteger> query = getSession()
             .createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +
-                "where (pd.teiA = :teia and pd.teiB = :teib) or (pd.teiA = :teib and pd.teiB = :teia)" );
+                "where (pd.teia = :original and pd.teib = :duplicate) or (pd.teia = :duplicate and pd.teib = :original)" );
 
-        query.setParameter( "teia", potentialDuplicate.getTeiA() );
-        query.setParameter( "teib", potentialDuplicate.getTeiB() );
+        query.setParameter( "original", potentialDuplicate.getOriginal() );
+        query.setParameter( "duplicate", potentialDuplicate.getDuplicate() );
 
         return query.getSingleResult().intValue() != 0;
     }
 
     @Override
-    public void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
+    public void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> trackedEntityAttributes )
     {
+        List<TrackedEntityAttributeValue> attributeValuesToMove = duplicate.getTrackedEntityAttributeValues()
+            .stream()
+            .filter( av -> trackedEntityAttributes.contains( av.getAttribute().getUid() ) )
+            .collect( Collectors.toList() );
+        duplicate.getTrackedEntityAttributeValues().removeAll( attributeValuesToMove );
 
-        String removeOldValuesSQL = "DELETE FROM trackedentityattributevalue "
-            + "WHERE trackedentityinstanceid = ("
-            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
-            + ") AND trackedentityattributeid IN ("
-            + "SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid IN (:teas)"
-            + ")";
+        attributeValuesToMove.forEach( av -> av.setEntityInstance( original ) );
 
-        String moveNewValuesSQL = "UPDATE trackedentityattributevalue "
-            + "SET trackedentityinstanceid = ("
-            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
-            + ") WHERE trackedentityinstanceid = ("
-            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
-            + ") AND trackedentityattributeid IN ("
-            + "SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid IN (:teas)"
-            + ")";
-
-        getSession()
-            .createNativeQuery( removeOldValuesSQL )
-            .setParameter( "original", originalUid )
-            .setParameterList( "teas", trackedEntityAttributes )
-            .executeUpdate();
-
-        getSession()
-            .createNativeQuery( moveNewValuesSQL )
-            .setParameter( "original", originalUid )
-            .setParameter( "duplicate", duplicateUid )
-            .setParameterList( "teas", trackedEntityAttributes )
-            .executeUpdate();
+        original.getTrackedEntityAttributeValues().addAll( attributeValuesToMove );
     }
 
     @Override
-    public void moveRelationships( String originalUid, String duplicateUid, List<String> relationships )
+    public void moveRelationships( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+        List<String> relationships )
     {
-        String moveRelationshipsSQL = "UPDATE relationshipitem "
-            + "SET trackedentityinstanceid = ("
-            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
-            + ") WHERE trackedentityinstanceid = ("
-            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
-            + ") AND relationshipid IN ("
-            + "SELECT relationshipid FROM relationship WHERE uid IN (:relationships)"
-            + ")";
-
-        getSession()
-            .createNativeQuery( moveRelationshipsSQL )
-            .setParameter( "original", originalUid )
-            .setParameter( "duplicate", duplicateUid )
-            .setParameterList( "relationships", relationships )
-            .executeUpdate();
+        List<RelationshipItem> relationshipsToMove = duplicate.getRelationshipItems()
+            .stream()
+            .filter( r -> relationships.contains( r.getRelationship().getUid() ) )
+            .collect( Collectors.toList() );
+        duplicate.getRelationshipItems().removeAll( relationshipsToMove );
+        relationshipsToMove.stream()
+            .forEach( r -> {
+                if ( Objects.equals( r.getTrackedEntityInstance().getUid(), duplicate.getUid() ) )
+                {
+                    r.setTrackedEntityInstance( original );
+                }
+            } );
+        original.getRelationshipItems().addAll( relationshipsToMove );
     }
 
     @Override
-    public void moveEnrollments( String originalUid, String duplicateUid, List<String> enrollments )
+    public void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+        List<String> enrollments )
     {
-        String moveEnrollmentsSQL = "UPDATE programinstance "
-            + "SET trackedentityinstanceid = ("
-            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :original"
-            + ") WHERE trackedentityinstanceid = ("
-            + "SELECT trackedentityinstanceid FROM trackedentityinstance WHERE uid = :duplicate"
-            + ") AND uid IN (:enrollments)";
-
-        getSession()
-            .createNativeQuery( moveEnrollmentsSQL )
-            .setParameter( "original", originalUid )
-            .setParameter( "duplicate", duplicateUid )
-            .setParameterList( "enrollments", enrollments )
-            .executeUpdate();
+        List<ProgramInstance> programInstancesToMove = duplicate.getProgramInstances()
+            .stream()
+            .filter( e -> enrollments.contains( e.getUid() ) )
+            .collect( Collectors.toList() );
+        duplicate.getProgramInstances().removeAll( programInstancesToMove );
+        programInstancesToMove
+            .forEach( e -> e.setEntityInstance( original ) );
+        original.getProgramInstances().addAll( programInstancesToMove );
     }
 
     @Override

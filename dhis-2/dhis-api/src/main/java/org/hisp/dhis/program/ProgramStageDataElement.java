@@ -52,8 +52,7 @@ public class ProgramStageDataElement
     private DataElement dataElement;
 
     /**
-     * True if this dataElement is mandatory in the dataEntryForm for this
-     * programStage
+     * Whether data element is mandatory for program stage.
      */
     private boolean compulsory = false;
 
@@ -63,18 +62,25 @@ public class ProgramStageDataElement
 
     private Boolean displayInReports = false;
 
+    /**
+     * Whether to allow capture of events in the future.
+     */
     private Boolean allowFutureDate = false;
 
     // Remove this in the future, will be replaced by renderType
     private Boolean renderOptionsAsRadio = false;
 
-    /**
-     * The renderType defines how the ProgramStageSection should be rendered on
-     * the client
-     */
     private DeviceRenderTypeMap<ValueTypeRenderingObject> renderType;
 
+    /**
+     * Whether to skip data element in data synchronization.
+     */
     private Boolean skipSynchronization = false;
+
+    /**
+     * Whether to skip data element in analytics tables and queries, not null.
+     */
+    private Boolean skipAnalytics = false;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -231,6 +237,18 @@ public class ProgramStageDataElement
     public void setSkipSynchronization( Boolean skipSynchronization )
     {
         this.skipSynchronization = skipSynchronization;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Boolean getSkipAnalytics()
+    {
+        return skipAnalytics;
+    }
+
+    public void setSkipAnalytics( Boolean skipAnalytics )
+    {
+        this.skipAnalytics = skipAnalytics;
     }
 
     // -------------------------------------------------------------------------
