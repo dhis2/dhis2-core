@@ -181,7 +181,7 @@ public class HibernatePotentialDuplicateStore
             .filter( av -> trackedEntityAttributes.contains( av.getAttribute().getUid() ) )
             .forEach( av -> {
 
-                TrackedEntityAttributeValue updatedTeav = null;
+                TrackedEntityAttributeValue updatedTeav;
                 if ( originalAttributeValueMap.containsKey( av.getAttribute().getUid() ) )
                 {
                     // Teav exists in original, overwrite the value
