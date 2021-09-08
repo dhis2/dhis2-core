@@ -72,7 +72,7 @@ public class PotentialDuplicatesApiTest
     {
         String username = DataGenerator.randomString();
         String auth = new UserRoleActions().createWithAuthorities( MERGE_AUTHORITY );
-        String userid = new UserActions().addUser( username, USER_PASSWORD );
+        String userid = userActions.addUser( username, USER_PASSWORD );
 
         userActions.addRoleToUser( userid, auth );
         userActions.grantUserAccessToTAOrgUnits( userid );
