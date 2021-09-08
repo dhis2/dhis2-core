@@ -91,7 +91,7 @@
         foreign-key="fk_userteisearchorgunits_organisationunitid" />
     </set>
 
-    <many-to-one name="dataViewMaxOrganisationUnitLevel" column="dataviewmaxorgunitlevelid" />
+    <many-to-one name="dataViewMaxOrganisationUnitLevel" column="dataviewmaxorgunitlevel" />
 
     <!-- Dynamic attribute values -->
 
