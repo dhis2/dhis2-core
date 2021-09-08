@@ -44,7 +44,6 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -212,14 +211,6 @@ public class DeduplicationHelper
         if ( relationshipTypes.stream().anyMatch( rt -> !aclService.canDataWrite( user, rt ) ) )
         {
             return "Missing data write access to one or more Relationship Types.";
-        }
-
-        List<TrackedEntityAttribute> trackedEntityAttributes = trackedEntityAttributeService
-            .getTrackedEntityAttributes( mergeObject.getTrackedEntityAttributes() );
-
-        if ( trackedEntityAttributes.stream().anyMatch( attr -> !aclService.canDataWrite( user, attr ) ) )
-        {
-            return "Missing data write access to one or more Tracked Entity Attributes.";
         }
 
         List<ProgramInstance> enrollments = programInstanceService.getProgramInstances( mergeObject.getEnrollments() );
