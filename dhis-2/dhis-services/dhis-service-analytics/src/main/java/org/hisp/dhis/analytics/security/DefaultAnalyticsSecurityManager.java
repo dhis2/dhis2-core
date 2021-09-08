@@ -146,8 +146,6 @@ public class DefaultAnalyticsSecurityManager
             {
                 throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
             }
-
-            queryOrgUnit.getLevel();
         }
     }
 
