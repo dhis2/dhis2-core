@@ -87,9 +87,9 @@ public class Configuration
 
     private OrganisationUnit selfRegistrationOrgUnit;
 
-    private OrganisationUnitGroupSet orgUnitMapDefaultGroupSet;
+    private OrganisationUnitGroupSet facilityOrgUnitGroupSet;
 
-    private OrganisationUnitLevel orgUnitMapDefaultLevel;
+    private OrganisationUnitLevel facilityOrgUnitLevel;
 
     private Set<String> corsWhitelist = new HashSet<>();
 
@@ -236,27 +236,27 @@ public class Configuration
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnitGroupSet getOrgUnitMapDefaultGroupSet()
+    public OrganisationUnitGroupSet getFacilityOrgUnitGroupSet()
     {
-        return orgUnitMapDefaultGroupSet;
+        return facilityOrgUnitGroupSet;
     }
 
-    public void setOrgUnitMapDefaultGroupSet( OrganisationUnitGroupSet orgUnitMapDefaultGroupSet )
+    public void setFacilityOrgUnitGroupSet( OrganisationUnitGroupSet facilityOrgUnitGroupSet )
     {
-        this.orgUnitMapDefaultGroupSet = orgUnitMapDefaultGroupSet;
+        this.facilityOrgUnitGroupSet = facilityOrgUnitGroupSet;
     }
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnitLevel getOrgUnitMapDefaultLevel()
+    public OrganisationUnitLevel getFacilityOrgUnitLevel()
     {
-        return orgUnitMapDefaultLevel;
+        return facilityOrgUnitLevel;
     }
 
-    public void setOrgUnitMapDefaultLevel( OrganisationUnitLevel orgUnitMapDefaultLevel )
+    public void setFacilityOrgUnitLevel( OrganisationUnitLevel facilityOrgUnitLevel )
     {
-        this.orgUnitMapDefaultLevel = orgUnitMapDefaultLevel;
+        this.facilityOrgUnitLevel = facilityOrgUnitLevel;
     }
 
     @JsonProperty
