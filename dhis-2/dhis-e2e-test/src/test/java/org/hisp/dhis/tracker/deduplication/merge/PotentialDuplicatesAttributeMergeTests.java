@@ -76,7 +76,7 @@ public class PotentialDuplicatesAttributeMergeTests
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate )
             .validate().statusCode( 200 );
 
-        trackerActions.get( "/trackedEntities/" + teiA )
+        trackerActions.getTrackedEntity( teiA )
             .validate()
             .body( "attributes", hasSize( 2 ) );
     }
@@ -93,7 +93,7 @@ public class PotentialDuplicatesAttributeMergeTests
             new JsonObjectBuilder().addArray( "trackedEntityAttributes", Arrays.asList( attributes.get( 0 ) ) ).build() )
             .validate().statusCode( 200 );
 
-        trackerActions.get( "/trackedEntities/" + teiA )
+        trackerActions.getTrackedEntity( teiA )
             .validate()
             .body( "attributes", hasSize( 1 ) )
             .body( "attributes[0].value", equalTo( "attribute 2" ) );
