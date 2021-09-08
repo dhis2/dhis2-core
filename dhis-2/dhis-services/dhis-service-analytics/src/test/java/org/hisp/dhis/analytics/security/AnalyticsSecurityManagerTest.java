@@ -174,7 +174,7 @@ public class AnalyticsSecurityManagerTest
     }
 
     @Test
-    public void testDataViewOrgUnits()
+    public void testDataViewOrganisationUnits()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
