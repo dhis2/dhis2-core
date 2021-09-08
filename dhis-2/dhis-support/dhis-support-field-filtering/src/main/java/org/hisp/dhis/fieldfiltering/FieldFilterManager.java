@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
@@ -48,6 +46,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Olav Hansen
@@ -89,7 +89,6 @@ public class FieldFilterManager
 
             if ( transformers != null )
             {
-                transformers.sort( OrderComparator.INSTANCE );
                 transformers.forEach( t -> t.apply( path.substring( 1 ), node, parent ) );
             }
         }
@@ -160,6 +159,8 @@ public class FieldFilterManager
                     break;
                 }
             }
+
+            fieldTransformers.sort( OrderComparator.INSTANCE );
         }
 
         return transformerMap;
