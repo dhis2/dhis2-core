@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -49,6 +50,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -87,12 +89,22 @@ public class DeduplicationHelper
             }
         }
 
-        for ( String rel : mergeObject.getRelationships() )
+        // Check if any references not on duplicate is used
+        String rel = mergeObject.getRelationships().stream()
+            .filter( r -> !validRelationships.contains( r ) )
+            .findFirst()
+            .orElse( null );
+
+        if ( rel != null )
         {
-            if ( original.getUid().equals( rel ) || !validRelationships.contains( rel ) )
-            {
-                return "Invalid relationship '" + rel + "'";
-            }
+            return "Invalid relationship '" + rel + "'. Refers to itself.";
+        }
+
+        String error = getDuplicateRelationshipError( params.getOriginal(), params.getDuplicate() );
+
+        if ( error != null )
+        {
+            return "Invalid relationship '" + error + "'. Equivalent relationship already exists on original.";
         }
 
         Set<String> programs = programInstanceService.getProgramInstances( mergeObject.getEnrollments() )
@@ -110,6 +122,47 @@ public class DeduplicationHelper
         }
 
         return null;
+    }
+
+    public String getDuplicateRelationshipError( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    {
+        Set<Relationship> originalRelationships = original.getRelationshipItems().stream()
+            .map( RelationshipItem::getRelationship )
+            .collect( Collectors.toSet() );
+        Set<Relationship> duplicateRelationships = duplicate.getRelationshipItems().stream()
+            .map( RelationshipItem::getRelationship )
+            .collect( Collectors.toSet() );
+
+        for ( Relationship originalRel : originalRelationships )
+        {
+            for ( Relationship duplicateRel : duplicateRelationships )
+            {
+                if ( isSameRelationship( originalRel, duplicateRel ) )
+                {
+                    return duplicateRel.getUid();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isSameRelationship( Relationship a, Relationship b )
+    {
+        return a.getRelationshipType().equals( b.getRelationshipType() )
+            && isSameRelationshipItem( a.getFrom(), b.getFrom() ) || isSameRelationshipItem( a.getTo(), b.getTo() );
+
+    }
+
+    private boolean isSameRelationshipItem( RelationshipItem a, RelationshipItem b )
+    {
+        IdentifiableObject idoA = ObjectUtils.firstNonNull( a.getTrackedEntityInstance(), a.getProgramInstance(),
+            a.getProgramStageInstance() );
+        IdentifiableObject idoB = ObjectUtils.firstNonNull( b.getTrackedEntityInstance(), b.getProgramInstance(),
+            b.getProgramStageInstance() );
+
+        return idoA.getUid().equals( idoB.getUid() );
+
     }
 
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
