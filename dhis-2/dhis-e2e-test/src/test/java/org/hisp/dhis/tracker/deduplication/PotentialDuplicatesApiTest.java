@@ -31,12 +31,14 @@ package org.hisp.dhis.tracker.deduplication;
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
+import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.UserRoleActions;
 import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.utils.DataGenerator;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 /**
@@ -91,5 +93,12 @@ public class PotentialDuplicatesApiTest
         JsonObject object = trackerActions.buildTei( teiType, Constants.ORG_UNIT_IDS[0] );
 
         return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
+    }
+
+    @AfterEach
+    public void afterEachPotentialDuplicateTest()
+    {
+        // DELETE is not implemented on PotentialDuplicatesController, so there's no point to clean up
+        TestRunStorage.removeEntities( "/potentialDuplicates" );
     }
 }
