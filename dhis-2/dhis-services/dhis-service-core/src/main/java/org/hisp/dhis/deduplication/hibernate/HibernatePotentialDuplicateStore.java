@@ -31,7 +31,9 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -165,24 +167,45 @@ public class HibernatePotentialDuplicateStore
     public void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> trackedEntityAttributes )
     {
+        // Collect existing teav from original for the tea list
+        Map<String, TrackedEntityAttributeValue> originalAttributeValueMap = new HashMap<>();
+        original.getTrackedEntityAttributeValues().forEach( oav -> {
+            if ( trackedEntityAttributes.contains( oav.getAttribute().getUid() ) )
+            {
+                originalAttributeValueMap.put( oav.getAttribute().getUid(), oav );
+            }
+        } );
+
         duplicate.getTrackedEntityAttributeValues()
             .stream()
             .filter( av -> trackedEntityAttributes.contains( av.getAttribute().getUid() ) )
             .forEach( av -> {
-                TrackedEntityAttributeValue nav = new TrackedEntityAttributeValue();
 
-                nav.setAttribute( av.getAttribute() );
-                nav.setEntityInstance( original );
-                nav.setValue( av.getValue() );
-
+                TrackedEntityAttributeValue updatedTeav;
+                if ( originalAttributeValueMap.containsKey( av.getAttribute().getUid() ) )
+                {
+                    // Teav exists in original, overwrite the value
+                    updatedTeav = originalAttributeValueMap.get( av.getAttribute().getUid() );
+                    updatedTeav.setValue( av.getValue() );
+                }
+                else
+                {
+                    // teav does not exist in original, so create new and attach
+                    // it to original
+                    updatedTeav = new TrackedEntityAttributeValue();
+                    updatedTeav.setAttribute( av.getAttribute() );
+                    updatedTeav.setEntityInstance( original );
+                    updatedTeav.setValue( av.getValue() );
+                }
                 getSession().delete( av );
-
-                // We need to flush to make sure the previous teav is deleted.
+                // We need to flush to make sure the previous teav is
+                // deleted.
                 // Or else we might end up breaking a
                 // constraint, since hibernate does not respect order.
                 getSession().flush();
 
-                getSession().save( nav );
+                getSession().saveOrUpdate( updatedTeav );
+
             } );
     }
 
