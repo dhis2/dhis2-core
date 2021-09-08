@@ -28,12 +28,13 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -185,23 +186,10 @@ public class ProgramObjectBundleHookTest
         ProgramStage programStage = createProgramStage( 'A', 1 );
         programA.getProgramStages().add( programStage );
 
-        ArgumentCaptor<Program> argument = ArgumentCaptor.forClass( Program.class );
-        ArgumentCaptor<ProgramStage> argPS = ArgumentCaptor.forClass( ProgramStage.class );
-
-        programService.addProgram( programA );
+        assertNull( programA.getProgramStages().iterator().next().getProgram() );
 
         subject.postCreate( programA, null );
 
-        verify( programService ).updateProgram( argument.capture() );
-
-        verify( programStageService ).saveProgramStage( argPS.capture() );
-
-        assertThat( argPS.getValue().getName(), is( equalToIgnoringCase( "ProgramStageA" ) ) );
-        assertThat( argPS.getValue().getProgram(), is( programA ) );
-
-        assertThat( argument.getValue().getName(), is( equalToIgnoringCase( "ProgramA" ) ) );
-        assertThat( argument.getValue().getProgramStages().size(), is( 1 ) );
-        assertThat( argument.getValue().getProgramStages().iterator().next().getName(),
-            is( equalToIgnoringCase( "ProgramStageA" ) ) );
+        assertNotNull( programA.getProgramStages().iterator().next().getProgram() );
     }
 }
