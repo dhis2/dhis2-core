@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
@@ -48,6 +46,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Olav Hansen
@@ -127,14 +127,14 @@ public class FieldFilterManager
 
     private Map<String, List<FieldTransformer>> getTransformers( List<FieldPath> fieldPaths )
     {
-        Map<String, List<FieldTransformer>> map = new HashMap<>();
+        Map<String, List<FieldTransformer>> transformerMap = new HashMap<>();
 
         for ( FieldPath fieldPath : fieldPaths )
         {
             List<FieldTransformer> fieldTransformers = new ArrayList<>();
             String fullPath = fieldPath.toFullPath();
 
-            map.put( fullPath, fieldTransformers );
+            transformerMap.put( fullPath, fieldTransformers );
 
             for ( FieldPathTransformer fieldPathTransformer : fieldPath.getTransformers() )
             {
@@ -162,6 +162,6 @@ public class FieldFilterManager
             }
         }
 
-        return map;
+        return transformerMap;
     }
 }
