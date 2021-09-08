@@ -55,12 +55,12 @@ package org.hisp.dhis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.stream.Collectors.toList;
-
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -111,6 +111,16 @@ public class TestRunStorage
         }
 
         createdEntities.remove( id, resource );
+    }
+
+    public static void removeEntities( final String resource )
+    {
+        if ( createdEntities == null )
+        {
+            return;
+        }
+
+        createdEntities.entrySet().removeIf( p -> p.getValue().equalsIgnoreCase( resource ) );
     }
 
     public static void removeAllEntities()
