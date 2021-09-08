@@ -176,7 +176,7 @@ public class UserActions
 
     public String addUser( final String userName, final String password )
     {
-        return addUser( "johnny", "bravo", userName, password );
+        return addUser( userName, "bravo", userName, password );
     }
 
     public void updateUserPassword( String userId, String password )

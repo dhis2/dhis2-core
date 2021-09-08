@@ -26,20 +26,14 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.deduplication;
+package org.hisp.dhis.tracker.deduplication.merge;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.actions.UserRoleActions;
-import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
-import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -56,26 +50,12 @@ import static org.hamcrest.Matchers.hasSize;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class PotentialDuplicatesEnrollmentsTests
-    extends ApiTest
+    extends PotentialDuplicatesApiTest
 {
-    private final String userPassword = "Test1212?";
-
-    private final String mergeAuthority = "F_TRACKED_ENTITY_MERGE";
-
-    private PotentialDuplicatesActions potentialDuplicatesActions;
-
-    private UserActions userActions;
-
-    private TrackerActions trackerActions;
-
     @BeforeEach
     public void beforeEach()
     {
-        potentialDuplicatesActions = new PotentialDuplicatesActions();
-        trackerActions = new TrackerActions();
-        userActions = new UserActions();
-
-        new LoginActions().loginAsAdmin();
+        loginActions.loginAsAdmin();
     }
 
     @Test
@@ -180,7 +160,7 @@ public class PotentialDuplicatesEnrollmentsTests
         String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
 
         String username = createUserWithAccessToMerge();
-        new LoginActions().loginAsUser( username, userPassword );
+        loginActions.loginAsUser( username, USER_PASSWORD );
 
         // act
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate ).validate().statusCode( 200 );
@@ -212,19 +192,5 @@ public class PotentialDuplicatesEnrollmentsTests
         JsonObject object = trackerActions.buildTei( Constants.TRACKED_ENTITY_TYPE, ouId );
 
         return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
-    }
-
-    private String createUserWithAccessToMerge()
-    {
-
-        String username = DataGenerator.randomString();
-        String auth = new UserRoleActions().createWithAuthorities( mergeAuthority );
-        String userid = new UserActions().addUser( username, userPassword );
-
-        userActions.addRoleToUser( userid, auth );
-        userActions.grantUserAccessToTAOrgUnits( userid );
-        userActions.addUserToUserGroup( userid, Constants.USER_GROUP_ID );
-
-        return username;
     }
 }
