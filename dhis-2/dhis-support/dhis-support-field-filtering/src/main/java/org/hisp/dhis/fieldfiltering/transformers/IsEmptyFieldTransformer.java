@@ -37,6 +37,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class IsEmptyFieldTransformer implements FieldTransformer
 {
+    public static final IsEmptyFieldTransformer INSTANCE = new IsEmptyFieldTransformer();
+
     @Override
     public JsonNode apply( String path, JsonNode value, JsonNode parent )
     {

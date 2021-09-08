@@ -131,27 +131,29 @@ public class FieldFilterManager
 
         for ( FieldPath fieldPath : fieldPaths )
         {
+            List<FieldTransformer> fieldTransformers = new ArrayList<>();
             String fullPath = fieldPath.toFullPath();
-            map.put( fullPath, new ArrayList<>() );
+
+            map.put( fullPath, fieldTransformers );
 
             for ( FieldPathTransformer fieldPathTransformer : fieldPath.getTransformers() )
             {
                 switch ( fieldPathTransformer.getName() )
                 {
                 case "rename":
-                    map.get( fullPath ).add( new RenameFieldTransformer( fieldPathTransformer ) );
+                    fieldTransformers.add( new RenameFieldTransformer( fieldPathTransformer ) );
                     break;
                 case "size":
-                    map.get( fullPath ).add( new SizeFieldTransformer() );
+                    fieldTransformers.add( SizeFieldTransformer.INSTANCE );
                     break;
                 case "isEmpty":
-                    map.get( fullPath ).add( new IsEmptyFieldTransformer() );
+                    fieldTransformers.add( IsEmptyFieldTransformer.INSTANCE );
                     break;
                 case "isNotEmpty":
-                    map.get( fullPath ).add( new IsNotEmptyFieldTransformer() );
+                    fieldTransformers.add( IsNotEmptyFieldTransformer.INSTANCE );
                     break;
                 case "pluck":
-                    map.get( fullPath ).add( new PluckFieldTransformer( fieldPathTransformer ) );
+                    fieldTransformers.add( new PluckFieldTransformer( fieldPathTransformer ) );
                     break;
                 default:
                     // invalid transformer

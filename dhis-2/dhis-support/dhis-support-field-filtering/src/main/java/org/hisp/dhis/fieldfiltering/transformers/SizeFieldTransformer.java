@@ -37,6 +37,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  */
 public class SizeFieldTransformer implements FieldTransformer
 {
+    public static final SizeFieldTransformer INSTANCE = new SizeFieldTransformer();
+
     @Override
     public JsonNode apply( String path, JsonNode value, JsonNode parent )
     {
