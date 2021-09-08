@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.AbstractMapper;
@@ -54,10 +53,6 @@ public abstract class AbstractStore
     private final static String GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL = "select ri.%s as id, r.relationshipid "
         + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
         + "where ri.%s in (:ids)";
-
-    private final static String GET_RELATIONSHIP_ID_BY_ENTITY_UID_SQL = "select ri.%s as id, r.relationshipid "
-        + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
-        + "where ri.%s in (select programstageinstanceid from programstageinstance where uid in (:uids))";
 
     private final static String GET_RELATIONSHIP_BY_RELATIONSHIP_ID = "select "
         + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
@@ -82,12 +77,6 @@ public abstract class AbstractStore
         + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
         + "where r.relationshipid in (:ids)";
 
-    private final static String GET_RELATIONSHIPS_BY_EVENT_UID = StringUtils.replace(
-        GET_RELATIONSHIP_BY_RELATIONSHIP_ID, ":ids",
-        "select  r.relationshipid as relationshipid FROM relationshipitem ri " +
-            "left join relationship r on ri.relationshipid = r.relationshipid where" +
-            " ri.programstageinstanceid in (select programstageinstanceid from programstageinstance where uid in (:uids))" );
-
     public AbstractStore( JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
@@ -97,13 +86,6 @@ public abstract class AbstractStore
     {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", ids );
-        return parameters;
-    }
-
-    MapSqlParameterSource createUidsParam( List<String> uids )
-    {
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "uids", uids );
         return parameters;
     }
 
@@ -135,24 +117,12 @@ public abstract class AbstractStore
         return ArrayListMultimap.create();
     }
 
-    /**
-     * Method returns Multimap with event uid as key and its associated List of
-     * RelationShips as value.
-     *
-     * @param eventIds event uids
-     * @return Multimap of events and associated RelationShips
-     */
-    public Multimap<String, Relationship> getRelationshipsByEventIds( List<String> eventIds )
+    public Multimap<String, Relationship> getRelationshipsByIds( List<Long> ids )
     {
-        String sql = String.format( GET_RELATIONSHIP_ID_BY_ENTITY_UID_SQL,
-            getRelationshipEntityColumn(), getRelationshipEntityColumn() );
-
-        List<Long> relationshipIds = getRelationshipIds( sql, createUidsParam( eventIds ) );
-
-        if ( !relationshipIds.isEmpty() )
+        if ( !ids.isEmpty() )
         {
             RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
-            jdbcTemplate.query( GET_RELATIONSHIPS_BY_EVENT_UID, createUidsParam( eventIds ), handler );
+            jdbcTemplate.query( GET_RELATIONSHIP_BY_RELATIONSHIP_ID, createIdsParam( ids ), handler );
             return handler.getItems();
         }
         return ArrayListMultimap.create();

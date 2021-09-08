@@ -75,13 +75,14 @@ public interface EventStore
     Multimap<String, Relationship> getRelationships( List<Long> ids );
 
     /**
-     * Fetch all the relationships associated to provided list of events.
+     * Fetch all the relationships based on provided relationship ids and return
+     * the response as Map of entity as key and List of Relationships as value
      *
-     * @param eventUids event uids
-     * @return Multimap containing event as key and its associated list of
-     *         Relationships.
+     * @param ids Relationship ids
+     * @return Multimap containing entity uid as key and its associated list of
+     *         Relationships as value.
      */
-    Multimap<String, Relationship> getRelationshipsByEventIds( List<String> eventUids );
+    Multimap<String, Relationship> getRelationshipsByIds( List<Long> ids );
 
     Multimap<String, Note> getNotes( List<Long> eventIds );
 }

@@ -124,6 +124,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -138,7 +139,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -147,6 +150,9 @@ import com.google.common.collect.Multimap;
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
 public class JdbcEventStore implements EventStore
 {
+    private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.programstageinstanceid as ri_psi_id, json_agg(r.relationshipid) as psi_rl FROM relationshipitem ri \n"
+        + " left join relationship r on ri.relationshipid = r.relationshipid GROUP by ri_psi_id)  as fgh on fgh.ri_psi_id=event.psi_id ";
+
     private static final String PSI_EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
         " psinote.trackedentitycommentid as psinote_id," +
         " psinote.commenttext            as psinote_value," +
@@ -310,7 +316,9 @@ public class JdbcEventStore implements EventStore
 
         Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
         List<Event> events = new ArrayList<>();
-        List<String> eventUids = new ArrayList<>();
+        List<Long> relationshipIds = new ArrayList<>();
+
+        final Gson gson = new Gson();
 
         String sql = buildSql( params, organisationUnits, user );
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -328,8 +336,6 @@ public class JdbcEventStore implements EventStore
             }
 
             String psiUid = rowSet.getString( "psi_uid" );
-
-            eventUids.add( psiUid );
 
             Event event;
 
@@ -475,12 +481,21 @@ public class JdbcEventStore implements EventStore
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
+
+            if ( rowSet.getObject( "psi_rl" ) != null )
+            {
+                PGobject pGobject = (PGobject) rowSet.getObject( "psi_rl" );
+
+                String value = pGobject.getValue();
+
+                relationshipIds.addAll( Lists.newArrayList( gson.fromJson( value, Long[].class ) ) );
+            }
         }
 
         if ( !params.isSkipRelationship() )
         {
             final Multimap<String, Relationship> map = eventStore
-                .getRelationshipsByEventIds( eventUids );
+                .getRelationshipsByIds( relationshipIds );
 
             if ( !map.isEmpty() )
             {
@@ -911,6 +926,8 @@ public class JdbcEventStore implements EventStore
         sqlBuilder.append( PSI_EVENT_COMMENT_QUERY );
 
         sqlBuilder.append( ") as cm on event.psi_id=cm.psic_id " );
+
+        sqlBuilder.append( RELATIONSHIP_IDS_QUERY );
 
         sqlBuilder.append( getOrderQuery( params ) );
 
