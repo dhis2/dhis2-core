@@ -51,7 +51,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
@@ -106,8 +105,6 @@ public class AnalyticsSecurityManagerTest
 
     private OrganisationUnit ouF;
 
-    private OrganisationUnitLevel oulA;
-
     private Set<OrganisationUnit> userOrgUnits;
 
     @Override
@@ -158,15 +155,12 @@ public class AnalyticsSecurityManagerTest
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
 
-        oulA = new OrganisationUnitLevel( 2, "Level 2" );
-        organisationUnitService.addOrUpdateOrganisationUnitLevel( oulA );
-
         userOrgUnits = Sets.newHashSet( ouB, ouC );
 
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.setOrganisationUnits( userOrgUnits );
         user.setDataViewOrganisationUnits( userOrgUnits );
-        user.setDataViewMaxOrganisationUnitLevel( oulA );
+        user.setDataViewMaxOrganisationUnitLevel( 2 );
         user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
 
         userService.addUser( user );

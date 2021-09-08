@@ -42,7 +42,6 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -133,7 +132,7 @@ public class User
      * Max organisation unit level for data output and data analysis operations,
      * may be null.
      */
-    private OrganisationUnitLevel dataViewMaxOrganisationUnitLevel;
+    private Integer dataViewMaxOrganisationUnitLevel;
 
     /**
      * Ordered favorite apps.
@@ -711,14 +710,13 @@ public class User
     }
 
     @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public OrganisationUnitLevel getDataViewMaxOrganisationUnitLevel()
+    public Integer getDataViewMaxOrganisationUnitLevel()
     {
         return dataViewMaxOrganisationUnitLevel;
     }
 
-    public void setDataViewMaxOrganisationUnitLevel( OrganisationUnitLevel dataViewMaxOrganisationUnitLevel )
+    public void setDataViewMaxOrganisationUnitLevel( Integer dataViewMaxOrganisationUnitLevel )
     {
         this.dataViewMaxOrganisationUnitLevel = dataViewMaxOrganisationUnitLevel;
     }

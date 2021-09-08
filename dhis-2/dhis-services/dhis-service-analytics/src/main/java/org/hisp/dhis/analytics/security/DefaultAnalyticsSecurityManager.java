@@ -55,7 +55,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -131,7 +130,7 @@ public class DefaultAnalyticsSecurityManager
 
         Set<OrganisationUnit> viewOrgUnits = user.getDataViewOrganisationUnits();
 
-        OrganisationUnitLevel maxOrgUnitLevel = user.getDataViewMaxOrganisationUnitLevel();
+        Integer maxOrgUnitLevel = user.getDataViewMaxOrganisationUnitLevel();
 
         for ( OrganisationUnit queryOrgUnit : queryOrgUnits )
         {
@@ -142,7 +141,7 @@ public class DefaultAnalyticsSecurityManager
                 throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
             }
 
-            if ( maxOrgUnitLevel != null && queryOrgUnit.getLevel() > maxOrgUnitLevel.getLevel() )
+            if ( maxOrgUnitLevel != null && queryOrgUnit.getLevel() > maxOrgUnitLevel )
             {
                 throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
             }
