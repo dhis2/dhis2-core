@@ -160,7 +160,7 @@ public class AnalyticsSecurityManagerTest
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.setOrganisationUnits( userOrgUnits );
         user.setDataViewOrganisationUnits( userOrgUnits );
-        user.setDataViewMaxOrganisationUnitLevel( 2 );
+        user.setDataViewMaxOrganisationUnitLevel( 3 );
         user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
 
         userService.addUser( user );
