@@ -60,6 +60,8 @@ public class PotentialDuplicatesEnrollmentsTests
 {
     private final String userPassword = "Test1212?";
 
+    private final String mergeAuthority = "F_TRACKED_ENTITY_MERGE";
+
     private PotentialDuplicatesActions potentialDuplicatesActions;
 
     private UserActions userActions;
@@ -216,7 +218,7 @@ public class PotentialDuplicatesEnrollmentsTests
     {
 
         String username = DataGenerator.randomString();
-        String auth = new UserRoleActions().createWithAuthorities( "F_TRACKED_ENTITY_MERGE" );
+        String auth = new UserRoleActions().createWithAuthorities( mergeAuthority );
         String userid = new UserActions().addUser( username, userPassword );
 
         userActions.addRoleToUser( userid, auth );
