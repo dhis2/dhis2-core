@@ -358,6 +358,11 @@ public class EventDataQueryRequest
         return copyTo( new EventDataQueryRequest() );
     }
 
+    public boolean hasStartEndDate()
+    {
+        return startDate != null && endDate != null;
+    }
+
     public static class EventDataQueryRequestBuilder
     {
         private EventDataQueryRequest request;
