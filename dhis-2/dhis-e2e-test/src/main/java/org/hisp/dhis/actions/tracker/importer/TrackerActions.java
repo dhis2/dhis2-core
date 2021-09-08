@@ -126,6 +126,10 @@ public class TrackerActions
         return new TrackerApiResponse( response );
     }
 
+    public TrackerApiResponse getTrackedEntity( String entityId ) {
+        return new TrackerApiResponse( this.get("/trackedEntities/" + entityId));
+    }
+
     private void saveCreatedData( ApiResponse response )
     {
         String[] val = {

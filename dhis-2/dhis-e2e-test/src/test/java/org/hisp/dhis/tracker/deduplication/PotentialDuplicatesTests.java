@@ -116,17 +116,15 @@ public class PotentialDuplicatesTests
         "MERGED,INVALID,false",
         "OPEN,INVALID,true",
         "OPEN,MERGED,false",
-        "INVALID,OPEN,true"
+        "INVALID,OPEN,true",
+        "MERGED,OPEN,false"
     } )
     @ParameterizedTest
     public void shouldUpdateStatus( String status, String newStatus, boolean shouldUpdate )
     {
-        ApiResponse response = potentialDuplicatesActions.createPotentialDuplicate( createTei(), createTei(), status );
-        response.validate().statusCode( 200 );
+        String duplicateId  = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), status );
 
-        String duplicateId = response.extractString( "id" );
-
-        response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus,
+        ApiResponse response = potentialDuplicatesActions.update( duplicateId + "?status=" + newStatus,
             new JsonObjectBuilder().build() );
 
         if ( shouldUpdate )

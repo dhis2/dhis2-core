@@ -234,4 +234,10 @@ public class ApiResponse
         return raw.as( klass );
     }
 
+    public ApiResponse validateStatus( int status )
+    {
+        this.validate().statusCode( status );
+
+        return this;
+    }
 }
