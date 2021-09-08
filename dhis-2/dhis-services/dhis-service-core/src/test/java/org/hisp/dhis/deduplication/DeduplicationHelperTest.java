@@ -215,19 +215,6 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotHasUserAccessWhenUserHasNoAccessToAttribute()
-    {
-        when( aclService.canDataWrite( user, attribute ) ).thenReturn( false );
-
-        String hasUserAccess = deduplicationHelper.getUserAccessErrors(
-            getTeiA(), getTeiB(),
-            mergeObject );
-
-        assertNotNull( hasUserAccess );
-        assertEquals( "Missing data write access to one or more Tracked Entity Attributes.", hasUserAccess );
-    }
-
-    @Test
     public void shouldNotHasUserAccessWhenUserHasNoAccessToProgramInstance()
     {
         when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( false );
