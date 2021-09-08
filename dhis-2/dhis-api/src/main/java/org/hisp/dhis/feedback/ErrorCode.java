@@ -261,7 +261,7 @@ public enum ErrorCode
     E7117( "A data dimension 'dx' must be specified when output format is DATA_VALUE_SET" ),
     E7118( "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET" ),
     E7119( "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET" ),
-    E7120( "User: `{0}` is not allowed to view org unit: `{1}`" ),
+    E7120( "User: `{0}` is not allowed to view data for org unit: `{1}`" ),
     E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`" ),
     E7122( "Data approval level does not exist: `{0}`" ),
     E7123( "Current user is constrained by a dimension but has access to no dimension items: `{0}`" ),

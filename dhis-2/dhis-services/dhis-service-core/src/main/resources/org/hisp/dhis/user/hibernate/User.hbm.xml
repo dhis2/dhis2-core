@@ -91,6 +91,9 @@
         foreign-key="fk_userteisearchorgunits_organisationunitid" />
     </set>
 
+    <many-to-one name="dataViewOrganisationUnitLevel" class="org.hisp.dhis.organisationunit.OrganisationUnitLevel" 
+      column="datavieworgunitlevelid" foreign-key="fk_userinfo_orgunitlevelid" not-null="false" />
+
     <!-- Dynamic attribute values -->
 
     <property name="attributeValues" type="jsbAttributeValues"/>

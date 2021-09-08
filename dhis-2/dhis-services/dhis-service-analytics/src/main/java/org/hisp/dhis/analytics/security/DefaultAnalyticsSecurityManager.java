@@ -55,6 +55,7 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -121,8 +122,7 @@ public class DefaultAnalyticsSecurityManager
     private void decideAccessDataViewOrganisationUnits( DataQueryParams params, User user )
         throws IllegalQueryException
     {
-        List<DimensionalItemObject> queryOrgUnits = params
-            .getDimensionOrFilterItems( DimensionalObject.ORGUNIT_DIM_ID );
+        List<OrganisationUnit> queryOrgUnits = params.getAllTypedOrganisationUnits();
 
         if ( queryOrgUnits.isEmpty() || user == null || !user.hasDataViewOrganisationUnit() )
         {
@@ -131,16 +131,23 @@ public class DefaultAnalyticsSecurityManager
 
         Set<OrganisationUnit> viewOrgUnits = user.getDataViewOrganisationUnits();
 
-        for ( DimensionalItemObject object : queryOrgUnits )
-        {
-            OrganisationUnit queryOrgUnit = (OrganisationUnit) object;
+        OrganisationUnitLevel maxOrgUnitLevel = user.getDataViewMaxOrganisationUnitLevel();
 
+        for ( OrganisationUnit queryOrgUnit : queryOrgUnits )
+        {
             boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
 
             if ( notDescendant )
             {
                 throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
             }
+
+            if ( maxOrgUnitLevel != null && queryOrgUnit.getLevel() > maxOrgUnitLevel.getLevel() )
+            {
+                throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
+            }
+
+            queryOrgUnit.getLevel();
         }
     }
 

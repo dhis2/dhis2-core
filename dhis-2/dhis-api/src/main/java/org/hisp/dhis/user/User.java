@@ -42,6 +42,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -113,13 +114,13 @@ public class User
     private FileResource avatar;
 
     /**
-     * Organisation units for data input and data capture / write operations.
-     * TODO move to UserCredentials.
+     * Organisation units for data input and data capture operations. TODO move
+     * to UserCredentials.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
     /**
-     * Organisation units for data output and data analysis / read operations.
+     * Organisation units for data output and data analysis operations.
      */
     private Set<OrganisationUnit> dataViewOrganisationUnits = new HashSet<>();
 
@@ -127,6 +128,12 @@ public class User
      * Organisation units for tracked entity instance search operations.
      */
     private Set<OrganisationUnit> teiSearchOrganisationUnits = new HashSet<>();
+
+    /**
+     * Max organisation unit level for data output and data analysis operations,
+     * may be null.
+     */
+    private OrganisationUnitLevel dataViewMaxOrganisationUnitLevel;
 
     /**
      * Ordered favorite apps.
@@ -701,6 +708,19 @@ public class User
     public void setTeiSearchOrganisationUnits( Set<OrganisationUnit> teiSearchOrganisationUnits )
     {
         this.teiSearchOrganisationUnits = teiSearchOrganisationUnits;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnitLevel getDataViewMaxOrganisationUnitLevel()
+    {
+        return dataViewMaxOrganisationUnitLevel;
+    }
+
+    public void setDataViewMaxOrganisationUnitLevel( OrganisationUnitLevel dataViewMaxOrganisationUnitLevel )
+    {
+        this.dataViewMaxOrganisationUnitLevel = dataViewMaxOrganisationUnitLevel;
     }
 
     public List<String> getApps()
