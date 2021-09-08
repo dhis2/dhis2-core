@@ -73,7 +73,7 @@ public class PotentialDuplicatesEnrollmentsTests
         trackerActions = new TrackerActions();
         userActions = new UserActions();
 
-        new LoginActions().loginAsSuperUser();
+        new LoginActions().loginAsAdmin();
     }
 
     @Test
@@ -178,7 +178,7 @@ public class PotentialDuplicatesEnrollmentsTests
         String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
 
         String username = createUserWithAccessToMerge();
-        //new LoginActions().loginAsUser( username, userPassword );
+        new LoginActions().loginAsUser( username, userPassword );
 
         // act
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate ).validate().statusCode( 200 );
@@ -220,7 +220,7 @@ public class PotentialDuplicatesEnrollmentsTests
         String userid = new UserActions().addUser( username, userPassword );
 
         userActions.addRoleToUser( userid, auth );
-        userActions.grantUserAccessToOrgUnit( userid, Constants.ORG_UNIT_IDS[0] );
+        userActions.grantUserAccessToTAOrgUnits( userid );
         userActions.addUserToUserGroup( userid, Constants.USER_GROUP_ID );
 
         return username;

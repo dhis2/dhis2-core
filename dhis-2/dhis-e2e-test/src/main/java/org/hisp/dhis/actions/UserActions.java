@@ -59,6 +59,7 @@ import static org.hamcrest.Matchers.equalTo;
 
 import java.util.List;
 
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -153,6 +154,17 @@ public class UserActions
         ApiResponse response = this.update( userId, object );
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "OK" ) );
+    }
+
+    /**
+     * Grants user access to all org units imported before the tests. /test/resources/setup/metadata.json
+     * @param userId
+     */
+    public void grantUserAccessToTAOrgUnits( String userId ) {
+        for ( String orgUnitId : Constants.ORG_UNIT_IDS )
+        {
+            grantUserAccessToOrgUnit( userId, orgUnitId );
+        }
     }
 
     public void grantCurrentUserAccessToOrgUnit( String orgUnitId )
