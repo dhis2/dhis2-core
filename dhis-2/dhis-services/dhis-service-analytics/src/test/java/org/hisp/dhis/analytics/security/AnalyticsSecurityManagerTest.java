@@ -51,6 +51,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
@@ -103,6 +104,10 @@ public class AnalyticsSecurityManagerTest
 
     private OrganisationUnit ouE;
 
+    private OrganisationUnit ouF;
+
+    private OrganisationUnitLevel oulA;
+
     private Set<OrganisationUnit> userOrgUnits;
 
     @Override
@@ -145,6 +150,7 @@ public class AnalyticsSecurityManagerTest
         ouC = createOrganisationUnit( 'C', ouB );
         ouD = createOrganisationUnit( 'D', ouC );
         ouE = createOrganisationUnit( 'E', ouC );
+        ouF = createOrganisationUnit( 'F', ouA );
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
@@ -152,11 +158,15 @@ public class AnalyticsSecurityManagerTest
         organisationUnitService.addOrganisationUnit( ouD );
         organisationUnitService.addOrganisationUnit( ouE );
 
+        oulA = new OrganisationUnitLevel( 2, "Level 2" );
+        organisationUnitService.addOrUpdateOrganisationUnitLevel( oulA );
+
         userOrgUnits = Sets.newHashSet( ouB, ouC );
 
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.setOrganisationUnits( userOrgUnits );
         user.setDataViewOrganisationUnits( userOrgUnits );
+        user.setDataViewMaxOrganisationUnitLevel( oulA );
         user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
 
         userService.addUser( user );
@@ -168,7 +178,7 @@ public class AnalyticsSecurityManagerTest
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
-            .withOrganisationUnits( Lists.newArrayList( ouD ) )
+            .withOrganisationUnits( Lists.newArrayList( ouF ) )
             .build();
 
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
@@ -180,7 +190,15 @@ public class AnalyticsSecurityManagerTest
     @Test
     public void testDataViewMaxOrganisationUnitLevel()
     {
-        // TODO
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
+            .withOrganisationUnits( Lists.newArrayList( ouD ) )
+            .build();
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> securityManager.decideAccess( params ) );
+
+        assertEquals( ErrorCode.E7120, ex.getErrorCode() );
     }
 
     @Test
