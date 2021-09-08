@@ -599,7 +599,7 @@ public class DataQueryParamsTest
     }
 
     @Test
-    public void testGetAlTypedOrganisationUnits()
+    public void testGetAllTypedOrganisationUnits()
     {
         DataQueryParams paramsA = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
