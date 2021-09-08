@@ -91,8 +91,8 @@
         foreign-key="fk_userteisearchorgunits_organisationunitid" />
     </set>
 
-    <many-to-one name="dataViewOrganisationUnitLevel" class="org.hisp.dhis.organisationunit.OrganisationUnitLevel" 
-      column="datavieworgunitlevelid" foreign-key="fk_userinfo_orgunitlevelid" not-null="false" />
+    <many-to-one name="dataViewMaxOrganisationUnitLevel" class="org.hisp.dhis.organisationunit.OrganisationUnitLevel" 
+      column="dataviewmaxorgunitlevelid" foreign-key="fk_userinfo_dataviewmaxorgunitlevelid_orgunitlevelid" not-null="false" />
 
     <!-- Dynamic attribute values -->
 

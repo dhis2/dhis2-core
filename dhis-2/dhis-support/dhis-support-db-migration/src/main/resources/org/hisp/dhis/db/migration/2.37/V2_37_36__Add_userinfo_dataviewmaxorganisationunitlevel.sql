@@ -1,3 +1,4 @@
 
-alter table "userinfo" add column "datavieworgunitlevelid" int8 null;
-alter table "userinfo" add constraint "fk_userinfo_datavieworgunitlevelid" foreign key ("datavieworgunitlevelid") references orgunitlevel("orgunitlevelid");
+alter table "userinfo" add column "dataviewmaxorgunitlevelid" int8 null;
+alter table "userinfo" add constraint "fk_userinfo_dataviewmaxorgunitlevelid_orgunitlevelid" 
+	foreign key ("dataviewmaxorgunitlevelid") references orgunitlevel("orgunitlevelid");
