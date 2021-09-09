@@ -41,6 +41,11 @@ import lombok.Setter;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableProperty;
 
+/**
+ * All query parameters to read data value sets.
+ *
+ * @author Jan Bernitt
+ */
 @Getter
 @Setter
 @Builder
@@ -48,44 +53,43 @@ import org.hisp.dhis.common.IdentifiableProperty;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class DataValueSetQueryParams
 {
+    private Set<String> dataSet;
 
-    Set<String> dataSet;
+    private Set<String> dataElementGroup;
 
-    Set<String> dataElementGroup;
+    private Set<String> period;
 
-    Set<String> period;
+    private Date startDate;
 
-    Date startDate;
+    private Date endDate;
 
-    Date endDate;
+    private Set<String> orgUnit;
 
-    Set<String> orgUnit;
+    private boolean children;
 
-    boolean children;
+    private Set<String> orgUnitGroup;
 
-    Set<String> orgUnitGroup;
+    private Set<String> attributeOptionCombo;
 
-    Set<String> attributeOptionCombo;
+    private boolean includeDeleted;
 
-    boolean includeDeleted;
+    private Date lastUpdated;
 
-    Date lastUpdated;
+    private String lastUpdatedDuration;
 
-    String lastUpdatedDuration;
-
-    Integer limit;
+    private Integer limit;
 
     /*
      * Input IdSchemes
      */
 
-    IdentifiableProperty inputIdScheme;
+    private IdentifiableProperty inputIdScheme;
 
-    IdentifiableProperty inputOrgUnitIdScheme;
+    private IdentifiableProperty inputOrgUnitIdScheme;
 
-    IdentifiableProperty inputDataSetIdScheme;
+    private IdentifiableProperty inputDataSetIdScheme;
 
-    IdentifiableProperty inputDataElementGroupIdScheme;
+    private IdentifiableProperty inputDataElementGroupIdScheme;
 
     /*
      * Output IdSchemes (for backwards compatibility not named with prefix
