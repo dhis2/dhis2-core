@@ -79,9 +79,14 @@ public interface SystemSettingManager
      * @return the setting value.
      */
     @Transactional( readOnly = true )
-    default <T extends Serializable> T getSystemSetting( SettingKey key, Class<T> as )
+    default <T extends Serializable> T getSystemSetting( SettingKey key, Class<T> type )
     {
-        return as.cast( getSystemSetting( key, key.getDefaultValue() ) );
+        if ( type != key.getClazz() )
+        {
+            throw new IllegalArgumentException( String.format( "Key %s is a %s but was requested as %s", key.getName(),
+                key.getClazz().getSimpleName(), type.getName() ) );
+        }
+        return type.cast( getSystemSetting( key, key.getDefaultValue() ) );
     }
 
     /**
