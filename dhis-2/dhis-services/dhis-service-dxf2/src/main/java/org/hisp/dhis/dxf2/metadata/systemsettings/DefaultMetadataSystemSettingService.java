@@ -52,34 +52,38 @@ public class DefaultMetadataSystemSettingService
 
     public String getRemoteInstanceUserName()
     {
-        return (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
+        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
     }
 
     public String getRemoteInstancePassword()
     {
-        return (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
+        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
     }
 
     public String getVersionDetailsUrl( String versionName )
     {
-        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "?versionName="
+        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL
+            + "?versionName="
             + versionName;
     }
 
     public String getDownloadVersionSnapshotURL( String versionName )
     {
-        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/" + versionName
+        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/"
+            + versionName
             + "/data.gz";
     }
 
     public String getMetaDataDifferenceURL( String versionName )
     {
-        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + BASELINE_URL + versionName;
+        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL ) + BASELINE_URL
+            + versionName;
     }
 
     public String getEntireVersionHistory()
     {
-        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/history";
+        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL
+            + "/history";
     }
 
     public void setSystemMetadataVersion( String versionName )
@@ -89,12 +93,12 @@ public class DefaultMetadataSystemSettingService
 
     public String getSystemMetadataVersion()
     {
-        return (String) systemSettingManager.getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
+        return systemSettingManager.getStringSetting( SettingKey.SYSTEM_METADATA_VERSION );
     }
 
     public Boolean getStopMetadataSyncSetting()
     {
-        Boolean stopSyncSetting = (Boolean) systemSettingManager.getSystemSetting( SettingKey.STOP_METADATA_SYNC );
+        Boolean stopSyncSetting = systemSettingManager.getBooleanSetting( SettingKey.STOP_METADATA_SYNC );
         return stopSyncSetting == null ? false : stopSyncSetting;
     }
 }

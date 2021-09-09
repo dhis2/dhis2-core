@@ -33,7 +33,10 @@ import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
@@ -41,7 +44,16 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AnalyticsIndex;
+import org.hisp.dhis.analytics.AnalyticsTable;
+import org.hisp.dhis.analytics.AnalyticsTableColumn;
+import org.hisp.dhis.analytics.AnalyticsTableHook;
+import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import org.hisp.dhis.analytics.AnalyticsTableManager;
+import org.hisp.dhis.analytics.AnalyticsTablePartition;
+import org.hisp.dhis.analytics.AnalyticsTablePhase;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.CategoryService;
@@ -465,10 +477,10 @@ public abstract class AbstractJdbcTableManager
     protected AnalyticsTable getLatestAnalyticsTable( AnalyticsTableUpdateParams params,
         List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
-        Date lastFullTableUpdate = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
-        Date lastLatestPartitionUpdate = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+        Date lastFullTableUpdate = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        Date lastLatestPartitionUpdate = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
         Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate );
 
         Assert.notNull( lastFullTableUpdate,
@@ -527,8 +539,8 @@ public abstract class AbstractJdbcTableManager
      */
     protected List<AnalyticsTableColumn> filterDimensionColumns( List<AnalyticsTableColumn> columns )
     {
-        Date lastResourceTableUpdate = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
+        Date lastResourceTableUpdate = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE );
 
         if ( lastResourceTableUpdate == null )
         {

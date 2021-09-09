@@ -139,7 +139,7 @@ public class HibernateSqlViewStore
     {
         SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql );
 
-        int maxLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
+        int maxLimit = systemSettingManager.getIntSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
 
         log.debug( "Get view SQL: " + sql + ", max limit: " + maxLimit );
 

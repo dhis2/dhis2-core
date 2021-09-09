@@ -52,7 +52,7 @@ public class DefaultSmsConfigurationManager
     @Override
     public SmsConfiguration getSmsConfiguration()
     {
-        return (SmsConfiguration) systemSettingManager.getSystemSetting( SettingKey.SMS_CONFIG );
+        return systemSettingManager.getSystemSetting( SettingKey.SMS_CONFIG, SmsConfiguration.class );
     }
 
     @Override

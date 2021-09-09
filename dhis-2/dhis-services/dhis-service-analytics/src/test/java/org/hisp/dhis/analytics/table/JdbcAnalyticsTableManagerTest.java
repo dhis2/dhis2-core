@@ -144,9 +144,9 @@ public class JdbcAnalyticsTableManagerTest
         List<Map<String, Object>> queryResp = Lists.newArrayList();
         queryResp.add( ImmutableMap.of( "dataelementid", 1 ) );
 
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
+        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
             .thenReturn( lastFullTableUpdate );
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
+        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
             .thenReturn( lastLatestPartitionUpdate );
         when( jdbcTemplate.queryForList( Mockito.anyString() ) ).thenReturn( queryResp );
 
@@ -179,9 +179,9 @@ public class JdbcAnalyticsTableManagerTest
             .withLatestPartition()
             .build();
 
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
+        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE ) )
             .thenReturn( null );
-        when( systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
+        when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
             .thenReturn( lastLatestPartitionUpdate );
 
         subject.getAnalyticsTables( params );

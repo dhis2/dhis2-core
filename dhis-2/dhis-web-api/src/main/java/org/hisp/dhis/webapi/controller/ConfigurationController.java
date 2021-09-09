@@ -381,13 +381,13 @@ public class ConfigurationController
     @GetMapping( "/remoteServerUrl" )
     public @ResponseBody String getRemoteServerUrl( Model model, HttpServletRequest request )
     {
-        return (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL );
+        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL );
     }
 
     @GetMapping( "/remoteServerUsername" )
     public @ResponseBody String getRemoteServerUsername( Model model, HttpServletRequest request )
     {
-        return (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
+        return systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
     }
 
     @GetMapping( "/facilityOrgUnitGroupSet" )
