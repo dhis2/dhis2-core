@@ -116,6 +116,7 @@ public class SectionUtilsTest extends DhisTest
         DataElement dataElementC = createDataElement( 'C', categoryComboAB );
         DataElement dataElementD = createDataElement( 'D', categoryComboAB );
         DataElement dataElementE = createDataElement( 'E', defaultCc );
+
         DataElement dataElementF = createDataElement( 'F', categoryComboABC );
         DataElement dataElementG = createDataElement( 'G', categoryComboABC );
         DataElement dataElementH = createDataElement( 'H', categoryComboAB );
