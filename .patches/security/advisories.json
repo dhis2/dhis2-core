@@ -14,7 +14,12 @@
             "parent": "373f14fab3ddbba2d4428e3df53a3afa9bd5b88b",
             "prNumber": 3,
             "target": "2.36.4"
-          }          
+          },
+          {
+            "parent": "31175fc66ec8e5c692a2d9a9434770547775f7ed",
+            "prNumber": 11,
+            "target": "2.34.7"
+          }  
         ]
       }
     ]
