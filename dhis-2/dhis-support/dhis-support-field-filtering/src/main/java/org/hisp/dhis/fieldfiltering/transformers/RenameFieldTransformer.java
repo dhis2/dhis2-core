@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.fieldfiltering.FieldPathTransformer;
+import org.hisp.dhis.fieldfiltering.FieldTransformer;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+public class RenameFieldTransformer implements FieldTransformer
 {
-    public ComplexNode( String name )
+    private final FieldPathTransformer fieldPathTransformer;
+
+    public RenameFieldTransformer( FieldPathTransformer fieldPathTransformer )
     {
-        super( name, NodeType.COMPLEX );
+        this.fieldPathTransformer = fieldPathTransformer;
     }
 
-    public ComplexNode( Property property, SimpleNode child )
+    @Override
+    public JsonNode apply( String path, JsonNode value, JsonNode parent )
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        if ( fieldPathTransformer.getParameters().isEmpty() && !parent.isObject() )
+        {
+            return value;
+        }
+
+        String fieldName = getFieldName( path );
+
+        value = ((ObjectNode) parent).remove( fieldName );
+        ((ObjectNode) parent).set( fieldPathTransformer.getParameters().get( 0 ), value );
+
+        return value;
+    }
+
+    @Override
+    public int getOrder()
+    {
+        return 10; // rename needs to happen last
     }
 }

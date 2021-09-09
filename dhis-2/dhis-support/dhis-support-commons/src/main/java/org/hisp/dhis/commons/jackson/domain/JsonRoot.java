@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.commons.jackson.domain;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+@JsonRootName( value = "root", namespace = DxfNamespaces.DXF_2_0 )
+public class JsonRoot
 {
-    public ComplexNode( String name )
+    private final Map<String, List<? extends JsonNode>> properties = new TreeMap<>();
+
+    public JsonRoot()
     {
-        super( name, NodeType.COMPLEX );
     }
 
-    public ComplexNode( Property property, SimpleNode child )
+    public JsonRoot( String property, List<? extends JsonNode> nodes )
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        setProperty( property, nodes );
+    }
+
+    @JsonAnySetter
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public JsonRoot setProperty( String property, List<? extends JsonNode> nodes )
+    {
+        this.properties.put( property, nodes );
+        return this;
+    }
+
+    @JsonAnyGetter
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Map<String, List<? extends JsonNode>> getProperties()
+    {
+        return this.properties;
     }
 }

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -10,9 +9,9 @@
         <version>2.38-SNAPSHOT</version>
     </parent>
 
-    <artifactId>dhis-support-commons</artifactId>
+    <artifactId>dhis-support-field-filtering</artifactId>
     <packaging>jar</packaging>
-    <name>DHIS Support Commons</name>
+    <name>DHIS Support Field Filtering</name>
 
     <description>
         DHIS Support Commons is intended to be a lightweight library with very few and
@@ -47,6 +46,14 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-commons</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-test</artifactId>
         </dependency>
 
         <!-- Test -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.fieldfiltering;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import org.springframework.core.Ordered;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+@FunctionalInterface
+public interface FieldTransformer extends Ordered
 {
-    public ComplexNode( String name )
+    JsonNode apply( String path, JsonNode value, JsonNode parent );
+
+    default String getFieldName( String path )
     {
-        super( name, NodeType.COMPLEX );
+        int idx = path.lastIndexOf( '.' );
+        String key = path;
+
+        if ( idx > -1 )
+        {
+            key = path.substring( idx + 1 );
+        }
+
+        return key;
     }
 
-    public ComplexNode( Property property, SimpleNode child )
+    default int getOrder()
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        return Ordered.HIGHEST_PRECEDENCE;
     }
 }

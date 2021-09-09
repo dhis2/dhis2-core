@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.fieldfiltering;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+@Data
+@AllArgsConstructor
+public class FieldPath
 {
-    public ComplexNode( String name )
+    private static final String FIELD_PATH_SEPARATOR = ".";
+
+    /**
+     * Name of field (excluding path).
+     */
+    private final String name;
+
+    /**
+     * Path to reach field name, can be empty for root level fields.
+     */
+    private final List<String> path;
+
+    /**
+     * Transformers to apply to field, can be empty.
+     */
+    private final List<FieldPathTransformer> transformers;
+
+    public FieldPath( String name, List<String> path )
     {
-        super( name, NodeType.COMPLEX );
+        this.name = name;
+        this.path = path;
+        this.transformers = new ArrayList<>();
     }
 
-    public ComplexNode( Property property, SimpleNode child )
+    /**
+     * @return Dot separated path + field name (i.e. path.to.field)
+     */
+    public String toFullPath()
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        return path.isEmpty() ? name : StringUtils.join( path, FIELD_PATH_SEPARATOR ) + FIELD_PATH_SEPARATOR + name;
     }
 }

@@ -25,29 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.webapi.webdomain;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
- */
-@Deprecated
-public class ComplexNode extends AbstractNode
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
+
+@Data
+@AllArgsConstructor
+@JsonRootName( "resource" )
+public class IndexResource
 {
-    public ComplexNode( String name )
-    {
-        super( name, NodeType.COMPLEX );
-    }
+    @JsonProperty
+    private final String displayName;
 
-    public ComplexNode( Property property, SimpleNode child )
-    {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
-    }
+    @JsonProperty
+    private final String singular;
+
+    @JsonProperty
+    private final String plural;
+
+    @JsonProperty
+    private final String href;
 }

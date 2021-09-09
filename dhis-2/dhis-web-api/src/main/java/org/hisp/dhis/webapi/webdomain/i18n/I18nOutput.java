@@ -25,29 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.webapi.webdomain.i18n;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import java.util.HashMap;
+import java.util.Map;
+
+import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+@Data
+public class I18nOutput
 {
-    public ComplexNode( String name )
-    {
-        super( name, NodeType.COMPLEX );
-    }
+    private Map<String, String> translations = new HashMap<>();
 
-    public ComplexNode( Property property, SimpleNode child )
+    @JsonAnyGetter
+    public Map<String, String> getTranslations()
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        return translations;
     }
 }

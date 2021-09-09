@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.fieldfiltering.transformers;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+public class IsNotEmptyFieldFilterTest
 {
-    public ComplexNode( String name )
-    {
-        super( name, NodeType.COMPLEX );
-    }
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    public ComplexNode( Property property, SimpleNode child )
+    @Test
+    public void isEmptyFieldNameTest()
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        ObjectNode objectNode = jsonMapper.createObjectNode();
+        objectNode.set( "a", jsonMapper.createArrayNode() );
+
+        IsNotEmptyFieldTransformer transformer = new IsNotEmptyFieldTransformer();
+        transformer.apply( "a", objectNode.get( "a" ), objectNode );
+
+        assertTrue( objectNode.has( "a" ) );
+        assertTrue( objectNode.get( "a" ).isBoolean() );
+        assertFalse( objectNode.get( "a" ).asBoolean() );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.fieldfiltering;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+public class FieldFilterParamsTest
 {
-    public ComplexNode( String name )
+    @Test
+    public void testBuilderWithObjectAndFilters()
     {
-        super( name, NodeType.COMPLEX );
+        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
+            .objects( Lists.newArrayList( "A", "B", "C" ) )
+            .filters( Sets.newHashSet( "id", "name" ) )
+            .build();
+
+        assertTrue( params.getObjects().contains( "A" ) );
+        assertTrue( params.getObjects().contains( "B" ) );
+        assertTrue( params.getObjects().contains( "C" ) );
+
+        assertTrue( params.getFilters().contains( "id" ) );
+        assertTrue( params.getFilters().contains( "name" ) );
     }
 
-    public ComplexNode( Property property, SimpleNode child )
+    @Test
+    public void testBuilderWithDefault()
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
+            .objects( Lists.newArrayList( "A", "B", "C" ) )
+            .build();
+
+        assertTrue( params.getObjects().contains( "A" ) );
+        assertTrue( params.getObjects().contains( "B" ) );
+        assertTrue( params.getObjects().contains( "C" ) );
+
+        assertEquals( "*", params.getFilters().iterator().next() );
     }
 }

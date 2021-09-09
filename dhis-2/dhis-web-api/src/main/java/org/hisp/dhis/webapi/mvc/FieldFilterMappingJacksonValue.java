@@ -25,29 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.webapi.mvc;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import java.util.Set;
+
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldFilterSimpleBeanPropertyFilter;
+import org.springframework.http.converter.json.MappingJacksonValue;
+
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+public class FieldFilterMappingJacksonValue extends MappingJacksonValue
 {
-    public ComplexNode( String name )
+    public FieldFilterMappingJacksonValue( final Object value, String prefix, Set<String> fieldFilters )
     {
-        super( name, NodeType.COMPLEX );
+        super( value );
+
+        SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+        filterProvider.addFilter( "field-filter",
+            new FieldFilterSimpleBeanPropertyFilter( FieldFilterParser.parseWithPrefix( fieldFilters, prefix ) ) );
+
+        setFilters( filterProvider );
     }
 
-    public ComplexNode( Property property, SimpleNode child )
+    public FieldFilterMappingJacksonValue( final Object value, Set<String> fieldFilters )
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        this( value, null, fieldFilters );
     }
 }

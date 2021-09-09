@@ -25,29 +25,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.webapi.webdomain;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import lombok.Data;
+
+import org.hisp.dhis.common.DxfNamespaces;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+@Data
+@JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
+public class PeriodType
 {
-    public ComplexNode( String name )
+    private final String name;
+
+    private final String isoDuration;
+
+    private final String isoFormat;
+
+    private final int frequencyOrder;
+
+    public PeriodType( org.hisp.dhis.period.PeriodType periodType )
     {
-        super( name, NodeType.COMPLEX );
+        this.name = periodType.getName();
+        this.frequencyOrder = periodType.getFrequencyOrder();
+        this.isoDuration = periodType.getIso8601Duration();
+        this.isoFormat = periodType.getIsoFormat();
     }
 
-    public ComplexNode( Property property, SimpleNode child )
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getName()
     {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        return name;
+    }
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIsoDuration()
+    {
+        return isoDuration;
+    }
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getIsoFormat()
+    {
+        return isoFormat;
+    }
+
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getFrequencyOrder()
+    {
+        return frequencyOrder;
     }
 }

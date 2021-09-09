@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.fieldfiltering;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+public class FieldPathTest
 {
-    public ComplexNode( String name )
+    @Test
+    public void testFieldPathToFullPath()
     {
-        super( name, NodeType.COMPLEX );
-    }
+        FieldPath fieldPath = new FieldPath( "field", Lists.newArrayList( "a", "b" ) );
 
-    public ComplexNode( Property property, SimpleNode child )
-    {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
+        assertEquals( "field", fieldPath.getName() );
+        assertTrue( fieldPath.getPath().contains( "a" ) );
+        assertTrue( fieldPath.getPath().contains( "b" ) );
+        assertEquals( "a.b.field", fieldPath.toFullPath() );
     }
 }

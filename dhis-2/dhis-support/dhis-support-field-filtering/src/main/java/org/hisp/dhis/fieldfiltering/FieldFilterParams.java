@@ -25,29 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.types;
+package org.hisp.dhis.fieldfiltering;
 
-import org.hisp.dhis.node.AbstractNode;
-import org.hisp.dhis.node.NodeType;
-import org.hisp.dhis.schema.Property;
+import java.util.List;
+import java.util.Set;
+
+import lombok.Builder;
+import lombok.Data;
+
+import com.google.common.collect.Sets;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- * @deprecated No new usage of this class and its children should happen, we
- *             should instead directly use Jackson ObjectMappers or Jackson
- *             object factory if we need dynamically created objects.
+ * @author Morten Olav Hansen
  */
-@Deprecated
-public class ComplexNode extends AbstractNode
+@Data
+@Builder
+public class FieldFilterParams<T>
 {
-    public ComplexNode( String name )
-    {
-        super( name, NodeType.COMPLEX );
-    }
+    private final List<T> objects;
 
-    public ComplexNode( Property property, SimpleNode child )
-    {
-        super( property.getName(), NodeType.COMPLEX, property, child );
-        setNamespace( property.getNamespace() );
-    }
+    @Builder.Default
+    private final Set<String> filters = Sets.newHashSet( "*" );
 }
