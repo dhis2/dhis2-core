@@ -2315,17 +2315,16 @@ public abstract class DhisConvenienceTest
 
         if ( auths != null )
         {
-            authorities.addAll( asList( auths ) );
+            authorities.addAll( Lists.newArrayList( auths ) );
         }
 
-        char uniqueCharacter = nextUserName++;
         UserAuthorityGroup group = new UserAuthorityGroup();
-        group.setName( "Superuser_" + uniqueCharacter );
+        group.setName( "Superuser" );
         group.getAuthorities().addAll( authorities );
 
         userService.addUserAuthorityGroup( group );
 
-        User user = createUser( uniqueCharacter );
+        User user = createUser( nextUserName++ );
 
         if ( organisationUnits != null )
         {
