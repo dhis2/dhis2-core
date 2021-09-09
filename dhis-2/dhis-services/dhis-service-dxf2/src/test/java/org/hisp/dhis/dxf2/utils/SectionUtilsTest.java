@@ -30,7 +30,9 @@ package org.hisp.dhis.dxf2.utils;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.Category;
@@ -99,7 +101,6 @@ public class SectionUtilsTest extends DhisTest
         categoriesABC.add( categoryB );
         categoriesABC.add( categoryC );
 
-        CategoryCombo defaultCc = categoryService.getDefaultCategoryCombo();
         CategoryCombo categoryComboAB = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION,
             categoriesAB );
         CategoryCombo categoryComboABC = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION,
@@ -109,12 +110,11 @@ public class SectionUtilsTest extends DhisTest
         long catABC = categoryService.addCategoryCombo( categoryComboABC );
         long catDefault = categoryService.getDefaultCategoryCombo().getId();
 
-        DataElement dataElementA = createDataElement( 'A', defaultCc );
-        DataElement dataElementB = createDataElement( 'B', defaultCc );
+        DataElement dataElementA = createDataElement( 'A' );
+        DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C', categoryComboAB );
         DataElement dataElementD = createDataElement( 'D', categoryComboAB );
-        DataElement dataElementE = createDataElement( 'E', defaultCc );
-
+        DataElement dataElementE = createDataElement( 'E' );
         DataElement dataElementF = createDataElement( 'F', categoryComboABC );
         DataElement dataElementG = createDataElement( 'G', categoryComboABC );
         DataElement dataElementH = createDataElement( 'H', categoryComboAB );
@@ -170,6 +170,33 @@ public class SectionUtilsTest extends DhisTest
 
         Section sec = ds.getSections().iterator().next();
         assertEquals( 9, sec.getDataElements().size() );
+
+        Map<String, Collection<DataElement>> orderedDataElements = sectionUtils.getOrderedDataElementsMap( sec );
+
+        List<String> keys = new ArrayList<>( orderedDataElements.keySet() );
+
+        assertEquals( 6, keys.size() );
+
+        String key1 = sec.getId() + "-" + catDefault + "-" + "0";
+        String key2 = sec.getId() + "-" + catAB + "-" + "1";
+        String key3 = sec.getId() + "-" + catDefault + "-" + "2";
+        String key4 = sec.getId() + "-" + catABC + "-" + "3";
+        String key5 = sec.getId() + "-" + catAB + "-" + "4";
+        String key6 = sec.getId() + "-" + catABC + "-" + "5";
+
+        assertEquals( key1, keys.get( 0 ) );
+        assertEquals( key2, keys.get( 1 ) );
+        assertEquals( key3, keys.get( 2 ) );
+        assertEquals( key4, keys.get( 3 ) );
+        assertEquals( key5, keys.get( 4 ) );
+        assertEquals( key6, keys.get( 5 ) );
+
+        assertEquals( 2, orderedDataElements.get( key1 ).size() );
+        assertEquals( 2, orderedDataElements.get( key2 ).size() );
+        assertEquals( 1, orderedDataElements.get( key3 ).size() );
+        assertEquals( 2, orderedDataElements.get( key4 ).size() );
+        assertEquals( 1, orderedDataElements.get( key5 ).size() );
+        assertEquals( 1, orderedDataElements.get( key6 ).size() );
 
     }
 }
