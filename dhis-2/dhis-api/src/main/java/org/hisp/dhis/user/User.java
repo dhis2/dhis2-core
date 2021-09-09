@@ -113,13 +113,13 @@ public class User
     private FileResource avatar;
 
     /**
-     * Organisation units for data input and data capture / write operations.
-     * TODO move to UserCredentials.
+     * Organisation units for data input and data capture operations. TODO move
+     * to UserCredentials.
      */
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
     /**
-     * Organisation units for data output and data analysis / read operations.
+     * Organisation units for data output and data analysis operations.
      */
     private Set<OrganisationUnit> dataViewOrganisationUnits = new HashSet<>();
 
@@ -127,6 +127,12 @@ public class User
      * Organisation units for tracked entity instance search operations.
      */
     private Set<OrganisationUnit> teiSearchOrganisationUnits = new HashSet<>();
+
+    /**
+     * Max organisation unit level for data output and data analysis operations,
+     * may be null.
+     */
+    private Integer dataViewMaxOrganisationUnitLevel;
 
     /**
      * Ordered favorite apps.
@@ -701,6 +707,18 @@ public class User
     public void setTeiSearchOrganisationUnits( Set<OrganisationUnit> teiSearchOrganisationUnits )
     {
         this.teiSearchOrganisationUnits = teiSearchOrganisationUnits;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Integer getDataViewMaxOrganisationUnitLevel()
+    {
+        return dataViewMaxOrganisationUnitLevel;
+    }
+
+    public void setDataViewMaxOrganisationUnitLevel( Integer dataViewMaxOrganisationUnitLevel )
+    {
+        this.dataViewMaxOrganisationUnitLevel = dataViewMaxOrganisationUnitLevel;
     }
 
     public List<String> getApps()
