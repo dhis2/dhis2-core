@@ -41,8 +41,9 @@
         #set( $categoryComboIds = "null" )
         #set( $categoryComboIds = $sectionCombos.get( $section.id ) )
 
-        #foreach( $categoryComboId in $categoryComboIds )
-            #set( $seCbId = "${section.id}-${categoryComboId}" )
+        #foreach( $catComboId in $categoryComboIds )
+            #set( $seCbId = "${section.id}-${catComboId}" )
+            #set( $categoryComboId = $orderedSectionCategoryCombos.get( $catComboId ) )
             #set( $dataElements = $sectionCategoryComboDataElements.get( $seCbId ) )
             #set( $optionCombos = $orderedCategoryOptionCombos.get( $categoryComboId )  )
 
