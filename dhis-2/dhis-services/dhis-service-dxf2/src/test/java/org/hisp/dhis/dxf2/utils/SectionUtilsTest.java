@@ -101,6 +101,7 @@ public class SectionUtilsTest extends DhisTest
         categoriesABC.add( categoryB );
         categoriesABC.add( categoryC );
 
+        CategoryCombo defaultCc = categoryService.getDefaultCategoryCombo();
         CategoryCombo categoryComboAB = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION,
             categoriesAB );
         CategoryCombo categoryComboABC = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION,
@@ -110,11 +111,11 @@ public class SectionUtilsTest extends DhisTest
         long catABC = categoryService.addCategoryCombo( categoryComboABC );
         long catDefault = categoryService.getDefaultCategoryCombo().getId();
 
-        DataElement dataElementA = createDataElement( 'A' );
-        DataElement dataElementB = createDataElement( 'B' );
+        DataElement dataElementA = createDataElement( 'A', defaultCc );
+        DataElement dataElementB = createDataElement( 'B', defaultCc );
         DataElement dataElementC = createDataElement( 'C', categoryComboAB );
         DataElement dataElementD = createDataElement( 'D', categoryComboAB );
-        DataElement dataElementE = createDataElement( 'E' );
+        DataElement dataElementE = createDataElement( 'E', defaultCc );
         DataElement dataElementF = createDataElement( 'F', categoryComboABC );
         DataElement dataElementG = createDataElement( 'G', categoryComboABC );
         DataElement dataElementH = createDataElement( 'H', categoryComboAB );
@@ -175,7 +176,7 @@ public class SectionUtilsTest extends DhisTest
 
         List<String> keys = new ArrayList<>( orderedDataElements.keySet() );
 
-        assertEquals( 6, orderedDataElements.keySet().size() );
+        assertEquals( 6, keys.size() );
 
         String key1 = sec.getId() + "-" + catDefault + "-" + "0";
         String key2 = sec.getId() + "-" + catAB + "-" + "1";
