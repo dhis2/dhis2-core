@@ -24,9 +24,11 @@
 
         <property name="lastUpdated" type="timestamp" not-null="true" />
 
-        <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
-
         <!-- Potential Duplicate Properties -->
+
+        <property name="lastUpdatedByUserName" column="lastupdatebyusername" not-null="true" />
+
+        <property name="createdByUserName" column="createdbyusername" not-null="true" />
 
         <property name="original" column="teiA" length="11" not-null="true" />
 
