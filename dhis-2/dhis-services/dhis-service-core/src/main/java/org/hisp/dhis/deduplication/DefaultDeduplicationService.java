@@ -102,6 +102,7 @@ public class DefaultDeduplicationService
     @Transactional
     public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
+        setPotentialDuplicateUserNameInfo( potentialDuplicate );
         potentialDuplicateStore.update( potentialDuplicate );
     }
 
@@ -212,6 +213,7 @@ public class DefaultDeduplicationService
 
     private void updatePotentialDuplicateStatus( PotentialDuplicate potentialDuplicate )
     {
+        setPotentialDuplicateUserNameInfo( potentialDuplicate );
         potentialDuplicate.setStatus( DeduplicationStatus.MERGED );
         potentialDuplicateStore.update( potentialDuplicate );
     }
@@ -249,7 +251,16 @@ public class DefaultDeduplicationService
     @Transactional
     public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
+        setPotentialDuplicateUserNameInfo( potentialDuplicate );
         potentialDuplicateStore.save( potentialDuplicate );
     }
 
+    private void setPotentialDuplicateUserNameInfo( PotentialDuplicate potentialDuplicate )
+    {
+        if ( potentialDuplicate.getCreatedByUserName() == null )
+        {
+            potentialDuplicate.setCreatedByUserName( currentUserService.getCurrentUsername() );
+        }
+        potentialDuplicate.setLastUpdatedByUserName( currentUserService.getCurrentUsername() );
+    }
 }
