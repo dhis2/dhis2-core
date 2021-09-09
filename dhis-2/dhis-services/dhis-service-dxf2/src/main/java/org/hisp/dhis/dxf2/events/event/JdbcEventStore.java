@@ -486,9 +486,12 @@ public class JdbcEventStore implements EventStore
             {
                 PGobject pGobject = (PGobject) rowSet.getObject( "psi_rl" );
 
-                String value = pGobject.getValue();
+                if ( pGobject != null )
+                {
+                    String value = pGobject.getValue();
 
-                relationshipIds.addAll( Lists.newArrayList( gson.fromJson( value, Long[].class ) ) );
+                    relationshipIds.addAll( Lists.newArrayList( gson.fromJson( value, Long[].class ) ) );
+                }
             }
         }
 
