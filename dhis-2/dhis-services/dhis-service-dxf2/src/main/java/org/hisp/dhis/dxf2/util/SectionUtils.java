@@ -61,7 +61,7 @@ public class SectionUtils
 
         for ( DataElement dataElement : section.getDataElements() )
         {
-            Long cc = dataElement.getCategoryCombo().getId();
+            long cc = dataElement.getCategoryCombo().getId();
 
             if ( currentCategoryCombo == null )
             {
