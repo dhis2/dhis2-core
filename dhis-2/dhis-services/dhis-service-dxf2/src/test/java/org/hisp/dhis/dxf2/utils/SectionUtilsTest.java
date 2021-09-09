@@ -30,9 +30,7 @@ package org.hisp.dhis.dxf2.utils;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.Category;
