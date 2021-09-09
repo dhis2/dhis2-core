@@ -40,6 +40,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -69,7 +70,9 @@ public class CategoryOptionGroupSet
 
     public CategoryOptionGroupSet( String name )
     {
+
         this.name = name;
+        this.shortName = name;
     }
 
     // -------------------------------------------------------------------------
@@ -95,16 +98,12 @@ public class CategoryOptionGroupSet
     }
 
     @Override
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @PropertyRange( min = 1, max = 50 )
     public String getShortName()
     {
-        if ( getName() == null || getName().length() <= 50 )
-        {
-            return getName();
-        }
-        else
-        {
-            return getName().substring( 0, 49 );
-        }
+        return shortName;
     }
 
     // -------------------------------------------------------------------------

@@ -8,24 +8,30 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.category.CategoryOptionGroupSet" table="categoryoptiongroupset">
 
-    <cache usage="read-write" />
+    <cache usage="read-write"/>
 
     <id name="id" column="categoryoptiongroupsetid">
-      <generator class="native" />
+      <generator class="native"/>
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique="true" length="230" />
+    <property name="name" column="name" not-null="true" unique="true"
+              length="230"/>
 
-    <property name="description" type="text" />
+    <property name="shortName" column="shortname" not-null="true" unique="true"
+              length="50"/>
 
-    <property name="dataDimension" column="datadimension" not-null="true" />
+    <property name="description" type="text"/>
+
+    <property name="dataDimension" column="datadimension" not-null="true"/>
 
     <list name="members" table="categoryoptiongroupsetmembers">
-      <cache usage="read-write" />
-      <key column="categoryoptiongroupsetid" foreign-key="fk_categoryoptiongroupsetmembers_categoryoptiongroupsetid" />
-      <list-index column="sort_order" base="1" />
-      <many-to-many class="org.hisp.dhis.category.CategoryOptionGroup" column="categoryoptiongroupid"
+      <cache usage="read-write"/>
+      <key column="categoryoptiongroupsetid"
+           foreign-key="fk_categoryoptiongroupsetmembers_categoryoptiongroupsetid"/>
+      <list-index column="sort_order" base="1"/>
+      <many-to-many class="org.hisp.dhis.category.CategoryOptionGroup"
+                    column="categoryoptiongroupid"
         foreign-key="fk_categoryoptiongroupsetmembers_categoryoptiongroupid" />
     </list>
 
