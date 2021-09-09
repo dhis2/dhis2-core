@@ -32,7 +32,7 @@ import java.io.OutputStream;
 
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetUrlParams;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
@@ -79,7 +79,7 @@ public interface AdxDataService
     // Methods
     // --------------------------------------------------------------------------
 
-    DataExportParams getFromUrl( DataValueSetUrlParams params );
+    DataExportParams getFromUrl( DataValueSetQueryParams params );
 
     /**
      * Post data. Takes ADX Data from input stream and saves a series of DXF2

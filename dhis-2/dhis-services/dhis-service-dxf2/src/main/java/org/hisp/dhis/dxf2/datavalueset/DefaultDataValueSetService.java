@@ -205,7 +205,7 @@ public class DefaultDataValueSetService implements DataValueSetService
      */
     @Override
     @Transactional
-    public DataExportParams getFromUrl( DataValueSetUrlParams urlParams )
+    public DataExportParams getFromUrl( DataValueSetQueryParams urlParams )
     {
         DataExportParams params = new DataExportParams();
         IdSchemes inputIdSchemes = urlParams.getInputIdSchemes();

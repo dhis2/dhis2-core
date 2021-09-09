@@ -46,7 +46,7 @@ import org.hisp.dhis.common.IdentifiableProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DataValueSetUrlParams
+public class DataValueSetQueryParams
 {
 
     Set<String> dataSet;

@@ -67,8 +67,8 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetUrlParams;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -117,7 +117,7 @@ public class DataValueSetController
     // -------------------------------------------------------------------------
 
     @GetMapping( produces = CONTENT_TYPE_XML )
-    public void getDataValueSetXml( DataValueSetUrlParams params,
+    public void getDataValueSetXml( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         IdSchemes idSchemes, HttpServletResponse response )
@@ -132,7 +132,7 @@ public class DataValueSetController
     }
 
     @GetMapping( produces = CONTENT_TYPE_XML_ADX )
-    public void getDataValueSetXmlAdx( DataValueSetUrlParams params,
+    public void getDataValueSetXmlAdx( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         IdSchemes idSchemes,
@@ -149,7 +149,7 @@ public class DataValueSetController
     }
 
     @GetMapping( produces = CONTENT_TYPE_JSON )
-    public void getDataValueSetJson( DataValueSetUrlParams params,
+    public void getDataValueSetJson( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         HttpServletResponse response )
@@ -164,7 +164,7 @@ public class DataValueSetController
     }
 
     @GetMapping( produces = CONTENT_TYPE_CSV )
-    public void getDataValueSetCsv( DataValueSetUrlParams params,
+    public void getDataValueSetCsv( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         IdSchemes idSchemes,

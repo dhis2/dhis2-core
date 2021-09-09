@@ -80,8 +80,8 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetUrlParams;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -141,7 +141,7 @@ public class DefaultAdxDataService
     // -------------------------------------------------------------------------
 
     @Override
-    public DataExportParams getFromUrl( DataValueSetUrlParams urlParams )
+    public DataExportParams getFromUrl( DataValueSetQueryParams urlParams )
     {
         IdSchemes outputIdSchemes = urlParams.getOutputIdSchemes();
         outputIdSchemes.setDefaultIdScheme( IdScheme.CODE );

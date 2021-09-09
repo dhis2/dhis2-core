@@ -50,7 +50,7 @@ public interface DataValueSetService
     /**
      * @return a data export object for the given parameters.
      */
-    DataExportParams getFromUrl( DataValueSetUrlParams params );
+    DataExportParams getFromUrl( DataValueSetQueryParams params );
 
     void validate( DataExportParams params );
 

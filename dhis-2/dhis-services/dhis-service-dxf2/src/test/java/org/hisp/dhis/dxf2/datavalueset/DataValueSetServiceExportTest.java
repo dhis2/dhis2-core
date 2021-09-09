@@ -302,7 +302,7 @@ public class DataValueSetServiceExportTest
     public void testExportBasic_FromUrlParamsWithCodes()
         throws IOException
     {
-        DataValueSetUrlParams params = DataValueSetUrlParams.builder()
+        DataValueSetQueryParams params = DataValueSetQueryParams.builder()
             .dataSet( singleton( dsA.getCode() ) )
             .inputOrgUnitIdScheme( IdentifiableProperty.CODE )
             .orgUnit( singleton( ouA.getCode() ) )
@@ -362,7 +362,7 @@ public class DataValueSetServiceExportTest
     public void testExportAttributeOptionCombo_FromUrlParamsWithCodes()
         throws IOException
     {
-        DataValueSetUrlParams params = DataValueSetUrlParams.builder()
+        DataValueSetQueryParams params = DataValueSetQueryParams.builder()
             .dataSet( singleton( dsA.getCode() ) )
             .inputOrgUnitIdScheme( IdentifiableProperty.CODE )
             .orgUnit( singleton( ouB.getCode() ) )
@@ -461,7 +461,7 @@ public class DataValueSetServiceExportTest
     public void testExportOutputSingleDataValueSetIdSchemeCode_FromUrlParamsWithCodes()
         throws IOException
     {
-        DataValueSetUrlParams params = DataValueSetUrlParams.builder()
+        DataValueSetQueryParams params = DataValueSetQueryParams.builder()
             .orgUnitIdScheme( IdentifiableProperty.CODE.name() )
             .dataElementIdScheme( IdentifiableProperty.CODE.name() )
             .dataSetIdScheme( IdentifiableProperty.CODE.name() )

@@ -56,8 +56,8 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.dxf2.datavalueset.DataValueSetUrlParams;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -402,7 +402,7 @@ public class AdxDataServiceIntegrationTest
             .setLimit( 999 )
             .setOutputIdSchemes( new IdSchemes().setIdScheme( "CODE" ) );
 
-        DataExportParams actual = adxDataService.getFromUrl( DataValueSetUrlParams.builder()
+        DataExportParams actual = adxDataService.getFromUrl( DataValueSetQueryParams.builder()
             .dataSet( Sets.newHashSet( dsA.getUid() ) )
             .period( Sets.newHashSet( "202001" ) )
             .orgUnit( Sets.newHashSet( ouA.getUid() ) )
@@ -434,7 +434,7 @@ public class AdxDataServiceIntegrationTest
             .setLastUpdated( now )
             .setOutputIdSchemes( new IdSchemes().setIdScheme( "UID" ) );
 
-        DataExportParams actual = adxDataService.getFromUrl( DataValueSetUrlParams.builder()
+        DataExportParams actual = adxDataService.getFromUrl( DataValueSetQueryParams.builder()
             .dataSet( Sets.newHashSet( dsB.getCode() ) )
             .startDate( then )
             .endDate( now )
