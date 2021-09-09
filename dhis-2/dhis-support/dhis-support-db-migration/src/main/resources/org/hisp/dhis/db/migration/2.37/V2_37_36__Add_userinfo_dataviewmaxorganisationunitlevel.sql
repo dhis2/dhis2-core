@@ -1,2 +1,2 @@
 
-alter table "userinfo" add column if not exists "dataviewmaxorgunitlevel" int8 null;
+alter table "userinfo" add column if not exists "dataviewmaxorgunitlevel" int4 null;
