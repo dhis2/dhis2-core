@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.jdbc.config;
 
+import javax.sql.DataSource;
+
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.dialect.StatementDialectFactoryBean;
 import org.hisp.dhis.jdbc.statementbuilder.StatementBuilderFactoryBean;
@@ -49,6 +51,9 @@ public class JdbcConfig
     @Autowired
     private HibernateConfigurationProvider hibernateConfigurationProvider;
 
+    @Autowired
+    private DataSource dataSource;
+
     @Bean
     public JdbcStatementManager statementManager()
         throws Exception
@@ -69,10 +74,8 @@ public class JdbcConfig
     {
         JdbcConfigurationFactoryBean jdbcConf = new JdbcConfigurationFactoryBean();
         jdbcConf.setDialect( statementDialect().getObject() );
-        jdbcConf.setDriverClass( (String) getConnectionProperty( "hibernate.connection.driver_class" ) );
-        jdbcConf.setConnectionUrl( (String) getConnectionProperty( "hibernate.connection.url" ) );
-        jdbcConf.setUsername( (String) getConnectionProperty( "hibernate.connection.username" ) );
-        jdbcConf.setPassword( (String) getConnectionProperty( "hibernate.connection.password" ) );
+        jdbcConf.setDataSource( dataSource );
+        ;
         return jdbcConf;
     }
 
@@ -98,11 +101,6 @@ public class JdbcConfig
         StatementInterceptor statementInterceptor = new StatementInterceptor();
         statementInterceptor.setStatementManagers( Lists.newArrayList( statementManager() ) );
         return statementInterceptor;
-    }
-
-    private Object getConnectionProperty( String key )
-    {
-        return hibernateConfigurationProvider.getConfiguration().getProperty( key );
     }
 
 }
