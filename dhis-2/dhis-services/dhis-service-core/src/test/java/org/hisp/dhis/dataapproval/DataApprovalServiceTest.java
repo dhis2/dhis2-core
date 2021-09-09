@@ -30,6 +30,7 @@ package org.hisp.dhis.dataapproval;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_OPTION_DEFAULT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -463,6 +464,7 @@ public class DataApprovalServiceTest
 
         userService.addUser( userA );
         userService.addUser( userB );
+        userService.addUserCredentials( userA.getUserCredentials() );
     }
 
     @Override
@@ -647,8 +649,7 @@ public class DataApprovalServiceTest
     @Test
     public void testAddDuplicateDataApproval()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
         DataApproval dataApprovalA = new DataApproval( level2, workflow12, periodA, organisationUnitB,
@@ -662,10 +663,43 @@ public class DataApprovalServiceTest
     }
 
     @Test
+    public void testLastUpdatedBy()
+    {
+        User admin = createAdminUser( "ALL" );
+
+        User approveUserA = switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE,
+            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+
+        injectSecurityContext( admin );
+        User approveUserB = switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE,
+            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+
+        injectSecurityContext( approveUserA );
+        Date now = new Date();
+        DataApproval da = new DataApproval( level2, workflow12, periodA, organisationUnitB,
+            defaultOptionCombo, NOT_ACCEPTED, now, this.userA );
+
+        dataApprovalService.approveData( singletonList( da ) );
+        da = dataApprovalService.getDataApproval( da );
+
+        assertEquals( da.getLastUpdatedBy(), approveUserA );
+        assertFalse( da.getLastUpdated().before( now ) );
+
+        dataApprovalService.unapproveData( singletonList( da ) );
+        injectSecurityContext( approveUserB );
+        Date later = new Date();
+
+        dataApprovalService.approveData( singletonList( da ) );
+        da = dataApprovalService.getDataApproval( da );
+
+        assertEquals( da.getLastUpdatedBy(), approveUserB );
+        assertFalse( da.getLastUpdated().before( later ) );
+    }
+
+    @Test
     public void testAddDataApprovalWithWrongPeriodType()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
 
@@ -688,8 +722,7 @@ public class DataApprovalServiceTest
     @Test
     public void testAddAllAndGetDataApprovalStatus()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
         DataApproval dataApprovalA = new DataApproval( level1, workflow12A, periodA, organisationUnitA,
@@ -762,8 +795,7 @@ public class DataApprovalServiceTest
     @Test
     public void testDeleteDataApproval()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
         DataApproval dataApprovalA = new DataApproval( level1, workflow12, periodA, organisationUnitA,
@@ -807,8 +839,7 @@ public class DataApprovalServiceTest
     @Test
     public void testGetDataApprovalState()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         // No levels defined.
         assertEquals( DataApprovalState.UNAPPROVABLE, dataApprovalService
@@ -1081,8 +1112,7 @@ public class DataApprovalServiceTest
         dataSetG.removeOrganisationUnit( organisationUnitF );
         dataSetService.updateDataSet( dataSetG );
 
-        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService
             .getDataApprovalStatus( workflow1234, periodA, organisationUnitA, defaultOptionCombo ).getState() );
@@ -1139,8 +1169,7 @@ public class DataApprovalServiceTest
     @Test
     public void testGetDataApprovalStateAbove()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
 
@@ -1158,8 +1187,7 @@ public class DataApprovalServiceTest
     @Test
     public void testGetDataApprovalStateWithMultipleChildren()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
 
@@ -1234,8 +1262,7 @@ public class DataApprovalServiceTest
     @Test
     public void testGetDataApprovalStateOtherPeriodTypes()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        switchToApprovalUser( organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService
             .getDataApprovalStatus( workflow1234, periodA, organisationUnitA, defaultOptionCombo ).getState() );
@@ -1259,8 +1286,7 @@ public class DataApprovalServiceTest
         Date date = new Date();
 
         transactionTemplate.execute( status -> {
-            createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
-                DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
+            switchToApprovalUser( organisationUnitB, DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
 
             dbmsManager.clearSession();
             return null;
@@ -1491,8 +1517,7 @@ public class DataApprovalServiceTest
     @Test
     public void testMayApproveLowerLevels()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
+        switchToApprovalUser( organisationUnitB, DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
 
         Date date = new Date();
 
@@ -1733,8 +1758,7 @@ public class DataApprovalServiceTest
     @Test
     public void testMayUnapproveSameLevel()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
-            DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
+        switchToApprovalUser( organisationUnitB, DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
 
         Date date = new Date();
 
@@ -1842,8 +1866,7 @@ public class DataApprovalServiceTest
     @Test
     public void testMayUnapproveLowerLevels()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
+        switchToApprovalUser( organisationUnitB, DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
 
         Date date = new Date();
 
@@ -1950,8 +1973,7 @@ public class DataApprovalServiceTest
     @Test
     public void testMayUnapproveWithAcceptAuthority()
     {
-        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS, AUTH_APPR_LEVEL );
+        switchToApprovalUser( organisationUnitB, DataApproval.AUTH_ACCEPT_LOWER_LEVELS, AUTH_APPR_LEVEL );
 
         Date date = new Date();
 
@@ -2480,8 +2502,7 @@ public class DataApprovalServiceTest
         Date date = new Date();
 
         transactionTemplate.execute( status -> {
-            createUserAndInjectSecurityContext( singleton( organisationUnitC ), false, AUTH_APPR_LEVEL,
-                DataApproval.AUTH_APPROVE );
+            switchToApprovalUser( organisationUnitC, AUTH_APPR_LEVEL, DataApproval.AUTH_APPROVE );
 
             dataApprovalStore.addDataApproval( new DataApproval( level4, workflow1234, periodA, organisationUnitC,
                 defaultOptionCombo, NOT_ACCEPTED, date, userA ) );
@@ -2586,5 +2607,12 @@ public class DataApprovalServiceTest
             + " accept=" + (permissions.isMayAccept() ? "T" : "F")
             + " unaccept=" + (permissions.isMayUnaccept() ? "T" : "F")
             + " read=" + (permissions.isMayReadData() ? "T" : "F");
+    }
+
+    private User switchToApprovalUser( OrganisationUnit unit, String authApprove,
+        String authApproveLowerLevels )
+    {
+        return createUserAndInjectSecurityContext( singleton( unit ), false, authApprove,
+            authApproveLowerLevels );
     }
 }

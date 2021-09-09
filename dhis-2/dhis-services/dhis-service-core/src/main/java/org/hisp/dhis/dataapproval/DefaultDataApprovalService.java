@@ -28,7 +28,10 @@
 package org.hisp.dhis.dataapproval;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -277,7 +280,7 @@ public class DefaultDataApprovalService
                 throw new DataMayNotBeApprovedException();
             }
 
-            da.setAccepted( accepted );
+            da.setAccepted( accepted, currentUser );
 
             checkedList.add( da );
         }
@@ -392,7 +395,7 @@ public class DefaultDataApprovalService
         {
             log.debug( "accepting " + da );
 
-            da.setAccepted( true );
+            da.setAccepted( true, currentUser );
 
             audit( da, currentUser, ACCEPT );
 
@@ -450,7 +453,7 @@ public class DefaultDataApprovalService
         {
             log.debug( "unaccepting " + da );
 
-            da.setAccepted( false );
+            da.setAccepted( false, currentUser );
 
             audit( da, currentUser, UNACCEPT );
 
