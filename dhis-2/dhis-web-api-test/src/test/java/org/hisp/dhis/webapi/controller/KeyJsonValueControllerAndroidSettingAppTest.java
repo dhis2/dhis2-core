@@ -95,7 +95,7 @@ public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerC
     {
         switchToNewUser( "not-an-android-manager" );
         assertEquals(
-            "The namespace 'ANDROID_SETTING_APP' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
             DELETE( "/dataStore/" + NAMESPACE ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToNewUser( "andriod-manager", AUTHORITY );
@@ -112,7 +112,7 @@ public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerC
     {
         switchToNewUser( "not-an-android-manager" );
         assertEquals(
-            "The namespace 'ANDROID_SETTING_APP' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
             POST( "/dataStore/" + NAMESPACE + "/new-key", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToNewUser( "andriod-manager", AUTHORITY );
@@ -124,7 +124,7 @@ public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerC
     {
         switchToNewUser( "not-an-android-manager" );
         assertEquals(
-            "The namespace 'ANDROID_SETTING_APP' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
             PUT( "/dataStore/" + NAMESPACE + "/key", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToNewUser( "andriod-manager", AUTHORITY );
@@ -136,7 +136,7 @@ public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerC
     {
         switchToNewUser( "not-an-android-manager" );
         assertEquals(
-            "The namespace 'ANDROID_SETTING_APP' is protected, and you don't have the right authority to access or modify it.",
+            "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
             DELETE( "/dataStore/" + NAMESPACE + "/key" ).error( HttpStatus.FORBIDDEN ).getMessage() );
 
         switchToNewUser( "andriod-manager", AUTHORITY );

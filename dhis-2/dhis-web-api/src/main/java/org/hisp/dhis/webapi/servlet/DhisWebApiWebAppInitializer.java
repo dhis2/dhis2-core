@@ -36,7 +36,6 @@ import javax.servlet.SessionTrackingMode;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -103,9 +102,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
             .addMappingForUrlPatterns( null, true, "/*" );
 
         context.addFilter( "AppOverrideFilter", new DelegatingFilterProxy( "appOverrideFilter" ) )
-            .addMappingForUrlPatterns( null, true, "/*" );
-
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
             .addMappingForUrlPatterns( null, true, "/*" );
 
         context.addListener( new StartupListener() );

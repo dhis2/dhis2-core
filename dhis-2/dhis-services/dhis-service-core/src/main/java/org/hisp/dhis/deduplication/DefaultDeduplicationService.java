@@ -174,18 +174,12 @@ public class DefaultDeduplicationService
             throw new PotentialDuplicateForbiddenException(
                 "Insufficient access: " + accessError );
 
-        potentialDuplicateStore.moveTrackedEntityAttributeValues( original.getUid(), duplicate.getUid(),
+        potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate,
             mergeObject.getTrackedEntityAttributes() );
-        potentialDuplicateStore.moveRelationships( original.getUid(), duplicate.getUid(),
+        potentialDuplicateStore.moveRelationships( original, duplicate,
             mergeObject.getRelationships() );
-        potentialDuplicateStore.moveEnrollments( original.getUid(), duplicate.getUid(),
+        potentialDuplicateStore.moveEnrollments( original, duplicate,
             mergeObject.getEnrollments() );
-
-        List<ProgramInstance> programInstancesToRemove = duplicate.getProgramInstances()
-            .stream()
-            .filter( e -> mergeObject.getEnrollments().contains( e.getUid() ) )
-            .collect( Collectors.toList() );
-        duplicate.getProgramInstances().removeAll( programInstancesToRemove );
 
         potentialDuplicateStore.removeTrackedEntity( duplicate );
         updateTeiAndPotentialDuplicate( params, original );
@@ -195,9 +189,13 @@ public class DefaultDeduplicationService
     private boolean haveSameEnrollment( Set<ProgramInstance> originalEnrollments,
         Set<ProgramInstance> duplicateEnrollments )
     {
-        Set<String> originalPrograms = originalEnrollments.stream().map( e -> e.getProgram().getUid() )
+        Set<String> originalPrograms = originalEnrollments.stream()
+            .filter( e -> !e.isDeleted() )
+            .map( e -> e.getProgram().getUid() )
             .collect( Collectors.toSet() );
-        Set<String> duplicatePrograms = duplicateEnrollments.stream().map( e -> e.getProgram().getUid() )
+        Set<String> duplicatePrograms = duplicateEnrollments.stream()
+            .filter( e -> !e.isDeleted() )
+            .map( e -> e.getProgram().getUid() )
             .collect( Collectors.toSet() );
 
         originalPrograms.retainAll( duplicatePrograms );

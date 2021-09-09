@@ -28,7 +28,10 @@
 package org.hisp.dhis.dataapproval;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -185,8 +188,8 @@ public class DefaultDataApprovalService
     {
         log.debug( "approveData ( " + dataApprovalList.size() + " items )" );
 
-        boolean accepted = !(Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+        boolean accepted = !systemSettingManager
+            .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
 
         User currentUser = currentUserService.getCurrentUser();
 

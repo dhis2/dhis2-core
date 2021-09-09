@@ -185,10 +185,10 @@ public class DeduplicationServiceTest
         verify( deduplicationHelper ).getUserAccessErrors( trackedEntityInstanceA, trackedEntityInstanceB,
             mergeObject );
         verify( deduplicationHelper ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
-        verify( potentialDuplicateStore ).moveTrackedEntityAttributeValues( trackedEntityInstanceA.getUid(),
-            trackedEntityInstanceB.getUid(), mergeObject.getTrackedEntityAttributes() );
-        verify( potentialDuplicateStore ).moveRelationships( trackedEntityInstanceA.getUid(),
-            trackedEntityInstanceB.getUid(), mergeObject.getRelationships() );
+        verify( potentialDuplicateStore ).moveTrackedEntityAttributeValues( trackedEntityInstanceA,
+            trackedEntityInstanceB, mergeObject.getTrackedEntityAttributes() );
+        verify( potentialDuplicateStore ).moveRelationships( trackedEntityInstanceA,
+            trackedEntityInstanceB, mergeObject.getRelationships() );
         verify( potentialDuplicateStore ).removeTrackedEntity( trackedEntityInstanceB );
         verify( trackedEntityInstanceService ).updateTrackedEntityInstance( trackedEntityInstanceA );
         verify( potentialDuplicateStore ).update( argThat( t -> t.getStatus().equals( DeduplicationStatus.MERGED ) ) );
@@ -330,10 +330,10 @@ public class DeduplicationServiceTest
         verify( deduplicationHelper ).getUserAccessErrors( trackedEntityInstanceA, trackedEntityInstanceB,
             mergeObject );
         verify( deduplicationHelper ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
-        verify( potentialDuplicateStore ).moveTrackedEntityAttributeValues( trackedEntityInstanceA.getUid(),
-            trackedEntityInstanceB.getUid(), mergeObject.getTrackedEntityAttributes() );
-        verify( potentialDuplicateStore ).moveRelationships( trackedEntityInstanceA.getUid(),
-            trackedEntityInstanceB.getUid(), mergeObject.getRelationships() );
+        verify( potentialDuplicateStore ).moveTrackedEntityAttributeValues( trackedEntityInstanceA,
+            trackedEntityInstanceB, mergeObject.getTrackedEntityAttributes() );
+        verify( potentialDuplicateStore ).moveRelationships( trackedEntityInstanceA,
+            trackedEntityInstanceB, mergeObject.getRelationships() );
         verify( potentialDuplicateStore ).removeTrackedEntity( trackedEntityInstanceB );
     }
 

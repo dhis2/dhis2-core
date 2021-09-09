@@ -33,6 +33,7 @@ import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -65,6 +66,7 @@ public class ConfigurationDeletionHandler
         whenVetoing( DataElementGroup.class, this::allowDeleteDataElementGroup );
         whenVetoing( IndicatorGroup.class, this::allowDeleteIndicatorGroup );
         whenVetoing( OrganisationUnitLevel.class, this::allowDeleteOrganisationUnitLevel );
+        whenVetoing( OrganisationUnitGroupSet.class, this::allowDeleteOrganisationUnitGroupSet );
         whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
         whenVetoing( UserAuthorityGroup.class, this::allowDeleteUserAuthorityGroup );
     }
@@ -73,46 +75,50 @@ public class ConfigurationDeletionHandler
     {
         UserGroup feedbackRecipients = configService.getConfiguration().getFeedbackRecipients();
 
-        return (feedbackRecipients != null && feedbackRecipients.equals( userGroup )) ? VETO : ACCEPT;
+        return feedbackRecipients != null && feedbackRecipients.equals( userGroup ) ? VETO : ACCEPT;
     }
 
     private DeletionVeto allowDeleteDataElementGroup( DataElementGroup dataElementGroup )
     {
-        DataElementGroup infrastructuralDataElements = configService.getConfiguration()
-            .getInfrastructuralDataElements();
+        DataElementGroup infraDataElements = configService.getConfiguration().getInfrastructuralDataElements();
 
-        return (infrastructuralDataElements != null && infrastructuralDataElements.equals( dataElementGroup ))
-            ? VETO
-            : ACCEPT;
+        return infraDataElements != null && infraDataElements.equals( dataElementGroup ) ? VETO : ACCEPT;
     }
 
     private DeletionVeto allowDeleteIndicatorGroup( IndicatorGroup indicatorGroup )
     {
-        IndicatorGroup infrastructuralIndicators = configService.getConfiguration().getInfrastructuralIndicators();
+        IndicatorGroup infraIndicators = configService.getConfiguration().getInfrastructuralIndicators();
 
-        return (infrastructuralIndicators != null && infrastructuralIndicators.equals( indicatorGroup ))
-            ? VETO
-            : ACCEPT;
+        return infraIndicators != null && infraIndicators.equals( indicatorGroup ) ? VETO : ACCEPT;
     }
 
     private DeletionVeto allowDeleteOrganisationUnitLevel( OrganisationUnitLevel level )
     {
         OrganisationUnitLevel offlineLevel = configService.getConfiguration().getOfflineOrganisationUnitLevel();
+        OrganisationUnitLevel defaultLevel = configService.getConfiguration().getFacilityOrgUnitLevel();
 
-        return (offlineLevel != null && offlineLevel.equals( level )) ? VETO : ACCEPT;
+        return (offlineLevel != null && offlineLevel.equals( level )) ||
+            (defaultLevel != null && defaultLevel.equals( level )) ? VETO : ACCEPT;
+    }
+
+    private DeletionVeto allowDeleteOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
+    {
+        OrganisationUnitGroupSet defaultGroupSet = configService.getConfiguration().getFacilityOrgUnitGroupSet();
+
+        return defaultGroupSet != null && defaultGroupSet.equals( groupSet ) ? VETO : ACCEPT;
     }
 
     private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit organisationUnit )
     {
         OrganisationUnit selfRegOrgUnit = configService.getConfiguration().getSelfRegistrationOrgUnit();
 
-        return (selfRegOrgUnit != null && selfRegOrgUnit.equals( organisationUnit )) ? VETO : ACCEPT;
+        return selfRegOrgUnit != null && selfRegOrgUnit.equals( organisationUnit ) ? VETO : ACCEPT;
     }
 
     private DeletionVeto allowDeleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         UserAuthorityGroup selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
 
-        return (selfRegRole != null && selfRegRole.equals( userAuthorityGroup )) ? VETO : ACCEPT;
+        return selfRegRole != null && selfRegRole.equals( userAuthorityGroup ) ? VETO : ACCEPT;
     }
 }

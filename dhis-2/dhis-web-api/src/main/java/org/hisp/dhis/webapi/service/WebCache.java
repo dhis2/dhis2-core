@@ -85,7 +85,7 @@ public class WebCache
 
         if ( RESPECT_SYSTEM_SETTING == cacheStrategy )
         {
-            cacheStrategy = (CacheStrategy) systemSettingManager.getSystemSetting( CACHE_STRATEGY );
+            cacheStrategy = systemSettingManager.getSystemSetting( CACHE_STRATEGY, CacheStrategy.class );
         }
 
         final boolean cacheStrategyHasExpirationTimeSet = cacheStrategy != null && cacheStrategy != NO_CACHE;
@@ -153,7 +153,8 @@ public class WebCache
      */
     private void setCacheabilityFor( final CacheControl cacheControl )
     {
-        final Cacheability cacheability = (Cacheability) systemSettingManager.getSystemSetting( CACHEABILITY );
+        final Cacheability cacheability = systemSettingManager.getSystemSetting( CACHEABILITY,
+            Cacheability.class );
 
         if ( PUBLIC == cacheability )
         {

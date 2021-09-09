@@ -179,6 +179,11 @@ public class EventDataQueryRequest
         return new ExtendedEventDataQueryRequestBuilder();
     }
 
+    public boolean hasStartEndDate()
+    {
+        return startDate != null && endDate != null;
+    }
+
     public static class ExtendedEventDataQueryRequestBuilder extends EventDataQueryRequestBuilder
     {
         public EventDataQueryRequestBuilder fromCriteria( EventsAnalyticsQueryCriteria criteria )

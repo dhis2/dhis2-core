@@ -87,14 +87,14 @@ public class AccountExpiryAlertJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        if ( systemSettingManager.getSystemSetting( SettingKey.ACCOUNT_EXPIRY_ALERT, Boolean.class ) == Boolean.FALSE )
+        if ( !systemSettingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) )
         {
             log.info( format( "%s aborted. Expiry alerts are disabled", getJobType().name() ) );
             return;
         }
 
         log.info( format( "%s has started", getJobType().name() ) );
-        Integer inDays = systemSettingManager.getSystemSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS, Integer.class );
+        int inDays = systemSettingManager.getIntSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS );
         List<UserAccountExpiryInfo> soonExpiring = userService.getExpiringUserAccounts( inDays );
 
         if ( soonExpiring.isEmpty() )

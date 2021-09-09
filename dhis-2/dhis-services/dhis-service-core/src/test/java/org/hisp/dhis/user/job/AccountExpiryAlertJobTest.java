@@ -71,14 +71,14 @@ public class AccountExpiryAlertJobTest
     public void setUp()
     {
         // mock normal run conditions
-        when( settingManager.getSystemSetting( SettingKey.ACCOUNT_EXPIRY_ALERT, Boolean.class ) ).thenReturn( true );
-        when( settingManager.getSystemSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS, Integer.class ) ).thenReturn( 7 );
+        when( settingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) ).thenReturn( true );
+        when( settingManager.getIntSetting( SettingKey.ACCOUNT_EXPIRES_IN_DAYS ) ).thenReturn( 7 );
     }
 
     @Test
     public void testDisabledJobDoesNotExecute()
     {
-        when( settingManager.getSystemSetting( SettingKey.ACCOUNT_EXPIRY_ALERT, Boolean.class ) ).thenReturn( false );
+        when( settingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) ).thenReturn( false );
 
         job.execute( new JobConfiguration() );
 

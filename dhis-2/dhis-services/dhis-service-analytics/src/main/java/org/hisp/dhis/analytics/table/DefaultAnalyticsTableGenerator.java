@@ -99,8 +99,8 @@ public class DefaultAnalyticsTableGenerator
     public void generateTables( AnalyticsTableUpdateParams params )
     {
         final Clock clock = new Clock( log ).startClock();
-        final Date lastSuccessfulUpdate = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        final Date lastSuccessfulUpdate = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         final JobConfiguration jobId = params.getJobId();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
         final Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
