@@ -28,9 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -38,13 +35,15 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.hisp.dhis.webapi.webdomain.i18n.I18nInput;
+import org.hisp.dhis.webapi.webdomain.i18n.I18nOutput;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -68,17 +67,15 @@ public class I18nController
     }
 
     @PostMapping
-    public void postI18n(
+    public @ResponseBody I18nOutput postI18n(
         @RequestParam( value = "package", required = false, defaultValue = "org.hisp.dhis" ) String searchPackage,
-        HttpServletResponse response, InputStream inputStream )
+        HttpServletResponse response,
+        InputStream inputStream )
         throws Exception
     {
         I18n i18n = i18nManager.getI18n( searchPackage );
-        Map<String, String> output = new HashMap<>();
-
-        List<String> input = jsonMapper.readValue( inputStream, new TypeReference<List<String>>()
-        {
-        } );
+        I18nOutput output = new I18nOutput();
+        I18nInput input = jsonMapper.readValue( inputStream, I18nInput.class );
 
         for ( String key : input )
         {
@@ -86,11 +83,12 @@ public class I18nController
 
             if ( value != null )
             {
-                output.put( key, value );
+                output.getTranslations().put( key, value );
             }
         }
 
         response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        jsonMapper.writeValue( response.getOutputStream(), output );
+
+        return output;
     }
 }

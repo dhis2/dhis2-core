@@ -32,6 +32,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Set;
 
@@ -48,6 +49,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -97,6 +99,12 @@ public class AnalyticsSecurityManagerTest
 
     private OrganisationUnit ouC;
 
+    private OrganisationUnit ouD;
+
+    private OrganisationUnit ouE;
+
+    private OrganisationUnit ouF;
+
     private Set<OrganisationUnit> userOrgUnits;
 
     @Override
@@ -137,20 +145,54 @@ public class AnalyticsSecurityManagerTest
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C', ouB );
+        ouD = createOrganisationUnit( 'D', ouC );
+        ouE = createOrganisationUnit( 'E', ouC );
+        ouF = createOrganisationUnit( 'F', ouA );
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
         organisationUnitService.addOrganisationUnit( ouC );
+        organisationUnitService.addOrganisationUnit( ouD );
+        organisationUnitService.addOrganisationUnit( ouE );
 
         userOrgUnits = Sets.newHashSet( ouB, ouC );
 
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.setOrganisationUnits( userOrgUnits );
         user.setDataViewOrganisationUnits( userOrgUnits );
+        user.setDataViewMaxOrganisationUnitLevel( 3 );
         user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
 
         userService.addUser( user );
         injectSecurityContext( user );
+    }
+
+    @Test
+    public void testDataViewOrganisationUnits()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
+            .withOrganisationUnits( Lists.newArrayList( ouF ) )
+            .build();
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> securityManager.decideAccess( params ) );
+
+        assertEquals( ErrorCode.E7120, ex.getErrorCode() );
+    }
+
+    @Test
+    public void testDataViewMaxOrganisationUnitLevel()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
+            .withOrganisationUnits( Lists.newArrayList( ouD ) )
+            .build();
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> securityManager.decideAccess( params ) );
+
+        assertEquals( ErrorCode.E7120, ex.getErrorCode() );
     }
 
     @Test
