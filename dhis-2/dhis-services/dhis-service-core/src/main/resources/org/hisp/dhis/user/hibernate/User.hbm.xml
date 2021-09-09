@@ -91,6 +91,8 @@
         foreign-key="fk_userteisearchorgunits_organisationunitid" />
     </set>
 
+    <property name="dataViewMaxOrganisationUnitLevel" column="dataviewmaxorgunitlevel" />
+
     <!-- Dynamic attribute values -->
 
     <property name="attributeValues" type="jsbAttributeValues"/>

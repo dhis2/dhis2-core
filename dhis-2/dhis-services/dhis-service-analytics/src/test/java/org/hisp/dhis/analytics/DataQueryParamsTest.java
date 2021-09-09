@@ -599,6 +599,22 @@ public class DataQueryParamsTest
     }
 
     @Test
+    public void testGetAllTypedOrganisationUnits()
+    {
+        DataQueryParams paramsA = DataQueryParams.newBuilder()
+            .addDimension( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+                DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) ) )
+            .build();
+        DataQueryParams paramsB = DataQueryParams.newBuilder()
+            .addFilter( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+                DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB ) ) )
+            .build();
+
+        assertEquals( 2, paramsA.getAllTypedOrganisationUnits().size() );
+        assertEquals( 2, paramsB.getAllTypedOrganisationUnits().size() );
+    }
+
+    @Test
     public void testGetAllDataSets()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
