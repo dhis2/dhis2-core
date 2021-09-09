@@ -37,6 +37,7 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.UserRoleActions;
 import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +48,10 @@ import org.junit.jupiter.api.BeforeEach;
 public class PotentialDuplicatesApiTest
     extends ApiTest
 {
+    protected static final String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
+
+    protected static final String TRACKER_PROGRAM_STAGE_ID = "nlXNK4b7LVr";
+
     protected static final String MERGE_AUTHORITY = "F_TRACKED_ENTITY_MERGE";
 
     protected static final String USER_PASSWORD = Constants.USER_PASSWORD;
@@ -93,6 +98,17 @@ public class PotentialDuplicatesApiTest
         JsonObject object = trackerActions.buildTei( teiType, Constants.ORG_UNIT_IDS[0] );
 
         return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
+    }
+
+    protected TrackerApiResponse createTeiWithEnrollmentsAndEvents() {
+        return createTeiWithEnrollmentsAndEvents( TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID);
+    }
+
+    protected TrackerApiResponse createTeiWithEnrollmentsAndEvents( String program, String programStage )
+    {
+        return trackerActions.postAndGetJobReport( trackerActions
+            .buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], program, programStage ) )
+            .validateSuccessfulImport();
     }
 
     @AfterEach
