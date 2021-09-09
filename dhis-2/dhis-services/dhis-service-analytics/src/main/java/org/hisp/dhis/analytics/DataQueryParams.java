@@ -2405,9 +2405,9 @@ public class DataQueryParams
      */
     public List<OrganisationUnit> getAllTypedOrganisationUnits()
     {
-        return getAllOrganisationUnits().stream()
+        return ImmutableList.copyOf( getAllOrganisationUnits().stream()
             .map( ou -> (OrganisationUnit) ou )
-            .collect( Collectors.toList() );
+            .collect( Collectors.toList() ) );
     }
 
     /**
