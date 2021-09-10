@@ -78,7 +78,7 @@ public class PotentialDuplicatesEnrollmentsTests
     @Test
     public void shouldBeManuallyMerged()
     {
-        String teiA = createTeiWithEnrollmentsAndEvents( Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr" ).extractImportedTeis()
+        String teiA = createTeiWithEnrollmentsAndEvents( TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID ).extractImportedTeis()
             .get( 0 );
 
         TrackerApiResponse teiBResponse = createTeiWithEnrollmentsAndEvents( Constants.ANOTHER_TRACKER_PROGRAM_ID, "PaOOjwLVW2X" );
@@ -150,7 +150,7 @@ public class PotentialDuplicatesEnrollmentsTests
         String teiB = createTeiWithoutEnrollment( Constants.ORG_UNIT_IDS[0] );
 
         TrackerApiResponse imported = trackerActions.postAndGetJobReport( trackerActions
-            .buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], Constants.TRACKER_PROGRAM_ID, "nlXNK4b7LVr" ) )
+            .buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID ) )
             .validateSuccessfulImport();
 
         String teiA = imported.extractImportedTeis().get( 0 );
@@ -178,13 +178,6 @@ public class PotentialDuplicatesEnrollmentsTests
             .body( String.format( "enrollments.find{it.enrollment=='%s'}.events", enrollment ), hasSize( 1 ) );
 
         trackerActions.getTrackedEntity( teiB ).validate().statusCode( 404 );
-    }
-
-    private TrackerApiResponse createTeiWithEnrollmentsAndEvents( String program, String programStage )
-    {
-        return trackerActions.postAndGetJobReport( trackerActions
-            .buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], program, programStage ) )
-            .validateSuccessfulImport();
     }
 
     private String createTeiWithoutEnrollment( String ouId )
