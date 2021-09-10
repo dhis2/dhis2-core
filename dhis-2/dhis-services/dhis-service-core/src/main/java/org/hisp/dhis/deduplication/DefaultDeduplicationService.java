@@ -173,17 +173,15 @@ public class DefaultDeduplicationService
             throw new PotentialDuplicateForbiddenException(
                 "Insufficient access: " + accessError );
 
-        Date mergeDate = new Date();
-
         potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate,
             mergeObject.getTrackedEntityAttributes() );
         potentialDuplicateStore.moveRelationships( original, duplicate,
             mergeObject.getRelationships() );
         potentialDuplicateStore.moveEnrollments( original, duplicate,
-            mergeObject.getEnrollments(), mergeDate );
+            mergeObject.getEnrollments() );
 
         potentialDuplicateStore.removeTrackedEntity( duplicate );
-        updateTeiAndPotentialDuplicate( params, original, mergeDate );
+        updateTeiAndPotentialDuplicate( params, original );
         potentialDuplicateStore.auditMerge( params );
     }
 
@@ -205,9 +203,9 @@ public class DefaultDeduplicationService
     }
 
     private void updateTeiAndPotentialDuplicate( DeduplicationMergeParams deduplicationMergeParams,
-        TrackedEntityInstance original, Date mergeDate )
+        TrackedEntityInstance original )
     {
-        updateOriginalTei( original, mergeDate );
+        updateOriginalTei( original );
         updatePotentialDuplicateStatus( deduplicationMergeParams.getPotentialDuplicate() );
     }
 
@@ -218,9 +216,9 @@ public class DefaultDeduplicationService
         potentialDuplicateStore.update( potentialDuplicate );
     }
 
-    private void updateOriginalTei( TrackedEntityInstance original, Date mergeDate )
+    private void updateOriginalTei( TrackedEntityInstance original )
     {
-        original.setLastUpdated( mergeDate );
+        original.setLastUpdated( new Date() );
         original.setLastUpdatedBy( currentUserService.getCurrentUser() );
         original.setLastUpdatedByUserInfo( UserInfoSnapshot.from( currentUserService.getCurrentUser() ) );
     }

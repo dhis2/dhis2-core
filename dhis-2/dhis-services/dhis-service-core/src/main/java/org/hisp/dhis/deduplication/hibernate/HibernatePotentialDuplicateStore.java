@@ -227,7 +227,7 @@ public class HibernatePotentialDuplicateStore
 
     @Override
     public void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate,
-        List<String> enrollments, Date mergeDate )
+        List<String> enrollments )
     {
         List<ProgramInstance> pis = duplicate.getProgramInstances()
             .stream()
@@ -241,7 +241,7 @@ public class HibernatePotentialDuplicateStore
             e.setEntityInstance( original );
             e.setLastUpdatedBy( currentUserService.getCurrentUser() );
             e.setLastUpdatedByUserInfo( UserInfoSnapshot.from( currentUserService.getCurrentUser() ) );
-            e.setLastUpdated( mergeDate );
+            e.setLastUpdated( new Date() );
             getSession().update( e );
         } );
 
