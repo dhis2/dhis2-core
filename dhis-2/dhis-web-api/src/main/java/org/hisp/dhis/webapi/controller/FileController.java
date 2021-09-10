@@ -80,7 +80,7 @@ public class FileController
     {
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JAVASCRIPT, CacheStrategy.CACHE_TWO_WEEKS );
 
-        String content = (String) systemSettingManager.getSystemSetting( SettingKey.CUSTOM_JS, StringUtils.EMPTY );
+        String content = systemSettingManager.getSystemSetting( SettingKey.CUSTOM_JS, StringUtils.EMPTY );
 
         if ( content != null )
         {
@@ -124,7 +124,7 @@ public class FileController
     {
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSS, CacheStrategy.CACHE_TWO_WEEKS );
 
-        String content = (String) systemSettingManager.getSystemSetting( SettingKey.CUSTOM_CSS, StringUtils.EMPTY );
+        String content = systemSettingManager.getSystemSetting( SettingKey.CUSTOM_CSS, StringUtils.EMPTY );
 
         if ( content != null )
         {

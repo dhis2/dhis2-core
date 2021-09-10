@@ -115,8 +115,8 @@ public class DataValueSynchronization extends DataSynchronizationWithPaging
         clock = new Clock( log ).startClock().logTime( "Starting DataValueSynchronization job" );
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
             SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
-        final Date skipChangedBefore = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date skipChangedBefore = systemSettingManager
+            .getDateSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
 
         objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );

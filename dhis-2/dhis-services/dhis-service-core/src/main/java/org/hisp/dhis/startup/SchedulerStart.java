@@ -255,7 +255,7 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     private void portJob( JobConfiguration jobConfiguration, SettingKey systemKey )
     {
-        Date lastSuccessfulRun = (Date) systemSettingManager.getSystemSetting( systemKey );
+        Date lastSuccessfulRun = systemSettingManager.getDateSetting( systemKey );
 
         if ( lastSuccessfulRun != null )
         {

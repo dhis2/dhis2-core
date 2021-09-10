@@ -315,7 +315,7 @@ public class EventQueryValidatorTest
     @Test
     public void validateErrorMaxLimit()
     {
-        when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAX_LIMIT ) )
+        when( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) )
             .thenReturn( 100 );
 
         EventQueryParams params = new EventQueryParams.Builder()

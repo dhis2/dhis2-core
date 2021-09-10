@@ -131,7 +131,8 @@ public abstract class AnalyticsServiceBaseTest
         target = new DataAggregator( headerHandler, metadataHandler, dataHandler );
         target.feedHandlers();
 
-        when( systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) ).thenReturn( false );
+        when( systemSettingManager.getBooleanSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) )
+            .thenReturn( false );
         when( analyticsCacheSettings.fixedExpirationTimeOrDefault() ).thenReturn( 0L );
     }
 

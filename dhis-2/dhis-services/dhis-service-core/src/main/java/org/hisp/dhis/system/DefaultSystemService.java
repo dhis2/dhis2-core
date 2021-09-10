@@ -138,17 +138,17 @@ public class DefaultSystemService
             return null;
         }
 
-        Date lastAnalyticsTableSuccess = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
-        String lastAnalyticsTableRuntime = (String) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
-        Date lastAnalyticsTablePartitionSuccess = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
-        String lastAnalyticsTablePartitionRuntime = (String) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME );
-        Date lastSystemMonitoringSuccess = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
-        String systemName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        Date lastAnalyticsTableSuccess = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        String lastAnalyticsTableRuntime = systemSettingManager
+            .getStringSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME );
+        Date lastAnalyticsTablePartitionSuccess = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+        String lastAnalyticsTablePartitionRuntime = systemSettingManager
+            .getStringSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME );
+        Date lastSystemMonitoringSuccess = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_SYSTEM_MONITORING_PUSH );
+        String systemName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
         String instanceBaseUrl = dhisConfig.getServerBaseUrl();
 
         Date now = new Date();
@@ -282,14 +282,14 @@ public class DefaultSystemService
 
     private void setSystemMetadataVersionInfo( SystemInfo info )
     {
-        Boolean isMetadataVersionEnabled = (boolean) systemSettingManager
-            .getSystemSetting( SettingKey.METADATAVERSION_ENABLED );
-        Date lastSuccessfulMetadataSync = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
-        Date metadataLastFailedTime = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.METADATA_LAST_FAILED_TIME );
-        String systemMetadataVersion = (String) systemSettingManager
-            .getSystemSetting( SettingKey.SYSTEM_METADATA_VERSION );
+        Boolean isMetadataVersionEnabled = systemSettingManager
+            .getBooleanSetting( SettingKey.METADATAVERSION_ENABLED );
+        Date lastSuccessfulMetadataSync = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_METADATA_SYNC );
+        Date metadataLastFailedTime = systemSettingManager
+            .getDateSetting( SettingKey.METADATA_LAST_FAILED_TIME );
+        String systemMetadataVersion = systemSettingManager
+            .getStringSetting( SettingKey.SYSTEM_METADATA_VERSION );
         Date lastMetadataVersionSyncAttempt = getLastMetadataVersionSyncAttempt( lastSuccessfulMetadataSync,
             metadataLastFailedTime );
 

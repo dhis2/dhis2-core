@@ -84,7 +84,7 @@ public class SecurityController
             throw new BadCredentialsException( "No current user" );
         }
 
-        String appName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        String appName = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
 
         String url = SecurityUtils.generateQrUrl( appName, currentUser );
 

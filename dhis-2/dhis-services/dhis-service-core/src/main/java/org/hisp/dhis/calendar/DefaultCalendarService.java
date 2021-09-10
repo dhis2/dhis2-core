@@ -110,8 +110,8 @@ public class DefaultCalendarService
     @Transactional( readOnly = true )
     public Calendar getSystemCalendar()
     {
-        String calendarKey = (String) settingManager.getSystemSetting( SettingKey.CALENDAR );
-        String dateFormat = (String) settingManager.getSystemSetting( SettingKey.DATE_FORMAT );
+        String calendarKey = settingManager.getStringSetting( SettingKey.CALENDAR );
+        String dateFormat = settingManager.getStringSetting( SettingKey.DATE_FORMAT );
 
         Calendar calendar = null;
 
@@ -133,7 +133,7 @@ public class DefaultCalendarService
     @Transactional( readOnly = true )
     public DateFormat getSystemDateFormat()
     {
-        String dateFormatKey = (String) settingManager.getSystemSetting( SettingKey.DATE_FORMAT );
+        String dateFormatKey = settingManager.getStringSetting( SettingKey.DATE_FORMAT );
 
         for ( DateFormat dateFormat : DATE_FORMATS )
         {

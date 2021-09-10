@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
-import static org.hisp.dhis.dataapproval.DataApproval.*;
+import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
+import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
+import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
 import static org.hisp.dhis.user.UserAuthorityGroup.AUTHORITY_ALL;
 
 import java.util.Comparator;
@@ -128,8 +130,8 @@ public class UserControllerUtils
             || authorities.contains( AUTH_APPROVE_LOWER_LEVELS );
         boolean canAccept = authorities.contains( AUTHORITY_ALL ) || authorities.contains( AUTH_ACCEPT_LOWER_LEVELS );
 
-        boolean acceptConfigured = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+        boolean acceptConfigured = systemSettingManager
+            .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
 
         int lowestUserOrgUnitLevel = getLowsetUserOrgUnitLevel( user );
 
