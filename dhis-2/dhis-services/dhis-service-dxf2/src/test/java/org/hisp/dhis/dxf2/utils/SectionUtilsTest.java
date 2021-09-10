@@ -34,7 +34,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -53,7 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public class SectionUtilsTest extends DhisTest
+public class SectionUtilsTest extends DhisSpringTest
 {
     @Autowired
     private DataSetService dataSetService;
@@ -175,7 +175,7 @@ public class SectionUtilsTest extends DhisTest
 
         List<String> keys = new ArrayList<>( orderedDataElements.keySet() );
 
-        assertEquals( 6, orderedDataElements.keySet().size() );
+        assertEquals( 6, keys.size() );
 
         String key1 = sec.getId() + "-" + catDefault + "-" + "0";
         String key2 = sec.getId() + "-" + catAB + "-" + "1";
