@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.setting;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -35,7 +37,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.LocaleUtils;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
@@ -51,7 +53,6 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -210,11 +211,11 @@ public enum SettingKey
 
     private final Serializable defaultValue;
 
-    private final Class<?> clazz;
+    private final Class<? extends Serializable> clazz;
 
-    private boolean confidential;
+    private final boolean confidential;
 
-    private boolean translatable;
+    private final boolean translatable;
 
     private static final ImmutableSet<String> NAMES = getNameSet();
 
@@ -224,41 +225,26 @@ public enum SettingKey
 
     SettingKey( String name )
     {
-        this.name = name;
-        this.defaultValue = null;
-        this.clazz = String.class;
-        this.confidential = false;
-        this.translatable = false;
+        this( name, null, String.class, false, false );
     }
 
     SettingKey( String name, boolean translatable )
     {
-        this.name = name;
-        this.defaultValue = null;
-        this.clazz = String.class;
-        this.confidential = false;
-        this.translatable = translatable;
+        this( name, null, String.class, false, translatable );
     }
 
-    SettingKey( String name, Class<?> clazz )
+    SettingKey( String name, Class<? extends Serializable> clazz )
     {
-        this.name = name;
-        this.defaultValue = null;
-        this.clazz = clazz;
-        this.confidential = false;
-        this.translatable = false;
+        this( name, null, clazz, false, false );
     }
 
-    SettingKey( String name, Serializable defaultValue, Class<?> clazz )
+    <T extends Serializable> SettingKey( String name, T defaultValue, Class<T> clazz )
     {
-        this.name = name;
-        this.defaultValue = defaultValue;
-        this.clazz = clazz;
-        this.confidential = false;
-        this.translatable = false;
+        this( name, defaultValue, clazz, false, false );
     }
 
-    SettingKey( String name, Serializable defaultValue, Class<?> clazz, boolean confidential, boolean translatable )
+    <T extends Serializable> SettingKey( String name, T defaultValue, Class<T> clazz, boolean confidential,
+        boolean translatable )
     {
         this.name = name;
         this.defaultValue = defaultValue;
@@ -355,9 +341,9 @@ public enum SettingKey
 
     private static ImmutableSet<String> getNameSet()
     {
-        return ImmutableSet.copyOf( Sets.newHashSet( SettingKey.values() ).stream()
-            .map( s -> s.getName() )
-            .collect( Collectors.toSet() ) );
+        return ImmutableSet.copyOf( Stream.of( SettingKey.values() )
+            .map( SettingKey::getName )
+            .collect( toSet() ) );
     }
 
     // -------------------------------------------------------------------------
@@ -374,7 +360,7 @@ public enum SettingKey
         return defaultValue;
     }
 
-    public Class<?> getClazz()
+    public Class<? extends Serializable> getClazz()
     {
         return clazz;
     }

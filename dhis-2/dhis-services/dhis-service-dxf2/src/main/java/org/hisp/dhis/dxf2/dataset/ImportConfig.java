@@ -98,16 +98,16 @@ final class ImportConfig
         skipExistingCheck = options.isSkipExistingCheck();
 
         strictPeriods = options.isStrictPeriods()
-            || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+            || systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
 
         strictAttrOptionCombos = options.isStrictAttributeOptionCombos()
-            || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
+            || systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS );
 
         strictOrgUnits = options.isStrictOrganisationUnits()
-            || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
+            || systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
 
         requireAttrOptionCombos = options.isRequireAttributeOptionCombo()
-            || (Boolean) systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
+            || systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO );
 
         fallbackCatOptCombo = categoryService.getDefaultCategoryOptionCombo();
     }
