@@ -28,18 +28,32 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.junit.Before;
@@ -183,23 +197,10 @@ public class ProgramObjectBundleHookTest
         ProgramStage programStage = createProgramStage( 'A', 1 );
         programA.getProgramStages().add( programStage );
 
-        ArgumentCaptor<Program> argument = ArgumentCaptor.forClass( Program.class );
-        ArgumentCaptor<ProgramStage> argPS = ArgumentCaptor.forClass( ProgramStage.class );
-
-        programService.addProgram( programA );
+        assertNull( programA.getProgramStages().iterator().next().getProgram() );
 
         subject.postCreate( programA, null );
 
-        verify( programService ).updateProgram( argument.capture() );
-
-        verify( programStageService ).saveProgramStage( argPS.capture() );
-
-        assertThat( argPS.getValue().getName(), is( equalToIgnoringCase( "ProgramStageA" ) ) );
-        assertThat( argPS.getValue().getProgram(), is( programA ) );
-
-        assertThat( argument.getValue().getName(), is( equalToIgnoringCase( "ProgramA" ) ) );
-        assertThat( argument.getValue().getProgramStages().size(), is( 1 ) );
-        assertThat( argument.getValue().getProgramStages().iterator().next().getName(),
-            is( equalToIgnoringCase( "ProgramStageA" ) ) );
+        assertNotNull( programA.getProgramStages().iterator().next().getProgram() );
     }
 }
