@@ -1037,10 +1037,10 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertEquals( Status.OK, report.getStatus() );
 
         ProgramStage programStage = programStageService.getProgramStage( "oORy3Rg9hLE" );
-        assertEquals( 1, programStage.getSharing().getUserGroups().size() );
+        assertEquals( 1, programStage.getUserGroupAccesses().size() );
 
         Program program = manager.get( "QIHW6CBdLsP" );
-        assertEquals( 1, program.getSharing().getUserGroups().size() );
+        assertEquals( 1, program.getUserGroupAccesses().size() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,
