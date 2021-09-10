@@ -53,7 +53,7 @@ public class SectionUtils
             return orderedDataElementsMap;
         }
 
-        Long currentCategoryCombo = null;
+        long currentCategoryCombo = -1;
 
         List<DataElement> groups = new ArrayList<>();
 
@@ -61,14 +61,12 @@ public class SectionUtils
 
         for ( DataElement dataElement : section.getDataElements() )
         {
-            long cc = dataElement.getCategoryCombo().getId();
-
-            if ( currentCategoryCombo == null )
+            if ( currentCategoryCombo == -1 )
             {
-                currentCategoryCombo = cc;
+                currentCategoryCombo = dataElement.getCategoryCombo().getId();
             }
 
-            if ( cc == currentCategoryCombo )
+            if ( currentCategoryCombo == dataElement.getCategoryCombo().getId() )
             {
                 groups.add( dataElement );
             }
@@ -77,7 +75,7 @@ public class SectionUtils
                 orderedDataElementsMap.put( section.getId() + "-" + currentCategoryCombo + "-" + counter,
                     new ArrayList<>( groups ) );
 
-                currentCategoryCombo = cc;
+                currentCategoryCombo = dataElement.getCategoryCombo().getId();
 
                 groups = new ArrayList<>();
 
