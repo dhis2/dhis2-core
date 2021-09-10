@@ -31,6 +31,7 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,7 @@ import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
@@ -225,7 +227,7 @@ public class HibernatePotentialDuplicateStore
 
     @Override
     public void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate,
-        List<String> enrollments )
+        List<String> enrollments, Date mergeDate )
     {
         List<ProgramInstance> pis = duplicate.getProgramInstances()
             .stream()
@@ -237,6 +239,9 @@ public class HibernatePotentialDuplicateStore
 
         pis.forEach( e -> {
             e.setEntityInstance( original );
+            e.setLastUpdatedBy( currentUserService.getCurrentUser() );
+            e.setLastUpdatedByUserInfo( UserInfoSnapshot.from( currentUserService.getCurrentUser() ) );
+            e.setLastUpdated( mergeDate );
             getSession().update( e );
         } );
 

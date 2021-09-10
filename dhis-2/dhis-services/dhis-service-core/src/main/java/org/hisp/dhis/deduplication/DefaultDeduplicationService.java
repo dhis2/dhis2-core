@@ -35,8 +35,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
@@ -48,8 +48,6 @@ public class DefaultDeduplicationService
     implements DeduplicationService
 {
     private final PotentialDuplicateStore potentialDuplicateStore;
-
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     private final DeduplicationHelper deduplicationHelper;
 
@@ -175,15 +173,17 @@ public class DefaultDeduplicationService
             throw new PotentialDuplicateForbiddenException(
                 "Insufficient access: " + accessError );
 
+        Date mergeDate = new Date();
+
         potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate,
             mergeObject.getTrackedEntityAttributes() );
         potentialDuplicateStore.moveRelationships( original, duplicate,
             mergeObject.getRelationships() );
         potentialDuplicateStore.moveEnrollments( original, duplicate,
-            mergeObject.getEnrollments() );
+            mergeObject.getEnrollments(), mergeDate );
 
         potentialDuplicateStore.removeTrackedEntity( duplicate );
-        updateTeiAndPotentialDuplicate( params, original );
+        updateTeiAndPotentialDuplicate( params, original, mergeDate );
         potentialDuplicateStore.auditMerge( params );
     }
 
@@ -205,9 +205,9 @@ public class DefaultDeduplicationService
     }
 
     private void updateTeiAndPotentialDuplicate( DeduplicationMergeParams deduplicationMergeParams,
-        TrackedEntityInstance original )
+        TrackedEntityInstance original, Date mergeDate )
     {
-        updateOriginalTei( original );
+        updateOriginalTei( original, mergeDate );
         updatePotentialDuplicateStatus( deduplicationMergeParams.getPotentialDuplicate() );
     }
 
@@ -218,11 +218,11 @@ public class DefaultDeduplicationService
         potentialDuplicateStore.update( potentialDuplicate );
     }
 
-    private void updateOriginalTei( TrackedEntityInstance original )
+    private void updateOriginalTei( TrackedEntityInstance original, Date mergeDate )
     {
-        original.setLastUpdated( new Date() );
+        original.setLastUpdated( mergeDate );
         original.setLastUpdatedBy( currentUserService.getCurrentUser() );
-        trackedEntityInstanceStore.update( original );
+        original.setLastUpdatedByUserInfo( UserInfoSnapshot.from( currentUserService.getCurrentUser() ) );
     }
 
     private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,

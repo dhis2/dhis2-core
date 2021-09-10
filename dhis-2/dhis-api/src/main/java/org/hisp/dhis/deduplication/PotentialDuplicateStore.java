@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.deduplication;
 
+import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -60,7 +61,8 @@ public interface PotentialDuplicateStore
     void moveRelationships( TrackedEntityInstance originalUid, TrackedEntityInstance duplicateUid,
         List<String> relationships );
 
-    void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate, List<String> enrollments );
+    void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate, List<String> enrollments,
+        Date mergeDate );
 
     void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance );
 
