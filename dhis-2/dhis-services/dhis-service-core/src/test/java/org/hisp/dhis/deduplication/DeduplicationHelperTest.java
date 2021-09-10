@@ -35,6 +35,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,7 +49,6 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -79,9 +79,6 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     private RelationshipService relationshipService;
 
     @Mock
-    private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @Mock
     private OrganisationUnitService organisationUnitService;
 
     @Mock
@@ -96,6 +93,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     private TrackedEntityType trackedEntityTypeB;
 
     private RelationshipType relationshipType;
+
+    private RelationshipType relationshipTypeBidirectional;
 
     private TrackedEntityAttribute attribute;
 
@@ -117,6 +116,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         trackedEntityTypeA = createTrackedEntityType( 'A' );
         trackedEntityTypeB = createTrackedEntityType( 'B' );
         relationshipType = createRelationshipType( 'A' );
+        relationshipTypeBidirectional = createRelationshipType( 'B' );
         attribute = createTrackedEntityAttribute( 'A' );
         programInstance = createProgramInstance( createProgram( 'A' ), getTeiA(), organisationUnitA );
         mergeObject = MergeObject.builder()
@@ -125,15 +125,15 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
             .enrollments( enrollmentUids )
             .build();
         user = createUser( 'A', Lists.newArrayList( "F_TRACKED_ENTITY_MERGE" ) );
+        relationshipType.setBidirectional( false );
+        relationshipTypeBidirectional.setBidirectional( true );
 
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         when( aclService.canDataWrite( user, trackedEntityTypeA ) ).thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( true );
         when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, attribute ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( true );
         when( relationshipService.getRelationships( relationshipUids ) ).thenReturn( getRelationships() );
-        when( trackedEntityAttributeService.getTrackedEntityAttributes( attributeUids ) ).thenReturn( getAttributes() );
         when( programInstanceService.getProgramInstances( enrollmentUids ) ).thenReturn( getEnrollments() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitA ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitB ) ).thenReturn( true );
@@ -432,7 +432,55 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         teiA.getRelationshipItems().add( fromA );
         teiB.getRelationshipItems().add( fromB );
 
-        assertNotNull( deduplicationHelper.getDuplicateRelationshipError( teiA, teiB ) );
+        assertNotNull( deduplicationHelper.getDuplicateRelationshipError( teiA,
+            teiB.getRelationshipItems().stream().map( RelationshipItem::getRelationship )
+                .collect( Collectors.toSet() ) ) );
+    }
+
+    @Test
+    public void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeisBidirectional()
+    {
+        TrackedEntityInstance teiA = getTeiA();
+        TrackedEntityInstance teiB = getTeiB();
+        TrackedEntityInstance teiC = getTeiC();
+
+        // A->C, B->C
+        RelationshipItem fromA = new RelationshipItem();
+        RelationshipItem toA = new RelationshipItem();
+        RelationshipItem fromB = new RelationshipItem();
+        RelationshipItem toB = new RelationshipItem();
+
+        fromA.setTrackedEntityInstance( teiC );
+        toA.setTrackedEntityInstance( teiA );
+        fromB.setTrackedEntityInstance( teiB );
+        toB.setTrackedEntityInstance( teiC );
+
+        Relationship relA = new Relationship();
+        Relationship relB = new Relationship();
+
+        relA.setAutoFields();
+        relB.setAutoFields();
+
+        relA.setRelationshipType( relationshipTypeBidirectional );
+        relB.setRelationshipType( relationshipTypeBidirectional );
+
+        relA.setFrom( fromA );
+        relA.setTo( toA );
+        relB.setFrom( fromB );
+        relB.setTo( toB );
+
+        fromA.setRelationship( relA );
+        toA.setRelationship( relA );
+
+        fromB.setRelationship( relB );
+        toB.setRelationship( relB );
+
+        teiA.getRelationshipItems().add( fromA );
+        teiB.getRelationshipItems().add( fromB );
+
+        assertNotNull( deduplicationHelper.getDuplicateRelationshipError( teiA,
+            teiB.getRelationshipItems().stream().map( RelationshipItem::getRelationship )
+                .collect( Collectors.toSet() ) ) );
     }
 
     @Test
@@ -450,8 +498,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
         fromA.setTrackedEntityInstance( teiA );
         toA.setTrackedEntityInstance( teiC );
-        fromB.setTrackedEntityInstance( teiC );
-        toB.setTrackedEntityInstance( teiB );
+        fromB.setTrackedEntityInstance( teiB );
+        toB.setTrackedEntityInstance( teiC );
 
         Relationship relA = new Relationship();
         Relationship relB = new Relationship();
@@ -476,7 +524,9 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         teiA.getRelationshipItems().add( fromA );
         teiB.getRelationshipItems().add( fromB );
 
-        assertNull( deduplicationHelper.getDuplicateRelationshipError( teiA, teiB ) );
+        assertNotNull( deduplicationHelper.getDuplicateRelationshipError( teiA,
+            teiB.getRelationshipItems().stream().map( RelationshipItem::getRelationship )
+                .collect( Collectors.toSet() ) ) );
     }
 
     private List<Relationship> getRelationships()
