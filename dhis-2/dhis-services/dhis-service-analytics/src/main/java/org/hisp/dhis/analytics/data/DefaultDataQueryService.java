@@ -503,8 +503,8 @@ public class DefaultDataQueryService
                 }
             }
 
-            ous = ous.stream().distinct().collect( Collectors.toList() ); // Remove
-                                                                          // duplicates
+            // Remove duplicates
+            ous = ous.stream().distinct().collect( Collectors.toList() );
 
             List<DimensionalItemObject> orgUnits = new ArrayList<>();
             List<OrganisationUnit> ousList = asTypedList( ous );
@@ -513,16 +513,21 @@ public class DefaultDataQueryService
             if ( !levels.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
+
                 dimensionalKeywords.addGroupBy(
-                    levels.stream().map( l -> organisationUnitService.getOrganisationUnitLevelByLevel( l ) )
-                        .filter( Objects::nonNull ).collect( Collectors.toList() ) );
+                    levels.stream()
+                        .map( level -> organisationUnitService.getOrganisationUnitLevelByLevel( level ) )
+                        .filter( Objects::nonNull )
+                        .collect( Collectors.toList() ) );
             }
 
             if ( !groups.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
+
                 dimensionalKeywords.addGroupBy(
-                    groups.stream().map( g -> new BaseNameableObject( g.getUid(), g.getCode(), g.getName() ) )
+                    groups.stream()
+                        .map( group -> new BaseNameableObject( group.getUid(), group.getCode(), group.getName() ) )
                         .collect( Collectors.toList() ) );
             }
 
@@ -547,11 +552,11 @@ public class DefaultDataQueryService
                 throwIllegalQueryEx( ErrorCode.E7124, DimensionalObject.ORGUNIT_DIM_ID );
             }
 
-            orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() ); // Remove
-                                                                                    // duplicates
+            // Remove duplicates
+            orgUnits = orgUnits.stream().distinct().collect( Collectors.toList() );
 
-            return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                orgUnits, dimensionalKeywords );
+            return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT,
+                null, DISPLAY_NAME_ORGUNIT, orgUnits, dimensionalKeywords );
         }
 
         else if ( ORGUNIT_GROUP_DIM_ID.equals( dimension ) )
