@@ -514,21 +514,19 @@ public class DefaultDataQueryService
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
 
-                dimensionalKeywords.addGroupBy(
-                    levels.stream()
-                        .map( level -> organisationUnitService.getOrganisationUnitLevelByLevel( level ) )
-                        .filter( Objects::nonNull )
-                        .collect( Collectors.toList() ) );
+                dimensionalKeywords.addGroupBy( levels.stream()
+                    .map( level -> organisationUnitService.getOrganisationUnitLevelByLevel( level ) )
+                    .filter( Objects::nonNull )
+                    .collect( Collectors.toList() ) );
             }
 
             if ( !groups.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
 
-                dimensionalKeywords.addGroupBy(
-                    groups.stream()
-                        .map( group -> new BaseNameableObject( group.getUid(), group.getCode(), group.getName() ) )
-                        .collect( Collectors.toList() ) );
+                dimensionalKeywords.addGroupBy( groups.stream()
+                    .map( group -> new BaseNameableObject( group.getUid(), group.getCode(), group.getName() ) )
+                    .collect( Collectors.toList() ) );
             }
 
             // -----------------------------------------------------------------
