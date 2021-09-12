@@ -203,5 +203,5 @@ public interface DimensionalObject
     /**
      * Returns dimensional keywords for this dimension.
      */
-    DimensionalKeywords getDimensionalKeywords();
+    DimensionItemKeywords getDimensionalKeywords();
 }

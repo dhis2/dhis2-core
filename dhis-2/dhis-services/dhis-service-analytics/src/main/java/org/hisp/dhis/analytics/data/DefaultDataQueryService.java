@@ -79,10 +79,10 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalKeywords;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.IdScheme;
@@ -320,7 +320,7 @@ public class DefaultDataQueryService
         {
             List<DimensionalItemObject> dataDimensionItems = new ArrayList<>();
 
-            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
+            DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
             for ( String uid : items )
             {
@@ -334,7 +334,7 @@ public class DefaultDataQueryService
                     if ( group != null )
                     {
                         dataDimensionItems.addAll( group.getMembers() );
-                        dimensionalKeywords.addGroupBy( group );
+                        dimensionalKeywords.addKeyword( group );
                     }
                 }
                 else if ( uid.startsWith( KEY_IN_GROUP ) ) // INDICATOR GROUP
@@ -346,7 +346,7 @@ public class DefaultDataQueryService
                     if ( group != null )
                     {
                         dataDimensionItems.addAll( group.getMembers() );
-                        dimensionalKeywords.addGroupBy( group );
+                        dimensionalKeywords.addKeyword( group );
                     }
                 }
                 else
@@ -388,7 +388,7 @@ public class DefaultDataQueryService
             I18n i18n = i18nManager.getI18n();
             List<Period> periods = new ArrayList<>();
 
-            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
+            DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
             AnalyticsFinancialYearStartKey financialYearStart = systemSettingManager
                 .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class );
@@ -402,7 +402,7 @@ public class DefaultDataQueryService
                     containsRelativePeriods = true;
                     RelativePeriodEnum relativePeriod = RelativePeriodEnum.valueOf( isoPeriod );
 
-                    dimensionalKeywords.addGroupBy( isoPeriod, i18n.getString( isoPeriod ) );
+                    dimensionalKeywords.addKeyword( isoPeriod, i18n.getString( isoPeriod ) );
 
                     List<Period> relativePeriods = RelativePeriods.getRelativePeriodsFromEnum( relativePeriod,
                         relativePeriodDate, format, true, financialYearStart );
@@ -508,13 +508,13 @@ public class DefaultDataQueryService
 
             List<DimensionalItemObject> orgUnits = new ArrayList<>();
             List<OrganisationUnit> ousList = asTypedList( ous );
-            DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
+            DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
 
             if ( !levels.isEmpty() )
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnitsAtLevels( levels, ousList ) ) );
 
-                dimensionalKeywords.addGroupBy( levels.stream()
+                dimensionalKeywords.addKeywords( levels.stream()
                     .map( level -> organisationUnitService.getOrganisationUnitLevelByLevel( level ) )
                     .filter( Objects::nonNull )
                     .collect( Collectors.toList() ) );
@@ -524,7 +524,7 @@ public class DefaultDataQueryService
             {
                 orgUnits.addAll( sort( organisationUnitService.getOrganisationUnits( groups, ousList ) ) );
 
-                dimensionalKeywords.addGroupBy( groups.stream()
+                dimensionalKeywords.addKeywords( groups.stream()
                     .map( group -> new BaseNameableObject( group.getUid(), group.getCode(), group.getName() ) )
                     .collect( Collectors.toList() ) );
             }
@@ -542,7 +542,7 @@ public class DefaultDataQueryService
 
             if ( !dimensionalKeywords.isEmpty() )
             {
-                dimensionalKeywords.addGroupBy( ousList );
+                dimensionalKeywords.addKeywords( ousList );
             }
 
             if ( orgUnits.isEmpty() )

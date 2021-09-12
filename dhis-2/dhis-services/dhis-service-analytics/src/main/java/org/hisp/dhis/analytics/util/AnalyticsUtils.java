@@ -699,8 +699,8 @@ public class AnalyticsUtils
 
             if ( dimension.getDimensionalKeywords() != null )
             {
-                dimension.getDimensionalKeywords().getGroupBy()
-                    .forEach( b -> map.put( b.getKey(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
+                dimension.getDimensionalKeywords().getKeywords()
+                    .forEach( b -> map.put( b.getKey(), b.getItem() ) );
             }
 
         }

@@ -31,27 +31,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableList;
+
 /**
+ * Class representing a dimension item keyword. Main responsibility is to keep
+ * information about which keywords are part of a request and return as part of
+ * metadata in response.
+ *
  * @author Luciano Fiandesio
  */
-public class DimensionalKeywords
+public class DimensionItemKeywords
 {
     public class Keyword
     {
         private String key;
 
-        private String uid;
-
-        private String name;
-
-        private String code;
+        private MetadataItem item;
 
         Keyword( String key, String uid, String name, String code )
         {
             this.key = key;
-            this.uid = uid;
-            this.name = name;
-            this.code = code;
+            this.item = new MetadataItem( name, uid, code );
         }
 
         public String getKey()
@@ -59,66 +59,53 @@ public class DimensionalKeywords
             return key;
         }
 
-        public String getUid()
+        public MetadataItem getItem()
         {
-            return uid;
-        }
-
-        public String getName()
-        {
-            return name;
-        }
-
-        public String getCode()
-        {
-            return code;
+            return item;
         }
     }
 
-    private List<Keyword> groupBy;
+    private List<Keyword> keywords;
 
-    public DimensionalKeywords( List<IdentifiableObject> groupBy )
+    public DimensionItemKeywords()
     {
-        this.groupBy = new ArrayList<>();
-
-        this.groupBy.addAll( groupBy.stream().map( this::toKeyword ).collect( Collectors.toList() ) );
+        this.keywords = new ArrayList<>();
     }
 
-    public DimensionalKeywords()
+    public DimensionItemKeywords( List<IdentifiableObject> objects )
     {
-        this.groupBy = new ArrayList<>();
+        this.keywords = new ArrayList<>();
+
+        this.keywords.addAll( objects.stream().map( this::asKeyword ).collect( Collectors.toList() ) );
     }
 
-    public void addGroupBy( IdentifiableObject groupByItem )
+    public void addKeyword( IdentifiableObject object )
     {
-        this.groupBy.add( toKeyword( groupByItem ) );
+        this.keywords.add( asKeyword( object ) );
     }
 
-    public void addGroupBy( List<? extends IdentifiableObject> groupByItems )
+    public void addKeyword( String key, String name )
     {
-        for ( IdentifiableObject item : groupByItems )
-        {
-            this.addGroupBy( item );
-        }
+        this.keywords.add( new Keyword( key, null, name, null ) );
     }
 
-    public void addGroupBy( String key, String name )
+    public void addKeywords( List<? extends IdentifiableObject> objects )
     {
-        this.groupBy.add( new Keyword( key, null, name, null ) );
+        objects.forEach( object -> this.addKeyword( object ) );
     }
 
-    public List<Keyword> getGroupBy()
+    public List<Keyword> getKeywords()
     {
-        return groupBy;
-    }
-
-    private Keyword toKeyword( IdentifiableObject object )
-    {
-        return new Keyword( object.getUid(), object.getUid(), object.getName(), object.getCode() );
+        return ImmutableList.copyOf( keywords );
     }
 
     public boolean isEmpty()
     {
-        return groupBy.isEmpty();
+        return keywords.isEmpty();
+    }
+
+    private Keyword asKeyword( IdentifiableObject object )
+    {
+        return new Keyword( object.getUid(), object.getUid(), object.getName(), object.getCode() );
     }
 }

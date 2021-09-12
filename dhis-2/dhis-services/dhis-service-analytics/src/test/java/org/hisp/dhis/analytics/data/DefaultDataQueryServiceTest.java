@@ -51,8 +51,8 @@ import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionalKeywords;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -182,8 +182,8 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
 
         DimensionalObject filter = params.getFilters().get( 0 );
-        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 1 ) );
-        assertThat( filter.getDimensionalKeywords().getGroupBy().get( 0 ),
+        assertThat( filter.getDimensionalKeywords().getKeywords(), hasSize( 1 ) );
+        assertThat( filter.getDimensionalKeywords().getKeywords().get( 0 ),
             allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
                 hasProperty( "code", is( nullValue() ) ) ) );
     }
@@ -216,9 +216,9 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
 
         DimensionalObject filter = params.getFilters().get( 0 );
-        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
+        assertThat( filter.getDimensionalKeywords().getKeywords(), hasSize( 2 ) );
 
-        assertThat( filter.getDimensionalKeywords().getGroupBy(),
+        assertThat( filter.getDimensionalKeywords().getKeywords(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
                     hasProperty( "code", is( nullValue() ) ) ),
@@ -252,13 +252,13 @@ public class DefaultDataQueryServiceTest
             .dimension( rb.getDimensionParams() ).build();
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject dimension = params.getDimension( "dx" );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 1 ) );
+        assertThat( dimension.getDimensionalKeywords().getKeywords(), hasSize( 1 ) );
 
-        DimensionalKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getGroupBy().get( 0 );
+        DimensionItemKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getKeywords().get( 0 );
 
-        assertThat( aggregation.getUid(), is( indicatorGroup.getUid() ) );
-        assertThat( aggregation.getCode(), is( indicatorGroup.getCode() ) );
-        assertThat( aggregation.getName(), is( indicatorGroup.getName() ) );
+        assertThat( aggregation.getItem().getUid(), is( indicatorGroup.getUid() ) );
+        assertThat( aggregation.getItem().getCode(), is( indicatorGroup.getCode() ) );
+        assertThat( aggregation.getItem().getName(), is( indicatorGroup.getName() ) );
     }
 
     @Test
@@ -329,8 +329,8 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
 
-        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
-        assertThat( filter.getDimensionalKeywords().getGroupBy(),
+        assertThat( filter.getDimensionalKeywords().getKeywords(), hasSize( 2 ) );
+        assertThat( filter.getDimensionalKeywords().getKeywords(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
                     hasProperty( "code", is( nullValue() ) ) ),
@@ -377,8 +377,8 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
 
-        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 3 ) );
-        assertThat( filter.getDimensionalKeywords().getGroupBy(),
+        assertThat( filter.getDimensionalKeywords().getKeywords(), hasSize( 3 ) );
+        assertThat( filter.getDimensionalKeywords().getKeywords(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
                     hasProperty( "code", is( nullValue() ) ) ),
@@ -417,13 +417,13 @@ public class DefaultDataQueryServiceTest
             .dimension( rb.getDimensionParams() ).build();
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject dimension = params.getDimension( "dx" );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 1 ) );
+        assertThat( dimension.getDimensionalKeywords().getKeywords(), hasSize( 1 ) );
 
-        DimensionalKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getGroupBy().get( 0 );
+        DimensionItemKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getKeywords().get( 0 );
 
-        assertThat( aggregation.getUid(), is( dataElementGroup.getUid() ) );
-        assertThat( aggregation.getCode(), is( dataElementGroup.getCode() ) );
-        assertThat( aggregation.getName(), is( dataElementGroup.getName() ) );
+        assertThat( aggregation.getItem().getUid(), is( dataElementGroup.getUid() ) );
+        assertThat( aggregation.getItem().getCode(), is( dataElementGroup.getCode() ) );
+        assertThat( aggregation.getItem().getName(), is( dataElementGroup.getName() ) );
     }
 
     @Test
@@ -464,9 +464,9 @@ public class DefaultDataQueryServiceTest
             .dimension( rb.getDimensionParams() ).build();
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject dimension = params.getDimension( "dx" );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
+        assertThat( dimension.getDimensionalKeywords().getKeywords(), hasSize( 2 ) );
 
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
+        assertThat( dimension.getDimensionalKeywords().getKeywords(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf( hasProperty( "name", is( indicatorGroup.getName() ) ),
                     hasProperty( "uid", is( indicatorGroup.getUid() ) ),
@@ -492,8 +492,8 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
 
         DimensionalObject dimension = params.getDimension( PERIOD_DIM_ID );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
+        assertThat( dimension.getDimensionalKeywords().getKeywords(), hasSize( 2 ) );
+        assertThat( dimension.getDimensionalKeywords().getKeywords(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf(
                     hasProperty( "name", is( "Last year" ) ),
@@ -522,8 +522,8 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
 
         DimensionalObject dimension = params.getDimension( PERIOD_DIM_ID );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
+        assertThat( dimension.getDimensionalKeywords().getKeywords(), hasSize( 2 ) );
+        assertThat( dimension.getDimensionalKeywords().getKeywords(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf(
                     hasProperty( "name", is( "Last year" ) ),
@@ -590,9 +590,9 @@ public class DefaultDataQueryServiceTest
 
     private void assertOrgUnitGroup( String ouGroupUID, DimensionalObject dimension )
     {
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
+        assertThat( dimension.getDimensionalKeywords().getKeywords(), hasSize( 2 ) );
 
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
+        assertThat( dimension.getDimensionalKeywords().getKeywords(),
             IsIterableContainingInAnyOrder.containsInAnyOrder(
                 allOf( hasProperty( "name", is( "Chiefdom" ) ), hasProperty( "uid", is( ouGroupUID ) ),
                     hasProperty( "code", is( "CODE_001" ) ) ),
