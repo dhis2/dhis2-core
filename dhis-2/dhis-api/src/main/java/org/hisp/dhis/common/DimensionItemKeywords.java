@@ -46,12 +46,18 @@ public class DimensionItemKeywords
     {
         private String key;
 
-        private MetadataItem item;
+        private String uid;
+
+        private String name;
+
+        private String code;
 
         Keyword( String key, String uid, String name, String code )
         {
             this.key = key;
-            this.item = new MetadataItem( name, uid, code );
+            this.uid = uid;
+            this.name = name;
+            this.code = code;
         }
 
         public String getKey()
@@ -59,9 +65,9 @@ public class DimensionItemKeywords
             return key;
         }
 
-        public MetadataItem getItem()
+        public MetadataItem getMetadataItem()
         {
-            return item;
+            return new MetadataItem( name, uid, code );
         }
     }
 

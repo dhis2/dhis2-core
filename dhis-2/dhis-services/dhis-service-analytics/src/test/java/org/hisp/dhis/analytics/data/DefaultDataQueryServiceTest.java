@@ -256,9 +256,9 @@ public class DefaultDataQueryServiceTest
 
         DimensionItemKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getKeywords().get( 0 );
 
-        assertThat( aggregation.getItem().getUid(), is( indicatorGroup.getUid() ) );
-        assertThat( aggregation.getItem().getCode(), is( indicatorGroup.getCode() ) );
-        assertThat( aggregation.getItem().getName(), is( indicatorGroup.getName() ) );
+        assertThat( aggregation.getMetadataItem().getUid(), is( indicatorGroup.getUid() ) );
+        assertThat( aggregation.getMetadataItem().getCode(), is( indicatorGroup.getCode() ) );
+        assertThat( aggregation.getMetadataItem().getName(), is( indicatorGroup.getName() ) );
     }
 
     @Test
@@ -421,9 +421,9 @@ public class DefaultDataQueryServiceTest
 
         DimensionItemKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getKeywords().get( 0 );
 
-        assertThat( aggregation.getItem().getUid(), is( dataElementGroup.getUid() ) );
-        assertThat( aggregation.getItem().getCode(), is( dataElementGroup.getCode() ) );
-        assertThat( aggregation.getItem().getName(), is( dataElementGroup.getName() ) );
+        assertThat( aggregation.getMetadataItem().getUid(), is( dataElementGroup.getUid() ) );
+        assertThat( aggregation.getMetadataItem().getCode(), is( dataElementGroup.getCode() ) );
+        assertThat( aggregation.getMetadataItem().getName(), is( dataElementGroup.getName() ) );
     }
 
     @Test

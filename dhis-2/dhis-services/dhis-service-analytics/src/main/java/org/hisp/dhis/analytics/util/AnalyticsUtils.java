@@ -700,7 +700,7 @@ public class AnalyticsUtils
             if ( dimension.getDimensionalKeywords() != null )
             {
                 dimension.getDimensionalKeywords().getKeywords()
-                    .forEach( b -> map.put( b.getKey(), b.getItem() ) );
+                    .forEach( b -> map.put( b.getKey(), b.getMetadataItem() ) );
             }
 
         }
