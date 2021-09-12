@@ -452,7 +452,7 @@ public class BaseDimensionalObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DimensionItemKeywords getDimensionalKeywords()
+    public DimensionItemKeywords getDimensionItemKeywords()
     {
         return this.dimensionalKeywords;
     }

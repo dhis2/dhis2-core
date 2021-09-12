@@ -201,7 +201,7 @@ public interface DimensionalObject
     String getKey();
 
     /**
-     * Returns dimensional keywords for this dimension.
+     * Returns dimension item keywords for this dimension.
      */
-    DimensionItemKeywords getDimensionalKeywords();
+    DimensionItemKeywords getDimensionItemKeywords();
 }

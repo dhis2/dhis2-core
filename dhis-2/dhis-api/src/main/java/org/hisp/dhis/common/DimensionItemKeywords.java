@@ -100,6 +100,14 @@ public class DimensionItemKeywords
         objects.forEach( object -> this.addKeyword( object ) );
     }
 
+    public Keyword getKeyword( String key )
+    {
+        return keywords.stream()
+            .filter( keyword -> keyword.getKey().equals( key ) )
+            .findFirst()
+            .orElse( null );
+    }
+
     public List<Keyword> getKeywords()
     {
         return ImmutableList.copyOf( keywords );

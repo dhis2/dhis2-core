@@ -697,9 +697,9 @@ public class AnalyticsUtils
                 new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ),
                     includeMetadataDetails ? dimension : null ) );
 
-            if ( dimension.getDimensionalKeywords() != null )
+            if ( dimension.getDimensionItemKeywords() != null )
             {
-                dimension.getDimensionalKeywords().getKeywords()
+                dimension.getDimensionItemKeywords().getKeywords()
                     .forEach( b -> map.put( b.getKey(), b.getMetadataItem() ) );
             }
 

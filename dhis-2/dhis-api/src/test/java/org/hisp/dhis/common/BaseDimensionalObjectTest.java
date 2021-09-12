@@ -88,8 +88,8 @@ public class BaseDimensionalObjectTest
         assertThat( cloned.getAggregationType(), is( target.getAggregationType() ) );
         assertThat( cloned.isDataDimension(), is( target.isDataDimension() ) );
         assertThat( cloned.isFixed(), is( target.isFixed() ) );
-        assertThat( cloned.getDimensionalKeywords().getKeywords(),
-            hasSize( target.getDimensionalKeywords().getKeywords().size() ) );
+        assertThat( cloned.getDimensionItemKeywords().getKeywords(),
+            hasSize( target.getDimensionItemKeywords().getKeywords().size() ) );
     }
 
     private DimensionalItemObject buildDimensionalItemObject()
