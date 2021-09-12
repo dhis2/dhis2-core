@@ -84,7 +84,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class DefaultDataQueryServiceTest
+public class DataQueryServiceDimensionItemKeywordTest
 {
     @Mock
     private IdentifiableObjectManager idObjectManager;
