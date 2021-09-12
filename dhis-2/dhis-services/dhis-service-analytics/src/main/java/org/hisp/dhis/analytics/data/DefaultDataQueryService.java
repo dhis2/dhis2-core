@@ -538,8 +538,6 @@ public class DefaultDataQueryService
                 orgUnits.addAll( ous );
             }
 
-            // Add boundary OUs as keywords
-
             if ( !dimensionalKeywords.isEmpty() )
             {
                 dimensionalKeywords.addKeywords( ousList );

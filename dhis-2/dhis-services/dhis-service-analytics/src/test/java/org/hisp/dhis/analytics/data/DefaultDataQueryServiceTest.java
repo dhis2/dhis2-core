@@ -333,15 +333,17 @@ public class DefaultDataQueryServiceTest
 
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
+        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
 
-        assertThat( filter.getDimensionItemKeywords().getKeywords(), hasSize( 2 ) );
-        assertThat( filter.getDimensionItemKeywords().getKeywords(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ),
-                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+        assertEquals( 2, keywords.getKeywords().size() );
 
+        assertNotNull( keywords.getKeyword( "level2UID" ) );
+        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
+        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( rootOu.getUid() ) );
+        assertEquals( "Sierra Leone", keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getName() );
+        assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
     }
 
     @Test
@@ -381,17 +383,21 @@ public class DefaultDataQueryServiceTest
 
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
+        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
 
-        assertThat( filter.getDimensionItemKeywords().getKeywords(), hasSize( 3 ) );
-        assertThat( filter.getDimensionItemKeywords().getKeywords(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ),
-                allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
-                    hasProperty( "code", is( groupOu.getCode() ) ) ),
-                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+        assertEquals( 3, keywords.getKeywords().size() );
 
+        assertNotNull( keywords.getKeyword( "level2UID" ) );
+        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
+        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( groupOu.getUid() ) );
+        assertEquals( groupOu.getName(), keywords.getKeyword( groupOu.getUid() ).getMetadataItem().getName() );
+        assertEquals( groupOu.getCode(), keywords.getKeyword( groupOu.getUid() ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( rootOu.getUid() ) );
+        assertEquals( "Sierra Leone", keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getName() );
+        assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
     }
 
     @Test
@@ -595,14 +601,16 @@ public class DefaultDataQueryServiceTest
 
     private void assertOrgUnitGroup( String ouGroupUID, DimensionalObject dimension )
     {
-        assertThat( dimension.getDimensionItemKeywords().getKeywords(), hasSize( 2 ) );
+        DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
+        assertEquals( 2, keywords.getKeywords().size() );
 
-        assertThat( dimension.getDimensionItemKeywords().getKeywords(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "name", is( "Chiefdom" ) ), hasProperty( "uid", is( ouGroupUID ) ),
-                    hasProperty( "code", is( "CODE_001" ) ) ),
-                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+        assertNotNull( keywords.getKeyword( ouGroupUID ) );
+        assertEquals( "Chiefdom", keywords.getKeyword( ouGroupUID ).getMetadataItem().getName() );
+        assertEquals( "CODE_001", keywords.getKeyword( ouGroupUID ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( rootOu.getUid() ) );
+        assertEquals( "Sierra Leone", keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getName() );
+        assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
     }
 
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
