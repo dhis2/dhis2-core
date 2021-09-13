@@ -47,10 +47,7 @@ import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -167,10 +164,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
             .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new CsvMessageConverter( nodeService(), compression ) ) );
-
-        converters.add( new JsonPMessageConverter( nodeService(), contextService ) );
-        converters.add( new PdfMessageConverter( nodeService() ) );
-        converters.add( new ExcelMessageConverter( nodeService() ) );
 
         converters.add( new StringHttpMessageConverter( StandardCharsets.UTF_8 ) );
         converters.add( new ByteArrayHttpMessageConverter() );
