@@ -337,9 +337,10 @@ public class HibernateTrackedEntityInstanceStore
                 hql += ", ProgramStageInstance psi, ProgramInstance pi";
                 String lastUpdatedDateString = getMediumDateString( params.getLastUpdatedStartDate() );
 
-                hql += hlp.whereAnd() + " ( tei.lastUpdated >= '" + lastUpdatedDateString + "' OR "
+                hql += hlp.whereAnd() + " ( " + hlp.or() + " tei.lastUpdated >= '" + lastUpdatedDateString + "' "
+                    + hlp.andOr()
                     + " pi.lastUpdated >= '" + lastUpdatedDateString
-                    + "' OR " + " psi.lastUpdated >= '" + lastUpdatedDateString
+                    + "' " + hlp.or() + " psi.lastUpdated >= '" + lastUpdatedDateString
                     + "')";
             }
 
@@ -1096,9 +1097,10 @@ public class HibernateTrackedEntityInstanceStore
                 program.append( ", ProgramStageInstance psi" );
                 String lastUpdatedDateString = getMediumDateString( params.getLastUpdatedStartDate() );
 
-                program.append( hlp.whereAnd() ).append( "(" ).append( "pi.lastUpdated >= '" )
-                    .append( lastUpdatedDateString )
-                    .append( "' OR " ).append( " psi.lastUpdated >= '" ).append( lastUpdatedDateString ).append( "')" );
+                program.append( hlp.whereAnd() ).append( "(" ).append(
+                    hlp.or() ).append( "pi.lastUpdated >= '" )
+                    .append( lastUpdatedDateString ).append( "' " ).append( hlp.or() ).append( " psi.lastUpdated >= '" )
+                    .append( lastUpdatedDateString ).append( "')" );
             }
 
             program.append( addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> " tei.lastUpdated < '" +
