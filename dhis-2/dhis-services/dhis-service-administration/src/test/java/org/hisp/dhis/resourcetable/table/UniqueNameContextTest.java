@@ -27,52 +27,44 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.junit.Assert.assertEquals;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.BaseDimensionalObject;
+import org.junit.Test;
 
 /**
- * @author Luciano Fiandesio
+ * Tests the {@link UniqueNameContext}.
+ *
+ * @author Jan Bernitt
  */
-public class UniqueNameVerifier
+public class UniqueNameContextTest
 {
+    private final UniqueNameContext context = new UniqueNameContext();
 
-    protected List<String> columnNames = new ArrayList<>();
-
-    /**
-     * Returns the short name in quotes for the given
-     * {@see BaseDimensionalObject}, ensuring that the short name is unique
-     * across the list of BaseDimensionalObject this class operates on
-     *
-     * @param baseDimensionalObject a {@see BaseDimensionalObject}
-     * @return a unique, quoted short name
-     */
-    protected String ensureUniqueShortName( BaseDimensionalObject baseDimensionalObject )
+    @Test
+    public void alreadyUniqueNameIsKept()
     {
-        String columnName = quote( baseDimensionalObject.getShortName()
-            + (columnNames.contains( baseDimensionalObject.getShortName() ) ? columnNames.size() : "") );
-
-        this.columnNames.add( baseDimensionalObject.getShortName() );
-
-        return columnName;
+        assertEquals( "Foo", context.uniqueName( "Foo" ) );
+        assertEquals( "Bar", context.uniqueName( "Bar" ) );
+        assertEquals( "Baz", context.uniqueName( "Baz" ) );
     }
 
-    /**
-     * Returns the name in quotes, ensuring that the name is unique across the
-     * list of objects this class operates on
-     *
-     * @param name a String
-     * @return a unique, quoted name
-     */
-    protected String ensureUniqueName( String name )
+    @Test
+    public void nonUniqueNameIsExtendedWithCounter()
     {
-        String columnName = quote( name + (columnNames.contains( name ) ? columnNames.size() : "") );
+        assertEquals( "Foo", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo1", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo2", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo3", context.uniqueName( "Foo" ) );
+    }
 
-        this.columnNames.add( name );
-
-        return columnName;
+    @Test
+    public void nonUniqueNameExtensionDoesNotCollideWithExistingNames()
+    {
+        assertEquals( "Foo", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo2", context.uniqueName( "Foo2" ) );
+        assertEquals( "Foo3", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo23", context.uniqueName( "Foo2" ) );
+        assertEquals( "Foo4", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo25", context.uniqueName( "Foo2" ) );
     }
 }
