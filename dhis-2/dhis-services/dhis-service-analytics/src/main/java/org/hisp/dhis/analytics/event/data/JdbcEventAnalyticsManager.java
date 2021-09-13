@@ -413,7 +413,6 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasStartEndDate() )
         {
-
             String timeCol = params.getOutputType() == EventOutputType.ENROLLMENT
                 ? quoteAlias( TimeField.ENROLLMENT_DATE.getField() )
                 : quoteAlias( TimeField.EVENT_DATE.getField() );
@@ -437,20 +436,46 @@ public class JdbcEventAnalyticsManager
         {
             String orgUnitCol = quoteAlias( params.getOrgUnitFieldFallback() );
 
-            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN
-                + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
+            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
+                getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
         }
         else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
             String orgUnitCol = quoteAlias( params.getOrgUnitFieldFallback() );
 
-            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN
-                + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
+            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
+
+                getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
         {
-            sql += descendantsOrgUnitStatement( getOrgUnitAlias( params ),
-                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ), hlp );
+            DimensionalObject orgUnitDim = params.getDimensionOrFilter( ORGUNIT_DIM_ID );
+
+            String orgUnitAlias = getOrgUnitAlias( params );
+            String orgUnitCol = quote( orgUnitAlias, orgUnitDim.getDimensionName() );
+
+            System.out.println( "OU DIM NAME " + orgUnitDim.getDimensionName() );
+            System.out.println( "OU ALIAS " + orgUnitAlias );
+            System.out.println( "OU COL " + orgUnitCol );
+
+            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
+                getQuotedCommaDelimitedString( getUids( orgUnitDim.getItems() ) ) + ") ";
+
+            /*
+             * for ( DimensionalItemObject object :
+             * params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) {
+             * OrganisationUnit unit = (OrganisationUnit) object;
+             *
+             * String orgUnitCol = quote( orgUnitAlias, "uidlevel" +
+             * unit.getLevel() );
+             *
+             * sql += orgUnitCol + " = '" + unit.getUid() + "' or "; }
+             *
+             * sql = removeLastOr( sql ) + ") ";
+             */
+
+            // sql += descendantsOrgUnitStatement( getOrgUnitAlias( params ),
+            // params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ), hlp );
         }
 
         // ---------------------------------------------------------------------
