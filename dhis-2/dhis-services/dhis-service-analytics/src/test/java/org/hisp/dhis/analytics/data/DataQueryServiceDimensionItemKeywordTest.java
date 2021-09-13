@@ -28,13 +28,13 @@
 package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -44,15 +44,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionalKeywords;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -85,7 +84,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class DefaultDataQueryServiceTest
+public class DataQueryServiceDimensionItemKeywordTest
 {
     @Mock
     private IdentifiableObjectManager idObjectManager;
@@ -182,10 +181,13 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
 
         DimensionalObject filter = params.getFilters().get( 0 );
-        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 1 ) );
-        assertThat( filter.getDimensionalKeywords().getGroupBy().get( 0 ),
-            allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                hasProperty( "code", is( nullValue() ) ) ) );
+        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
+
+        assertEquals( 1, keywords.getKeywords().size() );
+
+        assertNotNull( keywords.getKeyword( "level2UID" ) );
+        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
+        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
     }
 
     @Test
@@ -216,14 +218,16 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
 
         DimensionalObject filter = params.getFilters().get( 0 );
-        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
+        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
+        assertEquals( 2, keywords.getKeywords().size() );
 
-        assertThat( filter.getDimensionalKeywords().getGroupBy(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ),
-                allOf( hasProperty( "name", is( "Chiefdom" ) ), hasProperty( "uid", is( "level3UID" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ) ) );
+        assertNotNull( keywords.getKeyword( "level2UID" ) );
+        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
+        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( "level3UID" ) );
+        assertEquals( "Chiefdom", keywords.getKeyword( "level3UID" ).getMetadataItem().getName() );
+        assertNull( keywords.getKeyword( "level3UID" ).getMetadataItem().getCode() );
     }
 
     @Test
@@ -252,13 +256,13 @@ public class DefaultDataQueryServiceTest
             .dimension( rb.getDimensionParams() ).build();
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject dimension = params.getDimension( "dx" );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 1 ) );
+        assertThat( dimension.getDimensionItemKeywords().getKeywords(), hasSize( 1 ) );
 
-        DimensionalKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getGroupBy().get( 0 );
+        DimensionItemKeywords.Keyword aggregation = dimension.getDimensionItemKeywords().getKeywords().get( 0 );
 
-        assertThat( aggregation.getUid(), is( indicatorGroup.getUid() ) );
-        assertThat( aggregation.getCode(), is( indicatorGroup.getCode() ) );
-        assertThat( aggregation.getName(), is( indicatorGroup.getName() ) );
+        assertThat( aggregation.getMetadataItem().getUid(), is( indicatorGroup.getUid() ) );
+        assertThat( aggregation.getMetadataItem().getCode(), is( indicatorGroup.getCode() ) );
+        assertThat( aggregation.getMetadataItem().getName(), is( indicatorGroup.getName() ) );
     }
 
     @Test
@@ -328,15 +332,17 @@ public class DefaultDataQueryServiceTest
 
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
+        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
 
-        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
-        assertThat( filter.getDimensionalKeywords().getGroupBy(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ),
-                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+        assertEquals( 2, keywords.getKeywords().size() );
 
+        assertNotNull( keywords.getKeyword( "level2UID" ) );
+        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
+        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( rootOu.getUid() ) );
+        assertEquals( "Sierra Leone", keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getName() );
+        assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
     }
 
     @Test
@@ -376,17 +382,21 @@ public class DefaultDataQueryServiceTest
 
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject filter = params.getFilters().get( 0 );
+        DimensionItemKeywords keywords = filter.getDimensionItemKeywords();
 
-        assertThat( filter.getDimensionalKeywords().getGroupBy(), hasSize( 3 ) );
-        assertThat( filter.getDimensionalKeywords().getGroupBy(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "name", is( "District" ) ), hasProperty( "uid", is( "level2UID" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ),
-                allOf( hasProperty( "name", is( groupOu.getName() ) ), hasProperty( "uid", is( groupOu.getUid() ) ),
-                    hasProperty( "code", is( groupOu.getCode() ) ) ),
-                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+        assertEquals( 3, keywords.getKeywords().size() );
 
+        assertNotNull( keywords.getKeyword( "level2UID" ) );
+        assertEquals( "District", keywords.getKeyword( "level2UID" ).getMetadataItem().getName() );
+        assertNull( keywords.getKeyword( "level2UID" ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( groupOu.getUid() ) );
+        assertEquals( groupOu.getName(), keywords.getKeyword( groupOu.getUid() ).getMetadataItem().getName() );
+        assertEquals( groupOu.getCode(), keywords.getKeyword( groupOu.getUid() ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( rootOu.getUid() ) );
+        assertEquals( "Sierra Leone", keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getName() );
+        assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
     }
 
     @Test
@@ -417,17 +427,16 @@ public class DefaultDataQueryServiceTest
             .dimension( rb.getDimensionParams() ).build();
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject dimension = params.getDimension( "dx" );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 1 ) );
+        assertThat( dimension.getDimensionItemKeywords().getKeywords(), hasSize( 1 ) );
 
-        DimensionalKeywords.Keyword aggregation = dimension.getDimensionalKeywords().getGroupBy().get( 0 );
+        DimensionItemKeywords.Keyword aggregation = dimension.getDimensionItemKeywords().getKeywords().get( 0 );
 
-        assertThat( aggregation.getUid(), is( dataElementGroup.getUid() ) );
-        assertThat( aggregation.getCode(), is( dataElementGroup.getCode() ) );
-        assertThat( aggregation.getName(), is( dataElementGroup.getName() ) );
+        assertThat( aggregation.getMetadataItem().getUid(), is( dataElementGroup.getUid() ) );
+        assertThat( aggregation.getMetadataItem().getCode(), is( dataElementGroup.getCode() ) );
+        assertThat( aggregation.getMetadataItem().getName(), is( dataElementGroup.getName() ) );
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup()
     {
         final String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
@@ -435,7 +444,7 @@ public class DefaultDataQueryServiceTest
 
         when( dimensionService.getDataDimensionalItemObject( UID, "cYeuwXTCPkU" ) ).thenReturn( new DataElement() );
 
-        DataElementGroup dataElementGroup = new DataElementGroup( "dummyEG" );
+        DataElementGroup dataElementGroup = new DataElementGroup( "dummyDG" );
         dataElementGroup.setUid( DATA_ELEMENT_GROUP_UID );
         dataElementGroup.setCode( "CODE_10" );
         dataElementGroup.setMembers( Sets.newHashSet( new DataElement(), new DataElement() ) );
@@ -464,23 +473,24 @@ public class DefaultDataQueryServiceTest
             .dimension( rb.getDimensionParams() ).build();
         DataQueryParams params = target.getFromRequest( request );
         DimensionalObject dimension = params.getDimension( "dx" );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
+        DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
 
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "name", is( indicatorGroup.getName() ) ),
-                    hasProperty( "uid", is( indicatorGroup.getUid() ) ),
-                    hasProperty( "code", is( indicatorGroup.getCode() ) ) ),
-                allOf( hasProperty( "name", is( dataElementGroup.getName() ) ),
-                    hasProperty( "uid", is( dataElementGroup.getUid() ) ),
-                    hasProperty( "code", is( dataElementGroup.getCode() ) ) ) ) );
+        assertEquals( 2, keywords.getKeywords().size() );
+
+        assertNotNull( keywords.getKeyword( dataElementGroup.getUid() ) );
+        assertEquals( "dummyDG", keywords.getKeyword( dataElementGroup.getUid() ).getMetadataItem().getName() );
+        assertEquals( "CODE_10", keywords.getKeyword( dataElementGroup.getUid() ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( indicatorGroup.getUid() ) );
+        assertEquals( "dummyIG", keywords.getKeyword( indicatorGroup.getUid() ).getMetadataItem().getName() );
+        assertEquals( "CODE_10", keywords.getKeyword( indicatorGroup.getUid() ).getMetadataItem().getCode() );
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithRelativePeriod()
     {
         mockDimensionService();
+        when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
         when( i18n.getString( "LAST_YEAR" ) ).thenReturn( "Last year" );
 
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
@@ -492,24 +502,22 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
 
         DimensionalObject dimension = params.getDimension( PERIOD_DIM_ID );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf(
-                    hasProperty( "name", is( "Last year" ) ),
-                    hasProperty( "key", is( "LAST_YEAR" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ),
-                allOf(
-                    hasProperty( "name", is( "Last 12 months" ) ),
-                    hasProperty( "key", is( "LAST_12_MONTHS" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ) ) );
+        DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
+
+        assertEquals( 2, keywords.getKeywords().size() );
+
+        assertNotNull( keywords.getKeyword( "LAST_12_MONTHS" ) );
+        assertEquals( "Last 12 months", keywords.getKeyword( "LAST_12_MONTHS" ).getMetadataItem().getName() );
+
+        assertNotNull( keywords.getKeyword( "LAST_YEAR" ) );
+        assertEquals( "Last year", keywords.getKeyword( "LAST_YEAR" ).getMetadataItem().getName() );
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     public void convertAnalyticsRequestWithRelativePeriodAsFilter()
     {
         mockDimensionService();
+        when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
         when( i18n.getString( "LAST_YEAR" ) ).thenReturn( "Last year" );
 
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );
@@ -522,17 +530,15 @@ public class DefaultDataQueryServiceTest
         DataQueryParams params = target.getFromRequest( request );
 
         DimensionalObject dimension = params.getDimension( PERIOD_DIM_ID );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf(
-                    hasProperty( "name", is( "Last year" ) ),
-                    hasProperty( "key", is( "LAST_YEAR" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ),
-                allOf(
-                    hasProperty( "name", is( "Last 12 months" ) ),
-                    hasProperty( "key", is( "LAST_12_MONTHS" ) ),
-                    hasProperty( "code", is( nullValue() ) ) ) ) );
+        DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
+
+        assertEquals( 2, keywords.getKeywords().size() );
+
+        assertNotNull( keywords.getKeyword( "LAST_12_MONTHS" ) );
+        assertEquals( "Last 12 months", keywords.getKeyword( "LAST_12_MONTHS" ).getMetadataItem().getName() );
+
+        assertNotNull( keywords.getKeyword( "LAST_YEAR" ) );
+        assertEquals( "Last year", keywords.getKeyword( "LAST_YEAR" ).getMetadataItem().getName() );
     }
 
     @Test
@@ -590,14 +596,16 @@ public class DefaultDataQueryServiceTest
 
     private void assertOrgUnitGroup( String ouGroupUID, DimensionalObject dimension )
     {
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(), hasSize( 2 ) );
+        DimensionItemKeywords keywords = dimension.getDimensionItemKeywords();
+        assertEquals( 2, keywords.getKeywords().size() );
 
-        assertThat( dimension.getDimensionalKeywords().getGroupBy(),
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "name", is( "Chiefdom" ) ), hasProperty( "uid", is( ouGroupUID ) ),
-                    hasProperty( "code", is( "CODE_001" ) ) ),
-                allOf( hasProperty( "name", is( "Sierra Leone" ) ), hasProperty( "uid", is( rootOu.getUid() ) ),
-                    hasProperty( "code", is( rootOu.getCode() ) ) ) ) );
+        assertNotNull( keywords.getKeyword( ouGroupUID ) );
+        assertEquals( "Chiefdom", keywords.getKeyword( ouGroupUID ).getMetadataItem().getName() );
+        assertEquals( "CODE_001", keywords.getKeyword( ouGroupUID ).getMetadataItem().getCode() );
+
+        assertNotNull( keywords.getKeyword( rootOu.getUid() ) );
+        assertEquals( "Sierra Leone", keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getName() );
+        assertEquals( rootOu.getCode(), keywords.getKeyword( rootOu.getUid() ).getMetadataItem().getCode() );
     }
 
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )
