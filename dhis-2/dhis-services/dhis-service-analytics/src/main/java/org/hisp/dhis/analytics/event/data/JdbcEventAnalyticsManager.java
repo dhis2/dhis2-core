@@ -444,7 +444,6 @@ public class JdbcEventAnalyticsManager
             String orgUnitCol = quoteAlias( params.getOrgUnitFieldFallback() );
 
             sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
-
                 getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
