@@ -47,7 +47,6 @@ import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -94,9 +93,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
 
     @Autowired
     public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
-
-    @Autowired
-    private ContextService contextService;
 
     @Autowired
     private CurrentUserService currentUserService;
