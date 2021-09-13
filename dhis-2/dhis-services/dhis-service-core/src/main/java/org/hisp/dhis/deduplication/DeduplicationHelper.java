@@ -35,7 +35,10 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -44,7 +47,6 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
@@ -62,8 +64,6 @@ public class DeduplicationHelper
 
     private final RelationshipService relationshipService;
 
-    private final TrackedEntityAttributeService trackedEntityAttributeService;
-
     private final OrganisationUnitService organisationUnitService;
 
     private final ProgramInstanceService programInstanceService;
@@ -74,21 +74,41 @@ public class DeduplicationHelper
         TrackedEntityInstance duplicate = params.getDuplicate();
         MergeObject mergeObject = params.getMergeObject();
 
+        /*
+         * Step 1: Make sure all uids in mergeObject is valid
+         */
+        List<String> uids = ListUtils.distinctUnion( mergeObject.getTrackedEntityAttributes(),
+            mergeObject.getEnrollments(), mergeObject.getRelationships() );
+        for ( String uid : uids )
+        {
+            if ( !CodeGenerator.isValidUid( uid ) )
+            {
+                return "Invalid uid '" + uid + "'.";
+            }
+        }
+
+        /*
+         * Step 2: Make sure all references objects exists in duplicate
+         */
         Set<String> validTrackedEntityAttributes = duplicate.getTrackedEntityAttributeValues().stream()
             .map( teav -> teav.getAttribute().getUid() ).collect( Collectors.toSet() );
 
         Set<String> validRelationships = duplicate.getRelationshipItems().stream()
             .map( rel -> rel.getTrackedEntityInstance().getUid() ).collect( Collectors.toSet() );
 
+        Set<String> validPrograms = programInstanceService.getProgramInstances( mergeObject.getEnrollments() )
+            .stream()
+            .map( e -> e.getProgram().getUid() )
+            .collect( Collectors.toSet() );
+
         for ( String tea : mergeObject.getTrackedEntityAttributes() )
         {
             if ( !validTrackedEntityAttributes.contains( tea ) )
             {
-                return "Invalid attribute '" + tea + "'";
+                return "Duplicate has no attribute '" + tea + "'.";
             }
         }
 
-        // Check if any references not on duplicate is used
         String rel = mergeObject.getRelationships().stream()
             .filter( r -> !validRelationships.contains( r ) )
             .findFirst()
@@ -96,49 +116,81 @@ public class DeduplicationHelper
 
         if ( rel != null )
         {
-            return "Invalid relationship '" + rel + "'. Refers to itself.";
+            return "Duplicate has no relationship '" + rel + "'.";
         }
 
-        String error = getDuplicateRelationshipError( params.getOriginal(), params.getDuplicate() );
-
-        if ( error != null )
+        for ( ProgramInstance programInstance : duplicate.getProgramInstances() )
         {
-            return "Invalid relationship '" + error + "'. Equivalent relationship already exists on original.";
+            if ( validPrograms.contains( programInstance.getProgram().getUid() ) )
+            {
+                return "Duplicate has no enrollment '" + programInstance.getUid() +
+                    "'.";
+            }
         }
 
-        Set<String> programs = programInstanceService.getProgramInstances( mergeObject.getEnrollments() )
-            .stream()
-            .map( e -> e.getProgram().getUid() )
+        /*
+         * Step 3: Duplicate Relationships and Enrollments
+         */
+        Set<Relationship> relationshipsToMerge = params.getDuplicate().getRelationshipItems().stream()
+            .map( RelationshipItem::getRelationship )
+            .filter( r -> mergeObject.getRelationships().contains( r.getUid() ) )
+            .collect( Collectors.toSet() );
+        String duplicateRelationshipError = getDuplicateRelationshipError( params.getOriginal(),
+            relationshipsToMerge );
+
+        if ( duplicateRelationshipError != null )
+        {
+            return "Invalid relationship '" + duplicateRelationshipError
+                + "'. A similar relationship already exists on original.";
+        }
+
+        String duplicateEnrollment = original.getProgramInstances().stream()
+            .map( BaseIdentifiableObject::getUid )
+            .filter( uid -> mergeObject.getEnrollments().contains( uid ) )
+            .findFirst()
+            .orElse( null );
+
+        if ( duplicateEnrollment != null )
+        {
+            return "Invalid enrollment '" + duplicateEnrollment + "'. A similar enrollment already exists on original.";
+        }
+
+        /*
+         * Step 4: Make sure no relationships will become self-referencing.
+         */
+        Set<String> relationshipsToMergeUids = relationshipsToMerge.stream()
+            .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
-        for ( ProgramInstance programInstance : original.getProgramInstances() )
+        String selfReferencingRelationship = original.getRelationshipItems().stream()
+            .map( RelationshipItem::getRelationship )
+            .map( BaseIdentifiableObject::getUid )
+            .filter( relationshipsToMergeUids::contains )
+            .findFirst()
+            .orElse( null );
+
+        if ( selfReferencingRelationship != null )
         {
-            if ( programs.contains( programInstance.getProgram().getUid() ) )
-            {
-                return "Invalid enrollment '" + programInstance.getUid() +
-                    "'. Can not merge when both tracked entities are enrolled in the same program.";
-            }
+            return "Invalid relationship '" + selfReferencingRelationship
+                + "'. Relationship is between original and duplicate.";
         }
 
         return null;
     }
 
-    public String getDuplicateRelationshipError( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    public String getDuplicateRelationshipError( TrackedEntityInstance original, Set<Relationship> relationships )
     {
         Set<Relationship> originalRelationships = original.getRelationshipItems().stream()
-            .map( RelationshipItem::getRelationship )
-            .collect( Collectors.toSet() );
-        Set<Relationship> duplicateRelationships = duplicate.getRelationshipItems().stream()
             .map( RelationshipItem::getRelationship )
             .collect( Collectors.toSet() );
 
         for ( Relationship originalRel : originalRelationships )
         {
-            for ( Relationship duplicateRel : duplicateRelationships )
+            for ( Relationship rel : relationships )
             {
-                if ( isSameRelationship( originalRel, duplicateRel ) )
+                if ( isSameRelationship( originalRel, rel ) )
                 {
-                    return duplicateRel.getUid();
+                    return rel.getUid();
                 }
             }
         }
@@ -148,8 +200,15 @@ public class DeduplicationHelper
 
     private boolean isSameRelationship( Relationship a, Relationship b )
     {
+        /*
+         * relationshipType must be the same for unidirectional, to and to OR
+         * from and from must be the same for bidirectional, to and from OR from
+         * and to must be the same (Unless the previous check was true)
+         */
         return a.getRelationshipType().equals( b.getRelationshipType() )
-            && isSameRelationshipItem( a.getFrom(), b.getFrom() ) || isSameRelationshipItem( a.getTo(), b.getTo() );
+            && ((isSameRelationshipItem( a.getFrom(), b.getFrom() ) || isSameRelationshipItem( a.getTo(), b.getTo() ))
+                || (a.getRelationshipType().isBidirectional() && (isSameRelationshipItem( a.getFrom(), b.getTo() )
+                    || isSameRelationshipItem( a.getTo(), b.getFrom() ))));
 
     }
 
@@ -161,7 +220,6 @@ public class DeduplicationHelper
             b.getProgramStageInstance() );
 
         return idoA.getUid().equals( idoB.getUid() );
-
     }
 
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
