@@ -166,6 +166,18 @@ public class MvcTestConfig implements WebMvcConfigurer
         registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
     }
 
+    @Bean
+    public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter()
+    {
+        return new MappingJackson2HttpMessageConverter( jsonMapper );
+    }
+
+    @Bean
+    public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
+    {
+        return new MappingJackson2XmlHttpMessageConverter( xmlMapper );
+    }
+
     @Override
     public void configureMessageConverters(
         List<HttpMessageConverter<?>> converters )
@@ -179,8 +191,8 @@ public class MvcTestConfig implements WebMvcConfigurer
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
 
-        converters.add( new MappingJackson2HttpMessageConverter( jsonMapper ) );
-        converters.add( new MappingJackson2XmlHttpMessageConverter( xmlMapper ) );
+        converters.add( mappingJackson2HttpMessageConverter() );
+        converters.add( mappingJackson2XmlHttpMessageConverter() );
     }
 
     @Bean
