@@ -96,9 +96,9 @@ public class DeduplicationHelper
         Set<String> validRelationships = duplicate.getRelationshipItems().stream()
             .map( rel -> rel.getRelationship().getUid() ).collect( Collectors.toSet() );
 
-        Set<String> validPrograms = programInstanceService.getProgramInstances( mergeObject.getEnrollments() )
-            .stream()
-            .map( e -> e.getProgram().getUid() )
+        Set<String> validPrograms = duplicate.getProgramInstances().stream()
+            .map( ProgramInstance::getProgram )
+            .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
         for ( String tea : mergeObject.getTrackedEntityAttributes() )
@@ -119,12 +119,11 @@ public class DeduplicationHelper
             return "Duplicate has no relationship '" + rel + "'.";
         }
 
-        for ( ProgramInstance programInstance : duplicate.getProgramInstances() )
+        for ( String programUid : mergeObject.getEnrollments() )
         {
-            if ( validPrograms.contains( programInstance.getProgram().getUid() ) )
+            if ( validPrograms.contains( programUid ) )
             {
-                return "Duplicate has no enrollment '" + programInstance.getUid() +
-                    "'.";
+                return "Duplicate has no enrollment '" + programUid + "'.";
             }
         }
 
