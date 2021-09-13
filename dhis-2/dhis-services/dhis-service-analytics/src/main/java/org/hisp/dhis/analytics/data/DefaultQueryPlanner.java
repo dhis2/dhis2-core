@@ -284,12 +284,10 @@ public class DefaultQueryPlanner
             ListMap<String, DimensionalItemObject> periodTypePeriodMap = PartitionUtils
                 .getPeriodTypePeriodMap( filter.getItems() );
 
+            // Use first period type
             DataQueryParams.Builder query = DataQueryParams.newBuilder( params )
                 .removeFilter( PERIOD_DIM_ID )
-                .withPeriodType( periodTypePeriodMap.keySet().iterator().next() ); // Using
-                                                                                   // first
-                                                                                   // period
-                                                                                   // type
+                .withPeriodType( periodTypePeriodMap.keySet().iterator().next() );
 
             for ( String periodType : periodTypePeriodMap.keySet() )
             {

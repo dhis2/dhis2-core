@@ -126,6 +126,7 @@ public abstract class EventAnalyticsTest
     private EventQueryParams _createRequestParams()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        ouA.setPath( "/" + ouA.getUid() );
 
         EventQueryParams.Builder params = new EventQueryParams.Builder();
 
