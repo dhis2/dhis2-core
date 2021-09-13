@@ -113,10 +113,10 @@ public class BaseDimensionalObject
     private String filter;
 
     /**
-     * A {@link DimensionalKeywords} defines a pre-defined group of items. For
+     * A {@link DimensionItemKeywords} defines a pre-defined group of items. For
      * instance, all the OU withing a district
      */
-    private DimensionalKeywords dimensionalKeywords;
+    private DimensionItemKeywords dimensionalKeywords;
 
     /**
      * Indicates whether this dimension is fixed, meaning that the name of the
@@ -164,7 +164,7 @@ public class BaseDimensionalObject
 
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
         String dimensionDisplayName, List<? extends DimensionalItemObject> items,
-        DimensionalKeywords dimensionalKeywords )
+        DimensionItemKeywords dimensionalKeywords )
     {
         this( dimension, dimensionType, dimensionName, dimensionDisplayName, items );
         this.dimensionalKeywords = dimensionalKeywords;
@@ -452,12 +452,12 @@ public class BaseDimensionalObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DimensionalKeywords getDimensionalKeywords()
+    public DimensionItemKeywords getDimensionItemKeywords()
     {
         return this.dimensionalKeywords;
     }
 
-    public void setDimensionalKeywords( DimensionalKeywords dimensionalKeywords )
+    public void setDimensionalKeywords( DimensionItemKeywords dimensionalKeywords )
     {
         this.dimensionalKeywords = dimensionalKeywords;
     }
