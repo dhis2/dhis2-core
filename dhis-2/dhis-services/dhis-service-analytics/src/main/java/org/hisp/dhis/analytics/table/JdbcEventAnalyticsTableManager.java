@@ -31,6 +31,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
+import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
@@ -135,6 +136,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
         new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
         new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ),
+        new AnalyticsTableColumn( quote( "ou_level" ), INTEGER, "ous.level" ),
         new AnalyticsTableColumn( quote( "ougeometry" ), GEOMETRY, "ou.geometry" )
             .withIndexType( IndexType.GIST ),
         new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" )
