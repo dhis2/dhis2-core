@@ -207,7 +207,8 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasNonDefaultBoundaries() )
         {
-            sql += statementBuilder.getBoundaryCondition( params.getProgramIndicator(), params.getEarliestStartDate(),
+            sql += statementBuilder.getBoundaryCondition( params.getProgramIndicator(), params.getTimeFieldAsField(),
+                params.getEarliestStartDate(),
                 params.getLatestEndDate(), hlp );
         }
         else

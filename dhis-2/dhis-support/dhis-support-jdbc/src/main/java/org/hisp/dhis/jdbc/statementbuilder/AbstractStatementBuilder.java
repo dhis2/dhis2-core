@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -343,12 +344,14 @@ public abstract class AbstractStatementBuilder
         return "(select " + columnName + " from " + eventTableName + " where " + eventTableName +
             ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and " + columnName + " is not null " +
             (programIndicator.getEndEventBoundary() != null ? ("and " +
-                getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, reportingStartDate,
+                getBoundaryCondition( programIndicator.getEndEventBoundary(), programIndicator, null,
+                    reportingStartDate,
                     reportingEndDate )
                 +
                 " ") : "")
             + (programIndicator.getStartEventBoundary() != null ? ("and " +
-                getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, reportingStartDate,
+                getBoundaryCondition( programIndicator.getStartEventBoundary(), programIndicator, null,
+                    reportingStartDate,
                     reportingEndDate )
                 +
                 " ") : "")
@@ -425,7 +428,7 @@ public abstract class AbstractStatementBuilder
     }
 
     @Override
-    public String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate,
+    public String getBoundaryCondition( ProgramIndicator programIndicator, String timeField, Date reportingStartDate,
         Date reportingEndDate, SqlHelper sqlHelper )
     {
         String sql = "";
@@ -435,7 +438,8 @@ public abstract class AbstractStatementBuilder
             if ( boundary.isCohortDateBoundary() && !boundary.isEnrollmentHavingEventDateCohortBoundary() )
             {
                 sql += sqlHelper.whereAnd() + " "
-                    + getBoundaryCondition( boundary, programIndicator, reportingStartDate, reportingEndDate );
+                    + getBoundaryCondition( boundary, programIndicator, timeField, reportingStartDate,
+                        reportingEndDate );
             }
         }
 
@@ -450,9 +454,10 @@ public abstract class AbstractStatementBuilder
 
     @Override
     public String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator,
-        Date reportingStartDate, Date reportingEndDate )
+        String timeField, Date reportingStartDate, Date reportingEndDate )
     {
-        String column = boundary.isEventDateBoundary() ? AnalyticsPeriodBoundary.DB_EVENT_DATE
+        String column = boundary.isEventDateBoundary()
+            ? Optional.ofNullable( timeField ).orElse( AnalyticsPeriodBoundary.DB_EVENT_DATE )
             : boundary.isEnrollmentDateBoundary() ? AnalyticsPeriodBoundary.DB_ENROLLMENT_DATE
                 : boundary.isIncidentDateBoundary() ? AnalyticsPeriodBoundary.DB_INCIDENT_DATE
                     : this.getBoundaryElementColumnSql( boundary, reportingStartDate, reportingEndDate,
