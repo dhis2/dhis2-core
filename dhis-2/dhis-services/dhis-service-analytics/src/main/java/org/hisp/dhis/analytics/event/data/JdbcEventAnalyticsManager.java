@@ -446,10 +446,6 @@ public class JdbcEventAnalyticsManager
             String orgUnitAlias = getOrgUnitAlias( params );
             String orgUnitCol = quote( orgUnitAlias, orgUnitDim.getDimensionName() );
 
-            System.out.println( "OU DIM NAME " + orgUnitDim.getDimensionName() );
-            System.out.println( "OU ALIAS " + orgUnitAlias );
-            System.out.println( "OU COL " + orgUnitCol );
-
             sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
                 getQuotedCommaDelimitedString( getUids( orgUnitDim.getItems() ) ) + ") ";
         }
