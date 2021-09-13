@@ -628,7 +628,7 @@ public abstract class DhisConvenienceTest
 
         coc.setUid( BASE_COC_UID + uniqueCharacter );
         coc.setName( "CategoryOptionCombo" + uniqueCharacter );
-        coc.setName( "CategoryOptionComboCode" + uniqueCharacter );
+        coc.setCode( "CategoryOptionComboCode" + uniqueCharacter );
 
         return coc;
     }
