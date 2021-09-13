@@ -33,9 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
@@ -72,7 +70,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
-import org.springframework.web.accept.ParameterContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
@@ -164,7 +161,14 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     @Bean
     public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
     {
-        return new MappingJackson2XmlHttpMessageConverter( xmlMapper );
+        MappingJackson2XmlHttpMessageConverter messageConverter = new MappingJackson2XmlHttpMessageConverter(
+            xmlMapper );
+
+        messageConverter.setSupportedMediaTypes( Arrays.asList(
+            new MediaType( "application", "xml", StandardCharsets.UTF_8 ),
+            new MediaType( "application", "*+xml", StandardCharsets.UTF_8 ) ) );
+
+        return messageConverter;
     }
 
     @Override
@@ -197,14 +201,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     {
         CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
             mediaTypeMap );
-        pathExtensionNegotiationStrategy.setUseJaf( false );
-
-        String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv", "adx.xml" };
-
-        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy = new ParameterContentNegotiationStrategy(
-            mediaTypeMap.entrySet().stream()
-                .filter( x -> ArrayUtils.contains( mediaTypes, x.getKey() ) )
-                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) ) );
+        pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
 
         HeaderContentNegotiationStrategy headerContentNegotiationStrategy = new HeaderContentNegotiationStrategy();
         FixedContentNegotiationStrategy fixedContentNegotiationStrategy = new FixedContentNegotiationStrategy(
@@ -213,7 +210,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         return new ContentNegotiationManager(
             Arrays.asList(
                 pathExtensionNegotiationStrategy,
-                parameterContentNegotiationStrategy,
                 headerContentNegotiationStrategy,
                 fixedContentNegotiationStrategy ) );
     }
