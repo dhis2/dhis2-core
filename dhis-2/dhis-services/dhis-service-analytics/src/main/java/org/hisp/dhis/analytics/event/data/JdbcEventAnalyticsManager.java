@@ -28,8 +28,6 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang.time.DateUtils.addYears;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
@@ -46,14 +44,11 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
-import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -69,7 +64,6 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -84,7 +78,6 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
@@ -612,43 +605,6 @@ public class JdbcEventAnalyticsManager
         }
 
         return sql;
-    }
-
-    /**
-     * Creates a SQL statement of descendants org units. When there are multiple
-     * levels the "or" operator will be used as junction. The final result will
-     * be a query in the format: "where/and (ax."uidlevel0" in ('orgUid-1',
-     * 'orgUid-2', 'orgUid-2'))"
-     *
-     * @param orgUnitAlias the org unit column alias.
-     * @param dimensionalItems the list of {@link DimensionalItemObject}.
-     * @param helper the {@linkSqlHelper}.
-     * @return an SQL statement.
-     */
-    private String descendantsOrgUnitStatement( final String orgUnitAlias,
-        final List<DimensionalItemObject> dimensionalItems, final SqlHelper helper )
-    {
-        final StringBuilder statement = new StringBuilder();
-        final Map<String, String> orgUnitColsAndUnitUids = new HashMap<>();
-
-        statement.append( helper.whereAnd() ).append( " (" );
-
-        for ( final DimensionalItemObject itemObject : dimensionalItems )
-        {
-            final OrganisationUnit unit = (OrganisationUnit) itemObject;
-            final String orgUnitCol = quote( orgUnitAlias, "uidlevel" + unit.getLevel() );
-            final String orgUnitValue = isBlank( orgUnitColsAndUnitUids.get( orgUnitCol ) )
-                ? singleQuote( unit.getUid() )
-                : trimToEmpty( orgUnitColsAndUnitUids.get( orgUnitCol ) ) + ", " + singleQuote( unit.getUid() );
-
-            orgUnitColsAndUnitUids.put( orgUnitCol, orgUnitValue );
-        }
-
-        statement.append( orgUnitColsAndUnitUids.entrySet().stream()
-            .map( entry -> entry.getKey().concat( OPEN_IN ).concat( entry.getValue() ).concat( ")" ) )
-            .collect( Collectors.joining( " or " ) ) ).toString();
-
-        return statement.append( " ) " ).toString();
     }
 
     /**
