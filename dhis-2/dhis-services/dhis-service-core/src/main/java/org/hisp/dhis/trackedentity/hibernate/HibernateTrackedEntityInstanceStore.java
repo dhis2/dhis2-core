@@ -331,6 +331,29 @@ public class HibernateTrackedEntityInstanceStore
 
         String hql = "select " + (idOnly ? "tei.id" : "tei") + " from TrackedEntityInstance tei ";
 
+        if ( !params.hasLastUpdatedDuration() )
+        {
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                hql += ", ProgramStageInstance psi, ProgramInstance pi";
+                String lastUpdatedDateString = getMediumDateString( params.getLastUpdatedStartDate() );
+
+                hql += hlp.whereAnd() + " ( tei.lastUpdated >= '" + lastUpdatedDateString + "' OR "
+                    + " pi.lastUpdated >= '" + lastUpdatedDateString
+                    + "' OR " + " psi.lastUpdated >= '" + lastUpdatedDateString
+                    + "')";
+            }
+
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> " tei.lastUpdated < '" +
+                getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
+
+        }
+        else
+        {
+            hql += hlp.whereAnd() + " tei.lastUpdated >= '" +
+                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
+        }
+
         // Used for switching between registration org unit or ownership org
         // unit. Default source is registration ou.
         String teiOuSource = params.hasProgram() ? "po.organisationUnit" : "tei.organisationUnit";
@@ -348,20 +371,6 @@ public class HibernateTrackedEntityInstanceStore
 
         hql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
             () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
-
-        if ( params.hasLastUpdatedDuration() )
-        {
-            hql += hlp.whereAnd() + " tei.lastUpdated >= '" +
-                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
-        }
-        else
-        {
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(), () -> " tei.lastUpdated >= '" +
-                getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
-
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> " tei.lastUpdated < '" +
-                getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
-        }
 
         hql += addWhereConditionally( hlp, params.isSynchronizationQuery(),
             () -> "tei.lastUpdated > tei.lastSynchronized" );
@@ -1067,6 +1076,8 @@ public class HibernateTrackedEntityInstanceStore
     private String getFromSubQueryProgramInstanceConditions( SqlHelper whereAnd,
         TrackedEntityInstanceQueryParams params )
     {
+        SqlHelper hlp = new SqlHelper( true );
+
         StringBuilder program = new StringBuilder();
 
         if ( !params.hasProgram() )
@@ -1080,6 +1091,22 @@ public class HibernateTrackedEntityInstanceStore
             .append( "SELECT PI.trackedentityinstanceid " )
             .append( "FROM programinstance PI " );
 
+        if ( !params.hasLastUpdatedDuration() )
+        {
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                program.append( ", ProgramStageInstance psi" );
+                String lastUpdatedDateString = getMediumDateString( params.getLastUpdatedStartDate() );
+
+                program.append( hlp.whereAnd() ).append( "(" ).append( "pi.lastUpdated >= '" )
+                    .append( lastUpdatedDateString )
+                    .append( "' OR " ).append( " psi.lastUpdated >= '" ).append( lastUpdatedDateString ).append( "')" );
+            }
+
+            program.append( addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> " tei.lastUpdated < '" +
+                getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" ) );
+        }
+
         /*
          * Events depends on program, so we do the event filtering within the
          * enrollment clause.
@@ -1089,8 +1116,7 @@ public class HibernateTrackedEntityInstanceStore
             program.append( getFromSubQueryProgramStageInstance( params ) );
         }
 
-        program
-            .append( "WHERE PI.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+        program.append( hlp.whereAnd() ).append( " PI.trackedentityinstanceid = TEI.trackedentityinstanceid " )
             .append( "AND PI.programid = " )
             .append( params.getProgram().getId() )
             .append( SPACE );
