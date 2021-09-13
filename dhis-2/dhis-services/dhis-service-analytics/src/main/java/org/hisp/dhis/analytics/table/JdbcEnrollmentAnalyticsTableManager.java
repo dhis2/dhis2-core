@@ -97,9 +97,9 @@ public class JdbcEnrollmentAnalyticsTableManager
         new AnalyticsTableColumn( quote( "latitude" ), DOUBLE,
             "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
-        new AnalyticsTableColumn( quote( "ou_level" ), INTEGER, "ous.level" ),
         new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
         new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ),
+        new AnalyticsTableColumn( quote( "ou_level" ), INTEGER, "ous.level" ),
         new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" )
             .withIndexType( IndexType.GIST ) );
 
