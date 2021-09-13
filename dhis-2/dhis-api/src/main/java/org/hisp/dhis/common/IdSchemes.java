@@ -44,6 +44,8 @@ public class IdSchemes
 
     private IdScheme dataElementIdScheme;
 
+    private IdScheme dataElementGroupIdScheme;
+
     private IdScheme categoryOptionComboIdScheme;
 
     private IdScheme categoryOptionIdScheme;
@@ -51,6 +53,8 @@ public class IdSchemes
     private IdScheme categoryIdScheme;
 
     private IdScheme orgUnitIdScheme;
+
+    private IdScheme orgUnitGroupIdScheme;
 
     private IdScheme programIdScheme;
 
@@ -107,6 +111,17 @@ public class IdSchemes
     public IdSchemes setDataElementIdScheme( String idScheme )
     {
         this.dataElementIdScheme = IdScheme.from( idScheme );
+        return this;
+    }
+
+    public IdScheme getDataElementGroupIdScheme()
+    {
+        return getScheme( dataElementIdScheme );
+    }
+
+    public IdSchemes setDataElementGroupIdScheme( String idScheme )
+    {
+        this.dataElementGroupIdScheme = IdScheme.from( idScheme );
         return this;
     }
 
@@ -173,6 +188,17 @@ public class IdSchemes
     public IdSchemes setOrgUnitIdScheme( String idScheme )
     {
         this.orgUnitIdScheme = IdScheme.from( idScheme );
+        return this;
+    }
+
+    public IdScheme getOrgUnitGroupIdScheme()
+    {
+        return getScheme( orgUnitGroupIdScheme );
+    }
+
+    public IdSchemes setOrgUnitGroupIdScheme( String idScheme )
+    {
+        this.orgUnitGroupIdScheme = IdScheme.from( idScheme );
         return this;
     }
 
@@ -278,10 +304,12 @@ public class IdSchemes
         return MoreObjects.toStringHelper( this )
             .add( "idScheme", idScheme )
             .add( "dataElementIdScheme", dataElementIdScheme )
+            .add( "dataElementGroupIdScheme", dataElementGroupIdScheme )
             .add( "categoryOptionComboIdScheme", categoryOptionComboIdScheme )
             .add( "categoryOptionIdScheme", categoryOptionIdScheme )
             .add( "categoryIdScheme", categoryIdScheme )
             .add( "orgUnitIdScheme", orgUnitIdScheme )
+            .add( "orgUnitGroupIdScheme", orgUnitGroupIdScheme )
             .add( "programIdScheme", programIdScheme )
             .add( "programStageIdScheme", programStageIdScheme )
             .add( "trackedEntityIdScheme", trackedEntityIdScheme )
