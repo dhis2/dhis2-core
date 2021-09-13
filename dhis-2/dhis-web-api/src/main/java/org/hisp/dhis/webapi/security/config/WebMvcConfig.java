@@ -203,15 +203,11 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
             mediaTypeMap );
         pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
 
-        HeaderContentNegotiationStrategy headerContentNegotiationStrategy = new HeaderContentNegotiationStrategy();
-        FixedContentNegotiationStrategy fixedContentNegotiationStrategy = new FixedContentNegotiationStrategy(
-            MediaType.APPLICATION_JSON );
-
         return new ContentNegotiationManager(
             Arrays.asList(
                 pathExtensionNegotiationStrategy,
-                headerContentNegotiationStrategy,
-                fixedContentNegotiationStrategy ) );
+                new HeaderContentNegotiationStrategy(),
+                new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) );
     }
 
     @Override

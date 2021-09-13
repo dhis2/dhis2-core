@@ -33,9 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
@@ -68,7 +66,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
-import org.springframework.web.accept.ParameterContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -107,25 +104,13 @@ public class MvcTestConfig implements WebMvcConfigurer
     {
         CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
             mediaTypeMap );
-        pathExtensionNegotiationStrategy.setUseJaf( false );
-
-        String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };
-
-        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy = new ParameterContentNegotiationStrategy(
-            mediaTypeMap.entrySet().stream()
-                .filter( x -> ArrayUtils.contains( mediaTypes, x.getKey() ) )
-                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) ) );
-
-        HeaderContentNegotiationStrategy headerContentNegotiationStrategy = new HeaderContentNegotiationStrategy();
-        FixedContentNegotiationStrategy fixedContentNegotiationStrategy = new FixedContentNegotiationStrategy(
-            MediaType.APPLICATION_JSON );
+        pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
 
         ContentNegotiationManager manager = new ContentNegotiationManager(
             Arrays.asList(
                 pathExtensionNegotiationStrategy,
-                parameterContentNegotiationStrategy,
-                headerContentNegotiationStrategy,
-                fixedContentNegotiationStrategy ) );
+                new HeaderContentNegotiationStrategy(),
+                new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) );
 
         CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
         mapping.setOrder( 0 );
