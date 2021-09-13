@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi;
 
 import static org.springframework.http.MediaType.parseMediaType;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -175,7 +176,14 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Bean
     public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
     {
-        return new MappingJackson2XmlHttpMessageConverter( xmlMapper );
+        MappingJackson2XmlHttpMessageConverter messageConverter = new MappingJackson2XmlHttpMessageConverter(
+            xmlMapper );
+
+        messageConverter.setSupportedMediaTypes( Arrays.asList(
+            new MediaType( "application", "xml", StandardCharsets.UTF_8 ),
+            new MediaType( "application", "*+xml", StandardCharsets.UTF_8 ) ) );
+
+        return messageConverter;
     }
 
     @Override
