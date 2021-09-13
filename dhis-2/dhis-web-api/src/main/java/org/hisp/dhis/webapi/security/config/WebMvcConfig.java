@@ -45,7 +45,6 @@ import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -140,12 +139,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     public NodeService nodeService()
     {
         return new DefaultNodeService();
-    }
-
-    @Bean
-    public RenderServiceMessageConverter renderServiceMessageConverter()
-    {
-        return new RenderServiceMessageConverter();
     }
 
     @Bean
