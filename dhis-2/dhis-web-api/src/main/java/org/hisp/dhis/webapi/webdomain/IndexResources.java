@@ -32,11 +32,18 @@ import java.util.List;
 
 import lombok.Data;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.common.DxfNamespaces;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
+
+/**
+ * @author Morten Olav Hansen
+ */
 @Data
+@JsonRootName( value = "indexResources", namespace = DxfNamespaces.DXF_2_0 )
 public class IndexResources
 {
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final List<IndexResource> resources = new ArrayList<>();
 }

@@ -30,12 +30,17 @@ package org.hisp.dhis.webapi.webdomain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import org.hisp.dhis.common.DxfNamespaces;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
 
+/**
+ * @author Morten Olav Hansen
+ */
 @Data
 @AllArgsConstructor
-@JsonRootName( "resource" )
+@JsonRootName( value = "resource", namespace = DxfNamespaces.DXF_2_0 )
 public class IndexResource
 {
     @JsonProperty
