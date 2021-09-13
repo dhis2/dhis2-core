@@ -43,15 +43,15 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 @JsonRootName( value = "resource", namespace = DxfNamespaces.DXF_2_0 )
 public class IndexResource
 {
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String displayName;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String singular;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String plural;
 
-    @JsonProperty
+    @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final String href;
 }

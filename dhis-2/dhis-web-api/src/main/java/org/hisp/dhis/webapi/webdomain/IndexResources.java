@@ -36,14 +36,18 @@ import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRootName;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * @author Morten Olav Hansen
  */
 @Data
-@JsonRootName( value = "indexResources", namespace = DxfNamespaces.DXF_2_0 )
+@JsonRootName( value = "resources", namespace = DxfNamespaces.DXF_2_0 )
 public class IndexResources
 {
     @JsonProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "resource", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "resource", useWrapping = false )
     private final List<IndexResource> resources = new ArrayList<>();
 }
