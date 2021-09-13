@@ -459,22 +459,6 @@ public class JdbcEventAnalyticsManager
 
             sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
                 getQuotedCommaDelimitedString( getUids( orgUnitDim.getItems() ) ) + ") ";
-
-            /*
-             * for ( DimensionalItemObject object :
-             * params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) {
-             * OrganisationUnit unit = (OrganisationUnit) object;
-             *
-             * String orgUnitCol = quote( orgUnitAlias, "uidlevel" +
-             * unit.getLevel() );
-             *
-             * sql += orgUnitCol + " = '" + unit.getUid() + "' or "; }
-             *
-             * sql = removeLastOr( sql ) + ") ";
-             */
-
-            // sql += descendantsOrgUnitStatement( getOrgUnitAlias( params ),
-            // params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ), hlp );
         }
 
         // ---------------------------------------------------------------------
