@@ -226,7 +226,7 @@ public class DeduplicationHelper
         if ( !duplicate.getTrackedEntityType().equals( original.getTrackedEntityType() ) )
         {
             throw new PotentialDuplicateForbiddenException(
-                "Potentical Duplicate does not have the same tracked entity type as the original" );
+                "Potential Duplicate does not have the same tracked entity type as the original" );
         }
 
         List<String> attributes = getMergeableAttributes( original, duplicate );
@@ -325,6 +325,22 @@ public class DeduplicationHelper
 
             if ( (from != null && from.getUid().equals( original.getUid() ))
                 || (to != null && to.getUid().equals( original.getUid() )) )
+            {
+                continue;
+            }
+
+            boolean duplicateRelationship = false;
+
+            for ( RelationshipItem ri2 : original.getRelationshipItems() )
+            {
+                if ( isSameRelationship( ri2.getRelationship(), ri.getRelationship() ) )
+                {
+                    duplicateRelationship = true;
+                    break;
+                }
+            }
+
+            if ( duplicateRelationship )
             {
                 continue;
             }
