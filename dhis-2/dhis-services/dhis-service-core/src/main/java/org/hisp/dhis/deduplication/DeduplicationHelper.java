@@ -96,8 +96,7 @@ public class DeduplicationHelper
         Set<String> validRelationships = duplicate.getRelationshipItems().stream()
             .map( rel -> rel.getRelationship().getUid() ).collect( Collectors.toSet() );
 
-        Set<String> validPrograms = duplicate.getProgramInstances().stream()
-            .map( ProgramInstance::getProgram )
+        Set<String> validEnrollments = duplicate.getProgramInstances().stream()
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
@@ -119,11 +118,11 @@ public class DeduplicationHelper
             return "Duplicate has no relationship '" + rel + "'.";
         }
 
-        for ( String programUid : mergeObject.getEnrollments() )
+        for ( String enrollmentUid : mergeObject.getEnrollments() )
         {
-            if ( !validPrograms.contains( programUid ) )
+            if ( !validEnrollments.contains( enrollmentUid ) )
             {
-                return "Duplicate has no enrollment '" + programUid + "'.";
+                return "Duplicate has no enrollment '" + enrollmentUid + "'.";
             }
         }
 
@@ -143,10 +142,17 @@ public class DeduplicationHelper
                 + "'. A similar relationship already exists on original.";
         }
 
-        String duplicateEnrollment = original.getProgramInstances().stream()
+        Set<String> programUidOfExistingEnrollments = original.getProgramInstances().stream()
+            .map( ProgramInstance::getProgram )
             .map( BaseIdentifiableObject::getUid )
-            .filter( uid -> mergeObject.getEnrollments().contains( uid ) )
-            .findFirst()
+            .collect( Collectors.toSet() );
+
+        String duplicateEnrollment = duplicate.getProgramInstances().stream()
+            .filter( pi -> mergeObject.getEnrollments().contains( pi.getUid() ) )
+            .map( ProgramInstance::getProgram )
+            .map( BaseIdentifiableObject::getUid )
+            .filter( programUidOfExistingEnrollments::contains )
+            .findAny()
             .orElse( null );
 
         if ( duplicateEnrollment != null )
@@ -226,7 +232,7 @@ public class DeduplicationHelper
         if ( !duplicate.getTrackedEntityType().equals( original.getTrackedEntityType() ) )
         {
             throw new PotentialDuplicateForbiddenException(
-                "Potentical Duplicate does not have the same tracked entity type as the original" );
+                "Potential Duplicate does not have the same tracked entity type as the original" );
         }
 
         List<String> attributes = getMergeableAttributes( original, duplicate );
@@ -325,6 +331,22 @@ public class DeduplicationHelper
 
             if ( (from != null && from.getUid().equals( original.getUid() ))
                 || (to != null && to.getUid().equals( original.getUid() )) )
+            {
+                continue;
+            }
+
+            boolean duplicateRelationship = false;
+
+            for ( RelationshipItem ri2 : original.getRelationshipItems() )
+            {
+                if ( isSameRelationship( ri2.getRelationship(), ri.getRelationship() ) )
+                {
+                    duplicateRelationship = true;
+                    break;
+                }
+            }
+
+            if ( duplicateRelationship )
             {
                 continue;
             }
