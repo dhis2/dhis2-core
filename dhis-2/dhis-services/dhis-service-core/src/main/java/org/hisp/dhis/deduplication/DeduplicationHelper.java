@@ -339,6 +339,15 @@ public class DeduplicationHelper
 
             for ( RelationshipItem ri2 : original.getRelationshipItems() )
             {
+                TrackedEntityInstance originalFrom = ri.getRelationship().getFrom().getTrackedEntityInstance();
+                TrackedEntityInstance originalTo = ri.getRelationship().getTo().getTrackedEntityInstance();
+
+                if ( (originalFrom != null && originalFrom.getUid().equals( duplicate.getUid() ))
+                    || (originalTo != null && originalTo.getUid().equals( duplicate.getUid() )) )
+                {
+                    continue;
+                }
+
                 if ( isSameRelationship( ri2.getRelationship(), ri.getRelationship() ) )
                 {
                     duplicateRelationship = true;
