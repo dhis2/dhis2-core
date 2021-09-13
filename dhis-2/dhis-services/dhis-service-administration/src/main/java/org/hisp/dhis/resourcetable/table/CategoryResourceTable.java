@@ -29,10 +29,8 @@ package org.hisp.dhis.resourcetable.table;
 
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -65,27 +63,21 @@ public class CategoryResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        Set<String> usedColumnNames = new HashSet<>();
-
         String statement = "create table " + getTempTableName() + " (" +
             "categoryoptioncomboid bigint not null, " +
             "categoryoptioncomboname varchar(255), ";
 
+        UniqueNameContext nameContext = new UniqueNameContext();
         for ( Category category : objects )
         {
-            statement += quote( category.getShortName() ) + " varchar(230), ";
+            statement += quote( nameContext.uniqueName( category.getShortName() ) ) + " varchar(230), ";
             statement += quote( category.getUid() ) + " character(11), ";
-            usedColumnNames.add( category.getShortName() );
         }
 
         for ( CategoryOptionGroupSet groupSet : groupSets )
         {
-            String columnName = usedColumnNames.contains( groupSet.getShortName() )
-                ? "column" + usedColumnNames.size()
-                : groupSet.getShortName();
-            statement += quote( columnName ) + " varchar(230), ";
+            statement += quote( nameContext.uniqueName( groupSet.getShortName() ) ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
-            usedColumnNames.add( columnName );
         }
 
         statement += "primary key (categoryoptioncomboid))";
