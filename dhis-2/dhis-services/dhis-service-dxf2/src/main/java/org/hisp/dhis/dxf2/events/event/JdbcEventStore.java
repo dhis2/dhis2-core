@@ -150,8 +150,8 @@ import com.google.gson.Gson;
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
 public class JdbcEventStore implements EventStore
 {
-    private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.programstageinstanceid as ri_psi_id, json_agg(r.relationshipid) as psi_rl FROM relationshipitem ri \n"
-        + " left join relationship r on ri.relationshipid = r.relationshipid GROUP by ri_psi_id)  as fgh on fgh.ri_psi_id=event.psi_id ";
+    private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.programstageinstanceid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl FROM relationshipitem ri"
+        + " GROUP by ri_psi_id)  as fgh on fgh.ri_psi_id=event.psi_id ";
 
     private static final String PSI_EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
         " psinote.trackedentitycommentid as psinote_id," +
@@ -930,7 +930,10 @@ public class JdbcEventStore implements EventStore
 
         sqlBuilder.append( ") as cm on event.psi_id=cm.psic_id " );
 
-        sqlBuilder.append( RELATIONSHIP_IDS_QUERY );
+        if ( !params.isSkipRelationship() )
+        {
+            sqlBuilder.append( RELATIONSHIP_IDS_QUERY );
+        }
 
         sqlBuilder.append( getOrderQuery( params ) );
 
