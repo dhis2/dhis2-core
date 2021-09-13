@@ -121,7 +121,7 @@ public class DeduplicationHelper
 
         for ( String programUid : mergeObject.getEnrollments() )
         {
-            if ( validPrograms.contains( programUid ) )
+            if ( !validPrograms.contains( programUid ) )
             {
                 return "Duplicate has no enrollment '" + programUid + "'.";
             }
