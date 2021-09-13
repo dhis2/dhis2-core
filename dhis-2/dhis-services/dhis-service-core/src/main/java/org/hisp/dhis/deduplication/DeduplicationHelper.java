@@ -94,7 +94,7 @@ public class DeduplicationHelper
             .map( teav -> teav.getAttribute().getUid() ).collect( Collectors.toSet() );
 
         Set<String> validRelationships = duplicate.getRelationshipItems().stream()
-            .map( rel -> rel.getTrackedEntityInstance().getUid() ).collect( Collectors.toSet() );
+            .map( rel -> rel.getRelationship().getUid() ).collect( Collectors.toSet() );
 
         Set<String> validPrograms = programInstanceService.getProgramInstances( mergeObject.getEnrollments() )
             .stream()
