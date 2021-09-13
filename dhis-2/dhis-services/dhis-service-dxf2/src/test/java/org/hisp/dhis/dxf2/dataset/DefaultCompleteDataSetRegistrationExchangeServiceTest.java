@@ -269,12 +269,13 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         when( aclService.canDataWrite( user, categoryOptionB ) ).thenReturn( true );
 
         when( notifier.clear( null ) ).thenReturn( notifier );
-        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS ) ).thenReturn( false );
-        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
+        when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS ) )
             .thenReturn( false );
-        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
+        when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
             .thenReturn( false );
-        when( systemSettingManager.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
+        when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
+            .thenReturn( false );
+        when( systemSettingManager.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
             .thenReturn( false );
 
         when( currentUserService.getCurrentUserOrganisationUnits() )

@@ -428,7 +428,7 @@ public class DefaultAnalyticsTableService
      */
     private int getProcessNo()
     {
-        Integer cores = (Integer) systemSettingManager.getSystemSetting( SettingKey.DATABASE_SERVER_CPUS );
+        Integer cores = systemSettingManager.getIntegerSetting( SettingKey.DATABASE_SERVER_CPUS );
 
         cores = (cores == null || cores == 0) ? SystemUtils.getCpuCores() : cores;
 

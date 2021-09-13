@@ -196,20 +196,20 @@ public class DataValueController
         String comment, Boolean followUp, boolean force )
         throws WebMessageException
     {
-        boolean strictPeriods = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+        boolean strictPeriods = systemSettingManager
+            .getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
 
-        boolean strictCategoryOptionCombos = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
+        boolean strictCategoryOptionCombos = systemSettingManager
+            .getBoolSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
 
-        boolean strictOrgUnits = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
+        boolean strictOrgUnits = systemSettingManager
+            .getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
 
-        boolean requireCategoryOptionCombo = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
+        boolean requireCategoryOptionCombo = systemSettingManager
+            .getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
 
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager
-            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+        FileResourceRetentionStrategy retentionStrategy = systemSettingManager
+            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class );
 
         User currentUser = currentUserService.getCurrentUser();
 
@@ -404,8 +404,8 @@ public class DataValueController
         @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager
-            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+        FileResourceRetentionStrategy retentionStrategy = systemSettingManager
+            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class );
 
         User currentUser = currentUserService.getCurrentUser();
 

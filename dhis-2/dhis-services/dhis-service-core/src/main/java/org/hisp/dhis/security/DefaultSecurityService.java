@@ -233,7 +233,7 @@ public class DefaultSecurityService
 
     private boolean isBlockFailedLogins()
     {
-        return (Boolean) systemSettingManager.getSystemSetting( SettingKey.LOCK_MULTIPLE_FAILED_LOGINS );
+        return systemSettingManager.getBoolSetting( SettingKey.LOCK_MULTIPLE_FAILED_LOGINS );
     }
 
     @Override
@@ -323,7 +323,7 @@ public class DefaultSecurityService
 
         RestoreType restoreType = restoreOptions.getRestoreType();
 
-        String applicationTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        String applicationTitle = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
 
         if ( applicationTitle == null || applicationTitle.isEmpty() )
         {
@@ -593,7 +593,7 @@ public class DefaultSecurityService
     @Override
     public boolean canView( String type )
     {
-        boolean requireAddToView = (Boolean) systemSettingManager.getSystemSetting( SettingKey.REQUIRE_ADD_TO_VIEW );
+        boolean requireAddToView = systemSettingManager.getBoolSetting( SettingKey.REQUIRE_ADD_TO_VIEW );
 
         return !requireAddToView || (canCreatePrivate( type ) || canCreatePublic( type ));
     }
@@ -669,7 +669,7 @@ public class DefaultSecurityService
     {
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
-        params.add( "secret", (String) systemSettingManager.getSystemSetting( SettingKey.RECAPTCHA_SECRET ) );
+        params.add( "secret", systemSettingManager.getStringSetting( SettingKey.RECAPTCHA_SECRET ) );
         params.add( "response", key );
         params.add( "remoteip", remoteIp );
 

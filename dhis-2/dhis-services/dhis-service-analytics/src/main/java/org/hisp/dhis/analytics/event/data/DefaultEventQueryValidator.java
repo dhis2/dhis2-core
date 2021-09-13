@@ -229,6 +229,6 @@ public class DefaultEventQueryValidator
     @Override
     public int getMaxLimit()
     {
-        return (Integer) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAX_LIMIT );
+        return systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT );
     }
 }

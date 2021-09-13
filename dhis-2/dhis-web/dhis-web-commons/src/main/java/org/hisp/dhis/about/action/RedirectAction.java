@@ -62,9 +62,9 @@ public class RedirectAction
     public String execute()
         throws Exception
     {
-        String startModule = (String) systemSettingManager.getSystemSetting( SettingKey.START_MODULE );
+        String startModule = systemSettingManager.getStringSetting( SettingKey.START_MODULE );
 
-        String contextPath = (String) ContextUtils.getContextPath( ServletActionContext.getRequest() );
+        String contextPath = ContextUtils.getContextPath( ServletActionContext.getRequest() );
 
         if ( startModule != null && !startModule.trim().isEmpty() )
         {

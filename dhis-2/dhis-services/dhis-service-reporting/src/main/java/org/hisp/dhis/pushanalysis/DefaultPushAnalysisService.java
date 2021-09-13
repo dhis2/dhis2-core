@@ -324,7 +324,8 @@ public class DefaultPushAnalysisService
         DateFormat dateFormat = new SimpleDateFormat( "MMMM dd, yyyy" );
         itemHtml.put( "date", dateFormat.format( Calendar.getInstance().getTime() ) );
         itemHtml.put( "instanceBaseUrl", dhisConfigurationProvider.getServerBaseUrl() );
-        itemHtml.put( "instanceName", (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE ) );
+        itemHtml.put( "instanceName",
+            systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE ) );
 
         // ----------------------------------------------------------------------
         // Set up template context, including pre-processed dashboard items

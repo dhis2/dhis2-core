@@ -90,6 +90,7 @@
           "id": "inVD5SdytkT"
         }
       ],
+      "dataViewMaxOrganisationUnitLevel": 4,
       "userCredentials": {
         "id": "yqJHNnkF3SJ",
         "user": {
@@ -136,6 +137,7 @@
           "id": "inVD5SdytkT"
         }
       ],
+      "dataViewMaxOrganisationUnitLevel": 3,
       "userCredentials": {
         "id": "m3ww4DWJtMf",
         "username": "UserA",
@@ -175,6 +177,7 @@
           "id": "inVD5SdytkT"
         }
       ],
+      "dataViewMaxOrganisationUnitLevel": 4,
       "userCredentials": {
         "id": "EgBSdwGi7rr",
         "externalAuth": false,

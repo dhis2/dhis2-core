@@ -390,8 +390,8 @@ public class DefaultDataQueryService
 
             DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
 
-            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager
-                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+            AnalyticsFinancialYearStartKey financialYearStart = systemSettingManager
+                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class );
 
             boolean containsRelativePeriods = false;
 
