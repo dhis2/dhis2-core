@@ -35,11 +35,19 @@ import java.util.Objects;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
@@ -107,6 +115,18 @@ public class DataApproval
      */
     private User creator;
 
+    /**
+     * The Date (including time) when {@link #accepted} status of this approval
+     * was last changed
+     */
+    private Date lastUpdated;
+
+    /**
+     * The User who made the last change to the {@link #accepted} status of this
+     * approval
+     */
+    private User lastUpdatedBy;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -139,6 +159,8 @@ public class DataApproval
         this.accepted = accepted;
         this.created = created;
         this.creator = creator;
+        this.lastUpdated = created;
+        this.lastUpdatedBy = creator;
     }
 
     public DataApproval( DataApproval da )
@@ -151,6 +173,8 @@ public class DataApproval
         this.accepted = da.accepted;
         this.created = da.created;
         this.creator = da.creator;
+        this.lastUpdated = da.lastUpdated;
+        this.lastUpdatedBy = da.lastUpdatedBy;
     }
 
     // -------------------------------------------------------------------------
@@ -273,6 +297,13 @@ public class DataApproval
         this.accepted = accepted;
     }
 
+    public void setAccepted( boolean accepted, User by )
+    {
+        setAccepted( accepted );
+        setLastUpdatedBy( by );
+        setLastUpdated( new Date() );
+    }
+
     public Date getCreated()
     {
         return created;
@@ -291,6 +322,35 @@ public class DataApproval
     public void setCreator( User creator )
     {
         this.creator = creator;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @Description( "The date this object was last updated." )
+    @Property( value = PropertyType.DATE, required = Value.FALSE )
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy( User lastUpdatedBy )
+    {
+        this.lastUpdatedBy = lastUpdatedBy;
     }
 
     // ----------------------------------------------------------------------

@@ -153,10 +153,11 @@ public class SpringDataValueSetStore
         String deScheme = idSchemes.getDataElementIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idSchemes.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
         String ocScheme = idSchemes.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
+        String aocScheme = idSchemes.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase();
 
         final String sql = "select de." + deScheme + " as deid, pe.startdate as pestart, pt.name as ptname, ou."
             + ouScheme + " as ouid, " +
-            "coc." + ocScheme + " as cocid, aoc." + ocScheme + " as aocid, " +
+            "coc." + ocScheme + " as cocid, aoc." + aocScheme + " as aocid, " +
             "dv.value, dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted " +
             "from datavalue dv " +
             "join dataelement de on (dv.dataelementid=de.dataelementid) " +
@@ -236,6 +237,7 @@ public class SpringDataValueSetStore
         String deScheme = idScheme.getDataElementIdScheme().getIdentifiableString().toLowerCase();
         String ouScheme = idScheme.getOrgUnitIdScheme().getIdentifiableString().toLowerCase();
         String cocScheme = idScheme.getCategoryOptionComboIdScheme().getIdentifiableString().toLowerCase();
+        String aocScheme = idScheme.getAttributeOptionComboIdScheme().getIdentifiableString().toLowerCase();
 
         String dataElements = getCommaDelimitedString( getIdentifiers( params.getAllDataElements() ) );
         String orgUnits = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
@@ -259,10 +261,10 @@ public class SpringDataValueSetStore
                 + "\", \"value\" }'  as cocid"
             : "coc." + cocScheme + " as cocid";
 
-        String aocSql = idScheme.getCategoryOptionComboIdScheme().isAttribute()
-            ? "aoc.attributevalues #>> '{\"" + idScheme.getCategoryOptionComboIdScheme().getAttribute()
+        String aocSql = idScheme.getAttributeOptionComboIdScheme().isAttribute()
+            ? "aoc.attributevalues #>> '{\"" + idScheme.getAttributeOptionComboIdScheme().getAttribute()
                 + "\", \"value\" }'  as aocid"
-            : "aoc." + cocScheme + " as aocid";
+            : "aoc." + aocScheme + " as aocid";
 
         // ----------------------------------------------------------------------
         // Data values

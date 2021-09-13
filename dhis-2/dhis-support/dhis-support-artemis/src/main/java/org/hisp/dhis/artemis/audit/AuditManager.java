@@ -44,8 +44,10 @@ import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -163,6 +165,13 @@ public class AuditManager
         if ( value instanceof IdentifiableObject )
         {
             return ((IdentifiableObject) value).getUid();
+        }
+
+        if ( value instanceof RelationshipItem )
+        {
+            RelationshipItem ri = (RelationshipItem) value;
+            return ObjectUtils.firstNonNull( ri.getTrackedEntityInstance(), ri.getProgramInstance(),
+                ri.getProgramStageInstance() ).getUid();
         }
 
         return value;
