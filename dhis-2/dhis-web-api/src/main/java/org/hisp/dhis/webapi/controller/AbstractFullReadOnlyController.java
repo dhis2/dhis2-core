@@ -462,9 +462,14 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             noCache().cachePrivate().getHeaderValue() );
     }
 
+    private String paginationKeyPrefix( User currentUser )
+    {
+        return currentUser.getUsername() + "." + getEntityName();
+    }
+
     private String composePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
     {
-        return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
+        return paginationKeyPrefix( currentUser ) + "." + String.join( "|", filters ) + "."
             + options.getRootJunction().name();
     }
 
@@ -585,6 +590,21 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     protected final Pagination getPaginationData( WebOptions options )
     {
         return PaginationUtils.getPaginationData( options );
+    }
+
+    protected void removeCacheEntriesForThisEntityAndUser()
+    {
+        final Cache<String, Long> paginationCache = paginationCacheManager.getPaginationCache( getEntityClass() );
+        final Iterable<String> keys = paginationCache.keys();
+        final String keyPrefix = paginationKeyPrefix( currentUserService.getCurrentUser() );
+
+        for ( final String key : keys )
+        {
+            if ( key != null && key.startsWith( keyPrefix ) )
+            {
+                paginationCache.remove( key );
+            }
+        }
     }
 
     private InclusionStrategy.Include getInclusionStrategy( String inclusionStrategy )
