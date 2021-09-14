@@ -60,10 +60,11 @@ public class PotentialDuplicatesMergeTests
     {
         String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
         String teiB = createTeiWithEnrollmentsAndEvents().extractImportedTeis().get( 0 );
+
         String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
 
         String admin_username = "taadmin";
-        loginActions.loginAsUser( admin_username, USER_PASSWORD);
+        loginActions.loginAsUser( admin_username, USER_PASSWORD );
 
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate );
 
@@ -71,14 +72,30 @@ public class PotentialDuplicatesMergeTests
             .validate()
             .statusCode( 200 )
             .body( "status", equalTo( "MERGED" ) )
-            .body( "lastUpdatedBy.username", equalTo( admin_username) );
+            .body( "lastUpdatedByUserName", equalTo( admin_username ) );
 
-        trackerActions.getTrackedEntity( teiA + "?fields=*")
+        trackerActions.getTrackedEntity( teiA + "?fields=*" )
             .validate().statusCode( 200 )
+            .body( "createdBy", equalTo( "tasuperadmin" ) )
             .body( "updatedBy", equalTo( admin_username ) )
             .body( "enrollments.updatedBy", everyItem( equalTo( admin_username ) ) );
     }
 
+    @ValueSource( strings = { "enrollments", "relationships", "trackedEntityAttributes" } )
+    @ParameterizedTest
+    public void shouldCheckReferences( String property )
+    {
+        String id = "nlXNK4b7LVr"; // id of a program. Valid, but there won't be any enrollments, relationships or TEAs with that id.
+        String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
+        String teiB = createTei( Constants.TRACKED_ENTITY_TYPE );
+
+        String potentialDuplicate = potentialDuplicatesActions.createAndValidatePotentialDuplicate( teiA, teiB, "OPEN" );
+
+        potentialDuplicatesActions.manualMergePotentialDuplicate( potentialDuplicate, new JsonObjectBuilder().addArray( property,
+            Arrays.asList( id ) ).build() )
+            .validate().statusCode( 409 )
+            .body( "message", both( containsString( "Merging conflict: Duplicate has no" ) ).and( containsString( id ) ) );
+    }
 
     @Test
     public void shouldNotMergeDifferentTypeTeis()
