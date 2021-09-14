@@ -335,27 +335,7 @@ public class DeduplicationHelper
                 continue;
             }
 
-            boolean duplicateRelationship = false;
-
-            for ( RelationshipItem ri2 : original.getRelationshipItems() )
-            {
-                TrackedEntityInstance originalFrom = ri2.getRelationship().getFrom().getTrackedEntityInstance();
-                TrackedEntityInstance originalTo = ri2.getRelationship().getTo().getTrackedEntityInstance();
-
-                if ( (originalFrom != null && originalFrom.getUid().equals( duplicate.getUid() ))
-                    || (originalTo != null && originalTo.getUid().equals( duplicate.getUid() )) )
-                {
-                    continue;
-                }
-
-                if ( isSameRelationship( ri2.getRelationship(), ri.getRelationship() ) )
-                {
-                    duplicateRelationship = true;
-                    break;
-                }
-            }
-
-            if ( duplicateRelationship )
+            if ( isDuplicateRelationship( original, duplicate, ri ) )
             {
                 continue;
             }
@@ -364,6 +344,31 @@ public class DeduplicationHelper
         }
 
         return relationships;
+    }
+
+    private boolean isDuplicateRelationship( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+        RelationshipItem ri )
+    {
+        boolean duplicateRelationship = false;
+
+        for ( RelationshipItem ri2 : original.getRelationshipItems() )
+        {
+            TrackedEntityInstance originalFrom = ri2.getRelationship().getFrom().getTrackedEntityInstance();
+            TrackedEntityInstance originalTo = ri2.getRelationship().getTo().getTrackedEntityInstance();
+
+            if ( (originalFrom != null && originalFrom.getUid().equals( duplicate.getUid() ))
+                || (originalTo != null && originalTo.getUid().equals( duplicate.getUid() )) )
+            {
+                continue;
+            }
+
+            if ( isSameRelationship( ri2.getRelationship(), ri.getRelationship() ) )
+            {
+                duplicateRelationship = true;
+                break;
+            }
+        }
+        return duplicateRelationship;
     }
 
     private List<String> getMergeableEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate )
