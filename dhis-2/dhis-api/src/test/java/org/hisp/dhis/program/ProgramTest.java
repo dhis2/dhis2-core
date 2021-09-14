@@ -25,43 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.relationship;
+package org.hisp.dhis.program;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dataelement.DataElement;
+import org.junit.Test;
 
 /**
- * @author Abyot Asalefew
+ * @author Lars Helge Overland
  */
-public interface RelationshipStore
-    extends IdentifiableObjectStore<Relationship>
+public class ProgramTest
 {
-    String ID = RelationshipStore.class.getName();
+    @Test
+    public void testGetAnalyticsDataElements()
+    {
+        DataElement deA = new DataElement( "DataElementA" );
+        deA.setAutoFields();
+        DataElement deB = new DataElement( "DataElementA" );
+        deB.setAutoFields();
+        Program prA = new Program( "ProgramA" );
+        prA.setAutoFields();
 
-    List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei );
+        ProgramStage psA = new ProgramStage( "ProgramStageA", prA );
+        psA.setAutoFields();
+        prA.getProgramStages().add( psA );
+        ProgramStageDataElement psdeA = new ProgramStageDataElement( psA, deA );
+        psdeA.setSkipAnalytics( false );
+        ProgramStageDataElement psdeB = new ProgramStageDataElement( psA, deB );
+        psdeB.setSkipAnalytics( true );
+        psA.getProgramStageDataElements().add( psdeA );
+        psA.getProgramStageDataElements().add( psdeB );
 
-    List<Relationship> getByProgramInstance( ProgramInstance pi );
-
-    List<Relationship> getByProgramStageInstance( ProgramStageInstance psi );
-
-    List<Relationship> getByRelationshipType( RelationshipType relationshipType );
-
-    /**
-     * Fetches a {@link Relationship} based on a relationship identifying
-     * attributes: - relationship type - from - to
-     *
-     * @param relationship A valid Relationship
-     *
-     * @return a {@link Relationship} or null if no Relationship is found
-     *         matching the identifying criterias
-     */
-    Relationship getByRelationship( Relationship relationship );
-
-    List<String> getUidsByRelationshipKeys( List<String> relationshipKeyList );
-
-    List<Relationship> getByUids( List<String> uids );
+        assertEquals( 2, prA.getDataElements().size() );
+        assertTrue( prA.getDataElements().contains( deA ) );
+        assertTrue( prA.getDataElements().contains( deB ) );
+        assertEquals( 1, prA.getAnalyticsDataElements().size() );
+        assertTrue( prA.getDataElements().contains( deA ) );
+    }
 }

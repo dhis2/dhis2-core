@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -132,11 +132,15 @@ public class ProgramStageDataElementServiceTest
         programStageDataElementService.addProgramStageDataElement( stageDataElementA );
 
         assertNotNull( programStageDataElementService.get( stageA, dataElementA ) );
+        assertFalse( programStageDataElementService.get( stageA, dataElementA ).isCompulsory() );
+        assertFalse( programStageDataElementService.get( stageA, dataElementA ).getSkipAnalytics() );
 
         stageDataElementA.setCompulsory( true );
+        stageDataElementA.setSkipAnalytics( true );
         programStageDataElementService.updateProgramStageDataElement( stageDataElementA );
 
-        assertEquals( true, programStageDataElementService.get( stageA, dataElementA ).isCompulsory() );
+        assertTrue( programStageDataElementService.get( stageA, dataElementA ).isCompulsory() );
+        assertTrue( programStageDataElementService.get( stageA, dataElementA ).getSkipAnalytics() );
     }
 
     @Test
