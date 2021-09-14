@@ -29,6 +29,8 @@
 package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonObject;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
@@ -41,8 +43,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -84,7 +86,8 @@ public class EventExportTests
         "?event=eventId&fields=*",
         "/eventId?includeRelationships=true",
         "/eventId?fields=*",
-        "?event=eventId&fields=relationships"
+        "?event=eventId&fields=relationships",
+        "?event=eventId&includeRelationships=true"
     } )
     @ParameterizedTest
     public void shouldFetchRelationships( String queryParams )
@@ -106,8 +109,7 @@ public class EventExportTests
     @ValueSource( strings = {
         "?fields=*&includeRelationships=false&event=eventId",
         "?event=eventId",
-        "/eventId?fields=*,!relationships",
-        "/eventId"
+        "?event=eventId&fields=*,!relationships"
     } )
     @ParameterizedTest
     public void shouldSkipRelationships( String queryParams )
@@ -122,7 +124,7 @@ public class EventExportTests
 
         response
             .validate()
-            .body( body, hasSize( 0 ) );
+            .body( body, anyOf( nullValue(), hasSize( 0 )) );
     }
 
     private String createEvent()
