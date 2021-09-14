@@ -32,8 +32,10 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
@@ -45,6 +47,7 @@ import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.OIDCLoginEnabledCondition;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
@@ -336,13 +339,19 @@ public class DhisWebApiWebSecurityConfig
         private DhisApiTokenAuthenticationEntryPoint apiTokenAuthenticationEntryPoint;
 
         @Autowired
-        private ApiTokenAuthManager apiTokenAuthManager;
-
-        @Autowired
         private ApiTokenService apiTokenService;
 
         @Autowired
         private SessionRegistry sessionRegistry;
+
+        @Autowired
+        private UserService userService;
+
+        @Autowired
+        private CacheProvider cacheProvider;
+
+        @Autowired
+        private SecurityService securityService;
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
@@ -476,7 +485,7 @@ public class DhisWebApiWebSecurityConfig
             if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_API_TOKEN_AUTHENTICATION ) )
             {
                 Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter( this.apiTokenService,
-                    this.apiTokenAuthManager,
+                    new ApiTokenAuthManager( userService, securityService, apiTokenService, cacheProvider ),
                     apiTokenAuthenticationEntryPoint, authenticationEventPublisher );
 
                 http.addFilterBefore( tokenFilter, BasicAuthenticationFilter.class );

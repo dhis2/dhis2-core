@@ -111,8 +111,8 @@ class DataApprovalPermissionsEvaluator
 
         ev.user = currentUserService.getCurrentUser();
 
-        ev.acceptanceRequiredForApproval = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+        ev.acceptanceRequiredForApproval = systemSettingManager
+            .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
         boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
         ev.authorizedToApprove = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE );

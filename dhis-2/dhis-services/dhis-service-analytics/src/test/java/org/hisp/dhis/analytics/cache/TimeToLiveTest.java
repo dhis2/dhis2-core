@@ -59,7 +59,7 @@ public class TimeToLiveTest
     public void testComputeForCurrentDayWhenCacheFactorIsNegative()
     {
         // Given
-        final Integer aNegativeCachingFactor = -1;
+        final int aNegativeCachingFactor = -1;
         final Date endingDate = new Date();
 
         // When
@@ -74,13 +74,12 @@ public class TimeToLiveTest
     {
         // Given
 
-        final Integer aPositiveCachingFactor = 3;
+        final int aPositiveCachingFactor = 3;
         final Date endingDate = new Date();
         final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
+        givenProgressiveTTLFactorOf( aPositiveCachingFactor );
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
-            .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
         // Then
@@ -92,7 +91,7 @@ public class TimeToLiveTest
     {
         // Given
         final int oneDayDiff = 1;
-        final Integer aPositiveCachingFactor = 2;
+        final int aPositiveCachingFactor = 2;
         final Date endingDate = calculateDateFrom( new Date(), minus( oneDayDiff ), DATE );
         final long expectedTtl = aPositiveCachingFactor * oneDayDiff;
 
@@ -108,14 +107,13 @@ public class TimeToLiveTest
     {
         // Given
         final int tenDaysAhead = 10;
-        final Integer aPositiveCachingFactor = 1;
+        final int aPositiveCachingFactor = 1;
         final Date beginningDate = new Date();
         final Date endingDate = calculateDateFrom( beginningDate, plus( tenDaysAhead ), DATE );
         final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
+        givenProgressiveTTLFactorOf( aPositiveCachingFactor );
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
-            .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
         // Then
@@ -127,14 +125,13 @@ public class TimeToLiveTest
     {
         // Given
         final int tenDays = 10;
-        final Integer aPositiveCachingFactor = 2;
+        final int aPositiveCachingFactor = 2;
         final Date now = new Date();
         final Date endingDate = calculateDateFrom( now, minus( tenDays ), DATE );
         final long expectedTtl = aPositiveCachingFactor * tenDays;
+        givenProgressiveTTLFactorOf( aPositiveCachingFactor );
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
-            .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
         // Then
@@ -149,5 +146,11 @@ public class TimeToLiveTest
     private int plus( final int value )
     {
         return value;
+    }
+
+    private void givenProgressiveTTLFactorOf( Integer aPositiveCachingFactor )
+    {
+        when( systemSettingManager.getIntegerSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
+            .thenReturn( aPositiveCachingFactor );
     }
 }

@@ -39,6 +39,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -46,14 +47,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.exception.InvalidTypeException;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
@@ -67,12 +62,13 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.CodeList;
+import org.hisp.dhis.webapi.webdomain.ObjectCount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -125,49 +121,35 @@ public class SystemController
     // UID Generator
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = { "/uid", "/id" }, produces = {
-        APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+    @GetMapping( value = { "/uid", "/id" }, produces = { MediaType.APPLICATION_JSON_VALUE,
+        MediaType.APPLICATION_XML_VALUE } )
+    public @ResponseBody CodeList getUid(
+        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
-        throws IOException,
-        InvalidTypeException
     {
-        limit = Math.min( limit, 10000 );
-
-        RootNode rootNode = new RootNode( "codes" );
-        CollectionNode collectionNode = rootNode.addChild( new CollectionNode( "codes" ) );
-        collectionNode.setWrapping( false );
-
-        for ( int i = 0; i < limit; i++ )
-        {
-            collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
-        }
-
         setNoStore( response );
-
-        return rootNode;
+        return generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
     }
 
     @GetMapping( value = { "/uid", "/id" }, produces = "application/csv" )
-    public void getUidCsv( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+    public void getUidCsv(
+        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
-        throws IOException,
-        InvalidTypeException
+        throws IOException
     {
-        limit = Math.min( limit, 10000 );
+        CodeList codeList = generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
+        CsvSchema schema = CsvSchema.builder()
+            .addColumn( "uid" )
+            .setUseHeader( true )
+            .build();
 
         CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() );
+        csvGenerator.setSchema( schema );
 
-        CsvSchema.Builder schemaBuilder = CsvSchema.builder()
-            .addColumn( "uid" )
-            .setUseHeader( true );
-
-        csvGenerator.setSchema( schemaBuilder.build() );
-
-        for ( int i = 0; i < limit; i++ )
+        for ( String code : codeList.getCodes() )
         {
             csvGenerator.writeStartObject();
-            csvGenerator.writeStringField( "uid", CodeGenerator.generateUid() );
+            csvGenerator.writeStringField( "uid", code );
             csvGenerator.writeEndObject();
         }
 
@@ -176,25 +158,14 @@ public class SystemController
 
     @GetMapping( value = "/uuid", produces = { APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+    public @ResponseBody CodeList getUuid(
+        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
-        throws IOException,
-        InvalidTypeException
     {
-        limit = Math.min( limit, 10000 );
-
-        RootNode rootNode = new RootNode( "codes" );
-        CollectionNode collectionNode = rootNode.addChild( new CollectionNode( "codes" ) );
-        collectionNode.setWrapping( false );
-
-        for ( int i = 0; i < limit; i++ )
-        {
-            collectionNode.addChild( new SimpleNode( "code", UUID.randomUUID().toString() ) );
-        }
-
+        CodeList codeList = generateCodeList( Math.min( limit, 10000 ), () -> UUID.randomUUID().toString() );
         setNoStore( response );
 
-        return rootNode;
+        return codeList;
     }
 
     // -------------------------------------------------------------------------
@@ -255,11 +226,13 @@ public class SystemController
         if ( jobType != null )
         {
             Object summary = notifier.getJobSummaryByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
+
             if ( summary != null )
             {
                 return ResponseEntity.ok().cacheControl( noStore() ).body( summary );
             }
         }
+
         return ResponseEntity.ok().cacheControl( noStore() ).build();
     }
 
@@ -268,7 +241,8 @@ public class SystemController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/info", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request,
+    public @ResponseBody SystemInfo getSystemInfo(
+        HttpServletRequest request,
         HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
@@ -286,18 +260,10 @@ public class SystemController
         return info;
     }
 
-    @GetMapping( "/objectCounts" )
-    public @ResponseBody RootNode getObjectCounts()
+    @GetMapping( value = "/objectCounts" )
+    public @ResponseBody ObjectCount getObjectCounts()
     {
-        Map<Objects, Long> objectCounts = statisticsProvider.getObjectCounts();
-        RootNode rootNode = NodeUtils.createRootNode( "objectCounts" );
-
-        for ( Objects objects : objectCounts.keySet() )
-        {
-            rootNode.addChild( new SimpleNode( objects.getValue(), objectCounts.get( objects ) ) );
-        }
-
-        return rootNode;
+        return new ObjectCount( statisticsProvider.getObjectCounts() );
     }
 
     @GetMapping( "/ping" )
@@ -331,5 +297,17 @@ public class SystemController
         return systemSettingManager.getFlags().stream()
             .map( flag -> new StyleObject( i18n.getString( flag ), flag, (flag + ".png") ) )
             .collect( Collectors.toList() );
+    }
+
+    private CodeList generateCodeList( Integer limit, Supplier<String> codeSupplier )
+    {
+        CodeList codeList = new CodeList();
+
+        for ( int i = 0; i < limit; i++ )
+        {
+            codeList.getCodes().add( codeSupplier.get() );
+        }
+
+        return codeList;
     }
 }

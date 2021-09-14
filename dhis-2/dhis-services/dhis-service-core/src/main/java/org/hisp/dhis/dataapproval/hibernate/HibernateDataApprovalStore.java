@@ -464,8 +464,8 @@ public class HibernateDataApprovalStore
 
         if ( approvalLevelBelowOrgUnit != null )
         {
-            boolean acceptanceRequiredForApproval = (Boolean) systemSettingManager
-                .getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+            boolean acceptanceRequiredForApproval = systemSettingManager
+                .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
 
             readyBelowSubquery = "not exists ( " + // Ready if nothing expected
                                                    // below is

@@ -6,15 +6,40 @@
         "status": "FIXED",
         "pullRequests": [
           {
-            "parent": "14a0c94585389b95896cabd096c2a9aa5e7a9432",
-            "prNumber": 4,
-            "target": "2.35.7"
+            "prNumber": 11,
+            "target": "patch/2.34.7"
           },
           {
-            "parent": "373f14fab3ddbba2d4428e3df53a3afa9bd5b88b",
+            "prNumber": 4,
+            "target": "patch/2.35.7"
+          },
+          {
+            "prNumber": 13,
+            "target": "patch/2.35.8"
+          },
+          {
             "prNumber": 3,
-            "target": "2.36.4"
-          }          
+            "target": "patch/2.36.4"
+          }
+        ]
+      },
+      {
+        "cveID": "CVE-2021-XXXXX",
+        "privateForkUrl": "https://github.com/dhis2/dhis2-core-ghsa-fvm5-gp3j-c7c6",
+        "status": "FIXED",
+        "pullRequests": [
+          {
+            "prNumber": 6,
+            "target": "patch/2.34.7"
+          },
+          {
+            "prNumber": 3,
+            "target": "patch/2.35.8"
+          },
+          {
+            "prNumber": 2,
+            "target": "patch/2.36.4"
+          }
         ]
       }
     ]

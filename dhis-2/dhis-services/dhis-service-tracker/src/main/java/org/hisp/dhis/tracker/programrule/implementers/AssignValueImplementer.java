@@ -42,9 +42,17 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.programrule.*;
+import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
+import org.hisp.dhis.tracker.programrule.EventActionRule;
+import org.hisp.dhis.tracker.programrule.IssueType;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.springframework.stereotype.Component;
 
@@ -82,8 +90,8 @@ public class AssignValueImplementer
         TrackerBundle bundle )
     {
         List<ProgramRuleIssue> issues = Lists.newArrayList();
-        Boolean canOverwrite = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
+        Boolean canOverwrite = systemSettingManager
+            .getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
 
         for ( EventActionRule actionRule : eventClasses.getValue() )
         {
@@ -111,8 +119,8 @@ public class AssignValueImplementer
         TrackerBundle bundle )
     {
         List<ProgramRuleIssue> issues = Lists.newArrayList();
-        Boolean canOverwrite = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
+        Boolean canOverwrite = systemSettingManager
+            .getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE );
 
         for ( EnrollmentActionRule actionRule : enrollmentActionRules.getValue() )
         {

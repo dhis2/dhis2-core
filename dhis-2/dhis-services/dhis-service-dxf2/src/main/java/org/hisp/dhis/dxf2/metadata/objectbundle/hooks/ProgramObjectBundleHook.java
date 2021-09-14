@@ -120,10 +120,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program>
                 ps.setProgram( program );
             }
 
-            programStageService.saveProgramStage( ps );
         } );
-
-        programService.updateProgram( program );
     }
 
     private void addProgramInstance( Program program )

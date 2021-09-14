@@ -1130,6 +1130,37 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
     }
 
+    /**
+     * Payload includes Program and ProgramStage with sharing settings.
+     * <p>
+     * Expected: after created, both Program and ProgramStage are saved
+     * correctly together with sharing settings.
+     */
+    @Test
+    public void testImportProgramWithProgramStageAndSharing()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_programStage_with_sharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        ProgramStage programStage = programStageService.getProgramStage( "oORy3Rg9hLE" );
+        assertEquals( 1, programStage.getSharing().getUserGroups().size() );
+
+        Program program = manager.get( "QIHW6CBdLsP" );
+        assertEquals( 1, program.getSharing().getUserGroups().size() );
+    }
+
     private MetadataImportParams createParams( ImportStrategy importStrategy,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
     {
