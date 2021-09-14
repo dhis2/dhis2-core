@@ -27,23 +27,21 @@
  */
 package org.hisp.dhis.tracker.importer.tei;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-
-import java.io.File;
-
+import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
+import java.io.File;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -139,13 +137,8 @@ public class TeiImportTests
 
         JsonObject teiBody = teiPayload.get( "trackedEntities" ).getAsJsonArray().get( 0 ).getAsJsonObject();
 
-        ApiResponse trackedEntityResponse = trackerActions.get(
-            "/trackedEntities/" + teiBody.get( "trackedEntity" ).getAsString(),
-            new QueryParamsBuilder().addAll( "fields=*" ) );
-
-        trackedEntityResponse.validate()
-            .statusCode( 200 );
-
+        ApiResponse trackedEntityResponse = trackerActions
+            .getTrackedEntity( teiBody.get( "trackedEntity" ).getAsString() + "?fields=*" ).validateStatus( 200 );
         assertThat( trackedEntityResponse.getBody(), matchesJSON( teiBody ) );
     }
 
