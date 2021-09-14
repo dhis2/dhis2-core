@@ -666,7 +666,6 @@ public class EventController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) List<OrderCriteria> order,
         @RequestParam( required = false ) Boolean skipEventId,
-        @RequestParam( required = false ) Boolean skipRelationship,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model )
         throws WebMessageException
