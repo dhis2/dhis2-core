@@ -43,6 +43,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
@@ -83,7 +84,7 @@ public class MetadataVersionController
     @Autowired
     private ContextUtils contextUtils;
 
-    public MetadataVersionController()
+    public MetadataVersionController( DhisConfigurationProvider configurationProvider )
     {
         super( configurationProvider );
     }
