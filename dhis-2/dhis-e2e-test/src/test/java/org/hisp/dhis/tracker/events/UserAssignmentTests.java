@@ -150,7 +150,7 @@ public class UserAssignmentTests
         programActions.programStageActions.enableUserAssignment( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );
 
-        JsonObject body = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT" )
+        JsonObject body = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT&ouMode=ACCESSIBLE" )
             .extractJsonObject( "events[0]" );
 
         assertNotNull( body, "no events matching the query." );
