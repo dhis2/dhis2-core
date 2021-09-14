@@ -331,6 +331,8 @@ public class HibernateTrackedEntityInstanceStore
 
         String hql = "select " + (idOnly ? "tei.id" : "tei") + " from TrackedEntityInstance tei ";
 
+        final String lastUpdated = " tei.lastUpdated";
+
         if ( !params.hasLastUpdatedDuration() )
         {
             if ( params.hasLastUpdatedStartDate() )
@@ -338,20 +340,20 @@ public class HibernateTrackedEntityInstanceStore
                 hql += ", ProgramStageInstance psi, ProgramInstance pi";
                 String lastUpdatedDateString = getMediumDateString( params.getLastUpdatedStartDate() );
 
-                hql += hlp.whereAnd() + " ( " + hlp.or() + " tei.lastUpdated >= '" + lastUpdatedDateString + "' "
+                hql += hlp.whereAnd() + " ( " + hlp.or() + lastUpdated + "  >= '" + lastUpdatedDateString + "' "
                     + hlp.andOr()
                     + " pi.lastUpdated >= '" + lastUpdatedDateString
                     + "' " + hlp.or() + " psi.lastUpdated >= '" + lastUpdatedDateString
                     + "')";
             }
 
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> " tei.lastUpdated < '" +
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> lastUpdated + "  < '" +
                 getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
 
         }
         else
         {
-            hql += hlp.whereAnd() + " tei.lastUpdated >= '" +
+            hql += hlp.whereAnd() + lastUpdated + " >= '" +
                 getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
 
