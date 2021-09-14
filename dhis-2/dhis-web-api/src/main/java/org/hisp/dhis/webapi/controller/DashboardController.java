@@ -156,13 +156,13 @@ public class DashboardController
         {
             for ( final DashboardItem item : items )
             {
-                final boolean hasAssociatedType = item != null
+                final boolean hasAssociationType = item != null
                     && (item.getLinkItems() != null || item.getEmbeddedItem() != null || item.getText() != null
                         || item.getMessages() != null);
 
                 final boolean hasType = item != null && item.getType() != null;
 
-                if ( !hasType || !hasAssociatedType )
+                if ( !hasType && !hasAssociationType )
                 {
                     return false;
                 }

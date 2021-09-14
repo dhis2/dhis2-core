@@ -37,6 +37,7 @@ import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
@@ -85,6 +86,10 @@ public class Configuration
     private UserAuthorityGroup selfRegistrationRole;
 
     private OrganisationUnit selfRegistrationOrgUnit;
+
+    private OrganisationUnitGroupSet facilityOrgUnitGroupSet;
+
+    private OrganisationUnitLevel facilityOrgUnitLevel;
 
     private Set<String> corsWhitelist = new HashSet<>();
 
@@ -226,6 +231,32 @@ public class Configuration
     public void setSelfRegistrationOrgUnit( OrganisationUnit selfRegistrationOrgUnit )
     {
         this.selfRegistrationOrgUnit = selfRegistrationOrgUnit;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnitGroupSet getFacilityOrgUnitGroupSet()
+    {
+        return facilityOrgUnitGroupSet;
+    }
+
+    public void setFacilityOrgUnitGroupSet( OrganisationUnitGroupSet facilityOrgUnitGroupSet )
+    {
+        this.facilityOrgUnitGroupSet = facilityOrgUnitGroupSet;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnitLevel getFacilityOrgUnitLevel()
+    {
+        return facilityOrgUnitLevel;
+    }
+
+    public void setFacilityOrgUnitLevel( OrganisationUnitLevel facilityOrgUnitLevel )
+    {
+        this.facilityOrgUnitLevel = facilityOrgUnitLevel;
     }
 
     @JsonProperty

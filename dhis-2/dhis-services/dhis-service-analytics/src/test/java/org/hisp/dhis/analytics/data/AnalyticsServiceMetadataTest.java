@@ -94,7 +94,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                     ImmutableList.of(
                         new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ),
-                    new DimensionalKeywords(
+                    new DimensionItemKeywords(
                         Lists.newArrayList(
                             buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
                             buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
@@ -134,7 +134,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
                     Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
                         createDataElement( 'B', new CategoryCombo() ) ),
-                    new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ) ) ) )
+                    new DimensionItemKeywords( Collections.singletonList( indicatorGroup ) ) ) ) )
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
@@ -169,7 +169,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ),
-                    new DimensionalKeywords(
+                    new DimensionItemKeywords(
                         Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) ) ) ) )
             .build();
 
@@ -200,7 +200,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                     ImmutableList.of(
                         createDataElement( 'A', new CategoryCombo() ),
                         createDataElement( 'B', new CategoryCombo() ) ),
-                    new DimensionalKeywords( Collections.singletonList( dataElementGroup ) ) ) ) )
+                    new DimensionItemKeywords( Collections.singletonList( dataElementGroup ) ) ) ) )
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
@@ -231,8 +231,8 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 
         BaseDimensionalObject periodDimension = new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods );
 
-        DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
-        dimensionalKeywords.addGroupBy( THIS_QUARTER.name(), "This quarter" );
+        DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
+        dimensionalKeywords.addKeyword( THIS_QUARTER.name(), "This quarter" );
         periodDimension.setDimensionalKeywords( dimensionalKeywords );
 
         DataQueryParams params = DataQueryParams.newBuilder()
