@@ -70,6 +70,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -133,6 +134,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -281,9 +283,9 @@ public abstract class AbstractEventService implements EventService
     {
         validate( params );
 
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
-
         User user = currentUserService.getCurrentUser();
+
+        List<OrganisationUnit> organisationUnits = getProvidedOrUserAssignedOrganisationUnits( params, user );
 
         params.handleCurrentUserSelectionMode( user );
 
@@ -341,7 +343,7 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "Program stage should have at least one data element" );
         }
 
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
+        List<OrganisationUnit> organisationUnits = getProvidedOrUserAssignedOrganisationUnits( params, user );
 
         params.handleCurrentUserSelectionMode( user );
 
@@ -483,9 +485,9 @@ public abstract class AbstractEventService implements EventService
     @Override
     public EventRows getEventRows( EventSearchParams params )
     {
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
-
         User user = currentUserService.getCurrentUser();
+
+        List<OrganisationUnit> organisationUnits = getProvidedOrUserAssignedOrganisationUnits( params, user );
 
         EventRows eventRows = new EventRows();
 
@@ -832,27 +834,59 @@ public abstract class AbstractEventService implements EventService
     // HELPERS
     // -------------------------------------------------------------------------
 
-    private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params )
+    private List<OrganisationUnit> getProvidedOrUserAssignedOrganisationUnits( EventSearchParams params,
+        User currentUser )
     {
         List<OrganisationUnit> organisationUnits = new ArrayList<>();
 
         OrganisationUnit orgUnit = params.getOrgUnit();
         OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
 
-        if ( params.getOrgUnit() != null )
+        if ( currentUser.isSuper() )
         {
+            if ( params.getOrgUnit() != null )
+            {
+                if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
+                {
+                    organisationUnits
+                        .addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
+                }
+                else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
+                {
+                    organisationUnits.add( orgUnit );
+                    organisationUnits.addAll( orgUnit.getChildren() );
+                }
+                else // SELECTED
+                {
+                    organisationUnits.add( orgUnit );
+                }
+            }
+        }
+        else
+        {
+            Set<OrganisationUnit> userOrgUnits = params.getOrgUnit() == null
+                ? currentUser.getDataViewOrganisationUnitsWithFallback()
+                : Sets.newHashSet( params.getOrgUnit() );
+
+            List<String> orgUnitIds = userOrgUnits.stream()
+                .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() );
+
             if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
             {
-                organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
+                organisationUnits.addAll( organisationUnitService.getOrganisationUnitsWithChildren( orgUnitIds ) );
             }
             else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
             {
-                organisationUnits.add( orgUnit );
-                organisationUnits.addAll( orgUnit.getChildren() );
+                Set<OrganisationUnit> children = userOrgUnits.stream()
+                    .map( OrganisationUnit::getChildren )
+                    .flatMap( Collection::stream )
+                    .collect( Collectors.toSet() );
+
+                organisationUnits.addAll( children );
             }
-            else // SELECTED
+            else
             {
-                organisationUnits.add( orgUnit );
+                organisationUnits.addAll( userOrgUnits );
             }
         }
 
