@@ -61,9 +61,9 @@ import com.google.common.collect.Lists;
 /**
  * @author Luciano Fiandesio
  */
-public class DefaultQueryPlannerGroupByAggregationTypeTest
+public class QueryPlannerGroupByAggregationTypeTest
 {
-    private DefaultQueryPlanner subject;
+    private QueryPlanner subject;
 
     @Mock
     private QueryValidator queryValidator;
