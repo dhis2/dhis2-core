@@ -51,9 +51,12 @@ import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -71,6 +74,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.visualization.Visualization;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -149,7 +153,15 @@ public class Attribute
 
         VALIDATION_RULE_GROUP( ValidationRuleGroup.class ),
 
-        CATEGORY( Category.class );
+        CATEGORY( Category.class ),
+
+        VISUALIZATION( Visualization.class ),
+
+        MAP( Map.class ),
+
+        EVENT_REPORT( EventReport.class ),
+
+        EVENT_CHART( EventChart.class );
 
         final Class<? extends IdentifiableObject> type;
 
@@ -661,6 +673,54 @@ public class Attribute
     public void setCategoryAttribute( boolean categoryAttribute )
     {
         setAttribute( ObjectType.CATEGORY, categoryAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isVisualizationAttribute()
+    {
+        return isAttribute( ObjectType.VISUALIZATION );
+    }
+
+    public void setVisualizationAttribute( boolean visualizationAttribute )
+    {
+        setAttribute( ObjectType.VISUALIZATION, visualizationAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMapAttribute()
+    {
+        return isAttribute( ObjectType.MAP );
+    }
+
+    public void setMapAttribute( boolean mapAttribute )
+    {
+        setAttribute( ObjectType.MAP, mapAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEventReportAttribute()
+    {
+        return isAttribute( ObjectType.EVENT_REPORT );
+    }
+
+    public void setEventReportAttribute( boolean eventReportAttribute )
+    {
+        setAttribute( ObjectType.EVENT_REPORT, eventReportAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEventChartAttribute()
+    {
+        return isAttribute( ObjectType.EVENT_CHART );
+    }
+
+    public void setEventChartAttribute( boolean eventChartAttribute )
+    {
+        setAttribute( ObjectType.EVENT_CHART, eventChartAttribute );
     }
 
     @JsonProperty

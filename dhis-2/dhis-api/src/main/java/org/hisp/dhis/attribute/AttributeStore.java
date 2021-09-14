@@ -27,39 +27,12 @@
  */
 package org.hisp.dhis.attribute;
 
+import static java.util.Arrays.stream;
+
 import java.util.List;
 
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.dataelement.DataElementGroupSet;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.dataset.Section;
-import org.hisp.dhis.document.Document;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.sqlview.SqlView;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.validation.ValidationRule;
-import org.hisp.dhis.validation.ValidationRuleGroup;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -71,38 +44,8 @@ public interface AttributeStore
 {
     String ID = AttributeStore.class.getName();
 
-    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = ImmutableMap.<Class<?>, String> builder()
-        .put( DataElement.class, "dataElementAttribute" )
-        .put( DataElementGroup.class, "dataElementGroupAttribute" )
-        .put( Indicator.class, "indicatorAttribute" )
-        .put( IndicatorGroup.class, "indicatorGroupAttribute" )
-        .put( DataSet.class, "dataSetAttribute" )
-        .put( OrganisationUnit.class, "organisationUnitAttribute" )
-        .put( OrganisationUnitGroup.class, "organisationUnitGroupAttribute" )
-        .put( OrganisationUnitGroupSet.class, "organisationUnitGroupSetAttribute" )
-        .put( User.class, "userAttribute" )
-        .put( UserGroup.class, "userGroupAttribute" )
-        .put( Program.class, "programAttribute" )
-        .put( ProgramStage.class, "programStageAttribute" )
-        .put( TrackedEntityType.class, "trackedEntityTypeAttribute" )
-        .put( TrackedEntityAttribute.class, "trackedEntityAttributeAttribute" )
-        .put( CategoryOption.class, "categoryOptionAttribute" )
-        .put( CategoryOptionGroup.class, "categoryOptionGroupAttribute" )
-        .put( Document.class, "documentAttribute" )
-        .put( Option.class, "optionAttribute" )
-        .put( OptionSet.class, "optionSetAttribute" )
-        .put( Constant.class, "constantAttribute" )
-        .put( LegendSet.class, "legendSetAttribute" )
-        .put( ProgramIndicator.class, "programIndicatorAttribute" )
-        .put( SqlView.class, "sqlViewAttribute" )
-        .put( Section.class, "sectionAttribute" )
-        .put( CategoryOptionCombo.class, "categoryOptionComboAttribute" )
-        .put( CategoryOptionGroupSet.class, "categoryOptionGroupSetAttribute" )
-        .put( DataElementGroupSet.class, "dataElementGroupSetAttribute" )
-        .put( ValidationRule.class, "validationRuleAttribute" )
-        .put( ValidationRuleGroup.class, "validationRuleGroupAttribute" )
-        .put( Category.class, "categoryAttribute" )
-        .build();
+    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = stream( ObjectType.values() )
+        .collect( ImmutableMap.toImmutableMap( ObjectType::getType, ObjectType::getPropertyName ) );
 
     /**
      * Get all metadata attributes for a given class, returns empty list for

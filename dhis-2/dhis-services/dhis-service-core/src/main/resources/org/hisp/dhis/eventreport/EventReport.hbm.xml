@@ -53,7 +53,7 @@
       <many-to-many column="orgunitgroupsetdimensionid" class="org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension"
         foreign-key="fk_eventreport_dimensions_ogunitgroupsetdimensionid" />
     </list>
-    
+
     <list name="categoryOptionGroupSetDimensions" table="eventreport_categoryoptiongroupsetdimensions" cascade="all-delete-orphan">
       <cache usage="read-write" />
       <key column="eventreportid" foreign-key="fk_eventreport_catoptiongroupsetdimensions_eventreportid" />
@@ -61,7 +61,7 @@
       <many-to-many column="categoryoptiongroupsetdimensionid" class="org.hisp.dhis.category.CategoryOptionGroupSetDimension"
         foreign-key="fk_eventreport_dimensions_catoptiongroupsetdimensionid" />
     </list>
-    
+
     <list name="organisationUnitLevels" table="eventreport_orgunitlevels">
       <cache usage="read-write" />
       <key column="eventreportid" foreign-key="fk_eventreport_orgunitlevels_eventreportid" />
@@ -132,13 +132,13 @@
     </property>
 
     <property name="completedOnly" column="completedonly" />
-    
+
     <property name="timeField" column="timefield" />
 
     <property name="orgUnitField" column="orgunitfield" />
-    
+
     <property name="title" />
-    
+
     <property name="subtitle" />
 
     <property name="hideTitle" />
@@ -236,7 +236,7 @@
         <param name="type">12</param>
       </type>
     </property>
-    
+
     <property name="eventStatus" length="40">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.event.EventStatus</param>
@@ -244,7 +244,7 @@
         <param name="type">12</param>
       </type>
     </property>
-    
+
     <property name="sortOrder" />
 
     <property name="topLimit" />
@@ -258,15 +258,18 @@
 
     <property name="favorites" type="jbSet" />
 
-    <property name="subscribers" type="jbSet" />
+    <property name="subscribers" type="jbSet"/>
 
-    <property name="userOrgUnitType" length="12" >
+    <property name="userOrgUnitType" length="12">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.analytics.UserOrgUnitType</param>
         <param name="useNamed">true</param>
         <param name="type">12</param>
       </type>
     </property>
+
+    <!-- Dynamic attribute values -->
+    <property name="attributeValues" type="jsbAttributeValues"/>
 
   </class>
 
