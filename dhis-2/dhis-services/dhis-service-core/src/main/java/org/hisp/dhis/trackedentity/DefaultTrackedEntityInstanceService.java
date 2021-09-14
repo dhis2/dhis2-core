@@ -931,6 +931,10 @@ public class DefaultTrackedEntityInstanceService
         {
             searchOrgUnits = params.getOrganisationUnits();
         }
+        else if ( params.isOrganisationUnitMode( CAPTURE ) )
+        {
+            searchOrgUnits = localOrgUnits;
+        }
         else if ( params.isOrganisationUnitMode( CHILDREN ) || params.isOrganisationUnitMode( DESCENDANTS ) )
         {
             for ( OrganisationUnit ou : params.getOrganisationUnits() )
