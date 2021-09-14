@@ -25,48 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc.messageconverter;
+package org.hisp.dhis.resourcetable.table;
 
-import javax.annotation.Nonnull;
+import static org.junit.Assert.assertEquals;
 
-import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.node.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-
-import com.google.common.collect.ImmutableList;
+import org.junit.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Tests the {@link UniqueNameContext}.
+ *
+ * @author Jan Bernitt
  */
-public class CsvMessageConverter extends AbstractRootNodeMessageConverter
+public class UniqueNameContextTest
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "csv" ) )
-        .add( new MediaType( "text", "csv" ) )
-        .build();
+    private final UniqueNameContext context = new UniqueNameContext();
 
-    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "csv+gzip" ) )
-        .build();
-
-    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "csv+zip" ) )
-        .build();
-
-    public CsvMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
+    @Test
+    public void alreadyUniqueNameIsKept()
     {
-        super( nodeService, "application/csv", "csv", compression );
-        switch ( getCompression() )
-        {
-        case NONE:
-            setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
-        }
+        assertEquals( "Foo", context.uniqueName( "Foo" ) );
+        assertEquals( "Bar", context.uniqueName( "Bar" ) );
+        assertEquals( "Baz", context.uniqueName( "Baz" ) );
+    }
+
+    @Test
+    public void nonUniqueNameIsExtendedWithCounter()
+    {
+        assertEquals( "Foo", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo1", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo2", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo3", context.uniqueName( "Foo" ) );
+    }
+
+    @Test
+    public void nonUniqueNameExtensionDoesNotCollideWithExistingNames()
+    {
+        assertEquals( "Foo", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo2", context.uniqueName( "Foo2" ) );
+        assertEquals( "Foo3", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo23", context.uniqueName( "Foo2" ) );
+        assertEquals( "Foo4", context.uniqueName( "Foo" ) );
+        assertEquals( "Foo25", context.uniqueName( "Foo2" ) );
     }
 }

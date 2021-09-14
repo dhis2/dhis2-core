@@ -27,52 +27,39 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.BaseDimensionalObject;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Luciano Fiandesio
+ * @author Luciano Fiandesio (initial)
+ * @author Jan Bernitt (current)
  */
-public class UniqueNameVerifier
+public final class UniqueNameContext
 {
 
-    protected List<String> columnNames = new ArrayList<>();
+    private final Set<String> uniqueNames = new HashSet<>();
 
     /**
-     * Returns the short name in quotes for the given
-     * {@see BaseDimensionalObject}, ensuring that the short name is unique
-     * across the list of BaseDimensionalObject this class operates on
-     *
-     * @param baseDimensionalObject a {@see BaseDimensionalObject}
-     * @return a unique, quoted short name
-     */
-    protected String ensureUniqueShortName( BaseDimensionalObject baseDimensionalObject )
-    {
-        String columnName = quote( baseDimensionalObject.getShortName()
-            + (columnNames.contains( baseDimensionalObject.getShortName() ) ? columnNames.size() : "") );
-
-        this.columnNames.add( baseDimensionalObject.getShortName() );
-
-        return columnName;
-    }
-
-    /**
-     * Returns the name in quotes, ensuring that the name is unique across the
-     * list of objects this class operates on
+     * Returns the name that is unique in this name context.
      *
      * @param name a String
-     * @return a unique, quoted name
+     * @return a unique name based on the given name, eventually extended by a
+     *         counter number
      */
-    protected String ensureUniqueName( String name )
+    public String uniqueName( String name )
     {
-        String columnName = quote( name + (columnNames.contains( name ) ? columnNames.size() : "") );
-
-        this.columnNames.add( name );
-
-        return columnName;
+        String uniqueName = name;
+        if ( uniqueNames.contains( uniqueName ) )
+        {
+            int n = uniqueNames.size();
+            do
+            {
+                uniqueName = name + n;
+                n++;
+            }
+            while ( uniqueNames.contains( uniqueName ) );
+        }
+        this.uniqueNames.add( uniqueName );
+        return uniqueName;
     }
 }
