@@ -47,7 +47,7 @@
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-support-field-filtering</artifactId>
+            <artifactId>dhis-service-field-filtering</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
