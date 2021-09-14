@@ -495,17 +495,14 @@ public class JdbcEventStore implements EventStore
                         relationshipIds.addAll( Lists.newArrayList( gson.fromJson( value, Long[].class ) ) );
                     }
                 }
-            }
-        }
 
-        if ( params.isIncludeRelationships() )
-        {
-            final Multimap<String, Relationship> map = eventStore
-                .getRelationshipsByIds( relationshipIds );
+                final Multimap<String, Relationship> map = eventStore
+                    .getRelationshipsByIds( relationshipIds );
 
-            if ( !map.isEmpty() )
-            {
-                events.forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
+                if ( !map.isEmpty() )
+                {
+                    events.forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
+                }
             }
         }
 
