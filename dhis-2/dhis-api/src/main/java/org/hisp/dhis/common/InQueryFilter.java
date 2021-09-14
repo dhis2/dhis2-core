@@ -74,7 +74,7 @@ public class InQueryFilter extends QueryFilter
             condition = field + " " + operator.getValue() + streamOfNonMissingValues( filterItems )
                 .filter( Objects::nonNull )
                 .map( item -> toLowerIfNecessary( item, isText ) )
-                .map( this::quote )
+                .map( item -> quoteIfNecessary( item, isText ) )
                 .collect( Collectors.joining( ",", " (", ")" ) );
             if ( hasMissingValue( filterItems ) )
             {
@@ -90,6 +90,11 @@ public class InQueryFilter extends QueryFilter
         }
 
         return condition + " ";
+    }
+
+    private String quoteIfNecessary( String item, boolean isText )
+    {
+        return isText ? quote( item ) : item;
     }
 
     private String toLowerIfNecessary( String item, boolean isText )
