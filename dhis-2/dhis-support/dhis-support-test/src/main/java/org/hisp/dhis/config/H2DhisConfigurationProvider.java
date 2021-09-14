@@ -160,6 +160,12 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
     }
 
     @Override
+    public boolean isProduction()
+    {
+        return StringUtils.equals( getProperty( ConfigurationKey.SYSTEM_MODE ), "PRODUCTION" );
+    }
+
+    @Override
     public Map<String, Serializable> getConfigurationsAsMap()
     {
         return Stream.of( ConfigurationKey.values() )
