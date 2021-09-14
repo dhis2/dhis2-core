@@ -1,0 +1,2 @@
+create index if not exists in_tei_created_deleted_tet_ou ON trackedentityinstance using btree (created, deleted, trackedentitytypeid, organisationunitid);
+create index if not exists in_psi_deleted_assigneduserid ON programstageinstance using btree (deleted,assigneduserid);
