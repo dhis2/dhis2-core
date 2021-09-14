@@ -482,7 +482,7 @@ public class JdbcEventStore implements EventStore
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
 
-            if ( !params.isSkipRelationships() )
+            if ( params.isIncludeRelationships() )
             {
                 if ( rowSet.getObject( "psi_rl" ) != null )
                 {
@@ -498,7 +498,7 @@ public class JdbcEventStore implements EventStore
             }
         }
 
-        if ( !params.isSkipRelationships() )
+        if ( params.isIncludeRelationships() )
         {
             final Multimap<String, Relationship> map = eventStore
                 .getRelationshipsByIds( relationshipIds );
@@ -933,7 +933,7 @@ public class JdbcEventStore implements EventStore
 
         sqlBuilder.append( ") as cm on event.psi_id=cm.psic_id " );
 
-        if ( !params.isSkipRelationships() )
+        if ( params.isIncludeRelationships() )
         {
             sqlBuilder.append( RELATIONSHIP_IDS_QUERY );
         }
