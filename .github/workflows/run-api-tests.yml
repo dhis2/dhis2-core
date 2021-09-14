@@ -39,5 +39,5 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
-          name: "logs"
+          name: "tomcat_logs"
           path: '~/logs.txt'

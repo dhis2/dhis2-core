@@ -218,7 +218,7 @@ public class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTe
         userCredentials.setDisabled( true );
         userService.updateUserCredentials( userCredentials );
 
-        assertEquals( "The API token is disabled or locked.",
+        assertEquals( "The API token is disabled, locked or 2FA is enabled.",
             GET( URI, ApiTokenHeader( key ) )
                 .error( HttpStatus.UNAUTHORIZED ).getMessage() );
     }
