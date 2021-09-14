@@ -69,6 +69,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -835,6 +836,8 @@ public abstract class AbstractEventService implements EventService
     {
         Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
+        Program program = params.getProgram();
+
         OrganisationUnit orgUnit = params.getOrgUnit();
         OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
 
@@ -859,17 +862,18 @@ public abstract class AbstractEventService implements EventService
         {
             if ( OrganisationUnitSelectionMode.ACCESSIBLE.equals( orgUnitSelectionMode ) )
             {
-                for ( OrganisationUnit ou : user.getTeiSearchOrganisationUnitsWithFallback() )
-                {
-                    organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( ou.getUid() ) );
-                }
+                Set<OrganisationUnit> orgUnits = program.isRegistration()
+                    ? user.getTeiSearchOrganisationUnitsWithFallback()
+                    : user.getDataViewOrganisationUnitsWithFallback();
+
+                organisationUnits.addAll( organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
+                    .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
             }
             else if ( OrganisationUnitSelectionMode.CAPTURE.equals( orgUnitSelectionMode ) )
             {
-                for ( OrganisationUnit ou : user.getOrganisationUnits() )
-                {
-                    organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( ou.getUid() ) );
-                }
+                organisationUnits.addAll(
+                    organisationUnitService.getOrganisationUnitsWithChildren( user.getOrganisationUnits().stream()
+                        .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
             }
 
         }
