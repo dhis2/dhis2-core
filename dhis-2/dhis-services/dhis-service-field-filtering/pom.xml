@@ -4,8 +4,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>dhis-service</artifactId>
         <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-services</artifactId>
         <version>2.38-SNAPSHOT</version>
     </parent>
 
