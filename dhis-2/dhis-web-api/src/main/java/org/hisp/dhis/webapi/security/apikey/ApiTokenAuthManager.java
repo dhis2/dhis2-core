@@ -43,7 +43,6 @@ import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.stereotype.Service;
 
 /**
  * Processes API token authentication requests, looks for the 'Authorization'
@@ -52,7 +51,6 @@ import org.springframework.stereotype.Service;
  * rules are matching.
  */
 @Slf4j
-@Service
 public class ApiTokenAuthManager implements AuthenticationManager
 {
     private final ApiTokenService apiTokenService;
@@ -124,16 +122,19 @@ public class ApiTokenAuthManager implements AuthenticationManager
                 ApiTokenErrors.invalidToken( "The API token owner does not exists." ) );
         }
 
+        boolean is2FAEnabled = !userCredentials.isTwoFA();
         boolean enabled = !userCredentials.isDisabled();
         boolean credentialsNonExpired = userService.credentialsNonExpired( userCredentials );
         boolean accountNonLocked = !securityService.isLocked( userCredentials.getUsername() );
         boolean accountNonExpired = !userService.isAccountExpired( userCredentials );
 
-        if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
+        if ( ObjectUtils.anyIsFalse( enabled, is2FAEnabled, credentialsNonExpired, accountNonLocked,
+            accountNonExpired ) )
         {
             throw new ApiTokenAuthenticationException(
-                ApiTokenErrors.invalidToken( "The API token is disabled or locked." ) );
+                ApiTokenErrors.invalidToken( "The API token is disabled, locked or 2FA is enabled." ) );
         }
+
         return userCredentials;
     }
 
