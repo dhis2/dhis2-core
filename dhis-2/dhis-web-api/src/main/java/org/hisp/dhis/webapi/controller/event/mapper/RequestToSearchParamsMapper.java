@@ -132,14 +132,13 @@ public class RequestToSearchParamsMapper
         boolean includeAttributes,
         Set<String> events, Boolean skipEventId, AssignedUserSelectionMode assignedUserSelectionMode,
         Set<String> assignedUsers, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements,
-        boolean includeDeleted, boolean skipRelationship )
+        boolean includeDeleted )
     {
         return map( program, programStage, programStatus, followUp, orgUnit, orgUnitSelectionMode,
             trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, lastUpdatedDuration, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, orders, gridOrders, includeAttributes, events, null, skipEventId,
-            assignedUserSelectionMode, assignedUsers, filters, dataElements, includeAllDataElements, includeDeleted,
-            skipRelationship );
+            assignedUserSelectionMode, assignedUsers, filters, dataElements, includeAllDataElements, includeDeleted );
     }
 
     public EventSearchParams map( String program, String programStage, ProgramStatus programStatus, Boolean followUp,
@@ -152,7 +151,7 @@ public class RequestToSearchParamsMapper
         Set<String> events, Set<String> programInstances, Boolean skipEventId,
         AssignedUserSelectionMode assignedUserSelectionMode,
         Set<String> assignedUsers, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements,
-        boolean includeDeleted, boolean includeRelationships )
+        boolean includeDeleted )
     {
         User user = currentUserService.getCurrentUser();
         UserCredentials userCredentials = user.getUserCredentials();
@@ -279,8 +278,7 @@ public class RequestToSearchParamsMapper
             .setPageSize( pageSize ).setTotalPages( totalPages ).setSkipPaging( skipPaging )
             .setSkipEventId( skipEventId ).setIncludeAttributes( includeAttributes )
             .setIncludeAllDataElements( includeAllDataElements ).setOrders( orders ).setGridOrders( gridOrders )
-            .setEvents( events ).setProgramInstances( programInstances ).setIncludeDeleted( includeDeleted )
-            .setIncludeRelationships( includeRelationships );
+            .setEvents( events ).setProgramInstances( programInstances ).setIncludeDeleted( includeDeleted );
     }
 
     private QueryItem getQueryItem( String item )
@@ -363,7 +361,7 @@ public class RequestToSearchParamsMapper
             eventCriteria.getFilter(),
             dataElementOrders.keySet(),
             false,
-            eventCriteria.isIncludeDeleted(), eventCriteria.isIncludeRelationships() );
+            eventCriteria.isIncludeDeleted() );
     }
 
     private List<OrderParam> getOrderParams( List<OrderCriteria> order )

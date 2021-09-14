@@ -94,8 +94,6 @@ public class EventCriteria extends PagingAndSortingCriteriaAdapter
 
     private boolean includeDeleted;
 
-    private boolean includeRelationships;
-
     private String event;
 
     private Boolean skipEventId;

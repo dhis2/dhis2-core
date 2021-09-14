@@ -134,6 +134,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 
@@ -272,8 +273,7 @@ public class EventController
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
-            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted,
-            skipRelationship );
+            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
 
@@ -348,8 +348,7 @@ public class EventController
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
-            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted,
-            skipRelationship );
+            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
@@ -423,8 +422,7 @@ public class EventController
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
-            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted,
-            skipRelationship );
+            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
@@ -499,8 +497,7 @@ public class EventController
             orgUnit, ouMode, trackedEntityInstance, startDate, endDate, dueDateStart, dueDateEnd, lastUpdatedStartDate,
             lastUpdatedEndDate, null, status, attributeOptionCombo, idSchemes, page, pageSize,
             totalPages, skipPaging, null, getGridOrderParams( order ), false, eventIds, false,
-            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted,
-            skipRelationship );
+            assignedUserMode, assignedUserIds, filter, dataElement, includeAllDataElements, includeDeleted );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
         Grid grid = eventService.getEventsGrid( params );
@@ -517,7 +514,6 @@ public class EventController
         EventCriteria eventCriteria, @RequestParam Map<String, String> parameters, Model model,
         HttpServletResponse response,
         HttpServletRequest request )
-        throws WebMessageException
     {
         WebOptions options = new WebOptions( parameters );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -529,6 +525,8 @@ public class EventController
         }
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        setParamBasedOnFieldParameters( params, fields );
 
         Events events = eventService.getEvents( params );
 
@@ -687,7 +685,7 @@ public class EventController
             null, null, null, eventStatus, attributeOptionCombo,
             idSchemes, page, pageSize, totalPages, skipPaging, getOrderParams( order ),
             null, true, null, skipEventId, null, null, null,
-            null, false, includeDeleted, skipRelationship );
+            null, false, includeDeleted );
 
         return eventRowService.getEventRows( params );
     }
@@ -1109,5 +1107,22 @@ public class EventController
     private String getParamValue( Map<String, List<String>> params, String key )
     {
         return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
+    }
+
+    private void setParamBasedOnFieldParameters( EventSearchParams params, List<String> fields )
+    {
+        String joined = Joiner.on( "" ).join( fields );
+
+        if ( joined.contains( "*" ) )
+        {
+            params.setIncludeAllDataElements( true );
+            params.setIncludeAttributes( true );
+            params.setIncludeRelationships( true );
+        }
+
+        if ( joined.contains( "relationships" ) )
+        {
+            params.setIncludeRelationships( true );
+        }
     }
 }

@@ -84,13 +84,10 @@ public class EventExportTests
 
     @ValueSource( strings = {
         "?event=eventId&fields=*",
-        "/eventId?includeRelationships=true",
-        "/eventId?fields=*",
         "?event=eventId&fields=relationships",
-        "?event=eventId&includeRelationships=true"
     } )
     @ParameterizedTest
-    public void shouldFetchRelationships( String queryParams )
+    public void shouldFetchRelationshipsForEventId( String queryParams )
     {
         ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ) );
         String body = "relationships";
@@ -107,12 +104,35 @@ public class EventExportTests
     }
 
     @ValueSource( strings = {
-        "?fields=*&includeRelationships=false&event=eventId",
-        "?event=eventId",
-        "?event=eventId&fields=*,!relationships"
+            "?program=programId&fields=*",
+            "?program=programId&fields=relationships"
+
     } )
     @ParameterizedTest
-    public void shouldSkipRelationships( String queryParams )
+    public void shouldFetchRelationships( String queryParams )
+    {
+        ApiResponse response = eventActions.get( queryParams.replace( "programId", eventProgramId ) );
+        String body = "relationships";
+
+        if ( response.extractList( "events" ) != null )
+        {
+            body = "events[0].relationships";
+        }
+
+        response
+                .validate()
+                .body( body, hasSize( 2 ) )
+                .body( body + ".relationship", hasItems( relationshipId ) );
+    }
+
+
+    @ValueSource( strings = {
+        "?event=eventId",
+        "?event=eventId&fields=*,!relationships",
+        "?program=programId&fields=*,!relationships"
+    } )
+    @ParameterizedTest
+    public void shouldSkipRelationshipsForEventId( String queryParams )
     {
         ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ) );
         String body = "relationships";
@@ -125,6 +145,25 @@ public class EventExportTests
         response
             .validate()
             .body( body, anyOf( nullValue(), hasSize( 0 )) );
+    }
+
+    @ValueSource( strings = {
+            "?program=programId&fields=*,!relationships"
+    } )
+    @ParameterizedTest
+    public void shouldSkipRelationships( String queryParams )
+    {
+        ApiResponse response = eventActions.get( queryParams.replace( "programId", eventProgramId ) );
+        String body = "relationships";
+
+        if ( response.extractList( "events" ) != null )
+        {
+            body = "events[0].relationships";
+        }
+
+        response
+                .validate()
+                .body( body, anyOf( nullValue(), hasSize( 0 )) );
     }
 
     private String createEvent()
