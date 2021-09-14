@@ -33,7 +33,6 @@ import org.hisp.dhis.common.Objects;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 public interface StatisticsProvider
 {

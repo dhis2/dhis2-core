@@ -173,9 +173,9 @@ public class PasswordValidationRuleTest
     @Test
     public void testLengthValidationRule()
     {
-        Mockito.when( systemSettingManager.getSystemSetting( SettingKey.MIN_PASSWORD_LENGTH ) )
+        Mockito.when( systemSettingManager.getIntSetting( SettingKey.MIN_PASSWORD_LENGTH ) )
             .thenReturn( MIN_LENGTH );
-        Mockito.when( systemSettingManager.getSystemSetting( SettingKey.MAX_PASSWORD_LENGTH ) )
+        Mockito.when( systemSettingManager.getIntSetting( SettingKey.MAX_PASSWORD_LENGTH ) )
             .thenReturn( MAX_LENGTH );
 
         CredentialsInfo credentialsInfo = new CredentialsInfo( USERNAME, STRONG_PASSWORD, EMAIL, true );

@@ -29,7 +29,6 @@
         <property name="lastUpdatedByUserName" column="lastupdatebyusername" not-null="true" />
 
         <property name="createdByUserName" column="createdbyusername" not-null="true" />
-
         <property name="original" column="teiA" length="11" not-null="true" />
 
         <property name="duplicate" column="teiB" length="11" not-null="true" />

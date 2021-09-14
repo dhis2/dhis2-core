@@ -697,10 +697,10 @@ public class AnalyticsUtils
                 new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ),
                     includeMetadataDetails ? dimension : null ) );
 
-            if ( dimension.getDimensionalKeywords() != null )
+            if ( dimension.getDimensionItemKeywords() != null )
             {
-                dimension.getDimensionalKeywords().getGroupBy()
-                    .forEach( b -> map.put( b.getKey(), new MetadataItem( b.getName(), b.getUid(), b.getCode() ) ) );
+                dimension.getDimensionItemKeywords().getKeywords()
+                    .forEach( b -> map.put( b.getKey(), b.getMetadataItem() ) );
             }
 
         }

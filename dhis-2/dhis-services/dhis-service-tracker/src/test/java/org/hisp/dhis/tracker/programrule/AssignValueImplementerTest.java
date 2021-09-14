@@ -33,10 +33,15 @@ import static org.hisp.dhis.rules.models.TrackerObjectType.ENROLLMENT;
 import static org.hisp.dhis.rules.models.TrackerObjectType.EVENT;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
@@ -45,12 +50,20 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionAssign;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.implementers.AssignValueImplementer;
 import org.junit.Before;
@@ -147,7 +160,7 @@ public class AssignValueImplementerTest
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
 
-        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.FALSE );
     }
 
@@ -234,7 +247,7 @@ public class AssignValueImplementerTest
         List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
         bundle.setEvents( events );
         bundle.setRuleEffects( getRuleEventEffects( events ) );
-        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
         Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
 
@@ -322,7 +335,7 @@ public class AssignValueImplementerTest
     @Test
     public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTeiAndCanBeOverwritten()
     {
-        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
         List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
@@ -374,7 +387,7 @@ public class AssignValueImplementerTest
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSet() );
         bundle.setEnrollments( enrollments );
         bundle.setRuleEffects( getRuleEnrollmentEffects( enrollments ) );
-        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.TRUE );
         Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
 

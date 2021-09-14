@@ -231,7 +231,8 @@ public class SystemSettingController
                 }
             }
 
-            Serializable systemSetting = systemSettingManager.getSystemSetting( settingKey.get() );
+            Serializable systemSetting = systemSettingManager.getSystemSetting( settingKey.get(),
+                settingKey.get().getClazz() );
 
             if ( systemSetting == null )
             {

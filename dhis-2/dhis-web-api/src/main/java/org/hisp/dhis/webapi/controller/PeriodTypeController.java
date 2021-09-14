@@ -42,7 +42,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.webdomain.PeriodTypeDto;
+import org.hisp.dhis.webapi.webdomain.PeriodType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -76,8 +76,8 @@ public class PeriodTypeController
     public RootNode getPeriodTypes()
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-        List<PeriodTypeDto> periodTypes = periodService.getAllPeriodTypes().stream()
-            .map( PeriodTypeDto::new )
+        List<PeriodType> periodTypes = periodService.getAllPeriodTypes().stream()
+            .map( PeriodType::new )
             .collect( Collectors.toList() );
 
         if ( fields.isEmpty() )
@@ -87,7 +87,7 @@ public class PeriodTypeController
 
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild(
-            fieldFilterService.toCollectionNode( PeriodTypeDto.class, new FieldFilterParams( periodTypes, fields ) ) );
+            fieldFilterService.toCollectionNode( PeriodType.class, new FieldFilterParams( periodTypes, fields ) ) );
 
         return rootNode;
     }

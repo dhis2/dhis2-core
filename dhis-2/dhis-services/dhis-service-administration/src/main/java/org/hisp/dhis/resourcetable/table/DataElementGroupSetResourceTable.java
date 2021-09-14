@@ -59,15 +59,13 @@ public class DataElementGroupSetResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        UniqueNameVerifier uniqueNameVerifier = new UniqueNameVerifier();
-
         String statement = "create table " + getTempTableName() + " (" +
             "dataelementid bigint not null, " +
             "dataelementname varchar(230), ";
 
         for ( DataElementGroupSet groupSet : objects )
         {
-            statement += uniqueNameVerifier.ensureUniqueShortName( groupSet ) + " varchar(230), ";
+            statement += quote( groupSet.getShortName() ) + " varchar(230), ";
             statement += quote( groupSet.getUid() ) + " character(11), ";
         }
 

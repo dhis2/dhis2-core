@@ -240,7 +240,7 @@ public class DefaultQueryValidator
     public void validateMaintenanceMode()
         throws MaintenanceModeException
     {
-        boolean maintenance = (Boolean) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE );
+        boolean maintenance = systemSettingManager.getBoolSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE );
 
         if ( maintenance )
         {

@@ -28,10 +28,12 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.apache.commons.lang3.StringUtils.trimToNull;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.io.InputStream;
@@ -42,7 +44,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 
 import lombok.AllArgsConstructor;
@@ -109,6 +110,7 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CsvUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -199,63 +201,72 @@ public class DefaultDataValueSetService implements DataValueSetService
     // DataValueSet implementation
     // -------------------------------------------------------------------------
 
+    /**
+     * Note that this needs to be RW TX because
+     * {@link PeriodService#reloadIsoPeriods(List)} is RW.
+     */
     @Override
-    public DataExportParams getFromUrl( Set<String> dataSets, Set<String> dataElementGroups, Set<String> periods,
-        Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, Set<String> organisationUnitGroups,
-        Set<String> attributeOptionCombos,
-        boolean includeDeleted, Date lastUpdated, String lastUpdatedDuration, Integer limit, IdSchemes outputIdSchemes )
+    @Transactional
+    public DataExportParams getFromUrl( DataValueSetQueryParams urlParams )
     {
         DataExportParams params = new DataExportParams();
-
-        if ( dataSets != null )
+        IdSchemes inputIdSchemes = urlParams.getInputIdSchemes();
+        if ( !isEmpty( urlParams.getDataSet() ) )
         {
             params.getDataSets().addAll( identifiableObjectManager.getObjects(
-                DataSet.class, IdentifiableProperty.UID, dataSets ) );
+                DataSet.class, IdentifiableProperty.in( inputIdSchemes, IdSchemes::getDataSetIdScheme ),
+                urlParams.getDataSet() ) );
         }
 
-        if ( dataElementGroups != null )
+        if ( !isEmpty( urlParams.getDataElementGroup() ) )
         {
             params.getDataElementGroups().addAll( identifiableObjectManager.getObjects(
-                DataElementGroup.class, IdentifiableProperty.UID, dataElementGroups ) );
+                DataElementGroup.class,
+                IdentifiableProperty.in( inputIdSchemes, IdSchemes::getDataElementGroupIdScheme ),
+                urlParams.getDataElementGroup() ) );
         }
 
-        if ( periods != null && !periods.isEmpty() )
+        if ( !isEmpty( urlParams.getPeriod() ) )
         {
-            params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( periods ) ) );
+            params.getPeriods().addAll( periodService.reloadIsoPeriods( new ArrayList<>( urlParams.getPeriod() ) ) );
         }
-        else if ( startDate != null && endDate != null )
+        else if ( urlParams.getStartDate() != null && urlParams.getEndDate() != null )
         {
             params
-                .setStartDate( startDate )
-                .setEndDate( endDate );
+                .setStartDate( urlParams.getStartDate() )
+                .setEndDate( urlParams.getEndDate() );
         }
 
-        if ( organisationUnits != null )
+        if ( !isEmpty( urlParams.getOrgUnit() ) )
         {
             params.getOrganisationUnits().addAll( identifiableObjectManager.getObjects(
-                OrganisationUnit.class, IdentifiableProperty.UID, organisationUnits ) );
+                OrganisationUnit.class, IdentifiableProperty.in( inputIdSchemes, IdSchemes::getOrgUnitIdScheme ),
+                urlParams.getOrgUnit() ) );
         }
 
-        if ( organisationUnitGroups != null )
+        if ( !isEmpty( urlParams.getOrgUnitGroup() ) )
         {
             params.getOrganisationUnitGroups().addAll( identifiableObjectManager.getObjects(
-                OrganisationUnitGroup.class, IdentifiableProperty.UID, organisationUnitGroups ) );
+                OrganisationUnitGroup.class,
+                IdentifiableProperty.in( inputIdSchemes, IdSchemes::getOrgUnitGroupIdScheme ),
+                urlParams.getOrgUnitGroup() ) );
         }
 
-        if ( attributeOptionCombos != null )
+        if ( !isEmpty( urlParams.getAttributeOptionCombo() ) )
         {
             params.getAttributeOptionCombos().addAll( identifiableObjectManager.getObjects(
-                CategoryOptionCombo.class, IdentifiableProperty.UID, attributeOptionCombos ) );
+                CategoryOptionCombo.class,
+                IdentifiableProperty.in( inputIdSchemes, IdSchemes::getAttributeOptionComboIdScheme ),
+                urlParams.getAttributeOptionCombo() ) );
         }
 
         return params
-            .setIncludeChildren( includeChildren )
-            .setIncludeDeleted( includeDeleted )
-            .setLastUpdated( lastUpdated )
-            .setLastUpdatedDuration( lastUpdatedDuration )
-            .setLimit( limit )
-            .setOutputIdSchemes( outputIdSchemes );
+            .setIncludeChildren( urlParams.isChildren() )
+            .setIncludeDeleted( urlParams.isIncludeDeleted() )
+            .setLastUpdated( urlParams.getLastUpdated() )
+            .setLastUpdatedDuration( urlParams.getLastUpdatedDuration() )
+            .setLimit( urlParams.getLimit() )
+            .setOutputIdSchemes( urlParams.getOutputIdSchemes() );
     }
 
     @Override
@@ -777,10 +788,19 @@ public class DefaultDataValueSetService implements DataValueSetService
                 internalValue.setCreated( existingValue.getCreated() );
             }
 
+            final ImportStrategy strategy = context.getStrategy();
+            boolean zeroAndInsignificant = ValidationUtils.dataValueIsZeroAndInsignificant(
+                dataValue.getValue(), valueContext.getDataElement() );
+            if ( zeroAndInsignificant && (existingValue == null || strategy.isCreate()) )
+            {
+                // Ignore value
+                context.getSummary().skipValue();
+                continue;
+            }
+
             // -----------------------------------------------------------------
             // Check soft deleted data values on update and import
             // -----------------------------------------------------------------
-            final ImportStrategy strategy = context.getStrategy();
             if ( !context.isSkipExistingCheck() && existingValue != null && !existingValue.isDeleted() )
             {
                 if ( strategy.isCreateAndUpdate() || strategy.isUpdate() )
@@ -917,7 +937,8 @@ public class DefaultDataValueSetService implements DataValueSetService
         DataValue internalValue, DataValue existingValue )
     {
         AuditType auditType = AuditType.UPDATE;
-        if ( internalValue.isNullValue() || internalValue.isDeleted() )
+        if ( internalValue.isNullValue() || internalValue.isDeleted()
+            || dataValueIsZeroAndInsignificant( dataValue.getValue(), valueContext.getDataElement() ) )
         {
             internalValue.setDeleted( true );
 
@@ -1056,19 +1077,19 @@ public class DefaultDataValueSetService implements DataValueSetService
             .dryRun( data.getDryRun() != null ? data.getDryRun() : options.isDryRun() )
             .skipExistingCheck( options.isSkipExistingCheck() )
             .strictPeriods( options.isStrictPeriods()
-                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS ) )
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS ) )
             .strictDataElements( options.isStrictDataElements()
-                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_DATA_ELEMENTS ) )
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_DATA_ELEMENTS ) )
             .strictCategoryOptionCombos( options.isStrictCategoryOptionCombos()
-                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS ) )
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS ) )
             .strictAttrOptionCombos( options.isStrictAttributeOptionCombos()
-                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ATTRIBUTE_OPTION_COMBOS ) )
             .strictOrgUnits( options.isStrictOrganisationUnits()
-                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS ) )
             .requireCategoryOptionCombo( options.isRequireCategoryOptionCombo()
-                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO ) )
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO ) )
             .requireAttrOptionCombo( options.isRequireAttributeOptionCombo()
-                || (Boolean) settings.getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
+                || settings.getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_ATTRIBUTE_OPTION_COMBO ) )
             .forceDataInput( inputUtils.canForceDataInput( currentUser, options.isForce() ) )
 
             // data fetching state

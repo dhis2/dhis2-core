@@ -113,8 +113,8 @@ public class TrackerSynchronization extends DataSynchronizationWithPaging
     private void initializeSyncVariables( TrackedEntityInstanceQueryParams queryParams, final int pageSize )
     {
         clock = new Clock( log ).startClock().logTime( "Starting Tracker programs data synchronization job." );
-        final Date skipChangedBefore = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date skipChangedBefore = systemSettingManager
+            .getDateSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         queryParams.setSkipChangedBefore( skipChangedBefore );
         objectsToSynchronize = teiService.getTrackedEntityInstanceCount( queryParams, true, true );
 

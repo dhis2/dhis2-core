@@ -628,7 +628,7 @@ public abstract class DhisConvenienceTest
 
         coc.setUid( BASE_COC_UID + uniqueCharacter );
         coc.setName( "CategoryOptionCombo" + uniqueCharacter );
-        coc.setName( "CategoryOptionComboCode" + uniqueCharacter );
+        coc.setCode( "CategoryOptionComboCode" + uniqueCharacter );
 
         return coc;
     }
@@ -921,18 +921,6 @@ public abstract class DhisConvenienceTest
 
         unit.setParent( parent );
         parent.getChildren().add( unit );
-
-        return unit;
-    }
-
-    /**
-     * @param uniqueCharacter A unique character to identify the object.
-     * @param path A path, ie.: "/"
-     */
-    public static OrganisationUnit createOrganisationUnit( char uniqueCharacter, String path )
-    {
-        OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
-        unit.setPath( path );
 
         return unit;
     }

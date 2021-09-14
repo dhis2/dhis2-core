@@ -41,7 +41,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -57,6 +56,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockExceptionStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataSetContext;
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataSetContext.DataSetContextBuilder;
@@ -515,23 +515,6 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testCheckDataValueIsNotZeroAndInsignificant()
-    {
-        DataValue dataValue = createRandomDataValue();
-        dataValue.setValue( "0" );
-
-        DataValueContext valueContext = createDataValueContext( dataValue ).build();
-        valueContext.getDataElement().setValueType( ValueType.INTEGER );
-        valueContext.getDataElement().setZeroIsSignificant( false );
-        valueContext.getDataElement().setAggregationType( AggregationType.COUNT );
-        DataSetContext dataSetContext = createMinimalDataSetContext().build();
-        ImportContext context = createMinimalImportContext( valueContext ).build();
-
-        assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertEquals( 0, context.getSummary().getConflictCount() );
-    }
-
-    @Test
     public void testCheckDataValueStoredByIsValid()
     {
         DataValue dataValue = createRandomDataValue();
@@ -809,6 +792,7 @@ public class DataValueSetImportValidatorTest
         return ImportContext.builder()
             .summary( new ImportSummary() )
             .strategy( ImportStrategy.CREATE )
+            .importOptions( new ImportOptions() )
             .currentUser( currentUser )
             .i18n( i18n )
             .currentOrgUnits( valueContext == null ? null : singleton( valueContext.getOrgUnit() ) )

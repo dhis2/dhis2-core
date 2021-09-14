@@ -35,7 +35,11 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -195,8 +199,9 @@ public class DefaultReportService
             {
                 if ( report.hasRelativePeriods() )
                 {
-                    AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager
-                        .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+                    AnalyticsFinancialYearStartKey financialYearStart = systemSettingManager
+                        .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START,
+                            AnalyticsFinancialYearStartKey.class );
 
                     List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false,
                         financialYearStart );
@@ -277,8 +282,8 @@ public class DefaultReportService
 
         if ( report != null && report.hasRelativePeriods() )
         {
-            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager
-                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+            AnalyticsFinancialYearStartKey financialYearStart = systemSettingManager
+                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class );
 
             if ( calendar.isIso8601() )
             {

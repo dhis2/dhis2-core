@@ -293,8 +293,8 @@ public class DefaultUserService
 
     private void handleUserQueryParams( UserQueryParams params )
     {
-        boolean canSeeOwnRoles = params.isCanSeeOwnUserAuthorityGroups() ||
-            (Boolean) systemSettingManager.getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        boolean canSeeOwnRoles = params.isCanSeeOwnUserAuthorityGroups()
+            || systemSettingManager.getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
         params.setDisjointRoles( !canSeeOwnRoles );
 
         if ( !params.hasUser() )
@@ -529,8 +529,8 @@ public class DefaultUserService
     {
         User user = currentUserService.getCurrentUser();
 
-        boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        boolean canGrantOwnUserAuthorityGroups = systemSettingManager
+            .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
         FilterUtils.filter( userRoles, new UserAuthorityGroupCanIssueFilter( user, canGrantOwnUserAuthorityGroups ) );
     }
@@ -730,8 +730,8 @@ public class DefaultUserService
 
         // Validate user role
 
-        boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        boolean canGrantOwnUserAuthorityGroups = systemSettingManager
+            .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
         List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials()
             .getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
@@ -775,8 +775,8 @@ public class DefaultUserService
     @Transactional( readOnly = true )
     public List<User> getExpiringUsers()
     {
-        int daysBeforePasswordChangeRequired = (Integer) systemSettingManager
-            .getSystemSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
+        int daysBeforePasswordChangeRequired = systemSettingManager
+            .getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
 
         Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD )
             .toDate();
