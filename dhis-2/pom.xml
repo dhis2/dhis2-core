@@ -759,6 +759,11 @@
             </dependency>
             <dependency>
                 <groupId>org.hisp.dhis</groupId>
+                <artifactId>dhis-service-field-filtering</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hisp.dhis</groupId>
                 <artifactId>dhis-service-acl</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -851,11 +856,6 @@
             <dependency>
                 <groupId>org.hisp.dhis</groupId>
                 <artifactId>dhis-support-commons</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hisp.dhis</groupId>
-                <artifactId>dhis-support-field-filtering</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
