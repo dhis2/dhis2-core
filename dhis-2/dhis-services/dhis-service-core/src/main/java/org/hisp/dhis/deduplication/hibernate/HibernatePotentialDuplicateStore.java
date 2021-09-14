@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.deduplication.hibernate;
 
+import static org.hisp.dhis.common.AuditType.CREATE;
+import static org.hisp.dhis.common.AuditType.DELETE;
+import static org.hisp.dhis.common.AuditType.UPDATE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -54,6 +59,7 @@ import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
@@ -62,6 +68,8 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -76,14 +84,22 @@ public class HibernatePotentialDuplicateStore
 
     private final TrackedEntityInstanceStore trackedEntityInstanceStore;
 
+    private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+
+    private final DhisConfigurationProvider config;
+
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        TrackedEntityInstanceStore trackedEntityInstanceStore, AuditManager auditManager )
+        TrackedEntityInstanceStore trackedEntityInstanceStore, AuditManager auditManager,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        DhisConfigurationProvider config )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.auditManager = auditManager;
+        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
+        this.config = config;
     }
 
     @Override
@@ -184,11 +200,13 @@ public class HibernatePotentialDuplicateStore
             .forEach( av -> {
 
                 TrackedEntityAttributeValue updatedTeav;
+                org.hisp.dhis.common.AuditType auditType;
                 if ( originalAttributeValueMap.containsKey( av.getAttribute().getUid() ) )
                 {
                     // Teav exists in original, overwrite the value
                     updatedTeav = originalAttributeValueMap.get( av.getAttribute().getUid() );
                     updatedTeav.setValue( av.getValue() );
+                    auditType = UPDATE;
                 }
                 else
                 {
@@ -198,6 +216,7 @@ public class HibernatePotentialDuplicateStore
                     updatedTeav.setAttribute( av.getAttribute() );
                     updatedTeav.setEntityInstance( original );
                     updatedTeav.setValue( av.getValue() );
+                    auditType = CREATE;
                 }
                 getSession().delete( av );
                 // We need to flush to make sure the previous teav is
@@ -208,7 +227,26 @@ public class HibernatePotentialDuplicateStore
 
                 getSession().saveOrUpdate( updatedTeav );
 
+                auditTeav( av, updatedTeav, auditType );
+
             } );
+    }
+
+    private void auditTeav( TrackedEntityAttributeValue av, TrackedEntityAttributeValue createOrUpdateTeav,
+        org.hisp.dhis.common.AuditType auditType )
+    {
+        String currentUsername = currentUserService.getCurrentUsername();
+
+        TrackedEntityAttributeValueAudit deleteTeavAudit = new TrackedEntityAttributeValueAudit( av, av.getAuditValue(),
+            currentUsername, DELETE );
+        TrackedEntityAttributeValueAudit updatedTeavAudit = new TrackedEntityAttributeValueAudit( createOrUpdateTeav,
+            createOrUpdateTeav.getAuditValue(), currentUsername, auditType );
+
+        if ( config.isEnabled( CHANGELOG_TRACKER ) )
+        {
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( deleteTeavAudit );
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( updatedTeavAudit );
+        }
     }
 
     @Override
