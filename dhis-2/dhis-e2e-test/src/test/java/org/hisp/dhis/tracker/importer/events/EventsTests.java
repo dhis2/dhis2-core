@@ -80,24 +80,25 @@ public class EventsTests
         throws Exception
     {
         JsonObject eventBody = new FileReaderUtils()
-            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/events/event.json" ) );
+            .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/events/events.json" ) );
 
         TrackerApiResponse importResponse = trackerActions.postAndGetJobReport( eventBody );
 
         importResponse.validateSuccessfulImport()
             .validateEvents()
-            .body( "stats.created", Matchers.equalTo( 1 ) )
+            .body( "stats.created", Matchers.equalTo( 4 ) )
             .body( "objectReports", notNullValue() )
             .body( "objectReports[0].errorReports", empty() );
 
-        // assert that the TEI was imported
-        String eventId = importResponse.extractImportedEvents().get( 0 );
+        eventBody.getAsJsonArray("events").forEach( event -> {
+                 String eventId = event.getAsJsonObject().get( "event" ).getAsString();
+                 ApiResponse response = trackerActions.get( "/events/" + eventId );
+                 response.validate().statusCode( 200 );
 
-        ApiResponse response = trackerActions.get( "/events/" + eventId );
+                assertThat( response.getBody(), matchesJSON( event ) );
+            }
+        );
 
-        response.validate().statusCode( 200 );
-
-        assertThat( response.getBody(), matchesJSON( eventBody.getAsJsonArray( "events" ).get( 0 ) ) );
     }
 
     @Disabled( "disabled until csv is supported" )

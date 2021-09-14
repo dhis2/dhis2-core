@@ -146,7 +146,7 @@ public class DeduplicationControllerTest
 
         PotentialDuplicate pd = deduplicationController.getPotentialDuplicateById( uid );
 
-        assertEquals( teiA, pd.getTeiA() );
+        assertEquals( teiA, pd.getOriginal() );
         verify( deduplicationService ).getPotentialDuplicateByUid( uid );
     }
 
