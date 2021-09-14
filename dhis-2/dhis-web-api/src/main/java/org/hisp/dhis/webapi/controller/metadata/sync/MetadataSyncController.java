@@ -74,6 +74,11 @@ public class MetadataSyncController
     @Autowired
     private MetadataSyncService metadataSyncService;
 
+    public MetadataSyncController()
+    {
+        super( configurationProvider );
+    }
+
     @PreAuthorize( "hasRole('ALL') or hasRole('F_METADATA_MANAGE')" )
     @GetMapping
     public ResponseEntity<? extends WebMessageResponse> metadataSync( HttpServletRequest request,

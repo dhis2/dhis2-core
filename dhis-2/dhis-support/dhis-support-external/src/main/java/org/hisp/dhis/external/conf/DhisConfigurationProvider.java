@@ -158,6 +158,11 @@ public interface DhisConfigurationProvider
     EncryptionStatus getEncryptionStatus();
 
     /**
+     * Are we in development or production mode.
+     */
+    boolean isProduction();
+
+    /**
      * Gets map of all properties except those which are confidential
      *
      * @return map containing name of property and its value.

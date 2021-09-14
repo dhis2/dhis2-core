@@ -62,11 +62,7 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller for MetadataVersion
@@ -86,6 +82,11 @@ public class MetadataVersionController
 
     @Autowired
     private ContextUtils contextUtils;
+
+    public MetadataVersionController()
+    {
+        super( configurationProvider );
+    }
 
     // Gets the version by versionName or latest system version
     @GetMapping( value = MetadataVersionSchemaDescriptor.API_ENDPOINT, produces = ContextUtils.CONTENT_TYPE_JSON )

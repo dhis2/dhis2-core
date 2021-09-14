@@ -27,14 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
 
 import java.beans.PropertyEditorSupport;
 import java.util.Date;
@@ -43,11 +36,7 @@ import java.util.function.Function;
 import javax.servlet.ServletException;
 
 import org.hibernate.exception.ConstraintViolationException;
-import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.MaintenanceModeException;
-import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
@@ -59,20 +48,14 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.exception.BadRequestException;
-import org.hisp.dhis.webapi.controller.exception.ConflictException;
-import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
-import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
-import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
-import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
-import org.hisp.dhis.webapi.controller.exception.NotFoundException;
-import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
+import org.hisp.dhis.webapi.controller.exception.*;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.dao.DataAccessResourceFailureException;
@@ -106,7 +89,14 @@ public class CrudControllerAdvice
     private static final Class<?>[] SENSITIVE_EXCEPTIONS = { BadSqlGrammarException.class,
         org.hibernate.QueryException.class, DataAccessResourceFailureException.class };
 
-    private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
+    private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occurred. Please contact your system administrator.";
+
+    private final boolean isProduction;
+
+    public CrudControllerAdvice( DhisConfigurationProvider configurationProvider )
+    {
+        this.isProduction = configurationProvider.isProduction();
+    }
 
     @InitBinder
     protected void initBinder( WebDataBinder binder )
@@ -321,6 +311,7 @@ public class CrudControllerAdvice
     public WebMessage handleOAuth2AuthenticationException( OAuth2AuthenticationException ex )
     {
         OAuth2Error error = ex.getError();
+
         if ( error instanceof BearerTokenError )
         {
             BearerTokenError bearerTokenError = (BearerTokenError) error;
@@ -329,6 +320,7 @@ public class CrudControllerAdvice
             return createWebMessage( bearerTokenError.getErrorCode(),
                 bearerTokenError.getDescription(), Status.ERROR, status );
         }
+
         return unauthorized( ex.getMessage() );
     }
 
@@ -337,11 +329,13 @@ public class CrudControllerAdvice
     public WebMessage handleApiTokenAuthenticationException( ApiTokenAuthenticationException ex )
     {
         ApiTokenError apiTokenError = ex.getError();
+
         if ( apiTokenError != null )
         {
             return createWebMessage( apiTokenError.getDescription(), Status.ERROR,
                 apiTokenError.getHttpStatus() );
         }
+
         return unauthorized( ex.getMessage() );
     }
 
@@ -367,9 +361,13 @@ public class CrudControllerAdvice
     @ResponseBody
     public WebMessage defaultExceptionHandler( Exception ex )
     {
-        // We print the stacktrace so it shows up in the logs, so we can more
-        // easily understand 500-issues.
-        ex.printStackTrace();
+        if ( !isProduction )
+        {
+            // We print the stacktrace so it shows up in the logs, so we can
+            // more easily understand 500-issues.
+            ex.printStackTrace();
+        }
+
         return error( getExceptionMessage( ex ) );
     }
 

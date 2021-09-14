@@ -34,11 +34,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -313,6 +309,12 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
         }
 
         return EncryptionStatus.OK;
+    }
+
+    @Override
+    public boolean isProduction()
+    {
+        return StringUtils.equals( getProperty( ConfigurationKey.SYSTEM_MODE ), "PRODUCTION" );
     }
 
     @Override

@@ -46,6 +46,7 @@ public enum ConfigurationKey
     SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
     SYSTEM_CACHE_MAX_SIZE_FACTOR( "system.cache.max_size.factor", "0.5", false ),
     SYSTEM_CACHE_CAP_PERCENTAGE( "system.cache.cap.percentage", "0", false ),
+    SYSTEM_MODE( "system.mode", "PRODUCTION", false ),
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
