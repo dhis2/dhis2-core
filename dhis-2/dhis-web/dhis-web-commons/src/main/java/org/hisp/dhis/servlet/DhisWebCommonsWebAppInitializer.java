@@ -33,7 +33,6 @@ import javax.servlet.DispatcherType;
 import javax.servlet.ServletContext;
 
 import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.WebApplicationInitializer;
 
@@ -47,8 +46,5 @@ public class DhisWebCommonsWebAppInitializer implements WebApplicationInitialize
         context
             .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
             .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
-
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
     }
 }

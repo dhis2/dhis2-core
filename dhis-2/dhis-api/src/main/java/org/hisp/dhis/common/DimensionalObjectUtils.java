@@ -623,29 +623,6 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Replaces total {@link DataElementOperand} items with {@link DataElement}
-     * items in the given list of items.
-     *
-     * @param items the list of items.
-     * @return a list of dimensional item objects.
-     */
-    public static List<DimensionalItemObject> replaceOperandTotalsWithDataElements( List<DimensionalItemObject> items )
-    {
-        for ( int i = 0; i < items.size(); i++ )
-        {
-            DimensionalItemObject item = items.get( i );
-
-            if ( DimensionItemType.DATA_ELEMENT_OPERAND.equals( item.getDimensionItemType() )
-                && ((DataElementOperand) item).isTotal() )
-            {
-                items.set( i, ((DataElementOperand) item).getDataElement() );
-            }
-        }
-
-        return items;
-    }
-
-    /**
      * Generates a key based on the given lists of {@link NameableObject}. Uses
      * the identifiers for each nameable object, sorts them and writes them out
      * as a key.
@@ -747,7 +724,7 @@ public class DimensionalObjectUtils
      * Transforms a List of {@see DimensionItemObjectValue} into a Map of
      * {@see DimensionalItemObject} and value
      */
-    public static Map<DimensionalItemObject, Double> convertToDimItemValueMap(
+    public static Map<DimensionalItemObject, Object> convertToDimItemValueMap(
         List<DimensionItemObjectValue> dimensionItemObjectValues )
     {
         return dimensionItemObjectValues.stream()

@@ -30,13 +30,8 @@ package org.hisp.dhis.webapi.utils;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,16 +40,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.cache.CacheStrategy;
-import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.service.WebCache;
 import org.springframework.http.CacheControl;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.InvalidMediaTypeException;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -199,35 +189,6 @@ public class ContextUtils
         return response;
     }
 
-    public static void okResponse( HttpServletResponse response, String message ) // TODO
-                                                                                  // remove
-                                                                                  // message
-    {
-        setResponse( response, HttpServletResponse.SC_OK, message );
-    }
-
-    public static void badRequestResponse( HttpServletResponse response, String message )
-    {
-        setResponse( response, HttpServletResponse.SC_BAD_REQUEST, message );
-    }
-
-    private static void setResponse( HttpServletResponse response, int statusCode, String message )
-    {
-        response.setStatus( statusCode );
-        response.setContentType( CONTENT_TYPE_TEXT );
-        response.setHeader( HEADER_CACHE_CONTROL, CacheControl.noStore().getHeaderValue() );
-
-        try ( PrintWriter writer = response.getWriter() )
-        {
-            writer.println( message );
-            writer.flush();
-        }
-        catch ( IOException ex )
-        {
-            // Ignore
-        }
-    }
-
     public static HttpServletRequest getRequest()
     {
         return ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
@@ -275,91 +236,6 @@ public class ContextUtils
     public static String getRootPath( HttpServletRequest request )
     {
         return getContextPath( request ) + request.getServletPath();
-    }
-
-    /**
-     * Indicates whether the media type (content type) of the given HTTP request
-     * is compatible with the given media type.
-     *
-     * @param response the HTTP response.
-     * @param mediaType the media type.
-     */
-    public static boolean isCompatibleWith( HttpServletResponse response, MediaType mediaType )
-    {
-        try
-        {
-            String contentType = response.getContentType();
-
-            return contentType != null && MediaType.parseMediaType( contentType ).isCompatibleWith( mediaType );
-        }
-        catch ( InvalidMediaTypeException ex )
-        {
-            return false;
-        }
-    }
-
-    /**
-     * Returns a mapping of dimension identifiers and dimension option
-     * identifiers based on the given set of dimension strings. Splits the
-     * strings using : as separator. Returns null of dimensions are null or
-     * empty.
-     * <p/>
-     * TODO remove
-     *
-     * @param dimensions the set of strings on format
-     *        dimension:dimension-option.
-     * @return a map of dimensions and dimension options.
-     */
-    public static Map<String, String> getDimensionsAndOptions( Set<String> dimensions )
-    {
-        if ( dimensions == null || dimensions.isEmpty() )
-        {
-            return null;
-        }
-
-        Map<String, String> map = new HashMap<>();
-
-        for ( String dim : dimensions )
-        {
-            String[] dims = dim.split( DimensionalObject.DIMENSION_NAME_SEP );
-
-            if ( dims.length == 2 && dims[0] != null && dims[1] != null )
-            {
-                map.put( dims[0], dims[1] );
-            }
-        }
-
-        return map;
-    }
-
-    /**
-     * Returns the base URL for the given request.
-     *
-     * @param request the HTTP servlet request.
-     * @return the base URL.
-     */
-    public static String getBaseUrl( HttpServletRequest request )
-    {
-        String server = request.getServerName();
-
-        String scheme = request.getScheme();
-        int port = request.getServerPort();
-        String baseUrl = scheme + "://" + server + ":" + port + "/";
-
-        return baseUrl;
-    }
-
-    /**
-     * Adds basic authentication by adding an Authorization header to the given
-     * HttpHeaders object.
-     *
-     * @param headers the HttpHeaders object.
-     * @param username the user name.
-     * @param password the password.
-     */
-    public static void setBasicAuth( HttpHeaders headers, String username, String password )
-    {
-        headers.add( "Authorization", CodecUtils.getBasicAuthString( username, password ) );
     }
 
     /**

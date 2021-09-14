@@ -205,6 +205,30 @@ public abstract class Operator<T extends Comparable<? super T>>
         }
     }
 
+    /**
+     * Get JPA String search mode for NOT LIKE match mode.
+     *
+     * @param matchMode {@link MatchMode}
+     * @return {@link JpaQueryUtils.StringSearchMode} used for generating JPA
+     *         Api Query
+     */
+    protected JpaQueryUtils.StringSearchMode getNotLikeJpaMatchMode( MatchMode matchMode )
+    {
+        switch ( matchMode )
+        {
+        case EXACT:
+            return JpaQueryUtils.StringSearchMode.NOT_EQUALS;
+        case START:
+            return JpaQueryUtils.StringSearchMode.NOT_STARTING_LIKE;
+        case END:
+            return JpaQueryUtils.StringSearchMode.NOT_ENDING_LIKE;
+        case ANYWHERE:
+            return JpaQueryUtils.StringSearchMode.NOT_ANYWHERE;
+        default:
+            return null;
+        }
+    }
+
     @Override
     public String toString()
     {

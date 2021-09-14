@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dimension;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
@@ -40,6 +38,7 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
+import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -49,6 +48,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -83,13 +83,15 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
-import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -184,6 +186,8 @@ public class DimensionServiceTest
     private DimensionalItemId itemIdH;
 
     private Set<DimensionalItemId> itemIds;
+
+    private Map<DimensionalItemId, DimensionalItemObject> itemMap;
 
     @Autowired
     private DataElementService dataElementService;
@@ -340,47 +344,61 @@ public class DimensionServiceTest
         itemIds.add( itemIdF );
         itemIds.add( itemIdG );
         itemIds.add( itemIdH );
+
+        itemMap = ImmutableMap.<DimensionalItemId, DimensionalItemObject> builder()
+            .put( itemIdA, itemObjectA )
+            .put( itemIdB, itemObjectB )
+            .put( itemIdC, itemObjectC )
+            .put( itemIdD, itemObjectD )
+            .put( itemIdE, itemObjectE )
+            .put( itemIdF, itemObjectF )
+            .put( itemIdG, itemObjectG )
+            .put( itemIdH, itemObjectH )
+            .build();
     }
 
     @Test
     public void testMergeAnalyticalObjectA()
     {
-        ReportTable reportTable = new ReportTable();
+        Visualization visualization = new Visualization();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+        visualization.getColumns()
+            .add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+                Lists.newArrayList( deA, deB ) ) );
+        visualization.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB, ouC, ouD, ouE ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA, peB ) ) );
+        visualization.getFilters()
+            .add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( peA, peB ) ) );
 
-        dimensionService.mergeAnalyticalObject( reportTable );
+        dimensionService.mergeAnalyticalObject( visualization );
 
-        assertEquals( 2, reportTable.getDataDimensionItems().size() );
-        assertEquals( 2, reportTable.getPeriods().size() );
-        assertEquals( 5, reportTable.getOrganisationUnits().size() );
+        assertEquals( 2, visualization.getDataDimensionItems().size() );
+        assertEquals( 2, visualization.getPeriods().size() );
+        assertEquals( 5, visualization.getOrganisationUnits().size() );
     }
 
     @Test
     public void testMergeAnalyticalObjectB()
     {
-        ReportTable reportTable = new ReportTable();
+        Visualization visualization = new Visualization();
         BaseDimensionalObject deCDim = new BaseDimensionalObject( deC.getUid(), DimensionType.PROGRAM_DATA_ELEMENT,
             null, null, null, psA, "EQ:uidA" );
 
-        reportTable.getColumns().add( deCDim );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+        visualization.getColumns().add( deCDim );
+        visualization.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB, ouC ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA, peB ) ) );
+        visualization.getFilters()
+            .add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( peA, peB ) ) );
 
-        dimensionService.mergeAnalyticalObject( reportTable );
+        dimensionService.mergeAnalyticalObject( visualization );
 
-        assertEquals( 1, reportTable.getDataElementDimensions().size() );
-        assertEquals( 2, reportTable.getPeriods().size() );
-        assertEquals( 3, reportTable.getOrganisationUnits().size() );
+        assertEquals( 1, visualization.getDataElementDimensions().size() );
+        assertEquals( 2, visualization.getPeriods().size() );
+        assertEquals( 3, visualization.getOrganisationUnits().size() );
 
-        TrackedEntityDataElementDimension teDeDim = reportTable.getDataElementDimensions().get( 0 );
+        TrackedEntityDataElementDimension teDeDim = visualization.getDataElementDimensions().get( 0 );
 
         assertEquals( deC, teDeDim.getDataElement() );
         assertEquals( psA, teDeDim.getProgramStage() );
@@ -389,99 +407,109 @@ public class DimensionServiceTest
     @Test
     public void testMergeAnalyticalObjectUserOrgUnit()
     {
-        ReportTable reportTable = new ReportTable();
+        Visualization visualization = new Visualization();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+        visualization.getColumns()
+            .add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+                Lists.newArrayList( deA, deB ) ) );
+        visualization.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouUser ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA ) ) );
+        visualization.getFilters()
+            .add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( peA ) ) );
 
-        dimensionService.mergeAnalyticalObject( reportTable );
+        dimensionService.mergeAnalyticalObject( visualization );
 
-        assertEquals( 2, reportTable.getDataDimensionItems().size() );
-        assertEquals( 1, reportTable.getPeriods().size() );
-        assertEquals( 0, reportTable.getOrganisationUnits().size() );
-        assertTrue( reportTable.isUserOrganisationUnit() );
+        assertEquals( 2, visualization.getDataDimensionItems().size() );
+        assertEquals( 1, visualization.getPeriods().size() );
+        assertEquals( 0, visualization.getOrganisationUnits().size() );
+        assertTrue( visualization.isUserOrganisationUnit() );
     }
 
     @Test
     public void testMergeAnalyticalObjectOrgUnitLevel()
     {
-        ReportTable reportTable = new ReportTable();
+        Visualization visualization = new Visualization();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+        visualization.getColumns()
+            .add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+                Lists.newArrayList( deA, deB ) ) );
+        visualization.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouLevel2, ouA ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA ) ) );
+        visualization.getFilters()
+            .add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( peA ) ) );
 
-        dimensionService.mergeAnalyticalObject( reportTable );
+        dimensionService.mergeAnalyticalObject( visualization );
 
-        assertEquals( 2, reportTable.getDataDimensionItems().size() );
-        assertEquals( 1, reportTable.getPeriods().size() );
-        assertEquals( 1, reportTable.getOrganisationUnits().size() );
-        assertEquals( Integer.valueOf( 2 ), reportTable.getOrganisationUnitLevels().get( 0 ) );
+        assertEquals( 2, visualization.getDataDimensionItems().size() );
+        assertEquals( 1, visualization.getPeriods().size() );
+        assertEquals( 1, visualization.getOrganisationUnits().size() );
+        assertEquals( Integer.valueOf( 2 ), visualization.getOrganisationUnitLevels().get( 0 ) );
     }
 
     @Test
     public void testMergeAnalyticalObjectRelativePeriods()
     {
-        ReportTable reportTable = new ReportTable();
+        Visualization visualization = new Visualization();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+        visualization.getColumns()
+            .add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+                Lists.newArrayList( deA, deB ) ) );
+        visualization.getRows().add( new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
             DimensionType.ORGANISATION_UNIT, Lists.newArrayList( ouA, ouB, ouC, ouD, ouE ) ) );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peLast12Months ) ) );
+        visualization.getFilters()
+            .add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( peLast12Months ) ) );
 
-        dimensionService.mergeAnalyticalObject( reportTable );
+        dimensionService.mergeAnalyticalObject( visualization );
 
-        assertEquals( 2, reportTable.getDataDimensionItems().size() );
-        assertEquals( 0, reportTable.getPeriods().size() );
-        assertTrue( reportTable.getRelatives().isLast12Months() );
-        assertEquals( 5, reportTable.getOrganisationUnits().size() );
+        assertEquals( 2, visualization.getDataDimensionItems().size() );
+        assertEquals( 0, visualization.getPeriods().size() );
+        assertTrue( visualization.getRelatives().isLast12Months() );
+        assertEquals( 5, visualization.getOrganisationUnits().size() );
     }
 
     @Test
     public void testMergeAnalyticalObjectOrgUnitGroupSet()
     {
-        ReportTable reportTable = new ReportTable();
+        Visualization visualization = new Visualization();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( ouGroupSetA );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA, peB ) ) );
+        visualization.getColumns()
+            .add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+                Lists.newArrayList( deA, deB ) ) );
+        visualization.getRows().add( ouGroupSetA );
+        visualization.getFilters()
+            .add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( peA, peB ) ) );
 
-        dimensionService.mergeAnalyticalObject( reportTable );
+        dimensionService.mergeAnalyticalObject( visualization );
 
-        assertEquals( 2, reportTable.getDataDimensionItems().size() );
-        assertEquals( 2, reportTable.getPeriods().size() );
-        assertEquals( 1, reportTable.getOrganisationUnitGroupSetDimensions().size() );
-        assertEquals( 3, reportTable.getOrganisationUnitGroupSetDimensions().get( 0 ).getItems().size() );
+        assertEquals( 2, visualization.getDataDimensionItems().size() );
+        assertEquals( 2, visualization.getPeriods().size() );
+        assertEquals( 1, visualization.getOrganisationUnitGroupSetDimensions().size() );
+        assertEquals( 3, visualization.getOrganisationUnitGroupSetDimensions().get( 0 ).getItems().size() );
     }
 
     @Test
     public void testMergeAnalyticalObjectDataElementGroupSet()
     {
-        ReportTable reportTable = new ReportTable();
+        Visualization visualization = new Visualization();
 
-        reportTable.getColumns().add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
-            Lists.newArrayList( deA, deB ) ) );
-        reportTable.getRows().add( deGroupSetA );
-        reportTable.getFilters().add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( peA, peB ) ) );
+        visualization.getColumns()
+            .add( new BaseDimensionalObject( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X,
+                Lists.newArrayList( deA, deB ) ) );
+        visualization.getRows().add( deGroupSetA );
+        visualization.getFilters()
+            .add( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
+                Lists.newArrayList( peA, peB ) ) );
 
-        dimensionService.mergeAnalyticalObject( reportTable );
+        dimensionService.mergeAnalyticalObject( visualization );
 
-        assertEquals( 2, reportTable.getDataDimensionItems().size() );
-        assertEquals( 2, reportTable.getPeriods().size() );
-        assertEquals( 1, reportTable.getDataElementGroupSetDimensions().size() );
-        assertEquals( 3, reportTable.getDataElementGroupSetDimensions().get( 0 ).getItems().size() );
+        assertEquals( 2, visualization.getDataDimensionItems().size() );
+        assertEquals( 2, visualization.getPeriods().size() );
+        assertEquals( 1, visualization.getDataElementGroupSetDimensions().size() );
+        assertEquals( 3, visualization.getDataElementGroupSetDimensions().get( 0 ).getItems().size() );
     }
 
     @Test
@@ -544,34 +572,32 @@ public class DimensionServiceTest
     }
 
     @Test
-    public void testGetDataDimensionalItemObjects()
+    public void testGetDataDimensionalItemObjectMap()
     {
-        Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( new HashSet<>() );
+        Map<DimensionalItemId, DimensionalItemObject> result;
 
-        assertNotNull( objects );
-        assertEquals( 0, objects.size() );
+        result = dimensionService.getDataDimensionalItemObjectMap( new HashSet<>() );
 
-        objects = dimensionService.getDataDimensionalItemObjects( itemIds );
+        assertNotNull( result );
+        assertEquals( 0, result.size() );
 
-        assertNotNull( objects );
-        assertEquals( 8, objects.size() );
+        result = dimensionService.getDataDimensionalItemObjectMap( itemIds );
 
-        assertTrue( objects.contains( itemObjectA ) );
-        assertTrue( objects.contains( itemObjectB ) );
-        assertTrue( objects.contains( itemObjectC ) );
-        assertTrue( objects.contains( itemObjectD ) );
-        assertTrue( objects.contains( itemObjectE ) );
-        assertTrue( objects.contains( itemObjectF ) );
-        assertTrue( objects.contains( itemObjectG ) );
-        assertTrue( objects.contains( itemObjectH ) );
+        assertEquals( itemMap, result );
     }
 
     @Test
-    public void testGetDataDimensionalItemObjectsWithOffsetValue()
+    public void testGetIndicatorDataDimensionalItemMapWithOffsetValue()
     {
+        Map<DimensionalItemId, DimensionalItemObject> result;
+
         // Given
         int offset = 1;
         Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
+
+        deA.setPeriodOffset( offset );
+        deB.setPeriodOffset( offset );
+        deC.setPeriodOffset( offset );
 
         DimensionalItemId itemIdA = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), offset );
         DimensionalItemId itemIdB = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), offset );
@@ -581,64 +607,63 @@ public class DimensionServiceTest
         dimensionalItemIds.add( itemIdB );
         dimensionalItemIds.add( itemIdC );
 
+        Map<DimensionalItemId, DimensionalItemObject> dimensionalItemMap = ImmutableMap.of(
+            itemIdA, deA,
+            itemIdB, deB,
+            itemIdC, deC );
+
         // When
-        Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( dimensionalItemIds );
+        result = dimensionService.getDataDimensionalItemObjectMap( dimensionalItemIds );
 
         // Then
-        assertEquals( 3, objects.size() );
-        for ( DimensionalItemObject object : objects )
-        {
-            assertThat( object.getPeriodOffset(), is( 1 ) );
-        }
+        assertEquals( dimensionalItemMap, result );
     }
 
     @Test
-    public void testGetDataDimensionalItemObjectsReturnsItemWithOffsetLargerThanZero()
+    public void testGetDataDimensionalItemObjectMapReturnsItemsWithAllOffsets()
     {
-        // Given
-        int offset = 1;
-        Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
+        Map<DimensionalItemId, DimensionalItemObject> result;
 
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid() ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid() ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid() ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), offset ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), offset ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), offset ) );
+        DimensionalItemId deAId = new DimensionalItemId( DATA_ELEMENT, deA.getUid() );
+        DimensionalItemId deBId = new DimensionalItemId( DATA_ELEMENT, deB.getUid() );
+        DimensionalItemId deCId = new DimensionalItemId( DATA_ELEMENT, deC.getUid() );
+        DimensionalItemId deAOffset1Id = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 1 );
+        DimensionalItemId deBOffset1Id = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 1 );
+        DimensionalItemId deCOffset1Id = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 1 );
+        DimensionalItemId deAOffset2Id = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 2 );
+        DimensionalItemId deBOffset2Id = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 2 );
+        DimensionalItemId deCOffset2Id = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 2 );
+
+        DataElement deAOffset1 = makeDataElementOffsetFrom( deA, 1 );
+        DataElement deBOffset1 = makeDataElementOffsetFrom( deB, 1 );
+        DataElement deCOffset1 = makeDataElementOffsetFrom( deC, 1 );
+        DataElement deAOffset2 = makeDataElementOffsetFrom( deA, 2 );
+        DataElement deBOffset2 = makeDataElementOffsetFrom( deB, 2 );
+        DataElement deCOffset2 = makeDataElementOffsetFrom( deC, 2 );
+
+        Set<DimensionalItemId> dimensionalItemIds = Sets.newHashSet(
+            deAId, deBId, deCId,
+            deAOffset1Id, deBOffset1Id, deCOffset1Id,
+            deAOffset2Id, deBOffset2Id, deCOffset2Id );
+
+        ImmutableMap<DimensionalItemId, DimensionalItemObject> dimensionalItemMap = ImmutableMap
+            .<DimensionalItemId, DimensionalItemObject> builder()
+            .put( deAId, deA )
+            .put( deBId, deB )
+            .put( deCId, deC )
+            .put( deAOffset1Id, deAOffset1 )
+            .put( deBOffset1Id, deBOffset1 )
+            .put( deCOffset1Id, deCOffset1 )
+            .put( deAOffset2Id, deAOffset2 )
+            .put( deBOffset2Id, deBOffset2 )
+            .put( deCOffset2Id, deCOffset2 )
+            .build();
 
         // When
-        Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( dimensionalItemIds );
+        result = dimensionService.getDataDimensionalItemObjectMap( dimensionalItemIds );
 
         // Then
-        assertEquals( 3, objects.size() );
-        for ( DimensionalItemObject object : objects )
-        {
-            assertThat( object.getPeriodOffset(), is( 1 ) );
-        }
-    }
-
-    @Test
-    public void testGetDataDimensionalItemObjectMap()
-    {
-        Map<DimensionalItemId, DimensionalItemObject> map = dimensionService
-            .getDataDimensionalItemObjectMap( new HashSet<>() );
-
-        assertNotNull( map );
-        assertEquals( 0, map.size() );
-
-        map = dimensionService.getDataDimensionalItemObjectMap( itemIds );
-
-        assertNotNull( map );
-        assertEquals( 8, map.size() );
-
-        assertEquals( itemObjectA, map.get( itemIdA ) );
-        assertEquals( itemObjectB, map.get( itemIdB ) );
-        assertEquals( itemObjectC, map.get( itemIdC ) );
-        assertEquals( itemObjectD, map.get( itemIdD ) );
-        assertEquals( itemObjectE, map.get( itemIdE ) );
-        assertEquals( itemObjectF, map.get( itemIdF ) );
-        assertEquals( itemObjectG, map.get( itemIdG ) );
-        assertEquals( itemObjectH, map.get( itemIdH ) );
+        assertMapEquals( dimensionalItemMap, result );
     }
 
     @Test
@@ -668,5 +693,21 @@ public class DimensionServiceTest
 
         assertEquals( lsA, dim.getLegendSet() );
         assertEquals( psA, dim.getProgramStage() );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Make a DataElement with periodOffset based on another DataElement.
+     */
+    private DataElement makeDataElementOffsetFrom( DataElement dataElement, int offset )
+    {
+        DataElement de = SerializationUtils.clone( dataElement );
+
+        de.setPeriodOffset( offset );
+
+        return de;
     }
 }

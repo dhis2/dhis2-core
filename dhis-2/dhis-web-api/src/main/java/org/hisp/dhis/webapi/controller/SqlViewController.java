@@ -27,15 +27,19 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
@@ -48,9 +52,10 @@ import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -77,7 +82,7 @@ public class SqlViewController
     // Get
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
+    @GetMapping( value = "/{uid}/data", produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getViewJson( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
@@ -89,7 +94,7 @@ public class SqlViewController
         return buildResponse( sqlView, query );
     }
 
-    @RequestMapping( value = "/{uid}/data.xml", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.xml" )
     public @ResponseBody RootNode getViewXml( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
@@ -101,7 +106,7 @@ public class SqlViewController
         return buildResponse( sqlView, query );
     }
 
-    @RequestMapping( value = "/{uid}/data.csv", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.csv" )
     public void getViewCsv( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -123,7 +128,7 @@ public class SqlViewController
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/{uid}/data.xls", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.xls" )
     public void getViewXls( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -145,7 +150,7 @@ public class SqlViewController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/{uid}/data.html", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.html" )
     public void getViewHtml( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -164,7 +169,7 @@ public class SqlViewController
         GridUtils.toHtml( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/{uid}/data.html+css", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.html+css" )
     public void getViewHtmlCss( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -183,7 +188,7 @@ public class SqlViewController
         GridUtils.toHtmlCss( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/{uid}/data.pdf", method = RequestMethod.GET )
+    @GetMapping( "/{uid}/data.pdf" )
     public void getViewPdf( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
         HttpServletResponse response )
@@ -206,58 +211,48 @@ public class SqlViewController
     // Post
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/execute", method = RequestMethod.POST )
-    public void executeView( @PathVariable( "uid" ) String uid, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException
+    @PostMapping( "/{uid}/execute" )
+    @ResponseBody
+    public WebMessage executeView( @PathVariable( "uid" ) String uid,
+        @RequestParam( required = false ) Set<String> var )
     {
         SqlView sqlView = sqlViewService.getSqlViewByUid( uid );
 
         if ( sqlView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
+            return notFound( "SQL view does not exist: " + uid );
         }
 
         if ( sqlView.isQuery() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "SQL view is a query, no view to create" ) );
+            return conflict( "SQL view is a query, no view to create" );
         }
 
         String result = sqlViewService.createViewTable( sqlView );
-
         if ( result != null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( result ) );
+            return conflict( result );
         }
-        else
-        {
-            response.addHeader( "Location", SqlViewSchemaDescriptor.API_ENDPOINT + "/" + sqlView.getUid() );
-            webMessageService.send( WebMessageUtils.created( "SQL view created" ), response, request );
-        }
+        return created( "SQL view created" )
+            .setLocation( SqlViewSchemaDescriptor.API_ENDPOINT + "/" + sqlView.getUid() );
     }
 
-    @RequestMapping( value = "/{uid}/refresh", method = RequestMethod.POST )
-    public void refreshMaterializedView( @PathVariable( "uid" ) String uid,
-        HttpServletResponse response, HttpServletRequest request )
-        throws WebMessageException
+    @PostMapping( "/{uid}/refresh" )
+    @ResponseBody
+    public WebMessage refreshMaterializedView( @PathVariable( "uid" ) String uid )
     {
         SqlView sqlView = sqlViewService.getSqlViewByUid( uid );
 
         if ( sqlView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
+            return notFound( "SQL view does not exist: " + uid );
         }
 
-        boolean result = sqlViewService.refreshMaterializedView( sqlView );
-
-        if ( !result )
+        if ( !sqlViewService.refreshMaterializedView( sqlView ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "View could not be refreshed" ) );
+            return conflict( "View could not be refreshed" );
         }
-        else
-        {
-            webMessageService.send( WebMessageUtils.ok( "Materialized view refreshed" ), response, request );
-        }
+        return ok( "Materialized view refreshed" );
     }
 
     private SqlView validateView( String uid )
@@ -267,7 +262,7 @@ public class SqlViewController
 
         if ( sqlView == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "SQL view does not exist: " + uid ) );
+            throw new WebMessageException( notFound( "SQL view does not exist: " + uid ) );
         }
 
         return sqlView;

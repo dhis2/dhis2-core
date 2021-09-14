@@ -1,5 +1,3 @@
-package org.hisp.dhis.dto;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,14 @@ package org.hisp.dhis.dto;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dto;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -79,8 +85,8 @@ public class ApiResponse
     }
 
     /**
-     * Extracts uids from import summaries.
-     * Use when more than one object was created.
+     * Extracts uids from import summaries. Use when more than one object was
+     * created.
      *
      */
     public List<String> extractUids()

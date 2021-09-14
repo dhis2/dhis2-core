@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preprocess;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.springframework.stereotype.Component;
@@ -48,16 +49,19 @@ public class EventWithoutRegistrationPreProcessor
     {
         for ( Event event : bundle.getEvents() )
         {
-            // If the event program is missing, it will be captured later by
-            // validation
-            if ( !StringUtils.isEmpty( event.getProgram() ) )
+            if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
             {
-                ProgramInstance enrollment = bundle.getPreheat()
-                    .getProgramInstancesWithoutRegistration( event.getProgram() );
+                ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
 
-                if ( enrollment != null )
+                if ( programStage != null )
                 {
-                    event.setEnrollment( enrollment.getUid() );
+                    ProgramInstance enrollment = bundle.getPreheat()
+                        .getProgramInstancesWithoutRegistration( programStage.getProgram().getUid() );
+
+                    if ( enrollment != null )
+                    {
+                        event.setEnrollment( enrollment.getUid() );
+                    }
                 }
             }
         }

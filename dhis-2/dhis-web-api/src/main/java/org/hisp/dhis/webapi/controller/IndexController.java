@@ -33,19 +33,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.ComplexNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.webapi.webdomain.IndexResource;
+import org.hisp.dhis.webapi.webdomain.IndexResources;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -54,17 +49,22 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class IndexController
 {
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    @Autowired
-    private ContextService contextService;
+    private final ContextService contextService;
+
+    public IndexController( SchemaService schemaService,
+        ContextService contextService )
+    {
+        this.schemaService = schemaService;
+        this.contextService = contextService;
+    }
 
     // --------------------------------------------------------------------------
     // GET
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/api", method = RequestMethod.GET )
+    @GetMapping( "/api" )
     public void getIndex( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -72,7 +72,7 @@ public class IndexController
         response.sendRedirect( ContextUtils.getRootPath( request ) + location );
     }
 
-    @RequestMapping( value = "/", method = RequestMethod.GET )
+    @GetMapping( "/" )
     public void getIndexWithSlash( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
@@ -80,33 +80,27 @@ public class IndexController
         response.sendRedirect( ContextUtils.getRootPath( request ) + location );
     }
 
-    @RequestMapping( value = "/resources", method = RequestMethod.GET )
-    public @ResponseBody RootNode getResources()
+    @GetMapping( "/resources" )
+    public @ResponseBody IndexResources getResources()
     {
-        return createRootNode();
+        return createIndexResources();
     }
 
-    private RootNode createRootNode()
+    private IndexResources createIndexResources()
     {
-        RootNode rootNode = NodeUtils.createMetadata();
-        CollectionNode collectionNode = rootNode.addChild( new CollectionNode( "resources" ) );
+        IndexResources indexResources = new IndexResources();
 
         for ( Schema schema : schemaService.getSchemas() )
         {
             if ( schema.haveApiEndpoint() )
             {
-                ComplexNode complexNode = collectionNode.addChild( new ComplexNode( "resource" ) );
-
-                // TODO add i18n to this
-                complexNode.addChild( new SimpleNode( "displayName", beautify( schema.getPlural() ) ) );
-                complexNode.addChild( new SimpleNode( "singular", schema.getSingular() ) );
-                complexNode.addChild( new SimpleNode( "plural", schema.getPlural() ) );
-                complexNode.addChild(
-                    new SimpleNode( "href", contextService.getApiPath() + schema.getRelativeApiEndpoint() ) );
+                indexResources.getResources()
+                    .add( new IndexResource( beautify( schema.getPlural() ), schema.getSingular(),
+                        schema.getPlural(), contextService.getApiPath() + schema.getRelativeApiEndpoint() ) );
             }
         }
 
-        return rootNode;
+        return indexResources;
     }
 
     private String beautify( String name )

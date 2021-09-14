@@ -88,7 +88,6 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getAttributeOptionComb
 import static org.hisp.dhis.common.DimensionalObjectUtils.getCategoryOptionCombos;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElements;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItem;
-import static org.hisp.dhis.common.DimensionalObjectUtils.replaceOperandTotalsWithDataElements;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS;
 import static org.hisp.dhis.common.ReportingRateMetric.ACTUAL_REPORTS_ON_TIME;
 import static org.hisp.dhis.common.ReportingRateMetric.EXPECTED_REPORTS;
@@ -119,7 +118,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryGroups;
@@ -132,8 +130,10 @@ import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
+import org.hisp.dhis.analytics.resolver.ExpressionResolvers;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemObjectValue;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -173,7 +173,7 @@ public class DataHandler
 
     private final ConstantService constantService;
 
-    private final ExpressionResolver resolver;
+    private final ExpressionResolvers resolvers;
 
     private final ExpressionService expressionService;
 
@@ -190,14 +190,14 @@ public class DataHandler
     private DataAggregator dataAggregator;
 
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
-        ConstantService constantService, ExpressionResolver resolver, ExpressionService expressionService,
+        ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
         AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService )
     {
         checkNotNull( eventAnalyticsService );
         checkNotNull( rawAnalyticsManager );
         checkNotNull( constantService );
-        checkNotNull( resolver );
+        checkNotNull( resolvers );
         checkNotNull( expressionService );
         checkNotNull( queryPlanner );
         checkNotNull( queryValidator );
@@ -208,7 +208,7 @@ public class DataHandler
         this.eventAnalyticsService = eventAnalyticsService;
         this.rawAnalyticsManager = rawAnalyticsManager;
         this.constantService = constantService;
-        this.resolver = resolver;
+        this.resolvers = resolvers;
         this.expressionService = expressionService;
         this.queryPlanner = queryPlanner;
         this.queryValidator = queryValidator;
@@ -232,7 +232,7 @@ public class DataHandler
                 .retainDataDimension( INDICATOR )
                 .withIncludeNumDen( false ).build();
 
-            List<Indicator> indicators = asTypedList( dataSourceParams.getIndicators() );
+            List<Indicator> indicators = resolveIndicatorExpressions( dataSourceParams );
 
             // Try to get filters periods from dimension (pe), or else fall back
             // to "startDate/endDate" periods
@@ -252,8 +252,11 @@ public class DataHandler
 
             List<List<DimensionItem>> dimensionItemPermutations = dataSourceParams.getDimensionItemPermutations();
 
+            Map<DimensionalItemId, DimensionalItemObject> itemMap = expressionService
+                .getIndicatorDimensionalItemMap( indicators );
+
             Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap = getPermutationDimensionItemValueMap(
-                dataSourceParams );
+                params, new ArrayList<>( itemMap.values() ) );
 
             handleEmptyDimensionItemPermutations( dimensionItemPermutations );
 
@@ -261,8 +264,8 @@ public class DataHandler
             {
                 for ( List<DimensionItem> dimensionItems : dimensionItemPermutations )
                 {
-                    IndicatorValue value = getIndicatorValue( filterPeriods, constantMap, permutationOrgUnitTargetMap,
-                        permutationDimensionItemValueMap, indicator, dimensionItems );
+                    IndicatorValue value = getIndicatorValue( filterPeriods, constantMap, itemMap,
+                        permutationOrgUnitTargetMap, permutationDimensionItemValueMap, indicator, dimensionItems );
 
                     addIndicatorValuesToGrid( params, grid, dataSourceParams, indicator, dimensionItems, value );
                 }
@@ -279,9 +282,11 @@ public class DataHandler
      *        See @{{@link ConstantService#getConstantMap()}}.
      * @param permutationOrgUnitTargetMap the org unit permutation map. See
      *        {@link #getOrgUnitTargetMap(DataQueryParams, Collection)}.
+     * @param itemMap Every dimensional item to process.
      * @param permutationDimensionItemValueMap the dimension item permutation
      *        map. See
-     *        {@link #getPermutationDimensionItemValueMap(DataQueryParams)}.
+     *        {@link #getPermutationDimensionItemValueMap(DataQueryParams,
+     *        List<DimensionalItemObject>)}.
      * @param indicator the input Indicator where the IndicatorValue will be
      *        based.
      * @param dimensionItems the dimensional items permutation map. See
@@ -289,13 +294,14 @@ public class DataHandler
      * @return the IndicatorValue
      */
     private IndicatorValue getIndicatorValue( List<Period> filterPeriods, Map<String, Constant> constantMap,
+        Map<DimensionalItemId, DimensionalItemObject> itemMap,
         Map<String, Map<String, Integer>> permutationOrgUnitTargetMap,
-        Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap, Indicator indicator,
-        List<DimensionItem> dimensionItems )
+        Map<String, List<DimensionItemObjectValue>> permutationDimensionItemValueMap,
+        Indicator indicator, List<DimensionItem> dimensionItems )
     {
         String permKey = asItemKey( dimensionItems );
 
-        final List<DimensionItemObjectValue> valueMap = permutationDimensionItemValueMap
+        final List<DimensionItemObjectValue> values = permutationDimensionItemValueMap
             .getOrDefault( permKey, new ArrayList<>() );
 
         List<Period> periods = !filterPeriods.isEmpty() ? filterPeriods
@@ -309,8 +315,8 @@ public class DataHandler
             ? permutationOrgUnitTargetMap.get( ou )
             : null;
 
-        return expressionService.getIndicatorValueObject( indicator, periods,
-            convertToDimItemValueMap( valueMap ), constantMap, orgUnitCountMap );
+        return expressionService.getIndicatorValueObject( indicator, periods, itemMap,
+            convertToDimItemValueMap( values ), constantMap, orgUnitCountMap );
     }
 
     /**
@@ -785,11 +791,12 @@ public class DataHandler
      *
      * @param params the {@link DataQueryParams}.
      */
-    private Map<String, List<DimensionItemObjectValue>> getPermutationDimensionItemValueMap( DataQueryParams params )
+    private Map<String, List<DimensionItemObjectValue>> getPermutationDimensionItemValueMap(
+        DataQueryParams params, List<DimensionalItemObject> items )
     {
-        List<Indicator> indicators = asTypedList( params.getIndicators() );
+        MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap = getAggregatedDataValueMap( params, items );
 
-        return getPermutationDimensionalItemValueMap( getAggregatedDataValueMap( params, indicators ) );
+        return getPermutationDimensionalItemValueMap( aggregatedDataMap );
     }
 
     /**
@@ -880,18 +887,24 @@ public class DataHandler
     }
 
     /**
-     * Resolves the numerator and denominator expressions of the given
-     * indicators.
+     * Resolves the numerator and denominator expressions of indicators in the
+     * data query.
      *
-     * @param indicators the list of indicators.
-     * @return the given list of indicators.
+     * @param params the {@link DataQueryParams}.
+     * @return the resolved list of indicators.
      */
-    private List<Indicator> resolveIndicatorExpressions( List<Indicator> indicators )
+    private List<Indicator> resolveIndicatorExpressions( DataQueryParams params )
     {
+        List<Indicator> indicators = asTypedList( params.getIndicators() );
+
         for ( Indicator indicator : indicators )
         {
-            indicator.setNumerator( resolver.resolve( indicator.getNumerator() ) );
-            indicator.setDenominator( resolver.resolve( indicator.getDenominator() ) );
+            for ( ExpressionResolver resolver : resolvers.getExpressionResolvers() )
+            {
+                indicator.setNumerator( resolver.resolve( indicator.getNumerator() ) );
+
+                indicator.setDenominator( resolver.resolve( indicator.getDenominator() ) );
+            }
         }
 
         return indicators;
@@ -905,21 +918,16 @@ public class DataHandler
      * Indicators, an exception is thrown.
      *
      * @param params the {@link DataQueryParams}.
-     * @param indicators the list of indicators.
+     * @param items the list of {@link DimensionalItemObject}.
      * @return a dimensional items to aggregate values map.
      */
     private MultiValuedMap<String, DimensionItemObjectValue> getAggregatedDataValueMap( DataQueryParams params,
-        List<Indicator> indicators )
+        List<DimensionalItemObject> items )
     {
-        List<DimensionalItemObject> items = newArrayList(
-            expressionService.getIndicatorDimensionalItemObjects( resolveIndicatorExpressions( indicators ) ) );
-
         if ( items.isEmpty() )
         {
             return new ArrayListValuedHashMap<>();
         }
-
-        items = replaceOperandTotalsWithDataElements( items );
 
         DimensionalObject dimension = new BaseDimensionalObject(
             DATA_X_DIM_ID, DATA_X, null, DISPLAY_NAME_DATA_X, items );
@@ -952,9 +960,8 @@ public class DataHandler
 
         for ( List<Object> row : grid.getRows() )
         {
-            final List<DimensionalItemObject> dimensionalItems = findDimensionalItems( (String) row.get( dataIndex ),
-                items );
-            if ( isNotEmpty( dimensionalItems ) )
+            for ( DimensionalItemObject dimensionalItem : findDimensionalItems(
+                (String) row.get( dataIndex ), items ) )
             {
                 // Check if the current row's Period belongs to the list of
                 // periods from the original Analytics request. The row may
@@ -963,15 +970,14 @@ public class DataHandler
                 if ( hasPeriod( row, periodIndex )
                     && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
                 {
-                    if ( dimensionalItems.size() == 1 )
-                    {
-                        addItemBasedOnPeriodOffset( grid, result, periodIndex, valueIndex, row, dimensionalItems );
-                    }
+                    addItemBasedOnPeriodOffset( grid, result, dataIndex, periodIndex, valueIndex, row,
+                        dimensionalItem );
                 }
                 else
                 {
                     result.put( join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP ),
-                        new DimensionItemObjectValue( dimensionalItems.get( 0 ), (Double) row.get( valueIndex ) ) );
+                        new DimensionItemObjectValue(
+                            dimensionalItem, ((Number) row.get( valueIndex )).doubleValue() ) );
                 }
             }
         }
@@ -1024,45 +1030,35 @@ public class DataHandler
      *
      * @param grid the current Grid.
      * @param result the map where the values will be added to.
+     * @param dataIndex the current grid row data index.
      * @param periodIndex the current grid row period index.
      * @param valueIndex the current grid row value index.
      * @param row the current grid row.
-     * @param dimensionalItems the dimensional items for the current grid row,
+     * @param dimensionalItemObject a dimensional item for the current grid row,
      *        see
      *        {@link org.hisp.dhis.analytics.util.AnalyticsUtils#findDimensionalItems(String, List)}
      *
      * @return the DimensionalItemObject
      */
     private void addItemBasedOnPeriodOffset( Grid grid, MultiValuedMap<String, DimensionItemObjectValue> result,
-        int periodIndex, int valueIndex, List<Object> row, List<DimensionalItemObject> dimensionalItems )
+        int dataIndex, int periodIndex, int valueIndex, List<Object> row, DimensionalItemObject dimensionalItemObject )
     {
+        final List<Object> adjustedRow = (dimensionalItemObject.getPeriodOffset() != 0)
+            ? getPeriodOffsetRow( grid, dataIndex, periodIndex, dimensionalItemObject, (String) row.get( periodIndex ),
+                dimensionalItemObject.getPeriodOffset() )
+            : row;
+
+        if ( adjustedRow == null || adjustedRow.get( valueIndex ) == null )
+        {
+            return;
+        }
+
         // Key is composed of [uid-period]
         final String key = join( remove( row.toArray( new Object[0] ), valueIndex ), DIMENSION_SEP );
 
-        final DimensionalItemObject dimensionalItemObject = dimensionalItems.get( 0 );
-        DimensionalItemObject clone = dimensionalItemObject;
+        final Double value = ((Number) adjustedRow.get( valueIndex )).doubleValue();
 
-        if ( dimensionalItemObject.getPeriodOffset() != 0 )
-        {
-            List<Object> periodOffsetRow = getPeriodOffsetRow( grid, dimensionalItemObject,
-                (String) row.get( periodIndex ), dimensionalItemObject.getPeriodOffset() );
-
-            if ( periodOffsetRow != null )
-            {
-                result.put( key, new DimensionItemObjectValue( dimensionalItemObject,
-                    (Double) periodOffsetRow.get( valueIndex ) ) );
-            }
-
-            clone = SerializationUtils.clone( dimensionalItemObject );
-        }
-
-        Double value = null;
-        if ( row.get( valueIndex ) != null )
-        {
-            value = ((Number) row.get( valueIndex )).doubleValue();
-        }
-
-        result.put( key, new DimensionItemObjectValue( clone, value ) );
+        result.put( key, new DimensionItemObjectValue( dimensionalItemObject, value ) );
     }
 
     /**
@@ -1084,7 +1080,7 @@ public class DataHandler
         int optimalQueries = getWithin( getProcessNo(), 1, MAX_QUERIES );
 
         int maxLimit = params.isIgnoreLimit() ? 0
-            : (Integer) systemSettingManager.getSystemSetting( ANALYTICS_MAX_LIMIT );
+            : systemSettingManager.getIntSetting( ANALYTICS_MAX_LIMIT );
 
         Timer timer = new Timer().start().disablePrint();
 
@@ -1158,7 +1154,7 @@ public class DataHandler
      */
     private int getProcessNo()
     {
-        Integer cores = (Integer) systemSettingManager.getSystemSetting( DATABASE_SERVER_CPUS );
+        Integer cores = systemSettingManager.getIntegerSetting( DATABASE_SERVER_CPUS );
 
         return (cores == null || cores == 0) ? getCpuCores() : cores;
     }

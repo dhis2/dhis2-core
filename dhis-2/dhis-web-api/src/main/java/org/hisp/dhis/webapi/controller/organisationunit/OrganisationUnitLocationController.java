@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -45,9 +45,10 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author James Chang <jamesbchang@gmail.com>
@@ -69,13 +70,13 @@ public class OrganisationUnitLocationController
     /**
      * Get Organisation Units within a distance from a location
      */
-    @RequestMapping( value = "/withinRange", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getEntitiesWithinRange(
+    @GetMapping( value = "/withinRange", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @ResponseBody
+    public List<OrganisationUnit> getEntitiesWithinRange(
         @RequestParam Double longitude,
         @RequestParam Double latitude,
         @RequestParam Double distance,
-        @RequestParam( required = false ) String orgUnitGroupSetId, HttpServletResponse response )
-        throws Exception
+        @RequestParam( required = false ) String orgUnitGroupSetId )
     {
         List<OrganisationUnit> entityList = new ArrayList<>(
             organisationUnitService.getOrganisationUnitWithinDistance( longitude, latitude, distance ) );
@@ -113,21 +114,20 @@ public class OrganisationUnitLocationController
             organisationUnit.removeAllOrganisationUnitGroups();
         }
 
-        renderService.toJson( response.getOutputStream(), entityList );
+        return entityList;
     }
 
     /**
      * Get lowest level Org Units that includes the location in their polygon
      * shape.
      */
-    @RequestMapping( value = "/orgUnitByLocation", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
-    public void getParentByLocation(
+    @GetMapping( value = "/orgUnitByLocation", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @ResponseBody
+    public List<OrganisationUnit> getParentByLocation(
         @RequestParam Double longitude,
         @RequestParam Double latitude,
         @RequestParam( required = false ) String topOrgUnit,
-        @RequestParam( required = false ) Integer targetLevel, HttpServletResponse response )
-        throws Exception
+        @RequestParam( required = false ) Integer targetLevel )
     {
         List<OrganisationUnit> entityList = new ArrayList<>(
             organisationUnitService.getOrganisationUnitByCoordinate( longitude, latitude, topOrgUnit, targetLevel ) );
@@ -143,17 +143,16 @@ public class OrganisationUnitLocationController
             organisationUnit.removeAllOrganisationUnitGroups();
         }
 
-        renderService.toJson( response.getOutputStream(), entityList );
+        return entityList;
     }
 
     /**
      * Check if the location lies within the organisation unit boundary
      */
-    @RequestMapping( value = "/locationWithinOrgUnitBoundary", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
-    public void checkLocationWithinOrgUnit( @RequestParam String orgUnitUid,
-        @RequestParam Double longitude, @RequestParam Double latitude, HttpServletResponse response )
-        throws Exception
+    @GetMapping( value = "/locationWithinOrgUnitBoundary", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    @ResponseBody
+    public boolean checkLocationWithinOrgUnit( @RequestParam String orgUnitUid,
+        @RequestParam Double longitude, @RequestParam Double latitude )
     {
         boolean withinOrgUnit = false;
 
@@ -167,6 +166,6 @@ public class OrganisationUnitLocationController
             withinOrgUnit = true;
         }
 
-        renderService.toJson( response.getOutputStream(), withinOrgUnit );
+        return withinOrgUnit;
     }
 }

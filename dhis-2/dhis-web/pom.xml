@@ -4,7 +4,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.37-SNAPSHOT</version>
+    <version>2.38-SNAPSHOT</version>
   </parent>
   <artifactId>dhis-web</artifactId>
   <packaging>pom</packaging>
@@ -12,7 +12,6 @@
   <description>This project is a web based GUI for the DHIS 2 system.</description>
 
   <modules>
-    <module>dhis-web-api-test</module>
     <module>dhis-web-commons</module>
     <module>dhis-web-commons-resources</module>
     <module>dhis-web-dataentry</module>

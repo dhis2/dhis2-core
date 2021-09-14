@@ -90,16 +90,26 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
         this.path = path;
     }
 
+    public JsonDocument getJsonDocument()
+    {
+        return this.content;
+    }
+
     private <T> T value( JsonNodeType expected, Function<JsonNode, T> get, Function<JsonPathException, T> orElse )
     {
         try
         {
             JsonNode node = content.get( path );
-            if ( node.getType() != expected )
+            JsonNodeType actualType = node.getType();
+            if ( actualType == JsonNodeType.NULL )
+            {
+                return null;
+            }
+            if ( actualType != expected )
             {
                 throw new UnsupportedOperationException(
                     String.format( "Path `%s` does not contain a %s but a(n) %s: %s",
-                        path, expected, node.getType(), node ) );
+                        path, expected, actualType, node ) );
             }
             return get.apply( node );
         }

@@ -45,7 +45,6 @@ import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationStore;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -81,9 +80,6 @@ public class DefaultDataStatisticsService
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
 
-    @Autowired
-    private VisualizationStore visualizationStore;
-
     // -------------------------------------------------------------------------
     // DataStatisticsService implementation
     // -------------------------------------------------------------------------
@@ -113,8 +109,6 @@ public class DefaultDataStatisticsService
         long diff = now.getTime() - startDate.getTime();
         int days = (int) TimeUnit.DAYS.convert( diff, TimeUnit.MILLISECONDS );
 
-        double savedCharts = visualizationStore.countChartsCreated( startDate );
-        double savedReportTables = visualizationStore.countPivotTablesCreated( startDate );
         double savedMaps = idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate );
         double savedVisualizations = idObjectManager.getCountByCreated( Visualization.class, startDate );
         double savedEventReports = idObjectManager.getCountByCreated( EventReport.class, startDate );
@@ -130,8 +124,6 @@ public class DefaultDataStatisticsService
 
         DataStatistics dataStatistics = new DataStatistics(
             eventCountMap.get( DataStatisticsEventType.MAP_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.CHART_VIEW ),
-            eventCountMap.get( DataStatisticsEventType.REPORT_TABLE_VIEW ),
             eventCountMap.get( DataStatisticsEventType.VISUALIZATION_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_CHART_VIEW ),
@@ -139,7 +131,7 @@ public class DefaultDataStatisticsService
             eventCountMap.get( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DATA_SET_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
-            savedMaps, savedCharts, savedReportTables, savedVisualizations, savedEventReports,
+            savedMaps, savedVisualizations, savedEventReports,
             savedEventCharts, savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
 
         return dataStatistics;

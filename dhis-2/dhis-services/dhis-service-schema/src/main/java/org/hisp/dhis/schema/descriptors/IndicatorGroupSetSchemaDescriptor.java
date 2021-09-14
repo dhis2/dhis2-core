@@ -53,12 +53,11 @@ public class IndicatorGroupSetSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1270 );
 
-        schema.getAuthorities().add(
+        schema.add(
             new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_INDICATORGROUPSET_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add(
+        schema.add(
             new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_INDICATORGROUPSET_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_INDICATORGROUPSET_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_INDICATORGROUPSET_DELETE" ) ) );
 
         return schema;
     }

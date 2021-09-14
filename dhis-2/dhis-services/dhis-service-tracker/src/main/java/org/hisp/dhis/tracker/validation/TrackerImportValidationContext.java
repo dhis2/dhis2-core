@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
@@ -162,6 +163,20 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
     }
 
+    public OrganisationUnit getOwnerOrganisationUnit( String teiUid, String programUid )
+    {
+        Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner = bundle.getPreheat().getProgramOwner()
+            .get( teiUid );
+        if ( programOwner == null || programOwner.get( programUid ) == null )
+        {
+            return null;
+        }
+        else
+        {
+            return programOwner.get( programUid ).getOrganisationUnit();
+        }
+    }
+
     public boolean programInstanceHasEvents( String programInstanceUid )
     {
         return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
@@ -222,7 +237,7 @@ public class TrackerImportValidationContext
         return bundle.getPreheat().getIdentifiers();
     }
 
-    public Map<Long, List<Long>> getProgramWithOrgUnitsMap()
+    public Map<String, List<String>> getProgramWithOrgUnitsMap()
     {
         return bundle.getPreheat().getProgramWithOrgUnitsMap();
     }

@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.CacheControl.noStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -50,7 +55,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.interpretation.InterpretationService;
@@ -81,13 +85,14 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -99,7 +104,7 @@ import com.google.common.collect.Sets;
  */
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-@RequestMapping( value = "/me", method = RequestMethod.GET )
+@RequestMapping( "/me" )
 public class MeController
 {
     @Autowired
@@ -153,7 +158,7 @@ public class MeController
     private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>(
         Sets.newHashSet( UserSettingKey.values() ) );
 
-    @RequestMapping( value = "", method = RequestMethod.GET )
+    @GetMapping
     public void getCurrentUser( HttpServletResponse response )
         throws Exception
     {
@@ -174,7 +179,7 @@ public class MeController
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
             new FieldFilterParams( Collections.singletonList( user ), fields ) );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+        response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
 
         RootNode rootNode = NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
@@ -208,7 +213,7 @@ public class MeController
                     .collect( Collectors.toList() ) ) );
         }
 
-        nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
+        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
     }
 
     private boolean fieldsContains( String key, List<String> fields )
@@ -224,7 +229,7 @@ public class MeController
         return false;
     }
 
-    @RequestMapping( value = "/dataApprovalWorkflows", method = RequestMethod.GET )
+    @GetMapping( "/dataApprovalWorkflows" )
     public void getCurrentUserDataApprovalWorkflows( HttpServletResponse response )
         throws Exception
     {
@@ -237,10 +242,10 @@ public class MeController
 
         RootNode rootNode = userControllerUtils.getUserDataApprovalWorkflows( user );
 
-        nodeService.serialize( rootNode, "application/json", response.getOutputStream() );
+        nodeService.serialize( rootNode, APPLICATION_JSON_VALUE, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PutMapping( value = "", consumes = APPLICATION_JSON_VALUE )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
@@ -259,7 +264,7 @@ public class MeController
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
+                conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
         }
 
         manager.update( currentUser );
@@ -272,13 +277,14 @@ public class MeController
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( User.class,
             new FieldFilterParams( Collections.singletonList( currentUser ), fields ) );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ), "application/json",
+        response.setContentType( APPLICATION_JSON_VALUE );
+        nodeService.serialize( NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) ),
+            APPLICATION_JSON_VALUE,
             response.getOutputStream() );
     }
 
-    @RequestMapping( value = { "/authorization", "/authorities" } )
-    public void getAuthorities( HttpServletResponse response )
+    @GetMapping( value = { "/authorization", "/authorities" }, produces = APPLICATION_JSON_VALUE )
+    public ResponseEntity<Set<String>> getAuthorities()
         throws IOException,
         NotAuthenticatedException
     {
@@ -289,15 +295,14 @@ public class MeController
             throw new NotAuthenticatedException();
         }
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), currentUser.getUserCredentials().getAllAuthorities() );
+        return ResponseEntity.ok().cacheControl( noStore() )
+            .body( currentUser.getUserCredentials().getAllAuthorities() );
     }
 
-    @RequestMapping( value = { "/authorization/{authority}", "/authorities/{authority}" } )
-    public void hasAuthority( HttpServletResponse response, @PathVariable String authority )
-        throws IOException,
-        NotAuthenticatedException
+    @GetMapping( value = { "/authorization/{authority}",
+        "/authorities/{authority}" }, produces = APPLICATION_JSON_VALUE )
+    public ResponseEntity<Boolean> hasAuthority( @PathVariable String authority )
+        throws NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -306,17 +311,13 @@ public class MeController
             throw new NotAuthenticatedException();
         }
 
-        boolean hasAuthority = currentUser.getUserCredentials().isAuthorized( authority );
-
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), hasAuthority );
+        return ResponseEntity.ok().cacheControl( noStore() )
+            .body( currentUser.getUserCredentials().isAuthorized( authority ) );
     }
 
-    @RequestMapping( value = "/settings" )
-    public void getSettings( HttpServletResponse response )
-        throws IOException,
-        NotAuthenticatedException
+    @GetMapping( value = "/settings", produces = APPLICATION_JSON_VALUE )
+    public ResponseEntity<Map<String, Serializable>> getSettings()
+        throws NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -328,15 +329,12 @@ public class MeController
         Map<String, Serializable> userSettings = userSettingService.getUserSettingsWithFallbackByUserAsMap(
             currentUser, USER_SETTING_KEYS, true );
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), userSettings );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( userSettings );
     }
 
-    @RequestMapping( value = "/settings/{key}" )
-    public void getSetting( HttpServletResponse response, @PathVariable String key )
-        throws IOException,
-        WebMessageException,
+    @GetMapping( value = "/settings/{key}", produces = APPLICATION_JSON_VALUE )
+    public ResponseEntity<Serializable> getSetting( @PathVariable String key )
+        throws WebMessageException,
         NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
@@ -350,27 +348,24 @@ public class MeController
 
         if ( !keyEnum.isPresent() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key is not supported: " + key ) );
+            throw new WebMessageException( conflict( "Key is not supported: " + key ) );
         }
 
         Serializable value = userSettingService.getUserSetting( keyEnum.get(), currentUser );
 
         if ( value == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "User setting not found for key: " + key ) );
+            throw new WebMessageException( notFound( "User setting not found for key: " + key ) );
         }
 
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), value );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( value );
     }
 
-    @RequestMapping( value = "/changePassword", method = RequestMethod.PUT, consumes = { "text/*", "application/*" } )
+    @PutMapping( value = "/changePassword", consumes = { "text/*", "application/*" } )
     @ResponseStatus( HttpStatus.ACCEPTED )
-    public void changePassword( @RequestBody Map<String, String> body, HttpServletResponse response )
+    public void changePassword( @RequestBody Map<String, String> body )
         throws WebMessageException,
-        NotAuthenticatedException,
-        IOException
+        NotAuthenticatedException
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -384,14 +379,14 @@ public class MeController
 
         if ( StringUtils.isEmpty( oldPassword ) || StringUtils.isEmpty( newPassword ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword and newPassword must be provided" ) );
+            throw new WebMessageException( conflict( "OldPassword and newPassword must be provided" ) );
         }
 
         boolean valid = passwordManager.matches( oldPassword, currentUser.getUserCredentials().getPassword() );
 
         if ( !valid )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "OldPassword is incorrect" ) );
+            throw new WebMessageException( conflict( "OldPassword is incorrect" ) );
         }
 
         updatePassword( currentUser, newPassword );
@@ -400,21 +395,21 @@ public class MeController
         userService.expireActiveSessions( currentUser.getUserCredentials() );
     }
 
-    @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = "text/*" )
+    @PostMapping( value = "/verifyPassword", consumes = "text/*" )
     public @ResponseBody RootNode verifyPasswordText( @RequestBody String password, HttpServletResponse response )
         throws WebMessageException
     {
         return verifyPasswordInternal( password, getCurrentUserOrThrow() );
     }
 
-    @RequestMapping( value = "/validatePassword", method = RequestMethod.POST, consumes = "text/*" )
+    @PostMapping( value = "/validatePassword", consumes = "text/*" )
     public @ResponseBody RootNode validatePasswordText( @RequestBody String password, HttpServletResponse response )
         throws WebMessageException
     {
         return validatePasswordInternal( password, getCurrentUserOrThrow() );
     }
 
-    @RequestMapping( value = "/verifyPassword", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @PostMapping( value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE )
     public @ResponseBody RootNode verifyPasswordJson( @RequestBody Map<String, String> body,
         HttpServletResponse response )
         throws WebMessageException
@@ -422,7 +417,7 @@ public class MeController
         return verifyPasswordInternal( body.get( "password" ), getCurrentUserOrThrow() );
     }
 
-    @RequestMapping( value = "/dashboard" )
+    @GetMapping( "/dashboard" )
     public @ResponseBody Dashboard getDashboard( HttpServletResponse response )
         throws Exception
     {
@@ -449,15 +444,12 @@ public class MeController
         interpretationService.updateCurrentUserLastChecked();
     }
 
-    @RequestMapping( value = "/dataApprovalLevels", produces = { "application/json", "text/*" } )
-    public void getApprovalLevels( HttpServletResponse response )
-        throws IOException
+    @GetMapping( value = "/dataApprovalLevels", produces = { APPLICATION_JSON_VALUE, "text/*" } )
+    public ResponseEntity<List<DataApprovalLevel>> getApprovalLevels()
     {
         List<DataApprovalLevel> approvalLevels = approvalLevelService
             .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
-        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-        setNoStore( response );
-        renderService.toJson( response.getOutputStream(), approvalLevels );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( approvalLevels );
     }
 
     // ------------------------------------------------------------------------------------------------
@@ -470,7 +462,7 @@ public class MeController
         if ( password == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
+                conflict( "Required attribute 'password' missing or null." ) );
         }
 
         boolean valid = passwordManager.matches( password, currentUser.getUserCredentials().getPassword() );
@@ -487,7 +479,7 @@ public class MeController
         if ( password == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Required attribute 'password' missing or null." ) );
+                conflict( "Required attribute 'password' missing or null." ) );
         }
 
         CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password,
@@ -513,7 +505,7 @@ public class MeController
 
         if ( user == null || user.getUserCredentials() == null )
         {
-            throw new WebMessageException( WebMessageUtils.unathorized( "Not authenticated" ) );
+            throw new WebMessageException( unauthorized( "Not authenticated" ) );
         }
 
         return user;
@@ -572,7 +564,7 @@ public class MeController
             }
             else
             {
-                throw new WebMessageException( WebMessageUtils.conflict( result.getErrorMessage() ) );
+                throw new WebMessageException( conflict( result.getErrorMessage() ) );
             }
         }
     }

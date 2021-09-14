@@ -27,18 +27,45 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.schema.descriptors.CategoryOptionSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Controller
 @RequestMapping( value = CategoryOptionSchemaDescriptor.API_ENDPOINT )
+@RequiredArgsConstructor
 public class CategoryOptionController extends AbstractCrudController<CategoryOption>
 {
+    private final CategoryService categoryService;
+
+    @ResponseBody
+    @GetMapping( value = "orgUnits" )
+    public Map<String, Collection<String>> getOrgUnitsAssociations(
+        @RequestParam( value = "categoryOptions" ) Set<String> categoryOptionsUids )
+    {
+        return Optional.ofNullable( categoryOptionsUids )
+            .filter( CollectionUtils::isNotEmpty )
+            .map( categoryService::getCategoryOptionOrganisationUnitsAssociations )
+            .map( SetValuedMap::asMap )
+            .orElseThrow( () -> new IllegalArgumentException( "At least one categoryOption uid must be specified" ) );
+    }
 
 }

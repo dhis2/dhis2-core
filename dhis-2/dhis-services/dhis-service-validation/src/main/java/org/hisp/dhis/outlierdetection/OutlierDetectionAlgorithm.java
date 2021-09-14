@@ -35,5 +35,6 @@ package org.hisp.dhis.outlierdetection;
 public enum OutlierDetectionAlgorithm
 {
     Z_SCORE,
-    MIN_MAX;
+    MIN_MAX,
+    MOD_Z_SCORE;
 }

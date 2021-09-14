@@ -27,13 +27,19 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,8 +72,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -148,6 +152,25 @@ public class AbstractJdbcEventAnalyticsManagerTest
         String column = subject.getSelectSql( item, from, to );
 
         assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
+    }
+
+    @Test
+    public void verifyGetCoordinateColumn()
+    {
+        // Given
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+        QueryItem item = new QueryItem( dio );
+
+        // When
+        String column = subject.getCoordinateColumn( item );
+
+        // Then
+        String colName = quote( item.getItemName() );
+
+        assertThat( column, is( "'[' || round(ST_X(" + colName + ")::numeric, 6) || ',' || round(ST_Y(" + colName
+            + ")::numeric, 6) || ']' as " + colName ) );
+
+        return;
     }
 
     @Test
@@ -257,10 +280,10 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
+            newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
 
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", Lists.newArrayList( createOrganisationUnit( 'A' ) ) );
+            DimensionType.ORGANISATION_UNIT, "ouA", newArrayList( createOrganisationUnit( 'A' ) ) );
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
 
@@ -292,10 +315,10 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-            Lists.newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
+            newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
 
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "ouA", Lists.newArrayList( createOrganisationUnit( 'A' ) ) );
+            DimensionType.ORGANISATION_UNIT, "ouA", newArrayList( createOrganisationUnit( 'A' ) ) );
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
 
@@ -318,5 +341,35 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
         // Then
         assertThat( whereClause, containsString( "and ax.\"" + deA.getUid() + "_geom" + "\" is not null" ) );
+    }
+
+    @Test
+    public void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
+    {
+        // Given
+        final DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
+            DimensionType.PERIOD,
+            newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201801" ) ) );
+
+        final DimensionalObject multipleOrgUnitsSameLevel = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, "uidlevel1", "Level 1",
+            newArrayList( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ),
+                createOrganisationUnit( 'C' ) ) );
+
+        final EventQueryParams params = new EventQueryParams.Builder()
+            .addDimension( periods )
+            .addDimension( multipleOrgUnitsSameLevel )
+            .withSkipData( true )
+            .withSkipMeta( false )
+            .withStartDate( new Date() )
+            .withEndDate( new Date() )
+            .build();
+
+        // When
+        final String whereClause = this.subject.getWhereClause( params );
+
+        // Then
+        assertThat( whereClause,
+            containsString( "and ax.\"uidlevel1\" in ('ouabcdefghA', 'ouabcdefghB', 'ouabcdefghC')" ) );
     }
 }

@@ -29,9 +29,14 @@ package org.hisp.dhis.setting;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.system.util.ValidationUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Stian Strandli
@@ -73,7 +78,16 @@ public interface SystemSettingManager
      * @param key the system setting key.
      * @return the setting value.
      */
-    Serializable getSystemSetting( SettingKey key );
+    @Transactional( readOnly = true )
+    default <T extends Serializable> T getSystemSetting( SettingKey key, Class<T> type )
+    {
+        if ( type != key.getClazz() )
+        {
+            throw new IllegalArgumentException( String.format( "Key %s is a %s but was requested as %s", key.getName(),
+                key.getClazz().getSimpleName(), type.getName() ) );
+        }
+        return type.cast( getSystemSetting( key, key.getDefaultValue() ) );
+    }
 
     /**
      * Returns the system setting value for the given key. If no value exists,
@@ -82,7 +96,7 @@ public interface SystemSettingManager
      * @param key the system setting key.
      * @return the setting value.
      */
-    Serializable getSystemSetting( SettingKey key, Serializable defaultValue );
+    <T extends Serializable> T getSystemSetting( SettingKey key, T defaultValue );
 
     /**
      * Returns the translation for given setting key and locale or empty
@@ -124,39 +138,137 @@ public interface SystemSettingManager
      */
     void invalidateCache();
 
-    // -------------------------------------------------------------------------
-    // Specific methods
-    // -------------------------------------------------------------------------
-
     List<String> getFlags();
-
-    String getFlagImage();
-
-    String getEmailHostName();
-
-    int getEmailPort();
-
-    String getEmailUsername();
-
-    boolean getEmailTls();
-
-    String getEmailSender();
-
-    boolean accountRecoveryEnabled();
-
-    boolean selfRegistrationNoRecaptcha();
-
-    boolean emailConfigured();
-
-    boolean systemNotificationEmailValid();
-
-    boolean hideUnapprovedDataInAnalytics();
-
-    String googleAnalyticsUA();
-
-    Integer credentialsExpires();
 
     boolean isConfidential( String name );
 
     boolean isTranslatable( String name );
+
+    // -------------------------------------------------------------------------
+    // Typed methods
+    // -------------------------------------------------------------------------
+
+    @Transactional( readOnly = true )
+    default String getStringSetting( SettingKey key )
+    {
+        return getSystemSetting( key, String.class );
+    }
+
+    @Transactional( readOnly = true )
+    default Integer getIntegerSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Integer.class );
+    }
+
+    @Transactional( readOnly = true )
+    default int getIntSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Integer.class );
+    }
+
+    @Transactional( readOnly = true )
+    default Boolean getBooleanSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Boolean.class );
+    }
+
+    @Transactional( readOnly = true )
+    default boolean getBoolSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Boolean.class ) == Boolean.TRUE;
+    }
+
+    @Transactional( readOnly = true )
+    default Date getDateSetting( SettingKey key )
+    {
+        return getSystemSetting( key, Date.class );
+    }
+
+    // -------------------------------------------------------------------------
+    // Specific methods
+    // -------------------------------------------------------------------------
+
+    @Transactional( readOnly = true )
+    default String getFlagImage()
+    {
+        String flag = getStringSetting( SettingKey.FLAG );
+        return flag != null ? flag + ".png" : null;
+    }
+
+    @Transactional( readOnly = true )
+    default String getEmailHostName()
+    {
+        return StringUtils.trimToNull( getStringSetting( SettingKey.EMAIL_HOST_NAME ) );
+    }
+
+    @Transactional( readOnly = true )
+    default int getEmailPort()
+    {
+        return getIntSetting( SettingKey.EMAIL_PORT );
+    }
+
+    @Transactional( readOnly = true )
+    default String getEmailUsername()
+    {
+        return StringUtils.trimToNull( getStringSetting( SettingKey.EMAIL_USERNAME ) );
+    }
+
+    @Transactional( readOnly = true )
+    default boolean getEmailTls()
+    {
+        return getBoolSetting( SettingKey.EMAIL_TLS );
+    }
+
+    @Transactional( readOnly = true )
+    default String getEmailSender()
+    {
+        return StringUtils.trimToNull( getStringSetting( SettingKey.EMAIL_SENDER ) );
+    }
+
+    @Transactional( readOnly = true )
+    default boolean accountRecoveryEnabled()
+    {
+        return getBoolSetting( SettingKey.ACCOUNT_RECOVERY );
+    }
+
+    @Transactional( readOnly = true )
+    default boolean selfRegistrationNoRecaptcha()
+    {
+        return getBoolSetting( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA );
+    }
+
+    @Transactional( readOnly = true )
+    default boolean emailConfigured()
+    {
+        return StringUtils.isNotBlank( getEmailHostName() )
+            && StringUtils.isNotBlank( getEmailUsername() );
+    }
+
+    @Transactional( readOnly = true )
+    default boolean systemNotificationEmailValid()
+    {
+        String address = getStringSetting( SettingKey.SYSTEM_NOTIFICATIONS_EMAIL );
+
+        return address != null && ValidationUtils.emailIsValid( address );
+    }
+
+    @Transactional( readOnly = true )
+    default boolean hideUnapprovedDataInAnalytics()
+    {
+        // -1 means approval is disabled
+        return getIntSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD ) >= 0;
+    }
+
+    @Transactional( readOnly = true )
+    default String googleAnalyticsUA()
+    {
+        return StringUtils.trimToNull( getStringSetting( SettingKey.GOOGLE_ANALYTICS_UA ) );
+    }
+
+    @Transactional( readOnly = true )
+    default Integer credentialsExpires()
+    {
+        return getIntegerSetting( SettingKey.CREDENTIALS_EXPIRES );
+    }
+
 }

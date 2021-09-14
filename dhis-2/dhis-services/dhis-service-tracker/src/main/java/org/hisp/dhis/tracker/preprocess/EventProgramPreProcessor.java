@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -49,15 +53,35 @@ public class EventProgramPreProcessor
     @Override
     public void process( TrackerBundle bundle )
     {
-        for ( Event event : bundle.getEvents() )
+        List<Event> eventsToPreprocess = bundle.getEvents()
+            .stream()
+            .filter( e -> Strings.isEmpty( e.getProgram() ) || Strings.isEmpty( e.getProgramStage() ) )
+            .collect( Collectors.toList() );
+
+        for ( Event event : eventsToPreprocess )
         {
-            if ( Strings.isEmpty( event.getProgram() ) && Strings.isNotEmpty( event.getProgramStage() ) )
+            // Extract program from program stage
+            if ( Strings.isNotEmpty( event.getProgramStage() ) )
             {
                 ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
                 if ( Objects.nonNull( programStage ) )
                 {
                     event.setProgram( programStage.getProgram().getUid() );
                     bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
+                }
+            }
+            // If it is a program event, extract program stage from program
+            else if ( Strings.isNotEmpty( event.getProgram() ) )
+            {
+                Program program = bundle.getPreheat().get( Program.class, event.getProgram() );
+                if ( Objects.nonNull( program ) && program.isWithoutRegistration() )
+                {
+                    Optional<ProgramStage> programStage = program.getProgramStages().stream().findFirst();
+                    if ( programStage.isPresent() )
+                    {
+                        event.setProgramStage( programStage.get().getUid() );
+                        bundle.getPreheat().put( TrackerIdentifier.UID, programStage.get() );
+                    }
                 }
             }
         }

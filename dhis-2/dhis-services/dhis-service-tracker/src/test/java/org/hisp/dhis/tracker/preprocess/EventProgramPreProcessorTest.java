@@ -27,52 +27,266 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.*;
 
 import java.util.Collections;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
  */
+@RunWith( MockitoJUnitRunner.class )
 public class EventProgramPreProcessorTest
 {
-    private EventProgramPreProcessor preProcessorToTest = new EventProgramPreProcessor();
+
+    private final static String PROGRAM_STAGE_WITH_REGISTRATION = "PROGRAM_STAGE_WITH_REGISTRATION";
+
+    private final static String PROGRAM_STAGE_WITHOUT_REGISTRATION = "PROGRAM_STAGE_WITHOUT_REGISTRATION";
+
+    private final static String PROGRAM_WITH_REGISTRATION = "PROGRAM_WITH_REGISTRATION";
+
+    private final static String PROGRAM_WITHOUT_REGISTRATION = "PROGRAM_WITHOUT_REGISTRATION";
+
+    @Mock
+    private TrackerPreheat preheat;
+
+    private EventProgramPreProcessor preProcessorToTest;
+
+    @Before
+    public void setUp()
+    {
+        when( preheat.get( Program.class, PROGRAM_WITHOUT_REGISTRATION ) )
+            .thenReturn( programWithoutRegistrationWithProgramStages() );
+        when( preheat.get( Program.class, PROGRAM_WITH_REGISTRATION ) )
+            .thenReturn( programWithRegistrationWithProgramStages() );
+        when( preheat.get( ProgramStage.class, PROGRAM_STAGE_WITHOUT_REGISTRATION ) )
+            .thenReturn( programStageWithoutRegistration() );
+        when( preheat.get( ProgramStage.class, PROGRAM_STAGE_WITH_REGISTRATION ) )
+            .thenReturn( programStageWithRegistration() );
+
+        this.preProcessorToTest = new EventProgramPreProcessor();
+    }
 
     @Test
-    public void testEnrollmentIsAddedIntoEventWhenItBelongsToProgramWithoutRegistration()
+    public void testTrackerEventIsEnhancedWithProgram()
     {
         // Given
-        Event event = new Event();
-        event.setProgram( null );
-        event.setProgramStage( "programStageUid" );
-
-        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
-
-        Program program = new Program();
-        program.setUid( "programUid" );
-
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( "programStageUid" );
-        programStage.setProgram( program );
-
-        TrackerPreheat preheat = new TrackerPreheat();
-        preheat.put( TrackerIdentifier.UID, programStage );
-        bundle.setPreheat( preheat );
+        TrackerBundle bundle = TrackerBundle.builder()
+            .events( Collections.singletonList( trackerEventWithProgramStage() ) )
+            .preheat( preheat )
+            .build();
 
         // When
         preProcessorToTest.process( bundle );
 
         // Then
-        assertEquals( "programUid", bundle.getEvents().get( 0 ).getProgram() );
-        assertNotNull( bundle.getPreheat().get( Program.class, "programUid" ) );
+        verify( preheat ).put( TrackerIdentifier.UID, programWithRegistration() );
+        assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+    }
+
+    @Test
+    public void testProgramEventIsEnhancedWithProgram()
+    {
+        // Given
+        TrackerBundle bundle = TrackerBundle.builder()
+            .events( Collections.singletonList( programEventWithProgramStage() ) )
+            .preheat( preheat )
+            .build();
+
+        // When
+        preProcessorToTest.process( bundle );
+
+        // Then
+        verify( preheat ).put( TrackerIdentifier.UID, programWithoutRegistration() );
+        assertEquals( PROGRAM_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+    }
+
+    @Test
+    public void testTrackerEventWithProgramAndProgramStageIsNotProcessed()
+    {
+        // Given
+        Event event = completeTrackerEvent();
+        TrackerBundle bundle = TrackerBundle.builder()
+            .events( Collections.singletonList( event ) )
+            .preheat( preheat )
+            .build();
+
+        // When
+        preProcessorToTest.process( bundle );
+
+        // Then
+        verify( preheat, never() ).get( Program.class, PROGRAM_WITH_REGISTRATION );
+        verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITH_REGISTRATION );
+        assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+        assertEquals( PROGRAM_STAGE_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
+    }
+
+    @Test
+    public void testProgramEventIsEnhancedWithProgramStage()
+    {
+        // Given
+        Event event = programEventWithProgram();
+        TrackerBundle bundle = TrackerBundle.builder()
+            .events( Collections.singletonList( event ) )
+            .preheat( preheat )
+            .build();
+
+        // When
+        preProcessorToTest.process( bundle );
+
+        // Then
+        verify( preheat ).put( TrackerIdentifier.UID, programStageWithoutRegistration() );
+        assertEquals( PROGRAM_STAGE_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
+    }
+
+    @Test
+    public void testTrackerEventIsNotEnhancedWithProgramStage()
+    {
+        // Given
+        Event event = trackerEventWithProgram();
+        TrackerBundle bundle = TrackerBundle.builder()
+            .events( Collections.singletonList( event ) )
+            .preheat( preheat )
+            .build();
+
+        // When
+        preProcessorToTest.process( bundle );
+
+        // Then
+        assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+        assertNull( bundle.getEvents().get( 0 ).getProgramStage() );
+    }
+
+    @Test
+    public void testProgramEventWithProgramAndProgramStageIsNotProcessed()
+    {
+        // Given
+        Event event = completeProgramEvent();
+        TrackerBundle bundle = TrackerBundle.builder()
+            .events( Collections.singletonList( event ) )
+            .preheat( preheat )
+            .build();
+
+        // When
+        preProcessorToTest.process( bundle );
+
+        // Then
+        // Then
+        verify( preheat, never() ).get( Program.class, PROGRAM_WITHOUT_REGISTRATION );
+        verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITHOUT_REGISTRATION );
+        assertEquals( PROGRAM_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
+        assertEquals( PROGRAM_STAGE_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
+    }
+
+    private ProgramStage programStageWithRegistration()
+    {
+        ProgramStage programStage = createProgramStage( 'A', 1, false );
+        programStage.setUid( PROGRAM_STAGE_WITH_REGISTRATION );
+        programStage.setProgram( programWithRegistration() );
+        return programStage;
+    }
+
+    private ProgramStage programStageWithoutRegistration()
+    {
+        ProgramStage programStage = createProgramStage( 'A', 1, false );
+        programStage.setUid( PROGRAM_STAGE_WITHOUT_REGISTRATION );
+        programStage.setProgram( programWithoutRegistration() );
+        return programStage;
+    }
+
+    private Program programWithRegistrationWithProgramStages()
+    {
+        Program program = createProgram( 'A' );
+        program.setUid( PROGRAM_WITH_REGISTRATION );
+        program.setProgramType( ProgramType.WITH_REGISTRATION );
+        program.setProgramStages( Sets.newHashSet( programStageWithRegistration() ) );
+        return program;
+    }
+
+    private Program programWithoutRegistrationWithProgramStages()
+    {
+        Program program = createProgram( 'B' );
+        program.setUid( PROGRAM_WITHOUT_REGISTRATION );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        program.setProgramStages( Sets.newHashSet( programStageWithoutRegistration() ) );
+        return program;
+    }
+
+    private Program programWithRegistration()
+    {
+        Program program = createProgram( 'A' );
+        program.setUid( PROGRAM_WITH_REGISTRATION );
+        program.setProgramType( ProgramType.WITH_REGISTRATION );
+        return program;
+    }
+
+    private Program programWithoutRegistration()
+    {
+        Program program = createProgram( 'B' );
+        program.setUid( PROGRAM_WITHOUT_REGISTRATION );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        return program;
+    }
+
+    private Event programEventWithProgram()
+    {
+        Event event = new Event();
+        event.setProgram( PROGRAM_WITHOUT_REGISTRATION );
+        return event;
+    }
+
+    private Event programEventWithProgramStage()
+    {
+        Event event = new Event();
+        event.setProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION );
+        return event;
+    }
+
+    private Event completeProgramEvent()
+    {
+        Event event = new Event();
+        event.setProgramStage( PROGRAM_STAGE_WITHOUT_REGISTRATION );
+        event.setProgram( PROGRAM_WITHOUT_REGISTRATION );
+        return event;
+    }
+
+    private Event trackerEventWithProgramStage()
+    {
+        Event event = new Event();
+        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION );
+        return event;
+    }
+
+    private Event trackerEventWithProgram()
+    {
+        Event event = new Event();
+        event.setProgram( PROGRAM_WITH_REGISTRATION );
+        return event;
+    }
+
+    private Event completeTrackerEvent()
+    {
+        Event event = new Event();
+        event.setProgramStage( PROGRAM_STAGE_WITH_REGISTRATION );
+        event.setProgram( PROGRAM_WITH_REGISTRATION );
+        return event;
     }
 }

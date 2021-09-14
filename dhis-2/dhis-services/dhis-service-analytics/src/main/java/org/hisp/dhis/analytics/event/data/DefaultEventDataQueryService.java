@@ -222,6 +222,26 @@ public class DefaultEventDataQueryService
             params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
         }
 
+        if ( request.getOutputType() == EventOutputType.ENROLLMENT )
+        {
+            if ( !request.hasStartEndDate() )
+            {
+                params.withStartEndDatesForPeriods( false );
+            }
+            else
+            {
+                params.withStartDate( request.getStartDate() );
+
+                params.withEndDate( request.getEndDate() );
+            }
+        }
+        else
+        {
+            params.withStartDate( request.getStartDate() );
+
+            params.withEndDate( request.getEndDate() );
+        }
+
         return params
             .withValue( getValueDimension( request.getValue() ) )
             .withSkipRounding( request.isSkipRounding() )
@@ -233,8 +253,6 @@ public class DefaultEventDataQueryService
             .withAggregateData( request.isAggregateData() )
             .withProgram( pr )
             .withProgramStage( ps )
-            .withStartDate( request.getStartDate() )
-            .withEndDate( request.getEndDate() )
             .withOrganisationUnitMode( request.getOuMode() )
             .withSkipMeta( request.isSkipMeta() )
             .withSkipData( request.isSkipData() )
@@ -244,6 +262,7 @@ public class DefaultEventDataQueryService
             .withCoordinateOuFallback( request.isCoordinateOuFallback() )
             .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
             .withDataIdScheme( request.getDataIdScheme() )
+            .withOutputIdScheme( request.getOutputIdScheme() )
             .withEventStatus( request.getEventStatus() )
             .withDisplayProperty( request.getDisplayProperty() )
             .withTimeField( request.getTimeField() )

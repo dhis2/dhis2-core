@@ -40,6 +40,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -292,9 +293,9 @@ public class DefaultUserService
 
     private void handleUserQueryParams( UserQueryParams params )
     {
-        boolean canGrantOwnRoles = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
-        params.setDisjointRoles( !canGrantOwnRoles );
+        boolean canSeeOwnRoles = params.isCanSeeOwnUserAuthorityGroups()
+            || systemSettingManager.getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        params.setDisjointRoles( !canSeeOwnRoles );
 
         if ( !params.hasUser() )
         {
@@ -317,7 +318,7 @@ public class DefaultUserService
 
         if ( params.isUserOrgUnits() && params.hasUser() )
         {
-            params.setOrganisationUnits( Lists.newArrayList( params.getUser().getOrganisationUnits() ) );
+            params.setOrganisationUnits( params.getUser().getOrganisationUnits() );
         }
     }
 
@@ -528,8 +529,8 @@ public class DefaultUserService
     {
         User user = currentUserService.getCurrentUser();
 
-        boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        boolean canGrantOwnUserAuthorityGroups = systemSettingManager
+            .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
         FilterUtils.filter( userRoles, new UserAuthorityGroupCanIssueFilter( user, canGrantOwnUserAuthorityGroups ) );
     }
@@ -729,8 +730,8 @@ public class DefaultUserService
 
         // Validate user role
 
-        boolean canGrantOwnUserAuthorityGroups = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
+        boolean canGrantOwnUserAuthorityGroups = systemSettingManager
+            .getBoolSetting( SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS );
 
         List<UserAuthorityGroup> roles = userAuthorityGroupStore.getByUid( user.getUserCredentials()
             .getUserAuthorityGroups().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
@@ -774,8 +775,8 @@ public class DefaultUserService
     @Transactional( readOnly = true )
     public List<User> getExpiringUsers()
     {
-        int daysBeforePasswordChangeRequired = (Integer) systemSettingManager
-            .getSystemSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
+        int daysBeforePasswordChangeRequired = systemSettingManager
+            .getIntSetting( SettingKey.CREDENTIALS_EXPIRES ) * 30;
 
         Date daysPassed = new DateTime( new Date() ).minusDays( daysBeforePasswordChangeRequired - EXPIRY_THRESHOLD )
             .toDate();
@@ -785,6 +786,12 @@ public class DefaultUserService
             .setPasswordLastUpdated( daysPassed );
 
         return userStore.getExpiringUsers( userQueryParams );
+    }
+
+    @Override
+    public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
+    {
+        return userStore.getExpiringUserAccounts( inDays );
     }
 
     @Override
@@ -814,6 +821,13 @@ public class DefaultUserService
             return 0;
         }
         return userStore.disableUsersInactiveSince( inactiveSince );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Set<String> findUsersInactiveSince( Date inactiveSince )
+    {
+        return userStore.findUsersInactiveSince( inactiveSince );
     }
 
     @Override

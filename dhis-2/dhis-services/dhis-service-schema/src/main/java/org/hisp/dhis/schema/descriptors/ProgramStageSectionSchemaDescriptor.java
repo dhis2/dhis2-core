@@ -30,6 +30,10 @@ package org.hisp.dhis.schema.descriptors;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,6 +52,9 @@ public class ProgramStageSectionSchemaDescriptor implements SchemaDescriptor
         Schema schema = new Schema( ProgramStageSection.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1508 );
+
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
 
         return schema;
     }

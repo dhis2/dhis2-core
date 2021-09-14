@@ -31,8 +31,10 @@ import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
 import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
 import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY;
+import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
+import static org.hisp.dhis.analytics.ColumnDataType.VARCHAR_255;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.getClosingParentheses;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -40,7 +42,11 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getColumnType;
 import static org.hisp.dhis.system.util.MathUtils.NUMERIC_LENIENT_REGEXP;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -103,6 +109,8 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
+    public static final String STORED_BY_COL_NAME = "storedby";
+
     private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
@@ -115,6 +123,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP, "psi.completeddate" ),
         new AnalyticsTableColumn( quote( "created" ), TIMESTAMP, "psi.created" ),
         new AnalyticsTableColumn( quote( "lastupdated" ), TIMESTAMP, "psi.lastupdated" ),
+        new AnalyticsTableColumn( quote( STORED_BY_COL_NAME ), VARCHAR_255, "psi.storedby" ),
         new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" )
@@ -127,6 +136,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
         new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
         new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ),
+        new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, "ous.level" ),
         new AnalyticsTableColumn( quote( "ougeometry" ), GEOMETRY, "ou.geometry" )
             .withIndexType( IndexType.GIST ),
         new AnalyticsTableColumn( quote( "pigeometry" ), GEOMETRY, "pi.geometry" )
@@ -161,7 +171,11 @@ public class JdbcEventAnalyticsTableManager
 
         Calendar calendar = PeriodType.getCalendar();
 
-        List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+        List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
+            : idObjectManager.getAllNoAcl( Program.class )
+                .stream()
+                .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
+                .collect( Collectors.toList() );
 
         for ( Program program : programs )
         {
@@ -198,10 +212,10 @@ public class JdbcEventAnalyticsTableManager
      */
     private List<AnalyticsTable> getLatestAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        Date lastFullTableUpdate = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
-        Date lastLatestPartitionUpdate = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
+        Date lastFullTableUpdate = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        Date lastLatestPartitionUpdate = systemSettingManager
+            .getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE );
         Date lastAnyTableUpdate = DateUtils.getLatest( lastLatestPartitionUpdate, lastFullTableUpdate );
 
         Assert.notNull( lastFullTableUpdate,
@@ -212,7 +226,10 @@ public class JdbcEventAnalyticsTableManager
 
         List<AnalyticsTable> tables = new ArrayList<>();
 
-        List<Program> programs = idObjectManager.getAllNoAcl( Program.class );
+        List<Program> programs = params.isSkipPrograms() ? idObjectManager.getAllNoAcl( Program.class )
+            .stream()
+            .filter( p -> !params.getSkipPrograms().contains( p.getUid() ) )
+            .collect( Collectors.toList() ) : idObjectManager.getAllNoAcl( Program.class );
 
         for ( Program program : programs )
         {
@@ -304,6 +321,12 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
+    protected String getPartitionColumn()
+    {
+        return "yearly";
+    }
+
+    @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final Program program = partition.getMasterTable().getProgram();
@@ -335,6 +358,12 @@ public class JdbcEventAnalyticsTableManager
         populateTableInternal( partition, getDimensionColumns( program ), fromClause );
     }
 
+    /**
+     * Returns dimensional analytics table columns.
+     *
+     * @param program the program.
+     * @return a list of {@link AnalyticsTableColumn}.
+     */
     private List<AnalyticsTableColumn> getDimensionColumns( Program program )
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
@@ -361,11 +390,11 @@ public class JdbcEventAnalyticsTableManager
             .collect( Collectors.toList() ) );
         columns.addAll( addPeriodTypeColumns( "dps" ) );
 
-        columns.addAll( program.getDataElements().stream()
+        columns.addAll( program.getAnalyticsDataElements().stream()
             .map( de -> getColumnFromDataElement( de, false ) ).flatMap( Collection::stream )
             .collect( Collectors.toList() ) );
 
-        columns.addAll( program.getDataElementsWithLegendSet().stream()
+        columns.addAll( program.getAnalyticsDataElementsWithLegendSet().stream()
             .map( de -> getColumnFromDataElement( de, true ) ).flatMap( Collection::stream )
             .collect( Collectors.toList() ) );
 
@@ -536,7 +565,7 @@ public class JdbcEventAnalyticsTableManager
     {
         if ( valueType.isNumeric() || valueType.isDate() )
         {
-            String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : valueType.isDate() ? DATE_REGEXP : "";
+            String regex = valueType.isNumeric() ? NUMERIC_LENIENT_REGEXP : DATE_REGEXP;
 
             return " and eventdatavalues #>> '{" + uid + ",value}' " + statementBuilder.getRegexpMatch() + " '" + regex
                 + "'";

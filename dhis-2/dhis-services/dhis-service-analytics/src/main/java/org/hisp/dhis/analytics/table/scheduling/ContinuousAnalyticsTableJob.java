@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
@@ -64,8 +64,7 @@ import com.google.common.base.Preconditions;
  */
 @Slf4j
 @Component( "continuousAnalyticsTableJob" )
-public class ContinuousAnalyticsTableJob
-    extends AbstractJob
+public class ContinuousAnalyticsTableJob implements Job
 {
     private static final int DEFAULT_HOUR_OF_DAY = 0;
 
@@ -97,7 +96,7 @@ public class ContinuousAnalyticsTableJob
 
         Date now = new Date();
         Date defaultNextFullUpdate = DateUtils.getNextDate( fullUpdateHourOfDay, now );
-        Date nextFullUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE,
+        Date nextFullUpdate = systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE,
             defaultNextFullUpdate );
 
         log.info(

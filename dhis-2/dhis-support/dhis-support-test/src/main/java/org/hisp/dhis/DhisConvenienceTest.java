@@ -68,12 +68,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -124,6 +121,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -143,8 +141,10 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
@@ -284,6 +284,19 @@ public abstract class DhisConvenienceTest
     {
         DateTime dateTime = new DateTime( s );
         return dateTime.toDate();
+    }
+
+    /**
+     * Creates a date. Alias for {@code getDate}.
+     *
+     * @param year the year.
+     * @param month the month.
+     * @param day the day of month.
+     * @return a date.
+     */
+    public static Date date( int year, int month, int day )
+    {
+        return getDate( year, month, day );
     }
 
     /**
@@ -580,6 +593,12 @@ public abstract class DhisConvenienceTest
      * @param categoryCombo the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
+     *
+     *         Note: All the Category Options (COs) should be added to the
+     *         Category Option Combo (COC) before the COC is added to the COs.
+     *         That way the hashCode for the COC is stable when it is added to
+     *         the CO HashSets because the COC hashCode depends on its linked
+     *         COs.
      */
     public static CategoryOptionCombo createCategoryOptionCombo( CategoryCombo categoryCombo,
         CategoryOption... categoryOptions )
@@ -592,6 +611,10 @@ public abstract class DhisConvenienceTest
         for ( CategoryOption categoryOption : categoryOptions )
         {
             categoryOptionCombo.getCategoryOptions().add( categoryOption );
+        }
+
+        for ( CategoryOption categoryOption : categoryOptions )
+        {
             categoryOption.getCategoryOptionCombos().add( categoryOptionCombo );
         }
 
@@ -605,7 +628,7 @@ public abstract class DhisConvenienceTest
 
         coc.setUid( BASE_COC_UID + uniqueCharacter );
         coc.setName( "CategoryOptionCombo" + uniqueCharacter );
-        coc.setName( "CategoryOptionComboCode" + uniqueCharacter );
+        coc.setCode( "CategoryOptionComboCode" + uniqueCharacter );
 
         return coc;
     }
@@ -1053,6 +1076,27 @@ public abstract class DhisConvenienceTest
      * @param dataElement The data element.
      * @param period The period.
      * @param source The source.
+     * @param categoryOptionCombo The category option combo.
+     * @param attributeOptionCombo The attribute option combo.
+     * @param value the value.
+     * @param created the created date.
+     * @param lastUpdated the last updated date.
+     */
+    public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value,
+        Date created, Date lastUpdated )
+    {
+        DataValue dataValue = createDataValue( dataElement, period, source,
+            categoryOptionCombo, attributeOptionCombo, value );
+        dataValue.setCreated( created );
+        dataValue.setLastUpdated( lastUpdated );
+        return dataValue;
+    }
+
+    /**
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
      * @param value The value.
      * @param categoryOptionCombo The category option combo.
      * @param attributeOptionCombo The attribute option combo.
@@ -1304,31 +1348,6 @@ public abstract class DhisConvenienceTest
         return visualization;
     }
 
-    public static Chart createChart( char uniqueCharacter )
-    {
-        Chart chart = new Chart();
-        chart.setAutoFields();
-        chart.setName( "Chart" + uniqueCharacter );
-        chart.setDescription( "Description" + uniqueCharacter );
-        chart.setType( ChartType.COLUMN );
-
-        return chart;
-    }
-
-    public static Chart createChart( char uniqueCharacter, List<Indicator> indicators, List<Period> periods,
-        List<OrganisationUnit> units )
-    {
-        Chart chart = createChart( uniqueCharacter );
-
-        chart.addAllDataDimensionItems( indicators );
-        chart.setPeriods( periods );
-        chart.setOrganisationUnits( units );
-        chart.setDimensions( DimensionalObject.DATA_X_DIM_ID, DimensionalObject.PERIOD_DIM_ID,
-            DimensionalObject.ORGUNIT_DIM_ID );
-
-        return chart;
-    }
-
     public static User createUser( char uniqueCharacter )
     {
         return createUser( uniqueCharacter, Lists.newArrayList() );
@@ -1497,6 +1516,21 @@ public abstract class DhisConvenienceTest
         }
 
         return program;
+    }
+
+    public static ProgramInstance createProgramInstance( Program program, TrackedEntityInstance tei,
+        OrganisationUnit organisationUnit )
+    {
+        ProgramInstance programInstance = new ProgramInstance( program, tei, organisationUnit );
+        programInstance.setAutoFields();
+
+        programInstance.setProgram( program );
+        programInstance.setEntityInstance( tei );
+        programInstance.setOrganisationUnit( organisationUnit );
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+
+        return programInstance;
     }
 
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )
@@ -1703,6 +1737,25 @@ public abstract class DhisConvenienceTest
         relationshipType.setFromConstraint( psiConstraint );
         relationshipType.setToConstraint( teiConstraint );
         return relationshipType;
+    }
+
+    public static Relationship createTeiToTeiRelationship( TrackedEntityInstance from, TrackedEntityInstance to,
+        RelationshipType relationshipType )
+    {
+        Relationship relationship = new Relationship();
+        RelationshipItem _from = new RelationshipItem();
+        RelationshipItem _to = new RelationshipItem();
+
+        _from.setTrackedEntityInstance( from );
+        _to.setTrackedEntityInstance( to );
+
+        relationship.setRelationshipType( relationshipType );
+        relationship.setFrom( _from );
+        relationship.setTo( _to );
+
+        relationship.setAutoFields();
+
+        return relationship;
     }
 
     public static RelationshipType createPersonToPersonRelationshipType( char uniqueCharacter, Program program,
@@ -2418,6 +2471,11 @@ public abstract class DhisConvenienceTest
         return new ProgramDataElementDimensionItem( pr, de );
     }
 
+    protected void removeUserAccess( IdentifiableObject object )
+    {
+        object.getSharing().resetUserAccesses();
+    }
+
     protected void enableDataSharing( User user, IdentifiableObject object, String access )
     {
         object.getSharing().resetUserAccesses();
@@ -2512,13 +2570,13 @@ public abstract class DhisConvenienceTest
             credentials -> credentials.getUserAuthorityGroups().addAll( asList( roles ) ) );
     }
 
-    protected final User addUser( char uniqueCharacter, Consumer<UserCredentials> init )
+    protected final User addUser( char uniqueCharacter, Consumer<UserCredentials> consumer )
     {
         User user = createUser( uniqueCharacter );
         UserCredentials credentials = createUserCredentials( uniqueCharacter, user );
-        if ( init != null )
+        if ( consumer != null )
         {
-            init.accept( credentials );
+            consumer.accept( credentials );
         }
         userService.addUser( user );
         userService.addUserCredentials( credentials );

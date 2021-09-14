@@ -121,8 +121,7 @@ public class DefaultAnalyticsSecurityManager
     private void decideAccessDataViewOrganisationUnits( DataQueryParams params, User user )
         throws IllegalQueryException
     {
-        List<DimensionalItemObject> queryOrgUnits = params
-            .getDimensionOrFilterItems( DimensionalObject.ORGUNIT_DIM_ID );
+        List<OrganisationUnit> queryOrgUnits = params.getAllTypedOrganisationUnits();
 
         if ( queryOrgUnits.isEmpty() || user == null || !user.hasDataViewOrganisationUnit() )
         {
@@ -131,13 +130,18 @@ public class DefaultAnalyticsSecurityManager
 
         Set<OrganisationUnit> viewOrgUnits = user.getDataViewOrganisationUnits();
 
-        for ( DimensionalItemObject object : queryOrgUnits )
-        {
-            OrganisationUnit queryOrgUnit = (OrganisationUnit) object;
+        Integer maxOrgUnitLevel = user.getDataViewMaxOrganisationUnitLevel();
 
+        for ( OrganisationUnit queryOrgUnit : queryOrgUnits )
+        {
             boolean notDescendant = !queryOrgUnit.isDescendant( viewOrgUnits );
 
             if ( notDescendant )
+            {
+                throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
+            }
+
+            if ( maxOrgUnitLevel != null && queryOrgUnit.getLevel() > maxOrgUnitLevel )
             {
                 throwIllegalQueryEx( ErrorCode.E7120, user.getUsername(), queryOrgUnit.getUid() );
             }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
@@ -43,9 +45,9 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -65,8 +67,7 @@ public class EnrollmentAnalyticsController
     @Autowired
     private ContextUtils contextUtils;
 
-    @RequestMapping( value = "/query/{program}", method = RequestMethod.GET, produces = {
-        "application/json", "application/javascript" } )
+    @GetMapping( value = "/query/{program}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
@@ -80,7 +81,7 @@ public class EnrollmentAnalyticsController
         return analyticsService.getEnrollments( params );
     }
 
-    @RequestMapping( value = "/query/{program}.xml", method = RequestMethod.GET )
+    @GetMapping( "/query/{program}.xml" )
     public void getQueryXml(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
@@ -97,7 +98,7 @@ public class EnrollmentAnalyticsController
         GridUtils.toXml( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/query/{program}.xls", method = RequestMethod.GET )
+    @GetMapping( "/query/{program}.xls" )
     public void getQueryXls(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
@@ -114,7 +115,7 @@ public class EnrollmentAnalyticsController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = "/query/{program}.csv", method = RequestMethod.GET )
+    @GetMapping( "/query/{program}.csv" )
     public void getQueryCsv(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
@@ -131,7 +132,7 @@ public class EnrollmentAnalyticsController
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/query/{program}.html", method = RequestMethod.GET )
+    @GetMapping( "/query/{program}.html" )
     public void getQueryHtml(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
@@ -148,7 +149,7 @@ public class EnrollmentAnalyticsController
         GridUtils.toHtml( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = "/query/{program}.html+css", method = RequestMethod.GET )
+    @GetMapping( "/query/{program}.html+css" )
     public void getQueryHtmlCss(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,

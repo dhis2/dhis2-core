@@ -33,8 +33,8 @@
     <param name="clazz">org.hisp.dhis.visualization.AxisV2</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbLegendDefinitions">
-    <param name="clazz">org.hisp.dhis.visualization.LegendDefinitions</param>
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSeriesKey">
+    <param name="clazz">org.hisp.dhis.visualization.SeriesKey</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbLine">
@@ -47,6 +47,14 @@
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbOutlierAnalysis">
     <param name="clazz">org.hisp.dhis.visualization.OutlierAnalysis</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblDashboardLayout">
+    <param name="clazz">org.hisp.dhis.dashboard.design.Layout</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbDashboardItemConfig">
+    <param name="clazz">org.hisp.dhis.dashboard.design.ItemConfig</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbTextPattern">
@@ -129,6 +137,10 @@
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbValueTypeOptions">
     <param name="clazz">org.hisp.dhis.common.ValueTypeOptions</param>
+  </typedef>
+
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.ApiKeyAttributeJsonBinaryType" name="jbApiKeyAttributesList">
+    <param name="clazz">org.hisp.dhis.security.apikey.ApiTokenAttribute</param>
   </typedef>
 
 </hibernate-mapping>

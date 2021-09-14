@@ -1,0 +1,23 @@
+<adx xmlns="urn:ihe:qrph:adx:2015">
+    <group dataSet="MalariaDS" period="2020-01-01/P1M" orgUnit="123">
+        <dataValue dataElement="Malaria numeric" Sex_category="FFFFFFFFFFF" Age_category="under555555" value="1"/>
+        <dataValue dataElement="Malaria numeric" Sex_category="MMMMMMMMMMM" Age_category="under555555" value="2"/>
+        <dataValue dataElement="Malaria numeric" categoryOptionCombo="FOver555555" value="3"/>
+        <dataValue dataElement="Malaria numeric" categoryOptionCombo="MOver555555" value="4"/>
+        <dataValue dataElement="Malaria text" value="0">
+            <annotation>Text data value</annotation>
+        </dataValue>
+    </group>
+    <group dataSet="MalariaDS" period="2020-02-01/P1M" orgUnit="456">
+        <dataValue dataElement="Malaria numeric" Sex_category="FFFFFFFFFFF" Age_category="under555555" value="6"/>
+    </group>
+    <group dataSet="MalariaMechanismDS" Mechanism_category="PEPFARRRRRR" period="2021-01-01/P3M" orgUnit="456">
+        <dataValue dataElement="Malaria numeric" Sex_category="FFFFFFFFFFF" Age_category="under555555" value="10"/>
+    </group>
+    <group dataSet="MalariaMechanismDS" Mechanism_category="McDonaldsss" period="2021-01-01/P3M" orgUnit="456">
+        <dataValue dataElement="Malaria numeric" Sex_category="FFFFFFFFFFF" Age_category="over5555555" value="20"/>
+    </group>
+    <group dataSet="MalariaMechanismDS" attributeOptionCombo="cocMcDonald" period="2021-01-01/P3M" orgUnit="456">
+        <dataValue dataElement="Malaria numeric" Sex_category="MMMMMMMMMMM" Age_category="under555555" value="30"/>
+    </group>
+</adx>

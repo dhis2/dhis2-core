@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hisp.dhis.tracker.preheat.supplier.classStrategy.StrategyFor;
+import org.hisp.dhis.tracker.preheat.supplier.strategy.StrategyFor;
 
 import io.github.classgraph.AnnotationClassRef;
 import io.github.classgraph.AnnotationInfo;

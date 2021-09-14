@@ -84,8 +84,12 @@ public class NotificationMap
 
     public void add( JobConfiguration configuration, Notification notification )
     {
-        JobType jobType = configuration.getJobType();
         String jobId = configuration.getUid();
+        if ( jobId == null )
+        {
+            return;
+        }
+        JobType jobType = configuration.getJobType();
         Deque<String> notifications = notificationsJobIdOrder.get( jobType );
         if ( notifications.size() > MAX_POOL_TYPE_SIZE )
         {
@@ -94,13 +98,17 @@ public class NotificationMap
         notifications.addFirst( jobId );
         notificationsWithType.get( jobType )
             .computeIfAbsent( jobId, key -> new ConcurrentLinkedDeque<>() )
-            .add( notification );
+            .addFirst( notification );
     }
 
     public void addSummary( JobConfiguration configuration, Object summary )
     {
-        JobType jobType = configuration.getJobType();
         String jobId = configuration.getUid();
+        if ( jobId == null )
+        {
+            return;
+        }
+        JobType jobType = configuration.getJobType();
         Deque<String> summaries = summariesJobIdOrder.get( jobType );
         if ( summaries.size() >= MAX_POOL_TYPE_SIZE )
         {

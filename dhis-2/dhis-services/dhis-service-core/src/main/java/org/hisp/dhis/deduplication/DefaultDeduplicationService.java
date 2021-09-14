@@ -27,30 +27,33 @@
  */
 package org.hisp.dhis.deduplication;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service( "org.hisp.dhis.deduplication.DeduplicationService" )
+@RequiredArgsConstructor
 public class DefaultDeduplicationService
     implements DeduplicationService
 {
-
     private final PotentialDuplicateStore potentialDuplicateStore;
 
-    public DefaultDeduplicationService( PotentialDuplicateStore potentialDuplicateStore )
-    {
-        this.potentialDuplicateStore = potentialDuplicateStore;
-    }
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Override
-    @Transactional
-    public long addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
-    {
-        potentialDuplicateStore.save( potentialDuplicate );
-        return potentialDuplicate.getId();
-    }
+    private final DeduplicationHelper deduplicationHelper;
+
+    private final CurrentUserService currentUserService;
 
     @Override
     @Transactional( readOnly = true )
@@ -74,11 +77,17 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional
-    public void markPotentialDuplicateInvalid( PotentialDuplicate potentialDuplicate )
+    @Transactional( readOnly = true )
+    public boolean exists( PotentialDuplicate potentialDuplicate )
     {
-        potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
-        potentialDuplicateStore.update( potentialDuplicate );
+        return potentialDuplicateStore.exists( potentialDuplicate );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query )
+    {
+        return potentialDuplicateStore.getAllByQuery( query );
     }
 
     @Override
@@ -90,23 +99,157 @@ public class DefaultDeduplicationService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public boolean exists( PotentialDuplicate potentialDuplicate )
+    @Transactional
+    public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
-        return potentialDuplicateStore.exists( potentialDuplicate );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<PotentialDuplicate> getAllPotentialDuplicates( PotentialDuplicateQuery query )
-    {
-        return potentialDuplicateStore.getAllByQuery( query );
+        potentialDuplicateStore.update( potentialDuplicate );
     }
 
     @Override
     @Transactional
-    public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    public void autoMerge( DeduplicationMergeParams params )
     {
-        potentialDuplicateStore.delete( potentialDuplicate );
+        String autoMergeConflicts = getAutoMergeConflictErrors( params.getOriginal(), params.getDuplicate() );
+        if ( autoMergeConflicts != null )
+            throw new PotentialDuplicateConflictException(
+                "PotentialDuplicate can not be merged automatically: " + autoMergeConflicts );
+
+        params.setMergeObject( deduplicationHelper.generateMergeObject( params.getOriginal(), params.getDuplicate() ) );
+
+        merge( params );
     }
+
+    @Override
+    @Transactional
+    public void manualMerge( DeduplicationMergeParams deduplicationMergeParams )
+    {
+        String invalidReference = deduplicationHelper.getInvalidReferenceErrors( deduplicationMergeParams );
+        if ( invalidReference != null )
+        {
+            throw new PotentialDuplicateConflictException(
+                "Merging conflict: " + invalidReference );
+        }
+
+        merge( deduplicationMergeParams );
+    }
+
+    private String getAutoMergeConflictErrors( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    {
+        if ( !original.getTrackedEntityType().equals( duplicate.getTrackedEntityType() ) )
+        {
+            return "Entities have different Tracked Entity Types.";
+        }
+
+        if ( original.isDeleted() || duplicate.isDeleted() )
+        {
+            return "One or both entities have already been marked as deleted.";
+        }
+
+        if ( haveSameEnrollment( original.getProgramInstances(), duplicate.getProgramInstances() ) )
+        {
+            return "Both entities enrolled in the same program.";
+        }
+
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA = original
+            .getTrackedEntityAttributeValues();
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB = duplicate
+            .getTrackedEntityAttributeValues();
+
+        if ( sameAttributesAreEquals( trackedEntityAttributeValueA, trackedEntityAttributeValueB ) )
+        {
+            return "Entities have conflicting values for the same attributes.";
+        }
+
+        return null;
+    }
+
+    private void merge( DeduplicationMergeParams params )
+    {
+        TrackedEntityInstance original = params.getOriginal();
+        TrackedEntityInstance duplicate = params.getDuplicate();
+        MergeObject mergeObject = params.getMergeObject();
+
+        String accessError = deduplicationHelper.getUserAccessErrors( original, duplicate, mergeObject );
+        if ( accessError != null )
+            throw new PotentialDuplicateForbiddenException(
+                "Insufficient access: " + accessError );
+
+        potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate,
+            mergeObject.getTrackedEntityAttributes() );
+        potentialDuplicateStore.moveRelationships( original, duplicate,
+            mergeObject.getRelationships() );
+        potentialDuplicateStore.moveEnrollments( original, duplicate,
+            mergeObject.getEnrollments() );
+
+        potentialDuplicateStore.removeTrackedEntity( duplicate );
+        updateTeiAndPotentialDuplicate( params, original );
+        potentialDuplicateStore.auditMerge( params );
+    }
+
+    private boolean haveSameEnrollment( Set<ProgramInstance> originalEnrollments,
+        Set<ProgramInstance> duplicateEnrollments )
+    {
+        Set<String> originalPrograms = originalEnrollments.stream()
+            .filter( e -> !e.isDeleted() )
+            .map( e -> e.getProgram().getUid() )
+            .collect( Collectors.toSet() );
+        Set<String> duplicatePrograms = duplicateEnrollments.stream()
+            .filter( e -> !e.isDeleted() )
+            .map( e -> e.getProgram().getUid() )
+            .collect( Collectors.toSet() );
+
+        originalPrograms.retainAll( duplicatePrograms );
+
+        return !originalPrograms.isEmpty();
+    }
+
+    private void updateTeiAndPotentialDuplicate( DeduplicationMergeParams deduplicationMergeParams,
+        TrackedEntityInstance original )
+    {
+        updateOriginalTei( original );
+        updatePotentialDuplicateStatus( deduplicationMergeParams.getPotentialDuplicate() );
+    }
+
+    private void updatePotentialDuplicateStatus( PotentialDuplicate potentialDuplicate )
+    {
+        potentialDuplicate.setStatus( DeduplicationStatus.MERGED );
+        potentialDuplicateStore.update( potentialDuplicate );
+    }
+
+    private void updateOriginalTei( TrackedEntityInstance original )
+    {
+        original.setLastUpdated( new Date() );
+        original.setLastUpdatedBy( currentUserService.getCurrentUser() );
+        trackedEntityInstanceService.updateTrackedEntityInstance( original );
+    }
+
+    private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
+        Set<TrackedEntityAttributeValue> trackedEntityAttributeValueB )
+    {
+        if ( trackedEntityAttributeValueA.isEmpty() || trackedEntityAttributeValueB.isEmpty() )
+        {
+            return false;
+        }
+
+        for ( TrackedEntityAttributeValue teavA : trackedEntityAttributeValueA )
+        {
+            for ( TrackedEntityAttributeValue teavB : trackedEntityAttributeValueB )
+            {
+                if ( teavA.getAttribute().equals( teavB.getAttribute() )
+                    && !teavA.getValue().equals( teavB.getValue() ) )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
+    @Transactional
+    public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
+    {
+        potentialDuplicateStore.save( potentialDuplicate );
+    }
+
 }

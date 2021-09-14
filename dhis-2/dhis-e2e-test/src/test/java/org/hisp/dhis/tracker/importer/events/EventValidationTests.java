@@ -25,10 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
@@ -45,12 +50,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
-import java.util.stream.Stream;
-
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -66,6 +66,8 @@ public class EventValidationTests
 
     private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
+    private static String anotherTrackerProgramId = Constants.ANOTHER_TRACKER_PROGRAM_ID;
+
     private static String trackerProgramStageId;
 
     private static String ouIdWithoutAccess;
@@ -80,10 +82,8 @@ public class EventValidationTests
     {
         return Stream.of(
             Arguments.of( OU_ID, trackerProgramId, trackerProgramStageId, "E1033" ),
-            Arguments.arguments( null, eventProgramId, eventProgramStageId,
-                "E1123" ),
-            Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
-                "E1029" ),
+            Arguments.arguments( null, eventProgramId, eventProgramStageId, "E1123" ),
+            Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId, "E1029" ),
             Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ),
             Arguments.arguments( OU_ID, trackerProgramId, eventProgramStageId, "E1089" ) );
     }
@@ -149,7 +149,8 @@ public class EventValidationTests
 
     @ParameterizedTest
     @MethodSource( "provideValidationArguments" )
-    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId, String errorCode )
+    public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId,
+        String errorCode )
     {
         JsonObject jsonObject = trackerActions.buildEvent( ouId, programId, programStageId );
 
@@ -159,10 +160,33 @@ public class EventValidationTests
             .body( "errorCode", hasItem( equalTo( errorCode ) ) );
     }
 
+    @Test
+    public void eventImportShouldValidateProgramFromProgramStage()
+    {
+        JsonObject jsonObject = trackerActions.buildEvent( OU_ID, anotherTrackerProgramId, trackerProgramStageId );
+        jsonObject.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "enrollment", enrollment );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+
+        response.validateErrorReport()
+            .body( "errorCode", hasItem( equalTo( "E1079" ) ) );
+    }
+
+    @Test
+    public void eventImportShouldPassValidationWhenOnlyEventProgramIsDefined()
+    {
+        JsonObject jsonObject = trackerActions.buildEvent( OU_ID, eventProgramId, null );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
+
+        response.validateSuccessfulImport();
+    }
+
     private void setupData()
     {
-        eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
-            eventProgramId ) )
+        eventProgramStageId = programActions.programStageActions
+            .get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
+                eventProgramId ) )
             .extractString( "programStages.id[0]" );
 
         assertNotNull( eventProgramStageId, "Failed to find a program stage" );
@@ -175,7 +199,8 @@ public class EventValidationTests
         ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
         new UserActions().grantCurrentUserAccessToOrgUnit( ouIdWithoutAccess );
 
-        enrollment = trackerActions.postAndGetJobReport( trackerActions.buildTeiAndEnrollment( OU_ID, trackerProgramId ) )
+        enrollment = trackerActions
+            .postAndGetJobReport( trackerActions.buildTeiAndEnrollment( OU_ID, trackerProgramId ) )
             .validateSuccessfulImport().extractImportedEnrollments().get( 0 );
     }
 }

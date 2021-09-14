@@ -50,12 +50,12 @@ public class DimensionalItemId
     /**
      * The type of DimensionalItemObject whose ids we have
      */
-    private DimensionItemType dimensionItemType;
+    private final DimensionItemType dimensionItemType;
 
     /**
      * The first id for the DimensionalItemObject
      */
-    private String id0;
+    private final String id0;
 
     /**
      * The second id (if any) for the DimensionalItemObject
@@ -66,6 +66,11 @@ public class DimensionalItemId
      * The third id (if any) for the DimensionalItemObject
      */
     private String id2;
+
+    /**
+     * The item as parsed from the expression
+     */
+    private String item;
 
     /**
      * The period offset
@@ -112,6 +117,17 @@ public class DimensionalItemId
         this.id1 = id1;
         this.id2 = id2;
         this.periodOffset = periodOffset;
+    }
+
+    public DimensionalItemId( DimensionItemType dimensionItemType, String id0, String id1, String id2,
+        int periodOffset, String item )
+    {
+        this.dimensionItemType = dimensionItemType;
+        this.id0 = id0;
+        this.id1 = id1;
+        this.id2 = id2;
+        this.periodOffset = periodOffset;
+        this.item = item;
     }
 
     // -------------------------------------------------------------------------
@@ -227,5 +243,10 @@ public class DimensionalItemId
     public Integer getPeriodOffset()
     {
         return periodOffset;
+    }
+
+    public String getItem()
+    {
+        return item;
     }
 }

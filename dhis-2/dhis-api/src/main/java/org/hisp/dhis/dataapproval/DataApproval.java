@@ -31,14 +31,23 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.schema.annotation.Property.Value;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
@@ -63,10 +72,10 @@ public class DataApproval
     /**
      * Identifies the data approval instance (required).
      */
-    private int id;
+    private long id;
 
     /**
-     * The approval level for which this approval is defined.
+     * The approval level for which this approval is defined (required).
      */
     private DataApprovalLevel dataApprovalLevel;
 
@@ -86,7 +95,7 @@ public class DataApproval
     private OrganisationUnit organisationUnit;
 
     /**
-     * The attribute category option combo being approved (optional).
+     * The attribute category option combo being approved (required).
      */
     private CategoryOptionCombo attributeOptionCombo;
 
@@ -105,6 +114,18 @@ public class DataApproval
      * The User who made this approval (required).
      */
     private User creator;
+
+    /**
+     * The Date (including time) when {@link #accepted} status of this approval
+     * was last changed
+     */
+    private Date lastUpdated;
+
+    /**
+     * The User who made the last change to the {@link #accepted} status of this
+     * approval
+     */
+    private User lastUpdatedBy;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -138,6 +159,8 @@ public class DataApproval
         this.accepted = accepted;
         this.created = created;
         this.creator = creator;
+        this.lastUpdated = created;
+        this.lastUpdatedBy = creator;
     }
 
     public DataApproval( DataApproval da )
@@ -150,6 +173,8 @@ public class DataApproval
         this.accepted = da.accepted;
         this.created = da.created;
         this.creator = da.creator;
+        this.lastUpdated = da.lastUpdated;
+        this.lastUpdatedBy = da.lastUpdatedBy;
     }
 
     // -------------------------------------------------------------------------
@@ -200,12 +225,12 @@ public class DataApproval
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    public int getId()
+    public long getId()
     {
         return id;
     }
 
-    public void setId( int id )
+    public void setId( long id )
     {
         this.id = id;
     }
@@ -272,6 +297,13 @@ public class DataApproval
         this.accepted = accepted;
     }
 
+    public void setAccepted( boolean accepted, User by )
+    {
+        setAccepted( accepted );
+        setLastUpdatedBy( by );
+        setLastUpdated( new Date() );
+    }
+
     public Date getCreated()
     {
         return created;
@@ -292,6 +324,35 @@ public class DataApproval
         this.creator = creator;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @Description( "The date this object was last updated." )
+    @Property( value = PropertyType.DATE, required = Value.FALSE )
+    public Date getLastUpdated()
+    {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated( Date lastUpdated )
+    {
+        this.lastUpdated = lastUpdated;
+    }
+
+    @JsonProperty
+    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
+    }
+
+    public void setLastUpdatedBy( User lastUpdatedBy )
+    {
+        this.lastUpdatedBy = lastUpdatedBy;
+    }
+
     // ----------------------------------------------------------------------
     // hashCode, equals, toString
     // ----------------------------------------------------------------------
@@ -299,17 +360,7 @@ public class DataApproval
     @Override
     public int hashCode()
     {
-        final int prime = 31;
-
-        int result = 1;
-
-        result = prime * result + ((dataApprovalLevel == null) ? 0 : dataApprovalLevel.hashCode());
-        result = prime * result + ((workflow == null) ? 0 : workflow.hashCode());
-        result = prime * result + ((period == null) ? 0 : period.hashCode());
-        result = prime * result + ((organisationUnit == null) ? 0 : organisationUnit.hashCode());
-        result = prime * result + ((attributeOptionCombo == null) ? 0 : attributeOptionCombo.hashCode());
-
-        return result;
+        return Objects.hash( dataApprovalLevel, workflow, period, organisationUnit, attributeOptionCombo );
     }
 
     @Override
@@ -336,74 +387,17 @@ public class DataApproval
         {
             return true;
         }
-
-        if ( object == null || !(object instanceof DataApproval) )
+        if ( !(object instanceof DataApproval) )
         {
             return false;
         }
 
-        DataApproval that = (DataApproval) object;
+        DataApproval other = (DataApproval) object;
 
-        if ( dataApprovalLevel != null )
-        {
-            if ( !dataApprovalLevel.equals( that.getDataApprovalLevel() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getDataApprovalLevel() != null )
-        {
-            return false;
-        }
-
-        if ( workflow != null )
-        {
-            if ( !workflow.equals( that.getWorkflow() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getWorkflow() != null )
-        {
-            return false;
-        }
-
-        if ( period != null )
-        {
-            if ( !period.equals( that.getPeriod() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getPeriod() != null )
-        {
-            return false;
-        }
-
-        if ( organisationUnit != null )
-        {
-            if ( !organisationUnit.equals( that.getOrganisationUnit() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getOrganisationUnit() != null )
-        {
-            return false;
-        }
-
-        if ( attributeOptionCombo != null )
-        {
-            if ( !attributeOptionCombo.equals( that.getAttributeOptionCombo() ) )
-            {
-                return false;
-            }
-        }
-        else if ( that.getAttributeOptionCombo() != null )
-        {
-            return false;
-        }
-
-        return true;
+        return Objects.equals( dataApprovalLevel, other.dataApprovalLevel )
+            && Objects.equals( workflow, other.workflow )
+            && Objects.equals( period, other.period )
+            && Objects.equals( organisationUnit, other.organisationUnit )
+            && Objects.equals( attributeOptionCombo, other.attributeOptionCombo );
     }
 }

@@ -111,6 +111,21 @@ public class JsonResponseTest
     }
 
     @Test
+    public void testNull()
+    {
+        JsonObject response = createJSON( "{'value': null}" );
+
+        assertNull( response.getBoolean( "value" ).bool() );
+        assertNull( response.getString( "value" ).string() );
+        assertNull( response.getNumber( "value" ).number() );
+        assertTrue( response.getObject( "value" ).exists() );
+        assertTrue( response.getArray( "value" ).exists() );
+        assertTrue( response.get( "value" ).isNull() );
+        assertFalse( response.get( "value" ).isObject() );
+        assertFalse( response.get( "value" ).isArray() );
+    }
+
+    @Test
     public void testBooleanValue()
     {
         JsonObject response = createJSON( "{'flag': true}" );
@@ -252,7 +267,7 @@ public class JsonResponseTest
         assertEquals( "Expected \" but reach EOI: {\"a:12}", map.toString() );
     }
 
-    private JsonResponse createJSON( String content )
+    private static JsonResponse createJSON( String content )
     {
         return new JsonResponse( content.replace( '\'', '"' ) );
     }

@@ -70,6 +70,8 @@ import org.hisp.dhis.period.ConfigurablePeriod;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.period.RelativePeriods;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
@@ -890,6 +892,7 @@ public abstract class BaseAnalyticalObject
         this.endDate = endDate;
     }
 
+    @Gist( included = Include.FALSE )
     @JsonProperty( value = "relativePeriods" )
     @JacksonXmlProperty( localName = "relativePeriods", namespace = DxfNamespaces.DXF_2_0 )
     public RelativePeriods getRelatives()

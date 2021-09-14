@@ -30,10 +30,9 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static java.util.Collections.emptySet;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -44,6 +43,7 @@ import lombok.Setter;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -52,6 +52,7 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
+import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
@@ -188,6 +189,8 @@ public final class ImportContext
 
     private final BatchHandler<DataValueAudit> auditBatchHandler;
 
+    private final Function<Class<? extends IdentifiableObject>, String> singularNameForType;
+
     public String getCurrentUserName()
     {
         return currentUser.getUsername();
@@ -201,14 +204,17 @@ public final class ImportContext
 
     public void addConflict( String object, String value )
     {
-        summary.getConflicts().add( new ImportConflict( object, value ) );
+        summary.addConflict( object, value );
     }
 
-    public void addConflicts( String object, List<String> values )
+    public void addConflict( ImportConflictDescriptor descriptor, String... objects )
     {
-        summary.getConflicts().addAll( values.stream()
-            .map( value -> new ImportConflict( object, value ) )
-            .collect( Collectors.toList() ) );
+        addConflict( -1, descriptor, objects );
+    }
+
+    public void addConflict( int index, ImportConflictDescriptor descriptor, String... objects )
+    {
+        summary.addConflict( ImportConflict.createConflict( i18n, singularNameForType, index, descriptor, objects ) );
     }
 
     public String getStoredBy( DataValue dataValue )
@@ -265,6 +271,8 @@ public final class ImportContext
     @AllArgsConstructor( access = AccessLevel.PRIVATE )
     public static final class DataValueContext
     {
+        private final int index;
+
         private final DataElement dataElement;
 
         private final Period period;

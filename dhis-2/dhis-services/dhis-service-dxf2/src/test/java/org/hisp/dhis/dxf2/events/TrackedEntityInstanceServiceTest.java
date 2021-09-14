@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -42,13 +43,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -58,7 +59,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -405,7 +405,7 @@ public class TrackedEntityInstanceServiceTest
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, new ImportOptions().setImportStrategy( ImportStrategy.SYNC ), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get( 0 ).getConflicts().size() );
+        assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get( 0 ).getConflictCount() );
         assertEquals( trackedEntityInstance.getEnrollments().get( 0 ).getEnrollment(),
             importSummary.getEnrollments().getImportSummaries().get( 0 ).getReference() );
 
@@ -622,25 +622,13 @@ public class TrackedEntityInstanceServiceTest
         importOptions.setImportStrategy( ImportStrategy.UPDATE );
         ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
 
-        assertEquals( importSummaries.getStatus(), ImportStatus.ERROR );
+        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
 
-        Set<ImportConflict> conflicts = importSummaries.getImportSummaries().get( 0 ).getConflicts();
-
-        assertEquals( conflicts.size(), 1 );
-
-        boolean conflictIsPresent = false;
-
-        for ( ImportConflict conflict : conflicts )
-        {
-            if ( conflict.getValue().equals( String.format(
-                "Value exceeds the character limit of 1200 characters: '%s...'", testValue.substring( 0, 25 ) ) ) )
-            {
-                conflictIsPresent = true;
-            }
-        }
-
-        assertTrue( conflictIsPresent );
-
+        ImportSummary importSummary = importSummaries.getImportSummaries().get( 0 );
+        assertEquals( 1, importSummary.getConflictCount() );
+        assertEquals( String.format(
+            "Value exceeds the character limit of 1200 characters: '%s...'", testValue.substring( 0, 25 ) ),
+            importSummary.getConflicts().iterator().next().getValue() );
     }
 
     @Test
@@ -699,5 +687,50 @@ public class TrackedEntityInstanceServiceTest
         List<String> fetchedUids = teiDaoService.getTrackedEntityInstancesUidsIncludingDeleted( uids );
 
         assertTrue( Sets.difference( new HashSet<>( uids ), new HashSet<>( fetchedUids ) ).isEmpty() );
+    }
+
+    @Test
+    public void testAddTrackedEntityInstancePotentialDuplicateFlag()
+    {
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+        tei.setOrgUnit( organisationUnitA.getUid() );
+        tei.setTrackedEntityInstance( CodeGenerator.generateUid() );
+
+        Attribute attribute = new Attribute( "value" );
+        attribute.setAttribute( trackedEntityAttributeB.getUid() );
+        tei.getAttributes().add( attribute );
+        tei.setTrackedEntityType( trackedEntityType.getUid() );
+        tei.setPotentialDuplicate( true );
+
+        List<TrackedEntityInstance> teis = Lists.newArrayList( tei );
+
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
+
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        assertTrue( trackedEntityInstanceService.getTrackedEntityInstance( tei.getTrackedEntityInstance() )
+            .isPotentialDuplicate() );
+    }
+
+    @Test
+    public void testUpdateTrackedEntityInstancePotentialDuplicateFlag()
+    {
+        assertFalse( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ).isPotentialDuplicate() );
+
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
+            .getTrackedEntityInstance( maleA.getUid() );
+
+        trackedEntityInstance.setPotentialDuplicate( true );
+
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setImportStrategy( ImportStrategy.UPDATE );
+        ImportSummary importSummaries = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
+            null, importOptions, true );
+
+        assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        assertTrue( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ).isPotentialDuplicate() );
     }
 }

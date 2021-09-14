@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.annotation.Nonnull;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -48,15 +47,13 @@ import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  * @author Zubair Asghar
  */
 
 @Slf4j
 @Component( "programRuleActionObjectBundle" )
-public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
+public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook<ProgramRuleAction>
 {
     @NonNull
     @Qualifier( "programRuleActionValidatorMap" )
@@ -74,23 +71,14 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public void validate( ProgramRuleAction programRuleAction, ObjectBundle bundle, Consumer<ErrorReport> addReports )
     {
-        if ( !ProgramRuleAction.class.isInstance( object ) )
-        {
-            return ImmutableList.of();
-        }
-
-        ProgramRuleAction programRuleAction = (ProgramRuleAction) object;
-
         ProgramRuleActionValidationResult validationResult = validateProgramRuleAction( programRuleAction, bundle );
 
         if ( !validationResult.isValid() )
         {
-            return ImmutableList.of( validationResult.getErrorReport() );
+            addReports.accept( validationResult.getErrorReport() );
         }
-
-        return ImmutableList.of();
     }
 
     private ProgramRuleActionValidationResult validateProgramRuleAction( ProgramRuleAction ruleAction,
@@ -117,7 +105,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
 
         return ProgramRuleActionValidationResult.builder().valid( false )
             .errorReport(
-                new ErrorReport( ProgramRuleAction.class, ErrorCode.E4052, ruleAction.getProgramRuleActionType().name(),
+                new ErrorReport( ProgramRuleAction.class, ErrorCode.E4033, ruleAction.getProgramRuleActionType().name(),
                     validationContext.getProgramRule().getName() ) )
             .build();
     }

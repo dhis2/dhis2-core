@@ -25,8 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.metadata.orgunits;
+
+import static org.hamcrest.CoreMatchers.*;
+
+import java.io.File;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
@@ -36,10 +39,6 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -71,7 +70,8 @@ public class OrgUnitsRemovalTest
 
         new LoginActions().loginAsSuperUser();
 
-        metadataActions.importAndValidateMetadata( new File( "src/test/resources/metadata/orgunits/orgUnitDeletion.json" ) );
+        metadataActions
+            .importAndValidateMetadata( new File( "src/test/resources/metadata/orgunits/ou_with_group_and_set.json" ) );
 
     }
 
@@ -112,7 +112,9 @@ public class OrgUnitsRemovalTest
         orgUnitActions.delete( parentId )
             .validate()
             .statusCode( 409 )
-            .body( "message", containsStringIgnoringCase( "Object could not be deleted because it is associated with another object: OrganisationUnit" ) )
+            .body( "message",
+                containsStringIgnoringCase(
+                    "Object could not be deleted because it is associated with another object: OrganisationUnit" ) )
             .body( "errorCode", equalTo( "E4030" ) );
 
     }

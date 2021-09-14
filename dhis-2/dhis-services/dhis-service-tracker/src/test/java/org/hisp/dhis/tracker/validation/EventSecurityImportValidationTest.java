@@ -325,6 +325,9 @@ public class EventSecurityImportValidationTest
         user.addOrganisationUnit( organisationUnitA );
         manager.update( user );
 
+        manager.flush();
+        manager.clear();
+
         trackerBundleParams.setUserId( user.getUid() );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
 

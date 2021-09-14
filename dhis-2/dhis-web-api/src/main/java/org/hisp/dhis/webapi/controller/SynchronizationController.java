@@ -27,26 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 
@@ -66,38 +64,30 @@ public class SynchronizationController
     @Autowired
     private RestTemplate restTemplate;
 
-    @Autowired
-    private RenderService renderService;
-
     @PreAuthorize( "hasRole('ALL') or hasRole('F_EXPORT_DATA')" )
-    @RequestMapping( value = "/dataPush", method = RequestMethod.POST )
-    public void execute( HttpServletResponse response )
+    @PostMapping( value = "/dataPush", produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public ImportConflicts execute()
         throws IOException
     {
-        ImportSummary summary = synchronizationManager.executeDataValuePush();
-
-        response.setContentType( CONTENT_TYPE_JSON );
-        renderService.toJson( response.getOutputStream(), summary );
+        return synchronizationManager.executeDataValuePush();
     }
 
     @PreAuthorize( "hasRole('ALL')" )
-    @RequestMapping( value = "/metadataPull", method = RequestMethod.POST )
-    public void importMetaData( @RequestBody String url, HttpServletResponse response )
-        throws IOException
+    @PostMapping( value = "/metadataPull", produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public ImportReport importMetaData( @RequestBody String url )
     {
-        ImportReport importReport = synchronizationManager.executeMetadataPull( url );
-
-        response.setContentType( CONTENT_TYPE_JSON );
-        renderService.toJson( response.getOutputStream(), importReport );
+        return synchronizationManager.executeMetadataPull( url );
     }
 
-    @RequestMapping( value = "/availability", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/availability", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody AvailabilityStatus remoteServerAvailable()
     {
         return synchronizationManager.isRemoteServerAvailable();
     }
 
-    @RequestMapping( value = "/metadataRepo", method = RequestMethod.GET, produces = "application/json" )
+    @GetMapping( value = "/metadataRepo", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody String getMetadataRepoIndex()
     {
         return restTemplate.getForObject( SettingKey.METADATA_REPO_URL.getDefaultValue().toString(), String.class );

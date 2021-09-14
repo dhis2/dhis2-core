@@ -2393,6 +2393,24 @@ public class DataQueryParams
     }
 
     /**
+     * Returns all organisation units part of a dimension or filter.
+     */
+    public List<DimensionalItemObject> getAllOrganisationUnits()
+    {
+        return ImmutableList.copyOf( ListUtils.union( getOrganisationUnits(), getFilterOrganisationUnits() ) );
+    }
+
+    /**
+     * Returns all typed organisation part of a dimension or filter.
+     */
+    public List<OrganisationUnit> getAllTypedOrganisationUnits()
+    {
+        return ImmutableList.copyOf( getAllOrganisationUnits().stream()
+            .map( ou -> (OrganisationUnit) ou )
+            .collect( Collectors.toList() ) );
+    }
+
+    /**
      * Returns all data element group sets specified as dimensions or filters.
      */
     public List<DimensionalObject> getDataElementGroupSets()

@@ -27,37 +27,56 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.parseMediaType;
 
-import java.nio.charset.*;
-import java.util.*;
-import java.util.stream.*;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.lang3.*;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.node.*;
-import org.hisp.dhis.user.*;
-import org.hisp.dhis.webapi.mvc.*;
-import org.hisp.dhis.webapi.mvc.interceptor.*;
-import org.hisp.dhis.webapi.mvc.messageconverter.*;
-import org.hisp.dhis.webapi.service.*;
-import org.hisp.dhis.webapi.view.*;
-import org.springframework.beans.factory.annotation.*;
-import org.springframework.context.annotation.*;
-import org.springframework.core.annotation.*;
-import org.springframework.format.*;
-import org.springframework.http.*;
-import org.springframework.http.converter.*;
-import org.springframework.security.access.expression.method.*;
-import org.springframework.security.config.annotation.method.configuration.*;
-import org.springframework.web.accept.*;
-import org.springframework.web.method.support.*;
-import org.springframework.web.multipart.*;
-import org.springframework.web.multipart.commons.*;
-import org.springframework.web.servlet.config.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.*;
+import org.hisp.dhis.common.Compression;
+import org.hisp.dhis.node.DefaultNodeService;
+import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
+import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
+import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
+import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.core.annotation.Order;
+import org.springframework.format.FormatterRegistry;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.web.accept.ContentNegotiationManager;
+import org.springframework.web.accept.FixedContentNegotiationStrategy;
+import org.springframework.web.accept.HeaderContentNegotiationStrategy;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-import com.google.common.collect.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -75,13 +94,18 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
 
     @Autowired
-    private ContextService contextService;
-
-    @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
     private UserSettingService userSettingService;
+
+    @Autowired
+    @Qualifier( "jsonMapper" )
+    private ObjectMapper jsonMapper;
+
+    @Autowired
+    @Qualifier( "xmlMapper" )
+    private ObjectMapper xmlMapper;
 
     @Bean( "multipartResolver" )
     public MultipartResolver multipartResolver()
@@ -118,9 +142,22 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     }
 
     @Bean
-    public RenderServiceMessageConverter renderServiceMessageConverter()
+    public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter()
     {
-        return new RenderServiceMessageConverter();
+        return new MappingJackson2HttpMessageConverter( jsonMapper );
+    }
+
+    @Bean
+    public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
+    {
+        MappingJackson2XmlHttpMessageConverter messageConverter = new MappingJackson2XmlHttpMessageConverter(
+            xmlMapper );
+
+        messageConverter.setSupportedMediaTypes( Arrays.asList(
+            new MediaType( "application", "xml", StandardCharsets.UTF_8 ),
+            new MediaType( "application", "*+xml", StandardCharsets.UTF_8 ) ) );
+
+        return messageConverter;
     }
 
     @Override
@@ -131,18 +168,13 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
             .forEach( compression -> converters.add( new JsonMessageConverter( nodeService(), compression ) ) );
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
-        Arrays.stream( Compression.values() )
-            .forEach( compression -> converters.add( new CsvMessageConverter( nodeService(), compression ) ) );
-
-        converters.add( new JsonPMessageConverter( nodeService(), contextService ) );
-        converters.add( new PdfMessageConverter( nodeService() ) );
-        converters.add( new ExcelMessageConverter( nodeService() ) );
 
         converters.add( new StringHttpMessageConverter( StandardCharsets.UTF_8 ) );
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
 
-        converters.add( renderServiceMessageConverter() );
+        converters.add( mappingJackson2HttpMessageConverter() );
+        converters.add( mappingJackson2XmlHttpMessageConverter() );
     }
 
     @Override
@@ -158,25 +190,13 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     {
         CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
             mediaTypeMap );
-        pathExtensionNegotiationStrategy.setUseJaf( false );
-
-        String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };
-
-        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy = new ParameterContentNegotiationStrategy(
-            mediaTypeMap.entrySet().stream()
-                .filter( x -> ArrayUtils.contains( mediaTypes, x.getKey() ) )
-                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) ) );
-
-        HeaderContentNegotiationStrategy headerContentNegotiationStrategy = new HeaderContentNegotiationStrategy();
-        FixedContentNegotiationStrategy fixedContentNegotiationStrategy = new FixedContentNegotiationStrategy(
-            MediaType.APPLICATION_JSON );
+        pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
 
         return new ContentNegotiationManager(
             Arrays.asList(
                 pathExtensionNegotiationStrategy,
-                parameterContentNegotiationStrategy,
-                headerContentNegotiationStrategy,
-                fixedContentNegotiationStrategy ) );
+                new HeaderContentNegotiationStrategy(),
+                new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) );
     }
 
     @Override
@@ -209,6 +229,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         .put( "csv", parseMediaType( "application/csv" ) )
         .put( "csv.gz", parseMediaType( "application/csv+gzip" ) )
         .put( "csv.zip", parseMediaType( "application/csv+zip" ) )
+        .put( "adx.xml", parseMediaType( "application/adx+xml" ) )
+        .put( "adx.xml.gz", parseMediaType( "application/adx+xml+gzip" ) )
+        .put( "adx.xml.zip", parseMediaType( "application/adx+xml+zip" ) )
         .put( "geojson", parseMediaType( "application/json+geojson" ) )
         .build();
 }

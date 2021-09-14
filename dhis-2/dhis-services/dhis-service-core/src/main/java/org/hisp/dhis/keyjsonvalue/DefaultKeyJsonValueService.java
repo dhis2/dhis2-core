@@ -136,8 +136,8 @@ public class DefaultKeyJsonValueService
     {
         if ( getKeyJsonValue( entry.getNamespace(), entry.getKey() ) != null )
         {
-            throw new IllegalStateException(
-                "The key '" + entry.getKey() + "' already exists on the namespace '" + entry.getNamespace() + "'." );
+            throw new IllegalStateException( String.format(
+                "Key '%s' already exists in namespace '%s'", entry.getKey(), entry.getNamespace() ) );
         }
         validateJsonValue( entry );
         writeProtectedIn( entry.getNamespace(),
@@ -153,6 +153,27 @@ public class DefaultKeyJsonValueService
         writeProtectedIn( entry.getNamespace(),
             () -> singletonList( entry ),
             () -> store.update( entry ) );
+    }
+
+    @Override
+    @Transactional
+    public void saveOrUpdateKeyJsonValue( KeyJsonValue entry )
+    {
+        validateJsonValue( entry );
+        KeyJsonValue existing = getKeyJsonValue( entry.getNamespace(), entry.getKey() );
+        if ( existing != null )
+        {
+            existing.setValue( entry.getValue() );
+            writeProtectedIn( entry.getNamespace(),
+                () -> singletonList( existing ),
+                () -> store.update( existing ) );
+        }
+        else
+        {
+            writeProtectedIn( entry.getNamespace(),
+                () -> singletonList( entry ),
+                () -> store.save( entry ) );
+        }
     }
 
     @Override
@@ -186,8 +207,8 @@ public class DefaultKeyJsonValueService
                 KeyJsonValue entry = (KeyJsonValue) res;
                 if ( !aclService.canRead( currentUserService.getCurrentUser(), entry ) )
                 {
-                    throw new AccessDeniedException( "You do not have the authority to access the key: '"
-                        + entry.getKey() + "' in the namespace:'" + namespace + "'" );
+                    throw new AccessDeniedException( String.format(
+                        "Access denied for key '%s' in namespace '%s'", entry.getKey(), namespace ) );
                 }
             }
             return res;
@@ -230,15 +251,14 @@ public class DefaultKeyJsonValueService
 
     private AccessDeniedException accessDeniedTo( String namespace )
     {
-        return new AccessDeniedException(
-            "The namespace '" + namespace
-                + "' is protected, and you don't have the right authority to access or modify it." );
+        return new AccessDeniedException( String.format(
+            "Namespace '%s' is protected, access denied", namespace ) );
     }
 
     private AccessDeniedException accessDeniedTo( String namespace, String key )
     {
-        return new AccessDeniedException(
-            "You do not have the authority to modify the key: '" + key + "' in the namespace: '" + namespace + "'" );
+        return new AccessDeniedException( String.format(
+            "Access denied for key '%s' in namespace '%s'", key, namespace ) );
     }
 
     private boolean isNamespaceVisible( String namespace )
@@ -267,12 +287,14 @@ public class DefaultKeyJsonValueService
         {
             if ( json != null && !renderService.isValidJson( json ) )
             {
-                throw new IllegalArgumentException( "The data is not valid JSON." );
+                throw new IllegalArgumentException( String.format(
+                    "Invalid JSON value for key '%s'", entry.getKey() ) );
             }
         }
         catch ( IOException ex )
         {
-            throw new IllegalArgumentException( "The data is not valid JSON.", ex );
+            throw new IllegalArgumentException( String.format(
+                "Invalid JSON value for key '%s'", entry.getKey() ), ex );
         }
     }
 }

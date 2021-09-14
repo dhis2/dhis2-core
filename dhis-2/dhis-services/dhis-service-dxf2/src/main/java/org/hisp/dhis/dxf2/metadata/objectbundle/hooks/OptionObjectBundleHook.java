@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -43,40 +41,24 @@ import org.springframework.stereotype.Component;
  * @author Volker Schmidt
  */
 @Component
-public class OptionObjectBundleHook
-    extends AbstractObjectBundleHook
+public class OptionObjectBundleHook extends AbstractObjectBundleHook<Option>
 {
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public void validate( Option option, ObjectBundle bundle,
+        Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errors = new ArrayList<>();
-
-        if ( !(object instanceof Option) )
-            return new ArrayList<>();
-
-        final Option option = (Option) object;
-
         if ( option.getOptionSet() != null )
         {
             OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
                 option.getOptionSet() );
 
-            errors.addAll( checkDuplicateOption( optionSet, option ) );
+            checkDuplicateOption( optionSet, option, addReports );
         }
-
-        return errors;
     }
 
     @Override
-    public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
+    public void preCreate( Option option, ObjectBundle bundle )
     {
-        if ( !(object instanceof Option) )
-        {
-            return;
-        }
-
-        final Option option = (Option) object;
-
         // if the bundle contains also the option set there is no need to add
         // the option here
         // (will be done automatically later and option set may contain raw
@@ -95,39 +77,28 @@ public class OptionObjectBundleHook
 
     /**
      * Check for duplication of Option's name OR code within given OptionSet
-     *
-     * @param listOptions
-     * @param checkOption
-     * @return
      */
-    private List<ErrorReport> checkDuplicateOption( OptionSet optionSet, Option checkOption )
+    private void checkDuplicateOption( OptionSet optionSet, Option checkOption, Consumer<ErrorReport> addReports )
     {
-        List<ErrorReport> errors = new ArrayList<>();
-
         if ( optionSet == null || optionSet.getOptions().isEmpty() || checkOption == null )
         {
-            return errors;
+            return;
         }
 
         for ( Option option : optionSet.getOptions() )
         {
-            if ( option == null || option.getName() == null || option.getCode() == null )
-            {
-                continue;
-            }
-
-            if ( ObjectUtils.allNotNull( option.getUid(), checkOption.getUid() )
-                && option.getUid().equals( checkOption.getUid() ) )
+            if ( option == null || option.getName() == null || option.getCode() == null
+                || ObjectUtils.allNotNull( option.getUid(), checkOption.getUid() )
+                    && option.getUid().equals( checkOption.getUid() ) )
             {
                 continue;
             }
 
             if ( option.getName().equals( checkOption.getName() ) || option.getCode().equals( checkOption.getCode() ) )
             {
-                errors.add( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
+                addReports
+                    .accept( new ErrorReport( OptionSet.class, ErrorCode.E4028, optionSet.getUid(), option.getUid() ) );
             }
         }
-
-        return errors;
     }
 }

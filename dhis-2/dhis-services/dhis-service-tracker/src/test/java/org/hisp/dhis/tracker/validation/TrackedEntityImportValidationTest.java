@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,7 +46,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -107,12 +106,10 @@ public class TrackedEntityImportValidationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        List<ErrorReport> errorReports = validationReport.getErrorReports();
-        assertTrue( errorReports.isEmpty() );
+        assertFalse( validationReport.hasErrorReports() );
 
         ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
-        List<ErrorReport> errorReports1 = commit.getErrorReports();
-        assertTrue( errorReports1.isEmpty() );
+        assertFalse( commit.hasErrorReports() );
 
         manager.flush();
     }

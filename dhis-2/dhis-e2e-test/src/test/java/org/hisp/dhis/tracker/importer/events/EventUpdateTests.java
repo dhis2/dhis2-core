@@ -25,10 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.Matchers.hasSize;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -36,8 +37,7 @@ import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.hasSize;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -61,15 +61,14 @@ public class EventUpdateTests
 
         object = JsonObjectBuilder.jsonObject( object )
             .addProperty( "programStage", Constants.EVENT_PROGRAM_STAGE_ID )
-            .addProperty( "program", Constants.EVENT_PROGRAM_ID )
             .addProperty( "enrollment", enrollmentId )
             .wrapIntoArray( "events" );
 
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
-            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 3 ) ) )
-            .body( "errorCode", hasItems( "E1128", "E1128", "E1128" ) )
+            .body( "", hasSize( Matchers.greaterThanOrEqualTo( 2 ) ) )
+            .body( "errorCode", hasItems( "E1128", "E1128" ) )
             .body( "message", allOf( Matchers.hasItem( Matchers.containsString( "programStage" ) ),
-                hasItem( Matchers.containsString( "program" ) ), hasItem( Matchers.containsString( "enrollment" ) ) ) );
+                hasItem( Matchers.containsString( "enrollment" ) ) ) );
     }
 }

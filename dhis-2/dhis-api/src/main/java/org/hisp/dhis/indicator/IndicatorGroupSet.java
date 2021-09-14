@@ -54,6 +54,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class IndicatorGroupSet
     extends BaseIdentifiableObject implements MetadataObject
 {
+    private String shortName;
+
     private String description;
 
     private Boolean compulsory = false;
@@ -71,19 +73,19 @@ public class IndicatorGroupSet
 
     public IndicatorGroupSet( String name )
     {
-        this.name = name;
-        this.compulsory = false;
+        this( name, false );
     }
 
     public IndicatorGroupSet( String name, Boolean compulsory )
     {
-        this( name );
-        this.compulsory = compulsory;
+        this( name, null, compulsory );
     }
 
     public IndicatorGroupSet( String name, String description, Boolean compulsory )
     {
-        this( name, compulsory );
+        this.name = name;
+        this.shortName = name;
+        this.compulsory = compulsory;
         this.description = description;
     }
 
@@ -167,6 +169,19 @@ public class IndicatorGroupSet
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @PropertyRange( min = 1, max = 50 )
+    public String getShortName()
+    {
+        return shortName;
+    }
+
+    public void setShortName( String shortName )
+    {
+        this.shortName = shortName;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

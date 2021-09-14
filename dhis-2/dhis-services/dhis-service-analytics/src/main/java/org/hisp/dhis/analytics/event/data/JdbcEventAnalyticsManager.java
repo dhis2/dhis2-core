@@ -39,8 +39,8 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
@@ -56,16 +56,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -76,7 +78,6 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
@@ -313,7 +314,7 @@ public class JdbcEventAnalyticsManager
     protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate" );
+            .add( "psi", "ps", "executiondate", "storedby" );
 
         if ( params.getProgram().isRegistration() )
         {
@@ -405,7 +406,9 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasStartEndDate() )
         {
-            String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
+            String timeCol = params.getOutputType() == EventOutputType.ENROLLMENT
+                ? quoteAlias( TimeField.ENROLLMENT_DATE.getField() )
+                : quoteAlias( TimeField.EVENT_DATE.getField() );
 
             sql += hlp.whereAnd() + " " + timeCol + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
             sql += hlp.whereAnd() + " " + timeCol + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
@@ -426,32 +429,25 @@ public class JdbcEventAnalyticsManager
         {
             String orgUnitCol = quoteAlias( params.getOrgUnitFieldFallback() );
 
-            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN
-                + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
+            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
+                getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
         }
         else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
             String orgUnitCol = quoteAlias( params.getOrgUnitFieldFallback() );
 
-            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN
-                + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
+            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
+                getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
         {
+            DimensionalObject orgUnitDim = params.getDimensionOrFilter( ORGUNIT_DIM_ID );
+
             String orgUnitAlias = getOrgUnitAlias( params );
+            String orgUnitCol = quote( orgUnitAlias, orgUnitDim.getDimensionName() );
 
-            sql += hlp.whereAnd() + " (";
-
-            for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
-            {
-                OrganisationUnit unit = (OrganisationUnit) object;
-
-                String orgUnitCol = quote( orgUnitAlias, "uidlevel" + unit.getLevel() );
-
-                sql += orgUnitCol + " = '" + unit.getUid() + "' or ";
-            }
-
-            sql = removeLastOr( sql ) + ") ";
+            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
+                getQuotedCommaDelimitedString( getUids( orgUnitDim.getItems() ) ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -460,8 +456,6 @@ public class JdbcEventAnalyticsManager
 
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
-
-        // Apply pre-authorized dimensions filtering
 
         for ( DimensionalObject dim : dynamicDimensions )
         {
@@ -474,7 +468,7 @@ public class JdbcEventAnalyticsManager
         // Program stage
         // ---------------------------------------------------------------------
 
-        if ( params.hasProgramStage() )
+        if ( params.hasProgramStage() && params.getOutputType() != EventOutputType.ENROLLMENT )
         {
             sql += hlp.whereAnd() + " " + quoteAlias( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }
@@ -489,9 +483,18 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += hlp.whereAnd() + " "
-                        + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
-                        " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
+                    String field = getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() );
+
+                    if ( IN.equals( filter.getOperator() ) )
+                    {
+                        QueryFilter inQueryFilter = new InQueryFilter( field, filter );
+                        sql += hlp.whereAnd() + " " + getSqlFilter( inQueryFilter, item );
+                    }
+                    else
+                    {
+                        sql += hlp.whereAnd() + " " + field + " " + filter.getSqlOperator() + " "
+                            + getSqlFilter( filter, item ) + " ";
+                    }
                 }
             }
         }
@@ -607,7 +610,7 @@ public class JdbcEventAnalyticsManager
      * rank. Only data for the last 10 years relative to the period end date is
      * included.
      *
-     * @param the {@link EventQueryParams}.
+     * @param params the {@link EventQueryParams}.
      */
     private String getFirstOrLastValueSubquerySql( EventQueryParams params )
     {
@@ -644,7 +647,7 @@ public class JdbcEventAnalyticsManager
      * query. The period dimension is replaced by the name of the single period
      * in the given query.
      *
-     * @param the {@link EventQueryParams}.
+     * @param params the {@link EventQueryParams}.
      */
     private List<String> getFirstOrLastValueSubqueryQuotedColumns( EventQueryParams params )
     {

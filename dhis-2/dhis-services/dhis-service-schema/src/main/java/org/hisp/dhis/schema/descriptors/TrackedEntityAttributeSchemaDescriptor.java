@@ -53,12 +53,11 @@ public class TrackedEntityAttributeSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1450 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC,
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC,
             Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_PUBLIC_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PRIVATE,
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE,
             Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_TRACKED_ENTITY_ATTRIBUTE_DELETE" ) ) );
 
         return schema;
     }

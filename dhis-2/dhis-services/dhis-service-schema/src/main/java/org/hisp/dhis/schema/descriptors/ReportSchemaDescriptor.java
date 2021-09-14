@@ -53,13 +53,10 @@ public class ReportSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 2000 );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_REPORT_PUBLIC_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_REPORT_PRIVATE_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_REPORT_EXTERNAL" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_REPORT_DELETE" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_REPORT_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.CREATE_PRIVATE, Lists.newArrayList( "F_REPORT_PRIVATE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_REPORT_EXTERNAL" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_REPORT_DELETE" ) ) );
 
         return schema;
     }

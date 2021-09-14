@@ -28,7 +28,11 @@
 package org.hisp.dhis.user.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
+import static java.time.ZoneId.systemDefault;
+import static java.util.stream.Collectors.toSet;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -59,6 +63,7 @@ import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
@@ -68,6 +73,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -123,6 +129,19 @@ public class HibernateUserStore
     public List<User> getExpiringUsers( UserQueryParams params )
     {
         return extractUserQueryUsers( getUserQuery( params, null, false ).list() );
+    }
+
+    @Override
+    public List<UserAccountExpiryInfo> getExpiringUserAccounts( int inDays )
+    {
+        Date expiryLookAheadDate = Date.from( LocalDate.now().plusDays( inDays )
+            .atStartOfDay( systemDefault() ).toInstant() );
+        String hql = "select new org.hisp.dhis.user.UserAccountExpiryInfo(uc.username, u.email, uc.accountExpiry) " +
+            "from User u inner join u.userCredentials uc " +
+            "where u.email is not null and uc.disabled = false and uc.accountExpiry <= :expiryLookAheadDate";
+        return getSession().createQuery( hql, UserAccountExpiryInfo.class )
+            .setParameter( "expiryLookAheadDate", expiryLookAheadDate )
+            .list();
     }
 
     @Override
@@ -204,9 +223,9 @@ public class HibernateUserStore
             {
                 hql += hlp.whereAnd() + " (";
 
-                for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
+                for ( OrganisationUnit ou : params.getOrganisationUnits() )
                 {
-                    hql += String.format( "ou.path like :ouUid%d or ", i );
+                    hql += format( "ou.path like :ou%s or ", ou.getUid() );
                 }
 
                 hql = TextUtils.removeLastOr( hql ) + ")";
@@ -214,6 +233,48 @@ public class HibernateUserStore
             else
             {
                 hql += hlp.whereAnd() + " ou.id in (:ouIds) ";
+            }
+        }
+
+        if ( params.hasDataViewOrganisationUnits() )
+        {
+            hql += "left join u.dataViewOrganisationUnits dwou ";
+
+            if ( params.isIncludeOrgUnitChildren() )
+            {
+                hql += hlp.whereAnd() + " (";
+
+                for ( OrganisationUnit ou : params.getDataViewOrganisationUnits() )
+                {
+                    hql += format( "dwou.path like :dwOu%s or ", ou.getUid() );
+                }
+
+                hql = TextUtils.removeLastOr( hql ) + ")";
+            }
+            else
+            {
+                hql += hlp.whereAnd() + " dwou.id in (:dwOuIds) ";
+            }
+        }
+
+        if ( params.hasTeiSearchOrganisationUnits() )
+        {
+            hql += "left join u.teiSearchOrganisationUnits tsou ";
+
+            if ( params.isIncludeOrgUnitChildren() )
+            {
+                hql += hlp.whereAnd() + " (";
+
+                for ( OrganisationUnit ou : params.getTeiSearchOrganisationUnits() )
+                {
+                    hql += format( "tsou.path like :tsOu%s or ", ou.getUid() );
+                }
+
+                hql = TextUtils.removeLastOr( hql ) + ")";
+            }
+            else
+            {
+                hql += hlp.whereAnd() + " tsou.id in (:tsOuIds) ";
             }
         }
 
@@ -375,10 +436,9 @@ public class HibernateUserStore
         {
             if ( params.isIncludeOrgUnitChildren() )
             {
-                for ( int i = 0; i < params.getOrganisationUnits().size(); i++ )
+                for ( OrganisationUnit ou : params.getOrganisationUnits() )
                 {
-                    query.setParameter( String.format( "ouUid%d", i ),
-                        "%/" + params.getOrganisationUnits().get( i ).getUid() + "%" );
+                    query.setParameter( format( "ou%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
                 }
             }
             else
@@ -386,6 +446,42 @@ public class HibernateUserStore
                 Collection<Long> ouIds = IdentifiableObjectUtils.getIdentifiers( params.getOrganisationUnits() );
 
                 query.setParameterList( "ouIds", ouIds );
+            }
+        }
+
+        if ( params.hasDataViewOrganisationUnits() )
+        {
+            if ( params.isIncludeOrgUnitChildren() )
+            {
+                for ( OrganisationUnit ou : params.getDataViewOrganisationUnits() )
+                {
+                    query.setParameter( format( "dwOu%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
+                }
+            }
+            else
+            {
+                Collection<Long> ouIds = IdentifiableObjectUtils
+                    .getIdentifiers( params.getDataViewOrganisationUnits() );
+
+                query.setParameterList( "dwOuIds", ouIds );
+            }
+        }
+
+        if ( params.hasTeiSearchOrganisationUnits() )
+        {
+            if ( params.isIncludeOrgUnitChildren() )
+            {
+                for ( OrganisationUnit ou : params.getTeiSearchOrganisationUnits() )
+                {
+                    query.setParameter( format( "tsOu%s", ou.getUid() ), "%/" + ou.getUid() + "%" );
+                }
+            }
+            else
+            {
+                Collection<Long> ouIds = IdentifiableObjectUtils
+                    .getIdentifiers( params.getTeiSearchOrganisationUnits() );
+
+                query.setParameterList( "tsOuIds", ouIds );
             }
         }
 
@@ -489,6 +585,17 @@ public class HibernateUserStore
             builder.lessThanOrEqualTo( uc.get( "lastLogin" ), inactiveSince ) ) );
         update.set( DISABLED_COLUMN, true );
         return getSession().createQuery( update ).executeUpdate();
+    }
+
+    @Override
+    public Set<String> findUsersInactiveSince( Date inactiveSince )
+    {
+        String hql = "select u.email " +
+            "from User u inner join u.userCredentials uc " +
+            "where u.email is not null and uc.disabled = false and uc.lastLogin <= :since";
+        return getSession().createQuery( hql, String.class )
+            .setParameter( "since", inactiveSince ).stream()
+            .collect( toSet() );
     }
 
     @Override

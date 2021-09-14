@@ -205,6 +205,46 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
     }
 
     @Test
+    public void getNotLikeQueryAll()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.add( Restrictions.notLike( "name", "G", MatchMode.ANYWHERE ) );
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 6, objects.size() );
+    }
+
+    @Test
+    public void getNotILikeQueryAll()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.add( Restrictions.notLike( "name", "a", MatchMode.ANYWHERE ) );
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 0, objects.size() );
+    }
+
+    @Test
+    public void getNotILikeQueryOne()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.add( Restrictions.notIlike( "name", "b", MatchMode.ANYWHERE ) );
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 5, objects.size() );
+    }
+
+    @Test
+    public void getNotLikeQueryOne()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.add( Restrictions.notLike( "name", "A", MatchMode.ANYWHERE ) );
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 5, objects.size() );
+    }
+
+    @Test
     public void getGtQuery()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );

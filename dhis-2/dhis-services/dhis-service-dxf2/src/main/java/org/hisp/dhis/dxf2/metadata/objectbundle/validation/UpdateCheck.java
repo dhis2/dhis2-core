@@ -45,8 +45,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 public class UpdateCheck implements ObjectValidationCheck
 {
     @Override
-    public void check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
-        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
         ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
     {
         if ( nonPersistedObjects == null || nonPersistedObjects.isEmpty() )
@@ -54,9 +54,9 @@ public class UpdateCheck implements ObjectValidationCheck
             return;
         }
 
-        for ( IdentifiableObject identifiableObject : nonPersistedObjects )
+        for ( T identifiableObject : nonPersistedObjects )
         {
-            IdentifiableObject object = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
+            T object = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
 
             if ( object == null || object.getId() == 0 )
             {

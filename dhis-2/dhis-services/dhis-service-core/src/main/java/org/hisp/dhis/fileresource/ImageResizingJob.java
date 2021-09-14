@@ -38,7 +38,7 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component( "imageResizingJob" )
-public class ImageResizingJob extends AbstractJob
+public class ImageResizingJob implements Job
 {
     private final FileResourceContentStore fileResourceContentStore;
 

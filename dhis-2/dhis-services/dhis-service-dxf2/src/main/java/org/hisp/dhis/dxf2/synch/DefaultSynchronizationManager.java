@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
+import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -129,7 +130,7 @@ public class DefaultSynchronizationManager
     }
 
     @Override
-    public ImportSummary executeDataValuePush()
+    public ImportConflicts executeDataValuePush()
         throws WebMessageParseException
     {
         AvailabilityStatus availability = isRemoteServerAvailable();
@@ -140,10 +141,10 @@ public class DefaultSynchronizationManager
             return null;
         }
 
-        String url = systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL )
+        String url = systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_URL )
             + SyncEndpoint.DATA_VALUE_SETS.getPath();
-        String username = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
-        String password = (String) systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
+        String username = systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_USERNAME );
+        String password = systemSettingManager.getStringSetting( SettingKey.REMOTE_INSTANCE_PASSWORD );
 
         SystemInstance instance = new SystemInstance( url, username, password );
 
@@ -156,7 +157,7 @@ public class DefaultSynchronizationManager
      * @param instance the remote system instance.
      * @return an ImportSummary.
      */
-    private ImportSummary executeDataValuePush( SystemInstance instance )
+    private ImportConflicts executeDataValuePush( SystemInstance instance )
         throws WebMessageParseException
     {
         // ---------------------------------------------------------------------
@@ -166,8 +167,8 @@ public class DefaultSynchronizationManager
         final Date startTime = new Date();
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
             SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
-        final Date skipChangedBefore = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date skipChangedBefore = systemSettingManager
+            .getDateSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         final Date lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
         final int objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
 
@@ -196,7 +197,7 @@ public class DefaultSynchronizationManager
                 .writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
-        final int maxSyncAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_SYNC_ATTEMPTS );
+        final int maxSyncAttempts = systemSettingManager.getIntSetting( SettingKey.MAX_SYNC_ATTEMPTS );
 
         Optional<AbstractWebMessageResponse> responseSummary = SyncUtils.runSyncRequest(
             restTemplate,

@@ -35,8 +35,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Every.everyItem;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -57,7 +57,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
@@ -69,7 +68,10 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.report.*;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -120,12 +122,10 @@ public class EventImportValidationTest
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        List<ErrorReport> errorReports = validationReport.getErrorReports();
-        assertTrue( errorReports.isEmpty() );
+        assertFalse( validationReport.hasErrorReports() );
 
         ObjectBundleCommitReport commit = objectBundleService.commit( bundle );
-        List<ErrorReport> objectReport = commit.getErrorReports();
-        assertTrue( objectReport.isEmpty() );
+        assertFalse( commit.hasErrorReports() );
 
         TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
@@ -220,22 +220,6 @@ public class EventImportValidationTest
 
         assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
-    }
-
-    @Test
-    public void testProgramStageProgramDifferentPrograms()
-        throws IOException
-    {
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_error-pstage-program-different.json" );
-        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1089 ) ) ) );
     }
 
     @Test
@@ -373,22 +357,6 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void testEventHasNoEnrollment()
-        throws IOException
-    {
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_tei-not-enrolled.json" );
-        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
-
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1033 ) ) ) );
-    }
-
-    @Test
     public void testValidateAndAddNotesToEvent()
         throws IOException
     {
@@ -480,23 +448,6 @@ public class EventImportValidationTest
         assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
         assertThat( trackerImportReport.getValidationReport().getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1082 ) ) ) );
-    }
-
-    @Test
-    @SneakyThrows
-    public void testImportFailsOnOuNotMatchingProgramOu()
-    {
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events-with-ou-not-in-program.json" );
-
-        trackerBundleParams.setImportStrategy( CREATE_AND_UPDATE );
-
-        // When
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( E1029 ) ) ) );
     }
 
     private TrackerImportReport createEvent( String jsonPayload )

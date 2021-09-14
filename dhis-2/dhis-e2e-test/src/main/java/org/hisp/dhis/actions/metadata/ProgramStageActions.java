@@ -25,22 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.actions.metadata;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class ProgramStageActions extends RestApiActions
 {
-    public ProgramStageActions( )
+    public ProgramStageActions()
     {
         super( "/programStages" );
     }
@@ -60,12 +59,8 @@ public class ProgramStageActions extends RestApiActions
 
     public void setValidationStrategy( String programStageId, String strategy )
     {
-        JsonObject body = JsonObjectBuilder.jsonObject()
-            .addProperty( "validationStrategy", strategy )
-            .build();
-
-        this.patch( programStageId, body )
-            .validate().statusCode( 204 );
+        this.patch( programStageId, "add", "/validationStrategy", strategy )
+            .validate().statusCode( 200 );
 
         this.get( programStageId )
             .validate().body( "validationStrategy", equalTo( strategy ) );

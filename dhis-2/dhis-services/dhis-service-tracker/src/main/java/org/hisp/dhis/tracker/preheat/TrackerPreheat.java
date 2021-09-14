@@ -50,6 +50,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramInstance;
@@ -58,6 +59,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -175,6 +177,18 @@ public class TrackerPreheat
     private Map<TrackerIdScheme, Map<String, TrackedEntityComment>> notes = new EnumMap<>( TrackerIdScheme.class );
 
     /**
+     * Internal map of all existing TrackedEntityProgramOwner. Used for
+     * ownership validations and updating. The root key of this map is the
+     * trackedEntityInstance UID. The value of the root map is another map which
+     * holds a key-value combination where the key is the program UID and the
+     * value is an object of {@link TrackedEntityProgramOwnerOrgUnit} holding
+     * the ownership OrganisationUnit
+     */
+    @Getter
+    @Setter
+    private Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> programOwner = new HashMap<>();
+
+    /**
      * A Map of trackedEntity uid connected to Program Instances
      */
     @Getter
@@ -234,7 +248,7 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private Map<Long, List<Long>> programWithOrgUnitsMap;
+    private Map<String, List<String>> programWithOrgUnitsMap;
 
     public TrackerPreheat()
     {
@@ -574,6 +588,38 @@ public class TrackerPreheat
             return Optional.of( new ReferenceTrackerEntity( uid, node.parent().data() ) );
         }
         return Optional.empty();
+    }
+
+    public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )
+    {
+        tepos.forEach( tepo -> addProgramOwner( tepo.getTrackedEntityInstanceId(), tepo.getProgramId(), tepo ) );
+
+    }
+
+    private void addProgramOwner( String teiUid, String programUid,
+        TrackedEntityProgramOwnerOrgUnit tepo )
+    {
+        if ( !programOwner.containsKey( teiUid ) )
+        {
+            programOwner.put( teiUid, new HashMap<>() );
+        }
+
+        programOwner.get( teiUid ).put( programUid, tepo );
+    }
+
+    public void addProgramOwner( String teiUid, String programUid,
+        OrganisationUnit orgUnit )
+    {
+        if ( !programOwner.containsKey( teiUid ) )
+        {
+            programOwner.put( teiUid, new HashMap<>() );
+        }
+        if ( !programOwner.get( teiUid ).containsKey( programUid ) )
+        {
+            TrackedEntityProgramOwnerOrgUnit tepo = new TrackedEntityProgramOwnerOrgUnit( teiUid, programUid,
+                orgUnit );
+            programOwner.get( teiUid ).put( programUid, tepo );
+        }
     }
 
     @Override

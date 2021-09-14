@@ -44,10 +44,7 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
  */
 public interface CacheProvider
 {
-
     <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime );
-
-    <V> Cache<V> createAppCache();
 
     <V> Cache<V> createDefaultObjectCache();
 
@@ -110,4 +107,10 @@ public interface CacheProvider
     <V> Cache<V> createProgramWebHookNotificationTemplateCache();
 
     <V> Cache<V> createProgramStageWebHookNotificationTemplateCache();
+
+    <V> Cache<V> createProgramOrgUnitAssociationCache();
+
+    <V> Cache<V> createCatOptOrgUnitAssociationCache();
+
+    <V> Cache<V> createApiKeyCache();
 }

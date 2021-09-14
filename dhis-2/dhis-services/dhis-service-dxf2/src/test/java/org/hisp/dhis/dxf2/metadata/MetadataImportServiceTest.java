@@ -32,11 +32,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,19 +47,22 @@ import javax.xml.xpath.XPathExpressionException;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.collections4.*;
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.mapping.ThematicMapType;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.Program;
@@ -73,9 +77,13 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 import org.hisp.dhis.render.type.SectionRenderingType;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,6 +124,9 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private NodeService nodeService;
+
+    @Autowired
+    private AclService aclService;
 
     @Override
     protected void setUpTest()
@@ -221,6 +232,94 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
             new ClassPathResource( "dxf2/dataset_with_accesses_update.json" ).getInputStream(), RenderFormat.JSON );
 
         params = createParams( ImportStrategy.UPDATE, metadata );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+    }
+
+    /**
+     * User only have READ access to Dashboard object User try to update
+     * Dashboard with: skipSharing=true, and payload doesn't include sharing
+     * data. Expected: import error
+     */
+    @Test
+    public void testImportWithSkipSharingIsTrueAndNoPermission()
+    {
+        User userA = createUser( "A" );
+        userService.addUser( userA );
+
+        Dashboard dashboard = new Dashboard();
+        dashboard.setName( "DashboardA" );
+
+        Sharing sharing = new Sharing();
+        sharing.addUserAccess( new UserAccess( userA, AccessStringHelper.READ ) );
+        dashboard.setSharing( sharing );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+        metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
+
+        // Create Dashboard
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        // Check sharing data
+        IdentifiableObject savedDashboard = manager.get( Dashboard.class, dashboard.getUid() );
+        assertFalse( aclService.canWrite( userA, savedDashboard ) );
+        assertTrue( aclService.canRead( userA, savedDashboard ) );
+
+        // Update dashboard with skipSharing=true and no sharing data in payload
+        dashboard.setSharing( null );
+        metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
+        params = createParams( ImportStrategy.UPDATE, metadata );
+        params.setSkipSharing( true );
+        params.setUser( userA );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.ERROR, report.getStatus() );
+    }
+
+    /**
+     * User have READ-WRITE access to Dashboard object User try to update
+     * Dashboard with: skipSharing=true, and payload doesn't include sharing
+     * data. Expected: import successfully
+     */
+    @Test
+    public void testImportWithSkipSharingIsTrueAndWritePermission()
+    {
+        User userA = createUser( 'A' );
+        userService.addUser( userA );
+
+        Dashboard dashboard = new Dashboard();
+        dashboard.setName( "DashboardA" );
+
+        Sharing sharing = new Sharing();
+        sharing.setPublicAccess( AccessStringHelper.DEFAULT );
+        sharing.addUserAccess( new UserAccess( userA, AccessStringHelper.READ_WRITE ) );
+        dashboard.setSharing( sharing );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = new HashMap<>();
+        metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
+
+        // Create Dashboard
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        // Check all sharing data
+        IdentifiableObject savedDashboard = manager.get( Dashboard.class, dashboard.getUid() );
+        assertTrue( aclService.canWrite( userA, savedDashboard ) );
+        assertTrue( aclService.canRead( userA, savedDashboard ) );
+
+        // Update Dashboard with skipSharing=true and no sharing data in payload
+        dashboard.setSharing( null );
+        metadata.put( Dashboard.class, Collections.singletonList( dashboard ) );
+
+        params = createParams( ImportStrategy.UPDATE, metadata );
+        params.setSkipSharing( true );
+        params.setUser( userA );
 
         report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
@@ -441,31 +540,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( 2, dataSet.getTranslations().size() );
     }
 
-    @Test( expected = IllegalArgumentException.class )
-    public void testImportNonExistingEntityObject()
-        throws IOException
-    {
-        User user = createUser( 'A' );
-        manager.save( user );
-
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user ) );
-        manager.save( userGroup );
-
-        userGroup = manager.get( UserGroup.class, "ugabcdefghA" );
-        assertNotNull( userGroup );
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_chart_with_accesses.json" ).getInputStream(),
-            RenderFormat.JSON );
-
-        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
-
-        importService.importMetadata( params );
-
-        // Should not get to this point.
-        fail( "The exception org.hibernate.MappingException was expected." );
-    }
-
     @Test
     public void testImportMultiPropertyUniqueness()
         throws IOException
@@ -478,9 +552,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         ImportReport importReport = importService.importMetadata( params );
 
-        assertTrue( importReport.getTypeReports().stream()
-            .flatMap( typeReport -> typeReport.getErrorReports().stream() )
-            .anyMatch( errorReport -> errorReport.getErrorCode().equals( ErrorCode.E5005 ) ) );
+        assertTrue( importReport.hasErrorReport( errorReport -> errorReport.getErrorCode() == ErrorCode.E5005 ) );
     }
 
     @Test
@@ -549,7 +621,10 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         User user = createUser( 'A' );
         manager.save( user );
 
-        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( user ) );
+        User userA = manager.get( User.class, user.getUid() );
+        assertNotNull( userA );
+
+        UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( userA ) );
         manager.save( userGroup );
 
         userGroup = manager.get( UserGroup.class, "ugabcdefghA" );
@@ -705,6 +780,12 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         ProgramStage programStage = program.getProgramStages().iterator().next();
         assertNotNull( programStage.getProgram() );
 
+        assertEquals( 3, programStage.getProgramStageDataElements().size() );
+        programStage.getProgramStageDataElements().forEach( psde -> {
+            assertNotNull( psde.getSkipAnalytics() );
+            assertFalse( psde.getSkipAnalytics() );
+        } );
+
         Set<ProgramStageSection> programStageSections = programStage.getProgramStageSections();
         assertNotNull( programStageSections );
         assertEquals( 2, programStageSections.size() );
@@ -739,11 +820,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         dbmsManager.clearSession();
 
         report = importService.importMetadata( params );
-        final List<ErrorReport> errorReports = report.getErrorReports();
-        for ( ErrorReport errorReport : errorReports )
-        {
-            log.error( "Error report:" + errorReport );
-        }
+        report.forEachErrorReport( errorReport -> log.error( "Error report:" + errorReport ) );
         assertEquals( Status.OK, report.getStatus() );
 
         dataset = manager.get( DataSet.class, "em8Bg4LCr5k" );
@@ -784,8 +861,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         assertNotNull( manager.get( ProgramStageSection.class, "JwcV2ZifEQf" ) );
 
-        CategoryCombo categoryCombo = manager.get( CategoryCombo.class, "faV8QvLgIwB" );
-
         metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/programstage_with_removed_section.json" ).getInputStream(),
             RenderFormat.JSON );
@@ -794,11 +869,7 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         params.setMetadataSyncImport( true );
 
         report = importService.importMetadata( params );
-        final List<ErrorReport> errorReports = report.getErrorReports();
-        for ( ErrorReport errorReport : errorReports )
-        {
-            log.error( "Error report:" + errorReport );
-        }
+        report.forEachErrorReport( errorReport -> log.error( "Error report:" + errorReport ) );
         assertEquals( Status.OK, report.getStatus() );
 
         programStage = manager.get( ProgramStage.class, "NpsdDv6kKSO" );
@@ -1004,6 +1075,90 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         User user = manager.get( User.class, "MwhEJUnTHkn" );
         assertNotNull( user.getUserCredentials().getCreatedBy() );
+    }
+
+    @Test
+    public void testImportMapCreateAndUpdate()
+        throws IOException
+    {
+        java.util.Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+            .fromMetadata(
+                new ClassPathResource( "dxf2/map_new.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        List<org.hisp.dhis.mapping.Map> maps = manager.getAll( org.hisp.dhis.mapping.Map.class );
+        assertEquals( 1, maps.size() );
+        assertEquals( "test1", maps.get( 0 ).getName() );
+        assertEquals( 1, maps.get( 0 ).getMapViews().size() );
+
+        org.hisp.dhis.mapping.Map map = manager.get( org.hisp.dhis.mapping.Map.class, "LTNgXfzTFTv" );
+        assertNotNull( map );
+        assertEquals( 1, map.getMapViews().size() );
+
+        MapView mapView = map.getMapViews().get( 0 );
+        assertNotNull( mapView );
+        assertEquals( "#ddeeff", mapView.getNoDataColor() );
+        assertEquals( "#aabbcc", mapView.getOrganisationUnitColor() );
+        assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/map_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setObjects( metadata );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        map = manager.get( org.hisp.dhis.mapping.Map.class, "LTNgXfzTFTv" );
+        assertNotNull( map );
+        assertEquals( 1, map.getMapViews().size() );
+
+        mapView = map.getMapViews().get( 0 );
+        assertNotNull( mapView );
+        assertEquals( "#ddeeff", mapView.getNoDataColor() );
+        assertEquals( "#aabbcc", mapView.getOrganisationUnitColor() );
+        assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
+    }
+
+    /**
+     * Payload includes Program and ProgramStage with sharing settings.
+     * <p>
+     * Expected: after created, both Program and ProgramStage are saved
+     * correctly together with sharing settings.
+     */
+    @Test
+    public void testImportProgramWithProgramStageAndSharing()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_programStage_with_sharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        ProgramStage programStage = programStageService.getProgramStage( "oORy3Rg9hLE" );
+        assertEquals( 1, programStage.getSharing().getUserGroups().size() );
+
+        Program program = manager.get( "QIHW6CBdLsP" );
+        assertEquals( 1, program.getSharing().getUserGroups().size() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,

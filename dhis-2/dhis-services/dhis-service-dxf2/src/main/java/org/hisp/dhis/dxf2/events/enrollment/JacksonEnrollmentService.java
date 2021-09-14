@@ -131,6 +131,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
 
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
+        this.programService = programService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.relationshipService = relationshipService;
@@ -313,7 +314,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {
-            importSummaries.getImportSummaries().removeIf( is -> is.getConflicts().isEmpty() );
+            importSummaries.getImportSummaries().removeIf( is -> !is.hasConflicts() );
         }
 
         return importSummaries;

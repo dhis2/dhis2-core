@@ -35,7 +35,11 @@ import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -69,7 +73,7 @@ import org.hisp.dhis.system.util.JRExportUtils;
 import org.hisp.dhis.system.velocity.VelocityManager;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationGridService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
@@ -95,7 +99,7 @@ public class DefaultReportService
 
     private final IdentifiableObjectStore<Report> reportStore;
 
-    private final VisualizationService visualizationService;
+    private final VisualizationGridService visualizationService;
 
     private final ConstantService constantService;
 
@@ -111,7 +115,7 @@ public class DefaultReportService
 
     public DefaultReportService(
         @Qualifier( "org.hisp.dhis.report.ReportStore" ) IdentifiableObjectStore<Report> reportStore,
-        VisualizationService visualizationService,
+        VisualizationGridService visualizationService,
         ConstantService constantService, OrganisationUnitService organisationUnitService, PeriodService periodService,
         I18nManager i18nManager, DataSource dataSource, SystemSettingManager systemSettingManager )
     {
@@ -195,8 +199,9 @@ public class DefaultReportService
             {
                 if ( report.hasRelativePeriods() )
                 {
-                    AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager
-                        .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+                    AnalyticsFinancialYearStartKey financialYearStart = systemSettingManager
+                        .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START,
+                            AnalyticsFinancialYearStartKey.class );
 
                     List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false,
                         financialYearStart );
@@ -277,8 +282,8 @@ public class DefaultReportService
 
         if ( report != null && report.hasRelativePeriods() )
         {
-            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager
-                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+            AnalyticsFinancialYearStartKey financialYearStart = systemSettingManager
+                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START, AnalyticsFinancialYearStartKey.class );
 
             if ( calendar.isIso8601() )
             {

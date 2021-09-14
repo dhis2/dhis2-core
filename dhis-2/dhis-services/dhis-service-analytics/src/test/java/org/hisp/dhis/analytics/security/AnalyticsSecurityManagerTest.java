@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.analytics.security;
 
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Set;
 
@@ -45,10 +49,13 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -80,6 +87,8 @@ public class AnalyticsSecurityManagerTest
 
     private CategoryOption coB;
 
+    private CategoryOption coNotReadable;
+
     private Category caA;
 
     private DataElement deA;
@@ -89,6 +98,12 @@ public class AnalyticsSecurityManagerTest
     private OrganisationUnit ouB;
 
     private OrganisationUnit ouC;
+
+    private OrganisationUnit ouD;
+
+    private OrganisationUnit ouE;
+
+    private OrganisationUnit ouF;
 
     private Set<OrganisationUnit> userOrgUnits;
 
@@ -103,13 +118,21 @@ public class AnalyticsSecurityManagerTest
     {
         userService = _userService;
         createAndInjectAdminUser();
+
         coA = createCategoryOption( 'A' );
         coB = createCategoryOption( 'B' );
+        coNotReadable = createCategoryOption( 'N' );
 
         categoryService.addCategoryOption( coA );
         categoryService.addCategoryOption( coB );
 
-        caA = createCategory( 'A', coA, coB );
+        long nonReadableCatOption = categoryService.addCategoryOption( coNotReadable );
+        coNotReadable = categoryService.getCategoryOption( nonReadableCatOption );
+        Sharing sharing = Sharing.builder().owner( "cannotRead" ).publicAccess( AccessStringHelper.DEFAULT ).build();
+        coNotReadable.setSharing( sharing );
+        coNotReadable.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        caA = createCategory( 'A', coA, coB, coNotReadable );
 
         categoryService.addCategory( caA );
 
@@ -122,21 +145,54 @@ public class AnalyticsSecurityManagerTest
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C', ouB );
+        ouD = createOrganisationUnit( 'D', ouC );
+        ouE = createOrganisationUnit( 'E', ouC );
+        ouF = createOrganisationUnit( 'F', ouA );
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
         organisationUnitService.addOrganisationUnit( ouC );
+        organisationUnitService.addOrganisationUnit( ouD );
+        organisationUnitService.addOrganisationUnit( ouE );
 
         userOrgUnits = Sets.newHashSet( ouB, ouC );
 
         User user = createUser( "A", "F_VIEW_EVENT_ANALYTICS" );
         user.setOrganisationUnits( userOrgUnits );
         user.setDataViewOrganisationUnits( userOrgUnits );
+        user.setDataViewMaxOrganisationUnitLevel( 3 );
         user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
 
         userService.addUser( user );
         injectSecurityContext( user );
+    }
 
+    @Test
+    public void testDataViewOrganisationUnits()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
+            .withOrganisationUnits( Lists.newArrayList( ouF ) )
+            .build();
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> securityManager.decideAccess( params ) );
+
+        assertEquals( ErrorCode.E7120, ex.getErrorCode() );
+    }
+
+    @Test
+    public void testDataViewMaxOrganisationUnitLevel()
+    {
+        DataQueryParams params = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
+            .withOrganisationUnits( Lists.newArrayList( ouD ) )
+            .build();
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> securityManager.decideAccess( params ) );
+
+        assertEquals( ErrorCode.E7120, ex.getErrorCode() );
     }
 
     @Test
@@ -211,6 +267,29 @@ public class AnalyticsSecurityManagerTest
         assertEquals( userOrgUnits, Sets.newHashSet( params.getFilterOrganisationUnits() ) );
         assertNotNull( params.getFilter( caA.getDimension() ) );
         assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
+    }
+
+    @Test
+    public void testWithUserConstraintsEventQueryParamsCheckingNotReadableCategoryOption()
+    {
+        // Given
+        EventQueryParams params = new EventQueryParams.Builder()
+            .addItem( new QueryItem( deA ) )
+            .withStartDate( getDate( 2018, 1, 1 ) )
+            .withEndDate( getDate( 2018, 4, 1 ) )
+            .build();
+
+        // When
+        params = securityManager.withUserConstraints( params );
+
+        // Then
+        int authorizedCatOptions = 2;
+
+        assertEquals( userOrgUnits, Sets.newHashSet( params.getFilterOrganisationUnits() ) );
+        assertNotNull( params.getFilter( caA.getDimension() ) );
+        assertEquals( caA.getDimension(), params.getFilter( caA.getDimension() ).getDimension() );
+        assertEquals( authorizedCatOptions, params.getFilter( caA.getDimension() ).getItems().size() );
+        assertThat( params.getFilter( caA.getDimension() ).getItems(), not( hasItem( coNotReadable ) ) );
     }
 
     @Test

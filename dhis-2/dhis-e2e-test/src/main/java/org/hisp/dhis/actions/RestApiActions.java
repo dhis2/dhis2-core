@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.actions;
 
 /*
@@ -39,7 +66,10 @@ import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.dto.ObjectReport;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
+
+import com.google.gson.JsonArray;
 
 import io.restassured.RestAssured;
 import io.restassured.config.ObjectMapperConfig;
@@ -80,8 +110,8 @@ public class RestApiActions
     }
 
     /**
-     * Sends post request to specified endpoint.
-     * If post request successful, saves created entity in TestRunStorage
+     * Sends post request to specified endpoint. If post request successful,
+     * saves created entity in TestRunStorage
      *
      * @param object Body of request
      * @return Response
@@ -122,8 +152,8 @@ public class RestApiActions
     }
 
     /**
-     * Shortcut used in preconditions only.
-     * Sends post request to specified endpoint and verifies that request was successful
+     * Shortcut used in preconditions only. Sends post request to specified
+     * endpoint and verifies that request was successful
      *
      * @param object Body of request
      * @return ID of generated entity.
@@ -133,7 +163,7 @@ public class RestApiActions
         ApiResponse response = post( object );
 
         response.validate()
-            .statusCode(  is(oneOf( 200, 201 ) ) );
+            .statusCode( is( oneOf( 200, 201 ) ) );
 
         return response.extractUid();
     }
@@ -162,7 +192,7 @@ public class RestApiActions
     /**
      * Sends get request with provided path and queryParams appended to URL.
      *
-     * @param resourceId         Id of resource
+     * @param resourceId Id of resource
      * @param queryParamsBuilder Query params to append to url
      */
     public ApiResponse get( String resourceId, QueryParamsBuilder queryParamsBuilder )
@@ -175,14 +205,16 @@ public class RestApiActions
     }
 
     /**
-     * Sends get request with provided path, contentType, accepting content type and queryParams appended to URL.
+     * Sends get request with provided path, contentType, accepting content type
+     * and queryParams appended to URL.
      *
-     * @param resourceId            Id of resource
-     * @param contentType           Content type of the request
-     * @param accept                Accepted response Content type
-     * @param queryParamsBuilder    Query params to append to url
+     * @param resourceId Id of resource
+     * @param contentType Content type of the request
+     * @param accept Accepted response Content type
+     * @param queryParamsBuilder Query params to append to url
      */
-    public ApiResponse get( String resourceId, String contentType, String accept, QueryParamsBuilder queryParamsBuilder )
+    public ApiResponse get( String resourceId, String contentType, String accept,
+        QueryParamsBuilder queryParamsBuilder )
     {
         String path = queryParamsBuilder == null ? "" : queryParamsBuilder.build();
 
@@ -196,11 +228,11 @@ public class RestApiActions
     }
 
     /**
-     * Sends delete request to specified resource.
-     * If delete request successful, removes entity from TestRunStorage.
+     * Sends delete request to specified resource. If delete request successful,
+     * removes entity from TestRunStorage.
      *
-     * @param resourceId            Id of resource
-     * @param queryParamsBuilder    Query params to append to url
+     * @param resourceId Id of resource
+     * @param queryParamsBuilder Query params to append to url
      */
     public ApiResponse delete( String resourceId, QueryParamsBuilder queryParamsBuilder )
     {
@@ -210,8 +242,8 @@ public class RestApiActions
     }
 
     /**
-     * Sends delete request to specified resource.
-     * If delete request successful, removes entity from TestRunStorage.
+     * Sends delete request to specified resource. If delete request successful,
+     * removes entity from TestRunStorage.
      *
      * @param path Id of resource
      */
@@ -233,29 +265,47 @@ public class RestApiActions
      * Sends PUT request to specified resource.
      *
      * @param resourceId Id of resource
-     * @param object     Body of request
+     * @param object Body of request
      */
     public ApiResponse update( String resourceId, Object object )
     {
-        Response response =
-            this.given().body( object, ObjectMapperType.GSON )
-                .when()
-                .put( resourceId );
+        Response response = this.given().body( object, ObjectMapperType.GSON )
+            .when()
+            .put( resourceId );
 
         return new ApiResponse( response );
     }
 
     /**
      * Sends PATCH request to specified resource
+     *
      * @param resourceId
      * @param object
      * @return
      */
-    public ApiResponse patch( String resourceId, Object object) {
-        Response response =
-            this.given().body( object, ObjectMapperType.GSON )
-                .when()
-                .patch( resourceId );
+    public ApiResponse patch( String resourceId, Object object )
+    {
+        Response response = this.given().body( object, ObjectMapperType.GSON )
+            .when()
+            .queryParam( "importReportMode", "ERRORS" )
+            .contentType( "application/json-patch+json" )
+            .patch( resourceId );
+
+        return new ApiResponse( response );
+    }
+
+    public ApiResponse patch( String resourceId, String operation, String path, String value )
+    {
+        JsonArray body = JsonObjectBuilder.jsonObject()
+            .addProperty( "op", operation )
+            .addProperty( "path", path )
+            .addProperty( "value", value )
+            .wrapIntoArray();
+
+        Response response = this.given().body( body, ObjectMapperType.GSON )
+            .when()
+            .contentType( "application/json-patch+json" )
+            .patch( resourceId );
 
         return new ApiResponse( response );
     }
@@ -324,8 +374,8 @@ public class RestApiActions
         }
     }
 
-    protected void addCreatedEntity(String ep, String id) {
+    protected void addCreatedEntity( String ep, String id )
+    {
         TestRunStorage.addCreatedEntity( ep, id );
     }
 }
-

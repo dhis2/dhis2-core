@@ -38,7 +38,6 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -47,6 +46,7 @@ import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -295,7 +295,7 @@ public class DashboardServiceTest
     {
         EventChart eventChart = new EventChart( RandomStringUtils.randomAlphabetic( 5 ) );
         eventChart.setProgram( program );
-        eventChart.setType( ChartType.COLUMN );
+        eventChart.setType( VisualizationType.COLUMN );
         return eventChart;
     }
 }

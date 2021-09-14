@@ -111,8 +111,8 @@ class DataApprovalPermissionsEvaluator
 
         ev.user = currentUserService.getCurrentUser();
 
-        ev.acceptanceRequiredForApproval = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+        ev.acceptanceRequiredForApproval = systemSettingManager
+            .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
         boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
         ev.authorizedToApprove = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE );
@@ -261,6 +261,13 @@ class DataApprovalPermissionsEvaluator
         permissions.setMayAccept( mayAccept );
         permissions.setMayUnaccept( mayUnaccept );
         permissions.setMayReadData( mayReadData );
+        permissions.setApprovedAt( status.getCreated() );
+
+        if ( status.getState() == DataApprovalState.APPROVED_HERE
+            || (status.getState() == DataApprovalState.APPROVED_ABOVE && userLevelIndex < dataLevelIndex) )
+        {
+            permissions.setApprovedBy( status.getCreator() != null ? status.getCreator().getName() : null );
+        }
     }
 
     private DataApprovalLevel getUserApprovalLevelWithCache( String orgUnitUid, DataApprovalWorkflow workflow )

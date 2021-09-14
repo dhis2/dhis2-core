@@ -28,7 +28,11 @@
 package org.hisp.dhis.analytics.table;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.analytics.ColumnDataType.*;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DOUBLE;
+import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
+import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -132,7 +136,7 @@ public class JdbcAnalyticsTableManager
         new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ),
         new AnalyticsTableColumn( quote( "pe" ), TEXT, NOT_NULL, "ps.iso" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
-        new AnalyticsTableColumn( quote( "level" ), INTEGER, "ous.level" ) );
+        new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, "ous.level" ) );
 
     // -------------------------------------------------------------------------
     // Implementation
@@ -233,11 +237,17 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
+    protected String getPartitionColumn()
+    {
+        return "year";
+    }
+
+    @Override
     protected void populateTable( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
         final String dbl = statementBuilder.getDoubleColumnType();
-        final boolean skipDataTypeValidation = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
+        final boolean skipDataTypeValidation = systemSettingManager
+            .getBoolSetting( SettingKey.SKIP_DATA_TYPE_VALIDATION_IN_ANALYTICS_TABLE_EXPORT );
 
         final String numericClause = skipDataTypeValidation ? ""
             : ("and dv.value " + statementBuilder.getRegexpMatch() + " '" + MathUtils.NUMERIC_LENIENT_REGEXP + "' ");
@@ -266,8 +276,8 @@ public class JdbcAnalyticsTableManager
     {
         final String tableName = partition.getTempTableName();
         final String valTypes = TextUtils.getQuotedCommaDelimitedString( ObjectUtils.asStringList( valueTypes ) );
-        final boolean respectStartEndDates = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
+        final boolean respectStartEndDates = systemSettingManager
+            .getBoolSetting( SettingKey.RESPECT_META_DATA_START_END_DATES_IN_ANALYTICS_TABLE_EXPORT );
         final String approvalClause = getApprovalJoinClause( partition.getYear() );
         final String partitionClause = partition.isLatestPartition()
             ? "and dv.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' "
@@ -567,8 +577,8 @@ public class JdbcAnalyticsTableManager
     {
         boolean setting = systemSettingManager.hideUnapprovedDataInAnalytics();
         boolean levels = !dataApprovalLevelService.getAllDataApprovalLevels().isEmpty();
-        Integer maxYears = (Integer) systemSettingManager
-            .getSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
+        Integer maxYears = systemSettingManager
+            .getIntegerSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD );
 
         log.debug( String.format( "Hide approval setting: %b, approval levels exists: %b, max years threshold: %d",
             setting, levels, maxYears ) );

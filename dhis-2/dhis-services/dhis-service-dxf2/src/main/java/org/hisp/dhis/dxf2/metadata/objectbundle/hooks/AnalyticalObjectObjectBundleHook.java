@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import lombok.AllArgsConstructor;
+
 import org.hibernate.Session;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.AnalyticalObjectImportHandler;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -44,17 +44,15 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Order( 10 )
+@AllArgsConstructor
 public class AnalyticalObjectObjectBundleHook
-    extends AbstractObjectBundleHook
+    extends AbstractObjectBundleHook<AnalyticalObject>
 {
-    @Autowired
-    private AnalyticalObjectImportHandler analyticalObjectImportHandler;
+    private final AnalyticalObjectImportHandler analyticalObjectImportHandler;
 
     @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
+    public void preCreate( AnalyticalObject object, ObjectBundle bundle )
     {
-        if ( !AnalyticalObject.class.isInstance( object ) )
-            return;
         BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( analyticalObject ) );
         Session session = sessionFactory.getCurrentSession();
@@ -63,11 +61,8 @@ public class AnalyticalObjectObjectBundleHook
     }
 
     @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
+    public void preUpdate( AnalyticalObject object, AnalyticalObject persistedObject, ObjectBundle bundle )
     {
-        if ( !AnalyticalObject.class.isInstance( object ) )
-            return;
-
         BaseAnalyticalObject analyticalObject = (BaseAnalyticalObject) object;
 
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( analyticalObject ) );

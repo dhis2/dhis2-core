@@ -49,7 +49,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -154,7 +158,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         doInTransaction( () -> {
             org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
             org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this.persistTrackedEntityInstance();
-            this.persistRelationship( t1, t2 );
             teiUid[0] = t1.getUid();
             teiUid[1] = t2.getUid();
         } );
@@ -181,6 +184,30 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
             .collect( Collectors.toSet() );
         assertTrue( teis.contains( teiUid[0] ) );
         assertTrue( teis.contains( teiUid[1] ) );
+    }
+
+    @Test
+    public void testFetchTrackedEntityInstancesWithSingleQuoteInAttributeSearchInput()
+    {
+        doInTransaction( () -> {
+            this.persistTrackedEntityInstance();
+            this.persistTrackedEntityInstance();
+            this.persistTrackedEntityInstance();
+            this.persistTrackedEntityInstance();
+        } );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
+        queryParams.addFilter( new QueryItem( createTrackedEntityAttribute( 'A' ), QueryOperator.EQ, "M'M",
+            ValueType.TEXT, AggregationType.NONE, null ) );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( trackedEntityInstances, hasSize( 0 ) );
     }
 
     @Test
@@ -576,33 +603,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         assertThat( enrollment.getFollowup(), is( true ) );
         assertThat( event.getFollowup(), is( true ) );
-    }
-
-    @Test
-    public void testEnrollmentWithoutOrgUnit()
-    {
-        Map<String, Object> enrollmentValues = new HashMap<>();
-        enrollmentValues.put( "orgUnit", null );
-        doInTransaction( () -> this.persistTrackedEntityInstanceWithEnrollmentAndEvents( enrollmentValues ) );
-
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
-        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
-        queryParams.setIncludeAllAttributes( true );
-
-        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
-        params.setIncludeEnrollments( true );
-        params.setIncludeEvents( true );
-
-        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
-        TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
-        Enrollment enrollment = tei.getEnrollments().get( 0 );
-        Event event = enrollment.getEvents().get( 0 );
-
-        assertNotNull( enrollment );
-        assertNotNull( event );
-
     }
 
     @Test

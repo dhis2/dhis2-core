@@ -30,8 +30,6 @@ package org.hisp.dhis.program.notification;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Zubair Asghar
@@ -40,7 +38,8 @@ import org.hisp.dhis.program.ProgramStageInstance;
 public interface ProgramNotificationInstanceStore
     extends IdentifiableObjectStore<ProgramNotificationInstance>
 {
-    List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramInstance programInstance );
+    List<ProgramNotificationInstance> getProgramNotificationInstances(
+        ProgramNotificationInstanceParam programNotificationInstanceParam );
 
-    List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance );
+    Long countProgramNotificationInstances( ProgramNotificationInstanceParam params );
 }

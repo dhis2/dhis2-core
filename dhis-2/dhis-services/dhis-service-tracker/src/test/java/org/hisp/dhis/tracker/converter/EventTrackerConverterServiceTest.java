@@ -83,6 +83,7 @@ public class EventTrackerConverterServiceTest
         programStage.setProgram( program );
 
         when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
+        when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
         when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
     }
 
@@ -90,11 +91,9 @@ public class EventTrackerConverterServiceTest
     public void testToProgramStageInstance()
     {
         Event event = new Event();
-        event.setProgram( PROGRAM_UID );
         event.setProgramStage( PROGRAM_STAGE_UID );
+        event.setProgram( PROGRAM_UID );
         event.setOrgUnit( ORGANISATION_UNIT_UID );
-
-        when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
 
         ProgramStageInstance programStageInstance = trackerConverterService.from( preheat, event );
 

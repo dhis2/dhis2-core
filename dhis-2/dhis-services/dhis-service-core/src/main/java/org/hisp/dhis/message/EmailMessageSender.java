@@ -369,13 +369,13 @@ public class EmailMessageSender
 
     private String getPrefixedSubject( String subject )
     {
-        String title = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        String title = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
         return "[" + title + "] " + subject;
     }
 
     private String getEmailName()
     {
-        String appTitle = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
+        String appTitle = systemSettingManager.getStringSetting( SettingKey.APPLICATION_TITLE );
         appTitle = ObjectUtils.firstNonNull( StringUtils.trimToNull( emailNameEncode( appTitle ) ),
             DEFAULT_APPLICATION_TITLE );
         return appTitle + " message [No reply]";
@@ -393,12 +393,12 @@ public class EmailMessageSender
 
     private EmailConfiguration getEmailConfiguration()
     {
-        String hostName = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_HOST_NAME );
-        String username = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_USERNAME );
-        String password = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_PASSWORD );
-        String from = (String) systemSettingManager.getSystemSetting( SettingKey.EMAIL_SENDER );
-        int port = (int) systemSettingManager.getSystemSetting( SettingKey.EMAIL_PORT );
-        boolean tls = (boolean) systemSettingManager.getSystemSetting( SettingKey.EMAIL_TLS );
+        String hostName = systemSettingManager.getStringSetting( SettingKey.EMAIL_HOST_NAME );
+        String username = systemSettingManager.getStringSetting( SettingKey.EMAIL_USERNAME );
+        String password = systemSettingManager.getStringSetting( SettingKey.EMAIL_PASSWORD );
+        String from = systemSettingManager.getStringSetting( SettingKey.EMAIL_SENDER );
+        int port = systemSettingManager.getIntSetting( SettingKey.EMAIL_PORT );
+        boolean tls = systemSettingManager.getBoolSetting( SettingKey.EMAIL_TLS );
 
         return new EmailConfiguration( hostName, username, password, from, port, tls );
     }

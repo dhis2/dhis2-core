@@ -122,8 +122,8 @@ public class EventSynchronization extends DataSynchronizationWithPaging
     private void initializeSyncVariables( final int pageSize )
     {
         clock = new Clock( log ).startClock().logTime( "Starting Event programs data synchronization job." );
-        skipChangedBefore = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        skipChangedBefore = systemSettingManager
+            .getDateSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         objectsToSynchronize = eventService.getAnonymousEventReadyForSynchronizationCount( skipChangedBefore );
 
         log.info( "Events last changed before " + skipChangedBefore + " will not be synchronized." );

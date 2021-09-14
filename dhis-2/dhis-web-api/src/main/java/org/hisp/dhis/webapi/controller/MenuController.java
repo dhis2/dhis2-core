@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import java.io.InputStream;
 import java.util.List;
 
@@ -39,8 +41,8 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @Controller
@@ -61,7 +63,7 @@ public class MenuController
 
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @SuppressWarnings( "unchecked" )
-    @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     public void saveMenuOrder( InputStream input )
         throws Exception
     {

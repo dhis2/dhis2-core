@@ -92,6 +92,8 @@ public class EventDataQueryRequest
 
     private IdScheme dataIdScheme;
 
+    private IdScheme outputIdScheme;
+
     private DisplayProperty displayProperty;
 
     private Date relativePeriodDate;
@@ -177,6 +179,11 @@ public class EventDataQueryRequest
         return new ExtendedEventDataQueryRequestBuilder();
     }
 
+    public boolean hasStartEndDate()
+    {
+        return startDate != null && endDate != null;
+    }
+
     public static class ExtendedEventDataQueryRequestBuilder extends EventDataQueryRequestBuilder
     {
         public EventDataQueryRequestBuilder fromCriteria( EventsAnalyticsQueryCriteria criteria )
@@ -215,6 +222,7 @@ public class EventDataQueryRequest
                 .userOrgUnit( criteria.getUserOrgUnit() )
                 .value( criteria.getValue() )
                 .dataIdScheme( criteria.getDataIdScheme() )
+                .outputIdScheme( criteria.getOutputIdScheme() )
                 .orgUnitField( criteria.getOrgUnitField() )
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() );

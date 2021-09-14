@@ -27,22 +27,25 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummaries;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.scheduling.JobType.ENROLLMENT_IMPORT;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -54,8 +57,7 @@ import org.hisp.dhis.dxf2.events.enrollment.ImportEnrollmentsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -63,25 +65,24 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -105,7 +106,7 @@ public class EnrollmentController
     private EnrollmentService enrollmentService;
 
     @Autowired
-    private SchedulingManager schedulingManager;
+    private AsyncTaskExecutor taskExecutor;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -117,36 +118,15 @@ public class EnrollmentController
     protected ContextService contextService;
 
     @Autowired
-    private WebMessageService webMessageService;
-
-    @Autowired
     private EnrollmentCriteriaMapper enrollmentCriteriaMapper;
 
     // -------------------------------------------------------------------------
     // READ
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "", method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody RootNode getEnrollments(
-        @RequestParam( required = false ) String ou,
-        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
-        @RequestParam( required = false ) String program,
-        @RequestParam( required = false ) ProgramStatus programStatus,
-        @RequestParam( required = false ) Boolean followUp,
-        @RequestParam( required = false ) Date lastUpdated,
-        @RequestParam( required = false ) String lastUpdatedDuration,
-        @RequestParam( required = false ) Date programStartDate,
-        @RequestParam( required = false ) Date programEndDate,
-        @RequestParam( required = false ) String trackedEntityType,
-        @RequestParam( required = false ) String trackedEntityInstance,
-        @RequestParam( required = false ) String enrollment,
-        @RequestParam( required = false ) Integer page,
-        @RequestParam( required = false ) Integer pageSize,
-        @RequestParam( required = false ) boolean totalPages,
-        @RequestParam( required = false ) Boolean skipPaging,
-        @RequestParam( required = false ) Boolean paging,
-        @RequestParam( required = false ) List<OrderCriteria> order,
-        @RequestParam( required = false, defaultValue = "false" ) boolean includeDeleted )
+        EnrollmentCriteria enrollmentCriteria )
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -156,19 +136,30 @@ public class EnrollmentController
                 "enrollment,created,lastUpdated,trackedEntityType,trackedEntityInstance,program,status,orgUnit,orgUnitName,enrollmentDate,incidentDate,followup" );
         }
 
-        Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
-
-        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
-
         RootNode rootNode = NodeUtils.createMetadata();
 
         List<Enrollment> listEnrollments;
 
-        if ( enrollment == null )
+        if ( enrollmentCriteria.getEnrollment() == null )
         {
-            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( orgUnits, ouMode, lastUpdated,
-                lastUpdatedDuration, program, programStatus, programStartDate, programEndDate, trackedEntityType,
-                trackedEntityInstance, followUp, page, pageSize, totalPages, skipPaging, includeDeleted, order );
+            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl(
+                TextUtils.splitToArray( enrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
+                enrollmentCriteria.getOuMode(),
+                enrollmentCriteria.getLastUpdated(),
+                enrollmentCriteria.getLastUpdatedDuration(),
+                enrollmentCriteria.getProgram(),
+                enrollmentCriteria.getProgramStatus(),
+                enrollmentCriteria.getProgramStartDate(),
+                enrollmentCriteria.getProgramEndDate(),
+                enrollmentCriteria.getTrackedEntityType(),
+                enrollmentCriteria.getTrackedEntityInstance(),
+                enrollmentCriteria.getFollowUp(),
+                enrollmentCriteria.getPage(),
+                enrollmentCriteria.getPageSize(),
+                enrollmentCriteria.isTotalPages(),
+                PagerUtils.isSkipPaging( enrollmentCriteria.getSkipPaging(), enrollmentCriteria.getPaging() ),
+                enrollmentCriteria.isIncludeDeleted(),
+                enrollmentCriteria.getOrder() );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -181,7 +172,8 @@ public class EnrollmentController
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToArray( enrollment, TextUtils.SEMICOLON );
+            Set<String> enrollmentIds = TextUtils.splitToArray( enrollmentCriteria.getEnrollment(),
+                TextUtils.SEMICOLON );
             listEnrollments = enrollmentIds != null ? enrollmentIds.stream()
                 .map( enrollmentId -> enrollmentService.getEnrollment( enrollmentId ) ).collect( Collectors.toList() )
                 : null;
@@ -193,7 +185,7 @@ public class EnrollmentController
         return rootNode;
     }
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.GET )
+    @GetMapping( "/{id}" )
     public @ResponseBody Enrollment getEnrollment( @PathVariable String id,
         @RequestParam Map<String, String> parameters, Model model )
         throws NotFoundException
@@ -205,9 +197,10 @@ public class EnrollmentController
     // CREATE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void postEnrollmentJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage postEnrollmentJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -217,7 +210,6 @@ public class EnrollmentController
         {
             ImportSummaries importSummaries = enrollmentService.addEnrollmentsJson( inputStream, importOptions );
             importSummaries.setImportOptions( importOptions );
-            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
             importSummaries.getImportSummaries().stream()
                 .filter(
@@ -236,23 +228,22 @@ public class EnrollmentController
 
                 if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
                 {
-                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
+                    importSummaries( importSummaries )
+                        .setHttpStatus( HttpStatus.CREATED )
+                        .setLocation( "/api/" + "enrollments" + "/" + importSummary.getReference() );
                 }
             }
 
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+            return importSummaries( importSummaries )
+                .setHttpStatus( HttpStatus.CREATED );
         }
-        else
-        {
-            List<Enrollment> enrollments = enrollmentService.getEnrollmentsJson( inputStream );
-            startAsyncImport( importOptions, enrollments, request, response );
-        }
+        return startAsyncImport( importOptions, enrollmentService.getEnrollmentsJson( inputStream ) );
     }
 
-    @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
-    public void postEnrollmentXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
+    @ResponseBody
+    public WebMessage postEnrollmentXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        ImportOptions importOptions, HttpServletRequest request )
         throws IOException
     {
         importOptions.setStrategy( strategy );
@@ -262,7 +253,6 @@ public class EnrollmentController
         {
             ImportSummaries importSummaries = enrollmentService.addEnrollmentsXml( inputStream, importOptions );
             importSummaries.setImportOptions( importOptions );
-            response.setContentType( MediaType.APPLICATION_XML_VALUE );
 
             importSummaries.getImportSummaries().stream()
                 .filter(
@@ -281,106 +271,110 @@ public class EnrollmentController
 
                 if ( !importSummary.getStatus().equals( ImportStatus.ERROR ) )
                 {
-                    response.setHeader( "Location", getResourcePath( request, importSummary ) );
+                    importSummaries( importSummaries )
+                        .setHttpStatus( HttpStatus.CREATED )
+                        .setLocation( "/api/" + "enrollments" + "/" + importSummary.getReference() );
                 }
             }
 
-            response.setStatus( HttpServletResponse.SC_CREATED );
-            webMessageService.send( WebMessageUtils.importSummaries( importSummaries ), response, request );
+            return importSummaries( importSummaries )
+                .setHttpStatus( HttpStatus.CREATED );
         }
-        else
-        {
-            List<Enrollment> enrollments = enrollmentService.getEnrollmentsXml( inputStream );
-            startAsyncImport( importOptions, enrollments, request, response );
-        }
+        return startAsyncImport( importOptions, enrollmentService.getEnrollmentsXml( inputStream ) );
     }
 
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{id}/note", method = RequestMethod.POST, consumes = "application/json" )
-    public void updateEnrollmentForNoteJson( @PathVariable String id, HttpServletRequest request,
-        HttpServletResponse response )
+    @PostMapping( value = "/{id}/note", consumes = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage updateEnrollmentForNoteJson( @PathVariable String id, HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = enrollmentService.updateEnrollmentForNoteJson( id, inputStream );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return importSummary( importSummary );
     }
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE, produces = MediaType.APPLICATION_XML_VALUE )
-    public void updateEnrollmentXml( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request,
-        HttpServletResponse response )
+    @PutMapping( value = "/{id}", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
+    @ResponseBody
+    public WebMessage updateEnrollmentXml( @PathVariable String id, ImportOptions importOptions,
+        HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = enrollmentService.updateEnrollmentXml( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return importSummary( importSummary );
     }
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void updateEnrollmentJson( @PathVariable String id, ImportOptions importOptions, HttpServletRequest request,
-        HttpServletResponse response )
+    @PutMapping( value = "/{id}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage updateEnrollmentJson( @PathVariable String id, ImportOptions importOptions,
+        HttpServletRequest request )
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
         ImportSummary importSummary = enrollmentService.updateEnrollmentJson( id, inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return importSummary( importSummary );
     }
 
-    @RequestMapping( value = "/{id}/cancelled", method = RequestMethod.PUT )
+    @PutMapping( "/{id}/cancelled" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void cancelEnrollment( @PathVariable String id )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage cancelEnrollment( @PathVariable String id )
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Enrollment not found for ID " + id ) );
+            return notFound( "Enrollment not found for ID " + id );
         }
 
         enrollmentService.cancelEnrollment( id );
+        return null;
     }
 
-    @RequestMapping( value = "/{id}/completed", method = RequestMethod.PUT )
+    @PutMapping( "/{id}/completed" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void completeEnrollment( @PathVariable String id )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage completeEnrollment( @PathVariable String id )
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Enrollment not found for ID " + id ) );
+            return notFound( "Enrollment not found for ID " + id );
         }
 
         enrollmentService.completeEnrollment( id );
+        return null;
     }
 
-    @RequestMapping( value = "/{id}/incompleted", method = RequestMethod.PUT )
+    @PutMapping( "/{id}/incompleted" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void incompleteEnrollment( @PathVariable String id )
-        throws WebMessageException
+    @ResponseBody
+    public WebMessage incompleteEnrollment( @PathVariable String id )
     {
         if ( !programInstanceService.programInstanceExists( id ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Enrollment not found for ID " + id ) );
+            return notFound( "Enrollment not found for ID " + id );
         }
 
         enrollmentService.incompleteEnrollment( id );
+        return null;
     }
 
     // -------------------------------------------------------------------------
     // DELETE
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    public void deleteEnrollment( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
+    @DeleteMapping( "/{id}" )
+    @ResponseBody
+    public WebMessage deleteEnrollment( @PathVariable String id )
     {
         ImportSummary importSummary = enrollmentService.deleteEnrollment( id );
-        webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
+        return importSummary( importSummary );
     }
 
     // -------------------------------------------------------------------------
@@ -391,20 +385,17 @@ public class EnrollmentController
      * Starts an asynchronous enrollment task.
      *
      * @param importOptions the ImportOptions.
-     * @param events the events to import.
-     * @param request the HttpRequest.
-     * @param response the HttpResponse.
+     * @param enrollments the enrollments to import.
      */
-    private void startAsyncImport( ImportOptions importOptions, List<Enrollment> enrollments,
-        HttpServletRequest request, HttpServletResponse response )
+    private WebMessage startAsyncImport( ImportOptions importOptions, List<Enrollment> enrollments )
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
             ENROLLMENT_IMPORT, currentUserService.getCurrentUser().getUid(), true );
-        schedulingManager
-            .executeJob( new ImportEnrollmentsTask( enrollments, enrollmentService, importOptions, jobId ) );
+        taskExecutor
+            .executeTask( new ImportEnrollmentsTask( enrollments, enrollmentService, importOptions, jobId ) );
 
-        response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + ENROLLMENT_IMPORT );
-        webMessageService.send( jobConfigurationReport( jobId ), response, request );
+        return jobConfigurationReport( jobId )
+            .setLocation( "/system/tasks/" + ENROLLMENT_IMPORT );
     }
 
     private Enrollment getEnrollment( String id )
@@ -418,10 +409,5 @@ public class EnrollmentController
         }
 
         return enrollment;
-    }
-
-    private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
-    {
-        return ContextUtils.getContextPath( request ) + "/api/" + "enrollments" + "/" + importSummary.getReference();
     }
 }

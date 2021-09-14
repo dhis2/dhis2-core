@@ -29,8 +29,9 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
-import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.springframework.http.CacheControl.noStore;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -38,6 +39,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -45,15 +47,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.Objects;
-import org.hisp.dhis.dxf2.common.ImportSummary;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.exception.InvalidTypeException;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.StyleManager;
@@ -67,14 +62,16 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.webdomain.CodeList;
+import org.hisp.dhis.webapi.webdomain.ObjectCount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -124,183 +121,128 @@ public class SystemController
     // UID Generator
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = { "/uid", "/id" }, method = RequestMethod.GET, produces = {
-        MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+    @GetMapping( value = { "/uid", "/id" }, produces = { MediaType.APPLICATION_JSON_VALUE,
+        MediaType.APPLICATION_XML_VALUE } )
+    public @ResponseBody CodeList getUid(
+        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
-        throws IOException,
-        InvalidTypeException
     {
-        limit = Math.min( limit, 10000 );
-
-        RootNode rootNode = new RootNode( "codes" );
-        CollectionNode collectionNode = rootNode.addChild( new CollectionNode( "codes" ) );
-        collectionNode.setWrapping( false );
-
-        for ( int i = 0; i < limit; i++ )
-        {
-            collectionNode.addChild( new SimpleNode( "code", CodeGenerator.generateUid() ) );
-        }
-
         setNoStore( response );
-
-        return rootNode;
+        return generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
     }
 
-    @RequestMapping( value = { "/uid", "/id" }, method = RequestMethod.GET, produces = { "application/csv" } )
-    public void getUidCsv( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+    @GetMapping( value = { "/uid", "/id" }, produces = "application/csv" )
+    public void getUidCsv(
+        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
-        throws IOException,
-        InvalidTypeException
+        throws IOException
     {
-        limit = Math.min( limit, 10000 );
+        CodeList codeList = generateCodeList( Math.min( limit, 10000 ), CodeGenerator::generateUid );
+        CsvSchema schema = CsvSchema.builder()
+            .addColumn( "uid" )
+            .setUseHeader( true )
+            .build();
 
         CsvGenerator csvGenerator = CSV_FACTORY.createGenerator( response.getOutputStream() );
+        csvGenerator.setSchema( schema );
 
-        CsvSchema.Builder schemaBuilder = CsvSchema.builder()
-            .addColumn( "uid" )
-            .setUseHeader( true );
-
-        csvGenerator.setSchema( schemaBuilder.build() );
-
-        for ( int i = 0; i < limit; i++ )
+        for ( String code : codeList.getCodes() )
         {
             csvGenerator.writeStartObject();
-            csvGenerator.writeStringField( "uid", CodeGenerator.generateUid() );
+            csvGenerator.writeStringField( "uid", code );
             csvGenerator.writeEndObject();
         }
 
         csvGenerator.flush();
     }
 
-    @RequestMapping( value = "/uuid", method = RequestMethod.GET, produces = { MediaType.APPLICATION_JSON_VALUE,
+    @GetMapping( value = "/uuid", produces = { APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
-    public @ResponseBody RootNode getUuid( @RequestParam( required = false, defaultValue = "1" ) Integer limit,
+    public @ResponseBody CodeList getUuid(
+        @RequestParam( required = false, defaultValue = "1" ) Integer limit,
         HttpServletResponse response )
-        throws IOException,
-        InvalidTypeException
     {
-        limit = Math.min( limit, 10000 );
-
-        RootNode rootNode = new RootNode( "codes" );
-        CollectionNode collectionNode = rootNode.addChild( new CollectionNode( "codes" ) );
-        collectionNode.setWrapping( false );
-
-        for ( int i = 0; i < limit; i++ )
-        {
-            collectionNode.addChild( new SimpleNode( "code", UUID.randomUUID().toString() ) );
-        }
-
+        CodeList codeList = generateCodeList( Math.min( limit, 10000 ), () -> UUID.randomUUID().toString() );
         setNoStore( response );
 
-        return rootNode;
+        return codeList;
     }
 
     // -------------------------------------------------------------------------
     // Tasks
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/tasks", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTasksJson( HttpServletResponse response )
-        throws IOException
+    @GetMapping( value = "/tasks", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    public ResponseEntity<Map<JobType, Map<String, Deque<Notification>>>> getTasksJson()
     {
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-
-        renderService.toJson( response.getOutputStream(), notifier.getNotifications() );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( notifier.getNotifications() );
     }
 
-    @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
-    public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
-        throws IOException
+    @GetMapping( value = "/tasks/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    public ResponseEntity<Map<String, Deque<Notification>>> getTasksExtendedJson(
+        @PathVariable( "jobType" ) String jobType )
     {
         Map<String, Deque<Notification>> notifications = jobType == null
             ? emptyMap()
             : notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
 
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-
-        renderService.toJson( response.getOutputStream(), notifications );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( notifications );
     }
 
-    @RequestMapping( value = "/tasks/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
-    public void getTaskJsonByUid( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
-        HttpServletResponse response )
-        throws IOException
+    @GetMapping( value = "/tasks/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    public ResponseEntity<Collection<Notification>> getTaskJsonByUid( @PathVariable( "jobType" ) String jobType,
+        @PathVariable( "jobId" ) String jobId )
     {
         Collection<Notification> notifications = jobType == null
             ? emptyList()
             : notifier.getNotificationsByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
 
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-
-        renderService.toJson( response.getOutputStream(), notifications );
+        return ResponseEntity.ok().cacheControl( noStore() ).body( notifications );
     }
 
     // -------------------------------------------------------------------------
     // Tasks summary
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/taskSummaries/{jobType}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
-    public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
-        throws IOException
+    @GetMapping( value = "/taskSummaries/{jobType}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    public ResponseEntity<Map<String, Object>> getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType )
     {
         if ( jobType != null )
         {
-            Object summary = notifier.getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
-
-            handleSummary( response, summary );
-            return;
+            Map<String, Object> summary = notifier
+                .getJobSummariesForJobType( JobType.valueOf( jobType.toUpperCase() ) );
+            if ( summary != null )
+            {
+                return ResponseEntity.ok().cacheControl( noStore() ).body( summary );
+            }
         }
-
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
+        return ResponseEntity.ok().cacheControl( noStore() ).build();
     }
 
-    @RequestMapping( value = "/taskSummaries/{jobType}/{jobId}", method = RequestMethod.GET, produces = { "*/*",
-        "application/json" } )
-    public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, @PathVariable( "jobId" ) String jobId,
-        HttpServletResponse response )
-        throws IOException
+    @GetMapping( value = "/taskSummaries/{jobType}/{jobId}", produces = { "*/*", APPLICATION_JSON_VALUE } )
+    public ResponseEntity<Object> getTaskSummaryJson( @PathVariable( "jobType" ) String jobType,
+        @PathVariable( "jobId" ) String jobId )
     {
         if ( jobType != null )
         {
             Object summary = notifier.getJobSummaryByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
 
-            handleSummary( response, summary );
+            if ( summary != null )
+            {
+                return ResponseEntity.ok().cacheControl( noStore() ).body( summary );
+            }
         }
 
-        setNoStore( response );
-        response.setContentType( CONTENT_TYPE_JSON );
-    }
-
-    private void handleSummary( HttpServletResponse response, Object summary )
-        throws IOException
-    {
-        if ( summary != null && ImportSummary.class.isInstance( summary ) ) // TODO
-                                                                            // improve
-                                                                            // this
-        {
-            ImportSummary importSummary = (ImportSummary) summary;
-            renderService.toJson( response.getOutputStream(), importSummary );
-        }
-        else
-        {
-            renderService.toJson( response.getOutputStream(), summary );
-        }
+        return ResponseEntity.ok().cacheControl( noStore() ).build();
     }
 
     // -------------------------------------------------------------------------
     // Various
     // -------------------------------------------------------------------------
 
-    @RequestMapping( value = "/info", method = RequestMethod.GET, produces = { "application/json",
-        "application/javascript" } )
-    public @ResponseBody SystemInfo getSystemInfo( Model model, HttpServletRequest request,
+    @GetMapping( value = "/info", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    public @ResponseBody SystemInfo getSystemInfo(
+        HttpServletRequest request,
         HttpServletResponse response )
     {
         SystemInfo info = systemService.getSystemInfo();
@@ -318,21 +260,13 @@ public class SystemController
         return info;
     }
 
-    @RequestMapping( value = "/objectCounts", method = RequestMethod.GET )
-    public @ResponseBody RootNode getObjectCounts()
+    @GetMapping( value = "/objectCounts" )
+    public @ResponseBody ObjectCount getObjectCounts()
     {
-        Map<Objects, Long> objectCounts = statisticsProvider.getObjectCounts();
-        RootNode rootNode = NodeUtils.createRootNode( "objectCounts" );
-
-        for ( Objects objects : objectCounts.keySet() )
-        {
-            rootNode.addChild( new SimpleNode( objects.getValue(), objectCounts.get( objects ) ) );
-        }
-
-        return rootNode;
+        return new ObjectCount( statisticsProvider.getObjectCounts() );
     }
 
-    @RequestMapping( value = "/ping", method = RequestMethod.GET )
+    @GetMapping( "/ping" )
     @ResponseStatus( HttpStatus.OK )
     public @ResponseBody String ping( HttpServletResponse response )
     {
@@ -341,13 +275,13 @@ public class SystemController
         return "pong";
     }
 
-    @RequestMapping( value = "/flags", method = RequestMethod.GET, produces = { "application/json" } )
+    @GetMapping( value = "/flags", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<StyleObject> getFlags()
     {
         return getFlagObjects();
     }
 
-    @RequestMapping( value = "/styles", method = RequestMethod.GET, produces = { "application/json" } )
+    @GetMapping( value = "/styles", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody List<StyleObject> getStyles()
     {
         return styleManager.getStyles();
@@ -363,5 +297,17 @@ public class SystemController
         return systemSettingManager.getFlags().stream()
             .map( flag -> new StyleObject( i18n.getString( flag ), flag, (flag + ".png") ) )
             .collect( Collectors.toList() );
+    }
+
+    private CodeList generateCodeList( Integer limit, Supplier<String> codeSupplier )
+    {
+        CodeList codeList = new CodeList();
+
+        for ( int i = 0; i < limit; i++ )
+        {
+            codeList.getCodes().add( codeSupplier.get() );
+        }
+
+        return codeList;
     }
 }

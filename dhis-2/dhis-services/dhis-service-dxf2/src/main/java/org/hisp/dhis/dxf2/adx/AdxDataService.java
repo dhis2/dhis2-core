@@ -29,12 +29,10 @@ package org.hisp.dhis.dxf2.adx;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Date;
-import java.util.Set;
 
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.datavalueset.DataValueSetQueryParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
 
@@ -81,9 +79,7 @@ public interface AdxDataService
     // Methods
     // --------------------------------------------------------------------------
 
-    DataExportParams getFromUrl( Set<String> dataSets, Set<String> periods, Date startDate, Date endDate,
-        Set<String> organisationUnits, boolean includeChildren, boolean includeDeleted, Date lastUpdated, Integer limit,
-        IdSchemes outputIdSchemes );
+    DataExportParams getFromUrl( DataValueSetQueryParams params );
 
     /**
      * Post data. Takes ADX Data from input stream and saves a series of DXF2
@@ -101,9 +97,8 @@ public interface AdxDataService
     /**
      * Get data. Writes adx export data to output stream.
      *
-     * @param in the InputStream.
-     * @param importOptions the importOptions.
-     * @param id the task id, can be null.
+     * @param params the data export params.
+     * @param out the output stream to write to.
      *
      * @return an ImportSummaries collection of ImportSummary for each
      *         DataValueSet.
@@ -111,5 +106,4 @@ public interface AdxDataService
      */
     void writeDataValueSet( DataExportParams params, OutputStream out )
         throws AdxException;
-
 }

@@ -66,6 +66,8 @@ public enum ConfigurationKey
     CONNECTION_POOL_TIMEOUT( "connection.pool.timeout", String.valueOf( SECONDS.toMillis( 30 ) ), false ),
     CONNECTION_POOL_VALIDATION_TIMEOUT( "connection.pool.validation_timeout", String.valueOf( SECONDS.toMillis( 5 ) ),
         false ),
+    CONNECTION_POOL_NUM_THREADS( "connection.pool.num.helper.threads", "3", false ),
+    CONNECTION_POOL_TEST_QUERY( "connection.pool.preferred.test.query" ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
@@ -149,7 +151,17 @@ public enum ConfigurationKey
     AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
     TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false ),
     ENABLE_OAUTH2_AUTHORIZATION_SERVER( "oauth2.authorization.server.enabled", Constants.ON, false ),
-    ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION( "oidc.jwt.token.authentication.enabled", Constants.OFF, false );
+    ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION( "oidc.jwt.token.authentication.enabled", Constants.OFF, false ),
+    DEBEZIUM_ENABLED( "debezium.enabled", Constants.OFF, false ),
+    DEBEZIUM_CONNECTION_USERNAME( "debezium.connection.username", "", false ),
+    DEBEZIUM_CONNECTION_PASSWORD( "debezium.connection.password", "", false ),
+    DEBEZIUM_DB_HOSTNAME( "debezium.db.hostname", "", false ),
+    DEBEZIUM_DB_PORT( "debezium.db.port", "", false ),
+    DEBEZIUM_DB_NAME( "debezium.db.name", "", false ),
+    DEBEZIUM_SLOT_NAME( "debezium.slot.name", "", false ),
+    DEBEZIUM_EXCLUDE_LIST( "debezium.exclude.list", "", false ),
+    DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.OFF, false ),
+    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false );
 
     private final String key;
 

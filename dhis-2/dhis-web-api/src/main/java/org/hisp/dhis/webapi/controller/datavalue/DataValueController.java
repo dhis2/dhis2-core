@@ -28,6 +28,9 @@
 package org.hisp.dhis.webapi.controller.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
@@ -50,7 +53,6 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
@@ -75,10 +77,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -141,7 +145,7 @@ public class DataValueController
     // ---------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    @RequestMapping( method = RequestMethod.POST )
+    @PostMapping
     @ResponseStatus( HttpStatus.CREATED )
     public void saveDataValue(
         @RequestParam String de,
@@ -161,7 +165,7 @@ public class DataValueController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
-    @RequestMapping( value = FILE_PATH, method = RequestMethod.POST )
+    @PostMapping( FILE_PATH )
     public @ResponseBody WebMessage saveFileDataValue(
         @RequestParam String de,
         @RequestParam( required = false ) String co,
@@ -192,20 +196,20 @@ public class DataValueController
         String comment, Boolean followUp, boolean force )
         throws WebMessageException
     {
-        boolean strictPeriods = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
+        boolean strictPeriods = systemSettingManager
+            .getBoolSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
 
-        boolean strictCategoryOptionCombos = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
+        boolean strictCategoryOptionCombos = systemSettingManager
+            .getBoolSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
 
-        boolean strictOrgUnits = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
+        boolean strictOrgUnits = systemSettingManager
+            .getBoolSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
 
-        boolean requireCategoryOptionCombo = (Boolean) systemSettingManager
-            .getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
+        boolean requireCategoryOptionCombo = systemSettingManager
+            .getBoolSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
 
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager
-            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+        FileResourceRetentionStrategy retentionStrategy = systemSettingManager
+            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class );
 
         User currentUser = currentUserService.getCurrentUser();
 
@@ -248,21 +252,21 @@ public class DataValueController
 
         if ( strictPeriods && !dataElement.getPeriodTypes().contains( period.getPeriodType() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "Period type of period: " + period.getIsoDate() + " not valid for data element: "
                     + dataElement.getUid() ) );
         }
 
         if ( strictCategoryOptionCombos && !dataElement.getCategoryOptionCombos().contains( categoryOptionCombo ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "Category option combo: " + categoryOptionCombo.getUid()
                     + " must be part of category combo of data element: " + dataElement.getUid() ) );
         }
 
         if ( strictOrgUnits && !organisationUnit.hasDataElement( dataElement ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "Data element: " + dataElement.getUid() + " must be assigned through data sets to organisation unit: "
                     + organisationUnit.getUid() ) );
         }
@@ -387,7 +391,7 @@ public class DataValueController
     // ---------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_DELETE')" )
-    @RequestMapping( method = RequestMethod.DELETE )
+    @DeleteMapping
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteDataValue(
         @RequestParam String de,
@@ -400,8 +404,8 @@ public class DataValueController
         @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager
-            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+        FileResourceRetentionStrategy retentionStrategy = systemSettingManager
+            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class );
 
         User currentUser = currentUserService.getCurrentUser();
 
@@ -447,7 +451,7 @@ public class DataValueController
         if ( dataValue == null )
         {
             throw new WebMessageException(
-                WebMessageUtils.conflict( "Data value cannot be deleted because it does not exist" ) );
+                conflict( "Data value cannot be deleted because it does not exist" ) );
         }
 
         if ( dataValue.getDataElement().isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )
@@ -462,7 +466,7 @@ public class DataValueController
     // GET
     // ---------------------------------------------------------------------
 
-    @RequestMapping( method = RequestMethod.GET )
+    @GetMapping
     public @ResponseBody List<String> getDataValue(
         @RequestParam String de,
         @RequestParam( required = false ) String co,
@@ -498,7 +502,7 @@ public class DataValueController
 
         if ( dataValue == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data value does not exist" ) );
+            throw new WebMessageException( conflict( "Data value does not exist" ) );
         }
 
         // ---------------------------------------------------------------------
@@ -555,7 +559,7 @@ public class DataValueController
     // GET file
     // ---------------------------------------------------------------------
 
-    @RequestMapping( value = "/files", method = RequestMethod.GET )
+    @GetMapping( "/files" )
     public void getDataValueFile(
         @RequestParam String de,
         @RequestParam( required = false ) String co,
@@ -575,7 +579,7 @@ public class DataValueController
 
         if ( !dataElement.isFileType() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "DataElement must be of type file" ) );
+            throw new WebMessageException( conflict( "DataElement must be of type file" ) );
         }
 
         CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, false );
@@ -597,7 +601,7 @@ public class DataValueController
 
         if ( dataValue == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data value does not exist" ) );
+            throw new WebMessageException( conflict( "Data value does not exist" ) );
         }
 
         // ---------------------------------------------------------------------
@@ -611,7 +615,7 @@ public class DataValueController
         if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
         {
             throw new WebMessageException(
-                WebMessageUtils.notFound( "A data value file resource with id " + uid + " does not exist." ) );
+                notFound( "A data value file resource with id " + uid + " does not exist." ) );
         }
 
         FileResourceStorageStatus storageStatus = fileResource.getStorageStatus();
@@ -625,12 +629,10 @@ public class DataValueController
             // store provider.
 
             // HTTP 409, for lack of a more suitable status code
-            WebMessage webMessage = WebMessageUtils.conflict(
+            throw new WebMessageException( conflict(
                 "The content is being processed and is not available yet. Try again later.",
-                "The content requested is in transit to the file store and will be available at a later time." );
-            webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
-
-            throw new WebMessageException( webMessage );
+                "The content requested is in transit to the file store and will be available at a later time." )
+                    .setResponse( new FileResourceWebMessageResponse( fileResource ) ) );
         }
 
         response.setContentType( fileResource.getContentType() );
@@ -644,7 +646,7 @@ public class DataValueController
         }
         catch ( IOException e )
         {
-            throw new WebMessageException( WebMessageUtils.error( "Failed fetching the file from storage",
+            throw new WebMessageException( error( "Failed fetching the file from storage",
                 "There was an exception when trying to fetch the file from the storage backend, could be network or filesystem related" ) );
         }
 

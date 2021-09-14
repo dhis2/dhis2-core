@@ -33,7 +33,7 @@ import java.util.Date;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
@@ -43,8 +43,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component( "analyticsTableJob" )
-public class AnalyticsTableJob
-    extends AbstractJob
+public class AnalyticsTableJob implements Job
 {
     private final AnalyticsTableGenerator analyticsTableGenerator;
 
@@ -74,6 +73,7 @@ public class AnalyticsTableJob
             .withLastYears( parameters.getLastYears() )
             .withSkipResourceTables( parameters.isSkipResourceTables() )
             .withSkipTableTypes( parameters.getSkipTableTypes() )
+            .withSkipPrograms( parameters.getSkipPrograms() )
             .withJobId( jobConfiguration )
             .withStartTime( new Date() )
             .build();

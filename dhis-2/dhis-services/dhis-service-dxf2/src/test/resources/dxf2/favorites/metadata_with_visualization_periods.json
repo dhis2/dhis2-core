@@ -180,6 +180,9 @@
       "filterDimensions": [
         "ou"
       ],
+      "seriesKey": {
+        "hidden": true
+      },
       "hideSubtitle": false,
       "dataElementGroups": [ ],
       "sortOrder": 0,
@@ -212,6 +215,9 @@
       "filterDimensions": [
         "ou"
       ],
+      "seriesKey": {
+        "hidden": true
+      },
       "id": "qD72aBqsHvt",
       "user": {
         "id": "M5zQapPyTZI"
@@ -297,6 +303,9 @@
       "periods": [ ],
       "user": {
         "id": "M5zQapPyTZI"
+      },
+      "seriesKey": {
+        "hidden": true
       },
       "id": "z3zvnIJYQ4J",
       "sortOrder": 0,
@@ -401,6 +410,9 @@
           "id": "uyHni0GvBpD"
         }
       ],
+      "seriesKey": {
+        "hidden": true
+      },
       "categoryDimensions": [ ],
       "completedOnly": false,
       "category": "pe",

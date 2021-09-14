@@ -39,20 +39,20 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.text.StrSubstitutor;
-import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
@@ -315,7 +315,7 @@ public class AttributeOptionComboLoader
         categoryOptionCombo.setName( rs.getString( "name" ) );
 
         String cat_ids = rs.getString( "cat_ids" );
-        if ( Strings.isNotEmpty( cat_ids ) )
+        if ( !ObjectUtils.isEmpty( cat_ids ) )
         {
             categoryOptionCombo.setCategoryOptions( Arrays.stream( cat_ids.split( "," ) )
                 .map( coid -> getCategoryOption( IdScheme.ID, coid ) ).collect( Collectors.toSet() )

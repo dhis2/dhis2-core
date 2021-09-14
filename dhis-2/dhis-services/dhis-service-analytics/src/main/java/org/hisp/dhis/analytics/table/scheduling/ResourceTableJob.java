@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.table.scheduling;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.stereotype.Component;
@@ -39,8 +39,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component( "resourceTableJob" )
-public class ResourceTableJob
-    extends AbstractJob
+public class ResourceTableJob implements Job
 {
     private final AnalyticsTableGenerator analyticsTableGenerator;
 

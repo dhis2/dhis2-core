@@ -54,28 +54,12 @@ public class DimItemDataElementAndOperand
                 ctx.uid0.getText(),
                 ctx.uid1 == null ? null : ctx.uid1.getText(),
                 ctx.uid2 == null ? null : ctx.uid2.getText(),
-                visitor.getPeriodOffset() );
+                visitor.getPeriodOffset(), ctx.getText() );
         }
         else
         {
             return new DimensionalItemId( DATA_ELEMENT,
                 ctx.uid0.getText(), visitor.getPeriodOffset() );
-        }
-    }
-
-    @Override
-    public String getId( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        if ( isDataElementOperandSyntax( ctx ) )
-        {
-            return ctx.uid0.getText() + "." +
-                (ctx.uid1 == null ? "*" : ctx.uid1.getText()) +
-                (ctx.uid2 == null ? "" : "." + ctx.uid2.getText()) +
-                (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
-        }
-        else // Data element:
-        {
-            return ctx.uid0.getText() + (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
         }
     }
 
