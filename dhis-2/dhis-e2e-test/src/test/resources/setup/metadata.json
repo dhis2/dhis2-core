@@ -52,9 +52,6 @@
         "id": "f1AyMswryyQ",
         "code": "TA TRACKER_PROGRAM"
       },
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
-      },
       "notificationTemplates": [],
       "programStageDataElements": [
         {
@@ -95,6 +92,46 @@
               "id": "OPVIvvXzNTw"
             }
           ],
+          "attributeValues": [],
+          "userAccesses": []
+        },
+        {
+          "lastUpdated": "2021-09-06T09:21:47.347",
+          "id": "g5rQBbUgy2h",
+          "created": "2021-09-06T09:21:47.347",
+          "displayInReports": false,
+          "skipSynchronization": false,
+          "externalAccess": false,
+          "renderOptionsAsRadio": false,
+          "allowFutureDate": false,
+          "sharing": {
+            "external": false,
+            "users": {},
+            "userGroups": {}
+          },
+          "compulsory": false,
+          "allowProvidedElsewhere": false,
+          "sortOrder": 4,
+          "favorite": false,
+          "access": {
+            "read": true,
+            "update": true,
+            "externalize": true,
+            "delete": true,
+            "write": true,
+            "manage": true
+          },
+          "programStage": {
+            "id": "nlXNK4b7LVr",
+            "code": "TA_TRACKER_PROGRAM_FIRST_STAGE"
+          },
+          "dataElement": {
+            "id": "BuZ5LGNfGET",
+            "code": "TA_DATE_AND_TIME_DE"
+          },
+          "favorites": [],
+          "translations": [],
+          "userGroupAccesses": [],
           "attributeValues": [],
           "userAccesses": []
         },
@@ -226,6 +263,13 @@
           "dataElement": {
             "id": "BuZ5LGNfGEU",
             "code": "TA_AGE_IN_YEARS_DE"
+          }
+        },
+        {
+          "id": "g5rQBbUgy2e",
+          "dataElement": {
+            "id": "BuZ5LGNfGET",
+            "code": "TA_DATE_AND_TIME_DE"
           }
         },
         {
@@ -366,7 +410,7 @@
       "name": "TA Event_program",
       "code": "TA EVENT_PROGRAM",
       "shortName": "TAEP",
-      "publicAccess": "rwrw----",
+      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -431,7 +475,7 @@
       "name": "TA Tracker_program",
       "code": "TA TRACKER_PROGRAM",
       "shortName": "TA Tracker_program",
-      "publicAccess": "rwrw----",
+      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -3656,6 +3700,35 @@
     }
   ],
   "dataElements": [
+    {
+      "lastUpdated": "2019-02-28T12:52:29.860",
+      "id": "BuZ5LGNfGET",
+      "created": "2019-02-28T12:49:47.868",
+      "name": "TA Date and time",
+      "code": "TA_DATE_AND_TIME_DE",
+      "shortName": "TA date and time",
+      "aggregationType": "AVERAGE",
+      "domainType": "TRACKER",
+      "publicAccess": "rw------",
+      "valueType": "DATETIME",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf",
+        "code": "default"
+      },
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "access": "rw------",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
+    },
     {
       "lastUpdated": "2019-02-28T12:52:29.860",
       "id": "BuZ5LGNfGEU",

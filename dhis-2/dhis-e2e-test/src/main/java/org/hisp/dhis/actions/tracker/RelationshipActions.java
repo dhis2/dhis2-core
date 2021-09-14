@@ -55,9 +55,9 @@ package org.hisp.dhis.actions.tracker;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.actions.RestApiActions;
-
 import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -74,22 +74,13 @@ public class RelationshipActions
         String toEntity,
         String toEntityId )
     {
-        JsonObject relationship = new JsonObject();
-        relationship.addProperty( "relationshipType", relationshipTypeId );
-
-        JsonObject from = new JsonObject();
-        JsonObject fromEntityObj = new JsonObject();
-        fromEntityObj.addProperty( fromEntity, fromEntityId );
-        from.add( fromEntity, fromEntityObj );
-
-        relationship.add( "from", from );
-
-        JsonObject to = new JsonObject();
-        JsonObject toEntityObj = new JsonObject();
-        toEntityObj.addProperty( toEntity, toEntityId );
-        to.add( toEntity, toEntityObj );
-
-        relationship.add( "to", to );
+        JsonObject relationship = new JsonObjectBuilder()
+            .addProperty( "relationshipType", relationshipTypeId )
+            .addObject( "from", new JsonObjectBuilder()
+                .addObject( fromEntity, new JsonObjectBuilder().addProperty( fromEntity, fromEntityId ) ) )
+            .addObject( "to", new JsonObjectBuilder()
+                .addObject( toEntity, new JsonObjectBuilder().addProperty( toEntity, toEntityId ) ) )
+            .build();
 
         return relationship;
 
