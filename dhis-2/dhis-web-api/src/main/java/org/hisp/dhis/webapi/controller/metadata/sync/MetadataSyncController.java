@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncImportException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.RemoteServerUnavailableException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageResponse;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
@@ -74,7 +75,7 @@ public class MetadataSyncController
     @Autowired
     private MetadataSyncService metadataSyncService;
 
-    public MetadataSyncController()
+    public MetadataSyncController( DhisConfigurationProvider configurationProvider )
     {
         super( configurationProvider );
     }
