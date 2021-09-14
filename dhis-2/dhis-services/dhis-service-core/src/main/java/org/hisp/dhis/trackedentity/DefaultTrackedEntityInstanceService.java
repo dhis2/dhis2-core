@@ -923,11 +923,6 @@ public class DefaultTrackedEntityInstanceService
 
     private boolean isLocalSearch( TrackedEntityInstanceQueryParams params, User user )
     {
-        if ( params.isOrganisationUnitMode( CAPTURE ) )
-        {
-            return true;
-        }
-
         Set<OrganisationUnit> localOrgUnits = user.getOrganisationUnits();
 
         Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
@@ -935,6 +930,10 @@ public class DefaultTrackedEntityInstanceService
         if ( params.isOrganisationUnitMode( SELECTED ) )
         {
             searchOrgUnits = params.getOrganisationUnits();
+        }
+        else if ( params.isOrganisationUnitMode( CAPTURE ) )
+        {
+            searchOrgUnits = localOrgUnits;
         }
         else if ( params.isOrganisationUnitMode( CHILDREN ) || params.isOrganisationUnitMode( DESCENDANTS ) )
         {
