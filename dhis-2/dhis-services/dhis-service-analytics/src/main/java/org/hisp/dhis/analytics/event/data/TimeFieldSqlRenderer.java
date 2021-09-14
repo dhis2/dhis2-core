@@ -46,6 +46,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -80,16 +81,7 @@ class TimeFieldSqlRenderer
         }
         else if ( params.hasStartEndDate() )
         {
-
-            String timeCol;
-            if ( ENROLLMENT.equals( params.getOutputType() ) )
-            {
-                timeCol = quoteAlias( TimeField.ENROLLMENT_DATE.getField() );
-            }
-            else
-            { // EVENTS
-                timeCol = quoteAlias( timeField.map( TimeField::getField ).orElse( EVENT_DATE.getField() ) );
-            }
+            String timeCol = getTimeCol( params.getOutputType(), timeField );
 
             sql.append( timeCol )
                 .append( " >= '" )
@@ -124,6 +116,19 @@ class TimeFieldSqlRenderer
         }
 
         return sql.toString();
+    }
+
+    private String getTimeCol( EventOutputType outputType, Optional<TimeField> timeField )
+    {
+        if ( ENROLLMENT.equals( outputType ) )
+        {
+            return quoteAlias( TimeField.ENROLLMENT_DATE.getField() );
+        }
+        // EVENTS
+        return quoteAlias(
+            timeField
+                .map( TimeField::getField )
+                .orElse( EVENT_DATE.getField() ) );
     }
 
     private String toSqlCondition( Period period, TimeField timeField )
