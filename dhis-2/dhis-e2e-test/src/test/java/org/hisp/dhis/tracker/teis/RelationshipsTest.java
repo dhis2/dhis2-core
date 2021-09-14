@@ -144,8 +144,7 @@ public class RelationshipsTest
             .read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
 
-        ApiResponse response = eventActions.post( eventObject );
-        response.validate().statusCode( 200 );
+        ApiResponse response = eventActions.post( eventObject ).validateStatus( 200 );
         events = response.extractUids();
     }
 

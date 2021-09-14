@@ -35,8 +35,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
@@ -48,8 +48,6 @@ public class DefaultDeduplicationService
     implements DeduplicationService
 {
     private final PotentialDuplicateStore potentialDuplicateStore;
-
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final DeduplicationHelper deduplicationHelper;
 
@@ -102,6 +100,7 @@ public class DefaultDeduplicationService
     @Transactional
     public void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
+        setPotentialDuplicateUserNameInfo( potentialDuplicate );
         potentialDuplicateStore.update( potentialDuplicate );
     }
 
@@ -212,6 +211,7 @@ public class DefaultDeduplicationService
 
     private void updatePotentialDuplicateStatus( PotentialDuplicate potentialDuplicate )
     {
+        setPotentialDuplicateUserNameInfo( potentialDuplicate );
         potentialDuplicate.setStatus( DeduplicationStatus.MERGED );
         potentialDuplicateStore.update( potentialDuplicate );
     }
@@ -220,7 +220,7 @@ public class DefaultDeduplicationService
     {
         original.setLastUpdated( new Date() );
         original.setLastUpdatedBy( currentUserService.getCurrentUser() );
-        trackedEntityInstanceService.updateTrackedEntityInstance( original );
+        original.setLastUpdatedByUserInfo( UserInfoSnapshot.from( currentUserService.getCurrentUser() ) );
     }
 
     private boolean sameAttributesAreEquals( Set<TrackedEntityAttributeValue> trackedEntityAttributeValueA,
@@ -249,7 +249,16 @@ public class DefaultDeduplicationService
     @Transactional
     public void addPotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
+        setPotentialDuplicateUserNameInfo( potentialDuplicate );
         potentialDuplicateStore.save( potentialDuplicate );
     }
 
+    private void setPotentialDuplicateUserNameInfo( PotentialDuplicate potentialDuplicate )
+    {
+        if ( potentialDuplicate.getCreatedByUserName() == null )
+        {
+            potentialDuplicate.setCreatedByUserName( currentUserService.getCurrentUsername() );
+        }
+        potentialDuplicate.setLastUpdatedByUserName( currentUserService.getCurrentUsername() );
+    }
 }
