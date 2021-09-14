@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
+import static org.hisp.dhis.webapi.WebClient.Body;
+import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,14 +40,17 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonGenerator;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 /**
  * This tests uses the {@link JsonSchema} information the server provides to
@@ -108,7 +113,7 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
             {
                 testedSchemas++;
                 Map<String, String> objects = generator.generateObjects( schema );
-                String id = "";
+                String uid = "";
                 String endpoint = "";
                 // create needed object(s)
                 // last created is the one we want to test for schema
@@ -117,15 +122,15 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
                 for ( Entry<String, String> entry : objects.entrySet() )
                 {
                     endpoint = entry.getKey();
-                    id = assertStatus( HttpStatus.CREATED, POST( endpoint, entry.getValue() ) );
+                    uid = assertStatus( HttpStatus.CREATED, POST( endpoint, entry.getValue() ) );
                 }
 
                 // run other tests that depend upon having an existing object
-                testWithSchema( schema, id );
+                testWithSchema( schema, uid );
 
                 // delete the last created object
                 // (the one belonging to the tested schema)
-                assertStatus( HttpStatus.OK, DELETE( endpoint + "/" + id ) );
+                assertStatus( HttpStatus.OK, DELETE( endpoint + "/" + uid ) );
 
             }
         }
@@ -135,14 +140,23 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
     /**
      * Uses the created instance to test the {@code /gist} endpoint list.
      */
-    private void testWithSchema( JsonSchema schema, String id )
+    private void testWithSchema( JsonSchema schema, String uid )
     {
         String endpoint = schema.getRelativeApiEndpoint();
-        if ( endpoint == null || IGNORED_GIST_ENDPOINTS.contains( schema.getName() ) )
+        if ( endpoint != null )
+        {
+            testGistAPI( schema, uid );
+            testCanHaveAttributes( schema, uid );
+        }
+    }
+
+    private void testGistAPI( JsonSchema schema, String uid )
+    {
+        if ( IGNORED_GIST_ENDPOINTS.contains( schema.getName() ) )
         {
             return;
         }
-
+        String endpoint = schema.getRelativeApiEndpoint();
         // test gist list of object for the schema
         JsonObject gist = GET( endpoint + "/gist" ).content();
         assertTrue( gist.getObject( "pager" ).exists() );
@@ -151,13 +165,36 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         // only if there is only one we are sure its the one we created
         if ( list.size() == 1 )
         {
-            assertEquals( id, list.getObject( 0 ).getString( "id" ).string() );
+            assertEquals( uid, list.getObject( 0 ).getString( "id" ).string() );
         }
 
         // test the single object gist as well
-        JsonObject object = GET( endpoint + "/" + id + "/gist" ).content();
+        JsonObject object = GET( endpoint + "/" + uid + "/gist" ).content();
         assertTrue( object.exists() );
-        assertEquals( id, object.getString( "id" ).string() );
+        assertEquals( uid, object.getString( "id" ).string() );
+    }
+
+    private void testCanHaveAttributes( JsonSchema schema, String uid )
+    {
+        ObjectType type = ObjectType.valueOf( schema.getKlass() );
+        if ( type == null )
+        {
+            return;
+        }
+
+        String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes",
+            "{'name':'" + type + "', 'valueType':'INTEGER','" + type.getPropertyName() + "':true}" ) );
+
+        String endpoint = schema.getRelativeApiEndpoint();
+        JsonObject object = GET( endpoint + "/" + uid ).content();
+        assertStatus( HttpStatus.OK, PUT( endpoint + "/" + uid + "?mergeMode=REPLACE",
+            Body( object.getObject( "attributeValues" ).node()
+                .replaceWith( "[{\"value\":42, \"attribute\":{\"id\":\"" + attrId + "\"}}]" ).getDeclaration() ),
+            ContentType( MediaType.APPLICATION_JSON ) ) );
+
+        assertEquals( "42", GET( endpoint + "/" + uid )
+            .content().as( JsonIdentifiableObject.class ).getAttributeValues()
+            .get( 0 ).getValue() );
     }
 
     private boolean isExcludedFromTest( JsonSchema schema )

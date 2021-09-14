@@ -27,87 +27,22 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.hisp.dhis.webapi.json.JsonDate;
-import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.common.BaseIdentifiableObject}.
+ * Web API equivalent of a {@link org.hisp.dhis.attribute.AttributeValue}.
  *
  * @author Jan Bernitt
  */
-public interface JsonIdentifiableObject extends JsonObject
+public interface JsonAttributeValue extends JsonObject
 {
-    default String getId()
+    default String getValue()
     {
-        return getString( "id" ).string();
+        return getString( "value" ).string();
     }
 
-    default String getName()
+    default JsonIdentifiableObject getAttribute()
     {
-        return getString( "name" ).string();
-    }
-
-    default String getDisplayName()
-    {
-        return getString( "displayName" ).string();
-    }
-
-    default String getHref()
-    {
-        return getString( "href" ).string();
-    }
-
-    default String getCode()
-    {
-        return getString( "code" ).string();
-    }
-
-    default JsonUser getLastUpdatedBy()
-    {
-        return get( "lastUpdatedBy", JsonUser.class );
-    }
-
-    default LocalDateTime getLastUpdated()
-    {
-        return get( "lastUpdated", JsonDate.class ).date();
-    }
-
-    default JsonUser getCreatedBy()
-    {
-        return get( "createdBy", JsonUser.class );
-    }
-
-    default LocalDateTime getCreated()
-    {
-        return get( "created", JsonDate.class ).date();
-    }
-
-    default boolean getExternalAccess()
-    {
-        return getBoolean( "externalAccess" ).booleanValue();
-    }
-
-    default List<String> getFavorites()
-    {
-        return getArray( "favorites" ).stringValues();
-    }
-
-    default boolean isFavorite()
-    {
-        return getBoolean( "favorite" ).booleanValue();
-    }
-
-    default JsonSharing getSharing()
-    {
-        return get( "sharing", JsonSharing.class );
-    }
-
-    default JsonList<JsonAttributeValue> getAttributeValues()
-    {
-        return getList( "attributeValues", JsonAttributeValue.class );
+        return get( "attribute", JsonIdentifiableObject.class );
     }
 }
