@@ -132,7 +132,7 @@ public class JdbcAnalyticsTableManager
         new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ),
         new AnalyticsTableColumn( quote( "pe" ), TEXT, NOT_NULL, "ps.iso" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
-        new AnalyticsTableColumn( quote( "level" ), INTEGER, "ous.level" ) );
+        new AnalyticsTableColumn( quote( "oulevel" ), INTEGER, "ous.level" ) );
 
     // -------------------------------------------------------------------------
     // Implementation
