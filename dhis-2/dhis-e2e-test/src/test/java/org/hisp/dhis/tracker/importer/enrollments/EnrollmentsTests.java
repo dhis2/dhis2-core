@@ -27,13 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer.enrollments;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-
-import java.io.File;
-
+import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -44,7 +38,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
+import java.io.File;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -56,7 +55,7 @@ public class EnrollmentsTests
     @BeforeAll
     public void beforeAll()
     {
-        loginActions.loginAsSuperUser();
+        loginActions.loginAsAdmin();
     }
 
     @ParameterizedTest

@@ -56,7 +56,7 @@ public class PotentialDuplicatesAttributeMergeTests
     @BeforeEach
     public void beforeEach()
     {
-        loginActions.loginAsSuperUser(); //todo: change to admin when buggy TEA access check is removed
+        loginActions.loginAsAdmin();
 
         attributes = new ProgramActions()
             .get( program, new QueryParamsBuilder().addAll( "filter=programTrackedEntityAttributes.valueType:eq:TEXT" ) )
