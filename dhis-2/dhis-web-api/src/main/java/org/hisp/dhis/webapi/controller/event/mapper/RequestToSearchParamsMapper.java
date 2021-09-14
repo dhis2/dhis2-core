@@ -152,7 +152,7 @@ public class RequestToSearchParamsMapper
         Set<String> events, Set<String> programInstances, Boolean skipEventId,
         AssignedUserSelectionMode assignedUserSelectionMode,
         Set<String> assignedUsers, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements,
-        boolean includeDeleted, boolean skipRelationship )
+        boolean includeDeleted, boolean skipRelationships )
     {
         User user = currentUserService.getCurrentUser();
         UserCredentials userCredentials = user.getUserCredentials();
@@ -280,7 +280,7 @@ public class RequestToSearchParamsMapper
             .setSkipEventId( skipEventId ).setIncludeAttributes( includeAttributes )
             .setIncludeAllDataElements( includeAllDataElements ).setOrders( orders ).setGridOrders( gridOrders )
             .setEvents( events ).setProgramInstances( programInstances ).setIncludeDeleted( includeDeleted )
-            .setSkipRelationship( skipRelationship );
+            .setSkipRelationships( skipRelationships );
     }
 
     private QueryItem getQueryItem( String item )
@@ -363,7 +363,7 @@ public class RequestToSearchParamsMapper
             eventCriteria.getFilter(),
             dataElementOrders.keySet(),
             false,
-            eventCriteria.isIncludeDeleted(), eventCriteria.isSkipRelationship() );
+            eventCriteria.isIncludeDeleted(), eventCriteria.isSkipRelationships() );
     }
 
     private List<OrderParam> getOrderParams( List<OrderCriteria> order )

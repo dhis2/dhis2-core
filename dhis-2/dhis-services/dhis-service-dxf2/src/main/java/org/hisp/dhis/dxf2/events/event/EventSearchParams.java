@@ -153,7 +153,7 @@ public class EventSearchParams
 
     private boolean skipPaging;
 
-    private boolean skipRelationship;
+    private boolean skipRelationships;
 
     private List<OrderParam> orders;
 
@@ -762,14 +762,14 @@ public class EventSearchParams
         return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
     }
 
-    public boolean isSkipRelationship()
+    public boolean isSkipRelationships()
     {
-        return skipRelationship;
+        return skipRelationships;
     }
 
-    public EventSearchParams setSkipRelationship( boolean skipRelationship )
+    public EventSearchParams setSkipRelationships( boolean skipRelationships )
     {
-        this.skipRelationship = skipRelationship;
+        this.skipRelationships = skipRelationships;
         return this;
     }
 }
