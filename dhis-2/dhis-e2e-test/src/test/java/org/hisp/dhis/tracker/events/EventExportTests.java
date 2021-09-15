@@ -29,7 +29,6 @@
 package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonObject;
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -85,11 +84,13 @@ public class EventExportTests
     @ValueSource( strings = {
         "?event=eventId&fields=*",
         "?event=eventId&fields=relationships",
+        "?program=programId&fields=*",
+        "?program=programId&fields=relationships"
     } )
     @ParameterizedTest
-    public void shouldFetchRelationshipsForEventId( String queryParams )
+    public void shouldFetchRelationships( String queryParams )
     {
-        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ) );
+        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) );
         String body = "relationships";
 
         if ( response.extractList( "events" ) != null )
@@ -99,32 +100,9 @@ public class EventExportTests
 
         response
             .validate()
-            .body( body, hasSize( 1 ) )
+            .body( body, hasSize( Matchers.greaterThanOrEqualTo( 1 ) ) )
             .body( body + ".relationship", hasItems( relationshipId ) );
     }
-
-    @ValueSource( strings = {
-            "?program=programId&fields=*",
-            "?program=programId&fields=relationships"
-
-    } )
-    @ParameterizedTest
-    public void shouldFetchRelationships( String queryParams )
-    {
-        ApiResponse response = eventActions.get( queryParams.replace( "programId", eventProgramId ) );
-        String body = "relationships";
-
-        if ( response.extractList( "events" ) != null )
-        {
-            body = "events[0].relationships";
-        }
-
-        response
-                .validate()
-                .body( body, hasSize( 2 ) )
-                .body( body + ".relationship", hasItems( relationshipId ) );
-    }
-
 
     @ValueSource( strings = {
         "?event=eventId",
@@ -134,7 +112,7 @@ public class EventExportTests
     @ParameterizedTest
     public void shouldSkipRelationshipsForEventId( String queryParams )
     {
-        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ) );
+        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) );
         String body = "relationships";
 
         if ( response.extractList( "events" ) != null )
@@ -144,26 +122,7 @@ public class EventExportTests
 
         response
             .validate()
-            .body( body, anyOf( nullValue(), hasSize( 0 )) );
-    }
-
-    @ValueSource( strings = {
-            "?program=programId&fields=*,!relationships"
-    } )
-    @ParameterizedTest
-    public void shouldSkipRelationships( String queryParams )
-    {
-        ApiResponse response = eventActions.get( queryParams.replace( "programId", eventProgramId ) );
-        String body = "relationships";
-
-        if ( response.extractList( "events" ) != null )
-        {
-            body = "events[0].relationships";
-        }
-
-        response
-                .validate()
-                .body( body, anyOf( nullValue(), hasSize( 0 )) );
+            .body( body, anyOf( nullValue(), hasSize( 0 ) ) );
     }
 
     private String createEvent()
