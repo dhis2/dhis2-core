@@ -28,6 +28,7 @@
 package org.hisp.dhis.deduplication;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -39,18 +40,20 @@ public class PotentialDuplicate
     extends BaseIdentifiableObject
 {
     /**
-     * teiA represents the UID of a TrackedEntityInstance. teiA is required.
-     * teiA is a potential duplicate of teiB. if teiB is null, it indicates a
-     * user has flagged teiA as a potential duplicate, without knowing which
-     * TrackedEntityInstance it is a duplicate of.
+     * original represents the UID of a TrackedEntityInstance. original is
+     * required. original is a potential duplicate of duplicate.
      */
-    private String teiA;
+    private String original;
 
     /**
-     * teiB represents the UID of a TrackedEntityInstance. teiB is optional.
-     * teiB is a potential duplicate of teiA.
+     * duplicate represents the UID of a TrackedEntityInstance. duplicate is
+     * required. duplicate is a potential duplicate of original.
      */
-    private String teiB;
+    private String duplicate;
+
+    protected String lastUpdatedByUserName;
+
+    protected String createdByUserName;
 
     /**
      * status represents the state of the PotentialDuplicate. all new Potential
@@ -62,38 +65,38 @@ public class PotentialDuplicate
     {
     }
 
-    public PotentialDuplicate( String teiA, String teiB )
+    public PotentialDuplicate( String original, String duplicate )
     {
-        this.teiA = teiA;
-        this.teiB = teiB;
+        this.original = original;
+        this.duplicate = duplicate;
     }
 
     @JsonProperty
     @JacksonXmlProperty
     @Property( value = PropertyType.IDENTIFIER, required = Property.Value.TRUE )
     @PropertyRange( min = 11, max = 11 )
-    public String getTeiA()
+    public String getOriginal()
     {
-        return teiA;
+        return original;
     }
 
-    public void setTeiA( String teiA )
+    public void setOriginal( String original )
     {
-        this.teiA = teiA;
+        this.original = original;
     }
 
     @JsonProperty
     @JacksonXmlProperty
     @Property( value = PropertyType.IDENTIFIER, required = Property.Value.FALSE )
     @PropertyRange( min = 11, max = 11 )
-    public String getTeiB()
+    public String getDuplicate()
     {
-        return teiB;
+        return duplicate;
     }
 
-    public void setTeiB( String teiB )
+    public void setDuplicate( String duplicate )
     {
-        this.teiB = teiB;
+        this.duplicate = duplicate;
     }
 
     @JsonProperty
@@ -106,5 +109,29 @@ public class PotentialDuplicate
     public void setStatus( DeduplicationStatus status )
     {
         this.status = status;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLastUpdatedByUserName()
+    {
+        return lastUpdatedByUserName;
+    }
+
+    public void setLastUpdatedByUserName( String lastUpdatedByUserName )
+    {
+        this.lastUpdatedByUserName = lastUpdatedByUserName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCreatedByUserName()
+    {
+        return createdByUserName;
+    }
+
+    public void setCreatedByUserName( String createdByUserName )
+    {
+        this.createdByUserName = createdByUserName;
     }
 }

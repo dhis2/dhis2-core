@@ -69,7 +69,7 @@ public class UserAssignmentFilterTests
 
     private UserActions userActions;
 
-    private String userPassword = "Test1212?";
+    private String userPassword = Constants.USER_PASSWORD;
 
     private String userUsername;
 

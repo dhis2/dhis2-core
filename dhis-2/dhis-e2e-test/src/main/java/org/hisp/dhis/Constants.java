@@ -60,6 +60,8 @@ package org.hisp.dhis;
  */
 public class Constants
 {
+    public static final String USER_PASSWORD = "Test1212?";
+
     public static final String TRACKED_ENTITY_TYPE = "Q9GufDoplCL";
 
     public static String ORG_UNIT_GROUP_ID = "n9bh3KM5wmu";

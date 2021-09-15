@@ -41,12 +41,26 @@ public interface PotentialDuplicateStore
 
     boolean exists( PotentialDuplicate potentialDuplicate );
 
-    void moveTrackedEntityAttributeValues( String originalUid, String duplicateUid,
+    /**
+     * Moves the tracked entity attribute values from the "duplicate" tei into
+     * the "original" tei. Only the trackedEntityAttributes specified in the
+     * argument are considered. If a corresponding trackedEntityAttribute value
+     * already exists in the old tei, they are overwritten. If no
+     * trackedEntityAttributeValue exists in the old tei, then a new TEAV with
+     * the value as in the duplicate is created and the old teav is deleted.
+     *
+     * @param original The original TEI
+     * @param duplicate The duplicate TEI
+     * @param trackedEntityAttributes The teas that has to be considered for
+     *        moving from duplicate to original
+     */
+    void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> trackedEntityAttributes );
 
-    void moveRelationships( String originalUid, String duplicateUid, List<String> relationships );
+    void moveRelationships( TrackedEntityInstance originalUid, TrackedEntityInstance duplicateUid,
+        List<String> relationships );
 
-    void moveEnrollments( String originalUid, String duplicateUid, List<String> enrollments );
+    void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate, List<String> enrollments );
 
     void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance );
 
