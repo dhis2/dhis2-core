@@ -450,8 +450,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             webMessage.setHttpStatus( HttpStatus.CREATED );
             webMessage.setLocation( getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid() );
 
-            removeCacheEntriesForThisEntityAndUser();
-
             T entity = manager.get( getEntityClass(), objectReport.getUid() );
             postCreateEntity( entity );
         }
@@ -654,8 +652,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             .addObject( objects.get( 0 ) );
 
         ImportReport importReport = importService.importMetadata( params );
-
-        removeCacheEntriesForThisEntityAndUser();
 
         postDeleteEntity( pvUid );
 
