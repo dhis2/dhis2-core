@@ -67,7 +67,7 @@ public class TeiUpdateTests
         String tei = importTei();
         String trackedEntityType = new RestApiActions( "/trackedEntityTypes" )
             .post( DataGenerator.generateObjectForEndpoint( "trackedEntityType" ) ).extractUid();
-        JsonObject body = trackerActions.get( "/trackedEntities/" + tei ).getBody();
+        JsonObject body = trackerActions.getTrackedEntity( tei ).getBody();
 
         // act
         body = JsonObjectBuilder.jsonObject( body )
@@ -89,7 +89,7 @@ public class TeiUpdateTests
         // arrange
         String teiId = importTei();
 
-        JsonObject teiBody = trackerActions.get( "/trackedEntities/" + teiId ).getBody();
+        JsonObject teiBody = trackerActions.getTrackedEntity( teiId ).getBody();
         teiBody = JsonObjectBuilder.jsonObject( teiBody )
             .addProperty( "trackedEntity", teiId )
             .wrapIntoArray( "trackedEntities" );

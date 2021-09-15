@@ -153,7 +153,7 @@ public class TeiValidationTests
         trackerActions.postAndGetJobReport( object, new QueryParamsBuilder().add( "async=false" ) )
             .validateSuccessfulImport();
 
-        trackerActions.get( "/trackedEntities/" + teiId )
+        trackerActions.getTrackedEntity( teiId )
             .validate()
             .body( "attributes", hasSize( 1 ) );
 

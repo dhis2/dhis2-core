@@ -24,13 +24,15 @@
 
         <property name="lastUpdated" type="timestamp" not-null="true" />
 
-        <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
-
         <!-- Potential Duplicate Properties -->
 
-        <property name="teiA" column="teiA" length="11" not-null="true" />
+        <property name="lastUpdatedByUserName" column="lastupdatebyusername" not-null="true" />
 
-        <property name="teiB" column="teiB" length="11" not-null="true" />
+        <property name="createdByUserName" column="createdbyusername" not-null="true" />
+
+        <property name="original" column="teiA" length="11" not-null="true" />
+
+        <property name="duplicate" column="teiB" length="11" not-null="true" />
 
         <property name="status" column="status">
             <type name="org.hibernate.type.EnumType">
