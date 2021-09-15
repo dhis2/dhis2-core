@@ -48,7 +48,7 @@ public class EventReportSchemaDescriptor implements SchemaDescriptor
     {
         Schema schema = new Schema( EventReport.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1540 );
+        schema.setOrder( 1640 );
         schema.setImplicitPrivateAuthority( true );
 
         schema.add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_EVENTREPORT_PUBLIC_ADD" ) ) );
