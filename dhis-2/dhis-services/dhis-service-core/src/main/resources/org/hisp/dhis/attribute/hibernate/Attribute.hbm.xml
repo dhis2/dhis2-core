@@ -93,13 +93,13 @@
 
     <property name="categoryAttribute" not-null="false"/>
 
-    <property name="visualizationAttribute" not-null="false"/>
+    <property name="visualizationAttribute" not-null="true"/>
 
-    <property name="mapAttribute" not-null="false"/>
+    <property name="mapAttribute" not-null="true"/>
 
-    <property name="eventReportAttribute" not-null="false"/>
+    <property name="eventReportAttribute" not-null="true"/>
 
-    <property name="eventChartAttribute" not-null="false"/>
+    <property name="eventChartAttribute" not-null="true"/>
 
     <property name="sortOrder"/>
 

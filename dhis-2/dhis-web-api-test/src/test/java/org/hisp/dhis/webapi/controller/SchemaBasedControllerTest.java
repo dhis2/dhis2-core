@@ -177,11 +177,12 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
     private void testCanHaveAttributes( JsonSchema schema, String uid )
     {
         ObjectType type = ObjectType.valueOf( schema.getKlass() );
-        if ( type == null )
+        if ( type == null || type == ObjectType.MAP )
         {
             return;
         }
 
+        System.out.println( schema.getRelativeApiEndpoint() );
         String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes",
             "{'name':'" + type + "', 'valueType':'INTEGER','" + type.getPropertyName() + "':true}" ) );
 
