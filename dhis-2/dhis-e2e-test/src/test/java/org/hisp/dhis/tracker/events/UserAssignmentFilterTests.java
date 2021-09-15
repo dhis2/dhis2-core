@@ -69,7 +69,7 @@ public class UserAssignmentFilterTests
 
     private UserActions userActions;
 
-    private String userPassword = "Test1212?";
+    private String userPassword = Constants.USER_PASSWORD;
 
     private String userUsername;
 
@@ -111,11 +111,23 @@ public class UserAssignmentFilterTests
     }
 
     @Test
+    public void eventsShouldBeFilteredByUserOrgUnitScope()
+            throws Exception
+    {
+        loginActions.loginAsSuperUser();
+        ApiResponse response = eventActions.get( "?program=" + programId + "&ouMode=ACCESSIBLE");
+
+        response.validate().statusCode( 200 )
+                .body( "events", hasSize( 4 ) )
+                .body( "events.assignedUser", everyItem( equalTo( userId ) ) );
+    }
+
+    @Test
     public void eventsShouldBeFilteredByAssignedUser()
         throws Exception
     {
         loginActions.loginAsSuperUser();
-        ApiResponse response = eventActions.get( "?program=" + programId + "&assignedUser=" + userId );
+        ApiResponse response = eventActions.get( "?program=" + programId + "&assignedUser=" + userId + "&ouMode=ACCESSIBLE");
 
         response.validate().statusCode( 200 )
             .body( "events", hasSize( 4 ) )

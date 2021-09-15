@@ -37,6 +37,8 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 
+import java.util.List;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
@@ -111,6 +113,12 @@ public class JsonObjectBuilder
         return this;
     }
 
+    public JsonObjectBuilder addArray( String name, List<String> array ) {
+        JsonArray jsonArray = new JsonArray();
+        array.forEach( jsonArray::add );
+
+        return addArray( name, jsonArray );
+    }
     public JsonObjectBuilder addArray( String name, JsonArray array )
     {
         jsonObject.add( name, array );
@@ -170,8 +178,7 @@ public class JsonObjectBuilder
         }
         else
         {
-            new JsonObjectBuilder()
-                .addArray( arrayName, objects )
+           this.addArrayByJsonPath(path, arrayName, objects )
                 .build();
         }
 
