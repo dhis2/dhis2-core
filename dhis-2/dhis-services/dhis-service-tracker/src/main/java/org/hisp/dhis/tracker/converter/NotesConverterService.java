@@ -70,6 +70,7 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
 
         comment.setLastUpdatedBy( preheat.getUser() );
         comment.setLastUpdated( new Date() );
+        comment.setCreator( note.getStoredBy() );
 
         return comment;
     }
