@@ -197,6 +197,7 @@
         "F_CHART_PUBLIC_ADD",
         "M_dhis-web-data-visualizer",
         "F_CHART_EXTERNAL",
+        "F_TRACKED_ENTITY_MERGE",
         "F_DATASET_PRIVATE_ADD",
         "F_EVENTREPORT_PUBLIC_ADD",
         "F_PROGRAMSTAGE_SECTION_DELETE",
