@@ -31,6 +31,8 @@ import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.common.QueryOperator.IN;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,13 +65,16 @@ public class InQueryFilter extends QueryFilter
      * @param encodedFilter actual "in" parameters
      * @return a SQL condition representing this InQueryFilter
      */
-    public String getSqlFilter( String encodedFilter )
+    public String getSqlFilter( String encodedFilter, boolean isText )
     {
         List<String> filterItems = getFilterItems( encodedFilter );
         String condition = "";
         if ( hasNonMissingValue( filterItems ) )
         {
             condition = field + " " + operator.getValue() + streamOfNonMissingValues( filterItems )
+                .filter( Objects::nonNull )
+                .map( item -> toLowerIfNecessary( item, isText ) )
+                .map( item -> quoteIfNecessary( item, isText ) )
                 .collect( Collectors.joining( ",", " (", ")" ) );
             if ( hasMissingValue( filterItems ) )
             {
@@ -85,6 +90,21 @@ public class InQueryFilter extends QueryFilter
         }
 
         return condition + " ";
+    }
+
+    private String quoteIfNecessary( String item, boolean isText )
+    {
+        return isText ? quote( item ) : item;
+    }
+
+    private String toLowerIfNecessary( String item, boolean isText )
+    {
+        return isText ? item.toLowerCase() : item;
+    }
+
+    public String renderSqlFilter( boolean isText, Function<String, String> encoder )
+    {
+        return this.getSqlFilter( encoder.apply( this.getFilter() ), isText );
     }
 
     private boolean hasMissingValue( List<String> filterItems )
