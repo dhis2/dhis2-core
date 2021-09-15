@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.emptyArray;
 import static org.hamcrest.Matchers.not;
 
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
@@ -48,7 +49,7 @@ public class MetadataExportTests
 {
     private String userWithoutAccessUsername = "MetadataExportTestsUser" + DataGenerator.randomString();
 
-    private String userWithoutAccessPassword = "Test1212?";
+    private String userWithoutAccessPassword = Constants.USER_PASSWORD;
 
     private MetadataActions metadataActions;
 

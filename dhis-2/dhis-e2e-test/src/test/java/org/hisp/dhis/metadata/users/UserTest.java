@@ -60,6 +60,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UserActions;
@@ -80,7 +81,7 @@ public class UserTest extends ApiTest
 {
     private String username;
 
-    private String password = "Test1212?";
+    private String password = Constants.USER_PASSWORD;
 
     private UserActions userActions;
 

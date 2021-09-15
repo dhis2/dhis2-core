@@ -55,15 +55,6 @@ package org.hisp.dhis.helpers.extensions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
-
-import java.io.File;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-import java.util.logging.Logger;
-
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.LoginActions;
@@ -73,6 +64,15 @@ import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.config.TestConfiguration;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+
+import java.io.File;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
+
+import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -104,6 +104,8 @@ public class MetadataSetupExtension
 
             String[] files = {
                 "src/test/resources/setup/userGroups.json",
+                "src/test/resources/setup/metadata.json",
+                // importing for the second time to make sure all sharing is set up correctly - there are bugs in metadata importer
                 "src/test/resources/setup/metadata.json",
                 "src/test/resources/setup/userRoles.json",
                 "src/test/resources/setup/users.json"

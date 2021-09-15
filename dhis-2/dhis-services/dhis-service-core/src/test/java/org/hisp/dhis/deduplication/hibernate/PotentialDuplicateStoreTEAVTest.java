@@ -79,6 +79,10 @@ public class PotentialDuplicateStoreTEAVTest
 
     private TrackedEntityAttribute trackedEntityAttributeC;
 
+    private TrackedEntityAttribute trackedEntityAttributeD;
+
+    private TrackedEntityAttribute trackedEntityAttributeE;
+
     @Before
     public void setupTest()
     {
@@ -96,10 +100,14 @@ public class PotentialDuplicateStoreTEAVTest
         trackedEntityAttributeA = createTrackedEntityAttribute( 'A' );
         trackedEntityAttributeB = createTrackedEntityAttribute( 'B' );
         trackedEntityAttributeC = createTrackedEntityAttribute( 'C' );
+        trackedEntityAttributeD = createTrackedEntityAttribute( 'D' );
+        trackedEntityAttributeE = createTrackedEntityAttribute( 'E' );
 
         trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeA );
         trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeB );
         trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeC );
+        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeD );
+        trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeE );
 
         original.addAttributeValue( createTrackedEntityAttributeValue( 'A', original, trackedEntityAttributeA ) );
         original.addAttributeValue( createTrackedEntityAttributeValue( 'A', original, trackedEntityAttributeB ) );
@@ -108,6 +116,8 @@ public class PotentialDuplicateStoreTEAVTest
         duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeA ) );
         duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeB ) );
         duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeC ) );
+        duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeD ) );
+        duplicate.addAttributeValue( createTrackedEntityAttributeValue( 'B', duplicate, trackedEntityAttributeE ) );
 
         control.addAttributeValue( createTrackedEntityAttributeValue( 'C', control, trackedEntityAttributeA ) );
         control.addAttributeValue( createTrackedEntityAttributeValue( 'C', control, trackedEntityAttributeB ) );
@@ -147,7 +157,7 @@ public class PotentialDuplicateStoreTEAVTest
             assertNotNull( _duplicate );
 
             assertEquals( 3, _original.getTrackedEntityAttributeValues().size() );
-            assertEquals( 2, _duplicate.getTrackedEntityAttributeValues().size() );
+            assertEquals( 4, _duplicate.getTrackedEntityAttributeValues().size() );
 
             _original.getTrackedEntityAttributeValues().forEach( teav -> {
                 if ( teas.contains( teav.getAttribute().getUid() ) )
@@ -195,7 +205,55 @@ public class PotentialDuplicateStoreTEAVTest
             assertNotNull( _duplicate );
 
             assertEquals( 3, _original.getTrackedEntityAttributeValues().size() );
-            assertEquals( 1, _duplicate.getTrackedEntityAttributeValues().size() );
+            assertEquals( 3, _duplicate.getTrackedEntityAttributeValues().size() );
+
+            _original.getTrackedEntityAttributeValues().forEach( teav -> {
+                if ( teas.contains( teav.getAttribute().getUid() ) )
+                {
+                    assertEquals( "AttributeB", teav.getValue() );
+                }
+                else
+                {
+                    assertEquals( "AttributeA", teav.getValue() );
+                }
+            } );
+
+            TrackedEntityInstance _control = trackedEntityInstanceService.getTrackedEntityInstance(
+                control.getUid() );
+
+            assertNotNull( _control );
+            assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
+
+            return null;
+        } );
+    }
+
+    @Test
+    public void moveTrackedEntityAttributeValuesByOverwritingAndCreatingNew()
+    {
+        List<String> teas = Lists.newArrayList( trackedEntityAttributeD.getUid(), trackedEntityAttributeB.getUid() );
+
+        transactionTemplate.execute( status -> {
+            potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate, teas );
+            return null;
+        } );
+
+        transactionTemplate.execute( status -> {
+
+            // Clear the session so we get new data from the DB for the next
+            // queries.
+            dbmsManager.clearSession();
+
+            TrackedEntityInstance _original = trackedEntityInstanceService.getTrackedEntityInstance(
+                original.getUid() );
+            TrackedEntityInstance _duplicate = trackedEntityInstanceService.getTrackedEntityInstance(
+                duplicate.getUid() );
+
+            assertNotNull( _original );
+            assertNotNull( _duplicate );
+
+            assertEquals( 4, _original.getTrackedEntityAttributeValues().size() );
+            assertEquals( 3, _duplicate.getTrackedEntityAttributeValues().size() );
 
             _original.getTrackedEntityAttributeValues().forEach( teav -> {
                 if ( teas.contains( teav.getAttribute().getUid() ) )
