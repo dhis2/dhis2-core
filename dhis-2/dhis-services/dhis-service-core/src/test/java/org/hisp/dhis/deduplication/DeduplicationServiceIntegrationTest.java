@@ -42,6 +42,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
 public class DeduplicationServiceIntegrationTest
     extends IntegrationTestBase
@@ -69,7 +70,9 @@ public class DeduplicationServiceIntegrationTest
     {
         super.userService = this.userService;
         User user = createUser( "testUser" );
-        setDependency( potentialDuplicateStore, "currentUserService", new MockCurrentUserService( user ) );
+        MockCurrentUserService currentUserService = new MockCurrentUserService( user );
+        ReflectionTestUtils.setField( potentialDuplicateStore, "currentUserService", currentUserService );
+        ReflectionTestUtils.setField( deduplicationService, "currentUserService", currentUserService );
     }
 
     @Test

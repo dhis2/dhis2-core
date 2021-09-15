@@ -344,36 +344,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void testGetWhereClauseWithOrgUnitDescendants()
-    {
-        // Given
-        final DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
-            DimensionType.PERIOD,
-            newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201801" ) ) );
-
-        final DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "orgUnit0",
-            newArrayList( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B', "/" ) ) );
-
-        final EventQueryParams params = new EventQueryParams.Builder()
-            .addDimension( periods )
-            .addDimension( orgUnits )
-            .withSkipData( true )
-            .withSkipMeta( false )
-            .withStartDate( new Date() )
-            .withEndDate( new Date() )
-            .build();
-
-        // When
-        final String whereClause = this.subject.getWhereClause( params );
-
-        // Then
-        assertThat( whereClause,
-            containsString( "and (ax.\"uidlevel1\" in ('ouabcdefghB') or ax.\"uidlevel0\" in ('ouabcdefghA') ) " ) );
-    }
-
-    @Test
-    public void testGetWhereClauseWithMultipleOrgUnitTDescendantsAtSameLevel()
+    public void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
     {
         // Given
         final DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,
@@ -381,7 +352,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
             newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201801" ) ) );
 
         final DimensionalObject multipleOrgUnitsSameLevel = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-            DimensionType.ORGANISATION_UNIT, "orgUnit0",
+            DimensionType.ORGANISATION_UNIT, "uidlevel1", "Level 1",
             newArrayList( createOrganisationUnit( 'A' ), createOrganisationUnit( 'B' ),
                 createOrganisationUnit( 'C' ) ) );
 
@@ -399,6 +370,6 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
         // Then
         assertThat( whereClause,
-            containsString( "and (ax.\"uidlevel0\" in ('ouabcdefghA', 'ouabcdefghB', 'ouabcdefghC') ) " ) );
+            containsString( "and ax.\"uidlevel1\" in ('ouabcdefghA', 'ouabcdefghB', 'ouabcdefghC')" ) );
     }
 }

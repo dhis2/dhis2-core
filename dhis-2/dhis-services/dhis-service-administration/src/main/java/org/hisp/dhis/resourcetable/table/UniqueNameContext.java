@@ -25,31 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc.messageconverter;
+package org.hisp.dhis.resourcetable.table;
 
-import javax.annotation.Nonnull;
-
-import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.node.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
-
-import com.google.common.collect.ImmutableList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luciano Fiandesio (initial)
+ * @author Jan Bernitt (current)
  */
-@Component
-public class ExcelMessageConverter extends AbstractRootNodeMessageConverter
+public final class UniqueNameContext
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "vnd.ms-excel" ) )
-        .build();
 
-    public ExcelMessageConverter( @Nonnull @Autowired NodeService nodeService )
+    private final Set<String> uniqueNames = new HashSet<>();
+
+    /**
+     * Returns the name that is unique in this name context.
+     *
+     * @param name a String
+     * @return a unique name based on the given name, eventually extended by a
+     *         counter number
+     */
+    public String uniqueName( String name )
     {
-        super( nodeService, "application/vnd.ms-excel", "xlsx", Compression.NONE );
-        setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+        String uniqueName = name;
+        if ( uniqueNames.contains( uniqueName ) )
+        {
+            int n = uniqueNames.size();
+            do
+            {
+                uniqueName = name + n;
+                n++;
+            }
+            while ( uniqueNames.contains( uniqueName ) );
+        }
+        this.uniqueNames.add( uniqueName );
+        return uniqueName;
     }
 }

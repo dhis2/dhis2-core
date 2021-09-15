@@ -91,7 +91,7 @@ public class LoginTests
 
     private String userName = "LoginTestsUser" + DataGenerator.randomString();
 
-    private String password = "Test1212?";
+    private String password = Constants.USER_PASSWORD;
 
     @BeforeAll
     public void preconditions()

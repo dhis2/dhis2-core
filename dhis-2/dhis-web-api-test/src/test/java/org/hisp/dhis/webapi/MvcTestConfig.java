@@ -29,12 +29,11 @@ package org.hisp.dhis.webapi;
 
 import static org.springframework.http.MediaType.parseMediaType;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
@@ -46,11 +45,7 @@ import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
-import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +66,6 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.web.accept.ContentNegotiationManager;
 import org.springframework.web.accept.FixedContentNegotiationStrategy;
 import org.springframework.web.accept.HeaderContentNegotiationStrategy;
-import org.springframework.web.accept.ParameterContentNegotiationStrategy;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -110,25 +104,13 @@ public class MvcTestConfig implements WebMvcConfigurer
     {
         CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
             mediaTypeMap );
-        pathExtensionNegotiationStrategy.setUseJaf( false );
-
-        String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };
-
-        ParameterContentNegotiationStrategy parameterContentNegotiationStrategy = new ParameterContentNegotiationStrategy(
-            mediaTypeMap.entrySet().stream()
-                .filter( x -> ArrayUtils.contains( mediaTypes, x.getKey() ) )
-                .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) ) );
-
-        HeaderContentNegotiationStrategy headerContentNegotiationStrategy = new HeaderContentNegotiationStrategy();
-        FixedContentNegotiationStrategy fixedContentNegotiationStrategy = new FixedContentNegotiationStrategy(
-            MediaType.APPLICATION_JSON );
+        pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly( true );
 
         ContentNegotiationManager manager = new ContentNegotiationManager(
             Arrays.asList(
                 pathExtensionNegotiationStrategy,
-                parameterContentNegotiationStrategy,
-                headerContentNegotiationStrategy,
-                fixedContentNegotiationStrategy ) );
+                new HeaderContentNegotiationStrategy(),
+                new FixedContentNegotiationStrategy( MediaType.APPLICATION_JSON ) ) );
 
         CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
         mapping.setOrder( 0 );
@@ -170,6 +152,25 @@ public class MvcTestConfig implements WebMvcConfigurer
         registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
     }
 
+    @Bean
+    public MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter()
+    {
+        return new MappingJackson2HttpMessageConverter( jsonMapper );
+    }
+
+    @Bean
+    public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
+    {
+        MappingJackson2XmlHttpMessageConverter messageConverter = new MappingJackson2XmlHttpMessageConverter(
+            xmlMapper );
+
+        messageConverter.setSupportedMediaTypes( Arrays.asList(
+            new MediaType( "application", "xml", StandardCharsets.UTF_8 ),
+            new MediaType( "application", "*+xml", StandardCharsets.UTF_8 ) ) );
+
+        return messageConverter;
+    }
+
     @Override
     public void configureMessageConverters(
         List<HttpMessageConverter<?>> converters )
@@ -178,19 +179,13 @@ public class MvcTestConfig implements WebMvcConfigurer
             .forEach( compression -> converters.add( new JsonMessageConverter( nodeService(), compression ) ) );
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
-        Arrays.stream( Compression.values() )
-            .forEach( compression -> converters.add( new CsvMessageConverter( nodeService(), compression ) ) );
-
-        converters.add( new JsonPMessageConverter( nodeService(), null ) );
-        converters.add( new PdfMessageConverter( nodeService() ) );
-        converters.add( new ExcelMessageConverter( nodeService() ) );
 
         converters.add( new StringHttpMessageConverter() );
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
 
-        converters.add( new MappingJackson2HttpMessageConverter( jsonMapper ) );
-        converters.add( new MappingJackson2XmlHttpMessageConverter( xmlMapper ) );
+        converters.add( mappingJackson2HttpMessageConverter() );
+        converters.add( mappingJackson2XmlHttpMessageConverter() );
     }
 
     @Bean
