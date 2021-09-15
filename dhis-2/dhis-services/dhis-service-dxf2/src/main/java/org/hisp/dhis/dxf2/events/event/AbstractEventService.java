@@ -70,6 +70,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -281,9 +282,9 @@ public abstract class AbstractEventService implements EventService
     {
         validate( params );
 
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
-
         User user = currentUserService.getCurrentUser();
+
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
 
         params.handleCurrentUserSelectionMode( user );
 
@@ -341,7 +342,7 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "Program stage should have at least one data element" );
         }
 
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
 
         params.handleCurrentUserSelectionMode( user );
 
@@ -483,9 +484,9 @@ public abstract class AbstractEventService implements EventService
     @Override
     public EventRows getEventRows( EventSearchParams params )
     {
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params );
-
         User user = currentUserService.getCurrentUser();
+
+        List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
 
         EventRows eventRows = new EventRows();
 
@@ -832,9 +833,11 @@ public abstract class AbstractEventService implements EventService
     // HELPERS
     // -------------------------------------------------------------------------
 
-    private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params )
+    private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params, User user )
     {
-        List<OrganisationUnit> organisationUnits = new ArrayList<>();
+        Set<OrganisationUnit> organisationUnits = new HashSet<>();
+
+        Program program = params.getProgram();
 
         OrganisationUnit orgUnit = params.getOrgUnit();
         OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
@@ -856,7 +859,27 @@ public abstract class AbstractEventService implements EventService
             }
         }
 
-        return organisationUnits;
+        if ( user != null )
+        {
+            if ( OrganisationUnitSelectionMode.ACCESSIBLE.equals( orgUnitSelectionMode ) )
+            {
+                Set<OrganisationUnit> orgUnits = program.isRegistration()
+                    ? user.getTeiSearchOrganisationUnitsWithFallback()
+                    : user.getDataViewOrganisationUnitsWithFallback();
+
+                organisationUnits.addAll( organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
+                    .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
+            }
+            else if ( OrganisationUnitSelectionMode.CAPTURE.equals( orgUnitSelectionMode ) )
+            {
+                organisationUnits.addAll(
+                    organisationUnitService.getOrganisationUnitsWithChildren( user.getOrganisationUnits().stream()
+                        .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
+            }
+
+        }
+
+        return new ArrayList<>( organisationUnits );
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user,
@@ -937,6 +960,11 @@ public abstract class AbstractEventService implements EventService
         if ( params == null )
         {
             throw new IllegalQueryException( "Query parameters can not be empty" );
+        }
+
+        if ( params.getOrgUnit() == null && params.getOrgUnitSelectionMode() == null )
+        {
+            violation = "At least one of the following query parameters are required: orgUnit, ouMode";
         }
 
         if ( params.getProgram() == null && params.getOrgUnit() == null && params.getTrackedEntityInstance() == null
