@@ -116,9 +116,7 @@ public class NotesConverterServiceTest
         assertThat( comment, is( notNullValue() ) );
         assertThat( comment.getUid(), is( note.getNote() ) );
         assertThat( comment.getCommentText(), is( note.getValue() ) );
-        // assertThat( comment.getCreator(), is( note.getStoredBy() ) ); // TODO
-        // check
-        // if this is needed
+        assertThat( comment.getCreator(), is( note.getStoredBy() ) );
     }
 
     private void assertCommentValues( Note note, TrackedEntityComment comment )
