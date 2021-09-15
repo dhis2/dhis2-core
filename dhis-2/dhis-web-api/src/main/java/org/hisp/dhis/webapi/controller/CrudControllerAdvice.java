@@ -27,7 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.serviceUnavailable;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.beans.PropertyEditorSupport;
 import java.util.Date;
@@ -36,7 +43,11 @@ import java.util.function.Function;
 import javax.servlet.ServletException;
 
 import org.hibernate.exception.ConstraintViolationException;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.MaintenanceModeException;
+import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalException;
@@ -55,7 +66,14 @@ import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.webapi.controller.exception.*;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.controller.exception.ConflictException;
+import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
+import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
+import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
+import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
+import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthenticationException;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenError;
 import org.springframework.dao.DataAccessResourceFailureException;
