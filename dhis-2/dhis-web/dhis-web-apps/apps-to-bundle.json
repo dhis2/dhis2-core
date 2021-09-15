@@ -1,5 +1,5 @@
 [
-    "https://github.com/d2-ci/approval-app",
+    "https://github.com/d2-ci/approval-app#master",
     "https://github.com/d2-ci/app-management-app",
     "https://github.com/d2-ci/cache-cleaner-app",
     "https://github.com/d2-ci/capture-app",
@@ -23,6 +23,6 @@
     "https://github.com/d2-ci/tracker-capture-app",
     "https://github.com/d2-ci/translations-app",
     "https://github.com/d2-ci/usage-analytics-app",
-    "https://github.com/d2-ci/user-app",
-    "https://github.com/d2-ci/user-profile-app"
+    "https://github.com/d2-ci/user-app#v37",
+    "https://github.com/d2-ci/user-profile-app#v37"
 ]

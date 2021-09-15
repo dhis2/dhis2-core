@@ -28,6 +28,7 @@
 package org.hisp.dhis.deduplication;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
@@ -49,6 +50,10 @@ public class PotentialDuplicate
      * required. duplicate is a potential duplicate of original.
      */
     private String duplicate;
+
+    protected String lastUpdatedByUserName;
+
+    protected String createdByUserName;
 
     /**
      * status represents the state of the PotentialDuplicate. all new Potential
@@ -104,5 +109,29 @@ public class PotentialDuplicate
     public void setStatus( DeduplicationStatus status )
     {
         this.status = status;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getLastUpdatedByUserName()
+    {
+        return lastUpdatedByUserName;
+    }
+
+    public void setLastUpdatedByUserName( String lastUpdatedByUserName )
+    {
+        this.lastUpdatedByUserName = lastUpdatedByUserName;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getCreatedByUserName()
+    {
+        return createdByUserName;
+    }
+
+    public void setCreatedByUserName( String createdByUserName )
+    {
+        this.createdByUserName = createdByUserName;
     }
 }
