@@ -29,22 +29,31 @@ package org.hisp.dhis.tracker.converter;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.util.Set;
+
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -59,13 +68,14 @@ public class EventTrackerConverterServiceTest
 
     private final static String PROGRAM_UID = "ProgramUid";
 
+    private final static String USER = "usernameU";
+
     private NotesConverterService notesConverterService = new NotesConverterService();
 
     @Mock
     private UserService userService;
 
-    private TrackerConverterService<Event, ProgramStageInstance> trackerConverterService = new EventTrackerConverterService(
-        notesConverterService, userService );
+    private TrackerConverterService<Event, ProgramStageInstance> trackerConverterService;
 
     @Mock
     public TrackerPreheat preheat;
@@ -75,6 +85,11 @@ public class EventTrackerConverterServiceTest
     @Before
     public void setUpTest()
     {
+        trackerConverterService = new EventTrackerConverterService(
+            notesConverterService, userService );
+
+        User user = createUser( 'U' );
+
         ProgramStage programStage = createProgramStage( 'A', 1 );
         programStage.setUid( PROGRAM_STAGE_UID );
 
@@ -89,6 +104,7 @@ public class EventTrackerConverterServiceTest
         when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
         when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
         when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
+        when( userService.getUserByUsername( anyString() ) ).thenReturn( user );
     }
 
     @Test
@@ -98,6 +114,17 @@ public class EventTrackerConverterServiceTest
         event.setProgramStage( PROGRAM_STAGE_UID );
         event.setProgram( PROGRAM_UID );
         event.setOrgUnit( ORGANISATION_UNIT_UID );
+
+        DataValue dataValue = new DataValue();
+        dataValue.setValue( "value" );
+        dataValue.setCreatedBy( USER );
+        dataValue.setLastUpdatedBy( USER );
+        dataValue.setCreatedAt( Instant.now() );
+        dataValue.setStoredBy( USER );
+        dataValue.setUpdatedAt( Instant.now() );
+        dataValue.setDataElement( "data-element" );
+
+        event.setDataValues( Sets.newHashSet( dataValue ) );
 
         ProgramStageInstance programStageInstance = trackerConverterService.from( preheat, event );
 
@@ -109,5 +136,10 @@ public class EventTrackerConverterServiceTest
         assertEquals( PROGRAM_UID, programStageInstance.getProgramStage().getProgram().getUid() );
         assertEquals( PROGRAM_STAGE_UID, programStageInstance.getProgramStage().getUid() );
         assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
+        assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
+
+        Set<EventDataValue> eventDataValues = programStageInstance.getEventDataValues();
+
+        eventDataValues.forEach( e -> assertEquals( USER, e.getCreatedByUserInfo().getUsername() ) );
     }
 }
