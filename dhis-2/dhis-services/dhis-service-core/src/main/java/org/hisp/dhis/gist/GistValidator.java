@@ -32,6 +32,8 @@ import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.UniqueObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -42,8 +44,6 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
-
-import lombok.AllArgsConstructor;
 
 /**
  * Validates a {@link GistQuery} for consistency and access restrictions.

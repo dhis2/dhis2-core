@@ -38,17 +38,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiFunction;
 
-import org.hisp.dhis.common.NamedParams;
-import org.hisp.dhis.common.UniqueObject;
-import org.hisp.dhis.schema.annotation.Gist.Transform;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.common.UniqueObject;
+import org.hisp.dhis.schema.annotation.Gist.Transform;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Description of the gist query that should be run.
