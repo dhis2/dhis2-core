@@ -39,6 +39,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,8 +61,11 @@ public class EventTrackerConverterServiceTest
 
     private NotesConverterService notesConverterService = new NotesConverterService();
 
+    @Mock
+    private UserService userService;
+
     private TrackerConverterService<Event, ProgramStageInstance> trackerConverterService = new EventTrackerConverterService(
-        notesConverterService );
+        notesConverterService, userService );
 
     @Mock
     public TrackerPreheat preheat;
