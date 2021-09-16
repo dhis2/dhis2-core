@@ -2,7 +2,7 @@ drop table if exists metadataproposal;
 create table metadataproposal (
     proposalid bigint not null primary key,
     uid character varying(11) not null unique,
-    type varying(6) not null,
+    type character varying(6) not null,
     target character varying(30) not null,
     targetUid character varying(11),
     created timestamp without time zone not null,
