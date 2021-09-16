@@ -42,7 +42,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Collections;
-import java.util.Date;
 
 import org.hisp.dhis.deduplication.DeduplicationMergeParams;
 import org.hisp.dhis.deduplication.DeduplicationService;
@@ -292,9 +291,6 @@ public class DeduplicationControllerMvcTest
 
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
 
-        when( trackedEntityInstanceA.getCreated() ).thenReturn( new Date() );
-        when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
-
         MergeObject mergeObject = MergeObject.builder().build();
 
         mockMvc.perform( post( ENDPOINT + "/" + uid + "/merge" )
@@ -318,9 +314,6 @@ public class DeduplicationControllerMvcTest
 
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
 
-        when( trackedEntityInstanceA.getCreated() ).thenReturn( new Date() );
-        when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
-
         MergeObject mergeObject = MergeObject.builder().build();
 
         mockMvc.perform( post( ENDPOINT + "/" + uid + "/merge" )
@@ -343,9 +336,6 @@ public class DeduplicationControllerMvcTest
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
 
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-
-        when( trackedEntityInstanceA.getCreated() ).thenReturn( new Date() );
-        when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
 
         doThrow( new PotentialDuplicateForbiddenException( "Forbidden" ) ).when( deduplicationService )
             .autoMerge( deduplicationMergeParams );
@@ -374,9 +364,6 @@ public class DeduplicationControllerMvcTest
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
 
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-
-        when( trackedEntityInstanceA.getCreated() ).thenReturn( new Date() );
-        when( trackedEntityInstanceB.getCreated() ).thenReturn( new Date() );
 
         doThrow( new PotentialDuplicateConflictException( "Conflict" ) ).when( deduplicationService )
             .autoMerge( deduplicationMergeParams );
