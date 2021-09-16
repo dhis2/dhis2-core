@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.importer.events;
 
 import com.google.gson.JsonObject;
+import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -72,8 +73,8 @@ public class EventNotesTests
             .body( "stats.updated", equalTo( 1 ) );
 
         trackerActions.getEvent( eventId + "?fields=notes" )
-            .validate().statusCode( 200 ).body( "notes", hasSize( 1 ) )
-            .body( "notes.storedBy", equalTo( "taadmin" ) );
+            .validate().statusCode( 200 ).body( "notes", hasSize( 2 ) )
+            .body( "notes.storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
     @Test
