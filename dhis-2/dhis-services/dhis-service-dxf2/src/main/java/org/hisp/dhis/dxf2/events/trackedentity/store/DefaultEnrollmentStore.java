@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.mapper.NoteRowCallbackHandl
 import org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Multimap;
@@ -65,10 +66,28 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
 
-        jdbcTemplate.query( withAclCheck( GET_ENROLLMENT_SQL_BY_TEI, ctx, " pi.programid IN (:programIds)" ),
-            createIdsParam( ids ).addValue( "programIds", ctx.getPrograms() ), handler );
+        AclQueryWithParams aclQueryWithParams = getAclQueryWithParams( ctx, createIdsParam( ids ) );
+
+        jdbcTemplate.query( withAclCheck( GET_ENROLLMENT_SQL_BY_TEI, ctx, aclQueryWithParams.getQuery() ),
+            aclQueryWithParams.getQueryParams(), handler );
 
         return handler.getItems();
+    }
+
+    AclQueryWithParams getAclQueryWithParams( AggregateContext ctx, MapSqlParameterSource idsParam )
+    {
+        AclQueryWithParams.AclQueryWithParamsBuilder aclQueryWithParams = AclQueryWithParams.builder()
+            .idsParam( idsParam );
+        if ( ctx.getPrograms().isEmpty() )
+        {
+            return aclQueryWithParams
+                .query( "false" )
+                .build();
+        }
+        return aclQueryWithParams
+            .query( "pi.programid IN (:programIds)" )
+            .param( "programIds", ctx.getPrograms() )
+            .build();
     }
 
     @Override
