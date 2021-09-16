@@ -80,16 +80,15 @@ public class HibernateProgramRuleStore
     }
 
     @Override
-    public List<ProgramRule> getByProgramStage( Set<String> programStageIds )
+    public List<ProgramRule> getProgramRulesLinkedToTeaOrDe()
     {
-        final String jql = "SELECT distinct pr FROM ProgramRule pr, ProgramStage ps, Program p " +
-            "JOIN FETCH pr.programRuleActions pra " +
-            "WHERE p = ps.program AND p.uid = pr.program.uid " +
-            "AND ps.uid in (:ids)";
 
+        String jql = "SELECT distinct pr FROM ProgramRule pr, Program p " +
+            "JOIN FETCH pr.programRuleActions pra " +
+            "WHERE p.uid = pr.program.uid AND " +
+            "(pra.dataElement IS NOT NULL OR pra.attribute IS NOT NULL)";
         Session session = getSession();
         return session.createQuery( jql, ProgramRule.class )
-            .setParameterList( "ids", programStageIds )
             .getResultList();
     }
 
