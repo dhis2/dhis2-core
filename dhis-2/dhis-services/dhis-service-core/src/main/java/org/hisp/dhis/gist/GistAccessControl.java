@@ -28,6 +28,7 @@
 package org.hisp.dhis.gist;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UniqueObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.Access;
@@ -62,9 +63,9 @@ public interface GistAccessControl
      */
     boolean canReadHQL();
 
-    boolean canRead( Class<? extends IdentifiableObject> type );
+    boolean canRead( Class<? extends UniqueObject> type );
 
-    boolean canReadObject( Class<? extends IdentifiableObject> type, String uid );
+    boolean canReadObject( Class<? extends UniqueObject> type, String uid );
 
     /**
      * Whether or not the current user can read the field {@link Property}
@@ -83,7 +84,7 @@ public interface GistAccessControl
      *         individual values which are filtered by added sharing based
      *         filters to gist queries)
      */
-    boolean canRead( Class<? extends IdentifiableObject> type, String path );
+    boolean canRead( Class<? extends UniqueObject> type, String path );
 
     boolean canFilterByAccessOfUser( String userUid );
 

@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="org.hisp.dhis.metadata.MetadataProposal"
+           table="metadataproposal">
+
+        <id name="id" column="proposalid">
+            <generator class="native"/>
+        </id>
+
+        <property name="uid" column="uid" unique="true" length="11"
+                  not-null="true"/>
+
+        <!--
+        <property name="type" column="type" not-null="true">
+            <type name="com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType">
+                <param name="enumClass">
+                    org.hisp.dhis.metadata.MetadataProposalType
+                </param>
+            </type>
+        </property>
+
+        <property name="target" column="target" not-null="true" length="20">
+            <type name="com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType">
+                <param name="enumClass">
+                    org.hisp.dhis.metadata.MetadataProposalTarget
+                </param>
+            </type>
+        </property>
+        -->
+
+
+        <property name="targetUid" column="targetuid" length="11"
+                  not-null="false"/>
+
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User"
+                     column="createdby"
+                     foreign-key="fk_createdby_userid" not-null="true"/>
+
+        <property name="created" type="timestamp" not-null="true"/>
+
+        <property name="change" type="jbObject" not-null="true"/>
+
+        <property name="comment" column="comment" length="255"
+                  not-null="false"/>
+
+    </class>
+</hibernate-mapping>

@@ -47,12 +47,10 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.UniqueObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -63,6 +61,9 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The {@link GistPlanner} is responsible to expand the list of {@link Field}s
@@ -124,7 +125,7 @@ class GistPlanner
         Property p = context.resolveMandatory( f.getPropertyPath() );
         return !f.getOperator().isAccessCompare()
             && p.isCollection() && !isCollectionSizeFilter( f, p )
-            && IdentifiableObject.class.isAssignableFrom( p.getItemKlass() );
+            && UniqueObject.class.isAssignableFrom( p.getItemKlass() );
     }
 
     private List<Filter> withCurrentUserDefaultForAccessFilters( List<Filter> filters )
@@ -252,7 +253,7 @@ class GistPlanner
     private boolean canRead( Schema schema, String path )
     {
         return !schema.isIdentifiableObject()
-            || access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), path );
+            || access.canRead( (Class<? extends UniqueObject>) schema.getKlass(), path );
     }
 
     private List<Field> withDisplayAsTranslatedFields( List<Field> fields )
@@ -309,7 +310,7 @@ class GistPlanner
                 String propertyName = path.substring( path.lastIndexOf( '.' ) + 1 );
                 Property collection = context.resolveMandatory( parentPath );
                 if ( "id".equals( propertyName )
-                    && IdentifiableObject.class.isAssignableFrom( collection.getItemKlass() ) )
+                    && UniqueObject.class.isAssignableFrom( collection.getItemKlass() ) )
                 {
                     mapped.add( f
                         .withPropertyPath( parentPath )

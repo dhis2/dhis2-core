@@ -54,10 +54,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -75,6 +71,10 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.sharing.Sharing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Purpose of this helper is to avoid passing around same state while building
@@ -359,9 +359,9 @@ final class GistBuilder
         {
             int sharingFieldIndex = getSameParentFieldIndex( path, SHARING_PROPERTY );
             @SuppressWarnings( "unchecked" )
-            Class<? extends IdentifiableObject> objType = isNonNestedPath( path )
+            Class<? extends IdentifiableObject> objType = (Class<? extends IdentifiableObject>) (isNonNestedPath( path )
                 ? query.getElementType()
-                : (Class<? extends IdentifiableObject>) property.getKlass();
+                : property.getKlass());
             addTransformer( row -> row[index] = access.asAccess( objType, (Sharing) row[sharingFieldIndex] ) );
             return HQL_NULL;
         }
