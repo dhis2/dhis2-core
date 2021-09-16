@@ -352,7 +352,7 @@ public class TrackedEntityInstanceStoreTest
     }
 
     @Test
-    public void shouldGNotGetTeiPreviousQueryDate()
+    public void shouldGNotGetTeis()
     {
         Program pr = createProgram( 'X', null, null );
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'X' );
@@ -370,7 +370,7 @@ public class TrackedEntityInstanceStoreTest
     }
 
     @Test
-    public void shouldGetTeiNextQueryDate()
+    public void shouldGetTeis()
     {
         Program pr = createProgram( 'X', null, null );
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'X' );
@@ -378,6 +378,7 @@ public class TrackedEntityInstanceStoreTest
         createTeiAndProgramInstances( pr, trackedEntityType );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setProgram( pr );
 
         Calendar cal = Calendar.getInstance();
         cal.add( Calendar.DATE, -1 );
@@ -385,10 +386,24 @@ public class TrackedEntityInstanceStoreTest
         params.setLastUpdatedStartDate( cal.getTime() );
 
         assertEquals( 1, teiStore.getTrackedEntityInstances( params ).size() );
+
+        cal = Calendar.getInstance();
+
+        params.setLastUpdatedEndDate( cal.getTime() );
+
+        assertEquals( 1, teiStore.getTrackedEntityInstances( params ).size() );
+
+        cal = Calendar.getInstance();
+
+        params.setLastUpdatedStartDate( null );
+        params.setLastUpdatedEndDate( cal.getTime() );
+        cal.add( Calendar.DATE, +1 );
+
+        assertEquals( 1, teiStore.getTrackedEntityInstances( params ).size() );
     }
 
     @Test
-    public void shouldGNotGetTeiByIdPreviousQueryDate()
+    public void shouldGNotGetTeiIds()
     {
         Program pr = createProgram( 'X', null, null );
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'X' );
@@ -396,19 +411,19 @@ public class TrackedEntityInstanceStoreTest
         createTeiAndProgramInstances( pr, trackedEntityType );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setProgram( pr );
 
         Calendar cal = Calendar.getInstance();
         cal.add( Calendar.DATE, +1 );
 
         params.setTrackedEntityTypes( Collections.singletonList( trackedEntityType ) );
-        params.setProgram( pr );
         params.setLastUpdatedStartDate( cal.getTime() );
 
         assertEquals( 0, teiStore.getTrackedEntityInstanceIds( params ).size() );
     }
 
     @Test
-    public void shouldGetTeiByIdNextQueryDate()
+    public void shouldGetTeiIds()
     {
         Program pr = createProgram( 'X', null, null );
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'X' );
@@ -416,13 +431,27 @@ public class TrackedEntityInstanceStoreTest
         createTeiAndProgramInstances( pr, trackedEntityType );
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setProgram( pr );
 
         Calendar cal = Calendar.getInstance();
         cal.add( Calendar.DATE, -1 );
 
         params.setTrackedEntityTypes( Collections.singletonList( trackedEntityType ) );
-        params.setProgram( pr );
         params.setLastUpdatedStartDate( cal.getTime() );
+
+        assertEquals( 1, teiStore.getTrackedEntityInstanceIds( params ).size() );
+
+        cal = Calendar.getInstance();
+
+        params.setLastUpdatedEndDate( cal.getTime() );
+
+        assertEquals( 1, teiStore.getTrackedEntityInstanceIds( params ).size() );
+
+        cal = Calendar.getInstance();
+
+        params.setLastUpdatedStartDate( null );
+        params.setLastUpdatedEndDate( cal.getTime() );
+        cal.add( Calendar.DATE, +1 );
 
         assertEquals( 1, teiStore.getTrackedEntityInstanceIds( params ).size() );
     }
