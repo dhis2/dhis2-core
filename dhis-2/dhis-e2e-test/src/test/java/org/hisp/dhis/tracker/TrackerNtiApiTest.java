@@ -31,6 +31,7 @@ import java.io.File;
 import java.util.List;
 
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
@@ -47,6 +48,10 @@ import com.google.gson.JsonObject;
 public class TrackerNtiApiTest
     extends ApiTest
 {
+    protected String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
+
+    protected static final String TRACKER_PROGRAM_STAGE_ID = "nlXNK4b7LVr";
+
     protected TrackerActions trackerActions;
 
     protected LoginActions loginActions;
@@ -112,6 +117,22 @@ public class TrackerNtiApiTest
         return response;
     }
 
+    protected TrackerApiResponse importTeiWithEnrollmentAndEvent( String orgUnit, String programId, String programStageId )
+        throws Exception
+    {
+        JsonObject teiWithEnrollment = new FileReaderUtils()
+            .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
+            .replacePropertyValuesWith( "orgUnit", orgUnit )
+            .replacePropertyValuesWith( "program", programId )
+            .replacePropertyValuesWith( "programStage", programStageId )
+            .get( JsonObject.class );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiWithEnrollment );
+
+        response.validateSuccessfulImport();
+        return response;
+    }
+
     protected TrackerApiResponse importTeiWithEnrollmentAndEvent()
         throws Exception
     {
@@ -126,6 +147,7 @@ public class TrackerNtiApiTest
     @AfterEach
     public void afterEachNTI()
     {
+        loginActions.loginAsAdmin();
         new MaintenanceActions().removeSoftDeletedData();
     }
 }

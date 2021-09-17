@@ -125,8 +125,19 @@ public class TrackerActions
         return new TrackerApiResponse( response );
     }
 
-    public TrackerApiResponse getTrackedEntity( String entityId ) {
-        return new TrackerApiResponse( this.get("/trackedEntities/" + entityId));
+    public TrackerApiResponse getTrackedEntity( String entityId )
+    {
+        return new TrackerApiResponse( this.get( "/trackedEntities/" + entityId ) );
+    }
+
+    public TrackerApiResponse getEnrollment( String enrollmentId )
+    {
+        return new TrackerApiResponse( this.get( "/enrollments/" + enrollmentId ) );
+    }
+
+    public TrackerApiResponse getEvent( String eventId )
+    {
+        return new TrackerApiResponse( this.get( "/events/" + eventId ) );
     }
 
     private void saveCreatedData( ApiResponse response )
@@ -274,22 +285,22 @@ public class TrackerActions
     public JsonObject buildNonBidirectionalTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2 )
     {
         return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "TV9oB9LT3sh" /*
-                                                                                                * a
-                                                                                                * non
-                                                                                                * bidirectional
-                                                                                                * relationship
-                                                                                                * type
-                                                                                                */ );
+         * a
+         * non
+         * bidirectional
+         * relationship
+         * type
+         */ );
     }
 
     public JsonObject buildBidirectionalTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2 )
     {
         return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "xLmPUYJX8Ks" /*
-                                                                                                * a
-                                                                                                * bidirectional
-                                                                                                * relationship
-                                                                                                * type
-                                                                                                */ );
+         * a
+         * bidirectional
+         * relationship
+         * type
+         */ );
     }
 
     public JsonObject buildTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2,

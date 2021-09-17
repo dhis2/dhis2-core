@@ -62,6 +62,7 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 
 import com.google.gson.JsonObject;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -108,14 +109,17 @@ public class EventActions
 
     public JsonObject createEventBody( String orgUnitId, String programId, String programStageId )
     {
-        JsonObject event = new JsonObject();
-
-        event.addProperty( "orgUnit", orgUnitId );
-        event.addProperty( "program", programId );
-        event.addProperty( "programStage", programStageId );
-        event.addProperty( "eventDate", "2018-12-01T00:00:00.000" );
+        JsonObject event = new JsonObjectBuilder()
+            .addProperty( "orgUnit", orgUnitId )
+            .addProperty( "program", programId )
+            .addProperty( "programStage", programStageId )
+            .addProperty( "eventDate", "2018-12-01T00:00:00.000")
+            .build();
 
         return event;
+    }
 
+    public void addDataValue( String event, String dataElement, String value ) {
+       this.update( String.format( "/%s/%s", event, dataElement ), new JsonObjectBuilder().addProperty( "value", value )).validate().statusCode( 200 );
     }
 }
