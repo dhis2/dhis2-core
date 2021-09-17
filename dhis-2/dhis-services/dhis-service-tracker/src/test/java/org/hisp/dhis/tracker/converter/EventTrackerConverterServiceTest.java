@@ -33,20 +33,26 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,13 +68,17 @@ import com.google.common.collect.Sets;
 public class EventTrackerConverterServiceTest
     extends DhisConvenienceTest
 {
+    private final static String PROGRAM_INSTANCE_UID = "programInstanceUid";
+
     private final static String PROGRAM_STAGE_UID = "ProgramStageUid";
 
     private final static String ORGANISATION_UNIT_UID = "OrganisationUnitUid";
 
     private final static String PROGRAM_UID = "ProgramUid";
 
-    private final static String USER = "usernameU";
+    private final static String USERNAME = "usernameU";
+
+    private final static Date today = new Date();
 
     private NotesConverterService notesConverterService = new NotesConverterService();
 
@@ -82,13 +92,25 @@ public class EventTrackerConverterServiceTest
 
     private Program program = createProgram( 'A' );
 
+    private ProgramInstance programInstance;
+
+    private ProgramStageInstance psi;
+
+    private TrackedEntityInstance tei;
+
+    private DataElement dataElement;
+
+    private User user;
+
     @Before
     public void setUpTest()
     {
         trackerConverterService = new EventTrackerConverterService(
             notesConverterService, userService );
 
-        User user = createUser( 'U' );
+        dataElement = createDataElement( 'D' );
+
+        user = createUser( 'U' );
 
         ProgramStage programStage = createProgramStage( 'A', 1 );
         programStage.setUid( PROGRAM_STAGE_UID );
@@ -101,9 +123,29 @@ public class EventTrackerConverterServiceTest
 
         programStage.setProgram( program );
 
+        tei = createTrackedEntityInstance( organisationUnit );
+        programInstance = createProgramInstance( program, tei, organisationUnit );
+        programInstance.setUid( PROGRAM_INSTANCE_UID );
+
+        psi = new ProgramStageInstance();
+        psi.setAutoFields();
+        psi.setAttributeOptionCombo( createCategoryOptionCombo( 'C' ) );
+        psi.setCreated( today );
+        psi.setExecutionDate( today );
+        psi.setProgramInstance( programInstance );
+        psi.setOrganisationUnit( organisationUnit );
+        psi.setProgramStage( programStage );
+        psi.setEventDataValues( Sets.newHashSet() );
+        psi.setDueDate( null );
+        psi.setCompletedDate( null );
+        psi.setStoredBy( user.getUsername() );
+        psi.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
+        psi.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
+
         when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
         when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
         when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
+        when( preheat.getUser() ).thenReturn( user );
         when( userService.getUserByUsername( anyString() ) ).thenReturn( user );
     }
 
@@ -117,12 +159,12 @@ public class EventTrackerConverterServiceTest
 
         DataValue dataValue = new DataValue();
         dataValue.setValue( "value" );
-        dataValue.setCreatedBy( USER );
-        dataValue.setLastUpdatedBy( USER );
+        dataValue.setCreatedBy( USERNAME );
+        dataValue.setLastUpdatedBy( USERNAME );
         dataValue.setCreatedAt( Instant.now() );
-        dataValue.setStoredBy( USER );
+        dataValue.setStoredBy( USERNAME );
         dataValue.setUpdatedAt( Instant.now() );
-        dataValue.setDataElement( "data-element" );
+        dataValue.setDataElement( dataElement.getUid() );
 
         event.setDataValues( Sets.newHashSet( dataValue ) );
 
@@ -140,6 +182,35 @@ public class EventTrackerConverterServiceTest
 
         Set<EventDataValue> eventDataValues = programStageInstance.getEventDataValues();
 
-        eventDataValues.forEach( e -> assertEquals( USER, e.getCreatedByUserInfo().getUsername() ) );
+        eventDataValues.forEach( e -> {
+            assertEquals( USERNAME, e.getCreatedByUserInfo().getUsername() );
+            assertEquals( USERNAME, e.getLastUpdatedByUserInfo().getUsername() );
+        } );
+    }
+
+    @Test
+    public void testToEvent()
+    {
+        EventDataValue eventDataValue = new EventDataValue();
+        eventDataValue.setAutoFields();
+        eventDataValue.setCreated( today );
+        eventDataValue.setValue( "sample-value" );
+        eventDataValue.setDataElement( dataElement.getUid() );
+        eventDataValue.setStoredBy( user.getUsername() );
+        eventDataValue.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
+        eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
+        psi.getEventDataValues().add( eventDataValue );
+
+        Event event = trackerConverterService.to( psi );
+
+        assertEquals( event.getEnrollment(), PROGRAM_INSTANCE_UID );
+        assertEquals( event.getStoredBy(), user.getUsername() );
+
+        event.getDataValues().forEach( e -> {
+
+            assertEquals( DateUtils.fromInstant( e.getCreatedAt() ), psi.getCreated() );
+            assertEquals( e.getLastUpdatedBy(), psi.getLastUpdatedByUserInfo().getUsername() );
+            assertEquals( e.getLastUpdatedBy(), psi.getCreatedByUserInfo().getUsername() );
+        } );
     }
 }
