@@ -57,7 +57,7 @@ public class HibernateProgramRuleStore
     public HibernateProgramRuleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramRule.class, currentUserService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, ProgramRule.class, currentUserService, aclService, false );
     }
 
     @Override
