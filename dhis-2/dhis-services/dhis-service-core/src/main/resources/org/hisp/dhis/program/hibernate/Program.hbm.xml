@@ -78,7 +78,7 @@
       </type>
     </property>
     
-    <property name="accessLevel" column="accesslevel" length="100">
+    <property name="accessLevel" length="100">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.common.AccessLevel</param>
         <param name="useNamed">true</param>
