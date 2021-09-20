@@ -92,6 +92,7 @@ public class DefaultSchemaService
 
     private static final ImmutableList<SchemaDescriptor> DESCRIPTORS = new ImmutableList.Builder<SchemaDescriptor>()
         .add( new MetadataVersionSchemaDescriptor() )
+        .add( new MetadataProposalSchemaDescriptor() )
         .add( new AnalyticsTableHookSchemaDescriptor() )
         .add( new AttributeSchemaDescriptor() )
         .add( new AttributeValueSchemaDescriptor() )

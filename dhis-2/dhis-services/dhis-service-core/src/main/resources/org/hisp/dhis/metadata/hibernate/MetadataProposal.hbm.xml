@@ -38,7 +38,7 @@
 
         <property name="created" type="timestamp" not-null="true"/>
 
-        <property name="change" type="jbObject" not-null="true"/>
+        <property name="change" type="jbObjectNode" not-null="true"/>
 
         <property name="comment" column="comment" length="255"
                   not-null="false"/>

@@ -18,6 +18,10 @@
     <param name="clazz">java.lang.Object</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonObjectNodeBinaryType" name="jbObjectNode">
+    <param name="clazz">com.fasterxml.jackson.databind.node.ObjectNode</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainStringType" name="jbPlainString">
   </typedef>
 
@@ -70,11 +74,11 @@
     <param name="clazz">org.hisp.dhis.render.DeviceRenderTypeMap</param>
     <param name="renderType">org.hisp.dhis.render.type.ValueTypeRenderingObject</param>
   </typedef>
-  
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbFilterPeriod">
     <param name="clazz">org.hisp.dhis.trackedentityfilter.FilterPeriod</param>
   </typedef>
-  
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbSet">
     <param name="clazz">java.util.HashSet</param>
   </typedef>
@@ -90,15 +94,15 @@
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbEventFilter">
     <param name="clazz">org.hisp.dhis.trackedentityfilter.EventFilter</param>
   </typedef>
-  
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEventQueryCriteria">
     <param name="clazz">org.hisp.dhis.programstagefilter.EventQueryCriteria</param>
   </typedef>
-  
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jbSeries">
     <param name="clazz">org.hisp.dhis.visualization.Series</param>
   </typedef>
-  
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jlbMentions">
     <param name="clazz">org.hisp.dhis.interpretation.Mention</param>
   </typedef>

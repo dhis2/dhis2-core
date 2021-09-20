@@ -105,12 +105,12 @@ public class DefaultMetadataProposalService implements MetadataProposalService
 
     private void acceptAdd( MetadataProposal proposal )
     {
-
+        // WIP
     }
 
     private void acceptUpdate( MetadataProposal proposal )
     {
-
+        // WIP
     }
 
     private void acceptRemove( MetadataProposal proposal )
