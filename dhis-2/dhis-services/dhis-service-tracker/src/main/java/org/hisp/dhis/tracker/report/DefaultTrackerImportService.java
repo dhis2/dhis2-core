@@ -100,7 +100,9 @@ public class DefaultTrackerImportService
             preProcess( opsTimer, trackerBundle );
 
             if ( addToValidationReport( params, opsTimer, validationReport, trackerBundle ) )
+            {
                 return buildReportAndNotify( params, validationReport, opsTimer, bundleSize );
+            }
 
             bundleReport = commit( params, opsTimer, trackerBundle );
 
@@ -305,7 +307,7 @@ public class DefaultTrackerImportService
         {
             notifier
                 .update( params.getJobConfiguration(), NotificationLevel.DEBUG,
-                    params.toString() +
+                    params +
                         validationOps + " completed in "
                         + opsTimer.get( validationOps ) + " Import:"
                         + validationOps );
@@ -317,7 +319,7 @@ public class DefaultTrackerImportService
         if ( null != params.getJobConfiguration() )
         {
             notifier.update( params.getJobConfiguration(),
-                params.toString() +
+                params +
                     " finished in " +
                     importReport.getTimingsStats().get( TOTAL_OPS ) + " Import:Done",
                 true );
@@ -334,7 +336,7 @@ public class DefaultTrackerImportService
         if ( null != params.getJobConfiguration() && params.getJobConfiguration().isInMemoryJob() )
         {
             notifier.update( params.getJobConfiguration(), NotificationLevel.ERROR,
-                params.toString() +
+                params +
                     " failed with exception: "
                     + e.getMessage() + " Import:Error",
                 true );
