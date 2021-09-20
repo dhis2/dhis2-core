@@ -131,8 +131,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
             trackedEntityAttributes, trackedEntityInstances, auditType );
 
         query.select( builder.countDistinct( root.get( "id" ) ) )
-            .where( predicates.toArray( new Predicate[0] ) )
-            .orderBy( builder.desc( root.get( "created" ) ) );
+            .where( predicates.toArray( new Predicate[0] ) );
 
         return (sessionFactory.getCurrentSession()
             .createQuery( query )
