@@ -6,11 +6,7 @@
         "status": "FIXED",
         "pullRequests": [
           {
-            "prNumber": 11,
-            "target": "patch/2.34.7"
-          },
-          {
-            "prNumber": 4,
+            "prNumber": 14,
             "target": "patch/2.35.7"
           },
           {
@@ -18,7 +14,7 @@
             "target": "patch/2.35.8"
           },
           {
-            "prNumber": 3,
+            "prNumber": 16,
             "target": "patch/2.36.4"
           }
         ]
