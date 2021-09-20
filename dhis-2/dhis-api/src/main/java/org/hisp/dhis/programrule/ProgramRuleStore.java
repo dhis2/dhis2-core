@@ -59,10 +59,9 @@ public interface ProgramRuleStore
     /**
      * Returns all {@link ProgramRule} by program.
      *
-     * @param programIds
      * @return ProgramRule list
      */
-    List<ProgramRule> getByProgram( Set<String> programIds );
+    List<ProgramRule> getProgramRulesLinkedToTeaOrDe();
 
     /**
      * Get validation by {@link Program}
