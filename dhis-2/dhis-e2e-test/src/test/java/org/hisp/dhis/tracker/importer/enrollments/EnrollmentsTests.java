@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.importer.enrollments;
 
 import com.google.gson.JsonObject;
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
@@ -115,7 +116,7 @@ public class EnrollmentsTests
             .body( "storedAt", notNullValue() )
             .body( "updatedAt", notNullValue() )
             .body( "value", notNullValue() )
-            .body( "storedBy", equalTo( "taadmin" ) );
+            .body( "storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
     @Test
