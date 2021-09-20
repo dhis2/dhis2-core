@@ -33,7 +33,7 @@ public interface MetadataProposalService
 
     MetadataProposal propose( MetadataProposalParams proposal );
 
-    void accept( MetadataProposal proposal );
+    String accept( MetadataProposal proposal );
 
     void comment( MetadataProposal proposal, String comment );
 

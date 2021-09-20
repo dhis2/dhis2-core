@@ -42,6 +42,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.metadata.MetadataProposal;
 import org.hisp.dhis.metadata.MetadataProposalParams;
 import org.hisp.dhis.metadata.MetadataProposalService;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.descriptors.MetadataProposalSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractGistReadOnlyController;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -93,8 +95,8 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
     @ResponseBody
     public WebMessage proposeProposal( @RequestBody MetadataProposalParams params )
     {
-        service.propose( params );
-        return created();
+        MetadataProposal proposal = service.propose( params );
+        return created().setLocation( MetadataProposalSchemaDescriptor.API_ENDPOINT + "/" + proposal.getUid() );
     }
 
     @PostMapping( value = "/{uid}/accept", produces = APPLICATION_JSON_VALUE )
@@ -105,7 +107,13 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
         MetadataProposal proposal = service.getByUid( uid );
         if ( proposal == null )
             throw notFoundUid( uid );
-        service.accept( proposal );
+        String objUid = service.accept( proposal );
+        if ( objUid != null )
+        {
+            Schema schema = schemaService.getSchema( proposal.getTarget().getType() );
+            return created( schema.getSingular() + " created" )
+                .setLocation( schema.getRelativeApiEndpoint() + "/" + objUid );
+        }
         return ok();
     }
 

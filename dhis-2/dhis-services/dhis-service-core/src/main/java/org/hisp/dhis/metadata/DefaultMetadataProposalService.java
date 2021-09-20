@@ -28,13 +28,22 @@
 package org.hisp.dhis.metadata;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+@Slf4j
 @Service
 @AllArgsConstructor
 public class DefaultMetadataProposalService implements MetadataProposalService
@@ -45,6 +54,10 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     private final CurrentUserService currentUserService;
 
     private final IdentifiableObjectManager objectManager;
+
+    private final JsonPatchManager patchManager;
+
+    private final ObjectMapper jsonMapper;
 
     @Override
     @Transactional( readOnly = true )
@@ -65,27 +78,33 @@ public class DefaultMetadataProposalService implements MetadataProposalService
             .comment( params.getComment() )
             .change( params.getChange() )
             .build();
+        if ( proposal.getType() == MetadataProposalType.REMOVE )
+        {
+            proposal.setChange( jsonMapper.createObjectNode() );
+        }
         store.save( proposal );
         return proposal;
     }
 
     @Override
     @Transactional
-    public void accept( MetadataProposal proposal )
+    public String accept( MetadataProposal proposal )
     {
+        String uid = null;
         switch ( proposal.getType() )
         {
         case ADD:
-            acceptAdd( proposal );
-            return;
+            uid = acceptAdd( proposal );
+            break;
         case REMOVE:
             acceptRemove( proposal );
-            return;
+            break;
         case UPDATE:
             acceptUpdate( proposal );
-            return;
+            break;
         }
         store.delete( proposal );
+        return uid;
     }
 
     @Override
@@ -103,14 +122,40 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         store.delete( proposal );
     }
 
-    private void acceptAdd( MetadataProposal proposal )
+    private String acceptAdd( MetadataProposal proposal )
     {
-        // WIP
+        IdentifiableObject obj = mapJsonChangeToObject( proposal.getChange(), proposal.getTarget().getType() );
+        if ( obj == null )
+            return null;
+        objectManager.save( obj );
+        return obj.getUid();
+    }
+
+    private <T> T mapJsonChangeToObject( ObjectNode change, Class<T> type )
+    {
+        try
+        {
+            return jsonMapper.treeToValue( change, type );
+
+        }
+        catch ( JsonProcessingException ex )
+        {
+            log.error( "Failed to map proposal change to type " + type.getSimpleName(), ex );
+            return null;
+        }
     }
 
     private void acceptUpdate( MetadataProposal proposal )
     {
-        // WIP
+        JsonPatch patch = mapJsonChangeToObject( proposal.getChange(), JsonPatch.class );
+        try
+        {
+            patchManager.apply( patch, objectManager.get( proposal.getTarget().getType(), proposal.getTargetUid() ) );
+        }
+        catch ( JsonPatchException ex )
+        {
+            log.error( "Failed to apply proposed object update: " + proposal.getChange(), ex );
+        }
     }
 
     private void acceptRemove( MetadataProposal proposal )
