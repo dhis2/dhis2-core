@@ -1,5 +1,3 @@
-package org.hisp.dhis.dto;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
