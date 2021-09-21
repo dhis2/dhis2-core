@@ -35,7 +35,6 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -51,6 +50,7 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
@@ -285,20 +285,58 @@ public class OwnershipTest
         assertEquals( 1, updatedReport.getStats().getDeleted() );
 
         TrackedEntityInstance tei = manager.get( TrackedEntityInstance.class, "IOR1AXXl24H" );
-        OrganisationUnit ou = manager.get( OrganisationUnit.class, "uoNW0E3xXUy" );
+        OrganisationUnit ou = manager.get( OrganisationUnit.class, "B1nCbRV3qtP" );
         Program pgm = manager.get( Program.class, "BFcipDERJnf" );
-        pgm.setAccessLevel( AccessLevel.PROTECTED );
 
-        manager.update( pgm );
-
-        manager.flush();
         trackerOwnershipManager.transferOwnership( tei, pgm, ou, true, false );
         enrollmentParams.setImportStrategy( TrackerImportStrategy.CREATE );
         enrollmentParams.getEnrollments().get( 0 ).setEnrollment( CodeGenerator.generateUid() );
         updatedReport = trackerImportService.importTracker( enrollmentParams );
 
         assertEquals( 1, updatedReport.getStats().getIgnored() );
+        assertEquals(
+            TrackerErrorCode.E1102, updatedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
 
+    }
+
+    @Test
+    public void testDeleteEnrollmentWithoutOwnership()
+        throws IOException
+    {
+        // Change ownership
+        TrackedEntityInstance tei = manager.get( TrackedEntityInstance.class, "IOR1AXXl24H" );
+        OrganisationUnit ou = manager.get( OrganisationUnit.class, "B1nCbRV3qtP" );
+        Program pgm = manager.get( Program.class, "BFcipDERJnf" );
+
+        TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser.getUid() );
+
+        trackerOwnershipManager.transferOwnership( tei, pgm, ou, true, false );
+
+        enrollmentParams.setImportStrategy( TrackerImportStrategy.DELETE );
+        TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
+        assertEquals( 1, updatedReport.getStats().getIgnored() );
+        assertEquals(
+            TrackerErrorCode.E1102, updatedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
+
+    }
+
+    @Test
+    public void testUpdateEnrollmentWithoutOwnership()
+        throws IOException
+    {
+        // Change ownership
+        TrackedEntityInstance tei = manager.get( TrackedEntityInstance.class, "IOR1AXXl24H" );
+        OrganisationUnit ou = manager.get( OrganisationUnit.class, "B1nCbRV3qtP" );
+        Program pgm = manager.get( Program.class, "BFcipDERJnf" );
+
+        trackerOwnershipManager.transferOwnership( tei, pgm, ou, true, false );
+
+        TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser.getUid() );
+        enrollmentParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+        TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
+        assertEquals( 1, updatedReport.getStats().getIgnored() );
+        assertEquals(
+            TrackerErrorCode.E1102, updatedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
     }
 
     private void compareEnrollmentBasicProperties( ProgramInstance pi, Enrollment enrollment )

@@ -278,22 +278,20 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     @Override
     @Transactional( readOnly = true )
-    public boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program )
+    public boolean hasAccess( User user, String entityInstance, OrganisationUnit owningOrgUnit, Program program )
     {
-        if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
+        if ( canSkipOwnershipCheck( user, program ) || entityInstance == null || owningOrgUnit == null )
         {
             return true;
         }
 
-        OrganisationUnit ou = getOwnerExpanded( entityInstance, organisationUnit, program );
-
         if ( program.isOpen() || program.isAudited() )
         {
-            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
+            return organisationUnitService.isInUserSearchHierarchyCached( user, owningOrgUnit );
         }
         else
         {
-            return organisationUnitService.isInUserHierarchyCached( user, ou )
+            return organisationUnitService.isInUserHierarchyCached( user, owningOrgUnit )
                 || hasTemporaryAccessWithUid( entityInstance, program, user );
         }
     }
