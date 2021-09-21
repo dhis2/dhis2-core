@@ -40,9 +40,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.cache2k.Cache;
 import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -106,9 +104,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     protected static final String DEFAULTS = "INCLUDE";
 
     protected static final WebOptions NO_WEB_OPTIONS = new WebOptions( new HashMap<>() );
-
-    @Autowired
-    protected PaginationCacheManager paginationCacheManager;
 
     @Autowired
     protected IdentifiableObjectManager manager;
@@ -206,9 +201,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             }
             else
             {
-                Cache<String, Long> paginationCache = paginationCacheManager.getPaginationCache( getEntityClass() );
-                String cacheKey = composePaginationCountKey( currentUser, filters, options );
-                totalCount = paginationCache.computeIfAbsent( cacheKey, () -> countTotal( options, filters, orders ) );
+                totalCount = countTotal( options, filters, orders );
             }
 
             pager = new Pager( options.getPage(), totalCount, options.getPageSize() );
@@ -460,12 +453,6 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
             noCache().cachePrivate().getHeaderValue() );
-    }
-
-    private String composePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
-    {
-        return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
-            + options.getRootJunction().name();
     }
 
     private boolean hasHref( List<String> fields )
