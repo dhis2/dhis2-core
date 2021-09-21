@@ -98,29 +98,25 @@ public class TrackerIdentifierCollector
     private void collectProgramRulesFields( Map<Class<?>, Set<String>> map,
         TrackerIdentifierParams params )
     {
-        Set<String> programStages = map.get( ProgramStage.class );
-        if ( programStages != null )
-        {
-            List<ProgramRule> programRules = programRuleService.getProgramRuleByProgramStage( programStages );
-            Set<String> dataElements = programRules.stream()
-                .flatMap( pr -> pr.getProgramRuleActions().stream() )
-                .filter( a -> Objects.nonNull( a.getDataElement() ) )
-                .map( a -> a.getDataElement().getUid() )
-                .collect( Collectors.toSet() );
+        List<ProgramRule> programRules = programRuleService.getProgramRulesLinkedToTeaOrDe();
+        Set<String> dataElements = programRules.stream()
+            .flatMap( pr -> pr.getProgramRuleActions().stream() )
+            .filter( a -> Objects.nonNull( a.getDataElement() ) )
+            .map( a -> a.getDataElement().getUid() )
+            .collect( Collectors.toSet() );
 
-            dataElements
-                .forEach(
-                    de -> addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(), de ) );
+        dataElements
+            .forEach(
+                de -> addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(), de ) );
 
-            Set<String> attributes = programRules.stream()
-                .flatMap( pr -> pr.getProgramRuleActions().stream() )
-                .filter( a -> Objects.nonNull( a.getAttribute() ) )
-                .map( a -> a.getAttribute().getUid() )
-                .collect( Collectors.toSet() );
+        Set<String> attributes = programRules.stream()
+            .flatMap( pr -> pr.getProgramRuleActions().stream() )
+            .filter( a -> Objects.nonNull( a.getAttribute() ) )
+            .map( a -> a.getAttribute().getUid() )
+            .collect( Collectors.toSet() );
 
-            attributes.forEach(
-                attribute -> addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute ) );
-        }
+        attributes.forEach(
+            attribute -> addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute ) );
     }
 
     private void collectDefaults( Map<Class<?>, Set<String>> map,
