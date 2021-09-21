@@ -35,8 +35,6 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -53,6 +51,8 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class adds new Logger(s) and RollingFileAppender(s) to the XML-based,
@@ -85,6 +85,8 @@ public class Log4JLogConfigInitializer
     private static final String GENERAL_LOGGER_FILENAME = "dhis.log";
 
     private static final String PUSH_ANALYSIS_LOGGER_FILENAME = "dhis-push-analysis.log";
+
+    private static final String AUDIT_LOGGER_FILENAME = "dhis-audit.log";
 
     private static final String LOG4J_CONF_PROP = "log4j.configuration";
 
@@ -134,6 +136,8 @@ public class Log4JLogConfigInitializer
 
         configureLoggers( PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.pushanalysis" ) );
 
+        configureLoggers( AUDIT_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.audit" ) );
+
         configureRootLogger( GENERAL_LOGGER_FILENAME );
 
         final LoggerContext ctx = (LoggerContext) LogManager.getContext( false );
@@ -141,12 +145,12 @@ public class Log4JLogConfigInitializer
     }
 
     /**
-     * Configures rolling file loggers.
+     * Configures rolling file packages.
      *
      * @param filename the filename to output logging to.
-     * @param loggers the logger names.
+     * @param packages the logger names.
      */
-    private void configureLoggers( String filename, List<String> loggers )
+    private void configureLoggers( String filename, List<String> packages )
     {
         String file = getLogFile( filename );
 
@@ -156,7 +160,7 @@ public class Log4JLogConfigInitializer
 
         AppenderRef[] refs = createAppenderRef( "Ref_" + filename );
 
-        for ( String loggerName : loggers )
+        for ( String loggerName : packages )
         {
             LoggerConfig loggerConfig = LoggerConfig.createLogger( true, Level.INFO, loggerName, "true", refs, null,
                 getLogConfiguration(), null );
