@@ -27,10 +27,8 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.Matchers.everyItem;
-import static org.hamcrest.Matchers.hasItem;
-
+import com.google.gson.JsonObject;
+import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -39,7 +37,8 @@ import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -50,7 +49,7 @@ public class EventNotesTests
     @BeforeAll
     public void beforeAll()
     {
-        loginActions.loginAsSuperUser();
+        loginActions.loginAsAdmin();
     }
 
     @Test
@@ -66,13 +65,16 @@ public class EventNotesTests
         JsonObjectBuilder.jsonObject( ob ).addPropertyByJsonPath( "events[0]", "event", eventId );
 
         // act
-
         TrackerApiResponse response = trackerActions.postAndGetJobReport( ob );
 
         // assert
         response.validateSuccessfulImport()
             .validate()
             .body( "stats.updated", equalTo( 1 ) );
+
+        trackerActions.getEvent( eventId + "?fields=notes" )
+            .validate().statusCode( 200 ).body( "notes", hasSize( 2 ) )
+            .body( "notes.storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
     @Test
