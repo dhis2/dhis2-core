@@ -37,6 +37,7 @@ import java.util.HashSet;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
@@ -144,7 +145,8 @@ public class EventXmlImportTest
         InputStream is = createEventXmlInputStream();
         ImportSummaries importSummaries = eventService.addEventsXml( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-        Events events = eventService.getEvents( new EventSearchParams().setProgram( programA ) );
+        Events events = eventService.getEvents( new EventSearchParams().setProgram( programA )
+            .setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE ) );
         assertEquals( 1, events.getEvents().size() );
         assertTrue( events.getEvents().stream().allMatch( e -> e.getGeometry().getGeometryType().equals( "Point" ) ) );
     }
@@ -158,14 +160,16 @@ public class EventXmlImportTest
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
 
         // Get by admin
-        Events events = eventService.getEvents( new EventSearchParams().setProgram( programA ) );
+        Events events = eventService.getEvents( new EventSearchParams().setProgram( programA )
+            .setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE ) );
         assertEquals( 1, events.getEvents().size() );
 
         // Get by user without access
         User user = createUser( "A" );
         userService.addUser( user );
         injectSecurityContext( user );
-        events = eventService.getEvents( new EventSearchParams().setProgram( programA ) );
+        events = eventService.getEvents( new EventSearchParams().setProgram( programA )
+            .setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE ) );
         assertEquals( 0, events.getEvents().size() );
     }
 
