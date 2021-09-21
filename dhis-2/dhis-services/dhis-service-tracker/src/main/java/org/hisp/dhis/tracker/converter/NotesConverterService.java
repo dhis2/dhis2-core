@@ -31,9 +31,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +73,7 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
 
         comment.setLastUpdatedBy( preheat.getUser() );
         comment.setLastUpdated( new Date() );
-        comment.setCreator( note.getStoredBy() );
+        comment.setCreator( getValidUsername( note.getStoredBy(), preheat.getUser() ) );
 
         return comment;
     }
@@ -79,5 +82,21 @@ public class NotesConverterService implements TrackerConverterService<Note, Trac
     public List<TrackedEntityComment> from( TrackerPreheat preheat, List<Note> notes )
     {
         return notes.stream().map( n -> from( preheat, n ) ).collect( Collectors.toList() );
+    }
+
+    public static String getValidUsername( String userName, User currentUser )
+    {
+        String validUsername = userName;
+
+        if ( StringUtils.isEmpty( validUsername ) )
+        {
+            validUsername = User.getSafeUsername( currentUser.getUsername() );
+        }
+        else if ( validUsername.length() > UserCredentials.USERNAME_MAX_LENGTH )
+        {
+            validUsername = User.getSafeUsername( currentUser.getUsername() );
+        }
+
+        return validUsername;
     }
 }
