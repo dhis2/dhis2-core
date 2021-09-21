@@ -27,20 +27,22 @@
  */
 package org.hisp.dhis.dto;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.gson.JsonObject;
-
 import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
+
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -56,7 +58,6 @@ public class ApiResponse
 
     /**
      * Extracts uid when only one object was created.
-     *
      */
     public String extractUid()
     {
@@ -80,7 +81,6 @@ public class ApiResponse
     /**
      * Extracts uids from import summaries. Use when more than one object was
      * created.
-     *
      */
     public List<String> extractUids()
     {
@@ -134,7 +134,9 @@ public class ApiResponse
         return extractJsonObject( "" );
     }
 
-    public JsonObjectBuilder getBodyAsJsonBuilder() {
+
+    public JsonObjectBuilder getBodyAsJsonBuilder()
+    {
         return new JsonObjectBuilder( getBody() );
     }
 
