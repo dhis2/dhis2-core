@@ -170,6 +170,12 @@ public class EventQueryParams
     private EventOutputType outputType;
 
     /**
+     * Indicates the event output type which can be by event, enrollment type or
+     * tracked entity instance.
+     */
+    private IdScheme outputIdScheme;
+
+    /**
      * Indicates the event status.
      */
     private EventStatus eventStatus;
@@ -292,6 +298,7 @@ public class EventQueryParams
         params.sortOrder = this.sortOrder;
         params.limit = this.limit;
         params.outputType = this.outputType;
+        params.outputIdScheme = this.outputIdScheme;
         params.eventStatus = this.eventStatus;
         params.collapseDataDimensions = this.collapseDataDimensions;
         params.coordinatesOnly = this.coordinatesOnly;
@@ -400,6 +407,7 @@ public class EventQueryParams
             .addIgnoreNull( "sortOrder", sortOrder )
             .addIgnoreNull( "limit", limit )
             .addIgnoreNull( "outputType", outputType )
+            .addIgnoreNull( "outputIdScheme", outputIdScheme )
             .addIgnoreNull( "eventStatus", eventStatus )
             .addIgnoreNull( "collapseDataDimensions", collapseDataDimensions )
             .addIgnoreNull( "coordinatesOnly", coordinatesOnly )
@@ -947,6 +955,11 @@ public class EventQueryParams
     public EventOutputType getOutputType()
     {
         return outputType;
+    }
+
+    public IdScheme getOutputIdScheme()
+    {
+        return outputIdScheme;
     }
 
     public EventStatus getEventStatus()

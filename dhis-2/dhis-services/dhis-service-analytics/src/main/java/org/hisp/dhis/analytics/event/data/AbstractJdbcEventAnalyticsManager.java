@@ -41,6 +41,7 @@ import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,6 +57,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -402,7 +404,33 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     String gridValue = params.isCollapseDataDimensions()
                         ? getCollapsedDataItemValue( queryItem, itemValue )
                         : itemValue;
-                    grid.addValue( gridValue );
+
+                    if ( params.getOutputIdScheme() == null || params.getOutputIdScheme() == IdScheme.NAME )
+                    {
+                        grid.addValue( gridValue );
+                    }
+                    else
+                    {
+                        String value = null;
+
+                        String itemOptionValue = getItemOptionValue( gridValue, params );
+
+                        if ( itemOptionValue != null && !itemOptionValue.trim().isEmpty() )
+                        {
+                            value = itemOptionValue;
+                        }
+                        else
+                        {
+                            String legendItemValue = getItemLegendValue( gridValue, params );
+
+                            if ( legendItemValue != null && !legendItemValue.trim().isEmpty() )
+                            {
+                                value = legendItemValue;
+                            }
+                        }
+
+                        grid.addValue( value == null ? gridValue : value );
+                    }
                 }
             }
 
@@ -434,6 +462,32 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 grid.addNullValues( NUMERATOR_DENOMINATOR_PROPERTIES_COUNT );
             }
         }
+    }
+
+    private String getItemLegendValue( String gridValue, EventQueryParams params )
+    {
+        Optional<Option> itemOption = params.getItemOptions().stream()
+            .filter( option -> option.getDisplayName().equalsIgnoreCase( gridValue ) )
+            .findFirst();
+
+        return itemOption.map( option -> params.getOutputIdScheme() == IdScheme.UID ? option.getUid()
+            : params.getOutputIdScheme() == IdScheme.CODE ? option.getCode()
+                : params.getOutputIdScheme() == IdScheme.NAME ? option.getName()
+                    : Long.toString( option.getId() ) )
+            .orElse( null );
+    }
+
+    private String getItemOptionValue( String gridValue, EventQueryParams params )
+    {
+        Optional<Legend> itemLegend = params.getItemLegends().stream()
+            .filter( legend -> legend.getDisplayName().equalsIgnoreCase( gridValue ) )
+            .findFirst();
+
+        return itemLegend.map( option -> params.getOutputIdScheme() == IdScheme.UID ? option.getUid()
+            : params.getOutputIdScheme() == IdScheme.CODE ? option.getCode()
+                : params.getOutputIdScheme() == IdScheme.NAME ? option.getName()
+                    : Long.toString( option.getId() ) )
+            .orElse( null );
     }
 
     /**
