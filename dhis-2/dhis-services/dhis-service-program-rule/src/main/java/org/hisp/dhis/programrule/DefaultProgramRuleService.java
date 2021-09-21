@@ -105,9 +105,9 @@ public class DefaultProgramRuleService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramRule> getProgramRuleByProgram( Set<String> programs )
+    public List<ProgramRule> getProgramRulesLinkedToTeaOrDe()
     {
-        return programRuleStore.getByProgram( programs );
+        return programRuleStore.getProgramRulesLinkedToTeaOrDe();
     }
 
     @Override

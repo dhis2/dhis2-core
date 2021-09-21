@@ -117,7 +117,7 @@ public class EnrollmentsTests
             .body( "storedAt", notNullValue() )
             .body( "updatedAt", notNullValue() )
             .body( "value", notNullValue() )
-            .body( "storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
+            .body( "storedBy", CoreMatchers.everyItem( equalTo( "tasuperadmin" ) ) );
     }
 
     @Test
