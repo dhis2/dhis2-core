@@ -29,11 +29,15 @@
 package org.hisp.dhis.tracker.importer.enrollments;
 
 import com.google.gson.JsonObject;
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -89,6 +93,31 @@ public class EnrollmentsTests
             .validate()
             .statusCode( 200 )
             .body( "trackedEntity", equalTo( teiId ) );
+    }
+
+    @Test
+    public void shouldAddNote()
+    {
+        String enrollmentId = trackerActions
+            .postAndGetJobReport( trackerActions.buildTeiAndEnrollment( Constants.ORG_UNIT_IDS[0], Constants.TRACKER_PROGRAM_ID ) )
+            .extractImportedEnrollments().get( 0 );
+
+        JsonObject payload = trackerActions.getEnrollment( enrollmentId ).getBodyAsJsonBuilder()
+            .addOrAppendToArray( "notes", new JsonObjectBuilder().addProperty( "value", DataGenerator.randomString() ).build() )
+            .wrapIntoArray( "enrollments" );
+
+        trackerActions.postAndGetJobReport( payload )
+            .validateSuccessfulImport()
+            .validate().body( "stats.updated", equalTo( 1 ) );
+
+        trackerActions.getEnrollment( enrollmentId + "?fields=notes" )
+            .validate().statusCode( 200 )
+            .rootPath( "notes" )
+            .body( "note", notNullValue() )
+            .body( "storedAt", notNullValue() )
+            .body( "updatedAt", notNullValue() )
+            .body( "value", notNullValue() )
+            .body( "storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
     @Test
