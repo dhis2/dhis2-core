@@ -35,6 +35,8 @@ import java.util.List;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -51,8 +53,6 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class adds new Logger(s) and RollingFileAppender(s) to the XML-based,
@@ -136,7 +136,7 @@ public class Log4JLogConfigInitializer
 
         configureLoggers( PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.pushanalysis" ) );
 
-        configureLoggers( AUDIT_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.audit" ) );
+        configureAuditLogger( AUDIT_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.audit" ) );
 
         configureRootLogger( GENERAL_LOGGER_FILENAME );
 
@@ -145,7 +145,48 @@ public class Log4JLogConfigInitializer
     }
 
     /**
-     * Configures rolling file packages.
+     * Configures rolling audit file loggers.
+     *
+     * @param filename the filename to output logging to.
+     * @param packages the logger names.
+     */
+    private void configureAuditLogger( String filename, List<String> packages )
+    {
+        String file = getLogFile( filename );
+
+        RollingFileAppender appender = RollingFileAppender.newBuilder()
+            .withFileName( file )
+            .setName( "appender_" + file )
+            .withFilePattern( file + "%i" )
+            .setLayout( PATTERN_LAYOUT )
+            .withPolicy(
+                SizeBasedTriggeringPolicy
+                    .createPolicy( config.getProperty( ConfigurationKey.AUDIT_LOGGER_FILE_MAX_SIZE ) ) )
+            .withStrategy( DefaultRolloverStrategy.newBuilder()
+                .withFileIndex( "nomax" ).build() )
+            .build();
+
+        appender.start();
+
+        getLogConfiguration().addAppender( appender );
+
+        AppenderRef[] refs = createAppenderRef( "Ref_" + filename );
+
+        for ( String loggerName : packages )
+        {
+            LoggerConfig loggerConfig = LoggerConfig.createLogger( true, Level.INFO, loggerName, "true", refs, null,
+                getLogConfiguration(), null );
+
+            loggerConfig.addAppender( appender, null, null );
+
+            getLogConfiguration().addLogger( loggerName, loggerConfig );
+
+            log.info( "Added logger: " + loggerName + " using file: " + file );
+        }
+    }
+
+    /**
+     * Configures rolling file loggers.
      *
      * @param filename the filename to output logging to.
      * @param packages the logger names.
