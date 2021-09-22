@@ -316,7 +316,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         // TODO: can't use replace because the table
         // programstageusergroupaccesses
         // should use 'programstageid' as column name
-        final String sql = "select psuga.programid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
+        final String sql = "select psuga.programstageid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
             + "from programstageusergroupaccesses psuga "
             + "join usergroupaccess u on psuga.usergroupaccessid = u.usergroupaccessid "
             + "join usergroup ug on u.usergroupid = ug.usergroupid order by programstageid";
