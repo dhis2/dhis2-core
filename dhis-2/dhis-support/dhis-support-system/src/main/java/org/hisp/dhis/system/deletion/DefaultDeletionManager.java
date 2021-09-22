@@ -30,9 +30,6 @@ package org.hisp.dhis.system.deletion;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-import javassist.util.proxy.ProxyObject;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
@@ -42,6 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import javassist.util.proxy.ProxyObject;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * TODO: Add support for failed allow tests on "transitive" deletion handlers
@@ -87,7 +87,7 @@ public class DefaultDeletionManager
     {
         if ( deletionHandlers == null || deletionHandlers.isEmpty() )
         {
-            log.info( "No deletion handlers registered, aborting deletion handling" );
+            log.debug( "No deletion handlers registered, aborting deletion handling" );
             return;
         }
 
@@ -126,8 +126,7 @@ public class DefaultDeletionManager
                     String argument = handler.getClassName() + hint;
 
                     ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, argument );
-
-                    log.info( "Delete was not allowed by " + currentHandler + ": " + errorMessage.toString() );
+                    log.debug( "Delete was not allowed by " + currentHandler + ": " + errorMessage.toString() );
 
                     throw new DeleteNotAllowedException( errorMessage );
                 }
@@ -177,7 +176,7 @@ public class DefaultDeletionManager
             return;
         }
 
-        log.info( "Deleted objects associated with object of type " + className );
+        log.debug( "Deleted objects associated with object of type " + className );
     }
 
     private Class<?> getClazz( Object object )
