@@ -41,6 +41,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.RollingFileAppender;
+import org.apache.logging.log4j.core.appender.rolling.CronTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.DefaultRolloverStrategy;
 import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
 import org.apache.logging.log4j.core.config.AppenderRef;
@@ -157,13 +158,9 @@ public class Log4JLogConfigInitializer
         RollingFileAppender appender = RollingFileAppender.newBuilder()
             .withFileName( file )
             .setName( "appender_" + file )
-            .withFilePattern( file + "%i" )
+            .withFilePattern( file + ".%i" )
             .setLayout( PATTERN_LAYOUT )
-            .withPolicy(
-                SizeBasedTriggeringPolicy
-                    .createPolicy( config.getProperty( ConfigurationKey.AUDIT_LOGGER_FILE_MAX_SIZE ) ) )
-            .withStrategy( DefaultRolloverStrategy.newBuilder()
-                .withFileIndex( "nomax" ).build() )
+            .withPolicy( CronTriggeringPolicy.createPolicy( getLogConfiguration(), "false", "0 0 * * *" ) )
             .build();
 
         appender.start();
@@ -255,7 +252,7 @@ public class Log4JLogConfigInitializer
     {
         RollingFileAppender appender = RollingFileAppender.newBuilder().withFileName( file )
             .setName( "appender_" + file )
-            .withFilePattern( file + "%i" )
+            .withFilePattern( file + ".%i" )
             .setLayout( PATTERN_LAYOUT )
             .withPolicy(
                 SizeBasedTriggeringPolicy.createPolicy( config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_SIZE ) ) )
