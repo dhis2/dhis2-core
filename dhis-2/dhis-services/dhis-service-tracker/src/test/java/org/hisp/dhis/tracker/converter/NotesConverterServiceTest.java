@@ -35,10 +35,12 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -46,8 +48,10 @@ import org.junit.Test;
 /**
  * @author Luciano Fiandesio
  */
-public class NotesConverterServiceTest
+public class NotesConverterServiceTest extends DhisConvenienceTest
 {
+    private static final String CURRENT_USER = "usernameA";
+
     private NotesConverterService notesConverterService;
 
     private TrackerPreheat preheat;
@@ -58,7 +62,9 @@ public class NotesConverterServiceTest
     public void setUp()
     {
         this.notesConverterService = new NotesConverterService();
+        User user = createUser( 'A' );
         this.preheat = new TrackerPreheat();
+        preheat.setUser( user );
         rnd = new BeanRandomizer();
     }
 
@@ -72,6 +78,16 @@ public class NotesConverterServiceTest
     }
 
     @Test
+    public void verifyConvertCommentToNoteWithNoStoredByDefined()
+    {
+        Note note = rnd.randomObject( Note.class );
+        note.setStoredBy( null );
+
+        final TrackedEntityComment comment = notesConverterService.from( preheat, note );
+        assertNoteValuesWithCurrentUser( comment, note );
+    }
+
+    @Test
     public void verifyConvertCommentsToNotes()
     {
         List<Note> notes = rnd.randomObjects( Note.class, 10 );
@@ -79,7 +95,6 @@ public class NotesConverterServiceTest
         final List<TrackedEntityComment> comments = notesConverterService.from( preheat, notes );
 
         assertThat( comments, hasSize( 10 ) );
-
         for ( Note note : notes )
         {
             assertNoteValues( comments.stream().filter( c -> c.getUid().equals( note.getNote() ) ).findFirst().get(),
@@ -117,6 +132,14 @@ public class NotesConverterServiceTest
         assertThat( comment.getUid(), is( note.getNote() ) );
         assertThat( comment.getCommentText(), is( note.getValue() ) );
         assertThat( comment.getCreator(), is( note.getStoredBy() ) );
+    }
+
+    private void assertNoteValuesWithCurrentUser( TrackedEntityComment comment, Note note )
+    {
+        assertThat( comment, is( notNullValue() ) );
+        assertThat( comment.getUid(), is( note.getNote() ) );
+        assertThat( comment.getCommentText(), is( note.getValue() ) );
+        assertThat( comment.getCreator(), is( CURRENT_USER ) );
     }
 
     private void assertCommentValues( Note note, TrackedEntityComment comment )
