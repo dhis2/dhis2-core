@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker.events;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.File;
+
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -44,11 +49,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.File;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.jupiter.api.Assertions.*;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -154,7 +155,8 @@ public class UserAssignmentTests
         programActions.programStageActions.enableUserAssignment( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );
 
-        JsonObject event = eventActions.get( String.format( "?program=%s&orgUnit=%s&assignedUserMode=CURRENT", programId, orgUnit ) )
+        JsonObject event = eventActions
+            .get( String.format( "?program=%s&orgUnit=%s&assignedUserMode=CURRENT", programId, orgUnit ) )
             .validateStatus( 200 )
             .extractJsonObject( "events[0]" );
 
@@ -169,7 +171,7 @@ public class UserAssignmentTests
         eventActions.get( eventId )
             .validate()
             .statusCode( 200 )
-            .body( "assignedUser", Matchers.nullValue());
+            .body( "assignedUser", Matchers.nullValue() );
     }
 
     private ApiResponse createEvents( String programId, String programStageId, String assignedUserId )
