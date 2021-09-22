@@ -28,7 +28,9 @@
 package org.hisp.dhis.tracker.events;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.File;
 
@@ -150,8 +152,16 @@ public class UserAssignmentTests
         programActions.programStageActions.enableUserAssignment( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );
 
-        JsonObject body = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT" )
-            .extractJsonObject( "events[0]" );
+        JsonObject body = null;
+        try
+        {
+            body = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT" )
+                .extractJsonObject( "events[0]" );
+        }
+        catch ( Exception ex )
+        {
+            ex.printStackTrace();
+        }
 
         assertNotNull( body, "no events matching the query." );
 
