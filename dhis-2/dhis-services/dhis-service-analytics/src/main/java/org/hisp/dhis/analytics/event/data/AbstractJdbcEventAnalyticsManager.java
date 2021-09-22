@@ -400,20 +400,20 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 for ( QueryItem queryItem : params.getItems() )
                 {
 
-                    String itemValue = rowSet.getString( queryItem.getItemName() );
-                    String gridValue = params.isCollapseDataDimensions()
-                        ? getCollapsedDataItemValue( queryItem, itemValue )
-                        : itemValue;
+                    String itemName = rowSet.getString( queryItem.getItemName() );
+                    String itemValue = params.isCollapseDataDimensions()
+                        ? getCollapsedDataItemValue( queryItem, itemName )
+                        : itemName;
 
                     if ( params.getOutputIdScheme() == null || params.getOutputIdScheme() == IdScheme.NAME )
                     {
-                        grid.addValue( gridValue );
+                        grid.addValue( itemValue );
                     }
                     else
                     {
                         String value = null;
 
-                        String itemOptionValue = getItemOptionValue( gridValue, params );
+                        String itemOptionValue = getItemOptionValue( itemValue, params );
 
                         if ( itemOptionValue != null && !itemOptionValue.trim().isEmpty() )
                         {
@@ -421,7 +421,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                         }
                         else
                         {
-                            String legendItemValue = getItemLegendValue( gridValue, params );
+                            String legendItemValue = getItemLegendValue( itemValue, params );
 
                             if ( legendItemValue != null && !legendItemValue.trim().isEmpty() )
                             {
@@ -429,7 +429,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                             }
                         }
 
-                        grid.addValue( value == null ? gridValue : value );
+                        grid.addValue( value == null ? itemValue : value );
                     }
                 }
             }
@@ -464,10 +464,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
     }
 
-    private String getItemLegendValue( String gridValue, EventQueryParams params )
+    private String getItemLegendValue( String itemValue, EventQueryParams params )
     {
         Optional<Option> itemOption = params.getItemOptions().stream()
-            .filter( option -> option.getDisplayName().equalsIgnoreCase( gridValue ) )
+            .filter( option -> option.getDisplayName().equalsIgnoreCase( itemValue ) )
             .findFirst();
 
         return itemOption.map( option -> params.getOutputIdScheme() == IdScheme.UID ? option.getUid()
@@ -477,10 +477,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
             .orElse( null );
     }
 
-    private String getItemOptionValue( String gridValue, EventQueryParams params )
+    private String getItemOptionValue( String itemValue, EventQueryParams params )
     {
         Optional<Legend> itemLegend = params.getItemLegends().stream()
-            .filter( legend -> legend.getDisplayName().equalsIgnoreCase( gridValue ) )
+            .filter( legend -> legend.getDisplayName().equalsIgnoreCase( itemValue ) )
             .findFirst();
 
         return itemLegend.map( option -> params.getOutputIdScheme() == IdScheme.UID ? option.getUid()
