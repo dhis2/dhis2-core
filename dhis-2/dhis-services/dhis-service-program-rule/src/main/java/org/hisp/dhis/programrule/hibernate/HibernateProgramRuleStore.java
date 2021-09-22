@@ -57,7 +57,7 @@ public class HibernateProgramRuleStore
     public HibernateProgramRuleStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramRule.class, currentUserService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, ProgramRule.class, currentUserService, aclService, false );
     }
 
     @Override
@@ -80,13 +80,15 @@ public class HibernateProgramRuleStore
     }
 
     @Override
-    public List<ProgramRule> getByProgram( Set<String> programIds )
+    public List<ProgramRule> getProgramRulesLinkedToTeaOrDe()
     {
-        final String jql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra WHERE pr.program.uid in (:ids)";
 
+        String jql = "SELECT distinct pr FROM ProgramRule pr, Program p " +
+            "JOIN FETCH pr.programRuleActions pra " +
+            "WHERE p.uid = pr.program.uid AND " +
+            "(pra.dataElement IS NOT NULL OR pra.attribute IS NOT NULL)";
         Session session = getSession();
         return session.createQuery( jql, ProgramRule.class )
-            .setParameterList( "ids", programIds )
             .getResultList();
     }
 

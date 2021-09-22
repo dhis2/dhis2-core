@@ -50,6 +50,28 @@ public class RandomGeneratorServiceTest
     private RandomGeneratorService randomGeneratorService;
 
     @Test
+    public void shouldGenerateRandomInteger()
+        throws Exception
+    {
+        int randomLength = 1;
+
+        String textPattern = IntStream.range( 0, randomLength ).mapToObj( i -> "#" ).collect( Collectors.joining() );
+
+        randomGeneratorService.setSegmentParameter( textPattern );
+
+        List<String> randomList = randomGeneratorService.call();
+
+        assertEquals( RANDOM_GENERATION_CHUNK, randomList.size() );
+
+        Pattern pattern = Pattern.compile( "-?\\d+(\\.\\d+)?" );
+
+        randomList.forEach( r -> {
+            assertTrue( pattern.matcher( r ).matches() );
+            assertEquals( randomLength, r.length() );
+        } );
+    }
+
+    @Test
     public void shouldGenerateRandomIntegers()
         throws Exception
     {
@@ -61,7 +83,7 @@ public class RandomGeneratorServiceTest
 
         List<String> randomList = randomGeneratorService.call();
 
-        assertEquals( RANDOM_GENERATION_CHUNK, randomList.size() );
+        assertEquals( RANDOM_GENERATION_CHUNK * 2 + 1, randomList.size() );
 
         Pattern pattern = Pattern.compile( "-?\\d+(\\.\\d+)?" );
 
@@ -133,6 +155,8 @@ public class RandomGeneratorServiceTest
 
         List<String> randomList = randomGeneratorService.call();
 
+        assertEquals( RANDOM_GENERATION_CHUNK * 3, randomList.size() );
+
         randomList.forEach( r -> {
             IntStream.range( 0, 2 ).forEach( i -> assertTrue( Character.isLowerCase( r.charAt( i ) ) ) );
             IntStream.range( 2, 5 ).forEach( i -> assertTrue( Character.isDigit( r.charAt( i ) ) ) );
@@ -161,18 +185,18 @@ public class RandomGeneratorServiceTest
     public void shouldGenerateMixed()
         throws Exception
     {
-        String textPattern = "Xx#*";
+        String textPattern = "XXxx##*";
 
         randomGeneratorService.setSegmentParameter( textPattern );
 
         List<String> randomList = randomGeneratorService.call();
 
         randomList.forEach( r -> {
-            IntStream.range( 0, 1 ).forEach(
+            IntStream.range( 0, 2 ).forEach(
                 i -> assertTrue( Character.isUpperCase( r.charAt( i ) ) ) );
-            IntStream.range( 1, 2 ).forEach( i -> assertTrue( Character.isLowerCase( r.charAt( i ) ) ) );
-            IntStream.range( 2, 3 ).forEach( i -> assertTrue( Character.isDigit( r.charAt( i ) ) ) );
-            IntStream.range( 3, 4 ).forEach(
+            IntStream.range( 2, 4 ).forEach( i -> assertTrue( Character.isLowerCase( r.charAt( i ) ) ) );
+            IntStream.range( 4, 6 ).forEach( i -> assertTrue( Character.isDigit( r.charAt( i ) ) ) );
+            IntStream.range( 6, 7 ).forEach(
                 i -> assertTrue( Character.isLetter( r.charAt( i ) ) || Character.isDigit( r.charAt( i ) ) ) );
         } );
     }
