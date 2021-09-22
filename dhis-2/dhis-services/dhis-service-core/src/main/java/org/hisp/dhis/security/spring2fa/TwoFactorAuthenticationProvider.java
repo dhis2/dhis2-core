@@ -74,7 +74,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
     public Authentication authenticate( Authentication auth )
         throws AuthenticationException
     {
-        log.info( String.format( "Login attempt: %s", auth.getName() ) );
+        log.debug( String.format( "Login attempt: %s", auth.getName() ) );
 
         String username = auth.getName();
 
