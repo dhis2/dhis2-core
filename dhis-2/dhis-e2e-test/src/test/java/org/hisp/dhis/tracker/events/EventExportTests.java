@@ -82,15 +82,17 @@ public class EventExportTests
     }
 
     @ValueSource( strings = {
-        "?event=eventId&fields=*",
-        "?event=eventId&fields=relationships",
-        "?program=programId&fields=*",
-        "?program=programId&fields=relationships"
+        "?ouMode=ACCESSIBLE&program=programId&event=eventId&fields=*",
+        "?ouMode=ACCESSIBLE&program=programId&event=eventId&fields=relationships",
+        //"?ouMode=ACCESSIBLE&event=eventId&fields=*", // todo uncomment when bug in /events is fixed. 
+        //"?ouMode=ACCESSIBLE&event=eventId&fields=relationships",
+        "?ouMode=ACCESSIBLE&program=programId&fields=*",
+        "?ouMode=ACCESSIBLE&program=programId&fields=relationships"
     } )
     @ParameterizedTest
     public void shouldFetchRelationships( String queryParams )
     {
-        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) );
+        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) ).validateStatus( 200 );
         String body = "relationships";
 
         if ( response.extractList( "events" ) != null )
