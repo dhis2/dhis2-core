@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -186,12 +187,14 @@ public class TrackerImportParams
     @Override
     public String toString()
     {
-        return JobType.TRACKER_IMPORT_JOB + " ( " + this.getJobConfiguration().getUid() + " )";
+        return Optional.ofNullable( this.getJobConfiguration() )
+            .map( jobConfiguration -> JobType.TRACKER_IMPORT_JOB + " ( " + jobConfiguration.getUid() + " )" )
+            .orElse( JobType.TRACKER_IMPORT_JOB.toString() );
     }
 
     public String userStartInfo()
     {
-        return toString() + " started by "
+        return this + " started by "
             + this.getUsername() + " ( " + this.userId + " )";
     }
 }
