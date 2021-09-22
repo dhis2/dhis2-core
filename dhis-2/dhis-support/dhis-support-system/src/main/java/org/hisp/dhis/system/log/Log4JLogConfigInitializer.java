@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.File;
 import java.util.List;
+import java.util.zip.Deflater;
 
 import javax.annotation.PostConstruct;
 
@@ -161,6 +162,10 @@ public class Log4JLogConfigInitializer
             .withFilePattern( file + ".%i" )
             .setLayout( PATTERN_LAYOUT )
             .withPolicy( CronTriggeringPolicy.createPolicy( getLogConfiguration(), "false", "0 0 * * *" ) )
+            .withStrategy( DefaultRolloverStrategy.newBuilder()
+                .withCompressionLevelStr( String.valueOf( Deflater.BEST_COMPRESSION ) )
+                .withFileIndex( "nomax" )
+                .build() )
             .build();
 
         appender.start();
