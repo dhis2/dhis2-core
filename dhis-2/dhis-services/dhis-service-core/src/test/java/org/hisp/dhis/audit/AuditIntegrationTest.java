@@ -44,6 +44,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -92,6 +94,17 @@ public class AuditIntegrationTest extends IntegrationTestBase
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private DhisConfigurationProvider configurationProvider;
+
+    @Override
+    protected void setUpTest()
+        throws Exception
+    {
+        configurationProvider.getProperties().setProperty( ConfigurationKey.AUDIT_LOGGER.getKey(), "off" );
+        configurationProvider.getProperties().setProperty( ConfigurationKey.AUDIT_DATABASE.getKey(), "on" );
+    }
 
     @Test
     public void testSaveMetadata()
