@@ -27,51 +27,17 @@
  */
 package org.hisp.dhis.metadata;
 
-import lombok.AllArgsConstructor;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.springframework.stereotype.Repository;
-
-/**
- * @author Jan Bernitt
- */
-@Repository
-@AllArgsConstructor
-public class HibernateMetadataProposalStore implements MetadataProposalStore
+public interface MetadataProposalService
 {
+    MetadataProposal getByUid( String uid );
 
-    private final SessionFactory sessionFactory;
+    MetadataProposal propose( MetadataProposalParams proposal );
 
-    private Session getSession()
-    {
-        return sessionFactory.getCurrentSession();
-    }
+    ImportReport accept( MetadataProposal proposal );
 
-    @Override
-    public MetadataProposal getByUid( String uid )
-    {
-        return getSession().createQuery( "from MetadataProposal p where p.uid = :uid", MetadataProposal.class )
-            .setParameter( "uid", uid )
-            .getSingleResult();
-    }
+    void comment( MetadataProposal proposal, String comment );
 
-    @Override
-    public void save( MetadataProposal proposal )
-    {
-        proposal.setAutoFields();
-        getSession().save( proposal );
-    }
-
-    @Override
-    public void update( MetadataProposal proposal )
-    {
-        getSession().saveOrUpdate( proposal );
-    }
-
-    @Override
-    public void delete( MetadataProposal proposal )
-    {
-        getSession().delete( proposal );
-    }
+    void reject( MetadataProposal proposal );
 }

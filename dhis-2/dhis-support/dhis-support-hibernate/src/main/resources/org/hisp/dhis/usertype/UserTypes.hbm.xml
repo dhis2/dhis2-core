@@ -18,8 +18,8 @@
     <param name="clazz">java.lang.Object</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonObjectNodeBinaryType" name="jbObjectNode">
-    <param name="clazz">com.fasterxml.jackson.databind.node.ObjectNode</param>
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonNodeBinaryType" name="jbJsonNode">
+    <param name="clazz">com.fasterxml.jackson.databind.JsonNode</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryPlainStringType" name="jbPlainString">

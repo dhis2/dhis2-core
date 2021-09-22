@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.metadata;
 
+import javax.annotation.PostConstruct;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,14 +36,22 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
+import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Slf4j
 @Service
@@ -55,9 +65,19 @@ public class DefaultMetadataProposalService implements MetadataProposalService
 
     private final IdentifiableObjectManager objectManager;
 
+    private final MetadataImportService importService;
+
+    private final SchemaService schemaService;
+
     private final JsonPatchManager patchManager;
 
     private final ObjectMapper jsonMapper;
+
+    @PostConstruct
+    private void init()
+    {
+        schemaService.register( new MetadataProposalSchemaDescriptor() );
+    }
 
     @Override
     @Transactional( readOnly = true )
@@ -78,33 +98,33 @@ public class DefaultMetadataProposalService implements MetadataProposalService
             .comment( params.getComment() )
             .change( params.getChange() )
             .build();
-        if ( proposal.getType() == MetadataProposalType.REMOVE )
-        {
-            proposal.setChange( jsonMapper.createObjectNode() );
-        }
         store.save( proposal );
         return proposal;
     }
 
     @Override
     @Transactional
-    public String accept( MetadataProposal proposal )
+    public ImportReport accept( MetadataProposal proposal )
     {
-        String uid = null;
+        ImportReport report = new ImportReport();
         switch ( proposal.getType() )
         {
         case ADD:
-            uid = acceptAdd( proposal );
+            report = acceptAdd( proposal );
             break;
         case REMOVE:
-            acceptRemove( proposal );
+            report = acceptRemove( proposal );
             break;
         case UPDATE:
-            acceptUpdate( proposal );
+            report = acceptUpdate( proposal );
             break;
         }
-        store.delete( proposal );
-        return uid;
+        proposal.setAcceptedBy( currentUserService.getCurrentUser() );
+        proposal.setStatus( report.hasErrorReports()
+            ? MetadataProposalStatus.FAILED
+            : MetadataProposalStatus.ACCEPTED );
+        store.update( proposal );
+        return report;
     }
 
     @Override
@@ -119,19 +139,37 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     @Transactional
     public void reject( MetadataProposal proposal )
     {
-        store.delete( proposal );
+        if ( proposal.getStatus() != MetadataProposalStatus.PROPOSED )
+        {
+            throw new IllegalStateException( "Proposal already processed" );
+        }
+        proposal.setStatus( MetadataProposalStatus.REJECTED );
+        store.update( proposal );
     }
 
-    private String acceptAdd( MetadataProposal proposal )
+    private ImportReport acceptAdd( MetadataProposal proposal )
     {
         IdentifiableObject obj = mapJsonChangeToObject( proposal.getChange(), proposal.getTarget().getType() );
         if ( obj == null )
-            return null;
-        objectManager.save( obj );
-        return obj.getUid();
+        {
+            // TODO add error
+            return new ImportReport();
+        }
+        MetadataImportParams params = new MetadataImportParams();
+        params.addObject( obj );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setUser( currentUserService.getCurrentUser() );
+        ImportReport report = importService.importMetadata( params );
+        if ( report.getStatus() == Status.OK )
+        {
+            TypeReport typeReport = report.getTypeReport( proposal.getTarget().getType() );
+            ObjectReport objectReport = new ObjectReport( obj, object -> 0 );
+            typeReport.addObjectReport( objectReport );
+        }
+        return report;
     }
 
-    private <T> T mapJsonChangeToObject( ObjectNode change, Class<T> type )
+    private <T> T mapJsonChangeToObject( JsonNode change, Class<T> type )
     {
         try
         {
@@ -145,22 +183,35 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         }
     }
 
-    private void acceptUpdate( MetadataProposal proposal )
+    private ImportReport acceptUpdate( MetadataProposal proposal )
     {
         JsonPatch patch = mapJsonChangeToObject( proposal.getChange(), JsonPatch.class );
+        IdentifiableObject patched = null;
         try
         {
-            patchManager.apply( patch, objectManager.get( proposal.getTarget().getType(), proposal.getTargetUid() ) );
+            patched = patchManager.apply( patch,
+                objectManager.get( proposal.getTarget().getType(), proposal.getTargetUid() ) );
         }
         catch ( JsonPatchException ex )
         {
             log.error( "Failed to apply proposed object update: " + proposal.getChange(), ex );
+            // TODO add error
+            return new ImportReport();
         }
+        MetadataImportParams params = new MetadataImportParams();
+        params.addObject( patched );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setUser( currentUserService.getCurrentUser() );
+        return importService.importMetadata( params );
     }
 
-    private void acceptRemove( MetadataProposal proposal )
+    private ImportReport acceptRemove( MetadataProposal proposal )
     {
         IdentifiableObject deleted = objectManager.get( proposal.getTargetUid() );
-        objectManager.delete( deleted );
+        MetadataImportParams params = new MetadataImportParams();
+        params.addObject( deleted );
+        params.setImportStrategy( ImportStrategy.DELETE );
+        params.setUser( currentUserService.getCurrentUser() );
+        return importService.importMetadata( params );
     }
 }

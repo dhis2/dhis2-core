@@ -27,13 +27,26 @@
  */
 package org.hisp.dhis.metadata;
 
-public interface MetadataProposalStore
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+
+/**
+ * @author Jan Bernitt
+ */
+public class MetadataProposalSchemaDescriptor implements SchemaDescriptor
 {
-    MetadataProposal getByUid( String uid );
+    public static final String SINGULAR = "proposal";
 
-    void save( MetadataProposal proposal );
+    public static final String PLURAL = "proposals";
 
-    void update( MetadataProposal proposal );
+    public static final String API_ENDPOINT = "/metadata/proposals";
 
-    void delete( MetadataProposal proposal );
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( MetadataProposal.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+
+        return schema;
+    }
 }

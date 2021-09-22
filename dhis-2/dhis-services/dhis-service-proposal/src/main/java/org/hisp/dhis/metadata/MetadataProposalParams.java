@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * Input when making a {@link org.hisp.dhis.metadata.MetadataProposal}.
@@ -59,7 +59,7 @@ public class MetadataProposalParams
     private String targetUid;
 
     @JsonProperty
-    private ObjectNode change;
+    private JsonNode change;
 
     @JsonProperty
     private String comment;

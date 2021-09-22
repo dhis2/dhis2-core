@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.metadata;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.webapi.controller.exception.NotFoundException.notFoundUid;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -38,12 +39,15 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.MetadataProposal;
 import org.hisp.dhis.metadata.MetadataProposalParams;
+import org.hisp.dhis.metadata.MetadataProposalSchemaDescriptor;
 import org.hisp.dhis.metadata.MetadataProposalService;
+import org.hisp.dhis.metadata.MetadataProposalType;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.descriptors.MetadataProposalSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractGistReadOnlyController;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -53,9 +57,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -75,7 +79,7 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
 
     private final MetadataProposalService service;
 
-    @GetMapping( value = "/{uid}", produces = APPLICATION_JSON_VALUE )
+    @GetMapping( value = { "/{uid}/", "/{uid}" }, produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<JsonNode> getProposal( @PathVariable( "uid" ) String uid,
         HttpServletRequest request,
         HttpServletResponse response )
@@ -99,7 +103,7 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
         return created().setLocation( MetadataProposalSchemaDescriptor.API_ENDPOINT + "/" + proposal.getUid() );
     }
 
-    @PostMapping( value = "/{uid}/accept", produces = APPLICATION_JSON_VALUE )
+    @PostMapping( value = { "/{uid}/", "/{uid}" }, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage acceptProposal( @PathVariable( "uid" ) String uid )
         throws NotFoundException
@@ -107,9 +111,14 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
         MetadataProposal proposal = service.getByUid( uid );
         if ( proposal == null )
             throw notFoundUid( uid );
-        String objUid = service.accept( proposal );
-        if ( objUid != null )
+        ImportReport report = service.accept( proposal );
+        if ( report.getStatus() != Status.OK )
         {
+            return importReport( report );
+        }
+        if ( proposal.getType() == MetadataProposalType.ADD )
+        {
+            String objUid = report.getFirstObjectReport().getUid();
             Schema schema = schemaService.getSchema( proposal.getTarget().getType() );
             return created( schema.getSingular() + " created" )
                 .setLocation( schema.getRelativeApiEndpoint() + "/" + objUid );
@@ -117,7 +126,8 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
         return ok();
     }
 
-    @PutMapping( value = "/{uid}/comment", consumes = MediaType.TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE )
+    @PatchMapping( value = { "/{uid}/",
+        "/{uid}" }, consumes = MediaType.TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage commentProposal( @PathVariable( "uid" ) String uid, @RequestBody String comment )
         throws NotFoundException
@@ -129,7 +139,7 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
         return ok();
     }
 
-    @DeleteMapping( "/{uid}" )
+    @DeleteMapping( value = { "/{uid}/", "/{uid}" } )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void rejectProposal( @PathVariable( "uid" ) String uid )
         throws NotFoundException

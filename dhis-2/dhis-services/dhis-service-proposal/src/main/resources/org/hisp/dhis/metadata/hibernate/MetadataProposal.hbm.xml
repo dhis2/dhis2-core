@@ -13,7 +13,7 @@
         <property name="uid" column="uid" unique="true" length="11"
                   not-null="true"/>
 
-        <property name="type" column="type" not-null="false" length="6">
+        <property name="type" column="type" not-null="true" length="6">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.metadata.MetadataProposalType</param>
                 <param name="useNamed">true</param>
@@ -21,7 +21,15 @@
             </type>
         </property>
 
-        <property name="target" column="target" not-null="false" length="30">
+        <property name="status" column="status" not-null="true" length="8">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.metadata.MetadataProposalStatus</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <property name="target" column="target" not-null="true" length="30">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.metadata.MetadataProposalTarget</param>
                 <param name="useNamed">true</param>
@@ -38,10 +46,14 @@
 
         <property name="created" type="timestamp" not-null="true"/>
 
-        <property name="change" type="jbObjectNode" not-null="true"/>
+        <property name="change" type="jbJsonNode" not-null="true"/>
 
         <property name="comment" column="comment" length="255"
                   not-null="false"/>
+
+        <many-to-one name="acceptedBy" class="org.hisp.dhis.user.User"
+                     column="acceptedby"
+                     foreign-key="fk_acceptedby_userid" not-null="false"/>
 
     </class>
 </hibernate-mapping>

@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.metadata;
 
-public interface MetadataProposalService
+public interface MetadataProposalStore
 {
     MetadataProposal getByUid( String uid );
 
-    MetadataProposal propose( MetadataProposalParams proposal );
+    void save( MetadataProposal proposal );
 
-    String accept( MetadataProposal proposal );
+    void update( MetadataProposal proposal );
 
-    void comment( MetadataProposal proposal, String comment );
-
-    void reject( MetadataProposal proposal );
 }

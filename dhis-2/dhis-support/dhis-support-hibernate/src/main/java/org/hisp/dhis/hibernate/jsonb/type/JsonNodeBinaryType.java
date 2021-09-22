@@ -25,41 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertNotNull;
-
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonResponse;
-import org.junit.Test;
-import org.springframework.http.HttpStatus;
+import java.io.IOException;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.metadata.MetadataProposalController}.
- *
  * @author Jan Bernitt
  */
-public class MetadataProposalControllerTest extends DhisControllerConvenienceTest
+public class JsonNodeBinaryType extends JsonBinaryType
 {
-    @Test
-    public void testGetProposal()
+
+    @Override
+    protected Object convertJsonToObject( String content )
     {
-        String uid = assertStatus( HttpStatus.CREATED,
-            POST( "/metadata/proposals/", "{" +
-                "'type':'ADD'," +
-                "'target':'ORGANISATION_UNIT'," +
-                "'change':{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" +
-                "}" ) );
-        assertNotNull( uid );
-
-        JsonResponse content = GET( "/metadata/proposals/" ).content();
-        System.out.println( content );
-
-        content = GET( "/metadata/proposals/{uid}",
-            content.getArray( "proposals" ).getObject( 0 ).getString( "id" ).string() ).content();
-
-        System.out.println( content );
+        try
+        {
+            return reader.readTree( content );
+        }
+        catch ( IOException e )
+        {
+            throw new RuntimeException( e );
+        }
     }
 }

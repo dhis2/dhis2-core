@@ -25,29 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.metadata;
 
-import org.hisp.dhis.metadata.MetadataProposal;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import lombok.AllArgsConstructor;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Jan Bernitt
  */
-public class MetadataProposalSchemaDescriptor implements SchemaDescriptor
+@Repository
+@AllArgsConstructor
+public class HibernateMetadataProposalStore implements MetadataProposalStore
 {
-    public static final String SINGULAR = "proposal";
 
-    public static final String PLURAL = "proposals";
+    private final SessionFactory sessionFactory;
 
-    public static final String API_ENDPOINT = "/metadata/proposals";
+    private Session getSession()
+    {
+        return sessionFactory.getCurrentSession();
+    }
 
     @Override
-    public Schema getSchema()
+    public MetadataProposal getByUid( String uid )
     {
-        Schema schema = new Schema( MetadataProposal.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-
-        return schema;
+        return getSession().createQuery( "from MetadataProposal p where p.uid = :uid", MetadataProposal.class )
+            .setParameter( "uid", uid )
+            .getSingleResult();
     }
+
+    @Override
+    public void save( MetadataProposal proposal )
+    {
+        proposal.setAutoFields();
+        getSession().save( proposal );
+    }
+
+    @Override
+    public void update( MetadataProposal proposal )
+    {
+        getSession().saveOrUpdate( proposal );
+    }
+
 }

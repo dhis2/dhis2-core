@@ -50,9 +50,10 @@ import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
@@ -77,6 +78,8 @@ public class MetadataProposal implements UniqueObject
     @Immutable
     private MetadataProposalType type;
 
+    private MetadataProposalStatus status;
+
     @Immutable
     private MetadataProposalTarget target;
 
@@ -90,10 +93,11 @@ public class MetadataProposal implements UniqueObject
     private Date created;
 
     @Immutable
-    private ObjectNode change;
+    private JsonNode change;
 
     private String comment;
-    // status? mark deleted?
+
+    private User acceptedBy;
 
     @Override
     @JsonIgnore
@@ -118,6 +122,13 @@ public class MetadataProposal implements UniqueObject
     public MetadataProposalType getType()
     {
         return type;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public MetadataProposalStatus getStatus()
+    {
+        return status;
     }
 
     @JsonProperty
@@ -155,7 +166,7 @@ public class MetadataProposal implements UniqueObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ObjectNode getChange()
+    public JsonNode getChange()
     {
         return change;
     }
@@ -167,6 +178,16 @@ public class MetadataProposal implements UniqueObject
         return comment;
     }
 
+    @JsonProperty
+    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getAcceptedBy()
+    {
+        return acceptedBy;
+    }
+
     public void setAutoFields()
     {
         if ( uid == null || uid.length() == 0 )
@@ -176,6 +197,14 @@ public class MetadataProposal implements UniqueObject
         if ( created == null )
         {
             created = new Date();
+        }
+        if ( status == null )
+        {
+            status = MetadataProposalStatus.PROPOSED;
+        }
+        if ( type == MetadataProposalType.REMOVE )
+        {
+            change = NullNode.getInstance();
         }
     }
 }

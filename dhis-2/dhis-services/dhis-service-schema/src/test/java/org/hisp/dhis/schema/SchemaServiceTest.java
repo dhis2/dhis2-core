@@ -32,7 +32,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.metadata.MetadataProposal;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -90,13 +89,5 @@ public class SchemaServiceTest
         assertTrue( schema.isDataShareable() );
         assertTrue( schema.isDataWriteShareable() );
         assertTrue( schema.isDataReadShareable() );
-    }
-
-    @Test
-    public void testMetadataProposalSchema()
-    {
-        Schema schema = schemaService.getSchema( MetadataProposal.class );
-        assertNotNull( schema );
-        assertTrue( schema.getProperties().size() > 0 );
     }
 }

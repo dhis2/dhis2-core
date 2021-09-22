@@ -25,26 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.hibernate.jsonb.type;
-
-import java.io.IOException;
+package org.hisp.dhis.metadata;
 
 /**
+ * Life-cycle of a {@link MetadataProposal}.
+ *
  * @author Jan Bernitt
  */
-public class JsonObjectNodeBinaryType extends JsonBinaryType
+public enum MetadataProposalStatus
 {
-
-    @Override
-    protected Object convertJsonToObject( String content )
-    {
-        try
-        {
-            return reader.readTree( content );
-        }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( e );
-        }
-    }
+    PROPOSED,
+    ACCEPTED,
+    REJECTED,
+    FAILED
 }
