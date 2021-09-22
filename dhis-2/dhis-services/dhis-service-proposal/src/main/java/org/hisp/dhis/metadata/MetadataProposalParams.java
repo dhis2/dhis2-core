@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.metadata;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -44,16 +41,11 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @Getter
 @Setter
-@Builder
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-@NoArgsConstructor
 public class MetadataProposalParams
 {
-    @JsonProperty
-    private MetadataProposalType type;
+    private final MetadataProposalType type;
 
-    @JsonProperty
-    private MetadataProposalTarget target;
+    private final MetadataProposalTarget target;
 
     @JsonProperty
     private String targetUid;
@@ -63,4 +55,13 @@ public class MetadataProposalParams
 
     @JsonProperty
     private String comment;
+
+    @JsonCreator
+    public MetadataProposalParams(
+        @JsonProperty( value = "type", required = true ) MetadataProposalType type,
+        @JsonProperty( value = "target", required = true ) MetadataProposalTarget target )
+    {
+        this.type = type;
+        this.target = target;
+    }
 }

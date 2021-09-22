@@ -25,21 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata;
+package org.hisp.dhis.dxf2.metadata;
 
-import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
+import lombok.Getter;
+
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 
-public interface MetadataProposalService
+/**
+ * Used when Import is used in
+ * {@link org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode#VALIDATE}
+ * and resulting report has errors while the method performing the validation
+ * does return a different type than {@link ImportReport}.
+ *
+ * @author Jan Bernitt
+ */
+@Getter
+public class MetadataValidationException extends MetadataImportException
 {
-    MetadataProposal getByUid( String uid );
+    private final transient ImportReport report;
 
-    MetadataProposal propose( MetadataProposalParams proposal )
-        throws MetadataValidationException;
-
-    ImportReport accept( MetadataProposal proposal );
-
-    void comment( MetadataProposal proposal, String comment );
-
-    void reject( MetadataProposal proposal );
+    public MetadataValidationException( ImportReport report, String message )
+    {
+        super( message );
+        this.report = report;
+    }
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.metadata;
 
 import javax.annotation.PostConstruct;
+import javax.persistence.NoResultException;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,13 +39,18 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
+import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +75,8 @@ public class DefaultMetadataProposalService implements MetadataProposalService
 
     private final SchemaService schemaService;
 
+    private final SchemaValidator schemaValidator;
+
     private final JsonPatchManager patchManager;
 
     private final ObjectMapper jsonMapper;
@@ -83,7 +91,14 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     @Transactional( readOnly = true )
     public MetadataProposal getByUid( String uid )
     {
-        return store.getByUid( uid );
+        try
+        {
+            return store.getByUid( uid );
+        }
+        catch ( NoResultException ex )
+        {
+            return null;
+        }
     }
 
     @Override
@@ -98,6 +113,11 @@ public class DefaultMetadataProposalService implements MetadataProposalService
             .comment( params.getComment() )
             .change( params.getChange() )
             .build();
+        ImportReport report = accept( proposal, ObjectBundleMode.VALIDATE );
+        if ( report.getStatus() != Status.OK )
+        {
+            throw new MetadataValidationException( report, "Proposal contains errors in its definition" );
+        }
         store.save( proposal );
         return proposal;
     }
@@ -106,25 +126,28 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     @Transactional
     public ImportReport accept( MetadataProposal proposal )
     {
-        ImportReport report = new ImportReport();
-        switch ( proposal.getType() )
-        {
-        case ADD:
-            report = acceptAdd( proposal );
-            break;
-        case REMOVE:
-            report = acceptRemove( proposal );
-            break;
-        case UPDATE:
-            report = acceptUpdate( proposal );
-            break;
-        }
+        checkInProposedState( proposal );
+        ImportReport report = accept( proposal, ObjectBundleMode.COMMIT );
         proposal.setAcceptedBy( currentUserService.getCurrentUser() );
         proposal.setStatus( report.hasErrorReports()
             ? MetadataProposalStatus.FAILED
             : MetadataProposalStatus.ACCEPTED );
         store.update( proposal );
         return report;
+    }
+
+    private ImportReport accept( MetadataProposal proposal, ObjectBundleMode mode )
+    {
+        switch ( proposal.getType() )
+        {
+        default:
+        case ADD:
+            return acceptAdd( proposal, mode );
+        case REMOVE:
+            return acceptRemove( proposal, mode );
+        case UPDATE:
+            return acceptUpdate( proposal, mode );
+        }
     }
 
     @Override
@@ -139,34 +162,71 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     @Transactional
     public void reject( MetadataProposal proposal )
     {
-        if ( proposal.getStatus() != MetadataProposalStatus.PROPOSED )
-        {
-            throw new IllegalStateException( "Proposal already processed" );
-        }
+        checkInProposedState( proposal );
         proposal.setStatus( MetadataProposalStatus.REJECTED );
         store.update( proposal );
     }
 
-    private ImportReport acceptAdd( MetadataProposal proposal )
+    private ImportReport acceptAdd( MetadataProposal proposal, ObjectBundleMode mode )
     {
-        IdentifiableObject obj = mapJsonChangeToObject( proposal.getChange(), proposal.getTarget().getType() );
+        Class<? extends IdentifiableObject> objType = proposal.getTarget().getType();
+        IdentifiableObject obj = mapJsonChangeToObject( proposal.getChange(), objType );
         if ( obj == null )
         {
-            // TODO add error
-            return new ImportReport();
+            return createJsonErrorReport( proposal, objType );
         }
-        MetadataImportParams params = new MetadataImportParams();
-        params.addObject( obj );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setUser( currentUserService.getCurrentUser() );
+        MetadataImportParams params = createImportParams( mode, ImportStrategy.CREATE, obj );
         ImportReport report = importService.importMetadata( params );
         if ( report.getStatus() == Status.OK )
         {
-            TypeReport typeReport = report.getTypeReport( proposal.getTarget().getType() );
+            TypeReport typeReport = report.getTypeReport( objType );
             ObjectReport objectReport = new ObjectReport( obj, object -> 0 );
             typeReport.addObjectReport( objectReport );
         }
         return report;
+    }
+
+    private ImportReport acceptUpdate( MetadataProposal proposal, ObjectBundleMode mode )
+    {
+        JsonPatch patch = mapJsonChangeToObject( proposal.getChange(), JsonPatch.class );
+        IdentifiableObject patched = null;
+        Class<? extends IdentifiableObject> objType = proposal.getTarget().getType();
+        try
+        {
+            patched = patchManager.apply( patch,
+                objectManager.get( objType, proposal.getTargetUid() ) );
+        }
+        catch ( JsonPatchException ex )
+        {
+            log.error( "Failed to apply proposed object update: " + proposal.getChange(), ex );
+            return createJsonErrorReport( proposal, objType );
+        }
+        return importService.importMetadata( createImportParams( mode, ImportStrategy.UPDATE, patched ) );
+    }
+
+    private ImportReport acceptRemove( MetadataProposal proposal, ObjectBundleMode mode )
+    {
+        return importService.importMetadata(
+            createImportParams( mode, ImportStrategy.DELETE, objectManager.get( proposal.getTargetUid() ) ) );
+    }
+
+    private MetadataImportParams createImportParams( ObjectBundleMode mode, ImportStrategy strategy,
+        IdentifiableObject obj )
+    {
+        MetadataImportParams params = new MetadataImportParams();
+        params.addObject( obj );
+        params.setImportStrategy( strategy );
+        params.setUser( currentUserService.getCurrentUser() );
+        params.setImportMode( mode );
+        return params;
+    }
+
+    private void checkInProposedState( MetadataProposal proposal )
+    {
+        if ( proposal.getStatus() != MetadataProposalStatus.PROPOSED )
+        {
+            throw new IllegalStateException( "Proposal already processed" );
+        }
     }
 
     private <T> T mapJsonChangeToObject( JsonNode change, Class<T> type )
@@ -183,35 +243,15 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         }
     }
 
-    private ImportReport acceptUpdate( MetadataProposal proposal )
+    private ImportReport createJsonErrorReport( MetadataProposal proposal, Class<? extends IdentifiableObject> objType )
     {
-        JsonPatch patch = mapJsonChangeToObject( proposal.getChange(), JsonPatch.class );
-        IdentifiableObject patched = null;
-        try
-        {
-            patched = patchManager.apply( patch,
-                objectManager.get( proposal.getTarget().getType(), proposal.getTargetUid() ) );
-        }
-        catch ( JsonPatchException ex )
-        {
-            log.error( "Failed to apply proposed object update: " + proposal.getChange(), ex );
-            // TODO add error
-            return new ImportReport();
-        }
-        MetadataImportParams params = new MetadataImportParams();
-        params.addObject( patched );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.setUser( currentUserService.getCurrentUser() );
-        return importService.importMetadata( params );
-    }
-
-    private ImportReport acceptRemove( MetadataProposal proposal )
-    {
-        IdentifiableObject deleted = objectManager.get( proposal.getTargetUid() );
-        MetadataImportParams params = new MetadataImportParams();
-        params.addObject( deleted );
-        params.setImportStrategy( ImportStrategy.DELETE );
-        params.setUser( currentUserService.getCurrentUser() );
-        return importService.importMetadata( params );
+        ImportReport importReport = new ImportReport();
+        ObjectReport objectReport = new ObjectReport( objType, null );
+        objectReport.addErrorReport(
+            new ErrorReport( MetadataProposal.class, ErrorCode.E4031, proposal.getChange().toString(), "change" ) );
+        TypeReport typeReport = new TypeReport( objType );
+        typeReport.addObjectReport( objectReport );
+        importReport.addTypeReport( typeReport );
+        return importReport;
     }
 }

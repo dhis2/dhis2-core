@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
@@ -99,8 +100,15 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
     @ResponseBody
     public WebMessage proposeProposal( @RequestBody MetadataProposalParams params )
     {
-        MetadataProposal proposal = service.propose( params );
-        return created().setLocation( MetadataProposalSchemaDescriptor.API_ENDPOINT + "/" + proposal.getUid() );
+        try
+        {
+            MetadataProposal proposal = service.propose( params );
+            return created().setLocation( MetadataProposalSchemaDescriptor.API_ENDPOINT + "/" + proposal.getUid() );
+        }
+        catch ( MetadataValidationException ex )
+        {
+            return importReport( ex.getReport() );
+        }
     }
 
     @PostMapping( value = { "/{uid}/", "/{uid}" }, produces = APPLICATION_JSON_VALUE )

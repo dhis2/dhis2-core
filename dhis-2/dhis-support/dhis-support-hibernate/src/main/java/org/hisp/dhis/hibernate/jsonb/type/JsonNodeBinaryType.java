@@ -28,8 +28,17 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 import java.io.IOException;
+import java.io.Reader;
+import java.io.UncheckedIOException;
 
 /**
+ * Converts a binary JSON to a {@link com.fasterxml.jackson.databind.JsonNode}.
+ * This includes all types of nodes.
+ *
+ * The key difference is that we use
+ * {@link com.fasterxml.jackson.databind.ObjectReader#readTree(Reader)} instead
+ * of {@link com.fasterxml.jackson.databind.ObjectReader#readValue(String)}.
+ *
  * @author Jan Bernitt
  */
 public class JsonNodeBinaryType extends JsonBinaryType
@@ -44,7 +53,7 @@ public class JsonNodeBinaryType extends JsonBinaryType
         }
         catch ( IOException e )
         {
-            throw new RuntimeException( e );
+            throw new UncheckedIOException( e );
         }
     }
 }

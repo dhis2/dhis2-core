@@ -28,10 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -44,22 +46,38 @@ import org.springframework.http.HttpStatus;
 public class MetadataProposalControllerTest extends DhisControllerConvenienceTest
 {
     @Test
+    public void testGetProposals()
+    {
+        String uid = postAddOrganisationUnitProposal( "My Unit", "OU1" );
+        assertNotNull( uid );
+
+        JsonObject page = GET( "/metadata/proposals/" ).content();
+        assertTrue( page.has( "pager", "proposals" ) );
+        assertEquals( 1, page.getArray( "proposals" ).size() );
+        assertEquals( uid, page.getArray( "proposals" ).getObject( 0 ).getString( "id" ).string() );
+    }
+
+    @Test
     public void testGetProposal()
     {
-        String uid = assertStatus( HttpStatus.CREATED,
+        String uid = postAddOrganisationUnitProposal( "My Unit", "OU1" );
+        assertNotNull( uid );
+
+        JsonObject page = GET( "/metadata/proposals/" ).content();
+        assertTrue( page.has( "pager", "proposals" ) );
+        assertEquals( uid, page.getArray( "proposals" ).getObject( 0 ).getString( "id" ).string() );
+    }
+
+    private String postAddOrganisationUnitProposal( String name, String shortName )
+    {
+        return assertStatus( HttpStatus.CREATED,
             POST( "/metadata/proposals/", "{" +
                 "'type':'ADD'," +
                 "'target':'ORGANISATION_UNIT'," +
-                "'change':{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" +
+                "'change':{'name':'" + name + "', " +
+                "'shortName':'" + shortName + "', " +
+                "'openingDate': '2020-01-01'" +
+                "}" +
                 "}" ) );
-        assertNotNull( uid );
-
-        JsonResponse content = GET( "/metadata/proposals/" ).content();
-        System.out.println( content );
-
-        content = GET( "/metadata/proposals/{uid}",
-            content.getArray( "proposals" ).getObject( 0 ).getString( "id" ).string() ).content();
-
-        System.out.println( content );
     }
 }
