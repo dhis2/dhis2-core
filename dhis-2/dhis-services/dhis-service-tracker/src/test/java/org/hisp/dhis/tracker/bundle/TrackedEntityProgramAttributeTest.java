@@ -35,6 +35,7 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -60,11 +61,14 @@ public class TrackedEntityProgramAttributeTest
     @Autowired
     private CurrentUserService currentUserService;
 
+    @Autowired
+    private TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+
     @Override
     protected void initTest()
         throws IOException
     {
-        setUpMetadata( "tracker/te_program_with_tea_metadata.json" );
+        setUpMetadata("tracker/te_program_with_tea_metadata.json");
     }
 
     @Test
