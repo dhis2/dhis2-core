@@ -114,7 +114,7 @@ public enum ConfigurationKey
     MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", Constants.OFF, false ),
     MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", Constants.OFF, false ),
     MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", Constants.OFF, false ),
-    MONITORING_LOG_REQUESTID_ENABLED( "monitoring.requestidlog.enabled", Constants.OFF, false ),
+    MONITORING_LOG_REQUESTID_ENABLED( "monitoring.requestidlog.enabled", Constants.ON, false ),
     MONITORING_LOG_REQUESTID_HASHALGO( "monitoring.requestidlog.hash", "SHA-256", false ),
     MONITORING_LOG_REQUESTID_MAXSIZE( "monitoring.requestidlog.maxsize", "-1", false ),
     APPHUB_BASE_URL( "apphub.base.url", "https://apps.dhis2.org", false ),
