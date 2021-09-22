@@ -299,7 +299,14 @@ public class TrackerActions
          */ );
     }
 
-    public JsonObject buildTrackedEntityRelationship(String trackedEntity_1, String trackedEntity_2, String relationshipType )
+    public JsonObject buildTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2,
+        String relationshipType )
+    {
+        return buildRelationship( "trackedEntity", trackedEntity_1, "trackedEntity", trackedEntity_2, relationshipType );
+    }
+
+    public JsonObject buildRelationship( String fromEntityName, String fromEntityId, String toEntityName, String toEntityId,
+        String relationshipType )
     {
         return new JsonObjectBuilder()
                 .addProperty( "relationshipType", relationshipType )
