@@ -61,6 +61,7 @@ import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -146,6 +147,19 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         return new MappingJackson2HttpMessageConverter( jsonMapper );
     }
 
+    @Bean
+    public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
+    {
+        MappingJackson2XmlHttpMessageConverter messageConverter = new MappingJackson2XmlHttpMessageConverter(
+            xmlMapper );
+
+        messageConverter.setSupportedMediaTypes( Arrays.asList(
+            new MediaType( "application", "xml", StandardCharsets.UTF_8 ),
+            new MediaType( "text", "xml", StandardCharsets.UTF_8 ) ) );
+
+        return messageConverter;
+    }
+
     @Override
     public void configureMessageConverters(
         List<HttpMessageConverter<?>> converters )
@@ -160,6 +174,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         converters.add( new FormHttpMessageConverter() );
 
         converters.add( mappingJackson2HttpMessageConverter() );
+        converters.add( mappingJackson2XmlHttpMessageConverter() );
     }
 
     @Override
