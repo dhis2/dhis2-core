@@ -130,6 +130,8 @@ public class HibernateTrackedEntityInstanceStore
 
     private static final String TEI_LASTUPDATED = " tei.lastUpdated";
 
+    private static final String GT_EQUAL = " >= ";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -362,13 +364,14 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasLastUpdatedDuration() )
         {
-            hql += hlp.whereAnd() + TEI_LASTUPDATED + " >= '" +
+            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + " '" +
                 getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
         else
         {
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(), () -> TEI_LASTUPDATED + " >= '" +
-                getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(),
+                () -> TEI_LASTUPDATED + GT_EQUAL + " '" +
+                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
 
             hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> TEI_LASTUPDATED + " < '" +
                 getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
@@ -382,7 +385,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            hql += hlp.whereAnd() + TEI_LASTUPDATED + " >= '" + skipChangedBefore + "'";
+            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + " '" + skipChangedBefore + "'";
         }
 
         params.handleOrganisationUnits();
