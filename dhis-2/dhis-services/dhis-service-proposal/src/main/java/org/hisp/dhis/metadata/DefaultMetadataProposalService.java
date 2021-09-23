@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.metadata;
 
+import static java.util.Collections.singletonList;
+
 import javax.annotation.PostConstruct;
 import javax.persistence.NoResultException;
 
@@ -50,7 +52,6 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,8 +75,6 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     private final MetadataImportService importService;
 
     private final SchemaService schemaService;
-
-    private final SchemaValidator schemaValidator;
 
     private final JsonPatchManager patchManager;
 
@@ -105,6 +104,7 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     @Transactional
     public MetadataProposal propose( MetadataProposalParams params )
     {
+        validate( params );
         MetadataProposal proposal = MetadataProposal.builder()
             .createdBy( currentUserService.getCurrentUser() )
             .type( params.getType() )
@@ -114,12 +114,33 @@ public class DefaultMetadataProposalService implements MetadataProposalService
             .change( params.getChange() )
             .build();
         ImportReport report = accept( proposal, ObjectBundleMode.VALIDATE );
-        if ( report.getStatus() != Status.OK )
+        if ( report.getStatus() != Status.OK || report.hasErrorReports() )
         {
             throw new MetadataValidationException( report, "Proposal contains errors in its definition" );
         }
         store.save( proposal );
         return proposal;
+    }
+
+    private void validate( MetadataProposalParams params )
+    {
+        MetadataProposalType type = params.getType();
+        if ( type != MetadataProposalType.ADD && params.getTargetUid() == null )
+        {
+            throw new IllegalStateException( "`targetUid` is required for type " + type );
+        }
+        if ( type != MetadataProposalType.REMOVE && (params.getChange() == null || params.getChange().isNull()) )
+        {
+            throw new IllegalStateException( "`change` is required for type " + type );
+        }
+        if ( type == MetadataProposalType.ADD && (!params.getChange().isObject() || params.getChange().isEmpty()) )
+        {
+            throw new IllegalStateException( "`change` must be a non empty object for type " + type );
+        }
+        if ( type == MetadataProposalType.UPDATE && (!params.getChange().isArray() || params.getChange().isEmpty()) )
+        {
+            throw new IllegalStateException( "`change` must be a non empty array for type " + type );
+        }
     }
 
     @Override
@@ -129,7 +150,7 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         checkInProposedState( proposal );
         ImportReport report = accept( proposal, ObjectBundleMode.COMMIT );
         proposal.setAcceptedBy( currentUserService.getCurrentUser() );
-        proposal.setStatus( report.hasErrorReports()
+        proposal.setStatus( report.getStatus() != Status.OK || report.hasErrorReports()
             ? MetadataProposalStatus.FAILED
             : MetadataProposalStatus.ACCEPTED );
         store.update( proposal );
@@ -138,7 +159,15 @@ public class DefaultMetadataProposalService implements MetadataProposalService
 
     private ImportReport accept( MetadataProposal proposal, ObjectBundleMode mode )
     {
-        switch ( proposal.getType() )
+
+        MetadataProposalType type = proposal.getType();
+        if ( type != MetadataProposalType.ADD
+            && objectManager.get( proposal.getTarget().getType(), proposal.getTargetUid() ) == null )
+        {
+            return createImportReportWithError( proposal, ErrorCode.E4015, "targetUid", "targetUid",
+                proposal.getTargetUid() );
+        }
+        switch ( type )
         {
         default:
         case ADD:
@@ -173,7 +202,7 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         IdentifiableObject obj = mapJsonChangeToObject( proposal.getChange(), objType );
         if ( obj == null )
         {
-            return createJsonErrorReport( proposal, objType );
+            return createJsonErrorReport( proposal );
         }
         MetadataImportParams params = createImportParams( mode, ImportStrategy.CREATE, obj );
         ImportReport report = importService.importMetadata( params );
@@ -189,8 +218,12 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     private ImportReport acceptUpdate( MetadataProposal proposal, ObjectBundleMode mode )
     {
         JsonPatch patch = mapJsonChangeToObject( proposal.getChange(), JsonPatch.class );
-        IdentifiableObject patched = null;
         Class<? extends IdentifiableObject> objType = proposal.getTarget().getType();
+        if ( patch == null )
+        {
+            return createJsonErrorReport( proposal );
+        }
+        IdentifiableObject patched = null;
         try
         {
             patched = patchManager.apply( patch,
@@ -199,7 +232,7 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         catch ( JsonPatchException ex )
         {
             log.error( "Failed to apply proposed object update: " + proposal.getChange(), ex );
-            return createJsonErrorReport( proposal, objType );
+            return createJsonErrorReport( proposal );
         }
         return importService.importMetadata( createImportParams( mode, ImportStrategy.UPDATE, patched ) );
     }
@@ -238,17 +271,28 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         }
         catch ( JsonProcessingException ex )
         {
-            log.error( "Failed to map proposal change to type " + type.getSimpleName(), ex );
+            log.debug( "Failed to map proposal change to type " + type.getSimpleName(), ex );
             return null;
         }
     }
 
-    private ImportReport createJsonErrorReport( MetadataProposal proposal, Class<? extends IdentifiableObject> objType )
+    private ImportReport createJsonErrorReport( MetadataProposal proposal )
     {
+        return createImportReportWithError( proposal, ErrorCode.E4031, "change", "change",
+            proposal.getChange().toString() );
+    }
+
+    private ImportReport createImportReportWithError( MetadataProposal proposal, ErrorCode errorCode, String property,
+        Object... args )
+    {
+        Class<? extends IdentifiableObject> objType = proposal.getTarget().getType();
         ImportReport importReport = new ImportReport();
+        importReport.setStatus( Status.ERROR );
         ObjectReport objectReport = new ObjectReport( objType, null );
-        objectReport.addErrorReport(
-            new ErrorReport( MetadataProposal.class, ErrorCode.E4031, proposal.getChange().toString(), "change" ) );
+        ErrorReport errorReport = new ErrorReport( MetadataProposal.class, errorCode, args );
+        errorReport.setErrorProperty( property );
+        errorReport.setErrorProperties( singletonList( property ) );
+        objectReport.addErrorReport( errorReport );
         TypeReport typeReport = new TypeReport( objType );
         typeReport.addObjectReport( objectReport );
         importReport.addTypeReport( typeReport );

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.metadata;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
@@ -100,6 +101,23 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
     @ResponseBody
     public WebMessage proposeProposal( @RequestBody MetadataProposalParams params )
     {
+        MetadataProposalType type = params.getType();
+        if ( type != MetadataProposalType.ADD && params.getTargetUid() == null )
+        {
+            return badRequest( "`targetUid` is required for type " + type );
+        }
+        if ( type != MetadataProposalType.REMOVE && (params.getChange() == null || params.getChange().isNull()) )
+        {
+            return badRequest( "`change` is required for type " + type );
+        }
+        if ( type == MetadataProposalType.ADD && (!params.getChange().isObject() || params.getChange().isEmpty()) )
+        {
+            return badRequest( "`change` must be a non empty object for type " + type );
+        }
+        if ( type == MetadataProposalType.UPDATE && (!params.getChange().isArray() || params.getChange().isEmpty()) )
+        {
+            return badRequest( "`change` must be a non empty array for type " + type );
+        }
         try
         {
             MetadataProposal proposal = service.propose( params );

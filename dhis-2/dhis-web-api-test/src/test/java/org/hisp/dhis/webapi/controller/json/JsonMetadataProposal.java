@@ -25,44 +25,78 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.webapi.controller.json;
 
+import java.time.LocalDateTime;
+
+import org.hisp.dhis.metadata.MetadataProposalStatus;
+import org.hisp.dhis.metadata.MetadataProposalTarget;
+import org.hisp.dhis.metadata.MetadataProposalType;
+import org.hisp.dhis.webapi.json.Expected;
+import org.hisp.dhis.webapi.json.JsonDate;
 import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ * JSON representation of a {@link org.hisp.dhis.metadata.MetadataProposal} as
+ * returned by the REST API.
  *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
+public interface JsonMetadataProposal extends JsonObject
 {
-    default String getHttpStatus()
+    @Expected
+    default String getId()
     {
-        return getString( "httpStatus" ).string();
+        return getString( "id" ).string();
     }
 
-    default int getHttpStatusCode()
+    @Expected
+    default MetadataProposalType getType()
     {
-        return getNumber( "httpStatusCode" ).intValue();
+        return getString( "type" ).parsed( MetadataProposalType::valueOf );
     }
 
-    default String getStatus()
+    @Expected
+    default MetadataProposalStatus getStatus()
     {
-        return getString( "status" ).string();
+        return getString( "status" ).parsed( MetadataProposalStatus::valueOf );
     }
 
-    default String getMessage()
+    @Expected
+    default MetadataProposalTarget getTarget()
     {
-        return getString( "message" ).string();
+        return getString( "target" ).parsed( MetadataProposalTarget::valueOf );
     }
 
-    default String getDescription()
+    default String getTargetUid()
     {
-        return getString( "description" ).string();
+        return getString( "targetUid" ).string();
     }
 
-    default JsonObject getResponse()
+    default JsonObject getChange()
     {
-        return getObject( "response" );
+        return getObject( "change" );
+    }
+
+    default String getComment()
+    {
+        return getString( "comment" ).string();
+    }
+
+    @Expected
+    default String getCreatedBy()
+    {
+        return getString( "createdBy" ).string();
+    }
+
+    default String getAcceptedBy()
+    {
+        return getString( "acceptedBy" ).string();
+    }
+
+    @Expected
+    default LocalDateTime getCreated()
+    {
+        return get( "created", JsonDate.class ).date();
     }
 }

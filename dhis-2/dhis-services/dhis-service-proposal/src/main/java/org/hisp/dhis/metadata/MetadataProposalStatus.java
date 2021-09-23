@@ -34,8 +34,20 @@ package org.hisp.dhis.metadata;
  */
 public enum MetadataProposalStatus
 {
+    /**
+     * Proposal has been made but not yet accepted or rejected
+     */
     PROPOSED,
+    /**
+     * Proposal was successfully accepted
+     */
     ACCEPTED,
+    /**
+     * Proposal was rejected
+     */
     REJECTED,
+    /**
+     * Proposal was accepted but failed to be applied
+     */
     FAILED
 }
