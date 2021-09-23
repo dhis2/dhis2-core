@@ -45,7 +45,6 @@ import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -61,7 +60,6 @@ import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -103,10 +101,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     @Qualifier( "jsonMapper" )
     private ObjectMapper jsonMapper;
 
-    @Autowired
-    @Qualifier( "xmlMapper" )
-    private ObjectMapper xmlMapper;
-
     @Bean( "multipartResolver" )
     public MultipartResolver multipartResolver()
     {
@@ -147,34 +141,18 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         return new MappingJackson2HttpMessageConverter( jsonMapper );
     }
 
-    @Bean
-    public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
-    {
-        MappingJackson2XmlHttpMessageConverter messageConverter = new MappingJackson2XmlHttpMessageConverter(
-            xmlMapper );
-
-        messageConverter.setSupportedMediaTypes( Arrays.asList(
-            new MediaType( "application", "xml", StandardCharsets.UTF_8 ),
-            new MediaType( "application", "*+xml", StandardCharsets.UTF_8 ) ) );
-
-        return messageConverter;
-    }
-
     @Override
     public void configureMessageConverters(
         List<HttpMessageConverter<?>> converters )
     {
         Arrays.stream( Compression.values() )
             .forEach( compression -> converters.add( new JsonMessageConverter( nodeService(), compression ) ) );
-        Arrays.stream( Compression.values() )
-            .forEach( compression -> converters.add( new XmlMessageConverter( nodeService(), compression ) ) );
 
         converters.add( new StringHttpMessageConverter( StandardCharsets.UTF_8 ) );
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
 
         converters.add( mappingJackson2HttpMessageConverter() );
-        converters.add( mappingJackson2XmlHttpMessageConverter() );
     }
 
     @Override
@@ -219,9 +197,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         .put( "json.gz", parseMediaType( "application/json+gzip" ) )
         .put( "json.zip", parseMediaType( "application/json+zip" ) )
         .put( "jsonp", parseMediaType( "application/javascript" ) )
-        .put( "xml", MediaType.APPLICATION_XML )
-        .put( "xml.gz", parseMediaType( "application/xml+gzip" ) )
-        .put( "xml.zip", parseMediaType( "application/xml+zip" ) )
         .put( "png", MediaType.IMAGE_PNG )
         .put( "pdf", MediaType.APPLICATION_PDF )
         .put( "xls", parseMediaType( "application/vnd.ms-excel" ) )
