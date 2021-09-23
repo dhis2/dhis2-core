@@ -634,11 +634,11 @@ public class DataQueryParams
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
             .add( "userOrgUnitType", userOrgUnitType )
-            .add( "dimensionItemKeywords", getDimensionalKeywords( filters ) )
+            .add( "dimensionItemKeywords", getDimensionalItemKeywords( filters ) )
             .addIgnoreNull( "apiVersion", apiVersion ).build();
     }
 
-    private String getDimensionalKeywords( final List<DimensionalObject> filters )
+    private String getDimensionalItemKeywords( final List<DimensionalObject> filters )
     {
         final StringBuilder keys = new StringBuilder();
 
