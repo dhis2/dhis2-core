@@ -67,6 +67,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -633,7 +634,28 @@ public class DataQueryParams
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
             .add( "userOrgUnitType", userOrgUnitType )
+            .add( "dimensionItemKeywords", getDimensionalItemKeywords( filters ) )
             .addIgnoreNull( "apiVersion", apiVersion ).build();
+    }
+
+    private String getDimensionalItemKeywords( final List<DimensionalObject> filters )
+    {
+        final StringBuilder keys = new StringBuilder();
+
+        if ( org.apache.commons.collections4.CollectionUtils.isNotEmpty( filters ) )
+        {
+            for ( final DimensionalObject dimensionalObject : filters )
+            {
+                final DimensionItemKeywords keywords = dimensionalObject.getDimensionItemKeywords();
+
+                if ( keywords != null && !keywords.isEmpty() )
+                {
+                    keywords.getKeywords().forEach( k -> keys.append( "key:" ).append( "[" + k.getKey() + "]" ) );
+                }
+            }
+        }
+
+        return keys.toString();
     }
 
     // -------------------------------------------------------------------------
