@@ -208,7 +208,7 @@ public class DefaultTrackerProgramRuleService
             .stream()
             .flatMap( psi -> psi.values().stream() )
             .filter( e -> e.getProgramInstance().getUid().equals( enrollment ) )
-            .filter( e -> bundleEventUids.contains( e.getUid() ) );
+            .filter( e -> !bundleEventUids.contains( e.getUid() ) );
 
         // All events in the payload that are linked to enrollment
         Stream<ProgramStageInstance> bundleEvents = bundle.getEvents()

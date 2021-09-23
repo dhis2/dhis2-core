@@ -151,7 +151,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                 e -> {
                     Event event = getEvent( bundle, e.getKey() ).get();
                     ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
-                    ProgramStageInstance preheatEvent = bundle.getPreheat().get( ProgramStageInstance.class,
+                    ProgramStageInstance preheatEvent = bundle.getPreheat().getEvent( TrackerIdScheme.UID,
                         event.getEvent() );
                     Set<DataValue> dataValues = mergeDataValues( event.getDataValues(), preheatEvent );
 
