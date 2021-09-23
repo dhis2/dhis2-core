@@ -67,7 +67,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
         this.securityService = securityService;
         this.userService = userService;
         this.apiTokenService = apiTokenService;
-        this.apiTokenCache = cacheProvider.createApiKeyCache();
+        this.apiTokenCache = cacheProvider.createApiKeyCache( ApiTokenAuthenticationToken.class );
     }
 
     @Override

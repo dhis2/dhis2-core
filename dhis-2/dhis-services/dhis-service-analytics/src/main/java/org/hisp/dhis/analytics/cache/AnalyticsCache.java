@@ -66,7 +66,7 @@ public class AnalyticsCache
 
         this.analyticsCacheSettings = analyticsCacheSettings;
         long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
-        this.queryCache = cacheProvider.createAnalyticsResponseCache(
+        this.queryCache = cacheProvider.createAnalyticsResponseCache( Grid.class,
             Duration.ofSeconds( initialExpirationTime ) );
 
         log.info( String.format( "Analytics server-side cache is enabled with expiration time: %d s",

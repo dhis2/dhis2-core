@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.cache;
 
+import java.util.Collection;
+import java.util.Map;
+
 /**
  * Provides cache builder to build instances.
  *
@@ -41,6 +44,10 @@ public interface CacheBuilderProvider
      * @return A cache builder instance for the specified value type. Returns a
      *         {@link ExtendedCacheBuilder}.
      */
-    <V> CacheBuilder<V> newCacheBuilder();
+    <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
+
+    <V> CacheBuilder<V> newCacheBuilder( Class<? extends Map> mapType, Class<?> keyType, Class<?> valueType );
+
+    <V> CacheBuilder<V> newCacheBuilder( Class<? extends Collection> collectionType, Class<?> elementType );
 
 }

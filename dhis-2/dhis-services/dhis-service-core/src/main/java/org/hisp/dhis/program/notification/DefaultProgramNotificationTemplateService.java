@@ -53,8 +53,10 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
         CacheProvider cacheProvider )
     {
         this.store = store;
-        this.programWebHookNotificationCache = cacheProvider.createProgramWebHookNotificationTemplateCache();
-        this.programStageWebHookNotificationCache = cacheProvider.createProgramStageWebHookNotificationTemplateCache();
+        this.programWebHookNotificationCache = cacheProvider
+            .createProgramWebHookNotificationTemplateCache( Boolean.class );
+        this.programStageWebHookNotificationCache = cacheProvider
+            .createProgramStageWebHookNotificationTemplateCache( Boolean.class );
     }
 
     @Override

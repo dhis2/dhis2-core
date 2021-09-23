@@ -47,6 +47,7 @@ import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyTransformer;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
@@ -97,7 +98,8 @@ public class DefaultFieldFilterServiceTest
         throws Exception
     {
         CacheProvider cacheProvider = mock( CacheProvider.class );
-        when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
+        when( cacheProvider.createPropertyTransformerCache( PropertyTransformer.class ) )
+            .thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService,
             attributeService, cacheProvider, userGroupService, userService, new HashSet<>() );
     }

@@ -102,7 +102,7 @@ public class ResponseHandlerTest
     @Before
     public void setUp()
     {
-        when( cacheProvider.createDataItemsPaginationCache() ).thenReturn( new NoOpCache<>() );
+        when( cacheProvider.createDataItemsPaginationCache( Long.class ) ).thenReturn( new NoOpCache<>() );
         responseHandler = new ResponseHandler( queryExecutor, linkService, fieldFilterService, cacheProvider );
     }
 

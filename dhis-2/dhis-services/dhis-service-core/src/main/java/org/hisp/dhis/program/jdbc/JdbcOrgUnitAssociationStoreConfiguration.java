@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program.jdbc;
 
+import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.association.CategoryOptionOrganisationUnitAssociationsQueryBuilder;
@@ -50,7 +52,7 @@ public class JdbcOrgUnitAssociationStoreConfiguration
     {
         return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
             new ProgramOrganisationUnitAssociationsQueryBuilder( currentUserService ),
-            cacheProvider.createProgramOrgUnitAssociationCache() );
+            cacheProvider.createProgramOrgUnitAssociationCache( Set.class, String.class ) );
     }
 
     @Bean( "jdbcCategoryOptionOrgUnitAssociationsStore" )
@@ -59,7 +61,7 @@ public class JdbcOrgUnitAssociationStoreConfiguration
     {
         return new JdbcOrgUnitAssociationsStore( currentUserService, jdbcTemplate,
             new CategoryOptionOrganisationUnitAssociationsQueryBuilder( currentUserService ),
-            cacheProvider.createCatOptOrgUnitAssociationCache() );
+            cacheProvider.createCatOptOrgUnitAssociationCache( Set.class, String.class ) );
     }
 
 }

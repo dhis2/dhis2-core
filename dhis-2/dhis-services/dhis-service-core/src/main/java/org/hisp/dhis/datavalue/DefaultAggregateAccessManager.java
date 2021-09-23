@@ -62,7 +62,7 @@ public class DefaultAggregateAccessManager
         checkNotNull( cacheProvider );
 
         this.aclService = aclService;
-        this.canDataWriteCocCache = cacheProvider.createCanDataWriteCocCache();
+        this.canDataWriteCocCache = cacheProvider.createCanDataWriteCocCache( List.class, String.class );
     }
 
     // ---------------------------------------------------------------------

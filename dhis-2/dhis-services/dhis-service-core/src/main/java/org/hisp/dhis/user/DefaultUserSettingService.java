@@ -96,7 +96,7 @@ public class DefaultUserSettingService
         this.userSettingStore = userSettingStore;
         this.userService = userService;
         this.systemSettingManager = systemSettingManager;
-        this.userSettingCache = cacheProvider.createUserSettingCache();
+        this.userSettingCache = cacheProvider.createUserSettingCache( SerializableOptional.class );
     }
 
     // -------------------------------------------------------------------------

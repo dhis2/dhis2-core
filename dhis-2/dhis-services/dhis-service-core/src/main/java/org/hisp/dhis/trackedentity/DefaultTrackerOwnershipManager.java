@@ -113,8 +113,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         this.organisationUnitService = organisationUnitService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.config = config;
-        this.ownerCache = cacheProvider.createProgramOwnerCache();
-        this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
+        this.ownerCache = cacheProvider.createProgramOwnerCache( OrganisationUnit.class );
+        this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache( Boolean.class );
     }
 
     /**
@@ -476,8 +476,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     /**
      * Returns key used to store and retrieve cached records for ownership
      *
-     * @param trackedEntityInstance
-     * @param program
+     * @param teiUid
+     * @param programUid
      * @return a String representing a record of ownership
      */
     private String getTempOwnershipCacheKey( String teiUid, String programUid, String userUid )

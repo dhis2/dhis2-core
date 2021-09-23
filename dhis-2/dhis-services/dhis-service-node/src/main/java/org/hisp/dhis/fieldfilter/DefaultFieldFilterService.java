@@ -145,7 +145,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         this.attributeService = attributeService;
         this.userGroupService = userGroupService;
         this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
-        this.transformerCache = cacheProvider.createPropertyTransformerCache();
+        this.transformerCache = cacheProvider.createPropertyTransformerCache( PropertyTransformer.class );
     }
 
     @PostConstruct
