@@ -32,6 +32,7 @@ import static org.junit.Assert.*;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.QueryItemHelper;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
@@ -47,9 +48,9 @@ import org.junit.Test;
  */
 public class QueryItemHelperTest extends DhisConvenienceTest
 {
-    private final String UID_A = "aaaaaaaa";
+    private final String UID_A = CodeGenerator.generateUid();;
 
-    private final String UID_B = "bbbbbbbb";
+    private final String UID_B = CodeGenerator.generateUid();;
 
     private final String OPTION_NAME_A = "OptionA";
 
