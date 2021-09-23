@@ -93,7 +93,7 @@ public class ProgramStagesTest
         programStageActions = programActions.programStageActions;
 
         loginActions.loginAsSuperUser();
-        programId = programActions.createTrackerProgram();
+        programId = programActions.createTrackerProgram( null );
         programStageId = programActions.createProgramStage( "Tracker program stage 1" );
     }
 

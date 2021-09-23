@@ -59,6 +59,8 @@ public class EnrollmentsOwnershipTests
 
     String searchOu = "g8upMTyEZGZ";
 
+    String trackedEntityType = "Q9GufDoplCL";
+
     String username;
 
     String tei;
@@ -131,7 +133,7 @@ public class EnrollmentsOwnershipTests
         loginActions.loginAsUser( username, userPassword );
 
         trackerActions.getTrackedEntity( tei + "?fields=enrollments").validate().statusCode( 200 )
-            .body( "enrollments", hasSize( 1 ) );
+            .body( "enrollments", hasSize( 0 ) );
 
 
         trackerActions.postAndGetJobReport( buildEnrollment( protectedProgram, searchOu, tei ) )
@@ -140,7 +142,8 @@ public class EnrollmentsOwnershipTests
         loginActions.loginAsUser( username, userPassword );
 
         trackerActions.getTrackedEntity( tei + "?fields=enrollments").validate().statusCode( 200 )
-            .body( "enrollments", hasSize(2) );
+            .body( "enrollments", hasSize(0) );
+
     }
 
     @Test
@@ -167,7 +170,7 @@ public class EnrollmentsOwnershipTests
     }
 
     private String createProtectedProgram() {
-        String programId = programActions.createTrackerProgram( captureOu, searchOu );
+        String programId = programActions.createTrackerProgram( trackedEntityType, captureOu, searchOu );
 
         JsonObject program = programActions.get( programId )
             .getBodyAsJsonBuilder()

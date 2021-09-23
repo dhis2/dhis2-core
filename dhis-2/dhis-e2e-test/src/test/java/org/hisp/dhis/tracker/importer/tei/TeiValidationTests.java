@@ -280,7 +280,7 @@ public class TeiValidationTests
         trackedEntityType = trackedEntityTypeActions.create( trackedEntityTypePayload );
 
         // create a program
-        program = programActions.createTrackerProgram( Constants.ORG_UNIT_IDS );
+        program = programActions.createTrackerProgram( null, Constants.ORG_UNIT_IDS );
         ApiResponse programResponse = programActions.get( program );
 
         JsonObject programPayload = programResponse.getBody();

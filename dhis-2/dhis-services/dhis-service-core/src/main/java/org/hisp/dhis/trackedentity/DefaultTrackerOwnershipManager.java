@@ -37,6 +37,7 @@ import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.dxf2.events.event.EventContext;
@@ -387,10 +388,40 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                     entityInstanceId, program.getId() );
 
             return Optional.ofNullable( trackedEntityProgramOwner )
-                .map( TrackedEntityProgramOwner::getOrganisationUnit )
+                .map( tepo -> {
+                    return recursivelyUnproxyOrgUnit( tepo.getOrganisationUnit() );
+                } )
                 .orElseGet( orgUnitIfMissingSupplier );
 
         } ).get();
+    }
+
+    /**
+     * This method unproxies the OrganisationUnit passed on in the arguments.
+     * All the parent OrganisationUnits are also recurseively unproxied. This is
+     * done to be able to serialize and deserialize the ownership orgUnit into
+     * redis cache.
+     *
+     *
+     * @param organisationUnit
+     * @return
+     */
+    private OrganisationUnit recursivelyUnproxyOrgUnit( OrganisationUnit organisationUnit )
+    {
+        // TODO: Modify the {@link
+        // OrganisationUnit#isDescendant(OrganisationUnit)} and {@link
+        // OrganisationUnit#isDescendant(Set)}
+        // methods to use path parameter instead of recursively visiting the
+        // parent OrganisationUnits.
+
+        OrganisationUnit root = Hibernate.unproxy( organisationUnit, OrganisationUnit.class );
+        OrganisationUnit current = root;
+        while ( current.getParent() != null )
+        {
+            current.setParent( Hibernate.unproxy( current.getParent(), OrganisationUnit.class ) );
+            current = current.getParent();
+        }
+        return root;
     }
 
     /**
