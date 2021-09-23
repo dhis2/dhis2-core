@@ -60,7 +60,7 @@ public class InputUtils
     {
         this.categoryService = categoryService;
         this.idObjectManager = idObjectManager;
-        this.attrOptionComboIdCache = cacheProvider.createAttrOptionComboIdCache( Long.class );
+        this.attrOptionComboIdCache = cacheProvider.createAttrOptionComboIdCache();
     }
 
     /**

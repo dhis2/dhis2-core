@@ -57,7 +57,6 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.DefaultPropertyIntrospectorService;
 import org.hisp.dhis.schema.DefaultSchemaService;
-import org.hisp.dhis.schema.PropertyTransformer;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.security.acl.AclService;
@@ -112,8 +111,7 @@ public class DefaultFieldFilterServiceTest
             new DefaultPropertyIntrospectorService( new JacksonPropertyIntrospector() ), sessionFactory );
 
         CacheProvider cacheProvider = mock( CacheProvider.class );
-        when( cacheProvider.createPropertyTransformerCache( PropertyTransformer.class ) )
-            .thenReturn( new NoOpCache<>() );
+        when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService,
             currentUserService, attributeService, cacheProvider, userGroupService, userService, nodeTransformers );
         service.init();

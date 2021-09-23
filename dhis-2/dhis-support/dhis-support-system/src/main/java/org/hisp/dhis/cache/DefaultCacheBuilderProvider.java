@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.cache;
 
-import java.util.Collection;
-import java.util.Map;
 import java.util.function.Function;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -48,49 +46,17 @@ public class DefaultCacheBuilderProvider implements CacheBuilderProvider
 {
     private DhisConfigurationProvider configurationProvider;
 
-    private RedisTemplateFactory redisTemplateFactory;
+    private RedisTemplate<String, ?> redisTemplate;
 
     private CappedLocalCache cappedLocalCache;
 
     @Override
-    public <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType )
-    {
-        RedisTemplate<String, V> redisTemplate = null;
-        if ( redisTemplateFactory != null )
-        {
-            redisTemplate = redisTemplateFactory.createRedisTemplate( valueType );
-        }
-        return getExtendedCacheBuilder( redisTemplate );
-    }
-
-    private <V> ExtendedCacheBuilder<V> getExtendedCacheBuilder( RedisTemplate<String, V> redisTemplate )
+    public <V> CacheBuilder<V> newCacheBuilder()
     {
         Function<CacheBuilder<V>, Cache<V>> capCacheFactory = cappedLocalCache != null
             ? cappedLocalCache::createRegion
             : builder -> new NoOpCache<>();
         return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider, capCacheFactory );
-    }
-
-    @Override
-    public <V> CacheBuilder<V> newCacheBuilder( Class<? extends Collection> collectionType, Class<?> elementType )
-    {
-        RedisTemplate<String, V> redisTemplate = null;
-        if ( redisTemplateFactory != null )
-        {
-            redisTemplate = redisTemplateFactory.createRedisTemplateForCollection( collectionType, elementType );
-        }
-        return getExtendedCacheBuilder( redisTemplate );
-    }
-
-    @Override
-    public <V> CacheBuilder<V> newCacheBuilder( Class<? extends Map> mapType, Class<?> keyType, Class<?> valueType )
-    {
-        RedisTemplate<String, V> redisTemplate = null;
-        if ( redisTemplateFactory != null )
-        {
-            redisTemplate = redisTemplateFactory.createRedisTemplateForMap( mapType, keyType, valueType );
-        }
-        return getExtendedCacheBuilder( redisTemplate );
     }
 
     @Autowired
@@ -100,10 +66,10 @@ public class DefaultCacheBuilderProvider implements CacheBuilderProvider
     }
 
     @Autowired( required = false )
-    @Qualifier( "redisTemplateFactory" )
-    public void setRedisTemplateFactory( RedisTemplateFactory redisTemplateFactory )
+    @Qualifier( "redisTemplate" )
+    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
     {
-        this.redisTemplateFactory = redisTemplateFactory;
+        this.redisTemplate = redisTemplate;
     }
 
     @Autowired

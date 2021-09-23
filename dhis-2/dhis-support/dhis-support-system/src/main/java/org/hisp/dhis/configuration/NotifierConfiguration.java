@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.configuration;
 
-import org.hisp.dhis.cache.RedisTemplateFactory;
 import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.system.notification.InMemoryNotifier;
@@ -37,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -50,14 +50,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class NotifierConfiguration
 {
     @Autowired( required = false )
-    private RedisTemplateFactory redisTemplateFactory;
+    private RedisTemplate<?, ?> redisTemplate;
 
     @SuppressWarnings( "unchecked" )
     @Bean( "notifier" )
     @Conditional( RedisEnabledCondition.class )
     public Notifier redisNotifier( ObjectMapper objectMapper )
     {
-        return new RedisNotifier( redisTemplateFactory.createRedisTemplate( String.class ), objectMapper );
+        return new RedisNotifier( (RedisTemplate<String, String>) redisTemplate, objectMapper );
     }
 
     @Bean( "notifier" )

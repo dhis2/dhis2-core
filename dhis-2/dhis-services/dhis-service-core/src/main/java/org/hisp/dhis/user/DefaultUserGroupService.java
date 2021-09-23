@@ -71,7 +71,7 @@ public class DefaultUserGroupService
         this.cacheManager = cacheManager;
         this.currentUserService = currentUserService;
 
-        userGroupNameCache = cacheProvider.createUserGroupNameCache( String.class );
+        userGroupNameCache = cacheProvider.createUserGroupNameCache();
     }
 
     // -------------------------------------------------------------------------

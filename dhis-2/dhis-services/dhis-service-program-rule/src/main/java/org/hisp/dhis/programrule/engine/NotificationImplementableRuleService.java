@@ -47,7 +47,7 @@ public class NotificationImplementableRuleService
         final CacheProvider cacheProvider )
     {
         super( programRuleService );
-        this.programHasRulesCache = cacheProvider.createProgramHasRulesCache( Boolean.class );
+        this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
     }
 
     @Override

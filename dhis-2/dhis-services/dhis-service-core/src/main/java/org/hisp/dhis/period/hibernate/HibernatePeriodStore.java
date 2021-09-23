@@ -78,7 +78,7 @@ public class HibernatePeriodStore
         super( sessionFactory, jdbcTemplate, publisher, Period.class, currentUserService, aclService, true );
 
         transientIdentifiableProperties = true;
-        this.periodIdCache = cacheProvider.createPeriodIdCache( Long.class );
+        this.periodIdCache = cacheProvider.createPeriodIdCache();
     }
 
     // -------------------------------------------------------------------------

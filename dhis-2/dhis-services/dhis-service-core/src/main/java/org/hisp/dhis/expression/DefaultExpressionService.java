@@ -273,7 +273,7 @@ public class DefaultExpressionService
         this.organisationUnitService = organisationUnitService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
-        this.constantMapCache = cacheProvider.createAllConstantsCache( HashMap.class, String.class, Constant.class );
+        this.constantMapCache = cacheProvider.createAllConstantsCache();
     }
 
     // -------------------------------------------------------------------------

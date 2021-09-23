@@ -158,7 +158,7 @@ public class JacksonEventService extends AbstractEventService
         this.eventSyncService = eventSyncService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
-        this.dataElementCache = cacheProvider.createDataElementCache( Boolean.class );
+        this.dataElementCache = cacheProvider.createDataElementCache();
         this.eventServiceContextBuilder = eventServiceContextBuilder;
     }
 

@@ -127,7 +127,7 @@ public class DefaultUserService
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
         this.sessionRegistry = sessionRegistry;
-        userDisplayNameCache = cacheProvider.createUserDisplayNameCache( String.class );
+        userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     }
 
     // -------------------------------------------------------------------------

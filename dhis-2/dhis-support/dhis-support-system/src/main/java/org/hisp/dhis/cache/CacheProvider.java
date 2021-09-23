@@ -28,8 +28,6 @@
 package org.hisp.dhis.cache;
 
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Map;
 
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
@@ -46,75 +44,73 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
  */
 public interface CacheProvider
 {
-    <V> Cache<V> createAnalyticsResponseCache( Class<V> valueType, Duration initialExpirationTime );
+    <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime );
 
-    <V> Cache<V> createDefaultObjectCache( Class<V> valueType );
+    <V> Cache<V> createDefaultObjectCache();
 
-    <V> Cache<V> createIsDataApprovedCache( Class<V> valueType );
+    <V> Cache<V> createIsDataApprovedCache();
 
-    <V> Cache<V> createAllConstantsCache( Class<? extends Map> mapClass, Class<?> keyClass, Class<?> valueClass );
+    <V> Cache<V> createAllConstantsCache();
 
-    <V> Cache<V> createInUserOrgUnitHierarchyCache( Class<V> valueType );
+    <V> Cache<V> createInUserOrgUnitHierarchyCache();
 
-    <V> Cache<V> createInUserViewOrgUnitHierarchyCache( Class<V> valueType );
+    <V> Cache<V> createInUserViewOrgUnitHierarchyCache();
 
-    <V> Cache<V> createInUserSearchOrgUnitHierarchyCache( Class<V> valueType );
+    <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
 
-    <V> Cache<V> createUserCaptureOrgUnitThresholdCache( Class<V> valueType );
+    <V> Cache<V> createUserCaptureOrgUnitThresholdCache();
 
-    <V> Cache<V> createPeriodIdCache( Class<V> valueType );
+    <V> Cache<V> createPeriodIdCache();
 
-    <V> Cache<V> createUserFailedLoginAttemptCache( Class<V> valueType, V defaultValue );
+    <V> Cache<V> createUserFailedLoginAttemptCache( V defaultValue );
 
-    <V> Cache<V> createUserAccountRecoverAttemptCache( Class<V> valueType, V defaultValue );
+    <V> Cache<V> createUserAccountRecoverAttemptCache( V defaultValue );
 
-    <V> Cache<V> createProgramOwnerCache( Class<V> valueType );
+    <V> Cache<V> createProgramOwnerCache();
 
-    <V> Cache<V> createProgramTempOwnerCache( Class<V> valueType );
+    <V> Cache<V> createProgramTempOwnerCache();
 
-    <V> Cache<V> createUserIdCache( Class<V> valueType );
+    <V> Cache<V> createUserIdCache();
 
-    <V> Cache<V> createCurrentUserGroupInfoCache( Class<V> valueType );
+    <V> Cache<V> createCurrentUserGroupInfoCache();
 
-    <V> Cache<V> createUserSettingCache( Class<V> valueType );
+    <V> Cache<V> createUserSettingCache();
 
-    <V> Cache<V> createAttrOptionComboIdCache( Class<V> valueType );
+    <V> Cache<V> createAttrOptionComboIdCache();
 
-    <V> Cache<V> createSystemSettingCache( Class<V> valueType );
+    <V> Cache<V> createSystemSettingCache();
 
-    <V> Cache<V> createGoogleAccessTokenCache( Class<V> valueType );
+    <V> Cache<V> createGoogleAccessTokenCache();
 
-    <V> Cache<V> createDataItemsPaginationCache( Class<V> valueType );
+    <V> Cache<V> createDataItemsPaginationCache();
 
-    <V> Cache<V> createMetadataAttributesCache( Class<V> valueType );
+    <V> Cache<V> createMetadataAttributesCache();
 
-    <V> Cache<V> createCanDataWriteCocCache( Class<? extends Collection> collectionClass, Class<?> elementClass );
+    <V> Cache<V> createCanDataWriteCocCache();
 
-    <V> Cache<V> createAnalyticsSqlCache( Class<V> valueType );
+    <V> Cache<V> createAnalyticsSqlCache();
 
-    <V> Cache<V> createDataElementCache( Class<V> valueType );
+    <V> Cache<V> createDataElementCache();
 
-    <V> Cache<V> createPropertyTransformerCache( Class<V> valueType );
+    <V> Cache<V> createPropertyTransformerCache();
 
-    <V> Cache<V> createProgramHasRulesCache( Class<V> valueType );
+    <V> Cache<V> createProgramHasRulesCache();
 
-    <V> Cache<V> createProgramRuleVariablesCache( Class<V> valueType );
+    <V> Cache<V> createProgramRuleVariablesCache();
 
-    <V> Cache<V> createUserGroupNameCache( Class<V> valueType );
+    <V> Cache<V> createUserGroupNameCache();
 
-    <V> Cache<V> createUserDisplayNameCache( Class<V> valueType );
+    <V> Cache<V> createUserDisplayNameCache();
 
     void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 
-    <V> Cache<V> createProgramWebHookNotificationTemplateCache( Class<V> valueType );
+    <V> Cache<V> createProgramWebHookNotificationTemplateCache();
 
-    <V> Cache<V> createProgramStageWebHookNotificationTemplateCache( Class<V> valueType );
+    <V> Cache<V> createProgramStageWebHookNotificationTemplateCache();
 
-    <V> Cache<V> createProgramOrgUnitAssociationCache( Class<? extends Collection> collectionClass,
-        Class<?> elementClass );
+    <V> Cache<V> createProgramOrgUnitAssociationCache();
 
-    <V> Cache<V> createCatOptOrgUnitAssociationCache( Class<? extends Collection> collectionClass,
-        Class<?> elementClass );
+    <V> Cache<V> createCatOptOrgUnitAssociationCache();
 
-    <V> Cache<V> createApiKeyCache( Class<V> valueType );
+    <V> Cache<V> createApiKeyCache();
 }

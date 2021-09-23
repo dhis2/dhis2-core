@@ -50,13 +50,13 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
 {
     private final DhisConfigurationProvider configuration;
 
-    private final RedisTemplate<String, V> redisTemplate;
+    private final RedisTemplate<String, ?> redisTemplate;
 
     private boolean forceInMemory;
 
     private final Function<CacheBuilder<V>, Cache<V>> cappedLocalCacheFactory;
 
-    public ExtendedCacheBuilder( RedisTemplate<String, V> redisTemplate,
+    public ExtendedCacheBuilder( RedisTemplate<String, ?> redisTemplate,
         DhisConfigurationProvider configuration, Function<CacheBuilder<V>, Cache<V>> cappedLocalCacheFactory )
     {
         this.configuration = configuration;

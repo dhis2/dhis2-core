@@ -163,8 +163,8 @@ public class DefaultSecurityService
         this.systemSettingManager = systemSettingManager;
         this.i18nManager = i18nManager;
         this.jsonMapper = jsonMapper;
-        this.userFailedLoginAttemptCache = cacheProvider.createUserFailedLoginAttemptCache( Integer.class, 0 );
-        this.userAccountRecoverAttemptCache = cacheProvider.createUserAccountRecoverAttemptCache( Integer.class, 0 );
+        this.userFailedLoginAttemptCache = cacheProvider.createUserFailedLoginAttemptCache( 0 );
+        this.userAccountRecoverAttemptCache = cacheProvider.createUserAccountRecoverAttemptCache( 0 );
     }
 
     // -------------------------------------------------------------------------
