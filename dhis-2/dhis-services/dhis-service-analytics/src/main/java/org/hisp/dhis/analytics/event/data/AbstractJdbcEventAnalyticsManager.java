@@ -295,7 +295,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 columns.add( getColumn( queryItem ) );
             }
-
         }
 
         return columns;
