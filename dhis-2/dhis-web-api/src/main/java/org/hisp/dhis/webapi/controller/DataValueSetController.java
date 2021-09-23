@@ -57,6 +57,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -331,12 +332,14 @@ public class DataValueSetController
         HttpMessageNotWritableException
     {
         String fileName = StringUtils.isEmpty( attachment ) ? "datavalue" : attachment;
+        fileName = FilenameUtils.removeExtension( fileName );
 
         if ( Compression.GZIP == compression )
         {
             response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                "attachment; filename=" + fileName + "." + format + ".gzip" );
+                "attachment; filename=" + fileName + "." + format + ".gz" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+
             return new GZIPOutputStream( response.getOutputStream() );
         }
         else if ( Compression.ZIP == compression )
@@ -359,6 +362,7 @@ public class DataValueSetController
                 response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
                 response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
+
             return response.getOutputStream();
         }
     }
