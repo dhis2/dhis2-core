@@ -57,7 +57,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -116,6 +115,38 @@ public class DataValueSetController
     // -------------------------------------------------------------------------
     // Get
     // -------------------------------------------------------------------------
+
+    @GetMapping( params = { "format", "attachment", "compression" } )
+    public void getDataValueSetXml( DataValueSetQueryParams params,
+        @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false ) String compression,
+        @RequestParam( required = false, defaultValue = "json" ) String format,
+        IdSchemes idSchemes, HttpServletResponse response )
+        throws IOException
+    {
+        setNoStore( response );
+
+        if ( "json".equals( format ) )
+        {
+            response.setContentType( CONTENT_TYPE_JSON );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "json" );
+            dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), outputStream );
+        }
+        else if ( "xml".equals( format ) )
+        {
+            response.setContentType( CONTENT_TYPE_XML );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
+            dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), outputStream );
+        }
+        else if ( "csv".equals( format ) )
+        {
+            response.setContentType( CONTENT_TYPE_CSV );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
+
+            PrintWriter printWriter = new PrintWriter( outputStream );
+            dataValueSetService.writeDataValueSetCsv( dataValueSetService.getFromUrl( params ), printWriter );
+        }
+    }
 
     @GetMapping( produces = CONTENT_TYPE_XML )
     public void getDataValueSetXml( DataValueSetQueryParams params,
@@ -332,10 +363,12 @@ public class DataValueSetController
         HttpMessageNotWritableException
     {
         String fileName = StringUtils.isEmpty( attachment ) ? "datavalue" : attachment;
-        fileName = FilenameUtils.removeExtension( fileName );
 
         if ( Compression.GZIP == compression )
         {
+            fileName = fileName.replace( "." + format + ".gz", "" );
+            fileName = fileName.replace( "." + format + ".gzip", "" );
+
             response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
                 "attachment; filename=" + fileName + "." + format + ".gz" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
@@ -344,6 +377,8 @@ public class DataValueSetController
         }
         else if ( Compression.ZIP == compression )
         {
+            fileName = fileName.replace( "." + format + ".zip", "" );
+
             response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
                 "attachment; filename=" + fileName + "." + format + ".zip" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
