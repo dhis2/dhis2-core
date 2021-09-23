@@ -144,7 +144,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     protected void updateAttributes( Session session, TrackerPreheat preheat,
         Event event, ProgramStageInstance programStageInstance )
     {
-        // DO NOTHING - TEI HAVE NO ATTRIBUTES
+        // DO NOTHING - EVENT HAVE NO ATTRIBUTES
     }
 
     @Override
