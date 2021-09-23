@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.analytics;
 
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.Getter;
 
 import com.google.common.collect.Sets;
 
@@ -42,6 +46,7 @@ public enum TimeField
     CREATED( "created" ),
     LAST_UPDATED( "lastupdated" );
 
+    @Getter
     private String field;
 
     private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
@@ -53,9 +58,11 @@ public enum TimeField
         this.field = field;
     }
 
-    public String getField()
+    public static Optional<TimeField> of( String timeField )
     {
-        return field;
+        return Arrays.stream( values() )
+            .filter( tf -> tf.name().equals( timeField ) )
+            .findFirst();
     }
 
     public static boolean fieldIsValid( String field )

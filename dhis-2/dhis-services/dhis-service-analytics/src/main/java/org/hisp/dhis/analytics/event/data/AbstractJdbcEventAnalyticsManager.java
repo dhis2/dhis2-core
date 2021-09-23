@@ -646,16 +646,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns the analytics table alias for the period dimension.
-     *
-     * @param params the event query parameters.
-     */
-    protected String getPeriodAlias( EventQueryParams params )
-    {
-        return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
-    }
-
-    /**
      * Returns the analytics table alias for the organisation unit dimension.
      *
      * @param params the event query parameters.
