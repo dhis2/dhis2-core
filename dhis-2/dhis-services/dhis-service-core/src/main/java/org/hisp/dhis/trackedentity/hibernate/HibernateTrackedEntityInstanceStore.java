@@ -360,8 +360,9 @@ public class HibernateTrackedEntityInstanceStore
         }
         else
         {
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(), () -> TEI_LASTUPDATED + GT_EQUAL + " '" +
-                getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(),
+                () -> TEI_LASTUPDATED + GT_EQUAL + " '" +
+                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
 
             hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> TEI_LASTUPDATED + " < '" +
                 getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
