@@ -240,7 +240,7 @@ public class HibernatePotentialDuplicateStore
         TrackedEntityAttributeValueAudit deleteTeavAudit = new TrackedEntityAttributeValueAudit( av, av.getAuditValue(),
             currentUsername, DELETE );
         TrackedEntityAttributeValueAudit updatedTeavAudit = new TrackedEntityAttributeValueAudit( createOrUpdateTeav,
-            createOrUpdateTeav.getAuditValue(), currentUsername, auditType );
+            createOrUpdateTeav.getValue(), currentUsername, auditType );
 
         if ( config.isEnabled( CHANGELOG_TRACKER ) )
         {
