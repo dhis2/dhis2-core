@@ -36,7 +36,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
@@ -151,9 +150,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                 e -> {
                     Event event = getEvent( bundle, e.getKey() ).get();
                     ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
-                    ProgramStageInstance preheatEvent = bundle.getPreheat().getEvent( TrackerIdScheme.UID,
-                        event.getEvent() );
-                    Set<DataValue> dataValues = mergeDataValues( event.getDataValues(), preheatEvent );
+                    Set<DataValue> dataValues = event.getDataValues();
 
                     List<EventActionRule> eventActionRules = e.getValue()
                         .stream()
@@ -198,8 +195,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                         .map( te -> te.getAttributes() )
                         .orElse( Collections.emptyList() );
 
-                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), payloadTeiAttributes,
-                        tei );
+                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), payloadTeiAttributes );
 
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()
@@ -215,31 +211,8 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                 } ) );
     }
 
-    private Set<DataValue> mergeDataValues( Set<DataValue> dataValues, ProgramStageInstance programStageInstance )
-    {
-        if ( programStageInstance == null )
-        {
-            return dataValues;
-        }
-        List<String> payloadDataElements = dataValues.stream()
-            .map( DataValue::getDataElement )
-            .collect( Collectors.toList() );
-        Set<DataValue> mergedDataValues = programStageInstance.getEventDataValues().stream()
-            .filter( dv -> !payloadDataElements.contains( dv.getDataElement() ) )
-            .map( dv -> {
-                DataValue dataValue = new DataValue();
-                dataValue.setDataElement( dv.getDataElement() );
-                dataValue.setValue( dv.getValue() );
-                return dataValue;
-            } )
-            .collect( Collectors.toSet() );
-        mergedDataValues.addAll( dataValues );
-        return mergedDataValues;
-    }
-
     private List<Attribute> mergeAttributes(
-        List<Attribute> enrollmentAttributes, List<Attribute> attributes,
-        TrackedEntityInstance tei )
+        List<Attribute> enrollmentAttributes, List<Attribute> attributes )
     {
 
         List<String> payloadAttributes = attributes.stream()
@@ -249,18 +222,6 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
             .addAll( enrollmentAttributes.stream().map( Attribute::getAttribute ).collect( Collectors.toList() ) );
 
         List<Attribute> mergedAttributes = Lists.newArrayList();
-        if ( tei != null )
-        {
-            mergedAttributes = tei.getAttributeValues().stream()
-                .filter( at -> !payloadAttributes.contains( at.getAttribute().getUid() ) )
-                .map( at -> {
-                    Attribute attribute = new Attribute();
-                    attribute.setAttribute( at.getAttribute().getUid() );
-                    attribute.setValue( at.getValue() );
-                    return attribute;
-                } )
-                .collect( Collectors.toList() );
-        }
 
         mergedAttributes.addAll( attributes );
         mergedAttributes.addAll( enrollmentAttributes );
