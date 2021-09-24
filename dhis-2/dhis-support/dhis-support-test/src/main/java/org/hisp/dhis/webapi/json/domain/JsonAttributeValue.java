@@ -25,52 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute;
+package org.hisp.dhis.webapi.json.domain;
 
-import static java.util.Arrays.stream;
-
-import java.util.List;
-
-import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Web API equivalent of a {@link org.hisp.dhis.attribute.AttributeValue}.
+ *
+ * @author Jan Bernitt
  */
-public interface AttributeStore
-    extends IdentifiableObjectStore<Attribute>
+public interface JsonAttributeValue extends JsonObject
 {
-    String ID = AttributeStore.class.getName();
+    default String getValue()
+    {
+        return getString( "value" ).string();
+    }
 
-    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = stream( ObjectType.values() )
-        .collect( ImmutableMap.toImmutableMap( ObjectType::getType, ObjectType::getPropertyName ) );
-
-    /**
-     * Get all metadata attributes for a given class, returns empty list for
-     * un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of attributes for this class
-     */
-    List<Attribute> getAttributes( Class<?> klass );
-
-    /**
-     * Get all mandatory metadata attributes for a given class, returns empty
-     * list for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of mandatory metadata attributes for this class
-     */
-    List<Attribute> getMandatoryAttributes( Class<?> klass );
-
-    /**
-     * Get all unique metadata attributes for a given class, returns empty list
-     * for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of unique metadata attributes for this class
-     */
-    List<Attribute> getUniqueAttributes( Class<?> klass );
+    default JsonIdentifiableObject getAttribute()
+    {
+        return get( "attribute", JsonIdentifiableObject.class );
+    }
 }
