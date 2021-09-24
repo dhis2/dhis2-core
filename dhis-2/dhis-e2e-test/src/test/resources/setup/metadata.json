@@ -833,7 +833,7 @@
       "id": "Q9GufDoplCL",
       "publicAccess": "rw------",
       "maxTeiCountToReturn": 0,
-      "allowAuditLog": false,
+      "allowAuditLog": true,
       "featureType": "POLYGON",
       "minAttributesRequiredToSearch": 1,
       "lastUpdatedBy": {
