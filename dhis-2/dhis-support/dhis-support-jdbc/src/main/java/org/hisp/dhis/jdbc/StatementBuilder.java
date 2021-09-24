@@ -284,8 +284,8 @@ public interface StatementBuilder
      *        assigned in the where clause
      * @return SQL to use in where clause.
      */
-    String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate,
-        SqlHelper sqlHelper );
+    String getBoundaryCondition( ProgramIndicator programIndicator, String timeField,
+        Date reportingStartDate, Date reportingEndDate, SqlHelper sqlHelper );
 
     /**
      * Get SQL where-condition for a single analyticsPeriodBoundary in a program
@@ -297,7 +297,23 @@ public interface StatementBuilder
      * @param reportingEndDate the date of the end of the reporting period
      * @return SQL to use in where clause.
      */
-    String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator,
+    default String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator,
+        Date reportingStartDate, Date reportingEndDate )
+    {
+        return getBoundaryCondition( boundary, programIndicator, null, reportingStartDate, reportingEndDate );
+    }
+
+    /**
+     * Get SQL where-condition for a single analyticsPeriodBoundary in a program
+     * indicator.
+     *
+     * @param boundary the boundary to get where-condition for
+     * @param programIndicator the program indicator context
+     * @param reportingStartDate the date of the start of the reporting period
+     * @param reportingEndDate the date of the end of the reporting period
+     * @return SQL to use in where clause.
+     */
+    String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator, String timeField,
         Date reportingStartDate, Date reportingEndDate );
 
     /**

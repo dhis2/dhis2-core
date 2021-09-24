@@ -146,7 +146,7 @@ public class QueryFilter
         return "'" + encodedFilter + "'";
     }
 
-    private String quote( String filterItem )
+    protected String quote( String filterItem )
     {
         return "'" + filterItem + "'";
     }

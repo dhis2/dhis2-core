@@ -27,17 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer.relationships;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
+import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
@@ -58,7 +48,16 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -310,7 +309,7 @@ public class RelationshipsTests
             .validate()
             .statusCode( 404 );
 
-        trackerActions.get( "/trackedEntities/" + teis.get( 0 ) + "?fields=relationships" )
+        trackerActions.getTrackedEntity( teis.get( 0 ) + "?fields=relationships" )
             .validate()
             .body( "relationships", Matchers.empty() );
     }
@@ -427,8 +426,7 @@ public class RelationshipsTests
         {
         case "trackedEntity":
         {
-            return trackerActions.get( "/trackedEntities/" + id,
-                new QueryParamsBuilder().add( "fields=relationships" ) );
+            return trackerActions.getTrackedEntity( id + "?fields=relationships" );
         }
 
         case "event":
@@ -442,6 +440,7 @@ public class RelationshipsTests
         }
         }
     }
+
 
     private void validateRelationship( ApiResponse response, String relationshipTypeId, String fromInstance,
         String fromInstanceId,

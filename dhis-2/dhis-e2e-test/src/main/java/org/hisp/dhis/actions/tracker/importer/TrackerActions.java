@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.actions.tracker.importer;
 
-import static org.hamcrest.Matchers.notNullValue;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
 import java.time.Instant;
@@ -35,14 +41,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.notNullValue;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -124,6 +123,21 @@ public class TrackerActions
 
         saveCreatedData( response );
         return new TrackerApiResponse( response );
+    }
+
+    public TrackerApiResponse getTrackedEntity( String entityId )
+    {
+        return new TrackerApiResponse( this.get( "/trackedEntities/" + entityId ) );
+    }
+
+    public TrackerApiResponse getEnrollment( String enrollmentId )
+    {
+        return new TrackerApiResponse( this.get( "/enrollments/" + enrollmentId ) );
+    }
+
+    public TrackerApiResponse getEvent( String eventId )
+    {
+        return new TrackerApiResponse( this.get( "/events/" + eventId ) );
     }
 
     private void saveCreatedData( ApiResponse response )
@@ -271,33 +285,39 @@ public class TrackerActions
     public JsonObject buildNonBidirectionalTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2 )
     {
         return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "TV9oB9LT3sh" /*
-                                                                                                * a
-                                                                                                * non
-                                                                                                * bidirectional
-                                                                                                * relationship
-                                                                                                * type
-                                                                                                */ );
+         * a
+         * non
+         * bidirectional
+         * relationship
+         * type
+         */ );
     }
 
     public JsonObject buildBidirectionalTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2 )
     {
         return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "xLmPUYJX8Ks" /*
-                                                                                                * a
-                                                                                                * bidirectional
-                                                                                                * relationship
-                                                                                                * type
-                                                                                                */ );
+         * a
+         * bidirectional
+         * relationship
+         * type
+         */ );
     }
 
     public JsonObject buildTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2,
         String relationshipType )
     {
+        return buildRelationship( "trackedEntity", trackedEntity_1, "trackedEntity", trackedEntity_2, relationshipType );
+    }
+
+    public JsonObject buildRelationship( String fromEntityName, String fromEntityId, String toEntityName, String toEntityId,
+        String relationshipType )
+    {
         return new JsonObjectBuilder()
             .addProperty( "relationshipType", relationshipType )
             .addObject( "from", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_1 ) )
+                .addProperty( fromEntityName, fromEntityId ) )
             .addObject( "to", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_2 ) )
+                .addProperty( toEntityName, toEntityId ) )
             .build();
     }
 
@@ -308,4 +328,5 @@ public class TrackerActions
             .addProperty( "orgUnit", ou )
             .wrapIntoArray( "trackedEntities" );
     }
+
 }

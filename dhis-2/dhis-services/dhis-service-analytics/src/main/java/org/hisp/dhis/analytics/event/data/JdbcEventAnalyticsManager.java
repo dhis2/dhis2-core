@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.Collections.singleton;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
@@ -37,10 +38,10 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ORG_UNIT_STRUCT_ALI
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
@@ -64,6 +65,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -78,8 +80,8 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.system.util.MathUtils;
@@ -108,14 +110,17 @@ public class JdbcEventAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EventAnalyticsManager
 {
+    protected static final String OPEN_IN = " in (";
 
-    private static final String OPEN_IN = " in (";
+    private final TimeFieldSqlRenderer timeFieldSqlRenderer;
 
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
-        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
+        TimeFieldSqlRenderer timeFieldSqlRenderer )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
+        this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
     @Override
@@ -314,7 +319,7 @@ public class JdbcEventAnalyticsManager
     protected String getSelectClause( EventQueryParams params )
     {
         ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate", "storedby" );
+            .add( "psi", "ps", "executiondate", "storedby", "lastupdated" );
 
         if ( params.getProgram().isRegistration() )
         {
@@ -394,32 +399,8 @@ public class JdbcEventAnalyticsManager
         // Periods
         // ---------------------------------------------------------------------
 
-        if ( params.hasNonDefaultBoundaries() )
-        {
-            for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
-            {
-                sql += hlp.whereAnd() + " "
-                    + statementBuilder.getBoundaryCondition( boundary, params.getProgramIndicator(),
-                        params.getEarliestStartDate(), params.getLatestEndDate() )
-                    + " ";
-            }
-        }
-        else if ( params.hasStartEndDate() )
-        {
-            String timeCol = params.getOutputType() == EventOutputType.ENROLLMENT
-                ? quoteAlias( TimeField.ENROLLMENT_DATE.getField() )
-                : quoteAlias( TimeField.EVENT_DATE.getField() );
-
-            sql += hlp.whereAnd() + " " + timeCol + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-            sql += hlp.whereAnd() + " " + timeCol + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
-        }
-        else // Periods
-        {
-            String alias = getPeriodAlias( params );
-
-            sql += hlp.whereAnd() + " " + quote( alias, params.getPeriodType().toLowerCase() ) + OPEN_IN
-                + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) ) + ") ";
-        }
+        sql += hlp.whereAnd() + " "
+            + timeFieldSqlRenderer.renderTimeFieldSql( params, singleton( TimeField.LAST_UPDATED ) );
 
         // ---------------------------------------------------------------------
         // Organisation units
@@ -441,13 +422,20 @@ public class JdbcEventAnalyticsManager
         }
         else // Descendants
         {
-            DimensionalObject orgUnitDim = params.getDimensionOrFilter( ORGUNIT_DIM_ID );
-
             String orgUnitAlias = getOrgUnitAlias( params );
-            String orgUnitCol = quote( orgUnitAlias, orgUnitDim.getDimensionName() );
 
-            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
-                getQuotedCommaDelimitedString( getUids( orgUnitDim.getItems() ) ) + ") ";
+            sql += hlp.whereAnd() + " (";
+
+            for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
+            {
+                OrganisationUnit unit = (OrganisationUnit) object;
+
+                String orgUnitCol = quote( orgUnitAlias, "uidlevel" + unit.getLevel() );
+
+                sql += orgUnitCol + " = '" + unit.getUid() + "' or ";
+            }
+
+            sql = removeLastOr( sql ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -487,8 +475,9 @@ public class JdbcEventAnalyticsManager
 
                     if ( IN.equals( filter.getOperator() ) )
                     {
-                        QueryFilter inQueryFilter = new InQueryFilter( field, filter );
-                        sql += hlp.whereAnd() + " " + getSqlFilter( inQueryFilter, item );
+                        InQueryFilter inQueryFilter = new InQueryFilter( field, filter );
+                        sql += hlp.whereAnd() + " " + inQueryFilter.renderSqlFilter( item.isText(),
+                            toEncode -> statementBuilder.encode( toEncode, false ) );
                     }
                     else
                     {
