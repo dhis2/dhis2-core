@@ -59,6 +59,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.hisp.dhis.actions.IdGenerator;
@@ -101,23 +102,24 @@ public class JsonFileReader
     @Override
     public FileReader replacePropertyValuesWith( String propertyName, String replacedValue )
     {
-        replace( p -> {
-            JsonObject object = ((JsonElement) p).getAsJsonObject();
-
+        replace( obj, jsonObject -> {
+            if ( !jsonObject.has( propertyName ) )
+            {
+                return;
+            }
             if ( replacedValue.equalsIgnoreCase( "uniqueid" ) )
             {
-                object.addProperty( propertyName, new IdGenerator().generateUniqueId() );
+                jsonObject.addProperty( propertyName, new IdGenerator().generateUniqueId() );
             }
             else
             {
-                object.addProperty( propertyName, replacedValue );
+                jsonObject.addProperty( propertyName, replacedValue );
             }
-
-            return object;
         } );
 
         return this;
     }
+
 
     public JsonObject get()
     {
@@ -149,5 +151,29 @@ public class JsonFileReader
 
         obj = newObj;
         return this;
+    }
+
+    private void replace( JsonElement root, Consumer<JsonObject> function )
+    {
+        if ( root.isJsonArray() )
+        {
+            for ( JsonElement e : root.getAsJsonArray() )
+            {
+                replace( e,function );
+            }
+        }
+        else if ( root.isJsonObject() )
+        {
+            JsonObject jsonObjRoot = root.getAsJsonObject();
+            function.accept( jsonObjRoot );
+            for ( String key : jsonObjRoot.keySet() )
+            {
+                JsonElement element = jsonObjRoot.get( key );
+                if ( element.isJsonArray() )
+                {
+                    replace( element,function );
+                }
+            }
+        }
     }
 }
