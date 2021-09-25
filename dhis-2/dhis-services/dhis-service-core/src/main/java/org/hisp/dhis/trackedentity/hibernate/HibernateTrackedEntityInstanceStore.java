@@ -130,6 +130,10 @@ public class HibernateTrackedEntityInstanceStore
 
     private static final String PSI_STATUS = "PSI.status";
 
+    private static final String TEI_LASTUPDATED = " tei.lastUpdated";
+
+    private static final String GT_EQUAL = " >= ";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -361,27 +365,28 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasLastUpdatedDuration() )
         {
-            hql += hlp.whereAnd() + " tei.lastUpdated >= '" +
+            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + " '" +
                 getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
         else
         {
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(), () -> " tei.lastUpdated >= '" +
-                getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(),
+                () -> TEI_LASTUPDATED + GT_EQUAL + " '" +
+                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
 
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> " tei.lastUpdated < '" +
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> TEI_LASTUPDATED + " < '" +
                 getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
         }
 
         hql += addWhereConditionally( hlp, params.isSynchronizationQuery(),
-            () -> " tei.lastUpdated > tei.lastSynchronized" );
+            () -> TEI_LASTUPDATED + " > tei.lastSynchronized" );
 
         // Comparing milliseconds instead of always creating new Date( 0 )
 
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            hql += hlp.whereAnd() + " tei.lastUpdated >= '" + skipChangedBefore + "'";
+            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + " '" + skipChangedBefore + "'";
         }
 
         params.handleOrganisationUnits();

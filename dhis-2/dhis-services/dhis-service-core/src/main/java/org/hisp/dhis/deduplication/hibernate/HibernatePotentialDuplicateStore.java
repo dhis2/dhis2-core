@@ -27,12 +27,19 @@
  */
 package org.hisp.dhis.deduplication.hibernate;
 
+import static org.hisp.dhis.common.AuditType.CREATE;
+import static org.hisp.dhis.common.AuditType.DELETE;
+import static org.hisp.dhis.common.AuditType.UPDATE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -52,14 +59,17 @@ import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -70,22 +80,26 @@ public class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate>
     implements PotentialDuplicateStore
 {
-    private final RelationshipStore relationshipStore;
-
     private final AuditManager auditManager;
 
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+
+    private final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+
+    private final DhisConfigurationProvider config;
 
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        RelationshipStore relationshipStore, TrackedEntityInstanceStore trackedEntityInstanceStore,
-        AuditManager auditManager )
+        TrackedEntityInstanceStore trackedEntityInstanceStore, AuditManager auditManager,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        DhisConfigurationProvider config )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
-        this.relationshipStore = relationshipStore;
         this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.auditManager = auditManager;
+        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
+        this.config = config;
     }
 
     @Override
@@ -171,48 +185,107 @@ public class HibernatePotentialDuplicateStore
     public void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> trackedEntityAttributes )
     {
-        List<TrackedEntityAttributeValue> attributeValuesToMove = duplicate.getTrackedEntityAttributeValues()
+        // Collect existing teav from original for the tea list
+        Map<String, TrackedEntityAttributeValue> originalAttributeValueMap = new HashMap<>();
+        original.getTrackedEntityAttributeValues().forEach( oav -> {
+            if ( trackedEntityAttributes.contains( oav.getAttribute().getUid() ) )
+            {
+                originalAttributeValueMap.put( oav.getAttribute().getUid(), oav );
+            }
+        } );
+
+        duplicate.getTrackedEntityAttributeValues()
             .stream()
             .filter( av -> trackedEntityAttributes.contains( av.getAttribute().getUid() ) )
-            .collect( Collectors.toList() );
-        duplicate.getTrackedEntityAttributeValues().removeAll( attributeValuesToMove );
+            .forEach( av -> {
 
-        attributeValuesToMove.forEach( av -> av.setEntityInstance( original ) );
+                TrackedEntityAttributeValue updatedTeav;
+                org.hisp.dhis.common.AuditType auditType;
+                if ( originalAttributeValueMap.containsKey( av.getAttribute().getUid() ) )
+                {
+                    // Teav exists in original, overwrite the value
+                    updatedTeav = originalAttributeValueMap.get( av.getAttribute().getUid() );
+                    updatedTeav.setValue( av.getValue() );
+                    auditType = UPDATE;
+                }
+                else
+                {
+                    // teav does not exist in original, so create new and attach
+                    // it to original
+                    updatedTeav = new TrackedEntityAttributeValue();
+                    updatedTeav.setAttribute( av.getAttribute() );
+                    updatedTeav.setEntityInstance( original );
+                    updatedTeav.setValue( av.getValue() );
+                    auditType = CREATE;
+                }
+                getSession().delete( av );
+                // We need to flush to make sure the previous teav is
+                // deleted.
+                // Or else we might end up breaking a
+                // constraint, since hibernate does not respect order.
+                getSession().flush();
 
-        original.getTrackedEntityAttributeValues().addAll( attributeValuesToMove );
+                getSession().saveOrUpdate( updatedTeav );
+
+                auditTeav( av, updatedTeav, auditType );
+
+            } );
+    }
+
+    private void auditTeav( TrackedEntityAttributeValue av, TrackedEntityAttributeValue createOrUpdateTeav,
+        org.hisp.dhis.common.AuditType auditType )
+    {
+        String currentUsername = currentUserService.getCurrentUsername();
+
+        TrackedEntityAttributeValueAudit deleteTeavAudit = new TrackedEntityAttributeValueAudit( av, av.getAuditValue(),
+            currentUsername, DELETE );
+        TrackedEntityAttributeValueAudit updatedTeavAudit = new TrackedEntityAttributeValueAudit( createOrUpdateTeav,
+            createOrUpdateTeav.getValue(), currentUsername, auditType );
+
+        if ( config.isEnabled( CHANGELOG_TRACKER ) )
+        {
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( deleteTeavAudit );
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( updatedTeavAudit );
+        }
     }
 
     @Override
     public void moveRelationships( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> relationships )
     {
-        List<RelationshipItem> relationshipsToMove = duplicate.getRelationshipItems()
+        duplicate.getRelationshipItems()
             .stream()
             .filter( r -> relationships.contains( r.getRelationship().getUid() ) )
-            .collect( Collectors.toList() );
-        duplicate.getRelationshipItems().removeAll( relationshipsToMove );
-        relationshipsToMove.stream()
-            .forEach( r -> {
-                if ( Objects.equals( r.getTrackedEntityInstance().getUid(), duplicate.getUid() ) )
-                {
-                    r.setTrackedEntityInstance( original );
-                }
+            .forEach( ri -> {
+                ri.setTrackedEntityInstance( original );
+
+                getSession().update( ri );
             } );
-        original.getRelationshipItems().addAll( relationshipsToMove );
     }
 
     @Override
     public void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> enrollments )
     {
-        List<ProgramInstance> programInstancesToMove = duplicate.getProgramInstances()
+        List<ProgramInstance> pis = duplicate.getProgramInstances()
             .stream()
+            .filter( e -> !e.isDeleted() )
             .filter( e -> enrollments.contains( e.getUid() ) )
             .collect( Collectors.toList() );
-        duplicate.getProgramInstances().removeAll( programInstancesToMove );
-        programInstancesToMove
-            .forEach( e -> e.setEntityInstance( original ) );
-        original.getProgramInstances().addAll( programInstancesToMove );
+
+        pis.forEach( duplicate.getProgramInstances()::remove );
+
+        pis.forEach( e -> {
+            e.setEntityInstance( original );
+            e.setLastUpdatedBy( currentUserService.getCurrentUser() );
+            e.setLastUpdatedByUserInfo( UserInfoSnapshot.from( currentUserService.getCurrentUser() ) );
+            e.setLastUpdated( new Date() );
+            getSession().update( e );
+        } );
+
+        // Flush to update records before we delete duplicate, or else it might
+        // be soft-deleted by hibernate.
+        getSession().flush();
     }
 
     @Override
@@ -224,18 +297,8 @@ public class HibernatePotentialDuplicateStore
     @Override
     public void auditMerge( DeduplicationMergeParams params )
     {
-        TrackedEntityInstance original = params.getOriginal();
         TrackedEntityInstance duplicate = params.getDuplicate();
         MergeObject mergeObject = params.getMergeObject();
-
-        auditManager.send( Audit.builder()
-            .auditScope( AuditScope.TRACKER )
-            .auditType( AuditType.UPDATE )
-            .createdAt( LocalDateTime.now() )
-            .object( original )
-            .uid( original.getUid() )
-            .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, original ) )
-            .build() );
 
         mergeObject.getRelationships().forEach( rel -> {
             duplicate.getRelationshipItems().stream()
@@ -251,14 +314,5 @@ public class HibernatePotentialDuplicateStore
                     .auditableEntity( new AuditableEntity( Relationship.class, relationship ) )
                     .build() ) );
         } );
-
-        auditManager.send( Audit.builder()
-            .auditScope( AuditScope.TRACKER )
-            .auditType( AuditType.DELETE )
-            .createdAt( LocalDateTime.now() )
-            .object( duplicate )
-            .uid( duplicate.getUid() )
-            .auditableEntity( new AuditableEntity( TrackedEntityInstance.class, duplicate ) )
-            .build() );
     }
 }

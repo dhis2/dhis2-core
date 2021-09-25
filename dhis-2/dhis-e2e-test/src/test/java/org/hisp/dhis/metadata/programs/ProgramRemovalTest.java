@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.metadata.programs;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.io.File;
-
+import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
+import java.io.File;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -88,15 +88,11 @@ public class ProgramRemovalTest
             .get( JsonObject.class ).getAsJsonArray( "relationshipTypes" ).get( 0 )
             .getAsJsonObject();
 
-        JsonObject constraint = new JsonObject();
-
-        constraint.addProperty( "relationshipEntity", "PROGRAM_STAGE_INSTANCE" );
-
-        JsonObject program = new JsonObject();
-        program.addProperty( "id", programId );
-
-        constraint.add( "program", program );
-        relationshipType.add( "toConstraint", constraint );
+        new JsonObjectBuilder( relationshipType )
+            .addObject( "toConstraint", new JsonObjectBuilder()
+                .addProperty( "relationshipEntity", "PROGRAM_STAGE_INSTANCE" )
+                .addObject( "program", new JsonObjectBuilder().addProperty( "id", programId ) )
+            ).build();
 
         relationshipTypeId = relationshipTypeActions.create( relationshipType );
         assertNotNull( relationshipTypeId, "Failed to create relationshipType" );

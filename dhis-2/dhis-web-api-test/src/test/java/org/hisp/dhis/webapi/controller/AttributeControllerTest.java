@@ -25,31 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc.messageconverter;
+package org.hisp.dhis.webapi.controller;
 
-import javax.annotation.Nonnull;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.Assert.assertEquals;
 
-import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.node.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
-
-import com.google.common.collect.ImmutableList;
+import org.hisp.dhis.attribute.Attribute.ObjectType;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Tests the {@link AttributeController}.
  */
-@Component
-public class ExcelMessageConverter extends AbstractRootNodeMessageConverter
+public class AttributeControllerTest extends DhisControllerConvenienceTest
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "vnd.ms-excel" ) )
-        .build();
 
-    public ExcelMessageConverter( @Nonnull @Autowired NodeService nodeService )
+    /**
+     * Tests that each type only sets the property the type relates to
+     */
+    @Test
+    public void testObjectTypes()
     {
-        super( nodeService, "application/vnd.ms-excel", "xlsx", Compression.NONE );
-        setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+        for ( ObjectType testedType : ObjectType.values() )
+        {
+            String propertyName = testedType.getPropertyName();
+            String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" +
+                "'name':'" + testedType + "', " +
+                "'valueType':'INTEGER', " +
+                "'" + propertyName + "':true}" ) );
+            JsonObject attr = GET( "/attributes/{uid}", uid ).content();
+
+            for ( ObjectType otherType : ObjectType.values() )
+            {
+                assertEquals( testedType == otherType,
+                    attr.getBoolean( otherType.getPropertyName() ).booleanValue() );
+            }
+        }
     }
+
 }

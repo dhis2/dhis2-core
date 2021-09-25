@@ -74,7 +74,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
     public Authentication authenticate( Authentication auth )
         throws AuthenticationException
     {
-        log.info( String.format( "Login attempt: %s", auth.getName() ) );
+        log.debug( String.format( "Login attempt: %s", auth.getName() ) );
 
         String username = auth.getName();
 
@@ -94,7 +94,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         // Check two-factor authentication
         // -------------------------------------------------------------------------
 
-        if ( userCredentials.isTwoFA() )
+        if ( userCredentials.isTwoFA() && auth.getDetails() instanceof TwoFactorWebAuthenticationDetails )
         {
             TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
@@ -127,6 +127,10 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
                 throw new BadCredentialsException( "Invalid verification code" );
             }
+        }
+        else if ( userCredentials.isTwoFA() && !(auth.getDetails() instanceof TwoFactorWebAuthenticationDetails) )
+        {
+            throw new BadCredentialsException( "Can't authenticate non form based login with 2FA enabled" );
         }
 
         // -------------------------------------------------------------------------

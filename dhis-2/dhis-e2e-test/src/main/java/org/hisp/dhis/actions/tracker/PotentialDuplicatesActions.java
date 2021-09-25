@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.actions.tracker;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-
-import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -53,5 +52,22 @@ public class PotentialDuplicatesActions
             .build();
 
         return this.post( object );
+    }
+
+    public String createAndValidatePotentialDuplicate( String teiA, String teiB, String status )
+    {
+        return createPotentialDuplicate( teiA, teiB, status )
+            .validateStatus( 200 )
+            .extractString( "id" );
+    }
+
+    public ApiResponse manualMergePotentialDuplicate( String potentialDuplicate, JsonObject jsonObject )
+    {
+        return this.post( String.format( "/%s/merge?mergeStrategy=MANUAL", potentialDuplicate ), jsonObject );
+    }
+
+    public ApiResponse autoMergePotentialDuplicate( String potentialDuplicate )
+    {
+        return this.post( String.format( "/%s/merge?mergeStrategy=AUTO", potentialDuplicate ), new JsonObject() );
     }
 }

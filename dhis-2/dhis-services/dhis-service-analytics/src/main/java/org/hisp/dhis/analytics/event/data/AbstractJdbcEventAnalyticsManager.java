@@ -56,6 +56,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -63,8 +64,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -84,10 +83,6 @@ import com.google.common.collect.Lists;
 @Slf4j
 public abstract class AbstractJdbcEventAnalyticsManager
 {
-    private static final String ITEM_NAME_SEP = ": ";
-
-    private static final String NA = "[N/A]";
-
     protected static final String COL_COUNT = "count";
 
     protected static final String COL_EXTENT = "extent";
@@ -398,11 +393,37 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 for ( QueryItem queryItem : params.getItems() )
                 {
 
-                    String itemValue = rowSet.getString( queryItem.getItemName() );
-                    String gridValue = params.isCollapseDataDimensions()
-                        ? getCollapsedDataItemValue( queryItem, itemValue )
-                        : itemValue;
-                    grid.addValue( gridValue );
+                    String itemName = rowSet.getString( queryItem.getItemName() );
+                    String itemValue = params.isCollapseDataDimensions()
+                        ? QueryItemHelper.getCollapsedDataItemValue( queryItem, itemName )
+                        : itemName;
+
+                    if ( params.getOutputIdScheme() == null || params.getOutputIdScheme() == IdScheme.NAME )
+                    {
+                        grid.addValue( itemValue );
+                    }
+                    else
+                    {
+                        String value = null;
+
+                        String itemOptionValue = QueryItemHelper.getItemOptionValue( itemValue, params );
+
+                        if ( itemOptionValue != null && !itemOptionValue.trim().isEmpty() )
+                        {
+                            value = itemOptionValue;
+                        }
+                        else
+                        {
+                            String legendItemValue = QueryItemHelper.getItemLegendValue( itemValue, params );
+
+                            if ( legendItemValue != null && !legendItemValue.trim().isEmpty() )
+                            {
+                                value = legendItemValue;
+                            }
+                        }
+
+                        grid.addValue( value == null ? itemValue : value );
+                    }
                 }
             }
 
@@ -501,41 +522,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     return "count(" + quoteAlias( "psi" ) + ")";
                 }
             }
-        }
-    }
-
-    /**
-     * Returns an item value for the given query, query item and value. Assumes
-     * that data dimensions are collapsed for the given query. Returns the short
-     * name of the given query item followed by the item value. If the given
-     * query item has a legend set, the item value is treated as an id and
-     * substituted with the matching legend name. If the given query item has an
-     * option set, the item value is treated as a code and substituted with the
-     * matching option name.
-     *
-     * @param item the {@link QueryItem}.
-     * @param itemValue the item value.
-     */
-    private String getCollapsedDataItemValue( QueryItem item, String itemValue )
-    {
-        String value = item.getItem().getDisplayShortName() + ITEM_NAME_SEP;
-
-        Legend legend;
-        Option option;
-
-        if ( item.hasLegendSet() && (legend = item.getLegendSet().getLegendByUid( itemValue )) != null )
-        {
-            return value + legend.getDisplayName();
-        }
-        else if ( item.hasOptionSet() && (option = item.getOptionSet().getOptionByCode( itemValue )) != null )
-        {
-            return value + option.getDisplayName();
-        }
-        else
-        {
-            itemValue = StringUtils.defaultString( itemValue, NA );
-
-            return value + itemValue;
         }
     }
 
@@ -643,16 +629,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
         String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
 
         return item.getSqlFilter( filter, encodedFilter );
-    }
-
-    /**
-     * Returns the analytics table alias for the period dimension.
-     *
-     * @param params the event query parameters.
-     */
-    protected String getPeriodAlias( EventQueryParams params )
-    {
-        return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
     }
 
     /**

@@ -107,7 +107,7 @@ public class ImportStrategyTests
         response.validateSuccessfulImport()
             .validate().body( "stats.deleted", Matchers.equalTo( 1 ) );
 
-        trackerActions.get( "/trackedEntities/" + teiId )
+        trackerActions.getTrackedEntity( teiId )
             .validate().statusCode( 404 );
         trackerActions.get( "/enrollments/" + enrollmentId )
             .validate().statusCode( 404 );
@@ -138,7 +138,7 @@ public class ImportStrategyTests
         response.validateSuccessfulImport()
             .validate().body( "stats.deleted", Matchers.equalTo( 4 ) );
 
-        trackerActions.get( "/trackedEntities/" + teiId )
+        trackerActions.getTrackedEntity( teiId )
             .validate().statusCode( 404 );
         trackerActions.get( "/enrollments/" + enrollmentId )
             .validate().statusCode( 404 );

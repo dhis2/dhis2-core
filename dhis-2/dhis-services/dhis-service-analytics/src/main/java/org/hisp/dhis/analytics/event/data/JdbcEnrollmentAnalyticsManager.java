@@ -207,7 +207,8 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.hasNonDefaultBoundaries() )
         {
-            sql += statementBuilder.getBoundaryCondition( params.getProgramIndicator(), params.getEarliestStartDate(),
+            sql += statementBuilder.getBoundaryCondition( params.getProgramIndicator(), params.getTimeFieldAsField(),
+                params.getEarliestStartDate(),
                 params.getLatestEndDate(), hlp );
         }
         else
@@ -290,8 +291,9 @@ public class JdbcEnrollmentAnalyticsManager
 
                     if ( IN.equals( filter.getOperator() ) )
                     {
-                        QueryFilter inQueryFilter = new InQueryFilter( field, filter );
-                        sql += "and " + getSqlFilter( inQueryFilter, item );
+                        InQueryFilter inQueryFilter = new InQueryFilter( field, filter );
+                        sql += hlp.whereAnd() + " " + inQueryFilter.renderSqlFilter( item.isText(),
+                            toEncode -> statementBuilder.encode( toEncode, false ) );
                     }
                     else
                     {

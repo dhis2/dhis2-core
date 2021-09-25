@@ -25,54 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.resourcetable.table;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+package org.hisp.dhis.actions;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.BaseDimensionalObject;
+import com.google.gson.JsonArray;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.utils.DataGenerator;
 
 /**
- * @author Luciano Fiandesio
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class UniqueNameVerifier
+public class UserRoleActions
+    extends RestApiActions
 {
-
-    protected List<String> columnNames = new ArrayList<>();
-
-    /**
-     * Returns the short name in quotes for the given
-     * {@see BaseDimensionalObject}, ensuring that the short name is unique
-     * across the list of BaseDimensionalObject this class operates on
-     *
-     * @param baseDimensionalObject a {@see BaseDimensionalObject}
-     * @return a unique, quoted short name
-     */
-    protected String ensureUniqueShortName( BaseDimensionalObject baseDimensionalObject )
+    public UserRoleActions()
     {
-        String columnName = quote( baseDimensionalObject.getShortName()
-            + (columnNames.contains( baseDimensionalObject.getShortName() ) ? columnNames.size() : "") );
-
-        this.columnNames.add( baseDimensionalObject.getShortName() );
-
-        return columnName;
+        super( "/userRoles" );
     }
 
-    /**
-     * Returns the name in quotes, ensuring that the name is unique across the
-     * list of objects this class operates on
-     *
-     * @param name a String
-     * @return a unique, quoted name
-     */
-    protected String ensureUniqueName( String name )
+    public String createWithAuthorities( String... authorities )
     {
-        String columnName = quote( name + (columnNames.contains( name ) ? columnNames.size() : "") );
+        JsonArray auths = new JsonArray();
+        for ( String authority : authorities )
+        {
+            auths.add( authority );
+        }
 
-        this.columnNames.add( name );
-
-        return columnName;
+        return this.create( new JsonObjectBuilder()
+            .addProperty( "name", DataGenerator.randomString() )
+            .addArray( "authorities", auths ).build() );
     }
 }

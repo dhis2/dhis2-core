@@ -124,7 +124,7 @@ public class SmsMessageSender
     {
         if ( !hasRecipients( users ) )
         {
-            log.info( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
+            log.debug( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
 
             return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(),
                 GatewayResponse.NO_RECIPIENT, false );
@@ -136,7 +136,7 @@ public class SmsMessageSender
 
         if ( toSendList.isEmpty() )
         {
-            log.info( GatewayResponse.SMS_DISABLED.getResponseMessage() );
+            log.debug( GatewayResponse.SMS_DISABLED.getResponseMessage() );
 
             return new OutboundMessageResponse( GatewayResponse.SMS_DISABLED.getResponseMessage(),
                 GatewayResponse.SMS_DISABLED, false );
@@ -170,7 +170,7 @@ public class SmsMessageSender
     {
         if ( !hasRecipients( recipients ) )
         {
-            log.info( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
+            log.debug( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
 
             return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(),
                 GatewayResponse.NO_RECIPIENT, false );
@@ -180,7 +180,7 @@ public class SmsMessageSender
 
         if ( defaultGateway == null )
         {
-            log.info( "Gateway configuration does not exist" );
+            log.debug( "Gateway configuration does not exist" );
 
             return new OutboundMessageResponse( NO_CONFIG, GatewayResponse.NO_GATEWAY_CONFIGURATION, false );
         }
@@ -265,7 +265,7 @@ public class SmsMessageSender
 
                 for ( List<String> to : slices )
                 {
-                    log.info( "Sending SMS to " + to );
+                    log.debug( "Sending SMS to " + to );
 
                     status = smsGateway.send( subject, text, new HashSet<>( to ), gatewayConfig );
 
@@ -314,7 +314,7 @@ public class SmsMessageSender
 
         if ( okCodes.contains( gatewayResponse ) )
         {
-            log.info( "SMS sent" );
+            log.debug( "SMS sent" );
 
             status.setOk( true );
             sms.setStatus( OutboundSmsStatus.SENT );
@@ -379,7 +379,7 @@ public class SmsMessageSender
             summary.setBatchStatus( OutboundMessageBatchStatus.COMPLETED );
             summary.setResponseMessage( "SENT" );
 
-            log.info( "SMS batch processed successfully" );
+            log.debug( "SMS batch processed successfully" );
         }
 
         return summary;

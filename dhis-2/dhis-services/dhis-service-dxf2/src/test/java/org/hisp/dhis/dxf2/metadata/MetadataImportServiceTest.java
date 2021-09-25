@@ -58,6 +58,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -1159,6 +1160,23 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         Program program = manager.get( "QIHW6CBdLsP" );
         assertEquals( 1, program.getSharing().getUserGroups().size() );
+    }
+
+    @Test
+    public void testImportEventReportWithProgramIndicators()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/eventreport_with_program_indicator.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        EventReport eventReport = manager.get( EventReport.class, "pCSijMNjMcJ" );
+        assertNotNull( eventReport.getProgramIndicatorDimensions() );
+        assertEquals( 1, eventReport.getProgramIndicatorDimensions().size() );
+        assertEquals( "Cl00ghs775c", eventReport.getProgramIndicatorDimensions().get( 0 ).getUid() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,

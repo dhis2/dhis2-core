@@ -30,6 +30,7 @@
     <module>dhis-service-audit-consumer</module>
     <!-- Level 4 -->
     <module>dhis-service-node</module>
+    <module>dhis-service-field-filtering</module>
     <!-- Level 5 -->
     <module>dhis-service-core</module>
     <!-- Level 6 -->

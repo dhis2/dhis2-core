@@ -25,48 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc.messageconverter;
 
-import javax.annotation.Nonnull;
+package org.hisp.dhis.actions;
 
-import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.node.NodeService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-
-import com.google.common.collect.ImmutableList;
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class CsvMessageConverter extends AbstractRootNodeMessageConverter
+public class AuditActions
+    extends RestApiActions
 {
-    public static final ImmutableList<MediaType> SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "csv" ) )
-        .add( new MediaType( "text", "csv" ) )
-        .build();
-
-    public static final ImmutableList<MediaType> GZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "csv+gzip" ) )
-        .build();
-
-    public static final ImmutableList<MediaType> ZIP_SUPPORTED_MEDIA_TYPES = ImmutableList.<MediaType> builder()
-        .add( new MediaType( "application", "csv+zip" ) )
-        .build();
-
-    public CsvMessageConverter( @Autowired @Nonnull NodeService nodeService, Compression compression )
+    public AuditActions()
     {
-        super( nodeService, "application/csv", "csv", compression );
-        switch ( getCompression() )
-        {
-        case NONE:
-            setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
-        }
+        super( "/audits" );
+    }
+
+    public ApiResponse getTrackedEntityAttributeValueAudits( String tei )
+    {
+        return this.get( "/trackedEntityAttributeValue?tei=" + tei );
     }
 }
+
