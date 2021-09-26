@@ -28,7 +28,6 @@
 package org.hisp.dhis.parser.expression;
 
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
-import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_REGENERATE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
@@ -46,6 +45,7 @@ import org.hisp.dhis.antlr.AntlrExpressionVisitor;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -61,6 +61,7 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipTypeService;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 /**
@@ -146,15 +147,20 @@ public class CommonExpressionVisitor
     private Double days = null;
 
     /**
+     * The {@see DimensionalItemObject}s present in the expression.
+     */
+    private Map<DimensionalItemId, DimensionalItemObject> dimItemMap;
+
+    /**
      * Values to use for dimensional items in evaluating an expression.
      */
-    private Map<String, Double> itemValueMap;
+    private Map<DimensionalItemObject, Object> itemValueMap;
 
     /**
      * Dimensional item values by period for aggregating in evaluating an
      * expression.
      */
-    private MapMap<Period, String, Double> periodItemValueMap;
+    private MapMap<Period, DimensionalItemObject, Object> periodItemValueMap;
 
     /**
      * Periods to sample over for predictor sample functions.
@@ -316,10 +322,11 @@ public class CommonExpressionVisitor
      * this is likely for some function that is testing for nulls, and a missing
      * value should not count towards the MissingValueStrategy.
      *
-     * @param value the (possibly null) value
+     * @param value the (possibly null) value.
+     * @param valueType the type of value to substitute if null.
      * @return the value we should return.
      */
-    public Object handleNulls( Object value )
+    public Object handleNulls( Object value, ValueType valueType )
     {
         if ( replaceNulls )
         {
@@ -327,7 +334,7 @@ public class CommonExpressionVisitor
 
             if ( value == null )
             {
-                return DOUBLE_VALUE_IF_NULL;
+                return ValidationUtils.getNullReplacementValue( valueType );
             }
             else
             {
@@ -500,11 +507,6 @@ public class CommonExpressionVisitor
         return periodOffset;
     }
 
-    public void setPeriodOffset( int periodOffset )
-    {
-        this.periodOffset = periodOffset;
-    }
-
     public Set<DimensionalItemId> getItemIds()
     {
         return itemIds;
@@ -540,22 +542,32 @@ public class CommonExpressionVisitor
         this.orgUnitCountMap = orgUnitCountMap;
     }
 
-    public Map<String, Double> getItemValueMap()
+    public Map<DimensionalItemObject, Object> getItemValueMap()
     {
         return itemValueMap;
     }
 
-    public void setItemValueMap( Map<String, Double> itemValueMap )
+    public void setDimItemMap( Map<DimensionalItemId, DimensionalItemObject> dimItemMap )
+    {
+        this.dimItemMap = dimItemMap;
+    }
+
+    public Map<DimensionalItemId, DimensionalItemObject> getDimItemMap()
+    {
+        return dimItemMap;
+    }
+
+    public void setItemValueMap( Map<DimensionalItemObject, Object> itemValueMap )
     {
         this.itemValueMap = itemValueMap;
     }
 
-    public MapMap<Period, String, Double> getPeriodItemValueMap()
+    public MapMap<Period, DimensionalItemObject, Object> getPeriodItemValueMap()
     {
         return periodItemValueMap;
     }
 
-    public void setPeriodItemValueMap( MapMap<Period, String, Double> periodItemValueMap )
+    public void setPeriodItemValueMap( MapMap<Period, DimensionalItemObject, Object> periodItemValueMap )
     {
         this.periodItemValueMap = periodItemValueMap;
     }
