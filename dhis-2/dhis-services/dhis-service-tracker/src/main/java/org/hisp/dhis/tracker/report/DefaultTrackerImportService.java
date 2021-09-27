@@ -153,7 +153,7 @@ public class DefaultTrackerImportService
             return true;
         }
 
-        if ( !trackerBundle.isSkipRuleEngine() )
+        if ( !trackerBundle.isSkipRuleEngine() && !params.getImportStrategy().isDelete() )
         {
             validationReport.add( execRuleEngine( params, opsTimer, trackerBundle ) );
         }
