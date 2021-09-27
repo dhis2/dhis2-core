@@ -235,6 +235,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
     {
         property.setPersisted( true );
         property.setWritable( true );
+        property.setFieldName( persisted.getFieldName() );
         property.setUnique( persisted.isUnique() );
         property.setRequired( persisted.isRequired() );
         property.setLength( persisted.getLength() );
