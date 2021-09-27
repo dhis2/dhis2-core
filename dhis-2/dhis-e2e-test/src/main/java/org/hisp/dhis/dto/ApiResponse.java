@@ -33,8 +33,6 @@ import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
 
-import org.hisp.dhis.helpers.JsonObjectBuilder;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -42,7 +40,6 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -133,7 +130,6 @@ public class ApiResponse
     {
         return extractJsonObject( "" );
     }
-
 
     public JsonObjectBuilder getBodyAsJsonBuilder()
     {

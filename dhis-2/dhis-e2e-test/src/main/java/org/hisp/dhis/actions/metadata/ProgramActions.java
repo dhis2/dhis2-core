@@ -97,9 +97,9 @@ public class ProgramActions
         return post( object );
     }
 
-    public String createTrackerProgram( String trackedEntityTypeId, String... orgUnitIds )
+    public ApiResponse createTrackerProgram( String trackedEntityTypeId, String... orgUnitIds )
     {
-        return createProgram( "WITH_REGISTRATION", trackedEntityTypeId, orgUnitIds ).validateStatus( 201 ).extractUid();
+        return createProgram( "WITH_REGISTRATION", trackedEntityTypeId, orgUnitIds ).validateStatus( 201 );
     }
 
     public ApiResponse createEventProgram( String... orgUnitsIds )
@@ -127,18 +127,28 @@ public class ProgramActions
         return post( object );
     }
 
-    public void addProgramStage( String programId, String programStageId )
+    public ApiResponse addProgramStage( String programId, String programStageId )
     {
         JsonObject body = get( programId ).getBody();
-        JsonObjectBuilder.jsonObject( body )
-            .addOrAppendToArray( "programStages", new JsonObjectBuilder().addProperty( "id", programStageId ).build() );
+        JsonArray programStages = new JsonArray();
+        JsonObject programStage = new JsonObject();
 
-        update( programId, body ).validate().statusCode( 200 );
+        programStage.addProperty( "id", programStageId );
+
+        programStages.add( programStage );
+
+        body.add( "programStages", programStages );
+
+        return update( programId, body );
     }
 
     public String createProgramStage( String name )
     {
-        ApiResponse response = programStageActions.post( new JsonObjectBuilder().addProperty( "name", name ).build() );
+        JsonObject body = new JsonObject();
+
+        body.addProperty( "name", name );
+
+        ApiResponse response = programStageActions.post( body );
         response.validate().statusCode( Matchers.is( Matchers.oneOf( 201, 200 ) ) );
 
         return response.extractUid();
@@ -146,14 +156,22 @@ public class ProgramActions
 
     public ApiResponse addOrganisationUnits( String programId, String... orgUnitIds )
     {
-        JsonObjectBuilder builder = JsonObjectBuilder.jsonObject( this.get( programId ).getBody() );
+        JsonObject object = this.get( programId ).getBody();
+
+        JsonArray orgUnits = Optional.ofNullable( object.getAsJsonArray( "organisationUnits" ) )
+            .orElse( new JsonArray() );
 
         for ( String ouid : orgUnitIds )
         {
-            builder.addOrAppendToArray( "organisationUnits", new JsonObjectBuilder().addProperty( "id", ouid ).build() );
+            JsonObject orgUnit = new JsonObject();
+            orgUnit.addProperty( "id", ouid );
+
+            orgUnits.add( orgUnit );
         }
 
-        return this.update( programId, builder.build());
+        object.add( "organisationUnits", orgUnits );
+
+        return this.update( programId, object );
     }
 
     public ApiResponse addDataElement( String programStageId, String dataElementId, boolean isMandatory )

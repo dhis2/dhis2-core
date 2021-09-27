@@ -147,7 +147,6 @@ public class TrackerNtiApiTest
     @AfterEach
     public void afterEachNTI()
     {
-        loginActions.loginAsAdmin();
         new MaintenanceActions().removeSoftDeletedData();
     }
 }

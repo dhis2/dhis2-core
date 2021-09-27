@@ -179,7 +179,7 @@ public class EnrollmentsOwnershipTests
     }
 
     private String createProtectedProgram() {
-        String programId = programActions.createTrackerProgram( trackedEntityType, captureOu, searchOu );
+        String programId = programActions.createTrackerProgram( trackedEntityType, captureOu, searchOu ).extractUid();
 
         JsonObject program = programActions.get( programId )
             .getBody();

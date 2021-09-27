@@ -389,7 +389,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
             return Optional.ofNullable( trackedEntityProgramOwner )
                 .map( tepo -> {
-                    return recursivelyUnproxyOrgUnit( tepo.getOrganisationUnit() );
+                    return recursivelyInitializeOrgUnit( tepo.getOrganisationUnit() );
                 } )
                 .orElseGet( orgUnitIfMissingSupplier );
 
@@ -397,16 +397,16 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     /**
-     * This method unproxies the OrganisationUnit passed on in the arguments.
-     * All the parent OrganisationUnits are also recurseively unproxied. This is
-     * done to be able to serialize and deserialize the ownership orgUnit into
-     * redis cache.
+     * This method initializes the OrganisationUnit passed on in the arguments.
+     * All the parent OrganisationUnits are also recurseively initialized. This
+     * is done to be able to serialize and deserialize the ownership orgUnit
+     * into redis cache.
      *
      *
      * @param organisationUnit
      * @return
      */
-    private OrganisationUnit recursivelyUnproxyOrgUnit( OrganisationUnit organisationUnit )
+    private OrganisationUnit recursivelyInitializeOrgUnit( OrganisationUnit organisationUnit )
     {
         // TODO: Modify the {@link
         // OrganisationUnit#isDescendant(OrganisationUnit)} and {@link
@@ -414,14 +414,14 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         // methods to use path parameter instead of recursively visiting the
         // parent OrganisationUnits.
 
-        OrganisationUnit root = Hibernate.unproxy( organisationUnit, OrganisationUnit.class );
-        OrganisationUnit current = root;
+        Hibernate.initialize( organisationUnit );
+        OrganisationUnit current = organisationUnit;
         while ( current.getParent() != null )
         {
-            current.setParent( Hibernate.unproxy( current.getParent(), OrganisationUnit.class ) );
+            Hibernate.initialize( current.getParent() );
             current = current.getParent();
         }
-        return root;
+        return organisationUnit;
     }
 
     /**
