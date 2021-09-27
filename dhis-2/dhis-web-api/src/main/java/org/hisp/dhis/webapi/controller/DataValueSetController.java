@@ -55,8 +55,6 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -85,6 +83,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -116,23 +116,18 @@ public class DataValueSetController
     // Get
     // -------------------------------------------------------------------------
 
-    @GetMapping( params = { "format", "attachment", "compression" } )
-    public void getDataValueSetXml( DataValueSetQueryParams params,
+    @GetMapping( params = { "format", "compression", "attachment" } )
+    public void getDataValueSet(
+        DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
-        @RequestParam( required = false, defaultValue = "json" ) String format,
+        @RequestParam( required = false ) String format,
         IdSchemes idSchemes, HttpServletResponse response )
         throws IOException
     {
         setNoStore( response );
 
-        if ( "json".equals( format ) )
-        {
-            response.setContentType( CONTENT_TYPE_JSON );
-            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "json" );
-            dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), outputStream );
-        }
-        else if ( "xml".equals( format ) )
+        if ( "xml".equals( format ) )
         {
             response.setContentType( CONTENT_TYPE_XML );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
@@ -142,9 +137,15 @@ public class DataValueSetController
         {
             response.setContentType( CONTENT_TYPE_CSV );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
-
             PrintWriter printWriter = new PrintWriter( outputStream );
             dataValueSetService.writeDataValueSetCsv( dataValueSetService.getFromUrl( params ), printWriter );
+        }
+        else
+        {
+            // default to json
+            response.setContentType( CONTENT_TYPE_JSON );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "json" );
+            dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), outputStream );
         }
     }
 
@@ -366,13 +367,12 @@ public class DataValueSetController
 
         if ( Compression.GZIP == compression )
         {
-            fileName = fileName.replace( "." + format + ".gz", "" );
             fileName = fileName.replace( "." + format + ".gzip", "" );
+            fileName = fileName.replace( "." + format + ".gz", "" );
 
             response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
                 "attachment; filename=" + fileName + "." + format + ".gz" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
-
             return new GZIPOutputStream( response.getOutputStream() );
         }
         else if ( Compression.ZIP == compression )
@@ -384,7 +384,7 @@ public class DataValueSetController
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
 
             ZipOutputStream outputStream = new ZipOutputStream( response.getOutputStream() );
-            outputStream.putNextEntry( new ZipEntry( fileName ) );
+            outputStream.putNextEntry( new ZipEntry( fileName + "." + format ) );
 
             return outputStream;
         }
@@ -397,7 +397,6 @@ public class DataValueSetController
                 response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
                 response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
-
             return response.getOutputStream();
         }
     }
