@@ -118,6 +118,8 @@ public class EnrollmentsOwnershipTests
         trackerActions.postAndGetJobReport( object )
             .validateErrorReport()
             .body( "errorCode", hasItems( "E1000" ) );
+
+        loginActions.loginAsAdmin();
     }
 
     @ValueSource( strings = { "CREATE_AND_UPDATE", "UPDATE", "DELETE" })
@@ -129,6 +131,8 @@ public class EnrollmentsOwnershipTests
         trackerActions.postAndGetJobReport( enrollment, new QueryParamsBuilder().add( "importStrategy="  + importStrategy) )
             .validateErrorReport()
             .body( "errorCode", hasItems( "E1102" ) );
+
+        loginActions.loginAsAdmin();
     }
 
     @Test
@@ -153,9 +157,10 @@ public class EnrollmentsOwnershipTests
         trackerActions.getTrackedEntity( tei + "?fields=enrollments").validate().statusCode( 200 )
             .body( "enrollments", hasSize(0) );
 
+        loginActions.loginAsAdmin();
+
     }
 
-    @Test
     protected String createUserWithAccessToOu()
     {
         String username = DataGenerator.randomString();
