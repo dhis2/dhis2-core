@@ -55,6 +55,8 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -84,8 +86,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -368,6 +368,7 @@ public class DataValueSetController
 
         if ( Compression.GZIP == compression )
         {
+            // make sure to remove format + gz/gzip extension if present
             fileName = fileName.replace( "." + format + ".gzip", "" );
             fileName = fileName.replace( "." + format + ".gz", "" );
 
@@ -378,6 +379,7 @@ public class DataValueSetController
         }
         else if ( Compression.ZIP == compression )
         {
+            // make sure to remove format + zip extension if present
             fileName = fileName.replace( "." + format + ".zip", "" );
 
             response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
@@ -398,6 +400,7 @@ public class DataValueSetController
                 response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
                 response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
+
             return response.getOutputStream();
         }
     }
