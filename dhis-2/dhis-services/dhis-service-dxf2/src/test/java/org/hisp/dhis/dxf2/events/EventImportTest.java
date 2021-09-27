@@ -38,6 +38,8 @@ import static org.junit.Assert.assertThat;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -153,6 +155,8 @@ public class EventImportTest
     private ProgramInstance pi;
 
     private Event event;
+
+    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -345,8 +349,12 @@ public class EventImportTest
 
     @Test
     public void testAddEventOnProgramWithRegistration()
-        throws IOException
+        throws IOException,
+        ParseException
     {
+        String lastupdateDateBefore = trackedEntityInstanceService
+            .getTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() ).getLastUpdated();
+
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
@@ -356,6 +364,14 @@ public class EventImportTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        cleanSession();
+
+        assertTrue( simpleDateFormat.parse(
+            trackedEntityInstanceService
+                .getTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() ).getLastUpdated() )
+            .getTime() > simpleDateFormat
+                .parse( lastupdateDateBefore ).getTime() );
     }
 
     @Test
