@@ -72,6 +72,7 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -127,13 +128,13 @@ public class DataValueSetController
     {
         setNoStore( response );
 
-        if ( "xml".equals( format ) )
+        if ( RenderFormat.isXml( format ) )
         {
             response.setContentType( CONTENT_TYPE_XML );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
             dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), outputStream );
         }
-        else if ( "csv".equals( format ) )
+        if ( RenderFormat.isCsv( format ) )
         {
             response.setContentType( CONTENT_TYPE_CSV );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
