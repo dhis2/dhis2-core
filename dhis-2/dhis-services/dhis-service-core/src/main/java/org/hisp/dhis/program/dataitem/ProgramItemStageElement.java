@@ -72,7 +72,7 @@ public class ProgramItemStageElement
 
         visitor.getItemDescriptions().put( ctx.getText(), description );
 
-        return ValidationUtils.getSubstitutionValue( dataElement.getValueType() );
+        return ValidationUtils.getNullReplacementValue( dataElement.getValueType() );
     }
 
     @Override

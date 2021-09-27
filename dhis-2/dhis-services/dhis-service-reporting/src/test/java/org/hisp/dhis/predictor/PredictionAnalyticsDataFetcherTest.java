@@ -155,13 +155,13 @@ public class PredictionAnalyticsDataFetcherTest
 
     PredictionAnalyticsDataFetcher fetcher;
 
-    MapMapMap<String, Period, DimensionalItemObject, Double> aocExpected;
+    MapMapMap<String, Period, DimensionalItemObject, Object> aocExpected;
 
-    MapMapMap<String, Period, DimensionalItemObject, Double> aocData;
+    MapMapMap<String, Period, DimensionalItemObject, Object> aocData;
 
-    MapMap<Period, DimensionalItemObject, Double> nonAocExpected;
+    MapMap<Period, DimensionalItemObject, Object> nonAocExpected;
 
-    MapMap<Period, DimensionalItemObject, Double> nonAocData;
+    MapMap<Period, DimensionalItemObject, Object> nonAocData;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -345,9 +345,9 @@ public class PredictionAnalyticsDataFetcherTest
     {
         for ( int i = 0; i < TEST_SIZE; i++ )
         {
-            MapMapMap<String, Period, DimensionalItemObject, Double> aocData = fetcher.getAocData( orgUnits.get( i ) );
+            MapMapMap<String, Period, DimensionalItemObject, Object> aocData = fetcher.getAocData( orgUnits.get( i ) );
 
-            MapMapMap<String, Period, DimensionalItemObject, Double> expected = new MapMapMap<>();
+            MapMapMap<String, Period, DimensionalItemObject, Object> expected = new MapMapMap<>();
 
             switch ( i )
             {
@@ -395,9 +395,9 @@ public class PredictionAnalyticsDataFetcherTest
 
         for ( int i = 0; i < TEST_SIZE; i++ )
         {
-            MapMap<Period, DimensionalItemObject, Double> nonAocData = fetcher.getNonAocData( orgUnits.get( i ) );
+            MapMap<Period, DimensionalItemObject, Object> nonAocData = fetcher.getNonAocData( orgUnits.get( i ) );
 
-            MapMap<Period, DimensionalItemObject, Double> expected = new MapMap<>();
+            MapMap<Period, DimensionalItemObject, Object> expected = new MapMap<>();
 
             switch ( i )
             {

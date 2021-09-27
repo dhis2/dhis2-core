@@ -63,8 +63,6 @@ public class PredictionWriter
 
     private PredictionSummary summary;
 
-    private String storedBy;
-
     private CachingMap<String, CategoryOptionCombo> cocMap = new CachingMap<>();
 
     public PredictionWriter( DataValueService dataValueService, BatchHandlerFactory batchHandlerFactory )
@@ -81,13 +79,11 @@ public class PredictionWriter
      *
      * @param existingOutputPeriods existing output periods before transation.
      * @param summary prediction summary into which to write statistics.
-     * @param storedBy string to identify the user storing the predicted values.
      */
-    public void init( Set<Period> existingOutputPeriods, PredictionSummary summary, String storedBy )
+    public void init( Set<Period> existingOutputPeriods, PredictionSummary summary )
     {
         this.existingOutputPeriods = existingOutputPeriods;
         this.summary = summary;
-        this.storedBy = storedBy;
 
         dataValueBatchHandler = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ).init();
     }
