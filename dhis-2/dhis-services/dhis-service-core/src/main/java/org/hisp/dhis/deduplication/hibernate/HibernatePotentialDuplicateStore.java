@@ -310,7 +310,8 @@ public class HibernatePotentialDuplicateStore
                     .auditScope( AuditScope.TRACKER )
                     .auditType( AuditType.UPDATE )
                     .createdAt( LocalDateTime.now() )
-                    .object( HibernateProxyUtils.getRealClass( relationship ) )
+                    .object( relationship )
+                    .klass( HibernateProxyUtils.getRealClass( relationship ).getCanonicalName() )
                     .uid( rel )
                     .auditableEntity( new AuditableEntity( Relationship.class, relationship ) )
                     .build() ) );
