@@ -55,8 +55,6 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -86,6 +84,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -134,7 +134,7 @@ public class DataValueSetController
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
             dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), outputStream );
         }
-        if ( RenderFormat.isCsv( format ) )
+        else if ( RenderFormat.isCsv( format ) )
         {
             response.setContentType( CONTENT_TYPE_CSV );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
