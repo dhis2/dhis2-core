@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -46,6 +47,8 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
@@ -57,6 +60,8 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -64,11 +69,19 @@ import org.hisp.dhis.tracker.report.TrackerTypeReport;
 public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends BaseIdentifiableObject>
     implements TrackerPersister<T, V>
 {
+    private static final ImmutableMap<Boolean, AuditType> AUDIT_TYPE_MAPPER = new ImmutableMap.Builder<Boolean, AuditType>()
+        .put( Boolean.TRUE, AuditType.CREATE )
+        .put( Boolean.FALSE, AuditType.UPDATE ).build();
+
     protected final ReservedValueService reservedValueService;
 
-    protected AbstractTrackerPersister( ReservedValueService reservedValueService )
+    protected final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
+
+    protected AbstractTrackerPersister( ReservedValueService reservedValueService,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService )
     {
         this.reservedValueService = reservedValueService;
+        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
     }
 
     /**
@@ -325,6 +338,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             .stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
+        boolean allowAuditLog = trackedEntityInstance.getTrackedEntityType().isAllowAuditLog();
+
         for ( Attribute at : payloadAttributes )
         {
             boolean isNew = false;
@@ -367,6 +382,14 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 }
 
                 saveOrUpdate( session, isNew, attributeValue );
+
+                if ( allowAuditLog )
+                {
+                    TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
+                        attributeValue, attributeValue.getValue(), preheat.getUsername(),
+                        AUDIT_TYPE_MAPPER.get( isNew ) );
+                    trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( valueAudit );
+                }
             }
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )

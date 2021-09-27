@@ -68,7 +68,7 @@ public class TrackedEntityProgramAttributeTest
     protected void initTest()
         throws IOException
     {
-        setUpMetadata("tracker/te_program_with_tea_metadata.json");
+        setUpMetadata( "tracker/te_program_with_tea_metadata.json" );
     }
 
     @Test
