@@ -60,6 +60,7 @@ import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
@@ -310,6 +311,7 @@ public class HibernatePotentialDuplicateStore
                     .auditType( AuditType.UPDATE )
                     .createdAt( LocalDateTime.now() )
                     .object( relationship )
+                    .klass( HibernateProxyUtils.getRealClass( relationship ).getCanonicalName() )
                     .uid( rel )
                     .auditableEntity( new AuditableEntity( Relationship.class, relationship ) )
                     .build() ) );
