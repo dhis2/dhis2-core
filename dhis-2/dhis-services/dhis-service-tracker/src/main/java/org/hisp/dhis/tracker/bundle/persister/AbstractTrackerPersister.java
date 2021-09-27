@@ -338,13 +338,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
             if ( attributeValue == null )
             {
-                attributeValue = new TrackedEntityAttributeValue();
+                attributeValue = new TrackedEntityAttributeValue()
+                    .setAttribute( attribute )
+                    .setEntityInstance( trackedEntityInstance );
                 isNew = true;
             }
 
             attributeValue
-                .setAttribute( attribute )
-                .setEntityInstance( trackedEntityInstance )
                 .setValue( at.getValue() )
                 .setStoredBy( at.getStoredBy() );
 
