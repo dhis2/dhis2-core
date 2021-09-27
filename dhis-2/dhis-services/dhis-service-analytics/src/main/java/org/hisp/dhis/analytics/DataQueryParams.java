@@ -641,9 +641,14 @@ public class DataQueryParams
 
     private String getDimensionalItemKeywords( final DimensionItemKeywords keywords )
     {
-        return keywords.getKeywords().stream()
-            .map( DimensionItemKeywords.Keyword::getKey )
-            .collect( Collectors.joining( ":" ) );
+        if ( keywords != null )
+        {
+            return keywords.getKeywords().stream()
+                .map( DimensionItemKeywords.Keyword::getKey )
+                .collect( Collectors.joining( ":" ) );
+        }
+
+        return StringUtils.EMPTY;
     }
 
     // -------------------------------------------------------------------------
