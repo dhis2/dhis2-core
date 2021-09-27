@@ -645,7 +645,7 @@ public class DataQueryParams
 
         if ( keywords != null && !keywords.isEmpty() )
         {
-            keywords.getKeywords().forEach( k -> keys.append( "key:" ).append( "[" + k.getKey() + "]" ) );
+            keywords.getKeywords().forEach( k -> keys.append( "[" + k.getKey() + "]" ) );
         }
 
         return keys.toString();
