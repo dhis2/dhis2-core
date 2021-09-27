@@ -580,6 +580,9 @@ public class EventDataValuesValidationHookTest
         DataValue validDataValue = getDataValue();
         validDataValue.setValue( "code" );
 
+        DataValue nullDataValue = getDataValue();
+        nullDataValue.setValue( null );
+
         DataElement dataElement = new DataElement();
         dataElement.setUid( dataElementUid );
         dataElement.setValueType( ValueType.TEXT );
@@ -596,7 +599,7 @@ public class EventDataValuesValidationHookTest
         dataElement.setOptionSet( optionSet );
 
         when( validationContext.getDataElement( dataElementUid ) ).thenReturn( dataElement );
-        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
+        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue, nullDataValue ) );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
         hookToTest.validateEvent( reporter, event );
