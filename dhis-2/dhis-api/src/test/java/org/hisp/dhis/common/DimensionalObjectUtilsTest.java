@@ -211,40 +211,6 @@ public class DimensionalObjectUtilsTest
     }
 
     @Test
-    public void testReplaceOperandTotalsWithDataElements()
-    {
-        DataElement deA = new DataElement( "NameA" );
-        DataElement deB = new DataElement( "NameB" );
-        deA.setAutoFields();
-        deB.setAutoFields();
-
-        CategoryOptionCombo cocA = new CategoryOptionCombo();
-        cocA.setAutoFields();
-
-        DataElementOperand opA = new DataElementOperand( deA );
-        DataElementOperand opB = new DataElementOperand( deA, cocA );
-        DataElementOperand opC = new DataElementOperand( deB, cocA );
-
-        List<DimensionalItemObject> items = Lists.newArrayList( deB, opA, opB, opC );
-
-        assertEquals( 4, items.size() );
-        assertTrue( items.contains( deB ) );
-        assertTrue( items.contains( opA ) );
-        assertTrue( items.contains( opB ) );
-        assertTrue( items.contains( opC ) );
-        assertFalse( items.contains( deA ) );
-
-        items = DimensionalObjectUtils.replaceOperandTotalsWithDataElements( items );
-
-        assertEquals( 4, items.size() );
-        assertTrue( items.contains( deB ) );
-        assertFalse( items.contains( opA ) );
-        assertTrue( items.contains( opB ) );
-        assertTrue( items.contains( opC ) );
-        assertTrue( items.contains( deA ) );
-    }
-
-    @Test
     public void testSortKeys()
     {
         Map<String, Object> valueMap = new HashMap<>();
@@ -363,11 +329,11 @@ public class DimensionalObjectUtilsTest
         List<DimensionItemObjectValue> list = Lists.newArrayList( new DimensionItemObjectValue( deA, 10D ),
             new DimensionItemObjectValue( deB, 20D ), new DimensionItemObjectValue( deC, 30D ) );
 
-        final Map<DimensionalItemObject, Double> asMap = DimensionalObjectUtils.convertToDimItemValueMap( list );
+        final Map<DimensionalItemObject, Object> asMap = DimensionalObjectUtils.convertToDimItemValueMap( list );
 
         assertEquals( asMap.size(), 3 );
-        assertEquals( asMap.get( deA ).intValue(), 10 );
-        assertEquals( asMap.get( deB ).intValue(), 20 );
-        assertEquals( asMap.get( deC ).intValue(), 30 );
+        assertEquals( ((Double) asMap.get( deA )).intValue(), 10 );
+        assertEquals( ((Double) asMap.get( deB )).intValue(), 20 );
+        assertEquals( ((Double) asMap.get( deC )).intValue(), 30 );
     }
 }

@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dimension;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
@@ -40,7 +38,7 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertMapEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -91,7 +89,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -186,6 +186,8 @@ public class DimensionServiceTest
     private DimensionalItemId itemIdH;
 
     private Set<DimensionalItemId> itemIds;
+
+    private Map<DimensionalItemId, DimensionalItemObject> itemMap;
 
     @Autowired
     private DataElementService dataElementService;
@@ -342,6 +344,17 @@ public class DimensionServiceTest
         itemIds.add( itemIdF );
         itemIds.add( itemIdG );
         itemIds.add( itemIdH );
+
+        itemMap = ImmutableMap.<DimensionalItemId, DimensionalItemObject> builder()
+            .put( itemIdA, itemObjectA )
+            .put( itemIdB, itemObjectB )
+            .put( itemIdC, itemObjectC )
+            .put( itemIdD, itemObjectD )
+            .put( itemIdE, itemObjectE )
+            .put( itemIdF, itemObjectF )
+            .put( itemIdG, itemObjectG )
+            .put( itemIdH, itemObjectH )
+            .build();
     }
 
     @Test
@@ -546,34 +559,32 @@ public class DimensionServiceTest
     }
 
     @Test
-    public void testGetDataDimensionalItemObjects()
+    public void testGetDataDimensionalItemObjectMap()
     {
-        Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( new HashSet<>() );
+        Map<DimensionalItemId, DimensionalItemObject> result;
 
-        assertNotNull( objects );
-        assertEquals( 0, objects.size() );
+        result = dimensionService.getDataDimensionalItemObjectMap( new HashSet<>() );
 
-        objects = dimensionService.getDataDimensionalItemObjects( itemIds );
+        assertNotNull( result );
+        assertEquals( 0, result.size() );
 
-        assertNotNull( objects );
-        assertEquals( 8, objects.size() );
+        result = dimensionService.getDataDimensionalItemObjectMap( itemIds );
 
-        assertTrue( objects.contains( itemObjectA ) );
-        assertTrue( objects.contains( itemObjectB ) );
-        assertTrue( objects.contains( itemObjectC ) );
-        assertTrue( objects.contains( itemObjectD ) );
-        assertTrue( objects.contains( itemObjectE ) );
-        assertTrue( objects.contains( itemObjectF ) );
-        assertTrue( objects.contains( itemObjectG ) );
-        assertTrue( objects.contains( itemObjectH ) );
+        assertEquals( itemMap, result );
     }
 
     @Test
-    public void testGetDataDimensionalItemObjectsWithOffsetValue()
+    public void testGetIndicatorDataDimensionalItemMapWithOffsetValue()
     {
+        Map<DimensionalItemId, DimensionalItemObject> result;
+
         // Given
         int offset = 1;
         Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
+
+        deA.setPeriodOffset( offset );
+        deB.setPeriodOffset( offset );
+        deC.setPeriodOffset( offset );
 
         DimensionalItemId itemIdA = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), offset );
         DimensionalItemId itemIdB = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), offset );
@@ -583,71 +594,63 @@ public class DimensionServiceTest
         dimensionalItemIds.add( itemIdB );
         dimensionalItemIds.add( itemIdC );
 
+        Map<DimensionalItemId, DimensionalItemObject> dimensionalItemMap = ImmutableMap.of(
+            itemIdA, deA,
+            itemIdB, deB,
+            itemIdC, deC );
+
         // When
-        Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( dimensionalItemIds );
+        result = dimensionService.getDataDimensionalItemObjectMap( dimensionalItemIds );
 
         // Then
-        assertEquals( 3, objects.size() );
-        for ( DimensionalItemObject object : objects )
-        {
-            assertThat( object.getPeriodOffset(), is( 1 ) );
-        }
+        assertEquals( dimensionalItemMap, result );
     }
 
     @Test
-    public void testGetDataDimensionalItemObjectsReturnsItemWithAllOffsets()
+    public void testGetDataDimensionalItemObjectMapReturnsItemsWithAllOffsets()
     {
-        // Given
-        Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
+        Map<DimensionalItemId, DimensionalItemObject> result;
 
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid() ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid() ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid() ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 1 ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 1 ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 1 ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 2 ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 2 ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 2 ) );
+        DimensionalItemId deAId = new DimensionalItemId( DATA_ELEMENT, deA.getUid() );
+        DimensionalItemId deBId = new DimensionalItemId( DATA_ELEMENT, deB.getUid() );
+        DimensionalItemId deCId = new DimensionalItemId( DATA_ELEMENT, deC.getUid() );
+        DimensionalItemId deAOffset1Id = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 1 );
+        DimensionalItemId deBOffset1Id = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 1 );
+        DimensionalItemId deCOffset1Id = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 1 );
+        DimensionalItemId deAOffset2Id = new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 2 );
+        DimensionalItemId deBOffset2Id = new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 2 );
+        DimensionalItemId deCOffset2Id = new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 2 );
+
+        DataElement deAOffset1 = makeDataElementOffsetFrom( deA, 1 );
+        DataElement deBOffset1 = makeDataElementOffsetFrom( deB, 1 );
+        DataElement deCOffset1 = makeDataElementOffsetFrom( deC, 1 );
+        DataElement deAOffset2 = makeDataElementOffsetFrom( deA, 2 );
+        DataElement deBOffset2 = makeDataElementOffsetFrom( deB, 2 );
+        DataElement deCOffset2 = makeDataElementOffsetFrom( deC, 2 );
+
+        Set<DimensionalItemId> dimensionalItemIds = Sets.newHashSet(
+            deAId, deBId, deCId,
+            deAOffset1Id, deBOffset1Id, deCOffset1Id,
+            deAOffset2Id, deBOffset2Id, deCOffset2Id );
+
+        ImmutableMap<DimensionalItemId, DimensionalItemObject> dimensionalItemMap = ImmutableMap
+            .<DimensionalItemId, DimensionalItemObject> builder()
+            .put( deAId, deA )
+            .put( deBId, deB )
+            .put( deCId, deC )
+            .put( deAOffset1Id, deAOffset1 )
+            .put( deBOffset1Id, deBOffset1 )
+            .put( deCOffset1Id, deCOffset1 )
+            .put( deAOffset2Id, deAOffset2 )
+            .put( deBOffset2Id, deBOffset2 )
+            .put( deCOffset2Id, deCOffset2 )
+            .build();
 
         // When
-        Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( dimensionalItemIds );
+        result = dimensionService.getDataDimensionalItemObjectMap( dimensionalItemIds );
 
         // Then
-        assertContainsOnly( objects,
-            dataElementWithOffset( deA, 0 ),
-            dataElementWithOffset( deB, 0 ),
-            dataElementWithOffset( deC, 0 ),
-            dataElementWithOffset( deA, 1 ),
-            dataElementWithOffset( deB, 1 ),
-            dataElementWithOffset( deC, 1 ),
-            dataElementWithOffset( deA, 2 ),
-            dataElementWithOffset( deB, 2 ),
-            dataElementWithOffset( deC, 2 ) );
-    }
-
-    @Test
-    public void testGetDataDimensionalItemObjectMap()
-    {
-        Map<DimensionalItemId, DimensionalItemObject> map = dimensionService
-            .getDataDimensionalItemObjectMap( new HashSet<>() );
-
-        assertNotNull( map );
-        assertEquals( 0, map.size() );
-
-        map = dimensionService.getDataDimensionalItemObjectMap( itemIds );
-
-        assertNotNull( map );
-        assertEquals( 8, map.size() );
-
-        assertEquals( itemObjectA, map.get( itemIdA ) );
-        assertEquals( itemObjectB, map.get( itemIdB ) );
-        assertEquals( itemObjectC, map.get( itemIdC ) );
-        assertEquals( itemObjectD, map.get( itemIdD ) );
-        assertEquals( itemObjectE, map.get( itemIdE ) );
-        assertEquals( itemObjectF, map.get( itemIdF ) );
-        assertEquals( itemObjectG, map.get( itemIdG ) );
-        assertEquals( itemObjectH, map.get( itemIdH ) );
+        assertMapEquals( dimensionalItemMap, result );
     }
 
     @Test
@@ -679,15 +682,18 @@ public class DimensionServiceTest
         assertEquals( psA, dim.getProgramStage() );
     }
 
-    // --------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Supportive methods
-    // --------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
-    private DataElement dataElementWithOffset( DataElement dataElement, int periodOffset )
+    /**
+     * Make a DataElement with periodOffset based on another DataElement.
+     */
+    private DataElement makeDataElementOffsetFrom( DataElement dataElement, int offset )
     {
         DataElement de = SerializationUtils.clone( dataElement );
 
-        de.setPeriodOffset( periodOffset );
+        de.setPeriodOffset( offset );
 
         return de;
     }
