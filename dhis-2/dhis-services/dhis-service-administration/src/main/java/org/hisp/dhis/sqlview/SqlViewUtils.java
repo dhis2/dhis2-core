@@ -99,24 +99,22 @@ public class SqlViewUtils
      */
     public static String substituteSqlVariable( String sql, String name, String value )
     {
-        final String regex = "\\$\\{(" + name + ")\\}";
-
         if ( value != null && SqlView.isValidQueryValue( value ) )
         {
-            return sql.replaceAll( regex, value );
+            return sql.replace( "${" + name + "}", value );
         }
 
         return sql;
     }
 
     /**
-     * Replaces all query separators ";" with whitespaces in the given SQL.
+     * Removes all query separators ";" in the given SQL.
      *
      * @param sql the SQL.
      * @return the replaced SQL.
      */
     public static String removeQuerySeparator( String sql )
     {
-        return sql.replaceAll( ";", "" );
+        return sql.replace( ";", "" );
     }
 }
