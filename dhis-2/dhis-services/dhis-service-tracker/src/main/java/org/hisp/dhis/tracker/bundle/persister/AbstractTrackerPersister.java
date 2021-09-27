@@ -383,13 +383,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
                 saveOrUpdate( session, isNew, attributeValue );
 
-                if ( allowAuditLog )
-                {
-                    TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
-                        attributeValue, attributeValue.getValue(), preheat.getUsername(),
-                        AUDIT_TYPE_MAPPER.get( isNew ) );
-                    trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( valueAudit );
-                }
+                logTrackedEntityAttributeValueHistory( isNew, preheat.getUsername(), attributeValue,
+                    trackedEntityInstance );
             }
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
@@ -397,6 +392,21 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(),
                     attributeValue.getValue() );
             }
+        }
+    }
+
+    private void logTrackedEntityAttributeValueHistory( boolean isNew, String userName,
+        TrackedEntityAttributeValue attributeValue, TrackedEntityInstance trackedEntityInstance )
+    {
+        boolean allowAuditLog = trackedEntityInstance.getTrackedEntityType().isAllowAuditLog();
+
+        if ( allowAuditLog )
+        {
+            TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
+                attributeValue, attributeValue.getValue(), userName,
+                AUDIT_TYPE_MAPPER.get( isNew ) );
+            valueAudit.setEntityInstance( trackedEntityInstance );
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( valueAudit );
         }
     }
 
