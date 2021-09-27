@@ -599,8 +599,10 @@ public class DataQueryParams
     {
         QueryKey key = new QueryKey();
 
-        dimensions.forEach( e -> key.add( "dimension", "[" + e.getKey() + "]" ) );
-        filters.forEach( e -> key.add( "filter", "[" + e.getKey() + "]" ) );
+        dimensions.forEach( e -> key.add( "dimension",
+            "[" + e.getKey() + "]" + getDimensionalItemKeywords( e.getDimensionItemKeywords() ) ) );
+        filters.forEach( e -> key.add( "filter",
+            "[" + e.getKey() + "]" + getDimensionalItemKeywords( e.getDimensionItemKeywords() ) ) );
 
         measureCriteria.forEach( ( k, v ) -> key.add( "measureCriteria", (String.valueOf( k ) + v) ) );
         preAggregateMeasureCriteria
@@ -634,28 +636,19 @@ public class DataQueryParams
             .add( "timeField", timeField )
             .add( "orgUnitField", orgUnitField )
             .add( "userOrgUnitType", userOrgUnitType )
-            .add( "dimensionItemKeywords", getDimensionalItemKeywords( filters ) )
             .addIgnoreNull( "apiVersion", apiVersion ).build();
     }
 
-    private String getDimensionalItemKeywords( final List<DimensionalObject> filters )
+    private String getDimensionalItemKeywords( final DimensionItemKeywords keywords )
     {
-        final StringBuilder keys = new StringBuilder();
-
-        if ( org.apache.commons.collections4.CollectionUtils.isNotEmpty( filters ) )
+        if ( keywords != null )
         {
-            for ( final DimensionalObject dimensionalObject : filters )
-            {
-                final DimensionItemKeywords keywords = dimensionalObject.getDimensionItemKeywords();
-
-                if ( keywords != null && !keywords.isEmpty() )
-                {
-                    keywords.getKeywords().forEach( k -> keys.append( "key:" ).append( "[" + k.getKey() + "]" ) );
-                }
-            }
+            return keywords.getKeywords().stream()
+                .map( DimensionItemKeywords.Keyword::getKey )
+                .collect( Collectors.joining( ":" ) );
         }
 
-        return keys.toString();
+        return StringUtils.EMPTY;
     }
 
     // -------------------------------------------------------------------------

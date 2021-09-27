@@ -31,9 +31,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -194,12 +192,5 @@ public class EventChartController
         chart.getColumnDimensions().addAll( getDimensions( chart.getColumns() ) );
         chart.getRowDimensions().addAll( getDimensions( chart.getRows() ) );
         chart.getFilterDimensions().addAll( getDimensions( chart.getFilters() ) );
-    }
-
-    public static void main( String[] args )
-    {
-        List<String> l = new ArrayList<>( null );
-
-        System.out.println( l );
     }
 }
