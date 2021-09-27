@@ -39,6 +39,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.period.Period;
@@ -106,7 +108,7 @@ public abstract class VectorFunction
      */
     public Object vectorHandleNulls( Object value, CommonExpressionVisitor visitor )
     {
-        return visitor.handleNulls( value );
+        return visitor.handleNulls( value, ValueType.NUMBER );
     }
 
     /**
@@ -142,7 +144,7 @@ public abstract class VectorFunction
     {
         int savedItemsFound = visitor.getItemsFound();
         int savedItemValuesFound = visitor.getItemValuesFound();
-        Map<String, Double> savedItemValueMap = visitor.getItemValueMap();
+        Map<DimensionalItemObject, Object> savedItemValueMap = visitor.getItemValueMap();
 
         List<Double> values = new ArrayList<>();
 

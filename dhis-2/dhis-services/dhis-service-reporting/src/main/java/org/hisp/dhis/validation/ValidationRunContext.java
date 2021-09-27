@@ -52,12 +52,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * This class keeps track of a validation analysis. It contains information
- * about the initial params of the analysis, The current state of the analysis
+ * about the initial params of the analysis, the current state of the analysis
  * and the final results of the analysis.
  *
  * @author Stian Sandvold
  */
-@Component( " org.hisp.dhis.validation.ValidationRunContext" )
+@Component( "org.hisp.dhis.validation.ValidationRunContext" )
 @Scope( "prototype" )
 public class ValidationRunContext
 {
@@ -75,7 +75,7 @@ public class ValidationRunContext
 
     private Set<CategoryOption> coDimensionConstraints;
 
-    private Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap;
+    private Map<DimensionalItemId, DimensionalItemObject> itemMap;
 
     // -------------------------------------------------------------------------
     // Properties to configure analysis
@@ -167,9 +167,9 @@ public class ValidationRunContext
         return coDimensionConstraints;
     }
 
-    public Map<DimensionalItemId, DimensionalItemObject> getDimensionItemMap()
+    public Map<DimensionalItemId, DimensionalItemObject> getItemMap()
     {
-        return dimensionItemMap;
+        return itemMap;
     }
 
     public boolean isSendNotifications()
@@ -380,9 +380,9 @@ public class ValidationRunContext
             return this;
         }
 
-        public Builder withDimensionItemMap( Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap )
+        public Builder withItemMap( Map<DimensionalItemId, DimensionalItemObject> itemMap )
         {
-            this.context.dimensionItemMap = dimensionItemMap;
+            this.context.itemMap = itemMap;
             return this;
         }
 
