@@ -25,52 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute;
 
-import static java.util.Arrays.stream;
+package org.hisp.dhis.actions;
 
-import java.util.List;
-
-import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface AttributeStore
-    extends IdentifiableObjectStore<Attribute>
+public class AuditActions
+    extends RestApiActions
 {
-    String ID = AttributeStore.class.getName();
+    public AuditActions()
+    {
+        super( "/audits" );
+    }
 
-    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = stream( ObjectType.values() )
-        .collect( ImmutableMap.toImmutableMap( ObjectType::getType, ObjectType::getPropertyName ) );
-
-    /**
-     * Get all metadata attributes for a given class, returns empty list for
-     * un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of attributes for this class
-     */
-    List<Attribute> getAttributes( Class<?> klass );
-
-    /**
-     * Get all mandatory metadata attributes for a given class, returns empty
-     * list for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of mandatory metadata attributes for this class
-     */
-    List<Attribute> getMandatoryAttributes( Class<?> klass );
-
-    /**
-     * Get all unique metadata attributes for a given class, returns empty list
-     * for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of unique metadata attributes for this class
-     */
-    List<Attribute> getUniqueAttributes( Class<?> klass );
+    public ApiResponse getTrackedEntityAttributeValueAudits( String tei )
+    {
+        return this.get( "/trackedEntityAttributeValue?tei=" + tei );
+    }
 }
+

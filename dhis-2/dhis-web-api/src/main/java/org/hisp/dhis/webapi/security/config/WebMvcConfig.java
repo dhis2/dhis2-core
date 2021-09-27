@@ -155,7 +155,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
 
         messageConverter.setSupportedMediaTypes( Arrays.asList(
             new MediaType( "application", "xml", StandardCharsets.UTF_8 ),
-            new MediaType( "application", "*+xml", StandardCharsets.UTF_8 ) ) );
+            new MediaType( "text", "xml", StandardCharsets.UTF_8 ) ) );
 
         return messageConverter;
     }
