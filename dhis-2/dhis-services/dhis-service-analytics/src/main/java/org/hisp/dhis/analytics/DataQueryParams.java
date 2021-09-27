@@ -641,14 +641,9 @@ public class DataQueryParams
 
     private String getDimensionalItemKeywords( final DimensionItemKeywords keywords )
     {
-        final StringBuilder keys = new StringBuilder();
-
-        if ( keywords != null && !keywords.isEmpty() )
-        {
-            keywords.getKeywords().forEach( k -> keys.append( "[" + k.getKey() + "]" ) );
-        }
-
-        return keys.toString();
+        return keywords.getKeywords().stream()
+            .map( DimensionItemKeywords.Keyword::getKey )
+            .collect( Collectors.joining( ":" ) );
     }
 
     // -------------------------------------------------------------------------
