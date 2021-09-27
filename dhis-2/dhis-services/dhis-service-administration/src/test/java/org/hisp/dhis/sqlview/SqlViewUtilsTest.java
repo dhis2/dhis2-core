@@ -59,9 +59,9 @@ public class SqlViewUtilsTest
         variables.put( "level", "4" );
         variables.put( "id", "abc" );
 
-        String sql = "select * from datavalue where level=${level} and id='${id}'";
+        String sql = "select ${level},* from datavalue where level=${level} and id='${id}'";
 
-        String expected = "select * from datavalue where level=4 and id='abc'";
+        String expected = "select 4,* from datavalue where level=4 and id='abc'";
 
         String actual = SqlViewUtils.substituteSqlVariables( sql, variables );
 
@@ -86,11 +86,23 @@ public class SqlViewUtilsTest
     @Test
     public void testSubsituteSqlVariable()
     {
-        String sql = "select * from datavalue where level=${level} and id='${id}'";
+        String sql = "select ${level},* from datavalue where level=${level} and id='${id}'";
 
-        String expected = "select * from datavalue where level=4 and id='${id}'";
+        String expected = "select 4,* from datavalue where level=4 and id='${id}'";
 
         String actual = SqlViewUtils.substituteSqlVariable( sql, "level", "4" );
+
+        assertEquals( expected, actual );
+    }
+
+    @Test
+    public void testRemoveQuerySeparator()
+    {
+        String sql = "select * from datavalue; delete from datavalue;";
+
+        String expected = "select * from datavalue delete from datavalue";
+
+        String actual = SqlViewUtils.removeQuerySeparator( sql );
 
         assertEquals( expected, actual );
     }
