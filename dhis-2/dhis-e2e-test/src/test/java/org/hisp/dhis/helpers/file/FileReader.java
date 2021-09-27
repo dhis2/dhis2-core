@@ -70,6 +70,8 @@ public interface FileReader
 
     FileReader replacePropertyValuesWith( String propertyNames, String replacedValues );
 
+    FileReader replacePropertyValuesRecursivelyWith( String propertyName, String replacedValue );
+
     FileReader replace( Function<Object, Object> function );
 
     Object get();

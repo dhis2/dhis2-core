@@ -122,9 +122,9 @@ public class TrackerNtiApiTest
     {
         JsonObject teiWithEnrollment = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
-            .replacePropertyValuesWith( "orgUnit", orgUnit )
-            .replacePropertyValuesWith( "program", programId )
-            .replacePropertyValuesWith( "programStage", programStageId )
+            .replacePropertyValuesRecursivelyWith( "orgUnit", orgUnit )
+            .replacePropertyValuesRecursivelyWith( "program", programId )
+            .replacePropertyValuesRecursivelyWith( "programStage", programStageId )
             .get( JsonObject.class );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( teiWithEnrollment );
