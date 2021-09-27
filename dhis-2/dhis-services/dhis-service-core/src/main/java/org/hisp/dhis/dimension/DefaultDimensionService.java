@@ -360,15 +360,9 @@ public class DefaultDimensionService
     @Override
     public DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId itemId )
     {
-        Set<DimensionalItemObject> itemIds = getDataDimensionalItemObjects( Sets.newHashSet( itemId ) );
+        Collection<DimensionalItemObject> items = getDataDimensionalItemObjectMap( Sets.newHashSet( itemId ) ).values();
 
-        return itemIds.isEmpty() ? null : itemIds.iterator().next();
-    }
-
-    @Override
-    public Set<DimensionalItemObject> getDataDimensionalItemObjects( Set<DimensionalItemId> itemIds )
-    {
-        return new HashSet<>( getDataDimensionalItemObjectMap( itemIds ).values() );
+        return items.isEmpty() ? null : items.iterator().next();
     }
 
     @Override
