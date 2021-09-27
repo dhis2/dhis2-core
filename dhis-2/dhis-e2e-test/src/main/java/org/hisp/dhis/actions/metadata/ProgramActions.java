@@ -59,6 +59,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -96,16 +97,16 @@ public class ProgramActions
         return post( object );
     }
 
-    public ApiResponse createTrackerProgram( String... orgUnitIds )
+    public ApiResponse createTrackerProgram( String trackedEntityTypeId, String... orgUnitIds )
     {
-        return createProgram( "WITH_REGISTRATION", orgUnitIds );
+        return createProgram( "WITH_REGISTRATION", trackedEntityTypeId, orgUnitIds ).validateStatus( 201 );
     }
 
     public ApiResponse createEventProgram( String... orgUnitsIds )
     {
         String programStageId = createProgramStage( "DEFAULT STAGE" );
 
-        JsonObject body = getDummy( "WITHOUT_REGISTRATION", orgUnitsIds );
+        JsonObject body = getDummy( "WITHOUT_REGISTRATION", null, orgUnitsIds );
 
         JsonArray programStages = new JsonArray();
 
@@ -119,9 +120,9 @@ public class ProgramActions
         return post( body );
     }
 
-    public ApiResponse createProgram( String programType, String... orgUnitIds )
+    public ApiResponse createProgram( String programType, String trackedEntityTypeId, String... orgUnitIds )
     {
-        JsonObject object = getDummy( programType, orgUnitIds );
+        JsonObject object = getDummy( programType, trackedEntityTypeId, orgUnitIds );
 
         return post( object );
     }
@@ -221,7 +222,7 @@ public class ProgramActions
         return program;
     }
 
-    JsonObject getDummy( String programType, String... orgUnitIds )
+    JsonObject getDummy( String programType,String trackedEntityTypeId, String... orgUnitIds )
     {
         JsonObject object = getDummy( programType );
         JsonArray orgUnits = new JsonArray();
@@ -232,6 +233,14 @@ public class ProgramActions
             orgUnit.addProperty( "id", ouid );
 
             orgUnits.add( orgUnit );
+        }
+
+        if ( !StringUtils.isEmpty( trackedEntityTypeId ) )
+        {
+            JsonObject tetype = new JsonObject();
+            tetype.addProperty( "id", trackedEntityTypeId );
+
+            object.add( "trackedEntityType", tetype );
         }
 
         object.add( "organisationUnits", orgUnits );

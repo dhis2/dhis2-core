@@ -139,6 +139,11 @@ public class XmlFileReader
         return this;
     }
 
+    @Override public FileReader replacePropertyValuesRecursivelyWith( String propertyName, String replacedValue )
+    {
+        return null;
+    }
+
     @Override
     public FileReader replace( Function<Object, Object> function )
     {
