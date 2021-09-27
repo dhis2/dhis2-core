@@ -369,8 +369,8 @@ public class DataValueSetController
         if ( Compression.GZIP == compression )
         {
             // make sure to remove format + gz/gzip extension if present
-            fileName = fileName.replace( "." + format + ".gzip", "" );
-            fileName = fileName.replace( "." + format + ".gz", "" );
+            fileName = stripFormatCompressionExtension( fileName, format, "gzip" );
+            fileName = stripFormatCompressionExtension( fileName, format, "gz" );
 
             response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
                 "attachment; filename=" + fileName + "." + format + ".gz" );
@@ -380,7 +380,7 @@ public class DataValueSetController
         else if ( Compression.ZIP == compression )
         {
             // make sure to remove format + zip extension if present
-            fileName = fileName.replace( "." + format + ".zip", "" );
+            fileName = stripFormatCompressionExtension( fileName, format, "zip" );
 
             response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
                 "attachment; filename=" + fileName + "." + format + ".zip" );
@@ -403,5 +403,22 @@ public class DataValueSetController
 
             return response.getOutputStream();
         }
+    }
+
+    /**
+     * Removes ".format.compression" extension if present, for example
+     * "data.xml.zip" will be replaced with "data".
+     *
+     * We do this to make sure the filename is without any additional extensions
+     * in case the client mistakenly also sends in the extension they want.
+     *
+     * @param name String to string
+     * @param format Format to match for
+     * @param compression Compression to match for
+     * @return String without .format.compression extension
+     */
+    private String stripFormatCompressionExtension( String name, String format, String compression )
+    {
+        return name != null ? name.replace( "." + format + "." + compression, "" ) : "";
     }
 }
