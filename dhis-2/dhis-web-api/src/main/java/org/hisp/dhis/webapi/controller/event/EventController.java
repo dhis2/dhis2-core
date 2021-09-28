@@ -248,7 +248,8 @@ public class EventController
 
         if ( fields.isEmpty() )
         {
-            fields.addAll( Preset.ALL.getFields() );
+            fields.add( "*" );
+            fields.add( "dataValues" );
         }
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos,
