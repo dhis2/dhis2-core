@@ -67,6 +67,7 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DataDimensionItemType;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -598,8 +599,10 @@ public class DataQueryParams
     {
         QueryKey key = new QueryKey();
 
-        dimensions.forEach( e -> key.add( "dimension", "[" + e.getKey() + "]" ) );
-        filters.forEach( e -> key.add( "filter", "[" + e.getKey() + "]" ) );
+        dimensions.forEach( e -> key.add( "dimension",
+            "[" + e.getKey() + "]" + getDimensionalItemKeywords( e.getDimensionItemKeywords() ) ) );
+        filters.forEach( e -> key.add( "filter",
+            "[" + e.getKey() + "]" + getDimensionalItemKeywords( e.getDimensionItemKeywords() ) ) );
 
         measureCriteria.forEach( ( k, v ) -> key.add( "measureCriteria", (String.valueOf( k ) + v) ) );
         preAggregateMeasureCriteria
@@ -634,6 +637,18 @@ public class DataQueryParams
             .add( "orgUnitField", orgUnitField )
             .add( "userOrgUnitType", userOrgUnitType )
             .addIgnoreNull( "apiVersion", apiVersion ).build();
+    }
+
+    private String getDimensionalItemKeywords( final DimensionItemKeywords keywords )
+    {
+        if ( keywords != null )
+        {
+            return keywords.getKeywords().stream()
+                .map( DimensionItemKeywords.Keyword::getKey )
+                .collect( Collectors.joining( ":" ) );
+        }
+
+        return StringUtils.EMPTY;
     }
 
     // -------------------------------------------------------------------------

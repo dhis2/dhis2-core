@@ -31,6 +31,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hisp.dhis.webapi.json.JsonDate;
+import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
@@ -103,5 +104,10 @@ public interface JsonIdentifiableObject extends JsonObject
     default JsonSharing getSharing()
     {
         return get( "sharing", JsonSharing.class );
+    }
+
+    default JsonList<JsonAttributeValue> getAttributeValues()
+    {
+        return getList( "attributeValues", JsonAttributeValue.class );
     }
 }

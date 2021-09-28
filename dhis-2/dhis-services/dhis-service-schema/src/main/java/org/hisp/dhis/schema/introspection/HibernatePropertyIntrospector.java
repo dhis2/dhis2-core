@@ -179,6 +179,7 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
         Type type = hibernateProperty.getType();
 
         property.setName( hibernateProperty.getName() );
+        property.setFieldName( hibernateProperty.getName() );
         property.setCascade( hibernateProperty.getCascade() );
         property.setCollection( type.isCollectionType() );
 

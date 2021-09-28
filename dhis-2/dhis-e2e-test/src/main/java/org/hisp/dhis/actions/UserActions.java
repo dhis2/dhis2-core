@@ -144,6 +144,7 @@ public class UserActions
     public void grantUserAccessToOrgUnit( String userId, String orgUnitId )
     {
         JsonObject object = this.get( userId ).getBody();
+
         JsonObject orgUnit = new JsonObject();
         orgUnit.addProperty( "id", orgUnitId );
 
@@ -152,6 +153,20 @@ public class UserActions
         object.get( "teiSearchOrganisationUnits" ).getAsJsonArray().add( orgUnit );
 
         ApiResponse response = this.update( userId, object );
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "OK" ) );
+    }
+
+    public void grantUserSearchAccessToOrgUnit( String userId, String orgUnitId ) {
+        JsonObject object = this.get( userId ).getBody();
+
+        JsonObject orgUnit = new JsonObject();
+        orgUnit.addProperty( "id", orgUnitId );
+
+        object.get( "teiSearchOrganisationUnits" ).getAsJsonArray().add( orgUnit );
+
+        ApiResponse response = this.update( userId, object );
+
         response.validate().statusCode( 200 )
             .body( "status", equalTo( "OK" ) );
     }
