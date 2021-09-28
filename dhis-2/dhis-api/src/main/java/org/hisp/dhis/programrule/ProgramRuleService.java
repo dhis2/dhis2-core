@@ -93,7 +93,7 @@ public interface ProgramRuleService
      */
     List<ProgramRule> getAllProgramRule();
 
-    List<ProgramRule> getProgramRuleByProgramStage( Set<String> programStages );
+    List<ProgramRule> getProgramRulesLinkedToTeaOrDe();
 
     List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types );
 
