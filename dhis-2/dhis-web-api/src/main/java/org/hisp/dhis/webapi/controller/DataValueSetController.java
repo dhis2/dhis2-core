@@ -39,6 +39,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExtension;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
@@ -404,22 +405,5 @@ public class DataValueSetController
 
             return response.getOutputStream();
         }
-    }
-
-    /**
-     * Removes ".format.compression" extension if present, for example
-     * "data.xml.zip" will be replaced with "data".
-     *
-     * We do this to make sure the filename is without any additional extensions
-     * in case the client mistakenly also sends in the extension they want.
-     *
-     * @param name String to string
-     * @param format Format to match for
-     * @param compression Compression to match for
-     * @return String without .format.compression extension
-     */
-    private String stripFormatCompressionExtension( String name, String format, String compression )
-    {
-        return name != null ? name.replace( "." + format + "." + compression, "" ) : "";
     }
 }
