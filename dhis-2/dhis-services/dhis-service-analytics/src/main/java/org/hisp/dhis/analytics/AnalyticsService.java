@@ -50,25 +50,20 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
  * contain indicator identifiers, the second column will contain period
  * identifiers and the third column will contain aggregated values. Note that
  * the organisation unit is excluded since it is defined as a filter:
- * </p>
  *
  * <pre>
- * {
- *     &#64;code
- *     DataQueryParams params = new DataQueryParams();
+ * DataQueryParams params = new DataQueryParams();
  *
- *     params.setIndicators( indicators );
- *     params.setPeriod( period );
- *     params.setFilterOrganisationUnit( organisationUnit );
+ * params.setIndicators( indicators );
+ * params.setPeriod( period );
+ * params.setFilterOrganisationUnit( organisationUnit );
  *
- *     Grid grid = analyticsService.getAggregatedDataValues( params );
- * }
+ * Grid grid = analyticsService.getAggregatedDataValues( params );
  * </pre>
- * <p>
+ *
  * The returned grid has a metaData object which contains metadata about the
  * response, such as a mapping between the UIDs and names of metadata objects.
  * For valid keys refer to the key property of {@link AnalyticsMetaDataKey}.
- * </p>
  * <p>
  * Example usage for including category option combos in the response. Note that
  * the index position of category option combos will follow the order of when
@@ -78,18 +73,15 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
  * will be of type String and contain a data element identifier, a category
  * option combo identifier and an organisation unit identifier in that order.
  * The map values will be the aggregated values of type Double:
- * </p>
  *
  * <pre>
- * {@code
  * DataQueryParams params = DataQueryParams.newBuilder();
- *      .withDataElements( deA, deB )
- *      .withOrganisationUnits( ouA, ouB )
- *      .withFilterPeriods( peA, peB )
- *      .build();
+ *     .withDataElements( deA, deB )
+ *     .withOrganisationUnits( ouA, ouB )
+ *     .withFilterPeriods( peA, peB )
+ *     .build();
  *
  * Map<String, Double> map = analyticsService.getAggregatedDataValueMapping( params );
- * }
  * </pre>
  *
  * @author Lars Helge Overland
