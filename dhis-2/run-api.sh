@@ -13,7 +13,6 @@ DEFAULT_DHIS2_HOME=/opt/dhis2
 DHIS2_PORT=${2:-$DEFAULT_DHIS2_PORT}
 #DHIS2_HOME=${1:-$DEFAULT_DHIS2_HOME}
 
-
 echo -e "Usage: run-api.sh ([DHIS2_HOME_FOLDER] [DHIS2_PORT])\n"
 echo -e "Note: JDK 11 or later is required!\n"
 # Define DHIS2_HOME folder here or set it before you run this script
@@ -28,8 +27,6 @@ if [[ -z "${DHIS2_HOME}" ]]; then
 else
   echo -e "Environment variable DHIS2_HOME is set.\n"
 fi
-
-
 
 echo "JAVA_HOME: $JAVA_HOME"
 echo "DHIS2_HOME: $DHIS2_HOME"
