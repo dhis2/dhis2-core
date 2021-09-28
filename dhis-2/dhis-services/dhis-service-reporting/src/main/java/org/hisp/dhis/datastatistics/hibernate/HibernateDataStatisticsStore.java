@@ -139,7 +139,7 @@ public class HibernateDataStatisticsStore
             // Logic needed to assist the deprecation process of charts and
             // report tables.
             int savedVisualizationViews = resultSet.getInt( "savedVisualizations" );
-            if ( averageVisualizationViews == 0 )
+            if ( savedVisualizationViews == 0 )
             {
                 savedVisualizationViews = resultSet.getInt( "savedCharts" ) + resultSet.getInt( "savedReportTables" );
             }
