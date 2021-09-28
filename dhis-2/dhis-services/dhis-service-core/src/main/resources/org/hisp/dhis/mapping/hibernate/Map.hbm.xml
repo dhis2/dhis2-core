@@ -44,15 +44,18 @@
       <one-to-many class="org.hisp.dhis.interpretation.Interpretation" />
     </set>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_mapview_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User"
+                 column="userid" foreign-key="fk_mapview_userid"/>
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
 
-    <property name="favorites" type="jbSet" />
+    <property name="favorites" type="jbSet"/>
 
-    <property name="subscribers" type="jbSet" />
+    <property name="subscribers" type="jbSet"/>
 
+    <!-- Dynamic attribute values -->
+    <property name="attributeValues" type="jsbAttributeValues"/>
   </class>
 
 </hibernate-mapping>

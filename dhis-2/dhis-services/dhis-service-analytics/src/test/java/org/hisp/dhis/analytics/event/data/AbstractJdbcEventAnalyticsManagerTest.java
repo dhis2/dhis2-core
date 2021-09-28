@@ -106,7 +106,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
         subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder );
+            programIndicatorSubqueryBuilder, new TimeFieldSqlRenderer( statementBuilder ) );
 
         // data init
 
@@ -370,6 +370,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
         // Then
         assertThat( whereClause,
-            containsString( "and ax.\"uidlevel1\" in ('ouabcdefghA', 'ouabcdefghB', 'ouabcdefghC')" ) );
+            containsString(
+                "and (ax.\"uidlevel0\" = 'ouabcdefghA' or ax.\"uidlevel0\" = 'ouabcdefghB' or ax.\"uidlevel0\" = 'ouabcdefghC' )" ) );
     }
 }

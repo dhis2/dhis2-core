@@ -76,7 +76,7 @@ public class AuthenticationListener
         {
             TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
 
-            log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
+            log.debug( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
         }
 
         if ( OAuth2LoginAuthenticationToken.class.isAssignableFrom( auth.getClass() ) )
@@ -93,7 +93,7 @@ public class AuthenticationListener
             WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
             String remoteAddress = tokenDetails.getRemoteAddress();
 
-            log.info( String.format( "OIDC login attempt failed for remote IP: %s", remoteAddress ) );
+            log.debug( String.format( "OIDC login attempt failed for remote IP: %s", remoteAddress ) );
         }
 
         securityService.registerFailedLogin( username );
