@@ -52,6 +52,7 @@ import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
 import static org.hisp.dhis.setting.SettingKey.getAsRealClass;
 import static org.hisp.dhis.webapi.utils.ContextUtils.getAttachmentFileName;
+import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExtension;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -244,5 +245,17 @@ public class ContextUtilsTest
     public void testGetAttachmentFileName()
     {
         assertEquals( "test.txt", getAttachmentFileName( "attachment; filename=test.txt" ) );
+    }
+
+    @Test
+    public void testStripFormatCompressionExtension()
+    {
+        assertEquals( "data", stripFormatCompressionExtension( "data.xml.zip", "xml", "zip" ) );
+        assertEquals( "data", stripFormatCompressionExtension( "data.json.zip", "json", "zip" ) );
+        assertEquals( "data.json", stripFormatCompressionExtension( "data.json.json.zip", "json", "zip" ) );
+        assertEquals( "data.json", stripFormatCompressionExtension( "data.json.json.gz", "json", "gz" ) );
+        assertEquals( "data", stripFormatCompressionExtension( "data.json.gz", "json", "gz" ) );
+        assertEquals( "data.....", stripFormatCompressionExtension( "data.....", "xml", "zip" ) );
+        assertEquals( "", stripFormatCompressionExtension( null, "xml", "zip" ) );
     }
 }
