@@ -56,9 +56,6 @@ import java.util.zip.GZIPOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
@@ -137,6 +134,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
+
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -248,7 +248,8 @@ public class EventController
 
         if ( fields.isEmpty() )
         {
-            fields.addAll( Preset.ALL.getFields() );
+            fields.add( "*" );
+            fields.add( "dataValues" );
         }
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos,
