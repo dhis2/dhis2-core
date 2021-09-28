@@ -1,0 +1,1 @@
+ALTER TABLE section ADD COLUMN IF NOT EXISTS disabledataelementautogroup BOOLEAN DEFAULT FALSE;

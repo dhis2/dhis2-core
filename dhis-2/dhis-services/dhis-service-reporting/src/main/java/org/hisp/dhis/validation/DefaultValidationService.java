@@ -90,6 +90,8 @@ public class DefaultValidationService
 
     private final ConstantService constantService;
 
+    private final IdentifiableObjectManager idObjectManager;
+
     private final ValidationNotificationService notificationService;
 
     private final ValidationRuleService validationRuleService;
@@ -104,7 +106,7 @@ public class DefaultValidationService
 
     public DefaultValidationService( PeriodService periodService, OrganisationUnitService organisationUnitService,
         ExpressionService expressionService, DimensionService dimensionService, DataValueService dataValueService,
-        CategoryService categoryService, ConstantService constantService,
+        CategoryService categoryService, ConstantService constantService, IdentifiableObjectManager idObjectManager,
         ValidationNotificationService notificationService, ValidationRuleService validationRuleService,
         ApplicationContext applicationContext, ValidationResultService validationResultService,
         AnalyticsService analyticsService, CurrentUserService currentUserService )
@@ -116,6 +118,7 @@ public class DefaultValidationService
         checkNotNull( dataValueService );
         checkNotNull( categoryService );
         checkNotNull( constantService );
+        checkNotNull( idObjectManager );
         checkNotNull( notificationService );
         checkNotNull( validationRuleService );
         checkNotNull( applicationContext );
@@ -130,6 +133,7 @@ public class DefaultValidationService
         this.dataValueService = dataValueService;
         this.categoryService = categoryService;
         this.constantService = constantService;
+        this.idObjectManager = idObjectManager;
         this.notificationService = notificationService;
         this.validationRuleService = validationRuleService;
         this.applicationContext = applicationContext;
@@ -327,7 +331,7 @@ public class DefaultValidationService
             .withPersistResults( parameters.isPersistResults() )
             .withAttributeCombo( parameters.getAttributeOptionCombo() )
             .withDefaultAttributeCombo( categoryService.getDefaultCategoryOptionCombo() )
-            .withDimensionItemMap( dimensionItemMap )
+            .withItemMap( dimensionItemMap )
             .withMaxResults( parameters.getMaxResults() );
 
         if ( currentUser != null )

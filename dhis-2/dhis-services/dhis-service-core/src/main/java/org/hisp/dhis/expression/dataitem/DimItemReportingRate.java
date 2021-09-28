@@ -49,12 +49,4 @@ public class DimItemReportingRate
             ctx.uid0.getText(),
             ctx.REPORTING_RATE_TYPE().getText() );
     }
-
-    @Override
-    public String getId( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        return ctx.uid0.getText() + "." +
-            ctx.REPORTING_RATE_TYPE().getText() +
-            (visitor.getPeriodOffset() == 0 ? "" : "." + visitor.getPeriodOffset());
-    }
 }

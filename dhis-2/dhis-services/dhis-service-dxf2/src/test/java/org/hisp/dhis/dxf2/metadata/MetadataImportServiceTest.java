@@ -60,6 +60,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
@@ -806,6 +807,12 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         ProgramStage programStage = program.getProgramStages().iterator().next();
         assertNotNull( programStage.getProgram() );
 
+        assertEquals( 3, programStage.getProgramStageDataElements().size() );
+        programStage.getProgramStageDataElements().forEach( psde -> {
+            assertNotNull( psde.getSkipAnalytics() );
+            assertFalse( psde.getSkipAnalytics() );
+        } );
+
         Set<ProgramStageSection> programStageSections = programStage.getProgramStageSections();
         assertNotNull( programStageSections );
         assertEquals( 2, programStageSections.size() );
@@ -1147,6 +1154,54 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertNotNull( mapView );
         assertEquals( "#ddeeff", mapView.getNoDataColor() );
         assertEquals( ThematicMapType.CHOROPLETH, mapView.getThematicMapType() );
+    }
+
+    /**
+     * Payload includes Program and ProgramStage with sharing settings.
+     * <p>
+     * Expected: after created, both Program and ProgramStage are saved
+     * correctly together with sharing settings.
+     */
+    @Test
+    public void testImportProgramWithProgramStageAndSharing()
+        throws IOException
+    {
+        User user = createUser( "A", "ALL" );
+        manager.save( user );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/program_programStage_with_sharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
+        params.setUser( user );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        ProgramStage programStage = programStageService.getProgramStage( "oORy3Rg9hLE" );
+        assertEquals( 1, programStage.getSharing().getUserGroups().size() );
+
+        Program program = manager.get( "QIHW6CBdLsP" );
+        assertEquals( 1, program.getSharing().getUserGroups().size() );
+    }
+
+    @Test
+    public void testImportEventReportWithProgramIndicators()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/eventreport_with_program_indicator.json" ).getInputStream(),
+            RenderFormat.JSON );
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        EventReport eventReport = manager.get( EventReport.class, "pCSijMNjMcJ" );
+        assertNotNull( eventReport.getProgramIndicatorDimensions() );
+        assertEquals( 1, eventReport.getProgramIndicatorDimensions().size() );
+        assertEquals( "Cl00ghs775c", eventReport.getProgramIndicatorDimensions().get( 0 ).getUid() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,

@@ -70,6 +70,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalKeywords;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
@@ -598,8 +599,10 @@ public class DataQueryParams
     {
         QueryKey key = new QueryKey();
 
-        dimensions.forEach( e -> key.add( "dimension", "[" + e.getKey() + "]" ) );
-        filters.forEach( e -> key.add( "filter", "[" + e.getKey() + "]" ) );
+        dimensions.forEach( e -> key.add( "dimension",
+            "[" + e.getKey() + "]" + getDimensionalItemKeywords( e.getDimensionalKeywords() ) ) );
+        filters.forEach( e -> key.add( "filter",
+            "[" + e.getKey() + "]" + getDimensionalItemKeywords( e.getDimensionalKeywords() ) ) );
 
         measureCriteria.forEach( ( k, v ) -> key.add( "measureCriteria", (String.valueOf( k ) + v) ) );
         preAggregateMeasureCriteria
@@ -639,6 +642,18 @@ public class DataQueryParams
     // -------------------------------------------------------------------------
     // Logic read methods
     // -------------------------------------------------------------------------
+
+    private String getDimensionalItemKeywords( final DimensionalKeywords keywords )
+    {
+        if ( keywords != null )
+        {
+            return keywords.getGroupBy().stream()
+                .map( DimensionalKeywords.Keyword::getKey )
+                .collect( Collectors.joining( ":" ) );
+        }
+
+        return StringUtils.EMPTY;
+    }
 
     /**
      * Returns a key representing a group of queries which should be run in

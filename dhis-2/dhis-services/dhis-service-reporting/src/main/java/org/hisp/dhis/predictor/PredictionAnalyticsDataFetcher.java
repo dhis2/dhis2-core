@@ -80,9 +80,9 @@ public class PredictionAnalyticsDataFetcher
 
     private Set<DimensionalItemObject> nonAttributeOptionItems;
 
-    private Map4<String, String, Period, DimensionalItemObject, Double> aocData;
+    private Map4<String, String, Period, DimensionalItemObject, Object> aocData;
 
-    private MapMapMap<String, Period, DimensionalItemObject, Double> nonAocData;
+    private MapMapMap<String, Period, DimensionalItemObject, Object> nonAocData;
 
     public PredictionAnalyticsDataFetcher( AnalyticsService analyticsService )
     {
@@ -121,7 +121,7 @@ public class PredictionAnalyticsDataFetcher
      * @param orgUnit organisation unit to get data for.
      * @return value map by attribute option combo and period.
      */
-    public MapMapMap<String, Period, DimensionalItemObject, Double> getAocData( OrganisationUnit orgUnit )
+    public MapMapMap<String, Period, DimensionalItemObject, Object> getAocData( OrganisationUnit orgUnit )
     {
         if ( attributeOptionItems.isEmpty() )
         {
@@ -140,7 +140,7 @@ public class PredictionAnalyticsDataFetcher
      * @param orgUnit organisation unit to get data for.
      * @return value map by period.
      */
-    public MapMap<Period, DimensionalItemObject, Double> getNonAocData( OrganisationUnit orgUnit )
+    public MapMap<Period, DimensionalItemObject, Object> getNonAocData( OrganisationUnit orgUnit )
     {
         if ( nonAttributeOptionItems.isEmpty() )
         {
@@ -233,7 +233,7 @@ public class PredictionAnalyticsDataFetcher
             String dx = (String) row.get( dxInx );
             String ou = (String) row.get( ouInx );
             String ao = hasAttributeOptions ? (String) row.get( aoInx ) : null;
-            Double vl = ((Number) row.get( vlInx )).doubleValue();
+            Object vl = row.get( vlInx );
 
             Period period = periodLookup.get( pe );
             DimensionalItemObject dimensionItem = dimensionItemLookup.get( dx );
