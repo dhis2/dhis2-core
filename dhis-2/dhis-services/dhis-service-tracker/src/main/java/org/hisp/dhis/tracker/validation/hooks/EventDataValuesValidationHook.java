@@ -79,7 +79,10 @@ public class EventDataValuesValidationHook
             }
 
             validateDataElement( reporter, dataElement, dataValue, programStage, event );
-            validateOptionSet( reporter, dataElement, dataValue.getValue() );
+            if ( dataValue.getValue() != null )
+            {
+                validateOptionSet( reporter, dataElement, dataValue.getValue() );
+            }
         }
 
         validateMandatoryDataValues( event, context, reporter );
