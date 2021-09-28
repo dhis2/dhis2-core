@@ -25,48 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain;
 
-import java.time.Instant;
+package org.hisp.dhis.actions;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataValue
+public class AuditActions
+    extends RestApiActions
 {
-    @JsonProperty
-    private Instant createdAt;
+    public AuditActions()
+    {
+        super( "/audits" );
+    }
 
-    @JsonProperty
-    private Instant updatedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private boolean providedElsewhere;
-
-    @JsonProperty
-    @Builder.Default
-    private String dataElement = "";
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private String createdBy;
-
-    @JsonProperty
-    private String lastUpdatedBy;
+    public ApiResponse getTrackedEntityAttributeValueAudits( String tei )
+    {
+        return this.get( "/trackedEntityAttributeValue?tei=" + tei );
+    }
 }
+

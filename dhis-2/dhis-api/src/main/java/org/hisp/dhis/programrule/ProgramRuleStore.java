@@ -62,7 +62,7 @@ public interface ProgramRuleStore
      * @param programStageIds
      * @return ProgramRule list
      */
-    List<ProgramRule> getByProgramStage( Set<String> programStageIds );
+    List<ProgramRule> getProgramRulesLinkedToTeaOrDe();
 
     /**
      * Get validation by {@link Program}
