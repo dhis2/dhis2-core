@@ -36,18 +36,8 @@ public enum RenderFormat
     XML,
     CSV;
 
-    public static boolean isJson( String format )
+    public boolean isEqual( String format )
     {
-        return JSON.name().equalsIgnoreCase( format );
-    }
-
-    public static boolean isXml( String format )
-    {
-        return XML.name().equalsIgnoreCase( format );
-    }
-
-    public static boolean isCsv( String format )
-    {
-        return CSV.name().equalsIgnoreCase( format );
+        return name().equalsIgnoreCase( format );
     }
 }

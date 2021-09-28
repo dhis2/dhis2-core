@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.render.RenderFormat.CSV;
+import static org.hisp.dhis.render.RenderFormat.XML;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
@@ -72,7 +74,6 @@ import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
 import org.hisp.dhis.dxf2.datavalueset.tasks.ImportDataValueTask;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -128,13 +129,13 @@ public class DataValueSetController
     {
         setNoStore( response );
 
-        if ( RenderFormat.isXml( format ) )
+        if ( XML.isEqual( format ) )
         {
             response.setContentType( CONTENT_TYPE_XML );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
             dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), outputStream );
         }
-        else if ( RenderFormat.isCsv( format ) )
+        else if ( CSV.isEqual( format ) )
         {
             response.setContentType( CONTENT_TYPE_CSV );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
