@@ -110,14 +110,11 @@ import com.google.common.collect.Lists;
  * analytics service. Example instantiation:
  *
  * <pre>
- * {
- *     &#64;code
- *     DataQueryParams params = DataQueryParams.newBuilder()
- *         .withDataElements( deA, deB )
- *         .withOrganisationUnits( ouA, ouB )
- *         .withFilterPeriods( peA, peB )
- *         .build();
- * }
+ * DataQueryParams params = DataQueryParams.newBuilder()
+ *     .withDataElements( deA, deB )
+ *     .withOrganisationUnits( ouA, ouB )
+ *     .withFilterPeriods( peA, peB )
+ *     .build();
  * </pre>
  *
  * @author Lars Helge Overland
