@@ -337,7 +337,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             .getTrackedEntityAttributeValues()
             .stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
-        
+
         for ( Attribute at : payloadAttributes )
         {
             boolean isNew = false;
