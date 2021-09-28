@@ -123,7 +123,19 @@ public class DataValueSetController
 
     @GetMapping( params = { "format", "compression", "attachment" } )
     public void getDataValueSet(
-        DataValueSetQueryParams params,
+        @RequestParam( required = false ) Set<String> dataSet,
+        @RequestParam( required = false ) Set<String> dataElementGroup,
+        @RequestParam( required = false ) Set<String> period,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Set<String> orgUnit,
+        @RequestParam( required = false ) boolean children,
+        @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
+        @RequestParam( required = false ) boolean includeDeleted,
+        @RequestParam( required = false ) Date lastUpdated,
+        @RequestParam( required = false ) String lastUpdatedDuration,
+        @RequestParam( required = false ) Integer limit,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         @RequestParam( required = false ) String format,
@@ -132,25 +144,29 @@ public class DataValueSetController
     {
         setNoStore( response );
 
+        DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+
         if ( XML.isEqual( format ) )
         {
             response.setContentType( CONTENT_TYPE_XML );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
-            dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), outputStream );
+            dataValueSetService.writeDataValueSetXml( params, outputStream );
         }
         else if ( CSV.isEqual( format ) )
         {
             response.setContentType( CONTENT_TYPE_CSV );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
             PrintWriter printWriter = new PrintWriter( outputStream );
-            dataValueSetService.writeDataValueSetCsv( dataValueSetService.getFromUrl( params ), printWriter );
+            dataValueSetService.writeDataValueSetCsv( params, printWriter );
         }
         else
         {
             // default to json
             response.setContentType( CONTENT_TYPE_JSON );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "json" );
-            dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), outputStream );
+            dataValueSetService.writeDataValueSetJson( params, outputStream );
         }
     }
 
