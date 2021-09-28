@@ -124,6 +124,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -1656,6 +1657,21 @@ public abstract class DhisConvenienceTest
         String filter )
     {
         return createProgramIndicator( uniqueCharacter, AnalyticsType.EVENT, program, expression, filter );
+    }
+
+    public static ProgramInstance createProgramInstance( Program program, TrackedEntityInstance tei,
+        OrganisationUnit organisationUnit )
+    {
+        ProgramInstance programInstance = new ProgramInstance( program, tei, organisationUnit );
+        programInstance.setAutoFields();
+
+        programInstance.setProgram( program );
+        programInstance.setEntityInstance( tei );
+        programInstance.setOrganisationUnit( organisationUnit );
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setIncidentDate( new Date() );
+
+        return programInstance;
     }
 
     public static ProgramIndicator createProgramIndicator( char uniqueCharacter, AnalyticsType analyticsType,
