@@ -83,24 +83,34 @@
 
     <property name="categoryOptionComboAttribute" not-null="false" />
 
-    <property name="categoryOptionGroupSetAttribute" not-null="false" />
+    <property name="categoryOptionGroupSetAttribute" not-null="false"/>
 
-    <property name="dataElementGroupSetAttribute" not-null="false" />
+    <property name="dataElementGroupSetAttribute" not-null="false"/>
 
-    <property name="validationRuleAttribute" not-null="false" />
+    <property name="validationRuleAttribute" not-null="false"/>
 
-    <property name="validationRuleGroupAttribute" not-null="false" />
+    <property name="validationRuleGroupAttribute" not-null="false"/>
 
-    <property name="categoryAttribute" not-null="false" />
+    <property name="categoryAttribute" not-null="false"/>
 
-    <property name="sortOrder" />
+    <property name="visualizationAttribute" not-null="true"/>
+
+    <property name="mapAttribute" not-null="true"/>
+
+    <property name="eventReportAttribute" not-null="true"/>
+
+    <property name="eventChartAttribute" not-null="true"/>
+
+    <property name="sortOrder"/>
 
     <property name="translations" type="jblTranslations"/>
 
-    <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet" column="optionsetid"
-      foreign-key="fk_attribute_optionsetid" />
+    <many-to-one name="optionSet" class="org.hisp.dhis.option.OptionSet"
+                 column="optionsetid"
+                 foreign-key="fk_attribute_optionsetid"/>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_attribute_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User"
+                 column="userid" foreign-key="fk_attribute_userid"/>
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>

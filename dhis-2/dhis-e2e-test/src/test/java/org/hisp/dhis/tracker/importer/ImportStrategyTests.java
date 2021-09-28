@@ -126,7 +126,6 @@ public class ImportStrategyTests
         String teiId = response.extractImportedTeis().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
         String eventId1 = response.extractImportedEvents().get( 0 );
-        String eventId2 = response.extractImportedEvents().get( 1 );
 
         body.remove( "events" );
 
@@ -136,15 +135,13 @@ public class ImportStrategyTests
 
         // assert
         response.validateSuccessfulImport()
-            .validate().body( "stats.deleted", Matchers.equalTo( 4 ) );
+            .validate().body( "stats.deleted", Matchers.equalTo( 3 ) );
 
         trackerActions.getTrackedEntity( teiId )
             .validate().statusCode( 404 );
         trackerActions.get( "/enrollments/" + enrollmentId )
             .validate().statusCode( 404 );
         trackerActions.get( "/events/" + eventId1 )
-            .validate().statusCode( 404 );
-        trackerActions.get( "/events/" + eventId2 )
             .validate().statusCode( 404 );
     }
 }

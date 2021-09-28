@@ -25,52 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.attribute;
+package org.hisp.dhis.webapi.controller;
 
-import static java.util.Arrays.stream;
-
-import java.util.List;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import com.google.common.collect.ImmutableMap;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Tests the {@link AttributeController}.
  */
-public interface AttributeStore
-    extends IdentifiableObjectStore<Attribute>
+public class AttributeControllerTest extends DhisControllerConvenienceTest
 {
-    String ID = AttributeStore.class.getName();
-
-    ImmutableMap<Class<?>, String> CLASS_ATTRIBUTE_MAP = stream( ObjectType.values() )
-        .collect( ImmutableMap.toImmutableMap( ObjectType::getType, ObjectType::getPropertyName ) );
 
     /**
-     * Get all metadata attributes for a given class, returns empty list for
-     * un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of attributes for this class
+     * Tests that each type only sets the property the type relates to
      */
-    List<Attribute> getAttributes( Class<?> klass );
+    @Test
+    public void testObjectTypes()
+    {
+        for ( ObjectType testedType : ObjectType.values() )
+        {
+            String propertyName = testedType.getPropertyName();
+            String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" +
+                "'name':'" + testedType + "', " +
+                "'valueType':'INTEGER', " +
+                "'" + propertyName + "':true}" ) );
+            JsonObject attr = GET( "/attributes/{uid}", uid ).content();
 
-    /**
-     * Get all mandatory metadata attributes for a given class, returns empty
-     * list for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of mandatory metadata attributes for this class
-     */
-    List<Attribute> getMandatoryAttributes( Class<?> klass );
+            for ( ObjectType otherType : ObjectType.values() )
+            {
+                assertEquals( testedType == otherType,
+                    attr.getBoolean( otherType.getPropertyName() ).booleanValue() );
+            }
+        }
+    }
 
-    /**
-     * Get all unique metadata attributes for a given class, returns empty list
-     * for un-supported types.
-     *
-     * @param klass Class to get metadata attributes for
-     * @return List of unique metadata attributes for this class
-     */
-    List<Attribute> getUniqueAttributes( Class<?> klass );
 }
