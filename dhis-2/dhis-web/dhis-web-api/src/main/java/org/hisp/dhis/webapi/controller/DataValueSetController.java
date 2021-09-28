@@ -28,10 +28,24 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.render.RenderFormat.CSV;
+import static org.hisp.dhis.render.RenderFormat.XML;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
-import static org.hisp.dhis.webapi.utils.ContextUtils.*;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.util.Date;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
@@ -40,8 +54,6 @@ import java.util.zip.ZipOutputStream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -67,9 +79,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.converter.HttpMessageNotWritableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -106,6 +121,55 @@ public class DataValueSetController
     // -------------------------------------------------------------------------
     // Get
     // -------------------------------------------------------------------------
+
+    @GetMapping( params = { "format", "compression", "attachment" } )
+    public void getDataValueSet(
+        @RequestParam( required = false ) Set<String> dataSet,
+        @RequestParam( required = false ) Set<String> dataElementGroup,
+        @RequestParam( required = false ) Set<String> period,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Set<String> orgUnit,
+        @RequestParam( required = false ) boolean children,
+        @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
+        @RequestParam( required = false ) boolean includeDeleted,
+        @RequestParam( required = false ) Date lastUpdated,
+        @RequestParam( required = false ) String lastUpdatedDuration,
+        @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false ) String compression,
+        @RequestParam( required = false ) String format,
+        IdSchemes idSchemes, HttpServletResponse response )
+        throws IOException
+    {
+        setNoStore( response );
+
+        DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+
+        if ( XML.isEqual( format ) )
+        {
+            response.setContentType( CONTENT_TYPE_XML );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
+            dataValueSetService.writeDataValueSetXml( params, outputStream );
+        }
+        else if ( CSV.isEqual( format ) )
+        {
+            response.setContentType( CONTENT_TYPE_CSV );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
+            PrintWriter printWriter = new PrintWriter( outputStream );
+            dataValueSetService.writeDataValueSetCsv( params, printWriter );
+        }
+        else
+        {
+            // default to json
+            response.setContentType( CONTENT_TYPE_JSON );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "json" );
+            dataValueSetService.writeDataValueSetJson( params, outputStream );
+        }
+    }
 
     @RequestMapping( method = RequestMethod.GET, produces = CONTENT_TYPE_XML )
     public void getDataValueSetXml(
