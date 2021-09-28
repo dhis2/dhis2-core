@@ -1371,6 +1371,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ou, " )
             .append( "TEI.ouname, " )
             .append( "TET.uid, " )
+            .append( "TEI.potentialduplicate, " )
             .append( "TEI.inactive " )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted " : "") );
 
