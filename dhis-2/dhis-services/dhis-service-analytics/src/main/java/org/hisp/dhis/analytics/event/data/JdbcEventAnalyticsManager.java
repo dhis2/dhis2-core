@@ -56,9 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
@@ -406,9 +404,7 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasStartEndDate() )
         {
-            String timeCol = params.getOutputType() == EventOutputType.ENROLLMENT
-                ? quoteAlias( TimeField.ENROLLMENT_DATE.getField() )
-                : quoteAlias( TimeField.EVENT_DATE.getField() );
+            String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
 
             sql += hlp.whereAnd() + " " + timeCol + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
             sql += hlp.whereAnd() + " " + timeCol + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
@@ -468,7 +464,7 @@ public class JdbcEventAnalyticsManager
         // Program stage
         // ---------------------------------------------------------------------
 
-        if ( params.hasProgramStage() && params.getOutputType() != EventOutputType.ENROLLMENT )
+        if ( params.hasProgramStage() )
         {
             sql += hlp.whereAnd() + " " + quoteAlias( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }
