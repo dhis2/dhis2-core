@@ -67,6 +67,7 @@ public interface ProgramMapper extends PreheatMapper<Program>
     @Mapping( target = "expiryDays" )
     @Mapping( target = "expiryPeriodType" )
     @Mapping( target = "completeEventsExpiryDays" )
+    @Mapping( target = "accessLevel" )
     Program map( Program program );
 
     Set<UserGroupAccess> userGroupAccessesProgram( Set<UserGroupAccess> userGroupAccesses );
