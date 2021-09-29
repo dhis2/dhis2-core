@@ -91,7 +91,7 @@ $( document ).ready( function() {
                         <div class="tipText">$encoder.htmlEncode( $i18n.getString( "history_not_valid" ) )</div>
                     #else
                         <img id="historyChart" width="525" height="270"
-                             src="../api/charts/history/data.png?de=${dataElementHistory.dataElement.uid}&co=${dataElementHistory.optionCombo.uid}&cp=${dataElementHistory.attributeOptionCombo.uid}&ou=${dataElementHistory.organisationUnit.uid}&pe=${periodId}&width=525&height=270"/>
+                             src="../api/visualizations/history/data.png?de=${dataElementHistory.dataElement.uid}&co=${dataElementHistory.optionCombo.uid}&cp=${dataElementHistory.attributeOptionCombo.uid}&ou=${dataElementHistory.organisationUnit.uid}&pe=${periodId}&width=525&height=270"/>
                     #end
                 </div>
                 <div id="historyTabs-audit">

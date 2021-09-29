@@ -130,11 +130,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     session.persist( convertedDto );
                     typeReport.getStats().incCreated();
                     typeReport.addObjectReport( objectReport );
+                    updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
                 }
                 else
                 {
                     if ( isUpdatable() )
                     {
+                        updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
                         session.merge( convertedDto );
                         typeReport.getStats().incUpdated();
                         typeReport.addObjectReport( objectReport );
@@ -144,8 +146,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                         typeReport.getStats().incIgnored();
                     }
                 }
-
-                updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
 
                 //
                 // Add the entity to the Preheat
@@ -338,13 +338,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
             if ( attributeValue == null )
             {
-                attributeValue = new TrackedEntityAttributeValue()
-                    .setAttribute( attribute )
-                    .setEntityInstance( trackedEntityInstance );
+                attributeValue = new TrackedEntityAttributeValue();
                 isNew = true;
             }
 
             attributeValue
+                .setAttribute( attribute )
+                .setEntityInstance( trackedEntityInstance )
                 .setValue( at.getValue() )
                 .setStoredBy( at.getStoredBy() );
 

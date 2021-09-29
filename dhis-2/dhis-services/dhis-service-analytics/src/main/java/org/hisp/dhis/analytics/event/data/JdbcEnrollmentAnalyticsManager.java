@@ -291,9 +291,9 @@ public class JdbcEnrollmentAnalyticsManager
 
                     if ( IN.equals( filter.getOperator() ) )
                     {
-                        InQueryFilter inQueryFilter = new InQueryFilter( field, filter );
-                        sql += hlp.whereAnd() + " " + inQueryFilter.renderSqlFilter( item.isText(),
-                            toEncode -> statementBuilder.encode( toEncode, false ) );
+                        InQueryFilter inQueryFilter = new InQueryFilter( field,
+                            statementBuilder.encode( filter.getFilter(), false ), item.isText() );
+                        sql += hlp.whereAnd() + " " + inQueryFilter.getSqlFilter();
                     }
                     else
                     {

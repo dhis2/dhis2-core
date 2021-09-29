@@ -25,28 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.common;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import static org.junit.Assert.assertEquals;
 
-import org.hisp.dhis.attribute.AttributeValue;
+import org.junit.Test;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class AttributeUtils
+public class InQueryFilterTest
 {
-    public static Map<String, String> getAttributeValueMap( Set<AttributeValue> attributeValues )
+
+    @Test
+    public void verifyInWithTextParameters()
     {
-        Map<String, String> attributeValuesMap = new HashMap<>();
-
-        for ( AttributeValue attributeValue : attributeValues )
-        {
-            attributeValuesMap.put( attributeValue.getAttribute().getUid(), attributeValue.getValue() );
-        }
-
-        return attributeValuesMap;
+        executeTest( "aFilter1;aFilter2", true, "aField in ('afilter1','afilter2') " );
     }
+
+    @Test
+    public void verifyInWithNumberParameters()
+    {
+        executeTest( "1;2;3", false, "aField in (1,2,3) " );
+    }
+
+    @Test
+    public void verifyInWithNullAndTextParameters()
+    {
+        executeTest( "NV;aFilter1", true, "(aField in ('afilter1') or aField is null ) " );
+    }
+
+    @Test
+    public void verifyInWithNullAndNumberParameters()
+    {
+        executeTest( "NV;1", false, "(aField in (1) or aField is null ) " );
+    }
+
+    @Test
+    public void verifyInWithNullOnly()
+    {
+        executeTest( "NV", true, "aField is null " );
+    }
+
+    private void executeTest( String filterValue, boolean isText, String expected )
+    {
+        assertEquals(
+            new InQueryFilter( "aField", filterValue, isText ).getSqlFilter(),
+            expected );
+    }
+
 }

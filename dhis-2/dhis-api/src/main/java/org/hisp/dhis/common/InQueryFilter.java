@@ -32,49 +32,54 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import lombok.Data;
 
 /**
  * A specialization of {@link QueryFilter} to properly render "in" condition
  *
  * @author Giuseppe Nespolino
  */
+@Data
 public class InQueryFilter extends QueryFilter
 {
     private final String field;
+
+    private final boolean isText;
 
     /**
      * Construct a InQueryFilter using field name and the original
      * {@link QueryFilter}
      *
      * @param field the field on which to construct the InQueryFilter
-     * @param queryFilter The original {@link QueryFilter}
+     * @param encodedFilter The original encodedFilter in {@link QueryFilter}
+     * @param isText whether this filter contains text or numeric values
      */
-    public InQueryFilter( String field, QueryFilter queryFilter )
+    public InQueryFilter( String field, String encodedFilter, boolean isText )
     {
-        super( IN, queryFilter.getFilter() );
+        super( IN, encodedFilter );
         this.field = field;
+        this.isText = isText;
     }
 
     /**
      * Renders this InQueryFilter into SQL
      *
-     * @param encodedFilter actual "in" parameters
      * @return a SQL condition representing this InQueryFilter
      */
-    public String getSqlFilter( String encodedFilter, boolean isText )
+    public String getSqlFilter()
     {
-        List<String> filterItems = getFilterItems( encodedFilter );
+        List<String> filterItems = getFilterItems( this.getFilter() );
         String condition = "";
         if ( hasNonMissingValue( filterItems ) )
         {
             condition = field + " " + operator.getValue() + streamOfNonMissingValues( filterItems )
                 .filter( Objects::nonNull )
-                .map( item -> toLowerIfNecessary( item, isText ) )
-                .map( item -> quoteIfNecessary( item, isText ) )
+                .map( this::toLowerIfNecessary )
+                .map( this::quoteIfNecessary )
                 .collect( Collectors.joining( ",", " (", ")" ) );
             if ( hasMissingValue( filterItems ) )
             {
@@ -92,19 +97,14 @@ public class InQueryFilter extends QueryFilter
         return condition + " ";
     }
 
-    private String quoteIfNecessary( String item, boolean isText )
+    private String quoteIfNecessary( String item )
     {
         return isText ? quote( item ) : item;
     }
 
-    private String toLowerIfNecessary( String item, boolean isText )
+    private String toLowerIfNecessary( String item )
     {
         return isText ? item.toLowerCase() : item;
-    }
-
-    public String renderSqlFilter( boolean isText, Function<String, String> encoder )
-    {
-        return this.getSqlFilter( encoder.apply( this.getFilter() ), isText );
     }
 
     private boolean hasMissingValue( List<String> filterItems )
