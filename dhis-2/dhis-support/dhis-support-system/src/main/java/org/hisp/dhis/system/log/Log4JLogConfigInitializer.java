@@ -32,11 +32,11 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.zip.Deflater;
 
 import javax.annotation.PostConstruct;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -55,6 +55,8 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class adds new Logger(s) and RollingFileAppender(s) to the XML-based,
@@ -91,6 +93,8 @@ public class Log4JLogConfigInitializer
     private static final String AUDIT_LOGGER_FILENAME = "dhis-audit.log";
 
     private static final String LOG4J_CONF_PROP = "log4j.configuration";
+
+    private static final String LOGGING_LEVEL_PREFIX = "logging.level.";
 
     private final LocationManager locationManager;
 
@@ -141,6 +145,8 @@ public class Log4JLogConfigInitializer
         configureAuditLogger( AUDIT_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.audit" ) );
 
         configureRootLogger( GENERAL_LOGGER_FILENAME );
+
+        configureAdditionalLoggers();
 
         final LoggerContext ctx = (LoggerContext) LogManager.getContext( false );
         ctx.updateLoggers();
@@ -224,7 +230,6 @@ public class Log4JLogConfigInitializer
 
     private Configuration getLogConfiguration()
     {
-
         final LoggerContext ctx = (LoggerContext) LogManager.getContext( false );
         return ctx.getConfiguration();
     }
@@ -246,6 +251,31 @@ public class Log4JLogConfigInitializer
             Level.INFO, null );
 
         log.info( "Added root logger using file: " + file );
+    }
+
+    private void configureAdditionalLoggers()
+    {
+        Properties properties = config.getProperties();
+
+        for ( Map.Entry<Object, Object> conf : properties.entrySet() )
+        {
+            String key = (String) conf.getKey();
+
+            if ( key.startsWith( LOGGING_LEVEL_PREFIX ) )
+            {
+                String logPackage = key.substring( LOGGING_LEVEL_PREFIX.length() );
+                Level logLevel = Level.getLevel( conf.getValue().toString().toUpperCase() );
+
+                AppenderRef console = AppenderRef.createAppenderRef( "console", logLevel, null );
+
+                LoggerConfig loggerConfig = LoggerConfig.createLogger( true, logLevel, logPackage, "true",
+                    new AppenderRef[] { console }, null, getLogConfiguration(), null );
+
+                getLogConfiguration().addLogger( logPackage, loggerConfig );
+
+                log.info( "Added logger: " + logPackage + " using level: " + conf.getValue() );
+            }
+        }
     }
 
     /**

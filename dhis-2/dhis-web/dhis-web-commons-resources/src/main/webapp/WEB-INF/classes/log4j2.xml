@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="warn">
+<Configuration status="WARN">
     <Appenders>
         <RollingFile name="fileLogger" fileName="dhis.log" filePattern="dhis.log%i">
             <PatternLayout>
@@ -15,16 +15,22 @@
             <PatternLayout pattern="* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}"/>
         </Console>
     </Appenders>
+
     <Loggers>
-        <Logger name="org.hisp.dhis" level="info" additivity="true"/>
-        <Logger name="org.hisp.dhis.webapi.mvc" level="warn" additivity="false"/>
-        <Logger name="org.hisp.dhis.programrule.engine" level="warn" additivity="false"/>
-        <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="error" additivity="false"/>
-        <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="error" additivity="false"/>
-        <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="false"/>
-        <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="false"/>
-        <Logger name="org.hibernate.orm.deprecation" level="error" additivity="false"/>
-        <Root level="warn">
+        <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
+        <Logger name="org.hisp.dhis.webapi.mvc" level="WARN" additivity="false"/>
+        <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy"
+                level="ERROR" additivity="false"/>
+        <Logger name="org.hibernate.cache.ehcache.AbstractEhcacheRegionFactory" level="ERROR" additivity="false"/>
+        <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="ERROR" additivity="false"/>
+        <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="ERROR"
+                additivity="false"/>
+        <Logger name="org.hibernate.orm.deprecation" level="ERROR" additivity="false"/>
+        <Logger name="org.apache.activemq" level="ERROR" additivity="false"/>
+        <Logger name="org.hibernate" level="ERROR" additivity="false"/>
+        <Logger name="io.debezium.connector.postgresql.PostgresTaskContext" level="ERROR" additivity="false"/>
+
+        <Root level="WARN">
             <AppenderRef ref="console"/>
         </Root>
     </Loggers>
