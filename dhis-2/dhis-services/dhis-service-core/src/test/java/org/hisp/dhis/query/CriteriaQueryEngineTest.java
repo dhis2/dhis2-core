@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.query;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -77,43 +81,12 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
     public void createDataElements()
     {
         userService = _userService;
-        DataElement dataElementA = createDataElement( 'A' );
-        dataElementA.setValueType( ValueType.NUMBER );
-        dataElementA.setName( "dataElementA" );
-
-        DataElement dataElementB = createDataElement( 'B' );
-        dataElementB.setValueType( ValueType.BOOLEAN );
-        dataElementB.setName( "dataElementB" );
-
-        DataElement dataElementC = createDataElement( 'C' );
-        dataElementC.setValueType( ValueType.INTEGER );
-        dataElementC.setName( "dataElementC" );
-
-        DataElement dataElementD = createDataElement( 'D' );
-        dataElementD.setValueType( ValueType.NUMBER );
-        dataElementD.setName( "dataElementD" );
-
-        DataElement dataElementE = createDataElement( 'E' );
-        dataElementE.setValueType( ValueType.BOOLEAN );
-        dataElementE.setName( "dataElementE" );
-
-        DataElement dataElementF = createDataElement( 'F' );
-        dataElementF.setValueType( ValueType.INTEGER );
-        dataElementF.setName( "dataElementF" );
-
-        dataElementA.setCreated( Year.parseYear( "2001" ).getStart() );
-        dataElementB.setCreated( Year.parseYear( "2002" ).getStart() );
-        dataElementC.setCreated( Year.parseYear( "2003" ).getStart() );
-        dataElementD.setCreated( Year.parseYear( "2004" ).getStart() );
-        dataElementE.setCreated( Year.parseYear( "2005" ).getStart() );
-        dataElementF.setCreated( Year.parseYear( "2006" ).getStart() );
-
-        identifiableObjectManager.save( dataElementB );
-        identifiableObjectManager.save( dataElementE );
-        identifiableObjectManager.save( dataElementA );
-        identifiableObjectManager.save( dataElementC );
-        identifiableObjectManager.save( dataElementF );
-        identifiableObjectManager.save( dataElementD );
+        DataElement dataElementA = addDataElement( 'A', ValueType.NUMBER, "2001" );
+        DataElement dataElementB = addDataElement( 'B', ValueType.BOOLEAN, "2002" );
+        DataElement dataElementC = addDataElement( 'C', ValueType.INTEGER, "2003" );
+        DataElement dataElementD = addDataElement( 'D', ValueType.NUMBER, "2004" );
+        DataElement dataElementE = addDataElement( 'E', ValueType.BOOLEAN, "2005" );
+        DataElement dataElementF = addDataElement( 'F', ValueType.INTEGER, "2006" );
 
         DataElementGroup dataElementGroupA = createDataElementGroup( 'A' );
         dataElementGroupA.addDataElement( dataElementA );
@@ -127,6 +100,21 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
 
         identifiableObjectManager.save( dataElementGroupA );
         identifiableObjectManager.save( dataElementGroupB );
+    }
+
+    private DataElement addDataElement( char uniqueCharacter, ValueType type, String yearCreated )
+    {
+        return addDataElement( uniqueCharacter, "dataElement" + uniqueCharacter, type, yearCreated );
+    }
+
+    private DataElement addDataElement( char uniqueCharacter, String name, ValueType type, String yearCreated )
+    {
+        DataElement de = createDataElement( uniqueCharacter );
+        de.setValueType( type );
+        de.setName( name );
+        de.setCreated( Year.parseYear( yearCreated ).getStart() );
+        identifiableObjectManager.save( de );
+        return de;
     }
 
     private boolean collectionContainsUid( Collection<? extends IdentifiableObject> collection, String uid )
@@ -637,6 +625,18 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
 
         List<? extends IdentifiableObject> objects = queryService.query( query );
         assertEquals( 6, objects.size() );
+    }
+
+    @Test
+    public void testUnicodeSearch()
+    {
+        addDataElement( 'U', "Кириллица", ValueType.NUMBER, "2021" );
+
+        Query query = queryService.getQueryFromUrl( DataElement.class, singletonList( "identifiable:token:Кири" ),
+            emptyList() );
+        List<? extends IdentifiableObject> matches = queryService.query( query );
+        assertEquals( 1, matches.size() );
+        assertEquals( "Кириллица", matches.get( 0 ).getName() );
     }
 
     @Test
