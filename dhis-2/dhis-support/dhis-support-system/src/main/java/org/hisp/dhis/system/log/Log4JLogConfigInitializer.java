@@ -38,6 +38,8 @@ import java.util.zip.Deflater;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -55,8 +57,6 @@ import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class adds new Logger(s) and RollingFileAppender(s) to the XML-based,
