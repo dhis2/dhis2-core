@@ -91,8 +91,8 @@ public class PreCheckUpdatableFieldsValidationHook
 
         addErrorIf( () -> !event.getProgramStage().equals( programStage.getUid() ), reporter, E1128,
             "programStage" );
-        addErrorIf( () -> !event.getEnrollment().equals( programInstance.getUid() ), reporter, E1128,
-            "enrollment" );
+        addErrorIf( () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
+            reporter, E1128, "enrollment" );
     }
 
     @Override
