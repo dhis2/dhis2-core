@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="WARN">
     <Appenders>
-        <RollingFile name="fileLogger" fileName="dhis.log" filePattern="dhis.log%i">
+        <RollingFile name="fileLogger" fileName="dhis.log" filePattern="dhis.log.%i">
             <PatternLayout>
                 <pattern>* %-5p %d{ISO8601} %m (%F [%t])%n %X{sessionId}</pattern>
             </PatternLayout>
