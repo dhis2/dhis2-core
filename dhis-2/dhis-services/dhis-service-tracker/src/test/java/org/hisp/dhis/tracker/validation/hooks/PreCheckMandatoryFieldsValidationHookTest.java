@@ -189,6 +189,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( CodeGenerator.generateUid() )
             .program( CodeGenerator.generateUid() )
+            .enrollment( CodeGenerator.generateUid() )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
@@ -203,6 +204,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( CodeGenerator.generateUid() )
+            .enrollment( CodeGenerator.generateUid() )
             .program( null )
             .build();
 
@@ -219,6 +221,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
             .orgUnit( CodeGenerator.generateUid() )
             .programStage( null )
             .program( CodeGenerator.generateUid() )
+            .enrollment( CodeGenerator.generateUid() )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
@@ -234,12 +237,29 @@ public class PreCheckMandatoryFieldsValidationHookTest
             .orgUnit( null )
             .programStage( CodeGenerator.generateUid() )
             .program( CodeGenerator.generateUid() )
+            .enrollment( CodeGenerator.generateUid() )
             .build();
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
 
         assertMissingPropertyForEvent( reporter, "orgUnit" );
+    }
+
+    @Test
+    public void verifyEventValidationFailsOnMissingEnrollment()
+    {
+        Event event = Event.builder()
+            .orgUnit( CodeGenerator.generateUid() )
+            .programStage( CodeGenerator.generateUid() )
+            .program( CodeGenerator.generateUid() )
+            .enrollment( null )
+            .build();
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        validationHook.validateEvent( reporter, event );
+
+        assertMissingPropertyForEvent( reporter, "enrollment" );
     }
 
     @Test

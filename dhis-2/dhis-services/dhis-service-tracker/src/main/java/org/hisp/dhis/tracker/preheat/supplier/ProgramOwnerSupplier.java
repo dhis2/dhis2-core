@@ -78,7 +78,7 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
 
         params.getEvents().stream().forEach( ev -> {
             ProgramInstance pi = preheatedEnrollments.get( ev.getEnrollment() );
-            if ( pi != null )
+            if ( pi != null && pi.getEntityInstance() != null )
             {
                 teiIds.add( pi.getEntityInstance().getId() );
             }
