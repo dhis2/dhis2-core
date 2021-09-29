@@ -130,10 +130,14 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     {
         MetadataProposal proposal = getByUid( uid );
         checkHasStatus( proposal, MetadataProposalStatus.NEEDS_UPDATE );
-        validateConsistency( proposal.getType(), params.getTargetUid(), params.getChange() );
-        validateSameUser( proposal );
-        proposal.setTargetUid( params.getTargetUid() );
-        proposal.setChange( params.getChange() );
+        if ( params != null && (params.getTargetUid() != null || params.getChange() != null) )
+        {
+            validateSameUser( proposal );
+            proposal.setTargetUid( params.getTargetUid() );
+            proposal.setChange( params.getChange() );
+            proposal.setAutoFields();
+        }
+        validateConsistency( proposal.getType(), proposal.getTargetUid(), proposal.getChange() );
         proposal.setStatus( MetadataProposalStatus.PROPOSED );
         validationDryRun( proposal );
         store.update( proposal );
@@ -198,6 +202,8 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         checkHasStatus( proposal, MetadataProposalStatus.PROPOSED );
         proposal.setStatus( MetadataProposalStatus.REJECTED );
         proposal.setReason( reason );
+        proposal.setFinalised( new Date() );
+        proposal.setFinalisedBy( currentUserService.getCurrentUser() );
         store.update( proposal );
     }
 

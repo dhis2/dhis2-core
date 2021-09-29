@@ -123,7 +123,7 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
     @PutMapping( value = { "/{uid}/", "/{uid}" }, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage adjustProposal( @PathVariable( "uid" ) String uid,
-        @RequestBody MetadataProposalAdjustParams params )
+        @RequestBody( required = false ) MetadataProposalAdjustParams params )
         throws NotFoundException
     {
         MetadataProposal proposal = service.getByUid( uid );

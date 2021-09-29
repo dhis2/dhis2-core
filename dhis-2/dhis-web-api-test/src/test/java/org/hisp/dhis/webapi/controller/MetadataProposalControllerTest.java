@@ -61,31 +61,38 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
 {
     private String defaultTargetUid;
 
+    private User system;
+
     @Before
     public void setUp()
     {
         defaultTargetUid = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
+
+        // make sure a system user exist that can add/update/delete OUs
+        system = switchToNewUser( "system", "F_ORGANISATIONUNIT_ADD", "F_ORGANISATIONUNIT_DELETE" );
+        // and back to being SU for further setup in the test scenarios
+        switchToSuperuser();
     }
 
     @Test
     public void testGetProposals()
     {
-        String uid = postAddProposal( "My Unit", "OU1" );
-        assertNotNull( uid );
+        String proposalId = postAddProposal( "My Unit", "OU1" );
+        assertNotNull( proposalId );
 
         JsonObject page = GET( "/metadata/proposals/" ).content();
         assertTrue( page.has( "pager", "proposals" ) );
         assertEquals( 1, page.getArray( "proposals" ).size() );
-        assertEquals( uid, page.getArray( "proposals" ).getObject( 0 ).getString( "id" ).string() );
+        assertEquals( proposalId, page.getArray( "proposals" ).getObject( 0 ).getString( "id" ).string() );
     }
 
     @Test
     public void testGetProposal()
     {
-        String uid = postAddProposal( "My Unit", "OU2" );
+        String proposalId = postAddProposal( "My Unit", "OU2" );
 
-        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", uid )
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId )
             .content().asObject( JsonMetadataProposal.class );
         assertTrue( proposal.exists() );
     }
@@ -93,9 +100,9 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testMakeAddProposal()
     {
-        String uid = postAddProposal( "My Unit", "OU1" );
+        String proposalId = postAddProposal( "My Unit", "OU1" );
 
-        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", uid )
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId )
             .content().asObject( JsonMetadataProposal.class );
         assertEquals( MetadataProposalStatus.PROPOSED, proposal.getStatus() );
         assertEquals( MetadataProposalType.ADD, proposal.getType() );
@@ -141,8 +148,8 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testMakeUpdateProposal()
     {
-        String updateId = postUpdateNameProposal( defaultTargetUid, "New Name" );
-        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", updateId )
+        String proposalId = postUpdateNameProposal( defaultTargetUid, "New Name" );
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId )
             .content().asObject( JsonMetadataProposal.class );
         assertEquals( MetadataProposalStatus.PROPOSED, proposal.getStatus() );
         assertEquals( MetadataProposalType.UPDATE, proposal.getType() );
@@ -204,8 +211,8 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testMakeRemoveProposal()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
-        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", removeId )
+        String proposalId = postRemoveProposal( defaultTargetUid );
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId )
             .content().asObject( JsonMetadataProposal.class );
         assertEquals( MetadataProposalStatus.PROPOSED, proposal.getStatus() );
         assertEquals( MetadataProposalType.REMOVE, proposal.getType() );
@@ -234,37 +241,49 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testAcceptAddProposal()
     {
-        String addId = postAddProposal( "My OU", "OU1" );
+        String proposalId = postAddProposal( "My OU", "OU1" );
 
-        String ouId = assertStatus( HttpStatus.CREATED, POST( "/metadata/proposals/" + addId ) );
+        String ouId = assertStatus( HttpStatus.CREATED, POST( "/metadata/proposals/" + proposalId ) );
 
         JsonOrganisationUnit ou = GET( "/organisationUnits/{uid}", ouId )
             .content().as( JsonOrganisationUnit.class );
         assertEquals( "My OU", ou.getName() );
+
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId )
+            .content().asObject( JsonMetadataProposal.class );
+        assertEquals( MetadataProposalStatus.ACCEPTED, proposal.getStatus() );
+        assertNotNull( proposal.getFinalisedBy() );
+        assertNotNull( proposal.getFinalised() );
     }
 
     @Test
     public void testAcceptUpdateProposal()
     {
-        String updateId = postUpdateNameProposal( defaultTargetUid, "New name" );
+        String proposalId = postUpdateNameProposal( defaultTargetUid, "New name" );
 
-        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + updateId ) );
+        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + proposalId ) );
 
         JsonOrganisationUnit ou = GET( "/organisationUnits/{uid}", defaultTargetUid )
             .content().as( JsonOrganisationUnit.class );
         assertEquals( "New name", ou.getName() );
+
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId )
+            .content().asObject( JsonMetadataProposal.class );
+        assertEquals( MetadataProposalStatus.ACCEPTED, proposal.getStatus() );
+        assertNotNull( proposal.getFinalisedBy() );
+        assertNotNull( proposal.getFinalised() );
     }
 
     @Test
     public void testAcceptUpdateProposal_ConflictTargetAlreadyDeleted()
     {
-        String updateId = postUpdateNameProposal( defaultTargetUid, "New name" );
+        String proposalId = postUpdateNameProposal( defaultTargetUid, "New name" );
 
         assertStatus( HttpStatus.OK, DELETE( "/organisationUnits/" + defaultTargetUid ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
             "One more more errors occurred, please see full details in import report.",
-            POST( "/metadata/proposals/" + updateId ).content( HttpStatus.CONFLICT ) );
+            POST( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4015 );
         assertEquals(
@@ -276,23 +295,29 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testAcceptRemoveProposal()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
-        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + removeId ) );
+        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + proposalId ) );
 
         assertStatus( HttpStatus.NOT_FOUND, GET( "/organisationUnits/{uid}", defaultTargetUid ) );
+
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId )
+            .content().asObject( JsonMetadataProposal.class );
+        assertEquals( MetadataProposalStatus.ACCEPTED, proposal.getStatus() );
+        assertNotNull( proposal.getFinalisedBy() );
+        assertNotNull( proposal.getFinalised() );
     }
 
     @Test
     public void testAcceptRemoveProposal_ConflictTargetAlreadyDeleted()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
         assertStatus( HttpStatus.OK, DELETE( "/organisationUnits/" + defaultTargetUid ) );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
             "One more more errors occurred, please see full details in import report.",
-            POST( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
+            POST( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4015 );
         assertEquals(
@@ -304,40 +329,54 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testAcceptProposal_ConflictAlreadyRejected()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
         // reject
-        assertStatus( HttpStatus.NO_CONTENT, DELETE( "/metadata/proposals/" + removeId ) );
+        assertStatus( HttpStatus.NO_CONTENT, DELETE( "/metadata/proposals/" + proposalId ) );
 
-        assertStatus( HttpStatus.CONFLICT, POST( "/metadata/proposals/" + removeId ) );
+        assertStatus( HttpStatus.CONFLICT, POST( "/metadata/proposals/" + proposalId ) );
     }
 
     @Test
     public void testAcceptProposal_ConflictTargetAlreadyDeleted()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
         assertStatus( HttpStatus.OK, DELETE( "/organisationUnits/" + defaultTargetUid ) );
-        assertStatus( HttpStatus.CONFLICT, POST( "/metadata/proposals/" + removeId ) );
+        assertStatus( HttpStatus.CONFLICT, POST( "/metadata/proposals/" + proposalId ) );
 
-        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", removeId ).content()
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId ).content()
             .asObject( JsonMetadataProposal.class );
         assertEquals( MetadataProposalStatus.NEEDS_UPDATE, proposal.getStatus() );
         assertNotNull( proposal.getReason() );
 
         assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
-            POST( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
+            POST( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
 
     }
 
     @Test
     public void testAcceptProposal_ConflictMissingAuthority()
     {
-        User guest = switchToNewUser( "guest" ); // has no authorities
-        String removeId = postRemoveProposal( defaultTargetUid );
+        User guest = switchToNewUser( "guest" );
+        String proposalId = postUpdateNameProposal( defaultTargetUid, "New name" );
 
-        assertWebMessage( "Conflict", 409, "ERROR", "",
-            POST( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
+        JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
+            "One more more errors occurred, please see full details in import report.",
+            POST( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
+        JsonErrorReport error = message.find( JsonErrorReport.class,
+            report -> report.getErrorCode() == ErrorCode.E3001 );
+
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/" + proposalId )
+            .content().as( JsonMetadataProposal.class );
+        assertEquals( String.format(
+            "E3001 User `guest guest [%s] (User)` is not allowed to update object `New name [%s] (OrganisationUnit)`.\n",
+            guest.getUid(), defaultTargetUid ), proposal.getReason() );
+
+        // but the system could accept the proposal
+        switchContextToUser( system );
+        assertStatus( HttpStatus.OK, PUT( "/metadata/proposals/" + proposalId ) );
+        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + proposalId ) );
     }
 
     @Test
@@ -349,52 +388,55 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testRejectProposal()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
         // reject
-        assertStatus( HttpStatus.NO_CONTENT, DELETE( "/metadata/proposals/" + removeId ) );
+        assertStatus( HttpStatus.NO_CONTENT, DELETE( "/metadata/proposals/" + proposalId ) );
 
-        assertEquals( MetadataProposalStatus.REJECTED, GET( "/metadata/proposals/{uid}", removeId )
-            .content().asObject( JsonMetadataProposal.class ).getStatus() );
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId ).content()
+            .asObject( JsonMetadataProposal.class );
+        assertEquals( MetadataProposalStatus.REJECTED, proposal.getStatus() );
+        assertNotNull( proposal.getFinalisedBy() );
+        assertNotNull( proposal.getFinalised() );
     }
 
     @Test
     public void testRejectProposal_ConflictAlreadyRejected()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
         // reject
-        assertStatus( HttpStatus.NO_CONTENT, DELETE( "/metadata/proposals/" + removeId ) );
+        assertStatus( HttpStatus.NO_CONTENT, DELETE( "/metadata/proposals/" + proposalId ) );
 
         assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
-            DELETE( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
+            DELETE( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
     public void testRejectProposal_ConflictAlreadyAccepted()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
         // accept
-        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + removeId ) );
+        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + proposalId ) );
 
         assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
-            DELETE( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
+            DELETE( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
     public void testRejectProposal_ConflictTargetAlreadyDeleted()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
         assertStatus( HttpStatus.OK, DELETE( "/organisationUnits/" + defaultTargetUid ) );
-        assertStatus( HttpStatus.CONFLICT, POST( "/metadata/proposals/" + removeId ) );
+        assertStatus( HttpStatus.CONFLICT, POST( "/metadata/proposals/" + proposalId ) );
 
-        assertEquals( MetadataProposalStatus.NEEDS_UPDATE, GET( "/metadata/proposals/{uid}", removeId )
+        assertEquals( MetadataProposalStatus.NEEDS_UPDATE, GET( "/metadata/proposals/{uid}", proposalId )
             .content().asObject( JsonMetadataProposal.class ).getStatus() );
 
         assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
-            DELETE( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
+            DELETE( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -406,13 +448,13 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testOpposeProposal()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
         assertStatus( HttpStatus.NO_CONTENT,
-            PATCH( "/metadata/proposals/" + removeId, Body( "Just NO!" ), ContentType( MediaType.TEXT_PLAIN ) ) );
+            PATCH( "/metadata/proposals/" + proposalId, Body( "Just NO!" ), ContentType( MediaType.TEXT_PLAIN ) ) );
 
-        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", removeId ).content()
-            .asObject( JsonMetadataProposal.class );
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId )
+            .content().asObject( JsonMetadataProposal.class );
         assertEquals( "Just NO!", proposal.getReason() );
         assertEquals( MetadataProposalStatus.NEEDS_UPDATE, proposal.getStatus() );
     }
@@ -420,13 +462,13 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testOpposeProposal_ConflictAlreadyAccepted()
     {
-        String removeId = postRemoveProposal( defaultTargetUid );
+        String proposalId = postRemoveProposal( defaultTargetUid );
 
         // accept
-        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + removeId ) );
+        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + proposalId ) );
 
         assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
-            PATCH( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
+            PATCH( "/metadata/proposals/" + proposalId ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -434,6 +476,31 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     {
         assertStatus( HttpStatus.NOT_FOUND,
             PATCH( "/metadata/proposals/xyz", Body( "Nah" ), ContentType( MediaType.TEXT_PLAIN ) ) );
+    }
+
+    @Test
+    public void testAdjustProposal()
+    {
+        String proposalId = postRemoveProposal( defaultTargetUid );
+
+        assertStatus( HttpStatus.OK, DELETE( "/organisationUnits/" + defaultTargetUid ) );
+        assertStatus( HttpStatus.CONFLICT, POST( "/metadata/proposals/" + proposalId ) );
+
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", proposalId )
+            .content().asObject( JsonMetadataProposal.class );
+        assertNotNull( proposal.getReason() );
+        assertEquals( MetadataProposalStatus.NEEDS_UPDATE, proposal.getStatus() );
+
+        String ouId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My New Unit', 'shortName':'OU2', 'openingDate': '2020-01-01'}" ) );
+
+        assertStatus( HttpStatus.OK,
+            PUT( "/metadata/proposals/" + proposalId, "{'targetUid':'" + ouId + "'}" ) );
+
+        proposal = GET( "/metadata/proposals/{uid}", proposalId )
+            .content().asObject( JsonMetadataProposal.class );
+        assertEquals( MetadataProposalStatus.PROPOSED, proposal.getStatus() );
+        assertEquals( ouId, proposal.getTargetUid() );
     }
 
     private String postAddProposal( String name, String shortName )
