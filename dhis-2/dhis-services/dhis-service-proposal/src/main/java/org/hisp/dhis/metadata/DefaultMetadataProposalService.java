@@ -29,11 +29,10 @@ package org.hisp.dhis.metadata;
 
 import static java.util.Collections.singletonList;
 
+import java.util.Date;
+
 import javax.annotation.PostConstruct;
 import javax.persistence.NoResultException;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -53,12 +52,17 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -69,6 +73,8 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     private final MetadataProposalStore store;
 
     private final CurrentUserService currentUserService;
+
+    private final UserService userService;
 
     private final IdentifiableObjectManager objectManager;
 
@@ -104,7 +110,7 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     @Transactional
     public MetadataProposal propose( MetadataProposalParams params )
     {
-        validate( params );
+        validateConsistency( params.getType(), params.getTargetUid(), params.getChange() );
         MetadataProposal proposal = MetadataProposal.builder()
             .createdBy( currentUserService.getCurrentUser() )
             .type( params.getType() )
@@ -113,53 +119,49 @@ public class DefaultMetadataProposalService implements MetadataProposalService
             .comment( params.getComment() )
             .change( params.getChange() )
             .build();
-        ImportReport report = accept( proposal, ObjectBundleMode.VALIDATE );
-        if ( report.getStatus() != Status.OK || report.hasErrorReports() )
-        {
-            throw new MetadataValidationException( report, "Proposal contains errors in its definition" );
-        }
+        validationDryRun( proposal );
         store.save( proposal );
         return proposal;
     }
 
-    private void validate( MetadataProposalParams params )
+    @Override
+    @Transactional
+    public MetadataProposal adjust( String uid, MetadataProposalAdjustParams params )
     {
-        MetadataProposalType type = params.getType();
-        if ( type != MetadataProposalType.ADD && params.getTargetUid() == null )
-        {
-            throw new IllegalStateException( "`targetUid` is required for type " + type );
-        }
-        if ( type != MetadataProposalType.REMOVE && (params.getChange() == null || params.getChange().isNull()) )
-        {
-            throw new IllegalStateException( "`change` is required for type " + type );
-        }
-        if ( type == MetadataProposalType.ADD && (!params.getChange().isObject() || params.getChange().isEmpty()) )
-        {
-            throw new IllegalStateException( "`change` must be a non empty object for type " + type );
-        }
-        if ( type == MetadataProposalType.UPDATE && (!params.getChange().isArray() || params.getChange().isEmpty()) )
-        {
-            throw new IllegalStateException( "`change` must be a non empty array for type " + type );
-        }
+        MetadataProposal proposal = getByUid( uid );
+        checkHasStatus( proposal, MetadataProposalStatus.NEEDS_UPDATE );
+        validateConsistency( proposal.getType(), params.getTargetUid(), params.getChange() );
+        validateSameUser( proposal );
+        proposal.setTargetUid( params.getTargetUid() );
+        proposal.setChange( params.getChange() );
+        proposal.setStatus( MetadataProposalStatus.PROPOSED );
+        validationDryRun( proposal );
+        store.update( proposal );
+        return proposal;
     }
 
     @Override
     @Transactional
     public ImportReport accept( MetadataProposal proposal )
     {
-        checkInProposedState( proposal );
+        checkHasStatus( proposal, MetadataProposalStatus.PROPOSED );
         ImportReport report = accept( proposal, ObjectBundleMode.COMMIT );
-        proposal.setAcceptedBy( currentUserService.getCurrentUser() );
-        proposal.setStatus( report.getStatus() != Status.OK || report.hasErrorReports()
-            ? MetadataProposalStatus.FAILED
+        proposal.setFinalisedBy( currentUserService.getCurrentUser() );
+        proposal.setFinalised( new Date() );
+        boolean failed = report.getStatus() != Status.OK || report.hasErrorReports();
+        proposal.setStatus( failed
+            ? MetadataProposalStatus.NEEDS_UPDATE
             : MetadataProposalStatus.ACCEPTED );
+        if ( failed )
+        {
+            proposal.setReason( createReason( report ) );
+        }
         store.update( proposal );
         return report;
     }
 
     private ImportReport accept( MetadataProposal proposal, ObjectBundleMode mode )
     {
-
         MetadataProposalType type = proposal.getType();
         if ( type != MetadataProposalType.ADD
             && objectManager.get( proposal.getTarget().getType(), proposal.getTargetUid() ) == null )
@@ -181,18 +183,21 @@ public class DefaultMetadataProposalService implements MetadataProposalService
 
     @Override
     @Transactional
-    public void comment( MetadataProposal proposal, String comment )
+    public void oppose( MetadataProposal proposal, String reason )
     {
-        proposal.setComment( comment );
+        checkHasStatus( proposal, MetadataProposalStatus.PROPOSED );
+        proposal.setStatus( MetadataProposalStatus.NEEDS_UPDATE );
+        proposal.setReason( reason );
         store.update( proposal );
     }
 
     @Override
     @Transactional
-    public void reject( MetadataProposal proposal )
+    public void reject( MetadataProposal proposal, String reason )
     {
-        checkInProposedState( proposal );
+        checkHasStatus( proposal, MetadataProposalStatus.PROPOSED );
         proposal.setStatus( MetadataProposalStatus.REJECTED );
+        proposal.setReason( reason );
         store.update( proposal );
     }
 
@@ -249,16 +254,18 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         MetadataImportParams params = new MetadataImportParams();
         params.addObject( obj );
         params.setImportStrategy( strategy );
-        params.setUser( currentUserService.getCurrentUser() );
+        params.setUser( mode == ObjectBundleMode.VALIDATE
+            ? userService.getUserByUsername( "system" )
+            : currentUserService.getCurrentUser() );
         params.setImportMode( mode );
         return params;
     }
 
-    private void checkInProposedState( MetadataProposal proposal )
+    private void checkHasStatus( MetadataProposal proposal, MetadataProposalStatus expected )
     {
-        if ( proposal.getStatus() != MetadataProposalStatus.PROPOSED )
+        if ( proposal.getStatus() != expected )
         {
-            throw new IllegalStateException( "Proposal already processed" );
+            throw new IllegalStateException( "Proposal must be in status " + expected + " for this action" );
         }
     }
 
@@ -297,5 +304,57 @@ public class DefaultMetadataProposalService implements MetadataProposalService
         typeReport.addObjectReport( objectReport );
         importReport.addTypeReport( typeReport );
         return importReport;
+    }
+
+    private String createReason( ImportReport report )
+    {
+        StringBuilder reason = new StringBuilder();
+        report.forEachErrorReport(
+            error -> reason.append( error.getErrorCode() ).append( " " ).append( error.getMessage() ).append( "\n" ) );
+        if ( reason.length() > 1024 )
+        {
+            reason.setLength( 1021 );
+            reason.append( "..." );
+        }
+        return reason.toString();
+    }
+
+    private void validateConsistency( MetadataProposalType type, String targetUid, JsonNode change )
+    {
+        if ( type != MetadataProposalType.ADD && targetUid == null )
+        {
+            throw new IllegalStateException( "`targetUid` is required for type " + type );
+        }
+        if ( type != MetadataProposalType.REMOVE && (change == null || change.isNull()) )
+        {
+            throw new IllegalStateException( "`change` is required for type " + type );
+        }
+        if ( type == MetadataProposalType.ADD && (!change.isObject() || change.isEmpty()) )
+        {
+            throw new IllegalStateException( "`change` must be a non empty object for type " + type );
+        }
+        if ( type == MetadataProposalType.UPDATE && (!change.isArray() || change.isEmpty()) )
+        {
+            throw new IllegalStateException( "`change` must be a non empty array for type " + type );
+        }
+    }
+
+    private void validateSameUser( MetadataProposal proposal )
+    {
+        User currentUser = currentUserService.getCurrentUser();
+        if ( currentUser != null && !currentUser.isSuper()
+            && currentUser.getUid().equals( proposal.getCreatedBy().getUid() ) )
+        {
+            throw new IllegalStateException( "Only the user created the proposal can adjust it later." );
+        }
+    }
+
+    private void validationDryRun( MetadataProposal proposal )
+    {
+        ImportReport report = accept( proposal, ObjectBundleMode.VALIDATE );
+        if ( report.getStatus() != Status.OK || report.hasErrorReports() )
+        {
+            throw new MetadataValidationException( report, "Proposal contains errors in its definition" );
+        }
     }
 }

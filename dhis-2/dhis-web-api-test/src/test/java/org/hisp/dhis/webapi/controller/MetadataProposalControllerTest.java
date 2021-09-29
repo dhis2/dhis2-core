@@ -39,6 +39,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.metadata.MetadataProposalStatus;
 import org.hisp.dhis.metadata.MetadataProposalTarget;
 import org.hisp.dhis.metadata.MetadataProposalType;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.json.JsonMetadataProposal;
 import org.hisp.dhis.webapi.json.JsonObject;
@@ -82,7 +83,7 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testGetProposal()
     {
-        String uid = postAddProposal( "My Unit", "OU1" );
+        String uid = postAddProposal( "My Unit", "OU2" );
 
         JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", uid )
             .content().asObject( JsonMetadataProposal.class );
@@ -102,8 +103,10 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
         assertNull( proposal.getTargetUid() );
         assertNotNull( proposal.getCreated() );
         assertNotNull( proposal.getCreatedBy() );
-        assertNull( proposal.getAcceptedBy() );
-        assertNull( proposal.getComment() );
+        assertNull( proposal.getFinalisedBy() );
+        assertNull( proposal.getFinalised() );
+        assertEquals( "We need it", proposal.getComment() );
+        assertNull( proposal.getReason() );
         assertTrue( proposal.getChange().isObject() );
     }
 
@@ -147,8 +150,10 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
         assertEquals( defaultTargetUid, proposal.getTargetUid() );
         assertNotNull( proposal.getCreated() );
         assertNotNull( proposal.getCreatedBy() );
-        assertNull( proposal.getAcceptedBy() );
+        assertNull( proposal.getFinalisedBy() );
+        assertNull( proposal.getFinalised() );
         assertNull( proposal.getComment() );
+        assertNull( proposal.getReason() );
         assertTrue( proposal.getChange().isArray() );
     }
 
@@ -208,8 +213,10 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
         assertEquals( defaultTargetUid, proposal.getTargetUid() );
         assertNotNull( proposal.getCreated() );
         assertNotNull( proposal.getCreatedBy() );
-        assertNull( proposal.getAcceptedBy() );
+        assertNull( proposal.getFinalisedBy() );
+        assertNull( proposal.getFinalised() );
         assertNull( proposal.getComment() );
+        assertNull( proposal.getReason() );
         assertTrue( proposal.getChange().isUndefined() );
     }
 
@@ -306,17 +313,30 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    public void testAcceptProposal_ConflictAlreadyFailed()
+    public void testAcceptProposal_ConflictTargetAlreadyDeleted()
     {
         String removeId = postRemoveProposal( defaultTargetUid );
 
         assertStatus( HttpStatus.OK, DELETE( "/organisationUnits/" + defaultTargetUid ) );
         assertStatus( HttpStatus.CONFLICT, POST( "/metadata/proposals/" + removeId ) );
 
-        assertEquals( MetadataProposalStatus.FAILED, GET( "/metadata/proposals/{uid}", removeId )
-            .content().asObject( JsonMetadataProposal.class ).getStatus() );
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", removeId ).content()
+            .asObject( JsonMetadataProposal.class );
+        assertEquals( MetadataProposalStatus.NEEDS_UPDATE, proposal.getStatus() );
+        assertNotNull( proposal.getReason() );
 
-        assertWebMessage( "Conflict", 409, "ERROR", "Proposal already processed",
+        assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
+            POST( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
+
+    }
+
+    @Test
+    public void testAcceptProposal_ConflictMissingAuthority()
+    {
+        User guest = switchToNewUser( "guest" ); // has no authorities
+        String removeId = postRemoveProposal( defaultTargetUid );
+
+        assertWebMessage( "Conflict", 409, "ERROR", "",
             POST( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
     }
 
@@ -346,7 +366,8 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
         // reject
         assertStatus( HttpStatus.NO_CONTENT, DELETE( "/metadata/proposals/" + removeId ) );
 
-        assertStatus( HttpStatus.CONFLICT, DELETE( "/metadata/proposals/" + removeId ) );
+        assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
+            DELETE( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -357,21 +378,22 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
         // accept
         assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + removeId ) );
 
-        assertStatus( HttpStatus.CONFLICT, DELETE( "/metadata/proposals/" + removeId ) );
+        assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
+            DELETE( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testRejectProposal_ConflictAlreadyFailed()
+    public void testRejectProposal_ConflictTargetAlreadyDeleted()
     {
         String removeId = postRemoveProposal( defaultTargetUid );
 
         assertStatus( HttpStatus.OK, DELETE( "/organisationUnits/" + defaultTargetUid ) );
         assertStatus( HttpStatus.CONFLICT, POST( "/metadata/proposals/" + removeId ) );
 
-        assertEquals( MetadataProposalStatus.FAILED, GET( "/metadata/proposals/{uid}", removeId )
+        assertEquals( MetadataProposalStatus.NEEDS_UPDATE, GET( "/metadata/proposals/{uid}", removeId )
             .content().asObject( JsonMetadataProposal.class ).getStatus() );
 
-        assertWebMessage( "Conflict", 409, "ERROR", "Proposal already processed",
+        assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
             DELETE( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
     }
 
@@ -382,31 +404,36 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    public void testCommentProposal()
+    public void testOpposeProposal()
     {
         String removeId = postRemoveProposal( defaultTargetUid );
 
-        assertStatus( HttpStatus.OK,
-            PATCH( "/metadata/proposals/" + removeId, Body( "Hello" ), ContentType( MediaType.TEXT_PLAIN ) ) );
+        assertStatus( HttpStatus.NO_CONTENT,
+            PATCH( "/metadata/proposals/" + removeId, Body( "Just NO!" ), ContentType( MediaType.TEXT_PLAIN ) ) );
 
-        assertEquals( "Hello", GET( "/metadata/proposals/{uid}", removeId )
-            .content().asObject( JsonMetadataProposal.class ).getComment() );
-
-        // now accept it and update the comment
-        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + removeId ) );
-
-        assertStatus( HttpStatus.OK,
-            PATCH( "/metadata/proposals/" + removeId, Body( "Hello there" ), ContentType( MediaType.TEXT_PLAIN ) ) );
-
-        assertEquals( "Hello there", GET( "/metadata/proposals/{uid}", removeId )
-            .content().asObject( JsonMetadataProposal.class ).getComment() );
+        JsonMetadataProposal proposal = GET( "/metadata/proposals/{uid}", removeId ).content()
+            .asObject( JsonMetadataProposal.class );
+        assertEquals( "Just NO!", proposal.getReason() );
+        assertEquals( MetadataProposalStatus.NEEDS_UPDATE, proposal.getStatus() );
     }
 
     @Test
-    public void testCommentProposal_NotFound()
+    public void testOpposeProposal_ConflictAlreadyAccepted()
+    {
+        String removeId = postRemoveProposal( defaultTargetUid );
+
+        // accept
+        assertStatus( HttpStatus.OK, POST( "/metadata/proposals/" + removeId ) );
+
+        assertWebMessage( "Conflict", 409, "ERROR", "Proposal must be in status PROPOSED for this action",
+            PATCH( "/metadata/proposals/" + removeId ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    public void testOpposeProposal_NotFound()
     {
         assertStatus( HttpStatus.NOT_FOUND,
-            PATCH( "/metadata/proposals/xyz", Body( "Hello there" ), ContentType( MediaType.TEXT_PLAIN ) ) );
+            PATCH( "/metadata/proposals/xyz", Body( "Nah" ), ContentType( MediaType.TEXT_PLAIN ) ) );
     }
 
     private String postAddProposal( String name, String shortName )
@@ -418,7 +445,8 @@ public class MetadataProposalControllerTest extends DhisControllerConvenienceTes
                 "'change':{'name':'" + name + "', " +
                 "'shortName':'" + shortName + "', " +
                 "'openingDate': '2020-01-01'" +
-                "}" +
+                "}," +
+                "'comment': 'We need it'" +
                 "}" ) );
     }
 

@@ -37,14 +37,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.MetadataProposal;
+import org.hisp.dhis.metadata.MetadataProposalAdjustParams;
 import org.hisp.dhis.metadata.MetadataProposalParams;
 import org.hisp.dhis.metadata.MetadataProposalSchemaDescriptor;
 import org.hisp.dhis.metadata.MetadataProposalService;
@@ -62,6 +61,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -69,7 +69,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import lombok.AllArgsConstructor;
+
 /**
+ * REST API for going through the states of {@link MetadataProposal}s.
+ *
  * @author Jan Bernitt
  */
 @Controller
@@ -101,27 +105,38 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
     @ResponseBody
     public WebMessage proposeProposal( @RequestBody MetadataProposalParams params )
     {
-        MetadataProposalType type = params.getType();
-        if ( type != MetadataProposalType.ADD && params.getTargetUid() == null )
-        {
-            return badRequest( "`targetUid` is required for type " + type );
-        }
-        if ( type != MetadataProposalType.REMOVE && (params.getChange() == null || params.getChange().isNull()) )
-        {
-            return badRequest( "`change` is required for type " + type );
-        }
-        if ( type == MetadataProposalType.ADD && (!params.getChange().isObject() || params.getChange().isEmpty()) )
-        {
-            return badRequest( "`change` must be a non empty object for type " + type );
-        }
-        if ( type == MetadataProposalType.UPDATE && (!params.getChange().isArray() || params.getChange().isEmpty()) )
-        {
-            return badRequest( "`change` must be a non empty array for type " + type );
-        }
         try
         {
             MetadataProposal proposal = service.propose( params );
             return created().setLocation( MetadataProposalSchemaDescriptor.API_ENDPOINT + "/" + proposal.getUid() );
+        }
+        catch ( IllegalStateException ex )
+        {
+            return badRequest( ex.getMessage() );
+        }
+        catch ( MetadataValidationException ex )
+        {
+            return importReport( ex.getReport() );
+        }
+    }
+
+    @PutMapping( value = { "/{uid}/", "/{uid}" }, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage adjustProposal( @PathVariable( "uid" ) String uid,
+        @RequestBody MetadataProposalAdjustParams params )
+        throws NotFoundException
+    {
+        MetadataProposal proposal = service.getByUid( uid );
+        if ( proposal == null )
+            throw notFoundUid( uid );
+        try
+        {
+            service.adjust( uid, params );
+            return ok();
+        }
+        catch ( IllegalStateException ex )
+        {
+            return badRequest( ex.getMessage() );
         }
         catch ( MetadataValidationException ex )
         {
@@ -152,27 +167,25 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
         return ok();
     }
 
-    @PatchMapping( value = { "/{uid}/",
-        "/{uid}" }, consumes = MediaType.TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public WebMessage commentProposal( @PathVariable( "uid" ) String uid, @RequestBody String comment )
+    @PatchMapping( value = { "/{uid}/", "/{uid}" }, consumes = MediaType.TEXT_PLAIN_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void opposeProposal( @PathVariable( "uid" ) String uid, @RequestBody( required = false ) String reason )
         throws NotFoundException
     {
         MetadataProposal proposal = service.getByUid( uid );
         if ( proposal == null )
             throw notFoundUid( uid );
-        service.comment( proposal, comment );
-        return ok();
+        service.oppose( proposal, reason );
     }
 
-    @DeleteMapping( value = { "/{uid}/", "/{uid}" } )
+    @DeleteMapping( value = { "/{uid}/", "/{uid}" }, consumes = MediaType.TEXT_PLAIN_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void rejectProposal( @PathVariable( "uid" ) String uid )
+    public void rejectProposal( @PathVariable( "uid" ) String uid, @RequestBody( required = false ) String reason )
         throws NotFoundException
     {
         MetadataProposal proposal = service.getByUid( uid );
         if ( proposal == null )
             throw notFoundUid( uid );
-        service.reject( proposal );
+        service.reject( proposal, reason );
     }
 }

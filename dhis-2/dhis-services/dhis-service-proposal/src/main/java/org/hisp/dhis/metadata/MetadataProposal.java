@@ -29,12 +29,6 @@ package org.hisp.dhis.metadata;
 
 import java.util.Date;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -56,6 +50,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * A proposal is a record about a change proposed by a user to add, update or
@@ -97,7 +97,11 @@ public class MetadataProposal implements UniqueObject
 
     private String comment;
 
-    private User acceptedBy;
+    private String reason;
+
+    private User finalisedBy;
+
+    private Date finalised;
 
     @Override
     @JsonIgnore
@@ -172,6 +176,7 @@ public class MetadataProposal implements UniqueObject
     }
 
     @JsonProperty
+    @Description( "An optional comment provided by the creator to explain the proposal" )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getComment()
     {
@@ -179,13 +184,30 @@ public class MetadataProposal implements UniqueObject
     }
 
     @JsonProperty
+    @Description( "The reason why the proposal was rejected or why it failed and needs update" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getReason()
+    {
+        return reason;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    @Description( "The date this object was either accepted or rejected." )
+    @Property( value = PropertyType.DATE )
+    public Date getFinalised()
+    {
+        return finalised;
+    }
+
+    @JsonProperty
     @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
     @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
     @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getAcceptedBy()
+    public User getFinalisedBy()
     {
-        return acceptedBy;
+        return finalisedBy;
     }
 
     public void setAutoFields()

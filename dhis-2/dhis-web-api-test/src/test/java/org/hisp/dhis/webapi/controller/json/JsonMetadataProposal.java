@@ -83,20 +83,30 @@ public interface JsonMetadataProposal extends JsonObject
         return getString( "comment" ).string();
     }
 
+    default String getReason()
+    {
+        return getString( "reason" ).string();
+    }
+
     @Expected
     default String getCreatedBy()
     {
         return getString( "createdBy" ).string();
     }
 
-    default String getAcceptedBy()
+    default String getFinalisedBy()
     {
-        return getString( "acceptedBy" ).string();
+        return getString( "finalisedBy" ).string();
     }
 
     @Expected
     default LocalDateTime getCreated()
     {
         return get( "created", JsonDate.class ).date();
+    }
+
+    default LocalDateTime getFinalised()
+    {
+        return get( "finalised", JsonDate.class ).date();
     }
 }
