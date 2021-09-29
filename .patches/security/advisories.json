@@ -12,10 +12,6 @@
           {
             "prNumber": 15,
             "target": "patch/2.35.8"
-          },
-          {
-            "prNumber": 16,
-            "target": "patch/2.36.4"
           }
         ]
       },

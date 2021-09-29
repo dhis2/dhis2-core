@@ -362,4 +362,21 @@ public class ContextUtils
 
         return String.format( "%s%s", wildcardPath, queryString );
     }
+
+    /**
+     * Removes ".format.compression" extension if present, for example
+     * "data.xml.zip" will be replaced with "data".
+     *
+     * We do this to make sure the filename is without any additional extensions
+     * in case the client mistakenly also sends in the extension they want.
+     *
+     * @param name String to string
+     * @param format Format to match for
+     * @param compression Compression to match for
+     * @return String without .format.compression extension
+     */
+    public static String stripFormatCompressionExtension( String name, String format, String compression )
+    {
+        return name != null ? name.replace( "." + format + "." + compression, "" ) : "";
+    }
 }
