@@ -37,6 +37,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -68,8 +70,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
-import lombok.AllArgsConstructor;
 
 /**
  * REST API for going through the states of {@link MetadataProposal}s.
