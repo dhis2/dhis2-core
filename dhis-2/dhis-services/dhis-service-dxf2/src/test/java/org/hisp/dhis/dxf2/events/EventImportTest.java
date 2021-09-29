@@ -38,6 +38,8 @@ import static org.junit.Assert.assertNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -83,6 +85,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Ignore;
@@ -153,6 +156,8 @@ public class EventImportTest
     private ProgramInstance pi;
 
     private Event event;
+
+    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( DateUtils.ISO8601_NO_TZ_PATTERN );
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -346,8 +351,12 @@ public class EventImportTest
 
     @Test
     public void testAddEventOnProgramWithRegistration()
-        throws IOException
+        throws IOException,
+        ParseException
     {
+        String lastupdateDateBefore = trackedEntityInstanceService
+            .getTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() ).getLastUpdated();
+
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
@@ -357,6 +366,14 @@ public class EventImportTest
             trackedEntityInstanceMaleA.getTrackedEntityInstance(), dataElementA, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+
+        cleanSession();
+
+        assertTrue( simpleDateFormat.parse(
+            trackedEntityInstanceService
+                .getTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() ).getLastUpdated() )
+            .getTime() > simpleDateFormat
+                .parse( lastupdateDateBefore ).getTime() );
     }
 
     @Test
