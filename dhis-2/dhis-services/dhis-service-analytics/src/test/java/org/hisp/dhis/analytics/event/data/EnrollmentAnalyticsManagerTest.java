@@ -149,6 +149,11 @@ public class EnrollmentAnalyticsManagerTest
             + " where analytics_event_" + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid() + "' order by executiondate desc limit 1 )";
 
+        if ( valueType == ValueType.NUMBER )
+        {
+            subSelect = "coalesce(" + subSelect + ", 'NaN') as fWIAEtYVEGk";
+        }
+
         String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) " + "and ps = '"
             + programStage.getUid() + "' limit 101";
@@ -193,7 +198,8 @@ public class EnrollmentAnalyticsManagerTest
             + programA.getUid() + ".pi = ax.pi and \"fWIAEtYVEGk\" is not null and ps = '"
             + programStage.getUid() + "' order by executiondate desc limit 1 )";
 
-        String expected = "ax.\"monthly\",ax.\"ou\"," + subSelect + "  from " + getTable( programA.getUid() )
+        String expected = "ax.\"monthly\",ax.\"ou\"," + "coalesce(" + subSelect + ", 'NaN') as fWIAEtYVEGk" + "  from "
+            + getTable( programA.getUid() )
             + " as ax where ax.\"monthly\" in ('2000Q1') and (uidlevel0 = 'ouabcdefghA' ) "
             + "and ps = '" + programStage.getUid() + "' and " + subSelect + " > '10' limit 10001";
 
