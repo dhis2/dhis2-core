@@ -6,8 +6,7 @@ pipeline {
     }
 
     triggers {
-        cron('H H(9-16)/2 * * 1-5')
-        pollSCM('H/30 * * * *')
+        cron('H 20 * * 1-5')
     }
 
     options {
