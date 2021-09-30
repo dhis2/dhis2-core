@@ -57,7 +57,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -456,7 +455,7 @@ public class JdbcEventAnalyticsManager
         // Program stage
         // ---------------------------------------------------------------------
 
-        if ( params.hasProgramStage() && params.getOutputType() != EventOutputType.ENROLLMENT )
+        if ( params.hasProgramStage() )
         {
             sql += hlp.whereAnd() + " " + quoteAlias( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }
@@ -475,9 +474,9 @@ public class JdbcEventAnalyticsManager
 
                     if ( IN.equals( filter.getOperator() ) )
                     {
-                        InQueryFilter inQueryFilter = new InQueryFilter( field, filter );
-                        sql += hlp.whereAnd() + " " + inQueryFilter.renderSqlFilter( item.isText(),
-                            toEncode -> statementBuilder.encode( toEncode, false ) );
+                        InQueryFilter inQueryFilter = new InQueryFilter( field,
+                            statementBuilder.encode( filter.getFilter(), false ), item.isText() );
+                        sql += hlp.whereAnd() + " " + inQueryFilter.getSqlFilter();
                     }
                     else
                     {
