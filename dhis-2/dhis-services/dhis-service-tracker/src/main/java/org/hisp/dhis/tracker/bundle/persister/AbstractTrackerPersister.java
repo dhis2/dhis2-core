@@ -32,6 +32,8 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -104,6 +106,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         //
         List<T> dtos = getByType( getType(), bundle );
 
+        Set<String> updatedTeiList = bundle.getUpdatedTeis();
+
         for ( int idx = 0; idx < dtos.size(); idx++ )
         {
             //
@@ -148,6 +152,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                         session.merge( convertedDto );
                         typeReport.getStats().incUpdated();
                         typeReport.addObjectReport( objectReport );
+                        Optional.ofNullable( getUpdatedTrackedEntity( convertedDto ) ).ifPresent( updatedTeiList::add );
                     }
                     else
                     {
@@ -171,6 +176,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 {
                     sideEffectDataBundles.add( handleSideEffects( bundle, convertedDto ) );
                 }
+
+                bundle.setUpdatedTeis( updatedTeiList );
             }
             catch ( Exception e )
             {
@@ -210,6 +217,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     // TEMPLATE METHODS //
     // // // // // // // //
     // // // // // // // //
+
+    /**
+     * Get Tracked Entity for enrollments or events that have been updated
+     */
+    protected abstract String getUpdatedTrackedEntity( V entity );
 
     /**
      * Executes the configured pre-creation hooks. This method takes place only
