@@ -129,4 +129,10 @@ public class RelationshipPersister
         // NOTHING TO DO
 
     }
+
+    @Override
+    protected String getUpdatedTrackedEntity( org.hisp.dhis.relationship.Relationship entity )
+    {
+        return null;
+    }
 }
