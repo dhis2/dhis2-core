@@ -257,7 +257,6 @@ public class DefaultEventDataQueryService
             .withProgramStatus( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() )
             .build();
-
     }
 
     @Override
