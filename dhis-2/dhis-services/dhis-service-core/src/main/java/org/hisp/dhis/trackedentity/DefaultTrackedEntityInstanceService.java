@@ -868,7 +868,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
-    public void updateTrackedEntityInstanceLastUpdated( List<String> trackedEntityInstanceUIDs, Date lastUpdated )
+    public void updateTrackedEntityInstanceLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
     {
         trackedEntityInstanceStore.updateTrackedEntityInstancesLastUpdated( trackedEntityInstanceUIDs, lastUpdated );
     }
