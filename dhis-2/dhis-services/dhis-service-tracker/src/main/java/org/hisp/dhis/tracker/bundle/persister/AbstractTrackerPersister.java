@@ -60,8 +60,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
 
-import com.google.common.collect.ImmutableMap;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -69,10 +67,6 @@ import com.google.common.collect.ImmutableMap;
 public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends BaseIdentifiableObject>
     implements TrackerPersister<T, V>
 {
-    private static final ImmutableMap<Boolean, AuditType> AUDIT_TYPE_MAPPER = new ImmutableMap.Builder<Boolean, AuditType>()
-        .put( Boolean.TRUE, AuditType.CREATE )
-        .put( Boolean.FALSE, AuditType.UPDATE ).build();
-
     protected final ReservedValueService reservedValueService;
 
     protected final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
@@ -382,7 +376,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 saveOrUpdate( session, isNew, attributeValue );
 
                 logTrackedEntityAttributeValueHistory( isNew, preheat.getUsername(), attributeValue,
-                    trackedEntityInstance );
+                    trackedEntityInstance, at );
             }
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
@@ -394,15 +388,21 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     }
 
     private void logTrackedEntityAttributeValueHistory( boolean isNew, String userName,
-        TrackedEntityAttributeValue attributeValue, TrackedEntityInstance trackedEntityInstance )
+        TrackedEntityAttributeValue attributeValue, TrackedEntityInstance trackedEntityInstance, Attribute at )
     {
         boolean allowAuditLog = trackedEntityInstance.getTrackedEntityType().isAllowAuditLog();
 
         if ( allowAuditLog )
         {
+            AuditType auditType = AuditType.CREATE;
+
+            if ( !isNew )
+            {
+                auditType = StringUtils.isBlank( at.getValue() ) ? AuditType.DELETE : AuditType.UPDATE;
+            }
+
             TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
-                attributeValue, attributeValue.getValue(), userName,
-                AUDIT_TYPE_MAPPER.get( isNew ) );
+                attributeValue, attributeValue.getValue(), userName, auditType );
             valueAudit.setEntityInstance( trackedEntityInstance );
             trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( valueAudit );
         }
