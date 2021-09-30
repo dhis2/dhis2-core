@@ -1742,6 +1742,17 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
+    public void updateTrackedEntityInstancesLastUpdated( List<String> trackedEntityInstanceUIDs, Date lastUpdated )
+    {
+        final String hql = "update TrackedEntityInstance set lastUpdated = :lastUpdated WHERE uid in :trackedEntityInstances";
+
+        getQuery( hql )
+            .setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs )
+            .setParameter( "lastUpdated", lastUpdated )
+            .executeUpdate();
+    }
+
+    @Override
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
         List<List<String>> uidPartitions = Lists.partition( uids, 20000 );

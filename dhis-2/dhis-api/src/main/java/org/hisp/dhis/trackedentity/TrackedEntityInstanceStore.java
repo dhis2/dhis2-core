@@ -98,6 +98,8 @@ public interface TrackedEntityInstanceStore
      */
     void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
 
+    void updateTrackedEntityInstancesLastUpdated( List<String> trackedEntityInstanceUIDs, Date lastUpdated );
+
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 
     List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
