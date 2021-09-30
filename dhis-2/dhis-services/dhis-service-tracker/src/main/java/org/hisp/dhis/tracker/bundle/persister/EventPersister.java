@@ -235,7 +235,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     @Override
     protected String getUpdatedTrackedEntity( ProgramStageInstance entity )
     {
-        return Optional.ofNullable( entity.getProgramInstance() )
+        return Optional.ofNullable( entity.getProgramInstance() ).filter( pi -> pi.getEntityInstance() != null )
             .map( pi -> pi.getEntityInstance().getUid() ).orElse( null );
     }
 }
