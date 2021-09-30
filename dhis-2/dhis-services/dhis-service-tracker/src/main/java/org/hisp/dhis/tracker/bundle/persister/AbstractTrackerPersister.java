@@ -367,8 +367,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 }
 
                 session.remove( attributeValue );
-                logTrackedEntityAttributeValueHistory(  preheat.getUsername(), attributeValue,
-                        trackedEntityInstance, AuditType.DELETE );
+                logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
+                    trackedEntityInstance, AuditType.DELETE );
             }
             else
             {
@@ -379,7 +379,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
                 saveOrUpdate( session, isNew, attributeValue );
 
-                logTrackedEntityAttributeValueHistory(  preheat.getUsername(), attributeValue,
+                logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
                     trackedEntityInstance, isNew ? AuditType.CREATE : AuditType.UPDATE );
             }
 
