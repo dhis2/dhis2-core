@@ -61,7 +61,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -166,16 +165,8 @@ public class DefaultTrackerBundleService
 
     private void updateTeisLastUpdated( TrackerBundle bundle )
     {
-        if ( Optional.ofNullable( bundle.getUpdatedTeis() ).filter( ut -> !ut.isEmpty() ).isPresent() )
-        {
-            List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( bundle.getUpdatedTeis() ), 20000 );
-
-            Date lastUpdated = new Date();
-
-            uidsPartitions.stream().filter( teis -> !teis.isEmpty() )
-                .forEach(
-                    teis -> trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated( teis, lastUpdated ) );
-        }
+        Optional.ofNullable( bundle.getUpdatedTeis() ).filter( ut -> !ut.isEmpty() ).ifPresent(
+            teis -> trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated( teis, new Date() ) );
     }
 
     @Override
