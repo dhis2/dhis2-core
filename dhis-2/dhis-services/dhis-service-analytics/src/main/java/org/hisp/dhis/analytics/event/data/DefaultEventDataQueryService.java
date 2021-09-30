@@ -199,17 +199,6 @@ public class DefaultEventDataQueryService
             params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
         }
 
-        if ( request.getOutputType() == EventOutputType.ENROLLMENT )
-        {
-            params.withStartEndDatesForPeriods( false );
-        }
-        else
-        {
-            params.withStartDate( request.getStartDate() );
-
-            params.withEndDate( request.getEndDate() );
-        }
-
         return params
             .withValue( getValueDimension( request.getValue() ) )
             .withSkipRounding( request.isSkipRounding() )
@@ -221,6 +210,8 @@ public class DefaultEventDataQueryService
             .withAggregateData( request.isAggregateData() )
             .withProgram( pr )
             .withProgramStage( ps )
+            .withStartDate( request.getStartDate() )
+            .withEndDate( request.getEndDate() )
             .withOrganisationUnitMode( request.getOuMode() )
             .withSkipMeta( request.isSkipMeta() )
             .withSkipData( request.isSkipData() )
