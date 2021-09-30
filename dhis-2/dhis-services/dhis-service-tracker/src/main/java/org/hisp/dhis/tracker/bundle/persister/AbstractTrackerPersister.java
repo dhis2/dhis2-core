@@ -346,12 +346,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             if ( attributeValue == null )
             {
                 attributeValue = new TrackedEntityAttributeValue();
+                attributeValue.setAttribute( attribute );
+                attributeValue.setEntityInstance( trackedEntityInstance );
+
                 isNew = true;
             }
 
             attributeValue
-                .setAttribute( attribute )
-                .setEntityInstance( trackedEntityInstance )
                 .setValue( at.getValue() )
                 .setStoredBy( at.getStoredBy() );
 
@@ -364,7 +365,10 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 {
                     unassignFileResource( session, preheat, attributeValueDBMap.get( at.getAttribute() ).getValue() );
                 }
+
                 session.remove( attributeValue );
+                logTrackedEntityAttributeValueHistory(  preheat.getUsername(), attributeValue,
+                        trackedEntityInstance, AuditType.DELETE );
             }
             else
             {
@@ -375,8 +379,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
                 saveOrUpdate( session, isNew, attributeValue );
 
-                logTrackedEntityAttributeValueHistory( isNew, preheat.getUsername(), attributeValue,
-                    trackedEntityInstance, at );
+                logTrackedEntityAttributeValueHistory(  preheat.getUsername(), attributeValue,
+                    trackedEntityInstance, isNew ? AuditType.CREATE : AuditType.UPDATE );
             }
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
@@ -387,20 +391,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         }
     }
 
-    private void logTrackedEntityAttributeValueHistory( boolean isNew, String userName,
-        TrackedEntityAttributeValue attributeValue, TrackedEntityInstance trackedEntityInstance, Attribute at )
+    private void logTrackedEntityAttributeValueHistory( String userName,
+        TrackedEntityAttributeValue attributeValue, TrackedEntityInstance trackedEntityInstance, AuditType auditType )
     {
         boolean allowAuditLog = trackedEntityInstance.getTrackedEntityType().isAllowAuditLog();
 
         if ( allowAuditLog )
         {
-            AuditType auditType = AuditType.CREATE;
-
-            if ( !isNew )
-            {
-                auditType = StringUtils.isBlank( at.getValue() ) ? AuditType.DELETE : AuditType.UPDATE;
-            }
-
             TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
                 attributeValue, attributeValue.getValue(), userName, auditType );
             valueAudit.setEntityInstance( trackedEntityInstance );

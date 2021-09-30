@@ -42,6 +42,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Test;
@@ -75,7 +76,7 @@ public class TrackedEntityAttributeValueAuditTest extends TrackerTest
     }
 
     @Test
-    public void testTrackedEntityAttributeValueAudit()
+    public void testTrackedEntityAttributeValueAuditCreate()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
@@ -102,6 +103,43 @@ public class TrackedEntityAttributeValueAuditTest extends TrackerTest
         List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
             .getTrackedEntityAttributeValueAudits(
                 attributes, trackedEntityInstances, AuditType.CREATE );
+
+        assertEquals( 4, attributeValueAudits.size() );
+    }
+
+    @Test
+    public void testTrackedEntityAttributeValueAuditDelete()
+            throws IOException
+    {
+        TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
+        trackerImportParams.setUser( currentUserService.getCurrentUser() );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
+
+        trackerBundleService.commit( trackerBundle );
+
+        trackerImportParams = fromJson( "tracker/te_program_with_tea_null_data.json" );
+        trackerImportParams.setUser( currentUserService.getCurrentUser() );
+        trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+
+        trackerBundle = trackerBundleService.create( trackerImportParams );
+
+        trackerBundleService.commit( trackerBundle );
+
+        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
+
+        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+
+        List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
+                .getTrackedEntityAttributeValues(
+                        trackedEntityInstance );
+
+        List<TrackedEntityAttribute> attributes = attributeValues.stream()
+                .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
+
+        List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
+                .getTrackedEntityAttributeValueAudits(
+                        attributes, trackedEntityInstances, AuditType.CREATE );
 
         assertEquals( 4, attributeValueAudits.size() );
     }
