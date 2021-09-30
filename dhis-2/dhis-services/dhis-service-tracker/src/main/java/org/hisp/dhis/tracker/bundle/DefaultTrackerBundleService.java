@@ -29,8 +29,10 @@ package org.hisp.dhis.tracker.bundle;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -42,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
@@ -59,6 +62,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,6 +83,8 @@ public class DefaultTrackerBundleService
     private final TrackerObjectDeletionService deletionService;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
+
+    private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
@@ -166,6 +172,26 @@ public class DefaultTrackerBundleService
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
         return bundleReport;
+    }
+
+    @Override
+    public void postCommit( TrackerBundle bundle )
+    {
+        updateTeisLastUpdated( bundle );
+    }
+
+    private void updateTeisLastUpdated( TrackerBundle bundle )
+    {
+        if ( Optional.ofNullable( bundle.getUpdatedTeis() ).filter( ut -> !ut.isEmpty() ).isPresent() )
+        {
+            List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( bundle.getUpdatedTeis() ), 20000 );
+
+            Date lastUpdated = new Date();
+
+            uidsPartitions.stream().filter( teis -> !teis.isEmpty() )
+                .forEach(
+                    teis -> trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated( teis, lastUpdated ) );
+        }
     }
 
     @Override
