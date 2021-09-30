@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer.tei;
 
-import static org.hamcrest.Matchers.*;
-
+import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.RestApiActions;
@@ -38,11 +37,12 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -72,7 +72,7 @@ public class TeiValidationTests
     public void shouldReturnErrorReportsWhenTeiIncorrect()
     {
         // arrange
-        JsonObject trackedEntities = trackerActions.buildTei( "", Constants.ORG_UNIT_IDS[0] );
+        JsonObject trackedEntities = new TeiDataBuilder().build( "", Constants.ORG_UNIT_IDS[0] );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -96,7 +96,7 @@ public class TeiValidationTests
     public void shouldReturnErrorWhenMandatoryAttributesMissing()
     {
         // arrange
-        JsonObject trackedEntities = trackerActions.buildTei( trackedEntityType, Constants.ORG_UNIT_IDS[0] );
+        JsonObject trackedEntities = new TeiDataBuilder().build( trackedEntityType, Constants.ORG_UNIT_IDS[0] );
 
         // assert
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -163,9 +163,8 @@ public class TeiValidationTests
     public void shouldReturnErrorWhenMandatoryProgramAttributeMissing()
     {
         // arrange
-        JsonObject trackedEntities = JsonObjectBuilder
-            .jsonObject( trackerActions.buildTeiAndEnrollment( trackedEntityType, Constants.ORG_UNIT_IDS[0], program ) )
-            .build();
+        JsonObject trackedEntities = new TeiDataBuilder()
+            .buildWithEnrollment( trackedEntityType, Constants.ORG_UNIT_IDS[0], program );
 
         // assert
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -219,7 +218,7 @@ public class TeiValidationTests
     private JsonObject buildTeiWithMandatoryAttribute()
     {
         JsonObject trackedEntities = JsonObjectBuilder
-            .jsonObject( trackerActions.buildTei( trackedEntityType, Constants.ORG_UNIT_IDS[0] ) )
+            .jsonObject( new TeiDataBuilder().build( trackedEntityType, Constants.ORG_UNIT_IDS[0] ) )
             .addPropertyByJsonPath( "trackedEntities[0]", "trackedEntity", new IdGenerator().generateUniqueId() )
             .addArrayByJsonPath( "trackedEntities[0]", "attributes", new JsonObjectBuilder()
                 .addProperty( "attribute", mandatoryTetAttribute )
@@ -233,7 +232,7 @@ public class TeiValidationTests
     private JsonObject buildTeiWithEnrollmentAndMandatoryAttributes()
     {
         JsonObject trackedEntities = JsonObjectBuilder
-            .jsonObject( trackerActions.buildTeiAndEnrollment( trackedEntityType, Constants.ORG_UNIT_IDS[0], program ) )
+            .jsonObject( new TeiDataBuilder().buildWithEnrollment( trackedEntityType, Constants.ORG_UNIT_IDS[0], program ) )
             .addArrayByJsonPath( "trackedEntities[0]", "attributes", new JsonObjectBuilder()
                 .addProperty( "attribute", mandatoryTetAttribute )
                 .addProperty( "value", DataGenerator.randomString() )
