@@ -363,9 +363,9 @@ public class DhisWebApiWebSecurityConfig
 
         public WebExpressionVoter apiWebExpressionVoter()
         {
-            DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-            handler.setDefaultRolePrefix( "" );
             WebExpressionVoter voter = new WebExpressionVoter();
+            OAuth2WebSecurityExpressionHandler handler = new OAuth2WebSecurityExpressionHandler();
+            handler.setDefaultRolePrefix( "" );
             voter.setExpressionHandler( handler );
             return voter;
         }
