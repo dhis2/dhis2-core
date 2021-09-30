@@ -403,7 +403,7 @@ final class GistBuilder
         if ( property.isIdentifiableObject() )
         {
             String endpointRoot = getEndpointRoot( property );
-            if ( endpointRoot != null )
+            if ( endpointRoot != null && query.isReferences() )
             {
                 int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
                 addTransformer(
@@ -430,7 +430,7 @@ final class GistBuilder
         String path = field.getPropertyPath();
         Property property = context.resolveMandatory( path );
         String endpointRoot = getSameParentEndpointRoot( path );
-        if ( endpointRoot != null )
+        if ( endpointRoot != null && query.isReferences() )
         {
             int idFieldIndex = getSameParentFieldIndex( path, ID_PROPERTY );
             int refIndex = fieldIndexByPath.get( Field.REFS_PATH );

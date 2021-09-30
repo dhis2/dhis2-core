@@ -31,6 +31,7 @@ import static java.util.Arrays.asList;
 import static org.springframework.http.CacheControl.noCache;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
@@ -53,6 +54,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.webapi.CsvBuilder;
 import org.hisp.dhis.webapi.JsonBuilder;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
@@ -106,6 +108,13 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
     {
         return gistToJsonArrayResponse( request, createGistQuery( request, getEntityClass(), GistAutoType.S ),
             getSchema() );
+    }
+
+    @GetMapping( value = "/gist", produces = "text/csv" )
+    public @ResponseBody void getObjectListGistAsCsv( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        gistToCsvResponse( response, createGistQuery( request, getEntityClass(), GistAutoType.S ) );
     }
 
     @GetMapping( value = "/{uid}/{property}/gist", produces = APPLICATION_JSON_VALUE )
@@ -197,6 +206,17 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
     {
         return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body(
             new JsonBuilder( jsonMapper ).skipNullMembers().toObject( gistService.describe( query ) ) );
+    }
+
+    private void gistToCsvResponse( HttpServletResponse response, GistQuery query )
+        throws IOException
+    {
+        query = gistService.plan( query ).toBuilder().references( false ).build();
+        response.addHeader( "Content-Type", "text/csv" );
+        new CsvBuilder( response.getWriter() )
+            .withLocale( query.getTranslationLocale() )
+            .skipHeaders( query.isHeadless() )
+            .toRows( query.getFieldNames(), gistService.gist( query ) );
     }
 
     // --------------------------------------------------------------------------

@@ -336,6 +336,10 @@ class GistPlanner
 
     private List<Field> withEndpointsField( List<Field> fields )
     {
+        if ( !query.isReferences() )
+        {
+            return fields;
+        }
         boolean hasReferences = fields.stream().anyMatch( field -> {
             Property p = context.resolveMandatory( field.getPropertyPath() );
             return isPersistentReferenceField( p ) && p.isIdentifiableObject()

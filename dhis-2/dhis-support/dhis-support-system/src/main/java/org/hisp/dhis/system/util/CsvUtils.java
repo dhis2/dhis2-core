@@ -44,7 +44,7 @@ import com.csvreader.CsvWriter;
  */
 public class CsvUtils
 {
-    private static final char DELIMITER = ',';
+    public static final char DELIMITER = ',';
 
     /**
      * Returns a {@link CsvReader} using the UTF-8 char set.
