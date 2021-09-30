@@ -1179,6 +1179,26 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( "Cl00ghs775c", eventReport.getProgramIndicatorDimensions().get( 0 ).getUid() );
     }
 
+    @Test
+    public void testImportNewSharingWithEmptyOldSharingObjects()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_new_sharing.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
+        params.setSkipSharing( false );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+        assertEquals( 1, dataSet.getSharing().getUsers().size() );
+        assertEquals( "rw------", dataSet.getSharing().getUsers().get( "bKGX66nV2lI" ).getAccess() );
+
+    }
+
     private MetadataImportParams createParams( ImportStrategy importStrategy,
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata )
     {
