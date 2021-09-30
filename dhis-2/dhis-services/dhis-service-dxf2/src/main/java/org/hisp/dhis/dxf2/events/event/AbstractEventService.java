@@ -845,18 +845,15 @@ public abstract class AbstractEventService implements EventService
 
         if ( params.getOrgUnit() != null )
         {
+            organisationUnits.add( orgUnit );
+
             if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
             {
                 organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
             }
             else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
             {
-                organisationUnits.add( orgUnit );
                 organisationUnits.addAll( orgUnit.getChildren() );
-            }
-            else // SELECTED
-            {
-                organisationUnits.add( orgUnit );
             }
         }
 
