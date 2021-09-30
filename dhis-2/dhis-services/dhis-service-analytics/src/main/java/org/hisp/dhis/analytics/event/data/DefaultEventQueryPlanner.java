@@ -35,7 +35,6 @@ import java.util.function.Function;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryValidator;
@@ -144,9 +143,8 @@ public class DefaultEventQueryPlanner
             : PartitionUtils.getPartitions( params.getAllPeriods() );
 
         String baseName = params.hasEnrollmentProgramIndicatorDimension()
-            || params.getOutputType() == EventOutputType.ENROLLMENT
-                ? AnalyticsTableType.ENROLLMENT.getTableName()
-                : AnalyticsTableType.EVENT.getTableName();
+            ? AnalyticsTableType.ENROLLMENT.getTableName()
+            : AnalyticsTableType.EVENT.getTableName();
 
         String tableName = PartitionUtils.getTableName( baseName, params.getProgram() );
 
