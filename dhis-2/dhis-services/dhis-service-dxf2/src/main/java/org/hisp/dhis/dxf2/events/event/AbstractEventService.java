@@ -866,9 +866,12 @@ public abstract class AbstractEventService implements EventService
 
             if ( OrganisationUnitSelectionMode.ACCESSIBLE.equals( orgUnitSelectionMode ) )
             {
-                orgUnits = program.isRegistration()
-                    ? user.getTeiSearchOrganisationUnitsWithFallback()
-                    : user.getDataViewOrganisationUnitsWithFallback();
+                orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+
+                if ( program != null && program.isWithoutRegistration() )
+                {
+                    orgUnits = user.getDataViewOrganisationUnitsWithFallback();
+                }
             }
             else if ( OrganisationUnitSelectionMode.CAPTURE.equals( orgUnitSelectionMode ) )
             {
