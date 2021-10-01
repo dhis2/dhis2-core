@@ -1751,11 +1751,10 @@ public class HibernateTrackedEntityInstanceStore
     public void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
     {
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( trackedEntityInstanceUIDs ), 20000 );
-        final String hql = "update TrackedEntityInstance set lastUpdated = :lastUpdated WHERE uid in :trackedEntityInstances";
 
         uidsPartitions.stream().filter( teis -> !teis.isEmpty() )
             .forEach(
-                teis -> getQuery( hql )
+                teis -> getSession().getNamedQuery( "updateTeisLastUpdated" )
                     .setParameter( "trackedEntityInstances", teis )
                     .setParameter( "lastUpdated", lastUpdated )
                     .executeUpdate() );
