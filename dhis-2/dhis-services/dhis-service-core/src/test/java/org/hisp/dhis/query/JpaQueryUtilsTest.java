@@ -31,13 +31,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
