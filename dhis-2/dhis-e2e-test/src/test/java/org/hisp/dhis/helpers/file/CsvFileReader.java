@@ -132,6 +132,12 @@ public class CsvFileReader
         return this;
     }
 
+    @Override public org.hisp.dhis.helpers.file.FileReader replacePropertyValuesRecursivelyWith( String propertyName,
+        String replacedValue )
+    {
+        return null;
+    }
+
     @Override
     public org.hisp.dhis.helpers.file.FileReader replace( Function<Object, Object> function )
     {

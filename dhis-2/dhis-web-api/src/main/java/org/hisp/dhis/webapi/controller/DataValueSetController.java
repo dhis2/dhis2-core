@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.render.RenderFormat.CSV;
+import static org.hisp.dhis.render.RenderFormat.XML;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
@@ -37,6 +39,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PDF;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML_ADX;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+import static org.hisp.dhis.webapi.utils.ContextUtils.stripFormatCompressionExtension;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
@@ -117,6 +120,55 @@ public class DataValueSetController
     // -------------------------------------------------------------------------
     // Get
     // -------------------------------------------------------------------------
+
+    @GetMapping( params = { "format", "compression", "attachment" } )
+    public void getDataValueSet(
+        @RequestParam( required = false ) Set<String> dataSet,
+        @RequestParam( required = false ) Set<String> dataElementGroup,
+        @RequestParam( required = false ) Set<String> period,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Set<String> orgUnit,
+        @RequestParam( required = false ) boolean children,
+        @RequestParam( required = false ) Set<String> orgUnitGroup,
+        @RequestParam( required = false ) Set<String> attributeOptionCombo,
+        @RequestParam( required = false ) boolean includeDeleted,
+        @RequestParam( required = false ) Date lastUpdated,
+        @RequestParam( required = false ) String lastUpdatedDuration,
+        @RequestParam( required = false ) Integer limit,
+        @RequestParam( required = false ) String attachment,
+        @RequestParam( required = false ) String compression,
+        @RequestParam( required = false ) String format,
+        IdSchemes idSchemes, HttpServletResponse response )
+        throws IOException
+    {
+        setNoStore( response );
+
+        DataExportParams params = dataValueSetService.getFromUrl( dataSet, dataElementGroup,
+            period, startDate, endDate, orgUnit, children, orgUnitGroup, attributeOptionCombo,
+            includeDeleted, lastUpdated, lastUpdatedDuration, limit, idSchemes );
+
+        if ( XML.isEqual( format ) )
+        {
+            response.setContentType( CONTENT_TYPE_XML );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
+            dataValueSetService.writeDataValueSetXml( params, outputStream );
+        }
+        else if ( CSV.isEqual( format ) )
+        {
+            response.setContentType( CONTENT_TYPE_CSV );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
+            PrintWriter printWriter = new PrintWriter( outputStream );
+            dataValueSetService.writeDataValueSetCsv( params, printWriter );
+        }
+        else
+        {
+            // default to json
+            response.setContentType( CONTENT_TYPE_JSON );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "json" );
+            dataValueSetService.writeDataValueSetJson( params, outputStream );
+        }
+    }
 
     @GetMapping( produces = CONTENT_TYPE_XML )
     public void getDataValueSetXml(
@@ -402,19 +454,26 @@ public class DataValueSetController
 
         if ( Compression.GZIP == compression )
         {
+            // make sure to remove format + gz/gzip extension if present
+            fileName = stripFormatCompressionExtension( fileName, format, "gzip" );
+            fileName = stripFormatCompressionExtension( fileName, format, "gz" );
+
             response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
-                "attachment; filename=" + fileName + "." + format + ".gzip" );
+                "attachment; filename=" + fileName + "." + format + ".gz" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             return new GZIPOutputStream( response.getOutputStream() );
         }
         else if ( Compression.ZIP == compression )
         {
+            // make sure to remove format + zip extension if present
+            fileName = stripFormatCompressionExtension( fileName, format, "zip" );
+
             response.setHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
                 "attachment; filename=" + fileName + "." + format + ".zip" );
             response.setHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
 
             ZipOutputStream outputStream = new ZipOutputStream( response.getOutputStream() );
-            outputStream.putNextEntry( new ZipEntry( fileName ) );
+            outputStream.putNextEntry( new ZipEntry( fileName + "." + format ) );
 
             return outputStream;
         }
@@ -427,6 +486,7 @@ public class DataValueSetController
                 response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + attachment );
                 response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             }
+
             return response.getOutputStream();
         }
     }

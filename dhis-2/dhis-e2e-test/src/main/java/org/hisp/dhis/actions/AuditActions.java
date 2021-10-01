@@ -25,19 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.render;
+
+package org.hisp.dhis.actions;
+
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public enum RenderFormat
+public class AuditActions
+    extends RestApiActions
 {
-    JSON,
-    XML,
-    CSV;
-
-    public boolean isEqual( String format )
+    public AuditActions()
     {
-        return name().equalsIgnoreCase( format );
+        super( "/audits" );
+    }
+
+    public ApiResponse getTrackedEntityAttributeValueAudits( String tei )
+    {
+        return this.get( "/trackedEntityAttributeValue?tei=" + tei );
     }
 }
+

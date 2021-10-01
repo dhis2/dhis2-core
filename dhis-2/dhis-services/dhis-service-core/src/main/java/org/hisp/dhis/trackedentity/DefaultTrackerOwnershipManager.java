@@ -37,6 +37,7 @@ import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.dxf2.events.event.EventContext;
@@ -278,22 +279,20 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     @Override
     @Transactional( readOnly = true )
-    public boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program )
+    public boolean hasAccess( User user, String entityInstance, OrganisationUnit owningOrgUnit, Program program )
     {
-        if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
+        if ( canSkipOwnershipCheck( user, program ) || entityInstance == null || owningOrgUnit == null )
         {
             return true;
         }
 
-        OrganisationUnit ou = getOwnerExpanded( entityInstance, organisationUnit, program );
-
         if ( program.isOpen() || program.isAudited() )
         {
-            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
+            return organisationUnitService.isInUserSearchHierarchyCached( user, owningOrgUnit );
         }
         else
         {
-            return organisationUnitService.isInUserHierarchyCached( user, ou )
+            return organisationUnitService.isInUserHierarchyCached( user, owningOrgUnit )
                 || hasTemporaryAccessWithUid( entityInstance, program, user );
         }
     }
@@ -389,10 +388,40 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                     entityInstanceId, program.getId() );
 
             return Optional.ofNullable( trackedEntityProgramOwner )
-                .map( TrackedEntityProgramOwner::getOrganisationUnit )
+                .map( tepo -> {
+                    return recursivelyInitializeOrgUnit( tepo.getOrganisationUnit() );
+                } )
                 .orElseGet( orgUnitIfMissingSupplier );
 
         } ).get();
+    }
+
+    /**
+     * This method initializes the OrganisationUnit passed on in the arguments.
+     * All the parent OrganisationUnits are also recurseively initialized. This
+     * is done to be able to serialize and deserialize the ownership orgUnit
+     * into redis cache.
+     *
+     *
+     * @param organisationUnit
+     * @return
+     */
+    private OrganisationUnit recursivelyInitializeOrgUnit( OrganisationUnit organisationUnit )
+    {
+        // TODO: Modify the {@link
+        // OrganisationUnit#isDescendant(OrganisationUnit)} and {@link
+        // OrganisationUnit#isDescendant(Set)}
+        // methods to use path parameter instead of recursively visiting the
+        // parent OrganisationUnits.
+
+        Hibernate.initialize( organisationUnit );
+        OrganisationUnit current = organisationUnit;
+        while ( current.getParent() != null )
+        {
+            Hibernate.initialize( current.getParent() );
+            current = current.getParent();
+        }
+        return organisationUnit;
     }
 
     /**

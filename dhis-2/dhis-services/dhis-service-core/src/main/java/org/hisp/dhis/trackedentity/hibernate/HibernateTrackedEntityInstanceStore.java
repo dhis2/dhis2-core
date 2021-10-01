@@ -33,16 +33,9 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getTokens;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -130,17 +123,9 @@ public class HibernateTrackedEntityInstanceStore
 
     private static final String PSI_STATUS = "PSI.status";
 
-    private static final String EXISTS = "EXISTS";
+    private static final String TEI_LASTUPDATED = " tei.lastUpdated";
 
-    private static final String EQ = "=";
-
-    private static final String GT_EQ = ">=";
-
-    private static final String LT_EQ = "<=";
-
-    private static final String GT = ">";
-
-    private static final String LT = "<";
+    private static final String GT_EQUAL = " >= ";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -250,6 +235,7 @@ public class HibernateTrackedEntityInstanceStore
                 hql += addConditionally( params.hasAssignedUsers(), () -> "inner join fetch psi.assignedUser au" );
 
                 hql += hlp.whereAnd() + getEventWhereClauseHql( params );
+
             }
 
             hql += hlp.whereAnd() + " po.program.uid = '" + params.getProgram().getUid() + "'";
@@ -353,8 +339,6 @@ public class HibernateTrackedEntityInstanceStore
 
         hql += withProgram( params, hlp );
 
-        hql += getFromSubQueryLastUpdatedCondition( hlp, params, true );
-
         if ( params.hasAttributeAsOrder() )
         {
             hql += hlp.whereAnd() + " attr2.uid='" + params.getFirstAttributeOrder() + "'  ";
@@ -372,6 +356,21 @@ public class HibernateTrackedEntityInstanceStore
         hql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
             () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
 
+        if ( params.hasLastUpdatedDuration() )
+        {
+            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + "  '" +
+                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
+        }
+        else
+        {
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(),
+                () -> TEI_LASTUPDATED + GT_EQUAL + " '" +
+                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
+
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> TEI_LASTUPDATED + " < '" +
+                getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
+        }
+
         hql += addWhereConditionally( hlp, params.isSynchronizationQuery(),
             () -> " tei.lastUpdated > tei.lastSynchronized" );
 
@@ -380,7 +379,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            hql += hlp.whereAnd() + " tei.lastUpdated >= '" + skipChangedBefore + "'";
+            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + " '" + skipChangedBefore + "'";
         }
 
         params.handleOrganisationUnits();
@@ -431,6 +430,7 @@ public class HibernateTrackedEntityInstanceStore
             map.put( ORG_UNIT_NAME, rowSet.getString( ORG_UNIT_NAME ) );
             map.put( TRACKED_ENTITY_ID, rowSet.getString( TRACKED_ENTITY_ID ) );
             map.put( INACTIVE_ID, rowSet.getString( INACTIVE_ID ) );
+            map.put( POTENTIAL_DUPLICATE, rowSet.getString( POTENTIAL_DUPLICATE ) );
 
             if ( params.isIncludeDeleted() )
             {
@@ -623,7 +623,8 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ou AS " + ORG_UNIT_ID + ", " )
             .append( "TEI.ouname AS " + ORG_UNIT_NAME + ", " )
             .append( "TET.uid AS " + TRACKED_ENTITY_ID + ", " )
-            .append( "TEI.inactive AS " + INACTIVE_ID )
+            .append( "TEI.inactive AS " + INACTIVE_ID + ", " )
+            .append( "TEI.potentialduplicate AS " + POTENTIAL_DUPLICATE )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "") )
             .append( (params.hasAttributes() ? ", string_agg(TEA.uid || ':' || TEAV.value, ';') AS tea_values" : "") );
 
@@ -673,12 +674,10 @@ public class HibernateTrackedEntityInstanceStore
 
             // LEFT JOIN attributes we need to sort on.
             .append( getFromSubQueryJoinOrderByAttributes( params ) )
-            .append( getFromSubQueryProgramInstanceConditions( whereAnd, params ) )
-            // lastUpdated Conditions
-            .append( getFromSubQueryLastUpdatedCondition( whereAnd, params, false ) )
 
             // WHERE
-            .append( getFromSubQueryTrackedEntityConditions( whereAnd, params ) );
+            .append( getFromSubQueryTrackedEntityConditions( whereAnd, params ) )
+            .append( getFromSubQueryProgramInstanceConditions( whereAnd, params ) );
 
         if ( !isCountQuery )
         {
@@ -711,6 +710,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.lastupdated, " )
             .append( "TEI.inactive, " )
             .append( "TEI.trackedentitytypeid, " )
+            .append( "TEI.potentialduplicate, " )
             .append( "TEI.deleted, " )
             .append( "OU.uid as ou, " )
             .append( "OU.name as ouname " )
@@ -780,31 +780,25 @@ public class HibernateTrackedEntityInstanceStore
                 .append( ") " );
         }
 
-        // If we have a where condition on program, we'll check lastupdated
-        // later on program in OR condition, same as here but enrollments and
-        // event check
-        if ( !params.hasProgram() )
+        if ( params.hasLastUpdatedDuration() )
         {
-            if ( params.hasLastUpdatedDuration() )
+            trackedEntity.append( whereAnd.whereAnd() )
+                .append( " TEI.lastupdated >= '" )
+                .append( getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) )
+                .append( SINGLE_QUOTE );
+        }
+        else
+        {
+            if ( params.hasLastUpdatedStartDate() )
             {
-                trackedEntity.append( whereAnd.whereAnd() )
-                    .append( " TEI.lastupdated >= '" )
-                    .append( getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) )
-                    .append( SINGLE_QUOTE );
+                trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated >= '" )
+                    .append( getMediumDateString( params.getLastUpdatedStartDate() ) ).append( SINGLE_QUOTE );
             }
-            else
+            if ( params.hasLastUpdatedEndDate() )
             {
-                if ( params.hasLastUpdatedStartDate() )
-                {
-                    trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated >= '" )
-                        .append( getMediumDateString( params.getLastUpdatedStartDate() ) ).append( SINGLE_QUOTE );
-                }
-                if ( params.hasLastUpdatedEndDate() )
-                {
-                    trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated < '" )
-                        .append( getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) )
-                        .append( SINGLE_QUOTE );
-                }
+                trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated < '" )
+                    .append( getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) )
+                    .append( SINGLE_QUOTE );
             }
         }
 
@@ -1072,8 +1066,6 @@ public class HibernateTrackedEntityInstanceStore
     private String getFromSubQueryProgramInstanceConditions( SqlHelper whereAnd,
         TrackedEntityInstanceQueryParams params )
     {
-        SqlHelper hlp = new SqlHelper( true );
-
         StringBuilder program = new StringBuilder();
 
         if ( !params.hasProgram() )
@@ -1083,7 +1075,7 @@ public class HibernateTrackedEntityInstanceStore
 
         program
             .append( whereAnd.whereAnd() )
-            .append( EXISTS + " (" )
+            .append( "EXISTS (" )
             .append( "SELECT PI.trackedentityinstanceid " )
             .append( "FROM programinstance PI " );
 
@@ -1092,7 +1084,8 @@ public class HibernateTrackedEntityInstanceStore
             program.append( getFromSubQueryProgramStageInstance( params ) );
         }
 
-        program.append( hlp.whereAnd() ).append( " PI.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+        program
+            .append( "WHERE PI.trackedentityinstanceid = TEI.trackedentityinstanceid " )
             .append( "AND PI.programid = " )
             .append( params.getProgram().getId() )
             .append( SPACE );
@@ -1153,153 +1146,6 @@ public class HibernateTrackedEntityInstanceStore
         program.append( ") " );
 
         return program.toString();
-    }
-
-    /**
-     * This method create lastUpdated query condition in case query params have
-     * one of lastUpdated fields. If params also have a program, it will append
-     * enrollments and events an exists query, otherwise it will only check it
-     * for tei
-     *
-     * @param whereAnd
-     * @param params
-     * @param hql
-     * @return
-     */
-    private String getFromSubQueryLastUpdatedCondition( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params,
-        boolean hql )
-    {
-        StringBuilder lastUpdatedCondition = new StringBuilder();
-
-        boolean lastUpdatedCheckInProgram = params.hasProgram()
-            && (params.hasLastUpdatedDuration() || params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate());
-
-        if ( lastUpdatedCheckInProgram )
-        {
-            if ( !hql )
-            {
-                lastUpdatedCondition
-                    .append( whereAnd.whereAnd() );
-                lastUpdatedCondition.append( EXISTS + " (" )
-                    .append( "SELECT PI.trackedentityinstanceid " )
-                    .append( "FROM ProgramInstance pi " );
-                lastUpdatedCondition
-                    .append( "INNER JOIN programstageinstance psi ON PSI.programinstanceid = pi.programinstanceid" );
-
-                lastUpdatedCondition.append( whereAnd.whereAnd() )
-                    .append( " pi.trackedentityinstanceid = tei.trackedentityinstanceid " )
-                    .append( "AND pi.programid = " )
-                    .append( params.getProgram().getId() )
-                    .append( SPACE );
-            }
-            else
-            {
-                lastUpdatedCondition
-                    .append( whereAnd.whereAnd() );
-                lastUpdatedCondition.append( EXISTS + " (" )
-                    .append( "FROM ProgramInstance as pi " );
-                lastUpdatedCondition
-                    .append( "INNER JOIN pi.programStageInstances as psi " );
-                lastUpdatedCondition
-                    .append( "WHERE pi.entityInstance.id = tei.id " )
-                    .append( "AND pi.program.id = " )
-                    .append( params.getProgram().getId() )
-                    .append( SPACE );
-            }
-        }
-
-        final String teiLastUpdated = " tei.lastUpdated";
-        final String piLastUpdated = " pi.lastUpdated";
-        final String psiLastUpdated = " psi.lastUpdated";
-
-        final SqlHelper hlp;
-
-        if ( params.hasLastUpdatedDuration() )
-        {
-            hlp = new SqlHelper( true );
-
-            String lastUpdatedDateDuration = getLongGmtDateString(
-                DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) );
-
-            return getConditionFrom( whereAnd, lastUpdatedCondition, lastUpdatedCheckInProgram, teiLastUpdated,
-                piLastUpdated, psiLastUpdated, hlp, lastUpdatedDateDuration, GT_EQ );
-        }
-        else
-        {
-            hlp = new SqlHelper( true );
-
-            if ( params.hasLastUpdatedStartDate() && params.hasLastUpdatedEndDate() )
-            {
-                String lastUpdatedDateString = getMediumDateString( params.getLastUpdatedStartDate() );
-
-                String lastUpdatedEndString = getMediumDateString(
-                    getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) );
-
-                return lastUpdatedCondition.append( whereAnd.whereAnd() ).append( "(" )
-                    .append( "(" )
-                    .append( hlp.or() )
-                    .append( " " + teiLastUpdated + " " + GT_EQ + " " ).append( SINGLE_QUOTE )
-                    .append( lastUpdatedDateString ).append( SINGLE_QUOTE )
-                    .append( whereAnd.whereAnd() )
-                    .append( " " + teiLastUpdated + " " + LT + " " ).append( SINGLE_QUOTE )
-                    .append( lastUpdatedEndString ).append( SINGLE_QUOTE )
-                    .append( ")" )
-                    .append( addConditionally( lastUpdatedCheckInProgram, () -> hlp.or() + "(" +
-                        " " + piLastUpdated + " " + GT_EQ + " " + SINGLE_QUOTE +
-                        lastUpdatedDateString + SINGLE_QUOTE +
-                        whereAnd.whereAnd() +
-                        " " + piLastUpdated + " " + LT + " " + SINGLE_QUOTE +
-                        lastUpdatedEndString + SINGLE_QUOTE +
-                        ")" ) )
-                    .append( addConditionally( lastUpdatedCheckInProgram, () -> hlp.or() + "(" +
-                        " " + psiLastUpdated + " " + GT_EQ + " " + SINGLE_QUOTE +
-                        lastUpdatedDateString + SINGLE_QUOTE +
-                        whereAnd.whereAnd() +
-                        " " + psiLastUpdated + " " + LT + " " + SINGLE_QUOTE +
-                        lastUpdatedEndString + SINGLE_QUOTE +
-                        ")" ) )
-                    .append( ")" )
-                    .append( addConditionally( lastUpdatedCheckInProgram, () -> ") " ) ).toString();
-            }
-
-            if ( params.hasLastUpdatedStartDate() )
-            {
-                String lastUpdatedDateString = getMediumDateString( params.getLastUpdatedStartDate() );
-
-                return getConditionFrom( whereAnd, lastUpdatedCondition, lastUpdatedCheckInProgram, teiLastUpdated,
-                    piLastUpdated, psiLastUpdated, hlp, lastUpdatedDateString, GT_EQ );
-            }
-
-            if ( params.hasLastUpdatedEndDate() )
-            {
-                String lastUpdatedEndString = getMediumDateString(
-                    getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) );
-
-                return getConditionFrom( whereAnd, lastUpdatedCondition, lastUpdatedCheckInProgram, teiLastUpdated,
-                    piLastUpdated, psiLastUpdated, hlp, lastUpdatedEndString, LT );
-            }
-        }
-
-        return lastUpdatedCondition.toString();
-    }
-
-    private String getConditionFrom( SqlHelper whereAnd, StringBuilder lastUpdatedCondition,
-        boolean lastUpdatedCheckInProgram,
-        String teiLastUpdated, String piLastUpdated, String psiLastUpdated, SqlHelper hlp, String lastUpdatedDateString,
-        String operator )
-    {
-        return lastUpdatedCondition.append( whereAnd.whereAnd() ).append( "(" ).append( hlp.or() )
-            .append( " " + teiLastUpdated + " " + operator + " " ).append( SINGLE_QUOTE )
-            .append( lastUpdatedDateString )
-            .append( SINGLE_QUOTE )
-            .append( addConditionally( lastUpdatedCheckInProgram, () -> hlp.or() +
-                " " + piLastUpdated + " " + operator + " " + SINGLE_QUOTE + lastUpdatedDateString
-                + SINGLE_QUOTE ) )
-            .append( addConditionally( lastUpdatedCheckInProgram, () -> hlp.or()
-                + " " + psiLastUpdated + " " + operator + " " + SINGLE_QUOTE + lastUpdatedDateString
-                + SINGLE_QUOTE ) )
-            .append( ")" )
-            .append( addConditionally( lastUpdatedCheckInProgram, () -> ") " ) ).toString();
     }
 
     /**
@@ -1525,6 +1371,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ou, " )
             .append( "TEI.ouname, " )
             .append( "TET.uid, " )
+            .append( "TEI.potentialduplicate, " )
             .append( "TEI.inactive " )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted " : "") );
 

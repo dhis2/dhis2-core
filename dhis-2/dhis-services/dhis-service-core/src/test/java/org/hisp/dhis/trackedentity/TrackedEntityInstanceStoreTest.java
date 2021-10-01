@@ -36,7 +36,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -53,18 +52,11 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -93,15 +85,6 @@ public class TrackedEntityInstanceStoreTest
 
     @Autowired
     private ProgramInstanceService programInstanceService;
-
-    @Autowired
-    private ProgramStageService programStageService;
-
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
-
-    @Autowired
-    private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
     private TrackedEntityInstance teiA;
 
@@ -321,6 +304,52 @@ public class TrackedEntityInstanceStoreTest
     }
 
     @Test
+    public void testPotentialDuplicateInGridQuery()
+    {
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+
+        teiA.setTrackedEntityType( trackedEntityTypeA );
+        teiA.setPotentialDuplicate( true );
+        teiStore.save( teiA );
+
+        teiB.setTrackedEntityType( trackedEntityTypeA );
+        teiB.setPotentialDuplicate( true );
+        teiStore.save( teiB );
+
+        teiC.setTrackedEntityType( trackedEntityTypeA );
+        teiStore.save( teiC );
+
+        teiD.setTrackedEntityType( trackedEntityTypeA );
+        teiStore.save( teiD );
+
+        dbmsManager.flushSession();
+
+        // Get all
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setTrackedEntityType( trackedEntityTypeA );
+
+        List<Map<String, String>> teis = teiStore.getTrackedEntityInstancesGrid( params );
+
+        assertEquals( 4, teis.size() );
+        teis.forEach( teiMap -> {
+            if ( teiMap.get( TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID ).equals( teiA.getUid() )
+                || teiMap.get( TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID ).equals( teiB.getUid() ) )
+            {
+                assertTrue(
+                    Boolean.parseBoolean( teiMap.get( TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE ) ) );
+            }
+            else
+            {
+                assertFalse(
+                    Boolean.parseBoolean( teiMap.get( TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE ) ) );
+            }
+        } );
+    }
+
+    @Test
     public void testProgramAttributeOfTypeOrgUnitIsResolvedToOrgUnitName()
     {
         TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
@@ -346,149 +375,8 @@ public class TrackedEntityInstanceStoreTest
         List<Map<String, String>> grid = teiStore.getTrackedEntityInstancesGrid( params );
 
         assertThat( grid, hasSize( 1 ) );
-        assertThat( grid.get( 0 ).keySet(), hasSize( 8 ) );
+        assertThat( grid.get( 0 ).keySet(), hasSize( 9 ) );
         assertThat( grid.get( 0 ).get( atC.getUid() ), is( "OrganisationUnitC" ) );
 
-    }
-
-    @Test
-    public void shouldGNotGetTeis()
-    {
-        Program pr = createProgram( 'X', null, null );
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'X' );
-
-        createTeiAndProgramInstances( pr, trackedEntityType );
-
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-
-        Calendar cal = Calendar.getInstance();
-        cal.add( Calendar.DATE, +1 );
-
-        params.setLastUpdatedStartDate( cal.getTime() );
-
-        assertEquals( 0, teiStore.getTrackedEntityInstances( params ).size() );
-    }
-
-    @Test
-    public void shouldGetTeis()
-    {
-        Program pr = createProgram( 'X', null, null );
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'X' );
-
-        createTeiAndProgramInstances( pr, trackedEntityType );
-
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setProgram( pr );
-
-        Calendar cal = Calendar.getInstance();
-        cal.add( Calendar.DATE, -1 );
-
-        params.setLastUpdatedStartDate( cal.getTime() );
-
-        assertEquals( 1, teiStore.getTrackedEntityInstances( params ).size() );
-
-        cal = Calendar.getInstance();
-
-        params.setLastUpdatedEndDate( cal.getTime() );
-
-        assertEquals( 1, teiStore.getTrackedEntityInstances( params ).size() );
-
-        cal = Calendar.getInstance();
-
-        params.setLastUpdatedStartDate( null );
-        params.setLastUpdatedEndDate( cal.getTime() );
-        cal.add( Calendar.DATE, +1 );
-
-        assertEquals( 1, teiStore.getTrackedEntityInstances( params ).size() );
-    }
-
-    @Test
-    public void shouldGNotGetTeiIds()
-    {
-        Program pr = createProgram( 'X', null, null );
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'X' );
-
-        createTeiAndProgramInstances( pr, trackedEntityType );
-
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setProgram( pr );
-
-        Calendar cal = Calendar.getInstance();
-        cal.add( Calendar.DATE, +1 );
-
-        params.setTrackedEntityTypes( Collections.singletonList( trackedEntityType ) );
-        params.setLastUpdatedStartDate( cal.getTime() );
-
-        assertEquals( 0, teiStore.getTrackedEntityInstanceIds( params ).size() );
-    }
-
-    @Test
-    public void shouldGetTeiIds()
-    {
-        Program pr = createProgram( 'X', null, null );
-        TrackedEntityType trackedEntityType = createTrackedEntityType( 'X' );
-
-        createTeiAndProgramInstances( pr, trackedEntityType );
-
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setProgram( pr );
-
-        Calendar cal = Calendar.getInstance();
-        cal.add( Calendar.DATE, -1 );
-
-        params.setTrackedEntityTypes( Collections.singletonList( trackedEntityType ) );
-        params.setLastUpdatedStartDate( cal.getTime() );
-
-        assertEquals( 1, teiStore.getTrackedEntityInstanceIds( params ).size() );
-
-        cal = Calendar.getInstance();
-
-        params.setLastUpdatedEndDate( cal.getTime() );
-
-        assertEquals( 1, teiStore.getTrackedEntityInstanceIds( params ).size() );
-
-        cal = Calendar.getInstance();
-
-        params.setLastUpdatedStartDate( null );
-        params.setLastUpdatedEndDate( cal.getTime() );
-        cal.add( Calendar.DATE, +1 );
-
-        assertEquals( 1, teiStore.getTrackedEntityInstanceIds( params ).size() );
-    }
-
-    private void createTeiAndProgramInstances( Program program, TrackedEntityType trackedEntityType )
-    {
-        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-
-        TrackedEntityInstance tei = createTrackedEntityInstance( ouA );
-        tei.setTrackedEntityType( trackedEntityType );
-
-        teiStore.save( tei );
-
-        idObjectManager.save( program );
-
-        ProgramStage programStage = createProgramStage( 'A', program );
-        programStageService.saveProgramStage( programStage );
-
-        ProgramInstance programInstance = new ProgramInstance( new Date(), new Date(), tei,
-            program );
-
-        programInstance.setUid( "UID-A" );
-        programInstance.setOrganisationUnit( ouA );
-
-        ProgramStageInstance programStageInstance = new ProgramStageInstance( programInstance, programStage );
-        programInstance.setUid( "UID-PSI-A" );
-        programInstance.setOrganisationUnit( ouA );
-
-        programInstanceService.addProgramInstance( programInstance );
-        programStageInstanceService.addProgramStageInstance( programStageInstance );
-
-        programInstance.setProgramStageInstances( Sets.newHashSet( programStageInstance ) );
-        tei.setProgramInstances( Sets.newHashSet( programInstance ) );
-
-        programInstanceService.updateProgramInstance( programInstance );
-
-        trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( tei.getUid(), program.getUid(),
-            ouA.getUid() );
     }
 }
