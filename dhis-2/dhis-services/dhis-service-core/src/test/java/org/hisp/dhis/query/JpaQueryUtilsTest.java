@@ -31,9 +31,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.common.collect.Sets;
 
 /**
  * Unit tests for {@link JpaQueryUtils}.
@@ -208,5 +213,30 @@ public class JpaQueryUtilsTest
 
         Assert.assertEquals( "lower(x.value1)", JpaQueryUtils.createSelectOrderExpression(
             Collections.singletonList( new Order( property1, Direction.ASCENDING ).ignoreCase() ), "x" ) );
+    }
+
+    @Test
+    public void testGenerateSQlQueryForSharingCheck()
+    {
+        UserGroup groupA = new UserGroup();
+        groupA.setUid( "aUserGroupA" );
+
+        UserGroup groupB = new UserGroup();
+        groupB.setUid( "aUserGroupB" );
+
+        User userA = new User();
+        userA.setUid( "randomUserA" );
+        userA.setGroups( Sets.newLinkedHashSet( Lists.newArrayList( groupA, groupB ) ) );
+
+        String expected = " ( x.sharing->>'owner' is null or x.sharing->>'owner' = 'randomUserA')  "
+            + "or x.sharing->>'public' like '__r_____' or x.sharing->>'public' is null  "
+            + "or (jsonb_has_user_id( x.sharing, 'randomUserA') = true  "
+            + "and jsonb_check_user_access( x.sharing, 'randomUserA', '__r_____' ) = true )   "
+            + "or ( jsonb_has_user_group_ids( x.sharing, '{aUserGroupA,aUserGroupB}') = true  "
+            + "and jsonb_check_user_groups_access( x.sharing, '__r_____', '{aUserGroupA,aUserGroupB}') = true )";
+
+        String actual = JpaQueryUtils.generateSQlQueryForSharingCheck( "x.sharing", userA, "__r_____" );
+
+        Assert.assertEquals( expected, actual );
     }
 }
