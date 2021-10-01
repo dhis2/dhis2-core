@@ -42,6 +42,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.META_
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.PAGER_META_KEY;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 
@@ -328,6 +329,7 @@ public class DefaultTrackedEntityInstanceService
         grid.addHeader( new GridHeader( ORG_UNIT_NAME, "Organisation unit name" ) );
         grid.addHeader( new GridHeader( TRACKED_ENTITY_ID, "Tracked entity type" ) );
         grid.addHeader( new GridHeader( INACTIVE_ID, "Inactive" ) );
+        grid.addHeader( new GridHeader( POTENTIAL_DUPLICATE, "Potential duplicate" ) );
 
         if ( params.isIncludeDeleted() )
         {
@@ -385,6 +387,7 @@ public class DefaultTrackedEntityInstanceService
             grid.addValue( entity.get( ORG_UNIT_NAME ) );
             grid.addValue( entity.get( TRACKED_ENTITY_ID ) );
             grid.addValue( entity.get( INACTIVE_ID ) );
+            grid.addValue( entity.get( POTENTIAL_DUPLICATE ) );
 
             if ( params.isIncludeDeleted() )
             {
