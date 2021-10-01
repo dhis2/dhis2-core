@@ -73,7 +73,8 @@ import com.google.common.collect.Lists;
 public class Log4JLogConfigInitializer
     implements LogConfigInitializer
 {
-    private PatternLayout PATTERN_LAYOUT = PatternLayout.newBuilder().withPattern( "* %-5p %d{ISO8601} %m (%F [%t])%n" )
+    private final PatternLayout PATTERN_LAYOUT = PatternLayout.newBuilder()
+        .withPattern( "* %-5p %d{ISO8601} %m (%F [%t])%n" )
         .build();
 
     private static final String LOG_DIR = "logs";
