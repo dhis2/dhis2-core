@@ -551,7 +551,7 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         int year = Iso8601Calendar.getInstance().today().getYear()
-            - (Iso8601Calendar.getInstance().today().getMonth() >= 10 ? 10 : 11);
+            - (Iso8601Calendar.getInstance().today().getMonth() == 10 ? 10 : 11);
         assertEquals( 10, relatives.size() );
         for ( int i = 0; i < 10; i++ )
         {
