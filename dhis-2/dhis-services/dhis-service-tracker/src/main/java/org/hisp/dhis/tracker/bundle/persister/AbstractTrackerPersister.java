@@ -335,6 +335,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         for ( Attribute at : payloadAttributes )
         {
             boolean isNew = false;
+            AuditType auditType;
+
             TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, at.getAttribute() );
 
             checkNotNull( attribute,
@@ -367,8 +369,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 }
 
                 session.remove( attributeValue );
-                logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
-                    trackedEntityInstance, AuditType.DELETE );
+                auditType = AuditType.DELETE;
             }
             else
             {
@@ -378,10 +379,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 }
 
                 saveOrUpdate( session, isNew, attributeValue );
-
-                logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
-                    trackedEntityInstance, isNew ? AuditType.CREATE : AuditType.UPDATE );
+                auditType = isNew ? AuditType.CREATE : AuditType.UPDATE;
             }
+
+            logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
+                trackedEntityInstance, auditType );
 
             if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
             {
