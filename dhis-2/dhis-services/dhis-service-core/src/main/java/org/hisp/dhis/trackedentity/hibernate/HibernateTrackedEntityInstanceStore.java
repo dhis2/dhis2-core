@@ -33,9 +33,17 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getTokens;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.*;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -1746,11 +1754,10 @@ public class HibernateTrackedEntityInstanceStore
     public void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
     {
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( trackedEntityInstanceUIDs ), 20000 );
-        final String hql = "update TrackedEntityInstance set lastUpdated = :lastUpdated WHERE uid in :trackedEntityInstances";
 
         uidsPartitions.stream().filter( teis -> !teis.isEmpty() )
             .forEach(
-                teis -> getQuery( hql )
+                teis -> getSession().getNamedQuery( "updateTeisLastUpdated" )
                     .setParameter( "trackedEntityInstances", teis )
                     .setParameter( "lastUpdated", lastUpdated )
                     .executeUpdate() );
