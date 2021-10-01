@@ -99,57 +99,32 @@ public class HibernateDataStatisticsStore
             ads.setMapViews( resultSet.getInt( "mapViews" ) );
             ads.setChartViews( resultSet.getInt( "chartViews" ) );
             ads.setPivotTableViews( resultSet.getInt( "reportTableViews" ) );
-
-            // Logic needed to assist the deprecation process of charts and
-            // report tables.
-            int visualizationViews = resultSet.getInt( "visualizationViews" );
-            if ( visualizationViews == 0 )
-            {
-                visualizationViews = resultSet.getInt( "chartViews" ) + resultSet.getInt( "reportTableViews" );
-            }
-
-            ads.setVisualizationViews( visualizationViews );
+            ads.setVisualizationViews( resultSet.getInt( "visualizationViews" ) );
             ads.setEventReportViews( resultSet.getInt( "eventReportViews" ) );
             ads.setEventChartViews( resultSet.getInt( "eventChartViews" ) );
             ads.setDashboardViews( resultSet.getInt( "dashboardViews" ) );
             ads.setDataSetReportViews( resultSet.getInt( "dataSetReportViews" ) );
             ads.setTotalViews( resultSet.getInt( "totalViews" ) );
+
             ads.setAverageViews( resultSet.getInt( "averageViews" ) );
             ads.setAverageMapViews( resultSet.getInt( "averageMapViews" ) );
             ads.setAverageChartViews( resultSet.getInt( "averageChartViews" ) );
             ads.setAveragePivotTableViews( resultSet.getInt( "averageReportTableViews" ) );
-
-            // Logic needed to assist the deprecation process of charts and
-            // report tables.
-            int averageVisualizationViews = resultSet.getInt( "averageVisualizationViews" );
-            if ( averageVisualizationViews == 0 )
-            {
-                averageVisualizationViews = resultSet.getInt( "averageChartViews" )
-                    + resultSet.getInt( "averageReportTableViews" );
-            }
-
-            ads.setAverageVisualizationViews( averageVisualizationViews );
+            ads.setAverageVisualizationViews( resultSet.getInt( "averageVisualizationViews" ) );
             ads.setAverageEventReportViews( resultSet.getInt( "averageEventReportViews" ) );
             ads.setAverageEventChartViews( resultSet.getInt( "averageEventChartViews" ) );
             ads.setAverageDashboardViews( resultSet.getInt( "averageDashboardViews" ) );
+
             ads.setSavedMaps( resultSet.getInt( "savedMaps" ) );
             ads.setSavedCharts( resultSet.getInt( "savedCharts" ) );
             ads.setSavedPivotTables( resultSet.getInt( "savedReportTables" ) );
-
-            // Logic needed to assist the deprecation process of charts and
-            // report tables.
-            int savedVisualizationViews = resultSet.getInt( "savedVisualizations" );
-            if ( savedVisualizationViews == 0 )
-            {
-                savedVisualizationViews = resultSet.getInt( "savedCharts" ) + resultSet.getInt( "savedReportTables" );
-            }
-
-            ads.setSavedVisualizations( savedVisualizationViews );
+            ads.setSavedVisualizations( resultSet.getInt( "savedVisualizations" ) );
             ads.setSavedEventReports( resultSet.getInt( "savedEventReports" ) );
             ads.setSavedEventCharts( resultSet.getInt( "savedEventCharts" ) );
             ads.setSavedDashboards( resultSet.getInt( "savedDashboards" ) );
             ads.setSavedIndicators( resultSet.getInt( "savedIndicators" ) );
             ads.setSavedDataValues( resultSet.getInt( "savedDataValues" ) );
+
             ads.setActiveUsers( resultSet.getInt( "activeUsers" ) );
             ads.setUsers( resultSet.getInt( "users" ) );
 

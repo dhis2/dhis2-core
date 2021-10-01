@@ -29,7 +29,11 @@ package org.hisp.dhis.datastatistics;
 
 import static java.util.Calendar.DATE;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.analytics.SortOrder;
