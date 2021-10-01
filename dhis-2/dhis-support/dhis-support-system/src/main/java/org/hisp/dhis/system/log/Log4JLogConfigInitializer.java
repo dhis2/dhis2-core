@@ -176,7 +176,7 @@ public class Log4JLogConfigInitializer
 
         for ( String loggerName : packages )
         {
-            LoggerConfig loggerConfig = LoggerConfig.createLogger( true, Level.INFO, loggerName, "true", refs, null,
+            LoggerConfig loggerConfig = LoggerConfig.createLogger( false, Level.INFO, loggerName, "true", refs, null,
                 getLogConfiguration(), null );
 
             loggerConfig.addAppender( appender, null, null );
