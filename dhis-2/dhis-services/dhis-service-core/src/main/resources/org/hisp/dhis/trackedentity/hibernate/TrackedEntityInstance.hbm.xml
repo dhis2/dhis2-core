@@ -37,7 +37,7 @@
       <key column="trackedentityinstanceid" />
       <one-to-many class="org.hisp.dhis.program.ProgramInstance" />
     </set>
-    
+
       <set name="programOwners" inverse="true">
       <key column="trackedentityinstanceid" />
       <one-to-many class="org.hisp.dhis.trackedentity.TrackedEntityProgramOwner" />
@@ -53,7 +53,8 @@
 
     <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
       column="trackedentitytypeid" foreign-key="fk_trackedentityinstance_trackedentitytypeid" lazy="false" />
-
   </class>
+
+  <sql-query name="updateTeisLastUpdated">update trackedEntityInstance set lastUpdated = :lastUpdated WHERE uid in :trackedEntityInstances</sql-query>
 
 </hibernate-mapping>
