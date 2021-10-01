@@ -34,9 +34,11 @@ import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.security.AuthenticationSerializer;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -85,6 +87,9 @@ public class TrackerMessageManager
 
         TrackerImportThread trackerImportThread = trackerImportThreadFactory.getObject();
         trackerImportThread.setTrackerImportParams( trackerImportParams );
+
+        SecurityContextHolder.getContext()
+            .setAuthentication( AuthenticationSerializer.deserialize( trackerMessage.getAuthentication() ) );
 
         taskExecutor.executeTask( trackerImportThread );
     }
