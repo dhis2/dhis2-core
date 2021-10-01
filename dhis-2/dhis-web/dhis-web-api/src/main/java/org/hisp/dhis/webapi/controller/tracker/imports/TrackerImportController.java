@@ -93,6 +93,7 @@ public class TrackerImportController
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
             .trackerBundleParams( trackerBundleParams ).contextService( contextService ).userUid( currentUser.getUid() )
             .isAsync( true ).uid( jobId )
+            .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
 
         trackerImportStrategy
