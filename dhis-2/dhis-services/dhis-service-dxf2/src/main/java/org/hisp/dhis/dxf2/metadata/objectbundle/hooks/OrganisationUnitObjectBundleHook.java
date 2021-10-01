@@ -135,6 +135,14 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
         }
         OrganisationUnit oldParent = bundle.getPreheat().get( bundle.getPreheatIdentifier(), unit ).getParent();
         OrganisationUnit newParent = unit.getParent();
+        OrganisationUnit preheatNewParent = bundle.getPreheat().get( bundle.getPreheatIdentifier(), unit.getParent() );
+        if ( preheatNewParent != null )
+        {
+            // OBS! the reason we do this is, so we use the full parent object
+            // not just an empty proxy because that fails the isInUserHierarchy
+            // test
+            newParent = preheatNewParent;
+        }
         if ( Objects.equals( getNullableUid( oldParent ), getNullableUid( newParent ) ) )
         {
             return; // not a move
@@ -150,12 +158,14 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
             addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1516, user.getUid(),
                 getUidOrName( unit ) ) );
         }
-        if ( oldParent != null && !aclService.canWrite( user, oldParent ) )
+        if ( oldParent != null && (!aclService.canWrite( user, oldParent )
+            || !organisationUnitService.isInUserHierarchy( user, oldParent )) )
         {
             addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1517, user.getUid(),
                 getUidOrName( unit ), getUidOrName( oldParent ) ) );
         }
-        if ( newParent != null && !aclService.canWrite( user, newParent ) )
+        if ( newParent != null && (!aclService.canWrite( user, newParent )
+            || !organisationUnitService.isInUserHierarchy( user, newParent )) )
         {
             addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1518, user.getUid(),
                 getUidOrName( unit ), getUidOrName( newParent ) ) );
