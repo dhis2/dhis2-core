@@ -34,6 +34,7 @@ import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.security.AuthenticationSerializer;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
