@@ -158,18 +158,18 @@ public class Sharing
 
     public void setDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
+        this.users = clearOrInit( this.users );
         if ( userAccesses != null && !userAccesses.isEmpty() )
         {
-            this.users = clearOrInit( this.users );
             userAccesses.forEach( ua -> this.addUserAccess( new UserAccess( ua ) ) );
         }
     }
 
     public void setDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
+        this.userGroups = clearOrInit( this.userGroups );
         if ( userGroupAccesses != null && !userGroupAccesses.isEmpty() )
         {
-            this.userGroups = clearOrInit( this.userGroups );
             userGroupAccesses.forEach( uga -> this.addUserGroupAccess( new UserGroupAccess( uga ) ) );
         }
     }
