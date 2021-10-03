@@ -33,6 +33,7 @@ import java.util.stream.*;
 
 import org.apache.commons.collections4.*;
 import org.hisp.dhis.common.*;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.sharing.*;
 
@@ -42,6 +43,9 @@ import com.google.common.collect.*;
 
 public class SharingUtils
 {
+    private static final ImmutableList<String> LEGAGY_SHARING_PROPERTIES = ImmutableList.<String> builder().add(
+        "userAccesses", "userGroupAccesses", "publicAccess", "externalAccess" ).build();
+
     private static final ObjectMapper FROM_AND_TO_JSON = createMapper();
 
     private SharingUtils()
@@ -133,6 +137,11 @@ public class SharingUtils
     {
         return !CollectionUtils.isEmpty( object.getUserAccesses() )
             || !CollectionUtils.isEmpty( object.getUserGroupAccesses() );
+    }
+
+    public static boolean isLegacySharingProperty( Property property )
+    {
+        return LEGAGY_SHARING_PROPERTIES.contains( property.getFieldName() );
     }
 
     private static ObjectMapper createMapper()
