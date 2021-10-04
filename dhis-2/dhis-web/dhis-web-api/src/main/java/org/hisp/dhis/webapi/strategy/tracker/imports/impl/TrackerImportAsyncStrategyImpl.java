@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.security.AuthenticationSerializer;
 import org.hisp.dhis.tracker.job.TrackerMessage;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
@@ -51,6 +52,7 @@ public class TrackerImportAsyncStrategyImpl implements TrackerImportStrategyHand
     {
         TrackerMessage trackerMessage = TrackerMessage.builder()
             .trackerImportParams( trackerImportReportRequest.getTrackerImportParams() )
+            .authentication( AuthenticationSerializer.serialize( trackerImportReportRequest.getAuthentication() ) )
             .uid( trackerImportReportRequest.getUid() )
             .build();
 
