@@ -49,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
@@ -69,12 +70,16 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 {
     protected final ReservedValueService reservedValueService;
 
+    protected final TrackedEntityAttributeValueService attributeValueService;
+
     protected final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
 
     protected AbstractTrackerPersister( ReservedValueService reservedValueService,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService )
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        TrackedEntityAttributeValueService attributeValueService )
     {
         this.reservedValueService = reservedValueService;
+        this.attributeValueService = attributeValueService;
         this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
     }
 
@@ -327,8 +332,10 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
-        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = trackedEntityInstance
-            .getTrackedEntityAttributeValues()
+        List<TrackedEntityAttributeValue> attributeValues = attributeValueService
+            .getTrackedEntityAttributeValues( trackedEntityInstance );
+
+        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = attributeValues
             .stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 

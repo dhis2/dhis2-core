@@ -36,16 +36,7 @@
           "created": "2020-02-20T12:09:21.847",
           "valueType": "TEXT",
           "attribute": "TsfP85GKsU5",
-          "value": "TEXT"
-        },
-        {
-          "lastUpdated": "2020-02-20T12:09:21.850",
-          "storedBy": "admin",
-          "displayName": "Attribute_Date",
-          "created": "2020-02-20T12:09:21.850",
-          "valueType": "DATE",
-          "attribute": "sTGqP5JNy6E",
-          "value": "2020-02-20"
+          "value": "TEXT1"
         }
       ]
     }
