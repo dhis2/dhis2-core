@@ -171,7 +171,6 @@ public class DhisWebCommonsWebSecurityConfig
                 .antMatchers( "/dhis-web-commons/css/**" )
                 .antMatchers( "/dhis-web-commons/flags/**" )
                 .antMatchers( "/dhis-web-commons/fonts/**" )
-                .antMatchers( "/dhis-web-commons/i18nJavaScript.action" )
                 .antMatchers( "/api/files/style/external" )
                 .antMatchers( "/external-static/**" )
                 .antMatchers( "/favicon.ico" );
@@ -187,7 +186,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .accessDecisionManager( accessDecisionManager() )
 
                 .requestMatchers( analyticsPluginResources() ).permitAll()
-
+                .antMatchers( "/dhis-web-commons/i18nJavaScript.action" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/login.action" ).permitAll()
                 .antMatchers( "/dhis-web-commons/security/logout.action" ).permitAll()
