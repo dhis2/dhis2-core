@@ -132,22 +132,22 @@ public class Log4JLogConfigInitializer
 
         locationManager.buildDirectory( LOG_DIR );
 
-        configureLoggers( ANALYTICS_TABLE_LOGGER_FILENAME,
+        addConfigurableLogger( ANALYTICS_TABLE_LOGGER_FILENAME,
             Lists.newArrayList( "org.hisp.dhis.resourcetable", "org.hisp.dhis.analytics.table" ) );
 
-        configureLoggers( DATA_EXCHANGE_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2" ) );
+        addConfigurableLogger( DATA_EXCHANGE_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2" ) );
 
-        configureLoggers( DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.sync" ) );
+        addConfigurableLogger( DATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.sync" ) );
 
-        configureLoggers( METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.metadata" ) );
+        addConfigurableLogger( METADATA_SYNC_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.dxf2.metadata" ) );
 
-        configureLoggers( PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.pushanalysis" ) );
+        addConfigurableLogger( PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.pushanalysis" ) );
 
-        configureAuditLogger( AUDIT_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.audit" ) );
+        addConfigurableAuditLog( AUDIT_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.audit" ) );
 
-        configureRootLogger( GENERAL_LOGGER_FILENAME );
+        addConfigurableRootLog( GENERAL_LOGGER_FILENAME );
 
-        configureAdditionalLoggers();
+        addConfigurableSystemLogs();
 
         final LoggerContext ctx = (LoggerContext) LogManager.getContext( false );
         ctx.updateLoggers();
@@ -159,7 +159,7 @@ public class Log4JLogConfigInitializer
      * @param filename the filename to output logging to.
      * @param packages the logger names.
      */
-    private void configureAuditLogger( String filename, List<String> packages )
+    private void addConfigurableAuditLog( String filename, List<String> packages )
     {
         String file = getLogFile( filename );
 
@@ -200,7 +200,7 @@ public class Log4JLogConfigInitializer
      * @param filename the filename to output logging to.
      * @param packages the logger names.
      */
-    private void configureLoggers( String filename, List<String> packages )
+    private void addConfigurableLogger( String filename, List<String> packages )
     {
         String file = getLogFile( filename );
 
@@ -240,7 +240,7 @@ public class Log4JLogConfigInitializer
      *
      * @param filename the filename to output logging to.
      */
-    private void configureRootLogger( String filename )
+    private void addConfigurableRootLog( String filename )
     {
         String file = getLogFile( filename );
 
@@ -254,7 +254,7 @@ public class Log4JLogConfigInitializer
         log.info( "Added root logger using file: " + file );
     }
 
-    private void configureAdditionalLoggers()
+    private void addConfigurableSystemLogs()
     {
         Properties properties = config.getProperties();
 
