@@ -47,6 +47,8 @@ public class EnrollmentAnalyticsQueryCriteria
 
     private Date endDate;
 
+    private String timeField;
+
     private Set<String> dimension;
 
     private Set<String> filter;
