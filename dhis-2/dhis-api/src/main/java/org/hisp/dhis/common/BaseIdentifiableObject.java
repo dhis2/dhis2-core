@@ -779,6 +779,12 @@ public class BaseIdentifiableObject
         return null;
     }
 
+    public void clearLegacySharingCollections()
+    {
+        this.userAccesses = null;
+        this.userGroupAccesses = null;
+    }
+
     @Override
     public String toString()
     {
