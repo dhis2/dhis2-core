@@ -46,6 +46,7 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
@@ -66,9 +67,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 {
     protected final ReservedValueService reservedValueService;
 
-    protected AbstractTrackerPersister( ReservedValueService reservedValueService )
+    private TrackedEntityAttributeValueService attributeValueService;
+
+    protected AbstractTrackerPersister( ReservedValueService reservedValueService,
+        TrackedEntityAttributeValueService attributeValueService )
     {
         this.reservedValueService = reservedValueService;
+        this.attributeValueService = attributeValueService;
     }
 
     /**
@@ -320,8 +325,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
-        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = trackedEntityInstance
-            .getTrackedEntityAttributeValues()
+        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = attributeValueService
+            .getTrackedEntityAttributeValues( trackedEntityInstance )
             .stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
