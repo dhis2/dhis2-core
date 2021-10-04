@@ -53,6 +53,9 @@ public class TrackerMessage implements SerializableMessage
     private final String uid;
 
     @JsonProperty
+    private String authentication;
+
+    @JsonProperty
     private final TrackerImportParams trackerImportParams;
 
     @Override
