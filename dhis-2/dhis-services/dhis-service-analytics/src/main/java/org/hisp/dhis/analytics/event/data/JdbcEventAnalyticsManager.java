@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.Collections.singleton;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
@@ -58,7 +57,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
@@ -111,12 +109,12 @@ public class JdbcEventAnalyticsManager
 {
     protected static final String OPEN_IN = " in (";
 
-    private final TimeFieldSqlRenderer timeFieldSqlRenderer;
+    private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
         ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
-        TimeFieldSqlRenderer timeFieldSqlRenderer )
+        EventTimeFieldSqlRenderer timeFieldSqlRenderer )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
         this.timeFieldSqlRenderer = timeFieldSqlRenderer;
@@ -399,7 +397,7 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
 
         sql += hlp.whereAnd() + " "
-            + timeFieldSqlRenderer.renderTimeFieldSql( params, singleton( TimeField.LAST_UPDATED ) );
+            + timeFieldSqlRenderer.renderTimeFieldSql( params );
 
         // ---------------------------------------------------------------------
         // Organisation units

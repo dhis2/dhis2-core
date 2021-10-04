@@ -116,7 +116,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-        TimeFieldSqlRenderer timeCoordinateSelector = new TimeFieldSqlRenderer( statementBuilder );
+        EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer( statementBuilder );
         ProgramIndicatorService programIndicatorService = mock( ProgramIndicatorService.class );
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );

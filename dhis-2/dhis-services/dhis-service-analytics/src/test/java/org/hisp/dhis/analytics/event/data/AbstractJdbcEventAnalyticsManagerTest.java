@@ -106,7 +106,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
         DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService );
         subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder, new TimeFieldSqlRenderer( statementBuilder ) );
+            programIndicatorSubqueryBuilder, new EventTimeFieldSqlRenderer( statementBuilder ) );
 
         // data init
 
