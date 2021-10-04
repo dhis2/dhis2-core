@@ -33,6 +33,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.sharing.AccessObject;
 import org.hisp.dhis.user.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
@@ -78,6 +79,14 @@ public class UserAccess
         userAccess.setUid( getId() );
 
         return userAccess;
+    }
+
+    @JsonIgnore
+    public User getUser()
+    {
+        User user = new User();
+        user.setUid( id );
+        return user;
     }
 
     @Override
