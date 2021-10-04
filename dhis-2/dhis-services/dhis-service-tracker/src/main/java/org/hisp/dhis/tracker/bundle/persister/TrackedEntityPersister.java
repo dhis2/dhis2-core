@@ -136,4 +136,11 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
         // DO NOTHING, Tei alone does not have ownership records
 
     }
+
+    @Override
+    protected String getUpdatedTrackedEntity( TrackedEntityInstance entity )
+    {
+        return null; // We don't need to keep track, Tei has already been
+                     // updated
+    }
 }
