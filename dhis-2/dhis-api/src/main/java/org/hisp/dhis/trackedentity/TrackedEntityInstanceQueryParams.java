@@ -88,6 +88,8 @@ public class TrackedEntityInstanceQueryParams
 
     public static final String PAGER_META_KEY = "pager";
 
+    public static final String POTENTIAL_DUPLICATE = "potentialduplicate";
+
     public static final int DEFAULT_PAGE = 1;
 
     public static final int DEFAULT_PAGE_SIZE = 50;
