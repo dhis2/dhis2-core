@@ -176,7 +176,7 @@ public class PreCheckSecurityOwnershipValidationHook
 
         boolean isNew = context.getProgramStageInstance( event.getEvent() ) == null;
 
-        // If enrollment is newly created, or going to be deleted, capture scope
+        // If event is newly created, or going to be deleted, capture scope
         // has to be checked
         if ( program.isWithoutRegistration() || isNew || strategy.isDelete() )
         {
@@ -271,8 +271,16 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( programInstance == null )
         {
-            Enrollment enrollment = context.getBundle().getEnrollment( event.getEnrollment() ).get();
-            return enrollment.getTrackedEntity();
+            Optional<Enrollment> optionalEnrollment = context.getBundle().getEnrollment( event.getEnrollment() );
+            if ( optionalEnrollment.isPresent() )
+            {
+                Enrollment enrollment = context.getBundle().getEnrollment( event.getEnrollment() ).get();
+                return enrollment.getTrackedEntity();
+            }
+            else
+            {
+                return null;
+            }
         }
         else
         {
