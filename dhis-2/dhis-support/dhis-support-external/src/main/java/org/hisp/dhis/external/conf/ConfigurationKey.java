@@ -124,7 +124,7 @@ public enum ConfigurationKey
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", Constants.OFF ),
     AUDIT_USE_IN_MEMORY_QUEUE_ENABLED( "audit.in_memory_queue.enabled", Constants.OFF ),
     AUDIT_LOGGER( "audit.logger", Constants.ON, false ),
-    AUDIT_DATABASE( "audit.database", Constants.ON, false ),
+    AUDIT_DATABASE( "audit.database", Constants.OFF, false ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
