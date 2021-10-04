@@ -53,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -1744,6 +1745,19 @@ public class HibernateTrackedEntityInstanceStore
             .setParameter( "lastSynchronized", lastSynchronized )
             .setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs )
             .executeUpdate();
+    }
+
+    @Override
+    public void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
+    {
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( trackedEntityInstanceUIDs ), 20000 );
+
+        uidsPartitions.stream().filter( teis -> !teis.isEmpty() )
+            .forEach(
+                teis -> getSession().getNamedQuery( "updateTeisLastUpdated" )
+                    .setParameter( "trackedEntityInstances", teis )
+                    .setParameter( "lastUpdated", lastUpdated )
+                    .executeUpdate() );
     }
 
     @Override

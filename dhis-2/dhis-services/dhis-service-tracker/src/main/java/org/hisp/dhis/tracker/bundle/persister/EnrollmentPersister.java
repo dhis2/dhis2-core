@@ -172,4 +172,10 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
                 entity.getOrganisationUnit(), false, true );
         }
     }
+
+    @Override
+    protected String getUpdatedTrackedEntity( ProgramInstance entity )
+    {
+        return entity.getEntityInstance().getUid();
+    }
 }
