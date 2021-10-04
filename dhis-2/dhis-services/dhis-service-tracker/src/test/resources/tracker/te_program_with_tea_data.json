@@ -69,7 +69,17 @@
       "status": "ACTIVE",
       "notes": [],
       "relationships": [],
-      "attributes": [],
+      "attributes": [
+        {
+          "lastUpdated": "2020-02-20T12:09:21.848",
+          "storedBy": "admin",
+          "displayName": "Attribute_Identifier_Integer",
+          "created": "2020-02-20T12:09:21.848",
+          "valueType": "INTEGER_POSITIVE",
+          "attribute": "p5TPww5Uhrd",
+          "value": "321"
+        }
+      ],
       "events": []
     }
   ]
