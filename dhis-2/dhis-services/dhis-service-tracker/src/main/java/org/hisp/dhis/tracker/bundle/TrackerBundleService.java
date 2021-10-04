@@ -78,4 +78,12 @@ public interface TrackerBundleService
      * @param bundle TrackerBundle to delete.
      */
     TrackerBundleReport delete( TrackerBundle bundle );
+
+    /**
+     * Finalize bundle objects
+     *
+     * @param bundle
+     */
+    void postCommit( TrackerBundle bundle );
+
 }

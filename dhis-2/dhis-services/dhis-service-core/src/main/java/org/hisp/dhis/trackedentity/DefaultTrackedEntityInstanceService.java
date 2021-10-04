@@ -868,6 +868,13 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
+    public void updateTrackedEntityInstanceLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
+    {
+        trackedEntityInstanceStore.updateTrackedEntityInstancesLastUpdated( trackedEntityInstanceUIDs, lastUpdated );
+    }
+
+    @Override
+    @Transactional
     public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
