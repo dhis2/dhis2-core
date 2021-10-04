@@ -179,4 +179,37 @@ public class JsonPatchManagerTest
         assertEquals( 1, replacePatchedDE.getSharing().getUsers().size() );
         assertEquals( "r-------", replacePatchedDE.getSharing().getUsers().get( userA.getUid() ).getAccess() );
     }
+
+    @Test
+    public void testAddAndRemoveSharingUser()
+        throws JsonProcessingException,
+        JsonPatchException
+    {
+        User userA = createUser( 'A' );
+        manager.save( userA );
+        DataElement dataElementA = createDataElement( 'A' );
+        manager.save( dataElementA );
+
+        assertEquals( 0, dataElementA.getSharing().getUsers().size() );
+
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"add\", \"path\": \"/sharing/users\", \"value\": " +
+            "{" +
+            "\"" + userA.getUid() + "\": { \"access\":\"rw------\",\"id\": \"" + userA.getUid() + "\" }" +
+            "}" +
+            "}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+
+        DataElement patchedDE = jsonPatchManager.apply( patch, dataElementA );
+        assertEquals( 1, patchedDE.getSharing().getUsers().size() );
+        assertEquals( "rw------", patchedDE.getSharing().getUsers().get( userA.getUid() ).getAccess() );
+
+        JsonPatch removePatch = jsonMapper.readValue( "[" +
+            "{\"op\": \"remove\", \"path\": \"/sharing/users/" + userA.getUid() + "\" } ]", JsonPatch.class );
+
+        DataElement removedPatchedDE = jsonPatchManager.apply( removePatch, patchedDE );
+        assertEquals( 0, removedPatchedDE.getSharing().getUsers().size() );
+    }
 }
