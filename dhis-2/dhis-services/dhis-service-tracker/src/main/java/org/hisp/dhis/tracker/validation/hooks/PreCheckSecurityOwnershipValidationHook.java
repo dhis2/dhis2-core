@@ -274,7 +274,7 @@ public class PreCheckSecurityOwnershipValidationHook
             Optional<Enrollment> optionalEnrollment = context.getBundle().getEnrollment( event.getEnrollment() );
             if ( optionalEnrollment.isPresent() )
             {
-                Enrollment enrollment = context.getBundle().getEnrollment( event.getEnrollment() ).get();
+                Enrollment enrollment = optionalEnrollment.get();
                 return enrollment.getTrackedEntity();
             }
             else
