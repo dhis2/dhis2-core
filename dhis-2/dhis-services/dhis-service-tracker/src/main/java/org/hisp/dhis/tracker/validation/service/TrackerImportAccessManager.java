@@ -53,6 +53,17 @@ public interface TrackerImportAccessManager
     void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit );
 
     /**
+     * Same as
+     * {@link OrganisationUnitService#isInUserSearchHierarchyCached(User, OrganisationUnit)}
+     * Checks the importing user has access to "search hierarchy" of the input
+     * OrganisationUnit.
+     *
+     * @param reporter error reporter instance
+     * @param orgUnit input orgUnit to validate against
+     */
+    void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit );
+
+    /**
      * Checks the importing user has write access to the TrackedEntityType.
      *
      * @param reporter error reporter instance
@@ -72,7 +83,9 @@ public interface TrackerImportAccessManager
      * @param reporter error reporter instance
      * @param program program to check user has write access
      * @param trackedEntity trackedEntity to check user has write access
-     * @param organisationUnit organisationUnit to check user has write access
+     * @param enrollmentOrganisationUnit the enrollment organisationUnit
+     * @param ownerOrganisationUnit the owning organisationUnit for ownership
+     *        check
      */
     void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
         String trackedEntity, OrganisationUnit enrollmentOrganisationUnit, OrganisationUnit ownerOrganisationUnit );
@@ -94,7 +107,7 @@ public interface TrackerImportAccessManager
      *
      * @param reporter error reporter instance
      * @param programStage programStage to check user has write access to
-     * @param orgUnit orgUnit to check user has write access to
+     * @param ownerOrgUnit the owning orgUnit to check user has write access to
      * @param categoryOptionCombo categoryOptionCombo to check user has write
      *        access to
      * @param trackedEntity trackedEntity to check user has write access to
