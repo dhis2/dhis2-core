@@ -389,7 +389,7 @@ public class JpaQueryUtils
             + " and " + JsonbFunctions.CHECK_USER_ACCESS + "( %1$s, '%2$s', '%4$s' ) = true )  "
             + (StringUtils.isEmpty( groupsIds ) ? ""
                 : " or ( " + JsonbFunctions.HAS_USER_GROUP_IDS + "( %1$s, '%3$s') = true "
-                    + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '%3$s', '%4$s') = true )");
+                    + " and " + JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( %1$s, '%4$s', '%3$s') = true )");
 
         return String.format( sql, sharingColumn, user.getUid(), groupsIds, access );
     }
