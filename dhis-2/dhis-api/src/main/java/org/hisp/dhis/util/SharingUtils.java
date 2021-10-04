@@ -43,8 +43,8 @@ import com.google.common.collect.*;
 
 public class SharingUtils
 {
-    private static final ImmutableList<String> LEGAGY_SHARING_PROPERTIES = ImmutableList.<String> builder().add(
-        "userAccesses", "userGroupAccesses", "publicAccess", "externalAccess" ).build();
+    private static final ImmutableList<String> LEGACY_SHARING_PROPERTIES = ImmutableList.<String> builder().add(
+        "userAccesses", "userGroupAccess", "publicAccess", "externalAccess" ).build();
 
     private static final ObjectMapper FROM_AND_TO_JSON = createMapper();
 
@@ -133,15 +133,9 @@ public class SharingUtils
         return FROM_AND_TO_JSON.writeValueAsString( value.withAccess( accessTransformation ) );
     }
 
-    public static boolean isUseLegacySharing( BaseIdentifiableObject object )
-    {
-        return !CollectionUtils.isEmpty( object.getUserAccesses() )
-            || !CollectionUtils.isEmpty( object.getUserGroupAccesses() );
-    }
-
     public static boolean isLegacySharingProperty( Property property )
     {
-        return LEGAGY_SHARING_PROPERTIES.contains( property.getFieldName() );
+        return LEGACY_SHARING_PROPERTIES.contains( property.getFieldName() );
     }
 
     private static ObjectMapper createMapper()
