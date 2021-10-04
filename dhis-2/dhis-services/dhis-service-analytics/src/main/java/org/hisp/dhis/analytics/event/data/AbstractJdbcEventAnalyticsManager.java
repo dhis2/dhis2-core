@@ -292,6 +292,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     columns.add( getColumn( queryItem, OU_NAME_COL_SUFFIX ) );
                 }
             }
+            else if ( queryItem.getValueType() == ValueType.NUMBER && !isGroupByClause )
+            {
+                columns.add( "coalesce(" + getColumn( queryItem ) + ", 'NaN') as " + queryItem.getItemName() );
+            }
             else
             {
                 columns.add( getColumn( queryItem ) );
