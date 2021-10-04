@@ -472,9 +472,9 @@ public class DefaultPreheatService implements PreheatService
                     IdentifiableObject identifiableObject = (IdentifiableObject) object;
                     identifiableObject.getAttributeValues().forEach( av -> addIdentifiers( map, av.getAttribute() ) );
                     identifiableObject.getSharing().getUserGroups().values()
-                        .forEach( uga -> addIdentifiers( map, uga.getUserGroup() ) );
+                        .forEach( uga -> addIdentifiers( map, uga.toDtoObject().getUserGroup() ) );
                     identifiableObject.getSharing().getUsers().values()
-                        .forEach( ua -> addIdentifiers( map, ua.getUser() ) );
+                        .forEach( ua -> addIdentifiers( map, ua.toDtoObject().getUser() ) );
 
                     if ( identifiableObject.getCreatedBy() != null )
                     {
