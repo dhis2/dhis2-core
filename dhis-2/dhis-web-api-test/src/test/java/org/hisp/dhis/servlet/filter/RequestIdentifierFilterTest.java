@@ -159,7 +159,7 @@ public class RequestIdentifierFilterTest
         when( dhisConfigurationProvider.getProperty( LOGGING_REQUEST_ID_MAX_SIZE ) )
             .thenReturn( Integer.toString( maxSize ) );
         when( dhisConfigurationProvider.isEnabled( LOGGING_REQUEST_ID_ENABLED ) ).thenReturn( enabled );
-        when( dhisConfigurationProvider.getProperty( LOGGING_REQUEST_ID_ENABLED ) ).thenReturn( hashAlgo );
+        when( dhisConfigurationProvider.getProperty( LOGGING_REQUEST_ID_HASH ) ).thenReturn( hashAlgo );
 
         subject = new RequestIdentifierFilter( dhisConfigurationProvider );
     }
