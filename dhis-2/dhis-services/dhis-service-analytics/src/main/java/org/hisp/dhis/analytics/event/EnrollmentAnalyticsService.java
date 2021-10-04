@@ -45,6 +45,10 @@ public interface EnrollmentAnalyticsService
 
     String ITEM_INCIDENT_DATE = "incidentdate";
 
+    String ITEM_STORED_BY = "storedby";
+
+    String ITEM_LAST_UPDATED = "lastupdated";
+
     String ITEM_GEOMETRY = "geometry";
 
     String ITEM_LONGITUDE = "longitude";

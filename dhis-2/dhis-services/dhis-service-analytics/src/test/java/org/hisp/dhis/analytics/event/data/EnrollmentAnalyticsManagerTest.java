@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.function.Consumer;
 
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -104,7 +105,7 @@ public class EnrollmentAnalyticsManagerTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode";
+    private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode";
 
     private final String TABLE_NAME = "analytics_enrollment";
 
@@ -118,7 +119,7 @@ public class EnrollmentAnalyticsManagerTest
             programIndicatorService );
 
         subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
-            programIndicatorSubqueryBuilder );
+            programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ) );
     }
 
     @Test
@@ -133,6 +134,25 @@ public class EnrollmentAnalyticsManagerTest
 
         String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
             + " as ax where enrollmentdate >= '2017-01-01' and enrollmentdate <= '2017-12-31' and (uidlevel1 = 'ouabcdefghA' ) limit 10001";
+
+        assertSql( sql.getValue(), expected );
+
+    }
+
+    @Test
+    public void verifyWithLastUpdatedTimeField()
+    {
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withStartDate( getDate( 2017, 1, 1 ) ).withEndDate( getDate( 2017, 12, 31 ) )
+            .withTimeField( TimeField.LAST_UPDATED.name() )
+            .build();
+
+        subject.getEnrollments( params, new ListGrid(), 10000 );
+
+        verify( jdbcTemplate ).queryForRowSet( sql.capture() );
+
+        String expected = "ax.\"monthly\",ax.\"ou\"  from " + getTable( programA.getUid() )
+            + " as ax where lastupdated >= '2017-01-01' and lastupdated <= '2017-12-31' and (uidlevel1 = 'ouabcdefghA' ) limit 10001";
 
         assertSql( sql.getValue(), expected );
 
