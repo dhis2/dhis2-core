@@ -30,9 +30,6 @@ package org.hisp.dhis.system.deletion;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-import javassist.util.proxy.ProxyObject;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
@@ -42,6 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import javassist.util.proxy.ProxyObject;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * TODO: Add support for failed allow tests on "transitive" deletion handlers
