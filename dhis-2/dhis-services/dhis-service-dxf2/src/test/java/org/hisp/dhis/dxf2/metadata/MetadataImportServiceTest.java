@@ -672,51 +672,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
     /**
      * 1. Create an object with UserGroupAccessA 2. Update object with only
-     * UserGroupAccessB in payload and mergeMode=MERGE Expected: updated object
-     * will have two UserGroupAccesses
-     *
-     * @throws IOException
-     */
-    @Test
-    public void testImportSharingWithMergeModeMerge()
-        throws IOException
-    {
-        User user = createUser( "A", "ALL" );
-        manager.save( user );
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/dataset_with_accesses_skipSharing.json" ).getInputStream(),
-            RenderFormat.JSON );
-
-        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
-        params.setUser( user );
-
-        ImportReport report = importService.importMetadata( params );
-        assertEquals( Status.OK, report.getStatus() );
-
-        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
-        assertNotNull( dataSet.getSharing().getUserGroups() );
-        assertEquals( 1, dataSet.getSharing().getUserGroups().size() );
-
-        metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/dataset_with_accesses_merge_mode.json" ).getInputStream(),
-            RenderFormat.JSON );
-
-        params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
-        params.setMergeMode( MergeMode.MERGE );
-        params.setUser( user );
-
-        report = importService.importMetadata( params );
-        assertEquals( Status.OK, report.getStatus() );
-
-        dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
-        assertNotNull( dataSet.getSharing().getUserGroups() );
-
-        assertEquals( 2, dataSet.getSharing().getUserGroups().size() );
-    }
-
-    /**
-     * 1. Create an object with UserGroupAccessA 2. Update object with only
      * UserGroupAccessB in payload and mergeMode=REPLACE Expected: updated
      * object will have only UserGroupAccessB
      *
