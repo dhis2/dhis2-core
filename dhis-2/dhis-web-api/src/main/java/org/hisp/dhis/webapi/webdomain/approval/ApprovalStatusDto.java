@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.webdomain.approval;
 
+import java.util.Map;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -79,6 +81,11 @@ public class ApprovalStatusDto
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final DataApprovalPermissions permissions;
+
+    public static ApprovalStatusDto from( Map.Entry<DataApproval, DataApprovalStatus> entry )
+    {
+        return from( entry.getKey(), entry.getValue() );
+    }
 
     public static ApprovalStatusDto from( DataApproval approval, DataApprovalStatus status )
     {

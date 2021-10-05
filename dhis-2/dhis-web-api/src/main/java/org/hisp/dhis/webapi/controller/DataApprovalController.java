@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 
 import java.io.IOException;
@@ -258,16 +259,9 @@ public class DataApprovalController
             }
         }
 
-        Map<DataApproval, DataApprovalStatus> statusMap = dataApprovalService.getDataApprovalStatuses( dataApprovals );
-
-        List<ApprovalStatusDto> approvalStatuses = new ArrayList<>();
-
-        for ( Map.Entry<DataApproval, DataApprovalStatus> entry : statusMap.entrySet() )
-        {
-            approvalStatuses.add( ApprovalStatusDto.from( entry.getKey(), entry.getValue() ) );
-        }
-
-        return approvalStatuses;
+        return dataApprovalService.getDataApprovalStatuses( dataApprovals ).entrySet().stream()
+            .map( ApprovalStatusDto::from )
+            .collect( toList() );
     }
 
     @GetMapping( value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
