@@ -526,7 +526,7 @@ public class DefaultDataApprovalService
             attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ),
             dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel(
                 currentUserService.getCurrentUser(), workflow ),
-            dataApprovalLevelService.getDataApprovalLevelMap() );
+            dataApprovalLevelService.getDataApprovalLevelMap() ); // Restart tests
 
         if ( statuses == null || statuses.isEmpty() )
         {
