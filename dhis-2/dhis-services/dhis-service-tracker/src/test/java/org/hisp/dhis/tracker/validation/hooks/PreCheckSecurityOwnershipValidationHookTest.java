@@ -34,8 +34,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.*;
-
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
@@ -65,7 +64,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Enrico Colasante
  */
-public class PreOwnershipValidationHookTest extends DhisConvenienceTest
+public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 {
     private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
@@ -77,7 +76,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
     private static final String PS_ID = "PS_ID";
 
-    private PreCheckOwnershipValidationHook validatorToTest;
+    private PreCheckSecurityOwnershipValidationHook validatorToTest;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -106,7 +105,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
     @Before
     public void setUp()
     {
-        validatorToTest = new PreCheckOwnershipValidationHook( trackerImportAccessManager );
+        validatorToTest = new PreCheckSecurityOwnershipValidationHook( trackerImportAccessManager );
         User user = createUser( 'A' );
         bundle = TrackerBundle.builder().user( user ).preheat( preheat ).build();
 
@@ -122,7 +121,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         program = createProgram( 'A' );
         program.setUid( PROGRAM_ID );
-        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        program.setProgramType( ProgramType.WITH_REGISTRATION );
         when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
 
         programStage = createProgramStage( 'A', program );
@@ -169,6 +168,71 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         assertFalse( reporter.hasErrors() );
         verify( trackerImportAccessManager ).checkTeiTypeWriteAccess( reporter, trackedEntityType );
+    }
+
+    @Test
+    public void verifyCaptureScopeIsCheckedForTrackedEntityCreation()
+    {
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( TEI_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntityType( TEI_TYPE_ID )
+            .build();
+
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+
+        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+
+        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+
+        assertFalse( reporter.hasErrors() );
+        verify( trackerImportAccessManager ).checkTeiTypeWriteAccess( reporter, trackedEntityType );
+        verify( trackerImportAccessManager ).checkOrgUnitInCaptureScope( reporter, organisationUnit );
+    }
+
+    @Test
+    public void verifySearchScopeIsCheckedForTrackedEntityUpdation()
+    {
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( TEI_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntityType( TEI_TYPE_ID )
+            .build();
+
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+
+        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+
+        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+
+        assertFalse( reporter.hasErrors() );
+        verify( trackerImportAccessManager ).checkTeiTypeWriteAccess( reporter, trackedEntityType );
+        verify( trackerImportAccessManager ).checkOrgUnitInSearchScope( reporter, organisationUnit );
+    }
+
+    @Test
+    public void verifySearchScopeIsCheckedForTrackedEntityDeletion()
+    {
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( TEI_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntityType( TEI_TYPE_ID )
+            .build();
+
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+
+        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+
+        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+
+        assertFalse( reporter.hasErrors() );
+        verify( trackerImportAccessManager ).checkTeiTypeWriteAccess( reporter, trackedEntityType );
+        verify( trackerImportAccessManager ).checkOrgUnitInCaptureScope( reporter, organisationUnit );
     }
 
     @Test
@@ -256,6 +320,81 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
+    public void verifyCaptureScopeIsCheckedForEnrollmentCreation()
+    {
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( TEI_ID )
+            .program( PROGRAM_ID )
+            .build();
+
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
+
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertFalse( reporter.hasErrors() );
+        verify( trackerImportAccessManager ).checkWriteEnrollmentAccess( reporter, program,
+            TEI_ID, organisationUnit, organisationUnit );
+        verify( trackerImportAccessManager ).checkOrgUnitInCaptureScope( reporter, organisationUnit );
+    }
+
+    @Test
+    public void verifyCaptureScopeIsCheckedForEnrollmentDeletion()
+    {
+        String enrollmentUid = CodeGenerator.generateUid();
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( enrollmentUid )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( TEI_ID )
+            .program( PROGRAM_ID )
+            .build();
+
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+        when( ctx.getProgramInstance( enrollment.getEnrollment() ) ).thenReturn( getEnrollment( enrollmentUid ) );
+
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertFalse( reporter.hasErrors() );
+        verify( trackerImportAccessManager ).checkWriteEnrollmentAccess( reporter, program,
+            TEI_ID, organisationUnit, organisationUnit );
+        verify( trackerImportAccessManager ).checkOrgUnitInCaptureScope( reporter, organisationUnit );
+    }
+
+    @Test
+    public void verifyCaptureScopeIsCheckedForEnrollmentProgramWithoutRegistration()
+    {
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+
+        String enrollmentUid = CodeGenerator.generateUid();
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( enrollmentUid )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( TEI_ID )
+            .program( PROGRAM_ID )
+            .build();
+
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+        when( ctx.getProgramInstance( enrollment.getEnrollment() ) ).thenReturn( getEnrollment( enrollmentUid ) );
+
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        assertFalse( reporter.hasErrors() );
+        verify( trackerImportAccessManager ).checkWriteEnrollmentAccess( reporter, program,
+            TEI_ID, organisationUnit, organisationUnit );
+        verify( trackerImportAccessManager ).checkOrgUnitInCaptureScope( reporter, organisationUnit );
+    }
+
+    @Test
     public void verifyValidationSuccessForEnrollmentWithoutEventsUsingDeleteStrategy()
     {
         Enrollment enrollment = Enrollment.builder()
@@ -338,6 +477,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( getEvent() );
+        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
 
         reporter = new ValidationErrorReporter( ctx, event );
 
@@ -345,13 +485,15 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         assertFalse( reporter.hasErrors() );
         verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
-            null, null,
+            organisationUnit, null,
             null, false );
+        verify( trackerImportAccessManager ).checkOrgUnitInCaptureScope( reporter, organisationUnit );
     }
 
     @Test
-    public void verifyValidationSuccessForEventUsingCreateStrategy()
+    public void verifyValidationSuccessForNonTrackerEventUsingCreateStrategy()
     {
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
@@ -373,6 +515,56 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
+    public void verifyValidationSuccessForTrackerEventCreation()
+    {
+        Event event = Event.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .orgUnit( ORG_UNIT_ID )
+            .programStage( PS_ID )
+            .program( PROGRAM_ID )
+            .build();
+
+        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( null );
+        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
+
+        reporter = new ValidationErrorReporter( ctx, event );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
+            organisationUnit, null,
+            TEI_ID, false );
+        verify( trackerImportAccessManager ).checkOrgUnitInCaptureScope( reporter, organisationUnit );
+
+    }
+
+    @Test
+    public void verifyValidationSuccessForTrackerEventUpdation()
+    {
+        Event event = Event.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .orgUnit( ORG_UNIT_ID )
+            .programStage( PS_ID )
+            .program( PROGRAM_ID )
+            .build();
+
+        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( getEvent() );
+        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
+
+        reporter = new ValidationErrorReporter( ctx, event );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+        verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
+            organisationUnit, null,
+            TEI_ID, false );
+    }
+
+    @Test
     public void verifyValidationSuccessForEventUsingUpdateStrategy()
     {
         Event event = Event.builder()
@@ -385,6 +577,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( getEvent() );
+        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
 
         reporter = new ValidationErrorReporter( ctx, event );
 
@@ -392,7 +585,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         assertFalse( reporter.hasErrors() );
         verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
-            null, null,
+            organisationUnit, null,
             null, false );
     }
 
@@ -408,6 +601,8 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( getEvent() );
+        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
+
         bundle.setUser( changeCompletedEventAuthorisedUser() );
 
         reporter = new ValidationErrorReporter( ctx, event );
@@ -416,7 +611,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         assertFalse( reporter.hasErrors() );
         verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
-            null, null,
+            organisationUnit, null,
             null, false );
     }
 
@@ -432,6 +627,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
 
         when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( ctx.getProgramStageInstance( event.getEvent() ) ).thenReturn( getEvent() );
+        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
 
         reporter = new ValidationErrorReporter( ctx, event );
 
@@ -440,7 +636,7 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1083 ) );
         verify( trackerImportAccessManager ).checkEventWriteAccess( reporter, programStage, organisationUnit,
-            null, null,
+            organisationUnit, null,
             null, false );
     }
 
@@ -471,6 +667,21 @@ public class PreOwnershipValidationHookTest extends DhisConvenienceTest
         trackedEntityInstance.setProgramInstances( Sets.newHashSet( new ProgramInstance() ) );
 
         return trackedEntityInstance;
+    }
+
+    private ProgramInstance getEnrollment( String enrollmentUid )
+    {
+        if ( StringUtils.isEmpty( enrollmentUid ) )
+        {
+            enrollmentUid = CodeGenerator.generateUid();
+        }
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setUid( enrollmentUid );
+        programInstance.setOrganisationUnit( organisationUnit );
+        programInstance.setEntityInstance( getTEIWithNoProgramInstances() );
+        programInstance.setProgram( program );
+        programInstance.setStatus( ProgramStatus.ACTIVE );
+        return programInstance;
     }
 
     private ProgramStageInstance getEvent()
