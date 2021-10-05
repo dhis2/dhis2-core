@@ -61,6 +61,7 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -212,7 +213,7 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
         throws IOException
     {
         query = gistService.plan( query ).toBuilder().references( false ).build();
-        response.addHeader( "Content-Type", "text/csv" );
+        response.addHeader( HttpHeaders.CONTENT_TYPE, "text/csv" );
         new CsvBuilder( response.getWriter() )
             .withLocale( query.getTranslationLocale() )
             .skipHeaders( query.isHeadless() )
