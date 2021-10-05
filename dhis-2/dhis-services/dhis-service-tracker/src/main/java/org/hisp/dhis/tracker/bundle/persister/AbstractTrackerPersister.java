@@ -46,6 +46,7 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
@@ -66,9 +67,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 {
     protected final ReservedValueService reservedValueService;
 
-    protected AbstractTrackerPersister( ReservedValueService reservedValueService )
+    private TrackedEntityAttributeValueService attributeValueService;
+
+    protected AbstractTrackerPersister( ReservedValueService reservedValueService,
+        TrackedEntityAttributeValueService attributeValueService )
     {
         this.reservedValueService = reservedValueService;
+        this.attributeValueService = attributeValueService;
     }
 
     /**
@@ -130,11 +135,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     session.persist( convertedDto );
                     typeReport.getStats().incCreated();
                     typeReport.addObjectReport( objectReport );
+                    updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
                 }
                 else
                 {
                     if ( isUpdatable() )
                     {
+                        updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
                         session.merge( convertedDto );
                         typeReport.getStats().incUpdated();
                         typeReport.addObjectReport( objectReport );
@@ -144,8 +151,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                         typeReport.getStats().incIgnored();
                     }
                 }
-
-                updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
 
                 //
                 // Add the entity to the Preheat
@@ -320,8 +325,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
-        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = trackedEntityInstance
-            .getTrackedEntityAttributeValues()
+        // TODO: Do not use attributeValueService.
+        // We should have the right version of attribute values present in the
+        // TEI
+        // at any moment
+        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = attributeValueService
+            .getTrackedEntityAttributeValues( trackedEntityInstance )
             .stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
