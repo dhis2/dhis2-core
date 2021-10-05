@@ -27,14 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-
+import com.google.gson.JsonObject;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
@@ -46,13 +39,19 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -137,7 +136,7 @@ public class EventsDataValueValidationTests
         String eventId = trackerActions.postAndGetJobReport( event ).validateSuccessfulImport().extractImportedEvents()
             .get( 0 );
 
-        event = trackerActions.get( "/events/" + eventId ).getBody();
+        event = trackerActions.get( "/events/" + eventId ).validateStatus( 200 ).getBody();
 
         event = JsonObjectBuilder.jsonObject( event )
             .addPropertyByJsonPath( "dataValues[0].value", null )
@@ -197,10 +196,9 @@ public class EventsDataValueValidationTests
     @Test
     public void shouldImportEventsWithCompulsoryDataValues()
     {
-        JsonObject events = trackerActions.buildEvent( OU_ID, programId, programStageId );
-
-        addDataValue( events.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject(), mandatoryDataElementId,
-            "TEXT VALUE" );
+        JsonObject events = new EventDataBuilder()
+            .addDataValue( mandatoryDataElementId, "TEXT value" )
+            .build( OU_ID, programId, programStageId );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( events );
 
@@ -221,16 +219,14 @@ public class EventsDataValueValidationTests
 
     private JsonObject createEventBodyWithStatus( String status )
     {
-        JsonObject body = trackerActions.buildEvent( OU_ID, programId, programStageId );
+        EventDataBuilder builder = new EventDataBuilder().setStatus( status );
 
         if ( status.equalsIgnoreCase( "SCHEDULE" ) )
         {
-            body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "scheduledAt",
-                Instant.now().plus( 1, ChronoUnit.DAYS ).toString() );
+            builder.setScheduledDate( Instant.now().plus( 1, ChronoUnit.DAYS ).toString() );
         }
 
-        body.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "status", status );
-        return body;
+        return builder.build( OU_ID, programId, programStageId );
     }
 
     private void setupData()
@@ -262,14 +258,9 @@ public class EventsDataValueValidationTests
 
     private void addDataValue( JsonObject body, String dataElementId, String value )
     {
-        JsonArray dataValues = new JsonArray();
-
-        JsonObject dataValue = new JsonObject();
-
-        dataValue.addProperty( "dataElement", dataElementId );
-        dataValue.addProperty( "value", value );
-
-        dataValues.add( dataValue );
-        body.add( "dataValues", dataValues );
+        new JsonObjectBuilder( body ).addOrAppendToArray( "dataValues", new JsonObjectBuilder()
+            .addProperty( "dataElement", dataElementId )
+            .addProperty( "value", value ).build() )
+            .build();
     }
 }
