@@ -64,7 +64,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Enrico Colasante
  */
-public class PreOwnershipValidationHookTest extends DhisConvenienceTest
+public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 {
     private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 

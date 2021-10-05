@@ -87,11 +87,9 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
         checkNotNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        boolean isNew = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() ) == null;
-
         // If trackedEntity is newly created, or going to be deleted, capture
         // scope has to be checked
-        if ( isNew || strategy.isDelete() )
+        if ( strategy.isCreate() || strategy.isDelete() )
         {
             trackerImportAccessManager.checkOrgUnitInCaptureScope( reporter,
                 context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
@@ -134,11 +132,9 @@ public class PreCheckSecurityOwnershipValidationHook
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
         checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
-        boolean isNew = context.getProgramInstance( enrollment.getEnrollment() ) == null;
-
         // If enrollment is newly created, or going to be deleted, capture scope
         // has to be checked
-        if ( program.isWithoutRegistration() || isNew || strategy.isDelete() )
+        if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
         {
             trackerImportAccessManager
                 .checkOrgUnitInCaptureScope( reporter, context.getOrganisationUnit( enrollment.getOrgUnit() ) );
@@ -174,11 +170,9 @@ public class PreCheckSecurityOwnershipValidationHook
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         Program program = context.getProgram( event.getProgram() );
 
-        boolean isNew = context.getProgramStageInstance( event.getEvent() ) == null;
-
         // If event is newly created, or going to be deleted, capture scope
         // has to be checked
-        if ( program.isWithoutRegistration() || isNew || strategy.isDelete() )
+        if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
         {
             trackerImportAccessManager
                 .checkOrgUnitInCaptureScope( reporter, organisationUnit );
@@ -271,16 +265,10 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( programInstance == null )
         {
-            Optional<Enrollment> optionalEnrollment = context.getBundle().getEnrollment( event.getEnrollment() );
-            if ( optionalEnrollment.isPresent() )
-            {
-                Enrollment enrollment = optionalEnrollment.get();
-                return enrollment.getTrackedEntity();
-            }
-            else
-            {
-                return null;
-            }
+            return context.getBundle()
+                .getEnrollment( event.getEnrollment() )
+                .map( Enrollment::getTrackedEntity )
+                .orElse( null );
         }
         else
         {
