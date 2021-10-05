@@ -29,6 +29,13 @@ package org.hisp.dhis.dataapproval;
 
 import java.util.Date;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hisp.dhis.user.User;
 
 /**
@@ -38,6 +45,11 @@ import org.hisp.dhis.user.User;
  *
  * @author Jim Grace
  */
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class DataApprovalStatus
 {
     /**
@@ -103,146 +115,8 @@ public class DataApprovalStatus
      */
     private User creator;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public DataApprovalStatus()
-    {
-    }
-
     public DataApprovalStatus( DataApprovalState state )
     {
         this.state = state;
-    }
-
-    public DataApprovalStatus( DataApprovalState state,
-        DataApprovalLevel approvedLevel, int approvedOrgUnitId, DataApprovalLevel actionLevel,
-        String organisationUnitUid, String organisationUnitName, String attributeOptionComboUid,
-        boolean accepted, DataApprovalPermissions permissions )
-    {
-        this.state = state;
-        this.approvedLevel = approvedLevel;
-        this.approvedOrgUnitId = approvedOrgUnitId;
-        this.actionLevel = actionLevel;
-        this.organisationUnitUid = organisationUnitUid;
-        this.organisationUnitName = organisationUnitName;
-        this.attributeOptionComboUid = attributeOptionComboUid;
-        this.accepted = accepted;
-        this.permissions = permissions;
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public DataApprovalState getState()
-    {
-        return state;
-    }
-
-    public void setState( DataApprovalState state )
-    {
-        this.state = state;
-    }
-
-    public DataApprovalLevel getApprovedLevel()
-    {
-        return approvedLevel;
-    }
-
-    public void setApprovedLevel( DataApprovalLevel approvedLevel )
-    {
-        this.approvedLevel = approvedLevel;
-    }
-
-    public int getApprovedOrgUnitId()
-    {
-        return approvedOrgUnitId;
-    }
-
-    public void setApprovedOrgUnitId( int approvedOrgUnitId )
-    {
-        this.approvedOrgUnitId = approvedOrgUnitId;
-    }
-
-    public DataApprovalLevel getActionLevel()
-    {
-        return actionLevel;
-    }
-
-    public void setActionLevel( DataApprovalLevel actionLevel )
-    {
-        this.actionLevel = actionLevel;
-    }
-
-    public String getOrganisationUnitUid()
-    {
-        return organisationUnitUid;
-    }
-
-    public void setOrganisationUnitUid( String organisationUnitUid )
-    {
-        this.organisationUnitUid = organisationUnitUid;
-    }
-
-    public String getOrganisationUnitName()
-    {
-        return organisationUnitName;
-    }
-
-    public void setOrganisationUnitName( String organisationUnitName )
-    {
-        this.organisationUnitName = organisationUnitName;
-    }
-
-    public String getAttributeOptionComboUid()
-    {
-        return attributeOptionComboUid;
-    }
-
-    public void setAttributeOptionComboUid( String attributeOptionComboUid )
-    {
-        this.attributeOptionComboUid = attributeOptionComboUid;
-    }
-
-    public boolean isAccepted()
-    {
-        return accepted;
-    }
-
-    public void setAccepted( boolean accepted )
-    {
-        this.accepted = accepted;
-    }
-
-    public DataApprovalPermissions getPermissions()
-    {
-        return permissions;
-    }
-
-    public void setPermissions( DataApprovalPermissions permissions )
-    {
-        this.permissions = permissions;
-    }
-
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
-
-    public User getCreator()
-    {
-        return creator;
-    }
-
-    public void setCreator( User creator )
-    {
-        this.creator = creator;
     }
 }

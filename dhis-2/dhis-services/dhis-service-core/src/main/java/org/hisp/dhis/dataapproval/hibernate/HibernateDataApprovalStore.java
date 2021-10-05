@@ -659,8 +659,16 @@ public class HibernateDataApprovalStore
                             : readyBelow ? UNAPPROVED_READY : UNAPPROVED_WAITING
                         : accepted ? ACCEPTED_HERE : APPROVED_HERE);
 
-                statusList.add( new DataApprovalStatus( state, approvedLevel, approvedOrgUnitId, actionLevel, ouUid,
-                    ouName, aocUid, accepted, null ) );
+                statusList.add( DataApprovalStatus.builder()
+                    .state( state )
+                    .approvedLevel( approvedLevel )
+                    .approvedOrgUnitId( approvedOrgUnitId )
+                    .actionLevel( actionLevel )
+                    .organisationUnitUid( ouUid )
+                    .organisationUnitName( ouName )
+                    .attributeOptionComboUid( aocUid )
+                    .accepted( accepted )
+                    .build() );
             }
         }
 

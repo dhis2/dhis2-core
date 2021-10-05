@@ -264,22 +264,7 @@ public class DataApprovalController
 
         for ( Map.Entry<DataApproval, DataApprovalStatus> entry : statusMap.entrySet() )
         {
-            DataApproval da = entry.getKey();
-
-            DataApprovalStatus status = entry.getValue();
-
-            ApprovalStatusDto approvalStatus = new ApprovalStatusDto();
-
-            approvalStatus.setWf( da.getWorkflow().getUid() );
-            approvalStatus.setPe( da.getPeriod().getIsoDate() );
-            approvalStatus.setOu( da.getOrganisationUnit().getUid() );
-            approvalStatus.setAoc( da.getAttributeOptionCombo().getUid() );
-            approvalStatus.setState( status != null ? status.getState() : null );
-            approvalStatus.setLevel(
-                status != null && status.getApprovedLevel() != null ? status.getApprovedLevel().getUid() : null );
-            approvalStatus.setPermissions( status != null ? status.getPermissions() : null );
-
-            approvalStatuses.add( approvalStatus );
+            approvalStatuses.add( ApprovalStatusDto.from( entry.getKey(), entry.getValue() ) );
         }
 
         return approvalStatuses;

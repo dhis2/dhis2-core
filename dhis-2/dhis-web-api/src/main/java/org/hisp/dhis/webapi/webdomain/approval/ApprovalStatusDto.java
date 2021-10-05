@@ -27,130 +27,72 @@
  */
 package org.hisp.dhis.webapi.webdomain.approval;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalPermissions;
 import org.hisp.dhis.dataapproval.DataApprovalState;
+import org.hisp.dhis.dataapproval.DataApprovalStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+@Getter
+@Builder
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 @JacksonXmlRootElement( localName = "approvalStatus", namespace = DxfNamespaces.DXF_2_0 )
 public class ApprovalStatusDto
 {
-    private String wf;
-
-    private String pe;
-
-    private String ou;
-
-    private String ouName;
-
-    private String aoc;
-
-    private DataApprovalState state;
-
-    private String level;
-
-    private DataApprovalPermissions permissions;
-
-    public ApprovalStatusDto()
-    {
-    }
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private final String wf;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getWf()
-    {
-        return wf;
-    }
-
-    public void setWf( String wf )
-    {
-        this.wf = wf;
-    }
+    private final String pe;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getPe()
-    {
-        return pe;
-    }
-
-    public void setPe( String pe )
-    {
-        this.pe = pe;
-    }
+    private final String ou;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOu()
-    {
-        return ou;
-    }
-
-    public void setOu( String ou )
-    {
-        this.ou = ou;
-    }
+    private final String ouName;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOuName()
-    {
-        return ouName;
-    }
-
-    public void setOuName( String ouName )
-    {
-        this.ouName = ouName;
-    }
+    private final String aoc;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getAoc()
-    {
-        return aoc;
-    }
-
-    public void setAoc( String aoc )
-    {
-        this.aoc = aoc;
-    }
+    private final DataApprovalState state;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataApprovalState getState()
-    {
-        return state;
-    }
-
-    public void setState( DataApprovalState state )
-    {
-        this.state = state;
-    }
+    private final String level;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getLevel()
-    {
-        return level;
-    }
+    private final DataApprovalPermissions permissions;
 
-    public void setLevel( String level )
+    public static ApprovalStatusDto from( DataApproval approval, DataApprovalStatus status )
     {
-        this.level = level;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataApprovalPermissions getPermissions()
-    {
-        return permissions;
-    }
-
-    public void setPermissions( DataApprovalPermissions permissions )
-    {
-        this.permissions = permissions;
+        String level = status != null && status.getApprovedLevel() != null
+            ? status.getApprovedLevel().getUid()
+            : null;
+        return builder()
+            .wf( approval.getWorkflow().getUid() )
+            .pe( approval.getPeriod().getIsoDate() )
+            .ou( approval.getOrganisationUnit().getUid() )
+            .aoc( approval.getAttributeOptionCombo().getUid() )
+            .state( status != null ? status.getState() : null )
+            .level( level )
+            .permissions( status != null ? status.getPermissions() : null )
+            .build();
     }
 }
