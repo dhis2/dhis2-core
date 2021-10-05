@@ -63,7 +63,8 @@ public enum DhisApiVersion
      * Solution is to adopt the e2e tests.
      */
     V38( 38 ),
-    DEFAULT( V37.getVersion() );
+    V39( 39 ),
+    DEFAULT( V38.getVersion() );
 
     final int version;
 
