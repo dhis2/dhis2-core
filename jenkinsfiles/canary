@@ -38,17 +38,6 @@ pipeline {
                 sh './copy-war-s3.sh canary ${GIT_BRANCH}'
             }
         }
-
-        stage ('Update Play Instance') {
-            steps {
-                echo 'Updating Play Instance ...'
-                script {
-                    withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_CREDENTIALS')]) {
-                        awx.resetWarIfInstanceExists("$AWX_CREDENTIALS", "$HOST", "$INSTANCE_NAME", "$AWX_TEMPLATE")
-                    }
-                }
-            }
-        }
     }
 
     post {
