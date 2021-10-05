@@ -89,7 +89,7 @@ public class DefaultUserDetailsService
 
         if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked, accountNonExpired ) )
         {
-            log.info( String.format(
+            log.debug( String.format(
                 "Login attempt for disabled/locked user: '%s', enabled: %b, account non-expired: %b, credentials non-expired: %b, account non-locked: %b",
                 username, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked ) );
         }

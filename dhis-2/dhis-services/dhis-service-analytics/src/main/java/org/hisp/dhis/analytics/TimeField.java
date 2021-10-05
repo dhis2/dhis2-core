@@ -27,9 +27,15 @@
  */
 package org.hisp.dhis.analytics;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.Getter;
+
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
 public enum TimeField
@@ -42,7 +48,11 @@ public enum TimeField
     CREATED( "created" ),
     LAST_UPDATED( "lastupdated" );
 
+    @Getter
     private String field;
+
+    public static final Collection<String> DEFAULT_TIME_FIELDS = ImmutableList.of( EVENT_DATE.name(),
+        LAST_UPDATED.name(), ENROLLMENT_DATE.name() );
 
     private static final Set<String> FIELD_NAMES = Sets.newHashSet( TimeField.values() )
         .stream().map( TimeField::name )
@@ -53,9 +63,11 @@ public enum TimeField
         this.field = field;
     }
 
-    public String getField()
+    public static Optional<TimeField> of( String timeField )
     {
-        return field;
+        return Arrays.stream( values() )
+            .filter( tf -> tf.name().equals( timeField ) )
+            .findFirst();
     }
 
     public static boolean fieldIsValid( String field )

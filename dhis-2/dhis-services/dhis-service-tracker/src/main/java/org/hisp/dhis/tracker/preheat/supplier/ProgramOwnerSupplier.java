@@ -68,18 +68,11 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
             TrackerIdScheme.UID,
             new HashMap<>() );
         Set<Long> teiIds = new HashSet<>();
-        Set<Long> programIds = new HashSet<>();
         params.getEnrollments().stream().forEach( en -> {
             TrackedEntityInstance tei = preheatedTrackedEntities.get( en.getTrackedEntity() );
             if ( tei != null )
             {
                 teiIds.add( tei.getId() );
-            }
-
-            ProgramInstance pi = preheatedEnrollments.get( en.getEnrollment() );
-            if ( pi != null )
-            {
-                programIds.add( pi.getProgram().getId() );
             }
         } );
 
@@ -88,12 +81,11 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
             if ( pi != null )
             {
                 teiIds.add( pi.getEntityInstance().getId() );
-                programIds.add( pi.getProgram().getId() );
             }
         } );
 
         List<TrackedEntityProgramOwnerOrgUnit> tepos = trackedEntityProgramOwnerStore
-            .getTrackedEntityProgramOwnerOrgUnits( teiIds, programIds );
+            .getTrackedEntityProgramOwnerOrgUnits( teiIds );
 
         tepos = tepos.stream().map(
             tepo -> new TrackedEntityProgramOwnerOrgUnit( tepo.getTrackedEntityInstanceId(), tepo.getProgramId(),

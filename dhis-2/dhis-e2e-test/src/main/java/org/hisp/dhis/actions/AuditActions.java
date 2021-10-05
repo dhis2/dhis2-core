@@ -25,28 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+package org.hisp.dhis.actions;
 
-import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.dto.ApiResponse;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AttributeUtils
+public class AuditActions
+    extends RestApiActions
 {
-    public static Map<String, String> getAttributeValueMap( Set<AttributeValue> attributeValues )
+    public AuditActions()
     {
-        Map<String, String> attributeValuesMap = new HashMap<>();
+        super( "/audits" );
+    }
 
-        for ( AttributeValue attributeValue : attributeValues )
-        {
-            attributeValuesMap.put( attributeValue.getAttribute().getUid(), attributeValue.getValue() );
-        }
-
-        return attributeValuesMap;
+    public ApiResponse getTrackedEntityAttributeValueAudits( String tei )
+    {
+        return this.get( "/trackedEntityAttributeValue?tei=" + tei );
     }
 }
+

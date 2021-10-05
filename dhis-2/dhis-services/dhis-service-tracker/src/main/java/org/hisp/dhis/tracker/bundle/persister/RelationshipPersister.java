@@ -53,6 +53,7 @@ public class RelationshipPersister
         TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter,
         TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
         TrackedEntityAttributeValueService attributeValueService )
+
     {
         super( reservedValueService, trackedEntityAttributeValueAuditService, attributeValueService );
         this.relationshipConverter = relationshipConverter;
@@ -132,5 +133,11 @@ public class RelationshipPersister
     {
         // NOTHING TO DO
 
+    }
+
+    @Override
+    protected String getUpdatedTrackedEntity( org.hisp.dhis.relationship.Relationship entity )
+    {
+        return null;
     }
 }

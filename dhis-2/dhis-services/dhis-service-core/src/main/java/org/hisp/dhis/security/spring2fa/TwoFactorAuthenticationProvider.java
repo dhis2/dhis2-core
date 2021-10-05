@@ -74,7 +74,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
     public Authentication authenticate( Authentication auth )
         throws AuthenticationException
     {
-        log.info( String.format( "Login attempt: %s", auth.getName() ) );
+        log.debug( String.format( "Login attempt: %s", auth.getName() ) );
 
         String username = auth.getName();
 
@@ -115,14 +115,14 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
             if ( securityService.isLocked( username ) )
             {
-                log.info( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
+                log.debug( String.format( "Temporary lockout for user: %s and IP: %s", username, ip ) );
 
                 throw new LockedException( String.format( "IP is temporarily locked: %s", ip ) );
             }
 
             if ( !LongValidator.getInstance().isValid( code ) || !SecurityUtils.verify( userCredentials, code ) )
             {
-                log.info(
+                log.debug(
                     String.format( "Two-factor authentication failure for user: %s", userCredentials.getUsername() ) );
 
                 throw new BadCredentialsException( "Invalid verification code" );

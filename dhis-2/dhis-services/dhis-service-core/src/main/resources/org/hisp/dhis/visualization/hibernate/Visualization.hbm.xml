@@ -115,7 +115,7 @@
         <param name="type">12</param>
       </type>
     </property>
-    
+
     <property name="series" type="jbSeries"/>
 
     <list name="dataDimensionItems" table="visualization_datadimensionitems" cascade="all, delete-orphan">
@@ -319,10 +319,13 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_visualization_userid"/>
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User"
+                 column="userid" foreign-key="fk_visualization_userid"/>
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
 
+    <!-- Dynamic attribute values -->
+    <property name="attributeValues" type="jsbAttributeValues"/>
   </class>
 </hibernate-mapping>

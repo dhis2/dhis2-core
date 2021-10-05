@@ -306,13 +306,7 @@ public class TrackerActions
     public JsonObject buildTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2,
         String relationshipType )
     {
-        return new JsonObjectBuilder()
-            .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_1 ) )
-            .addObject( "to", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_2 ) )
-            .build();
+        return buildRelationship( "trackedEntity", trackedEntity_1, "trackedEntity", trackedEntity_2, relationshipType );
     }
 
     public JsonObject buildRelationship( String fromEntityName, String fromEntityId, String toEntityName, String toEntityId,

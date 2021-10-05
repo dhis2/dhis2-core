@@ -40,7 +40,7 @@ public class TokenUtils
 {
     public static List<String> getTokens( String value )
     {
-        return Arrays.asList( value.replaceAll( "[^a-zA-Z0-9]", " " ).split( "[\\s@&.?$+-]+" ) );
+        return Arrays.asList( value.replaceAll( "[^\\p{L}0-9]", " " ).split( "[\\s@&.?$+-]+" ) );
     }
 
     public static StringBuilder createRegex( String value )

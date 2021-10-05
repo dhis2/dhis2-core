@@ -41,6 +41,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_U
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
@@ -53,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -129,6 +131,10 @@ public class HibernateTrackedEntityInstanceStore
     private static final String EQUALS = " = ";
 
     private static final String PSI_STATUS = "PSI.status";
+
+    private static final String TEI_LASTUPDATED = " tei.lastUpdated";
+
+    private static final String GT_EQUAL = " >= ";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -330,32 +336,6 @@ public class HibernateTrackedEntityInstanceStore
 
         String hql = "select " + (idOnly ? "tei.id" : "tei") + " from TrackedEntityInstance tei ";
 
-        final String lastUpdated = " tei.lastUpdated";
-
-        if ( !params.hasLastUpdatedDuration() )
-        {
-            if ( params.hasLastUpdatedStartDate() )
-            {
-                hql += ", ProgramStageInstance psi, ProgramInstance pi";
-                String lastUpdatedDateString = getMediumDateString( params.getLastUpdatedStartDate() );
-
-                hql += hlp.whereAnd() + " ( " + hlp.or() + lastUpdated + "  >= '" + lastUpdatedDateString + "' "
-                    + hlp.andOr()
-                    + " pi.lastUpdated >= '" + lastUpdatedDateString
-                    + "' " + hlp.or() + " psi.lastUpdated >= '" + lastUpdatedDateString
-                    + "')";
-            }
-
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> lastUpdated + "  < '" +
-                getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
-
-        }
-        else
-        {
-            hql += hlp.whereAnd() + lastUpdated + " >= '" +
-                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
-        }
-
         // Used for switching between registration org unit or ownership org
         // unit. Default source is registration ou.
         String teiOuSource = params.hasProgram() ? "po.organisationUnit" : "tei.organisationUnit";
@@ -385,15 +365,30 @@ public class HibernateTrackedEntityInstanceStore
         hql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
             () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
 
+        if ( params.hasLastUpdatedDuration() )
+        {
+            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + " '" +
+                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
+        }
+        else
+        {
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(),
+                () -> TEI_LASTUPDATED + GT_EQUAL + " '" +
+                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
+
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> TEI_LASTUPDATED + " < '" +
+                getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
+        }
+
         hql += addWhereConditionally( hlp, params.isSynchronizationQuery(),
-            () -> " tei.lastUpdated > tei.lastSynchronized" );
+            () -> TEI_LASTUPDATED + " > tei.lastSynchronized" );
 
         // Comparing milliseconds instead of always creating new Date( 0 )
 
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            hql += hlp.whereAnd() + " tei.lastUpdated >= '" + skipChangedBefore + "'";
+            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + " '" + skipChangedBefore + "'";
         }
 
         params.handleOrganisationUnits();
@@ -444,6 +439,7 @@ public class HibernateTrackedEntityInstanceStore
             map.put( ORG_UNIT_NAME, rowSet.getString( ORG_UNIT_NAME ) );
             map.put( TRACKED_ENTITY_ID, rowSet.getString( TRACKED_ENTITY_ID ) );
             map.put( INACTIVE_ID, rowSet.getString( INACTIVE_ID ) );
+            map.put( POTENTIAL_DUPLICATE, rowSet.getString( POTENTIAL_DUPLICATE ) );
 
             if ( params.isIncludeDeleted() )
             {
@@ -636,7 +632,8 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ou AS " + ORG_UNIT_ID + ", " )
             .append( "TEI.ouname AS " + ORG_UNIT_NAME + ", " )
             .append( "TET.uid AS " + TRACKED_ENTITY_ID + ", " )
-            .append( "TEI.inactive AS " + INACTIVE_ID )
+            .append( "TEI.inactive AS " + INACTIVE_ID + ", " )
+            .append( "TEI.potentialduplicate AS " + POTENTIAL_DUPLICATE )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "") )
             .append( (params.hasAttributes() ? ", string_agg(TEA.uid || ':' || TEAV.value, ';') AS tea_values" : "") );
 
@@ -722,6 +719,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.lastupdated, " )
             .append( "TEI.inactive, " )
             .append( "TEI.trackedentitytypeid, " )
+            .append( "TEI.potentialduplicate, " )
             .append( "TEI.deleted, " )
             .append( "OU.uid as ou, " )
             .append( "OU.name as ouname " )
@@ -1077,8 +1075,6 @@ public class HibernateTrackedEntityInstanceStore
     private String getFromSubQueryProgramInstanceConditions( SqlHelper whereAnd,
         TrackedEntityInstanceQueryParams params )
     {
-        SqlHelper hlp = new SqlHelper( true );
-
         StringBuilder program = new StringBuilder();
 
         if ( !params.hasProgram() )
@@ -1092,29 +1088,13 @@ public class HibernateTrackedEntityInstanceStore
             .append( "SELECT PI.trackedentityinstanceid " )
             .append( "FROM programinstance PI " );
 
-        if ( !params.hasLastUpdatedDuration() )
-        {
-            if ( params.hasLastUpdatedStartDate() )
-            {
-                program.append( ", ProgramStageInstance psi" );
-                String lastUpdatedDateString = getMediumDateString( params.getLastUpdatedStartDate() );
-
-                program.append( hlp.whereAnd() ).append( "(" ).append(
-                    hlp.or() ).append( "pi.lastUpdated >= '" )
-                    .append( lastUpdatedDateString ).append( "' " ).append( hlp.or() ).append( " psi.lastUpdated >= '" )
-                    .append( lastUpdatedDateString ).append( "')" );
-            }
-
-            program.append( addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> " tei.lastUpdated < '" +
-                getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" ) );
-        }
-
         if ( params.hasFilterForEvents() )
         {
             program.append( getFromSubQueryProgramStageInstance( params ) );
         }
 
-        program.append( hlp.whereAnd() ).append( " PI.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+        program
+            .append( "WHERE PI.trackedentityinstanceid = TEI.trackedentityinstanceid " )
             .append( "AND PI.programid = " )
             .append( params.getProgram().getId() )
             .append( SPACE );
@@ -1400,6 +1380,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ou, " )
             .append( "TEI.ouname, " )
             .append( "TET.uid, " )
+            .append( "TEI.potentialduplicate, " )
             .append( "TEI.inactive " )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted " : "") );
 
@@ -1772,6 +1753,19 @@ public class HibernateTrackedEntityInstanceStore
             .setParameter( "lastSynchronized", lastSynchronized )
             .setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs )
             .executeUpdate();
+    }
+
+    @Override
+    public void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
+    {
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( trackedEntityInstanceUIDs ), 20000 );
+
+        uidsPartitions.stream().filter( teis -> !teis.isEmpty() )
+            .forEach(
+                teis -> getSession().getNamedQuery( "updateTeisLastUpdated" )
+                    .setParameter( "trackedEntityInstances", teis )
+                    .setParameter( "lastUpdated", lastUpdated )
+                    .executeUpdate() );
     }
 
     @Override

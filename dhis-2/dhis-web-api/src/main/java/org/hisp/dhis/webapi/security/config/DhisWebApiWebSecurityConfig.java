@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.security.config;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import javax.sql.DataSource;
@@ -51,9 +52,13 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
-import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
+import org.hisp.dhis.webapi.security.EmbeddedJettyBasicAuthenticationEntryPoint;
+import org.hisp.dhis.webapi.security.ExternalAccessVoter;
+import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
+import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -62,6 +67,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.vote.AuthenticatedVoter;
+import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
@@ -95,12 +103,23 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import com.google.common.collect.ImmutableList;
 
 /**
+ * The {@code DhisWebApiWebSecurityConfig} class configures mostly all
+ * authentication and authorization related to the /api endpoint.
+ *
+ * Almost all other endpoints are configured in
+ * {@code DhisWebCommonsWebSecurityConfig}
+ *
+ * The biggest practical benefit of having separate configs for /api and the
+ * rest is that we can start a server only serving request to /api/**
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
@@ -353,6 +372,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private SecurityService securityService;
 
+        @Autowired
+        private ExternalAccessVoter externalAccessVoter;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
@@ -378,6 +400,26 @@ public class DhisWebApiWebSecurityConfig
             return oauthAuthenticationManager;
         }
 
+        public WebExpressionVoter apiWebExpressionVoter()
+        {
+            DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
+            handler.setDefaultRolePrefix( "" );
+            WebExpressionVoter voter = new WebExpressionVoter();
+            voter.setExpressionHandler( handler );
+            return voter;
+        }
+
+        public LogicalOrAccessDecisionManager apiAccessDecisionManager()
+        {
+            List<AccessDecisionManager> decisionVoters = Arrays.asList(
+                new UnanimousBased( ImmutableList.of( new SimpleAccessVoter( "ALL" ) ) ),
+                new UnanimousBased( ImmutableList.of( apiWebExpressionVoter() ) ),
+                new UnanimousBased( ImmutableList.of( externalAccessVoter ) ),
+                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) ) );
+
+            return new LogicalOrAccessDecisionManager( decisionVoters );
+        }
+
         private void configureAccessRestrictions(
             ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorize )
         {
@@ -397,7 +439,10 @@ public class DhisWebApiWebSecurityConfig
                 .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
                 .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
                 .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
-                .anyRequest().authenticated();
+
+                .anyRequest()
+                .authenticated()
+                .accessDecisionManager( apiAccessDecisionManager() );
         }
 
         /**
@@ -429,17 +474,17 @@ public class DhisWebApiWebSecurityConfig
             if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
             {
                 // This config will redirect unauthorized requests to standard
-                // http basic (pop-up login form) Using the default
-                // "AuthenticationEntryPoint"
+                // http basic (pop-up login form) Using the default based
+                // "EmbeddedJettyBasicAuthenticationEntryPoint"
                 http.antMatcher( "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic();
+                    .httpBasic()
+                    .authenticationEntryPoint( embeddedJettyBasicAuthenticationEntryPoint() );
 
                 /*
-                 * Setup session handling, this is configured in
-                 *
-                 * @see:DhisWebCommonsWebSecurityConfig when running in
-                 * non-embedded Jetty mode.
+                 * Setup session handling, this is configured normally in
+                 * DhisWebCommonsWebSecurityConfig when running in non-embedded
+                 * Jetty mode.
                  */
                 http
                     .sessionManagement()
@@ -456,7 +501,7 @@ public class DhisWebApiWebSecurityConfig
                 http.antMatcher( apiContextPath + "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic()
-                    .authenticationEntryPoint( basicAuthenticationEntryPoint() );
+                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
             }
         }
 
@@ -582,9 +627,23 @@ public class DhisWebApiWebSecurityConfig
          *         config.
          */
         @Bean
-        public DHIS2BasicAuthenticationEntryPoint basicAuthenticationEntryPoint()
+        public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint()
         {
-            return new DHIS2BasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+            return new FormLoginBasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+        }
+
+        /**
+         * HTTP Basic entrypoint for the /api server when running in embedded
+         * Jetty mode. We don't want to redirect into the web pages, since they
+         * are not running.
+         *
+         * @return EmbeddedJettyBasicAuthenticationEntryPoint entryPoint to use
+         *         in http config.
+         */
+        @Bean
+        public EmbeddedJettyBasicAuthenticationEntryPoint embeddedJettyBasicAuthenticationEntryPoint()
+        {
+            return new EmbeddedJettyBasicAuthenticationEntryPoint( "DHIS2_API" );
         }
     }
 

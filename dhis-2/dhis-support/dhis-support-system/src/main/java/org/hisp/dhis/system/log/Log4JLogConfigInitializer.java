@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.File;
 import java.util.List;
+import java.util.zip.Deflater;
 
 import javax.annotation.PostConstruct;
 
@@ -41,6 +42,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.RollingFileAppender;
+import org.apache.logging.log4j.core.appender.rolling.CronTriggeringPolicy;
 import org.apache.logging.log4j.core.appender.rolling.DefaultRolloverStrategy;
 import org.apache.logging.log4j.core.appender.rolling.SizeBasedTriggeringPolicy;
 import org.apache.logging.log4j.core.config.AppenderRef;
@@ -85,6 +87,8 @@ public class Log4JLogConfigInitializer
     private static final String GENERAL_LOGGER_FILENAME = "dhis.log";
 
     private static final String PUSH_ANALYSIS_LOGGER_FILENAME = "dhis-push-analysis.log";
+
+    private static final String AUDIT_LOGGER_FILENAME = "dhis-audit.log";
 
     private static final String LOG4J_CONF_PROP = "log4j.configuration";
 
@@ -134,6 +138,8 @@ public class Log4JLogConfigInitializer
 
         configureLoggers( PUSH_ANALYSIS_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.pushanalysis" ) );
 
+        configureAuditLogger( AUDIT_LOGGER_FILENAME, Lists.newArrayList( "org.hisp.dhis.audit" ) );
+
         configureRootLogger( GENERAL_LOGGER_FILENAME );
 
         final LoggerContext ctx = (LoggerContext) LogManager.getContext( false );
@@ -141,12 +147,53 @@ public class Log4JLogConfigInitializer
     }
 
     /**
+     * Configures rolling audit file loggers.
+     *
+     * @param filename the filename to output logging to.
+     * @param packages the logger names.
+     */
+    private void configureAuditLogger( String filename, List<String> packages )
+    {
+        String file = getLogFile( filename );
+
+        RollingFileAppender appender = RollingFileAppender.newBuilder()
+            .withFileName( file )
+            .setName( "appender_" + file )
+            .withFilePattern( file + ".%i" )
+            .setLayout( PATTERN_LAYOUT )
+            .withPolicy( CronTriggeringPolicy.createPolicy( getLogConfiguration(), "true", "0 0 0 * * ?" ) )
+            .withStrategy( DefaultRolloverStrategy.newBuilder()
+                .withCompressionLevelStr( String.valueOf( Deflater.BEST_COMPRESSION ) )
+                .withFileIndex( "nomax" )
+                .build() )
+            .build();
+
+        appender.start();
+
+        getLogConfiguration().addAppender( appender );
+
+        AppenderRef[] refs = createAppenderRef( "Ref_" + filename );
+
+        for ( String loggerName : packages )
+        {
+            LoggerConfig loggerConfig = LoggerConfig.createLogger( false, Level.INFO, loggerName, "true", refs, null,
+                getLogConfiguration(), null );
+
+            loggerConfig.addAppender( appender, null, null );
+
+            getLogConfiguration().addLogger( loggerName, loggerConfig );
+
+            log.info( "Added logger: " + loggerName + " using file: " + file );
+        }
+    }
+
+    /**
      * Configures rolling file loggers.
      *
      * @param filename the filename to output logging to.
-     * @param loggers the logger names.
+     * @param packages the logger names.
      */
-    private void configureLoggers( String filename, List<String> loggers )
+    private void configureLoggers( String filename, List<String> packages )
     {
         String file = getLogFile( filename );
 
@@ -156,7 +203,7 @@ public class Log4JLogConfigInitializer
 
         AppenderRef[] refs = createAppenderRef( "Ref_" + filename );
 
-        for ( String loggerName : loggers )
+        for ( String loggerName : packages )
         {
             LoggerConfig loggerConfig = LoggerConfig.createLogger( true, Level.INFO, loggerName, "true", refs, null,
                 getLogConfiguration(), null );
@@ -210,7 +257,7 @@ public class Log4JLogConfigInitializer
     {
         RollingFileAppender appender = RollingFileAppender.newBuilder().withFileName( file )
             .setName( "appender_" + file )
-            .withFilePattern( file + "%i" )
+            .withFilePattern( file + ".%i" )
             .setLayout( PATTERN_LAYOUT )
             .withPolicy(
                 SizeBasedTriggeringPolicy.createPolicy( config.getProperty( ConfigurationKey.LOGGING_FILE_MAX_SIZE ) ) )

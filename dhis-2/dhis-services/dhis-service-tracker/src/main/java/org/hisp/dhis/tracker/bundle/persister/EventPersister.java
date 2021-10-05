@@ -219,4 +219,11 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     {
         // DO NOTHING. Event creation does not create ownership records.
     }
+
+    @Override
+    protected String getUpdatedTrackedEntity( ProgramStageInstance entity )
+    {
+        return Optional.ofNullable( entity.getProgramInstance() ).filter( pi -> pi.getEntityInstance() != null )
+            .map( pi -> pi.getEntityInstance().getUid() ).orElse( null );
+    }
 }

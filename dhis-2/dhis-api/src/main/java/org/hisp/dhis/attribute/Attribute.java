@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.attribute;
 
-import java.util.ArrayList;
+import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.toList;
+
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,9 +51,12 @@ import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,10 +74,13 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
+import org.hisp.dhis.visualization.Visualization;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.MoreObjects;
 
 /**
@@ -81,67 +90,106 @@ import com.google.common.base.MoreObjects;
 public class Attribute
     extends BaseNameableObject implements MetadataObject
 {
+    /**
+     * The types of {@link IdentifiableObject}s that can have attributes
+     */
+    public enum ObjectType
+    {
+        DATA_ELEMENT( DataElement.class ),
+
+        DATA_ELEMENT_GROUP( DataElementGroup.class ),
+
+        INDICATOR( Indicator.class ),
+
+        INDICATOR_GROUP( IndicatorGroup.class ),
+
+        DATA_SET( DataSet.class ),
+
+        ORGANISATION_UNIT( OrganisationUnit.class ),
+
+        ORGANISATION_UNIT_GROUP( OrganisationUnitGroup.class ),
+
+        ORGANISATION_UNIT_GROUP_SET( OrganisationUnitGroupSet.class ),
+
+        USER( User.class ),
+
+        USER_GROUP( UserGroup.class ),
+
+        PROGRAM( Program.class ),
+
+        PROGRAM_STAGE( ProgramStage.class ),
+
+        TRACKED_ENTITY_TYPE( TrackedEntityType.class ),
+
+        TRACKED_ENTITY_ATTRIBUTE( TrackedEntityAttribute.class ),
+
+        CATEGORY_OPTION( CategoryOption.class ),
+
+        CATEGORY_OPTION_GROUP( CategoryOptionGroup.class ),
+
+        DOCUMENT( Document.class ),
+
+        OPTION( Option.class ),
+
+        OPTION_SET( OptionSet.class ),
+
+        CONSTANT( Constant.class ),
+
+        LEGEND_SET( LegendSet.class ),
+
+        PROGRAM_INDICATOR( ProgramIndicator.class ),
+
+        SQL_VIEW( SqlView.class ),
+
+        SECTION( Section.class ),
+
+        CATEGORY_OPTION_COMBO( CategoryOptionCombo.class ),
+
+        CATEGORY_OPTION_GROUP_SET( CategoryOptionGroupSet.class ),
+
+        DATA_ELEMENT_GROUP_SET( DataElementGroupSet.class ),
+
+        VALIDATION_RULE( ValidationRule.class ),
+
+        VALIDATION_RULE_GROUP( ValidationRuleGroup.class ),
+
+        CATEGORY( Category.class ),
+
+        VISUALIZATION( Visualization.class ),
+
+        MAP( Map.class ),
+
+        EVENT_REPORT( EventReport.class ),
+
+        EVENT_CHART( EventChart.class );
+
+        final Class<? extends IdentifiableObject> type;
+
+        ObjectType( Class<? extends IdentifiableObject> type )
+        {
+            this.type = type;
+        }
+
+        public Class<? extends IdentifiableObject> getType()
+        {
+            return type;
+        }
+
+        public static ObjectType valueOf( Class<?> type )
+        {
+            return stream( values() ).filter( t -> t.type == type ).findFirst().orElse( null );
+        }
+
+        public String getPropertyName()
+        {
+            return CaseFormat.UPPER_UNDERSCORE.converterTo( CaseFormat.LOWER_CAMEL )
+                .convert( name() ) + "Attribute";
+        }
+    }
+
     private ValueType valueType;
 
-    private boolean dataElementAttribute;
-
-    private boolean dataElementGroupAttribute;
-
-    private boolean indicatorAttribute;
-
-    private boolean indicatorGroupAttribute;
-
-    private boolean dataSetAttribute;
-
-    private boolean organisationUnitAttribute;
-
-    private boolean organisationUnitGroupAttribute;
-
-    private boolean organisationUnitGroupSetAttribute;
-
-    private boolean userAttribute;
-
-    private boolean userGroupAttribute;
-
-    private boolean programAttribute;
-
-    private boolean programStageAttribute;
-
-    private boolean trackedEntityTypeAttribute;
-
-    private boolean trackedEntityAttributeAttribute;
-
-    private boolean categoryOptionAttribute;
-
-    private boolean categoryOptionGroupAttribute;
-
-    private boolean documentAttribute;
-
-    private boolean optionAttribute;
-
-    private boolean optionSetAttribute;
-
-    private boolean constantAttribute;
-
-    private boolean legendSetAttribute;
-
-    private boolean programIndicatorAttribute;
-
-    private boolean sqlViewAttribute;
-
-    private boolean sectionAttribute;
-
-    private boolean categoryOptionComboAttribute;
-
-    private boolean categoryOptionGroupSetAttribute;
-
-    private boolean dataElementGroupSetAttribute;
-
-    private boolean validationRuleAttribute;
-
-    private boolean validationRuleGroupAttribute;
-
-    private boolean categoryAttribute;
+    private final EnumSet<ObjectType> objectTypes = EnumSet.noneOf( ObjectType.class );
 
     private boolean mandatory;
 
@@ -165,16 +213,8 @@ public class Attribute
     @Override
     public int hashCode()
     {
-        return 31 * super.hashCode() + Objects.hash( valueType, dataElementAttribute, dataElementGroupAttribute,
-            indicatorAttribute, indicatorGroupAttribute,
-            dataSetAttribute, organisationUnitAttribute, organisationUnitGroupAttribute,
-            organisationUnitGroupSetAttribute, userAttribute, userGroupAttribute,
-            programAttribute, programStageAttribute, trackedEntityTypeAttribute, trackedEntityAttributeAttribute,
-            categoryOptionAttribute, categoryOptionGroupAttribute,
-            mandatory, unique, optionSet, optionAttribute, constantAttribute, legendSetAttribute,
-            programIndicatorAttribute, sqlViewAttribute, sectionAttribute, categoryOptionComboAttribute,
-            categoryOptionGroupAttribute, dataElementGroupSetAttribute, validationRuleAttribute,
-            validationRuleGroupAttribute, categoryAttribute );
+        return 31 * super.hashCode() + Objects.hash( valueType, objectTypes,
+            mandatory, unique, optionSet );
     }
 
     @Override
@@ -198,37 +238,28 @@ public class Attribute
         final Attribute other = (Attribute) obj;
 
         return Objects.equals( this.valueType, other.valueType )
-            && Objects.equals( this.dataElementAttribute, other.dataElementAttribute )
-            && Objects.equals( this.dataElementGroupAttribute, other.dataElementGroupAttribute )
-            && Objects.equals( this.indicatorAttribute, other.indicatorAttribute )
-            && Objects.equals( this.indicatorGroupAttribute, other.indicatorGroupAttribute )
-            && Objects.equals( this.dataSetAttribute, other.dataSetAttribute )
-            && Objects.equals( this.organisationUnitAttribute, other.organisationUnitAttribute )
-            && Objects.equals( this.organisationUnitGroupAttribute, other.organisationUnitGroupAttribute )
-            && Objects.equals( this.organisationUnitGroupSetAttribute, other.organisationUnitGroupSetAttribute )
-            && Objects.equals( this.userAttribute, other.userAttribute )
-            && Objects.equals( this.userGroupAttribute, other.userGroupAttribute )
-            && Objects.equals( this.programAttribute, other.programAttribute )
-            && Objects.equals( this.programStageAttribute, other.programStageAttribute )
-            && Objects.equals( this.trackedEntityTypeAttribute, other.trackedEntityTypeAttribute )
-            && Objects.equals( this.trackedEntityAttributeAttribute, other.trackedEntityAttributeAttribute )
-            && Objects.equals( this.categoryOptionAttribute, other.categoryOptionAttribute )
-            && Objects.equals( this.categoryOptionGroupAttribute, other.categoryOptionGroupAttribute )
-            && Objects.equals( this.optionAttribute, other.optionAttribute )
-            && Objects.equals( this.constantAttribute, other.constantAttribute )
-            && Objects.equals( this.legendSetAttribute, other.legendSetAttribute )
-            && Objects.equals( this.programIndicatorAttribute, other.programIndicatorAttribute )
-            && Objects.equals( this.sqlViewAttribute, other.sqlViewAttribute )
-            && Objects.equals( this.sectionAttribute, other.sectionAttribute )
-            && Objects.equals( this.categoryOptionComboAttribute, other.categoryOptionComboAttribute )
-            && Objects.equals( this.categoryOptionGroupSetAttribute, other.categoryOptionGroupSetAttribute )
-            && Objects.equals( this.dataElementGroupSetAttribute, other.dataElementGroupSetAttribute )
-            && Objects.equals( this.validationRuleAttribute, other.validationRuleAttribute )
-            && Objects.equals( this.validationRuleGroupAttribute, other.validationRuleGroupAttribute )
-            && Objects.equals( this.categoryAttribute, other.categoryAttribute )
+            && Objects.equals( this.objectTypes, other.objectTypes )
             && Objects.equals( this.mandatory, other.mandatory )
             && Objects.equals( this.unique, other.unique )
             && Objects.equals( this.optionSet, other.optionSet );
+    }
+
+    @JsonIgnore
+    public boolean isAttribute( ObjectType type )
+    {
+        return objectTypes.contains( type );
+    }
+
+    public void setAttribute( ObjectType type, boolean isAttribute )
+    {
+        if ( isAttribute )
+        {
+            objectTypes.add( type );
+        }
+        else
+        {
+            objectTypes.remove( type );
+        }
     }
 
     @JsonProperty
@@ -273,24 +304,24 @@ public class Attribute
     @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isDataElementAttribute()
     {
-        return dataElementAttribute;
+        return isAttribute( ObjectType.DATA_ELEMENT );
     }
 
     public void setDataElementAttribute( boolean dataElementAttribute )
     {
-        this.dataElementAttribute = dataElementAttribute;
+        setAttribute( ObjectType.DATA_ELEMENT, dataElementAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isDataElementGroupAttribute()
     {
-        return dataElementGroupAttribute;
+        return isAttribute( ObjectType.DATA_ELEMENT_GROUP );
     }
 
     public void setDataElementGroupAttribute( Boolean dataElementGroupAttribute )
     {
-        this.dataElementGroupAttribute = dataElementGroupAttribute;
+        setAttribute( ObjectType.DATA_ELEMENT_GROUP, dataElementGroupAttribute );
     }
 
     @JsonProperty
@@ -298,36 +329,36 @@ public class Attribute
     @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isIndicatorAttribute()
     {
-        return indicatorAttribute;
+        return isAttribute( ObjectType.INDICATOR );
     }
 
     public void setIndicatorAttribute( boolean indicatorAttribute )
     {
-        this.indicatorAttribute = indicatorAttribute;
+        setAttribute( ObjectType.INDICATOR, indicatorAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isIndicatorGroupAttribute()
     {
-        return indicatorGroupAttribute;
+        return isAttribute( ObjectType.INDICATOR_GROUP );
     }
 
     public void setIndicatorGroupAttribute( Boolean indicatorGroupAttribute )
     {
-        this.indicatorGroupAttribute = indicatorGroupAttribute;
+        setAttribute( ObjectType.INDICATOR_GROUP, indicatorGroupAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isDataSetAttribute()
     {
-        return dataSetAttribute;
+        return isAttribute( ObjectType.DATA_SET );
     }
 
     public void setDataSetAttribute( Boolean dataSetAttribute )
     {
-        this.dataSetAttribute = dataSetAttribute;
+        setAttribute( ObjectType.DATA_SET, dataSetAttribute );
     }
 
     @JsonProperty
@@ -335,36 +366,36 @@ public class Attribute
     @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isOrganisationUnitAttribute()
     {
-        return organisationUnitAttribute;
+        return isAttribute( ObjectType.ORGANISATION_UNIT );
     }
 
     public void setOrganisationUnitAttribute( boolean organisationUnitAttribute )
     {
-        this.organisationUnitAttribute = organisationUnitAttribute;
+        setAttribute( ObjectType.ORGANISATION_UNIT, organisationUnitAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isOrganisationUnitGroupAttribute()
     {
-        return organisationUnitGroupAttribute;
+        return isAttribute( ObjectType.ORGANISATION_UNIT_GROUP );
     }
 
     public void setOrganisationUnitGroupAttribute( Boolean organisationUnitGroupAttribute )
     {
-        this.organisationUnitGroupAttribute = organisationUnitGroupAttribute;
+        setAttribute( ObjectType.ORGANISATION_UNIT_GROUP, organisationUnitGroupAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isOrganisationUnitGroupSetAttribute()
     {
-        return organisationUnitGroupSetAttribute;
+        return isAttribute( ObjectType.ORGANISATION_UNIT_GROUP_SET );
     }
 
     public void setOrganisationUnitGroupSetAttribute( Boolean organisationUnitGroupSetAttribute )
     {
-        this.organisationUnitGroupSetAttribute = organisationUnitGroupSetAttribute;
+        setAttribute( ObjectType.ORGANISATION_UNIT_GROUP_SET, organisationUnitGroupSetAttribute );
     }
 
     @JsonProperty
@@ -372,204 +403,204 @@ public class Attribute
     @Property( value = PropertyType.BOOLEAN, required = Property.Value.FALSE )
     public boolean isUserAttribute()
     {
-        return userAttribute;
+        return isAttribute( ObjectType.USER );
     }
 
     public void setUserAttribute( boolean userAttribute )
     {
-        this.userAttribute = userAttribute;
+        setAttribute( ObjectType.USER, userAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isUserGroupAttribute()
     {
-        return userGroupAttribute;
+        return isAttribute( ObjectType.USER_GROUP );
     }
 
     public void setUserGroupAttribute( Boolean userGroupAttribute )
     {
-        this.userGroupAttribute = userGroupAttribute;
+        setAttribute( ObjectType.USER_GROUP, userGroupAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isProgramAttribute()
     {
-        return programAttribute;
+        return isAttribute( ObjectType.PROGRAM );
     }
 
     public void setProgramAttribute( boolean programAttribute )
     {
-        this.programAttribute = programAttribute;
+        setAttribute( ObjectType.PROGRAM, programAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isProgramStageAttribute()
     {
-        return programStageAttribute;
+        return isAttribute( ObjectType.PROGRAM_STAGE );
     }
 
     public void setProgramStageAttribute( boolean programStageAttribute )
     {
-        this.programStageAttribute = programStageAttribute;
+        setAttribute( ObjectType.PROGRAM_STAGE, programStageAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isTrackedEntityTypeAttribute()
     {
-        return trackedEntityTypeAttribute;
+        return isAttribute( ObjectType.TRACKED_ENTITY_TYPE );
     }
 
     public void setTrackedEntityTypeAttribute( boolean trackedEntityTypeAttribute )
     {
-        this.trackedEntityTypeAttribute = trackedEntityTypeAttribute;
+        setAttribute( ObjectType.TRACKED_ENTITY_TYPE, trackedEntityTypeAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isTrackedEntityAttributeAttribute()
     {
-        return trackedEntityAttributeAttribute;
+        return isAttribute( ObjectType.TRACKED_ENTITY_ATTRIBUTE );
     }
 
     public void setTrackedEntityAttributeAttribute( boolean trackedEntityAttributeAttribute )
     {
-        this.trackedEntityAttributeAttribute = trackedEntityAttributeAttribute;
+        setAttribute( ObjectType.TRACKED_ENTITY_ATTRIBUTE, trackedEntityAttributeAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCategoryOptionAttribute()
     {
-        return categoryOptionAttribute;
+        return isAttribute( ObjectType.CATEGORY_OPTION );
     }
 
     public void setCategoryOptionAttribute( boolean categoryOptionAttribute )
     {
-        this.categoryOptionAttribute = categoryOptionAttribute;
+        setAttribute( ObjectType.CATEGORY_OPTION, categoryOptionAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCategoryOptionGroupAttribute()
     {
-        return categoryOptionGroupAttribute;
+        return isAttribute( ObjectType.CATEGORY_OPTION_GROUP );
     }
 
     public void setCategoryOptionGroupAttribute( boolean categoryOptionGroupAttribute )
     {
-        this.categoryOptionGroupAttribute = categoryOptionGroupAttribute;
+        setAttribute( ObjectType.CATEGORY_OPTION_GROUP, categoryOptionGroupAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isDocumentAttribute()
     {
-        return documentAttribute;
+        return isAttribute( ObjectType.DOCUMENT );
     }
 
     public void setDocumentAttribute( boolean documentAttribute )
     {
-        this.documentAttribute = documentAttribute;
+        setAttribute( ObjectType.DOCUMENT, documentAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isOptionAttribute()
     {
-        return optionAttribute;
+        return isAttribute( ObjectType.OPTION );
     }
 
     public void setOptionAttribute( boolean optionAttribute )
     {
-        this.optionAttribute = optionAttribute;
+        setAttribute( ObjectType.OPTION, optionAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isOptionSetAttribute()
     {
-        return optionSetAttribute;
+        return isAttribute( ObjectType.OPTION_SET );
     }
 
     public void setOptionSetAttribute( boolean optionSetAttribute )
     {
-        this.optionSetAttribute = optionSetAttribute;
+        setAttribute( ObjectType.OPTION_SET, optionSetAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isLegendSetAttribute()
     {
-        return legendSetAttribute;
+        return isAttribute( ObjectType.LEGEND_SET );
     }
 
     public void setLegendSetAttribute( boolean legendSetAttribute )
     {
-        this.legendSetAttribute = legendSetAttribute;
+        setAttribute( ObjectType.LEGEND_SET, legendSetAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isConstantAttribute()
     {
-        return constantAttribute;
+        return isAttribute( ObjectType.CONSTANT );
     }
 
     public void setConstantAttribute( boolean constantAttribute )
     {
-        this.constantAttribute = constantAttribute;
+        setAttribute( ObjectType.CONSTANT, constantAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isProgramIndicatorAttribute()
     {
-        return programIndicatorAttribute;
+        return isAttribute( ObjectType.PROGRAM_INDICATOR );
     }
 
     public void setProgramIndicatorAttribute( boolean programIndicatorAttribute )
     {
-        this.programIndicatorAttribute = programIndicatorAttribute;
+        setAttribute( ObjectType.PROGRAM_INDICATOR, programIndicatorAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSqlViewAttribute()
     {
-        return sqlViewAttribute;
+        return isAttribute( ObjectType.SQL_VIEW );
     }
 
     public void setSqlViewAttribute( boolean sqlViewAttribute )
     {
-        this.sqlViewAttribute = sqlViewAttribute;
+        setAttribute( ObjectType.SQL_VIEW, sqlViewAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCategoryOptionComboAttribute()
     {
-        return categoryOptionComboAttribute;
+        return isAttribute( ObjectType.CATEGORY_OPTION_COMBO );
     }
 
     public void setCategoryOptionComboAttribute( boolean categoryOptionComboAttribute )
     {
-        this.categoryOptionComboAttribute = categoryOptionComboAttribute;
+        setAttribute( ObjectType.CATEGORY_OPTION_COMBO, categoryOptionComboAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isSectionAttribute()
     {
-        return sectionAttribute;
+        return isAttribute( ObjectType.SECTION );
     }
 
     public void setSectionAttribute( boolean sectionAttribute )
     {
-        this.sectionAttribute = sectionAttribute;
+        setAttribute( ObjectType.SECTION, sectionAttribute );
     }
 
     @JsonProperty
@@ -588,60 +619,108 @@ public class Attribute
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCategoryOptionGroupSetAttribute()
     {
-        return this.categoryOptionGroupSetAttribute;
+        return isAttribute( ObjectType.CATEGORY_OPTION_GROUP_SET );
     }
 
     public void setCategoryOptionGroupSetAttribute( boolean categoryOptionGroupSetAttribute )
     {
-        this.categoryOptionGroupSetAttribute = categoryOptionGroupSetAttribute;
+        setAttribute( ObjectType.CATEGORY_OPTION_GROUP_SET, categoryOptionGroupSetAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isDataElementGroupSetAttribute()
     {
-        return this.dataElementGroupSetAttribute;
+        return isAttribute( ObjectType.DATA_ELEMENT_GROUP_SET );
     }
 
     public void setDataElementGroupSetAttribute( boolean dataElementGroupSetAttribute )
     {
-        this.dataElementGroupSetAttribute = dataElementGroupSetAttribute;
+        setAttribute( ObjectType.DATA_ELEMENT_GROUP_SET, dataElementGroupSetAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isValidationRuleAttribute()
     {
-        return this.validationRuleAttribute;
+        return isAttribute( ObjectType.VALIDATION_RULE );
     }
 
     public void setValidationRuleAttribute( boolean validationRuleAttribute )
     {
-        this.validationRuleAttribute = validationRuleAttribute;
+        setAttribute( ObjectType.VALIDATION_RULE, validationRuleAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isValidationRuleGroupAttribute()
     {
-        return this.validationRuleGroupAttribute;
+        return isAttribute( ObjectType.VALIDATION_RULE_GROUP );
     }
 
     public void setValidationRuleGroupAttribute( boolean validationRuleGroupAttribute )
     {
-        this.validationRuleGroupAttribute = validationRuleGroupAttribute;
+        setAttribute( ObjectType.VALIDATION_RULE_GROUP, validationRuleGroupAttribute );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isCategoryAttribute()
     {
-        return this.categoryAttribute;
+        return isAttribute( ObjectType.CATEGORY );
     }
 
     public void setCategoryAttribute( boolean categoryAttribute )
     {
-        this.categoryAttribute = categoryAttribute;
+        setAttribute( ObjectType.CATEGORY, categoryAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isVisualizationAttribute()
+    {
+        return isAttribute( ObjectType.VISUALIZATION );
+    }
+
+    public void setVisualizationAttribute( boolean visualizationAttribute )
+    {
+        setAttribute( ObjectType.VISUALIZATION, visualizationAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isMapAttribute()
+    {
+        return isAttribute( ObjectType.MAP );
+    }
+
+    public void setMapAttribute( boolean mapAttribute )
+    {
+        setAttribute( ObjectType.MAP, mapAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEventReportAttribute()
+    {
+        return isAttribute( ObjectType.EVENT_REPORT );
+    }
+
+    public void setEventReportAttribute( boolean eventReportAttribute )
+    {
+        setAttribute( ObjectType.EVENT_REPORT, eventReportAttribute );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isEventChartAttribute()
+    {
+        return isAttribute( ObjectType.EVENT_CHART );
+    }
+
+    public void setEventChartAttribute( boolean eventChartAttribute )
+    {
+        setAttribute( ObjectType.EVENT_CHART, eventChartAttribute );
     }
 
     @JsonProperty
@@ -658,70 +737,7 @@ public class Attribute
 
     public List<Class<? extends IdentifiableObject>> getSupportedClasses()
     {
-        List<Class<? extends IdentifiableObject>> klasses = new ArrayList<>();
-
-        if ( dataElementAttribute )
-            klasses.add( DataElement.class );
-        if ( dataElementGroupAttribute )
-            klasses.add( DataElementGroup.class );
-        if ( categoryOptionAttribute )
-            klasses.add( CategoryOption.class );
-        if ( categoryOptionGroupAttribute )
-            klasses.add( CategoryOptionGroup.class );
-        if ( indicatorAttribute )
-            klasses.add( Indicator.class );
-        if ( indicatorGroupAttribute )
-            klasses.add( IndicatorGroup.class );
-        if ( dataSetAttribute )
-            klasses.add( DataSet.class );
-        if ( organisationUnitAttribute )
-            klasses.add( OrganisationUnit.class );
-        if ( organisationUnitGroupAttribute )
-            klasses.add( OrganisationUnitGroup.class );
-        if ( organisationUnitGroupSetAttribute )
-            klasses.add( OrganisationUnitGroupSet.class );
-        if ( userAttribute )
-            klasses.add( User.class );
-        if ( userGroupAttribute )
-            klasses.add( UserGroup.class );
-        if ( programAttribute )
-            klasses.add( Program.class );
-        if ( programStageAttribute )
-            klasses.add( ProgramStage.class );
-        if ( trackedEntityTypeAttribute )
-            klasses.add( TrackedEntityType.class );
-        if ( trackedEntityAttributeAttribute )
-            klasses.add( TrackedEntityAttribute.class );
-        if ( documentAttribute )
-            klasses.add( Document.class );
-        if ( optionAttribute )
-            klasses.add( Option.class );
-        if ( optionSetAttribute )
-            klasses.add( OptionSet.class );
-        if ( legendSetAttribute )
-            klasses.add( LegendSet.class );
-        if ( constantAttribute )
-            klasses.add( Constant.class );
-        if ( programIndicatorAttribute )
-            klasses.add( ProgramIndicator.class );
-        if ( sqlViewAttribute )
-            klasses.add( SqlView.class );
-        if ( sectionAttribute )
-            klasses.add( Section.class );
-        if ( categoryOptionComboAttribute )
-            klasses.add( CategoryOptionCombo.class );
-        if ( categoryOptionGroupSetAttribute )
-            klasses.add( CategoryOptionGroupSet.class );
-        if ( dataElementGroupSetAttribute )
-            klasses.add( DataElementGroupSet.class );
-        if ( validationRuleAttribute )
-            klasses.add( ValidationRule.class );
-        if ( validationRuleGroupAttribute )
-            klasses.add( ValidationRuleGroup.class );
-        if ( categoryAttribute )
-            klasses.add( Category.class );
-
-        return klasses;
+        return objectTypes.stream().map( ObjectType::getType ).collect( toList() );
     }
 
     @Override
@@ -730,33 +746,7 @@ public class Attribute
         return MoreObjects.toStringHelper( this )
             .add( "sortOrder", sortOrder )
             .add( "valueType", valueType )
-            .add( "dataElementAttribute", dataElementAttribute )
-            .add( "dataElementGroupAttribute", dataElementGroupAttribute )
-            .add( "indicatorAttribute", indicatorAttribute )
-            .add( "indicatorGroupAttribute", indicatorGroupAttribute )
-            .add( "dataSetAttribute", dataSetAttribute )
-            .add( "organisationUnitAttribute", organisationUnitAttribute )
-            .add( "organisationUnitGroupAttribute", organisationUnitGroupAttribute )
-            .add( "organisationUnitGroupSetAttribute", organisationUnitGroupSetAttribute )
-            .add( "userAttribute", userAttribute )
-            .add( "userGroupAttribute", userGroupAttribute )
-            .add( "programAttribute", programAttribute )
-            .add( "programStageAttribute", programStageAttribute )
-            .add( "trackedEntityTypeAttribute", trackedEntityTypeAttribute )
-            .add( "trackedEntityAttributeAttribute", trackedEntityAttributeAttribute )
-            .add( "categoryOptionAttribute", categoryOptionAttribute )
-            .add( "categoryOptionGroupAttribute", categoryOptionGroupAttribute )
-            .add( "constantAttribute", constantAttribute )
-            .add( "legendSetAttribute", legendSetAttribute )
-            .add( "programIndicatorAttribute", programIndicatorAttribute )
-            .add( "sqlViewAttribute", sqlViewAttribute )
-            .add( "sectionAttribute", sectionAttribute )
-            .add( "categoryOptionComboAttribute", categoryOptionComboAttribute )
-            .add( "categoryOptionGroupSetAttribute", categoryOptionGroupSetAttribute )
-            .add( "dataElementGroupSetAttribute", dataElementGroupSetAttribute )
-            .add( "validationRuleAttribute", validationRuleAttribute )
-            .add( "validationRuleGroupAttribute", validationRuleGroupAttribute )
-            .add( "categoryAttribute", categoryAttribute )
+            .add( "objectTypes", objectTypes )
             .add( "mandatory", mandatory )
             .toString();
     }
