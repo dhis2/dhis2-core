@@ -325,6 +325,10 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
+        // TODO: Do not use attributeValueService.
+        // We should have the right version of attribute values present in the
+        // TEI
+        // at any moment
         Map<String, TrackedEntityAttributeValue> attributeValueDBMap = attributeValueService
             .getTrackedEntityAttributeValues( trackedEntityInstance )
             .stream()
