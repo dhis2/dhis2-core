@@ -62,7 +62,8 @@ public class RelationshipDataBuilder
         return setFromEntity( "trackedEntity", trackedEntityId );
     }
 
-    public RelationshipDataBuilder setToEntity ( String entityName, String entityId ) {
+    public RelationshipDataBuilder setToEntity( String entityName, String entityId )
+    {
         this.jsonBuilder.addObject( "to", new JsonObjectBuilder()
             .addProperty( entityName, entityId ) );
 

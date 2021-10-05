@@ -37,7 +37,6 @@ import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
@@ -94,7 +93,8 @@ public class EventExportTests
     @ParameterizedTest
     public void shouldFetchRelationships( String queryParams )
     {
-        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) ).validateStatus( 200 );
+        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) )
+            .validateStatus( 200 );
         String body = "relationships";
 
         if ( response.extractList( "events" ) != null )
@@ -142,7 +142,7 @@ public class EventExportTests
         JsonObject relationships = new RelationshipDataBuilder().setToEntity( "event", eventId )
             .setFromEntity( "event", event2Id )
             .setRelationshipType( relationshipTypeId )
-            .build();
+            .wrapToArray();
 
         return trackerActions.postAndGetJobReport( relationships )
             .validateSuccessfulImport().extractImportedRelationships().get( 0 );
