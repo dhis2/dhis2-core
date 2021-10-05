@@ -41,6 +41,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_U
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
@@ -53,6 +54,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -437,6 +439,7 @@ public class HibernateTrackedEntityInstanceStore
             map.put( ORG_UNIT_NAME, rowSet.getString( ORG_UNIT_NAME ) );
             map.put( TRACKED_ENTITY_ID, rowSet.getString( TRACKED_ENTITY_ID ) );
             map.put( INACTIVE_ID, rowSet.getString( INACTIVE_ID ) );
+            map.put( POTENTIAL_DUPLICATE, rowSet.getString( POTENTIAL_DUPLICATE ) );
 
             if ( params.isIncludeDeleted() )
             {
@@ -629,7 +632,8 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ou AS " + ORG_UNIT_ID + ", " )
             .append( "TEI.ouname AS " + ORG_UNIT_NAME + ", " )
             .append( "TET.uid AS " + TRACKED_ENTITY_ID + ", " )
-            .append( "TEI.inactive AS " + INACTIVE_ID )
+            .append( "TEI.inactive AS " + INACTIVE_ID + ", " )
+            .append( "TEI.potentialduplicate AS " + POTENTIAL_DUPLICATE )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "") )
             .append( (params.hasAttributes() ? ", string_agg(TEA.uid || ':' || TEAV.value, ';') AS tea_values" : "") );
 
@@ -715,6 +719,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.lastupdated, " )
             .append( "TEI.inactive, " )
             .append( "TEI.trackedentitytypeid, " )
+            .append( "TEI.potentialduplicate, " )
             .append( "TEI.deleted, " )
             .append( "OU.uid as ou, " )
             .append( "OU.name as ouname " )
@@ -1375,6 +1380,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ou, " )
             .append( "TEI.ouname, " )
             .append( "TET.uid, " )
+            .append( "TEI.potentialduplicate, " )
             .append( "TEI.inactive " )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted " : "") );
 
@@ -1747,6 +1753,19 @@ public class HibernateTrackedEntityInstanceStore
             .setParameter( "lastSynchronized", lastSynchronized )
             .setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs )
             .executeUpdate();
+    }
+
+    @Override
+    public void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
+    {
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( trackedEntityInstanceUIDs ), 20000 );
+
+        uidsPartitions.stream().filter( teis -> !teis.isEmpty() )
+            .forEach(
+                teis -> getSession().getNamedQuery( "updateTeisLastUpdated" )
+                    .setParameter( "trackedEntityInstances", teis )
+                    .setParameter( "lastUpdated", lastUpdated )
+                    .executeUpdate() );
     }
 
     @Override

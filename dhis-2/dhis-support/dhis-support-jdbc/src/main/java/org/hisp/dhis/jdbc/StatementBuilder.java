@@ -31,7 +31,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 
@@ -272,20 +271,6 @@ public interface StatementBuilder
      * @return true if partial indexes aer supported.
      */
     boolean supportsPartialIndexes();
-
-    /**
-     * Get SQL where-condition for all analyticsPeriodBoundaries in a program
-     * indicator.
-     *
-     * @param programIndicator the program indicator context
-     * @param reportingStartDate the date of the start of the reporting period
-     * @param reportingEndDate the date of the end of the reporting period
-     * @param sqlHelper a SQL helper that makes sure the where/and is correctly
-     *        assigned in the where clause
-     * @return SQL to use in where clause.
-     */
-    String getBoundaryCondition( ProgramIndicator programIndicator, String timeField,
-        Date reportingStartDate, Date reportingEndDate, SqlHelper sqlHelper );
 
     /**
      * Get SQL where-condition for a single analyticsPeriodBoundary in a program

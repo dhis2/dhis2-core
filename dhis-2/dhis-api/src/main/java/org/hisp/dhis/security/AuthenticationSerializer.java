@@ -25,47 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.security;
 
-import org.hisp.dhis.common.Grid;
+import javax.xml.bind.DatatypeConverter;
 
-/**
- * This interface is responsible for retrieving aggregated event data. Data will
- * be returned in a grid object or as a dimensional key-value mapping.
- *
- * @author Markus Bekken
- */
-public interface EnrollmentAnalyticsService
+import org.apache.commons.lang.SerializationUtils;
+import org.springframework.security.core.Authentication;
+
+public class AuthenticationSerializer
 {
-    String ITEM_TEI = "tei";
 
-    String ITEM_PI = "pi";
+    public static String serialize( Authentication authentication )
+    {
+        byte[] bytes = SerializationUtils.serialize( authentication );
+        return DatatypeConverter.printBase64Binary( bytes );
+    }
 
-    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
-
-    String ITEM_INCIDENT_DATE = "incidentdate";
-
-    String ITEM_STORED_BY = "storedby";
-
-    String ITEM_LAST_UPDATED = "lastupdated";
-
-    String ITEM_GEOMETRY = "geometry";
-
-    String ITEM_LONGITUDE = "longitude";
-
-    String ITEM_LATITUDE = "latitude";
-
-    String ITEM_ORG_UNIT_NAME = "ouname";
-
-    String ITEM_ORG_UNIT_CODE = "oucode";
-
-    String ITEM_ORG_UNIT_ID = "ou";
-
-    /**
-     * Returns a list of enrollments matching the given query.
-     *
-     * @param params the envent query parameters.
-     * @return enrollments with event data as a Grid object.
-     */
-    Grid getEnrollments( EventQueryParams params );
+    public static Authentication deserialize( String authentication )
+    {
+        byte[] decoded = DatatypeConverter.parseBase64Binary( authentication );
+        Authentication auth = (Authentication) SerializationUtils.deserialize( decoded );
+        return auth;
+    }
 }
