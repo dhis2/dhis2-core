@@ -31,12 +31,10 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.List;
 
@@ -86,18 +84,23 @@ public class JdbcEnrollmentAnalyticsManager
     extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager
 {
+
+    private final EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer;
+
     private static final String ANALYTICS_EVENT = "analytics_event_";
 
     private static final String ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 = "order by executiondate desc limit 1";
 
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
-        "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
+        "storedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
-        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+        ProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder,
+        EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer )
     {
         super( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
+        this.timeFieldSqlRenderer = timeFieldSqlRenderer;
     }
 
     @Override
@@ -205,27 +208,7 @@ public class JdbcEnrollmentAnalyticsManager
         // Periods
         // ---------------------------------------------------------------------
 
-        if ( params.hasNonDefaultBoundaries() )
-        {
-            sql += statementBuilder.getBoundaryCondition( params.getProgramIndicator(), params.getTimeFieldAsField(),
-                params.getEarliestStartDate(),
-                params.getLatestEndDate(), hlp );
-        }
-        else
-        {
-            if ( params.hasStartEndDate() )
-            {
-                sql += hlp.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
-                sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
-            }
-            else // Periods
-            {
-                sql += hlp.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() )
-                    + " in ("
-                    + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) )
-                    + ") ";
-            }
-        }
+        sql += hlp.whereAnd() + " " + timeFieldSqlRenderer.renderTimeFieldSql( params );
 
         // ---------------------------------------------------------------------
         // Organisation units

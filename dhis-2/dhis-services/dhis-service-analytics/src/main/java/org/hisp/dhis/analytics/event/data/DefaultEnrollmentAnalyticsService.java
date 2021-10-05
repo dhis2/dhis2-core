@@ -64,6 +64,10 @@ public class DefaultEnrollmentAnalyticsService
 
     private static final String NAME_INCIDENT_DATE = "Incident date";
 
+    private static final String NAME_STORED_BY = "Stored by";
+
+    private static final String NAME_LAST_UPDATED = "Last Updated";
+
     private static final String NAME_LONGITUDE = "Longitude";
 
     private static final String NAME_LATITUDE = "Latitude";
@@ -110,6 +114,10 @@ public class DefaultEnrollmentAnalyticsService
                 ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, DATE, false, true ) )
             .addHeader( new GridHeader(
                 ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, DATE, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) )
             .addHeader( new GridHeader(
                 ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true ) )
             .addHeader( new GridHeader(
