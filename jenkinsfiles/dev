@@ -64,7 +64,7 @@ pipeline {
 
         aborted {
             script {
-                slack.sendInactivityMessage()
+                slack.sendInactivityMessage(20)
             }
         }
     }
