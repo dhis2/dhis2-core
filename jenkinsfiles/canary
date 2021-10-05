@@ -43,21 +43,13 @@ pipeline {
     post {
         failure {
             script {
-                slackSend(
-                    color: '#ff0000',
-                    message: "${JOB_NAME} failed. Go to ${BUILD_URL} for more information.",
-                    channel: 'jenkins'
-                )
+                slack.sendFailureMessage()
             }
         }
 
         aborted {
             script {
-                slackSend(
-                    color: '#ff0000',
-                    message: "${JOB_NAME} was aborted due to inactivity timeout (20 minutes). Go to ${BUILD_URL} for more information.",
-                    channel: 'jenkins'
-                )
+                slack.sendInactivityMessage()
             }
         }
     }
