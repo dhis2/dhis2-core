@@ -392,11 +392,16 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
                 trackedEntityInstance, auditType );
 
-            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
-            {
-                reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(),
-                    attributeValue.getValue() );
-            }
+            handleReservedValue( attributeValue );
+        }
+    }
+
+    private void handleReservedValue( TrackedEntityAttributeValue attributeValue )
+    {
+        if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+        {
+            reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(),
+                attributeValue.getValue() );
         }
     }
 
