@@ -212,6 +212,56 @@ public class FieldFilterParserTest
         assertEquals( "rename", fieldPathTransformer.getName() );
     }
 
+    @Test
+    public void testParseWithExclusions1()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "id,!code,name" ) );
+
+        assertFieldPathContains( fieldPaths, "id" );
+        assertFieldPathContains( fieldPaths, "!code" );
+        assertFieldPathContains( fieldPaths, "name" );
+    }
+
+    @Test
+    public void testParseWithExclusions2()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "id,!code,name,group[id,!name]" ) );
+
+        assertFieldPathContains( fieldPaths, "id" );
+        assertFieldPathContains( fieldPaths, "!code" );
+        assertFieldPathContains( fieldPaths, "name" );
+        assertFieldPathContains( fieldPaths, "group.id" );
+        assertFieldPathContains( fieldPaths, "group.!name" );
+    }
+
+    @Test
+    public void testParseWithPreset1()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "id,name,!code,:owner" ) );
+
+        assertFieldPathContains( fieldPaths, "id" );
+        assertFieldPathContains( fieldPaths, "name" );
+        assertFieldPathContains( fieldPaths, "!code" );
+        assertFieldPathContains( fieldPaths, ":owner" );
+    }
+
+    @Test
+    public void testParseWithPreset2()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "id,name,!code,:owner,group[:owner,:all]" ) );
+
+        assertFieldPathContains( fieldPaths, "id" );
+        assertFieldPathContains( fieldPaths, "name" );
+        assertFieldPathContains( fieldPaths, "!code" );
+        assertFieldPathContains( fieldPaths, ":owner" );
+        assertFieldPathContains( fieldPaths, "group.:owner" );
+        assertFieldPathContains( fieldPaths, "group.:all" );
+    }
+
     private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected, boolean hasTransformer )
     {
         boolean condition = false;
