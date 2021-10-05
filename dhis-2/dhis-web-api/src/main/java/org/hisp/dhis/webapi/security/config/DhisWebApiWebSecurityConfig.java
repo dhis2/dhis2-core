@@ -402,10 +402,21 @@ public class DhisWebApiWebSecurityConfig
 
         public WebExpressionVoter apiWebExpressionVoter()
         {
-            DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-            handler.setDefaultRolePrefix( "" );
             WebExpressionVoter voter = new WebExpressionVoter();
+
+            DefaultWebSecurityExpressionHandler handler;
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            {
+                handler = new OAuth2WebSecurityExpressionHandler();
+            }
+            else
+            {
+                handler = new DefaultWebSecurityExpressionHandler();
+            }
+            handler.setDefaultRolePrefix( "" );
+
             voter.setExpressionHandler( handler );
+
             return voter;
         }
 
