@@ -179,8 +179,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
             .trackedEntityType( TEI_TYPE_ID )
             .build();
 
-        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( null );
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
 
         reporter = new ValidationErrorReporter( ctx, trackedEntity );
@@ -330,9 +329,8 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
             .program( PROGRAM_ID )
             .build();
 
-        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
-        when( ctx.getTrackedEntityInstance( enrollment.getEnrollment() ) ).thenReturn( null );
 
         reporter = new ValidationErrorReporter( ctx, enrollment );
 
