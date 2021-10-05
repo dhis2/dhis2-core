@@ -528,12 +528,11 @@ public class DefaultDataApprovalService
 
         DataApprovalStatus status;
 
-        List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflow,
-            periodService.reloadPeriod( period ), Lists.newArrayList( organisationUnit ),
-            organisationUnit.getHierarchyLevel(), null,
+        List<DataApprovalStatus> statuses = dataApprovalStore.getDataApprovalStatuses( workflow, period,
+            Lists.newArrayList( organisationUnit ), organisationUnit.getHierarchyLevel(), null,
             attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ),
-            dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(),
-                workflow ),
+            dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel(
+                currentUserService.getCurrentUser(), workflow ),
             dataApprovalLevelService.getDataApprovalLevelMap() );
 
         if ( statuses == null || statuses.isEmpty() )
