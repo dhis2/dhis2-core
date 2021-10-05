@@ -38,6 +38,8 @@ import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
+import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -130,16 +132,17 @@ public class EventExportTests
     private String createEvent()
     {
         return trackerActions
-            .postAndGetJobReport( trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, eventProgramStageID ) )
+            .postAndGetJobReport( new EventDataBuilder().build( Constants.ORG_UNIT_IDS[0], eventProgramId, eventProgramStageID ) )
             .validateSuccessfulImport()
             .extractImportedEvents().get( 0 );
     }
 
     private String createRelationship( String eventId, String event2Id, String relationshipTypeId )
     {
-        JsonObject relationships = new JsonObjectBuilder( trackerActions
-            .buildRelationship( "event", eventId, "event", event2Id, relationshipTypeId ) )
-            .wrapIntoArray( "relationships" );
+        JsonObject relationships = new RelationshipDataBuilder().setToEntity( "event", eventId )
+            .setFromEntity( "event", event2Id )
+            .setRelationshipType( relationshipTypeId )
+            .build();
 
         return trackerActions.postAndGetJobReport( relationships )
             .validateSuccessfulImport().extractImportedRelationships().get( 0 );
