@@ -54,7 +54,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalPermissions;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalStateResponse;
-import org.hisp.dhis.dataapproval.DataApprovalStateResponses;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
@@ -312,7 +311,7 @@ public class DataApprovalController
             organisationUnits.addAll( organisationUnitService.getOrganisationUnitsByUid( ou ) );
         }
 
-        DataApprovalStateResponses dataApprovalStateResponses = new DataApprovalStateResponses();
+        List<DataApprovalStateResponse> responses = new ArrayList<>();
 
         for ( DataSet dataSet : dataSets )
         {
@@ -320,8 +319,7 @@ public class DataApprovalController
             {
                 for ( Period period : periods )
                 {
-                    dataApprovalStateResponses.add(
-                        getDataApprovalStateResponse( dataSet, organisationUnit, period ) );
+                    responses.add( getDataApprovalStateResponse( dataSet, organisationUnit, period ) );
                 }
             }
         }
@@ -331,7 +329,7 @@ public class DataApprovalController
         RootNode rootNode = NodeUtils.createMetadata();
 
         rootNode.addChild( fieldFilterService.toCollectionNode( DataApprovalStateResponse.class,
-            new FieldFilterParams( dataApprovalStateResponses.getDataApprovalStateResponses(), fields ) ) );
+            new FieldFilterParams( responses, fields ) ) );
 
         return rootNode;
     }
@@ -344,13 +342,15 @@ public class DataApprovalController
         DataApprovalStatus status = dataApprovalService.getDataApprovalStatus( dataSet.getWorkflow(), period,
             organisationUnit, optionCombo );
 
-        Date createdDate = status.getCreated();
-        String createdByUsername = status.getCreator() == null ? null : status.getCreator().getUsername();
-
-        String state = status.getState().toString();
-
-        return new DataApprovalStateResponse( dataSet, period, organisationUnit, state,
-            createdDate, createdByUsername, status.getPermissions() );
+        return DataApprovalStateResponse.builder()
+            .dataSet( dataSet )
+            .period( period )
+            .organisationUnit( organisationUnit )
+            .state( status.getState().toString() )
+            .createdDate( status.getCreated() )
+            .createdByUsername( status.getCreator() == null ? null : status.getCreator().getUsername() )
+            .permissions( status.getPermissions() )
+            .build();
     }
 
     @GetMapping( value = APPROVALS_PATH
