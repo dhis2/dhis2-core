@@ -25,33 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.security;
 
-import lombok.Builder;
-import lombok.Data;
+import javax.xml.bind.DatatypeConverter;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.webapi.service.ContextService;
+import org.apache.commons.lang.SerializationUtils;
 import org.springframework.security.core.Authentication;
 
-@Data
-@Builder
-public class TrackerImportReportRequest
+public class AuthenticationSerializer
 {
-    Authentication authentication;
 
-    String uid;
+    public static String serialize( Authentication authentication )
+    {
+        byte[] bytes = SerializationUtils.serialize( authentication );
+        return DatatypeConverter.printBase64Binary( bytes );
+    }
 
-    String userUid;
-
-    ContextService contextService;
-
-    TrackerBundleParams trackerBundleParams;
-
-    TrackerImportParams trackerImportParams;
-
-    boolean isAsync;
-
-    TrackerBundleReportMode trackerBundleReportMode;
+    public static Authentication deserialize( String authentication )
+    {
+        byte[] decoded = DatatypeConverter.parseBase64Binary( authentication );
+        Authentication auth = (Authentication) SerializationUtils.deserialize( decoded );
+        return auth;
+    }
 }

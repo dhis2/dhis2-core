@@ -122,7 +122,7 @@ public class AuthenticationLoggerListener
 
         String userNamePrefix = Strings.isNullOrEmpty( authName ) ? "" : String.format( "username: %s; ", authName );
 
-        log.warn( eventClassName + userNamePrefix + ipAddress + sessionId + exceptionMessage );
+        log.info( eventClassName + userNamePrefix + ipAddress + sessionId + exceptionMessage );
     }
 
     private String hashSessionId( String sessionId )
