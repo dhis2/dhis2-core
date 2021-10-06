@@ -114,14 +114,14 @@ public class SchemaIdResponseMapper
             {
                 applyDataElementOperandsIdSchemaMapping( params, responseMap );
             }
+        }
 
-            // If "outputOrgUnitIdScheme" is set, we replace all org units
-            // values respecting
-            // it's definition.
-            if ( params.isOutputOrgUnitIdSchemeSet() )
-            {
-                applyOrgUnitIdSchemaMapping( params, responseMap );
-            }
+        // If "outputOrgUnitIdScheme" is set, we replace all org units
+        // values respecting
+        // it's definition.
+        if ( params.isOutputOrgUnitIdSchemeSet() )
+        {
+            applyOrgUnitIdSchemaMapping( params, responseMap );
         }
 
         return responseMap;
