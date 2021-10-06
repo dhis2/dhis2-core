@@ -29,7 +29,13 @@ package org.hisp.dhis.dataapproval;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,6 +49,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Service;
@@ -57,7 +64,7 @@ import com.google.common.collect.Maps;
 @Slf4j
 @Service( "org.hisp.dhis.dataapproval.DataApprovalLevelService" )
 public class DefaultDataApprovalLevelService
-    implements DataApprovalLevelService
+    implements DataApprovalLevelService, CurrentUserServiceTarget
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -90,7 +97,7 @@ public class DefaultDataApprovalLevelService
         this.aclService = aclService;
     }
 
-    @Deprecated
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
