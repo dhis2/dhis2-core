@@ -49,9 +49,15 @@ import org.hisp.dhis.user.User;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class DataApprovalStatus
 {
+
+    public static final DataApprovalStatus UNAPPROVABLE = DataApprovalStatus.builder()
+        .state( DataApprovalState.UNAPPROVABLE )
+        .build();
+
     /**
      * State of data approval for a given selection of data from a data set.
      */
+    @Setter
     private DataApprovalState state;
 
     /**
@@ -59,45 +65,46 @@ public class DataApprovalStatus
      * which it is approved. If the selection is approved at more than one
      * level, this is for the highest level of approval.
      */
-    private DataApprovalLevel approvedLevel;
+    private final DataApprovalLevel approvedLevel;
 
     /**
      * If the selection of data is approved, the ID of the highest organisation
      * unit at which there is approval.
      */
-    private int approvedOrgUnitId;
+    private final int approvedOrgUnitId;
 
     /**
      * If the selection of data is approved, the approval level (same as above)
      * but if the selection is not approved, the level for this orgUnit at which
      * it could be approved (if any).
      */
-    private DataApprovalLevel actionLevel;
+    private final DataApprovalLevel actionLevel;
 
     /**
      * If the selection is approved, the OrganisationUnit UID.
      */
-    private String organisationUnitUid;
+    private final String organisationUnitUid;
 
     /**
      * If the selection is approved, the OrganisationUnit name.
      */
-    private String organisationUnitName;
+    private final String organisationUnitName;
 
     /**
      * If the selection is approved, the attribute category option combo UID.
      */
-    private String attributeOptionComboUid;
+    private final String attributeOptionComboUid;
 
     /**
      * If the selection is approved, whether or not it is accepted at the
      * highest level approved.
      */
-    private boolean accepted;
+    private final boolean accepted;
 
     /**
      * Permissions granted for current user for the this approval state.
      */
+    @Setter
     private DataApprovalPermissions permissions;
 
     /**
@@ -114,8 +121,4 @@ public class DataApprovalStatus
     @Setter
     private User creator;
 
-    public DataApprovalStatus( DataApprovalState state )
-    {
-        this.state = state;
-    }
 }

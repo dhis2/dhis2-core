@@ -540,7 +540,7 @@ public class DefaultDataApprovalService
 
         if ( statuses == null || statuses.isEmpty() )
         {
-            status = new DataApprovalStatus( DataApprovalState.UNAPPROVABLE );
+            status = DataApprovalStatus.UNAPPROVABLE;
         }
         else
         {
