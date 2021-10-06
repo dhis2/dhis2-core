@@ -29,6 +29,7 @@ package org.hisp.dhis.actions.tracker.importer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -182,7 +183,6 @@ public class TrackerActions
         this.waitUntilJobIsCompleted( jobId );
 
         return this.getJobReport( jobId, "FULL" );
-
     }
 
     public JsonObject buildEvent( String ouId, String programId, String programStageId )
@@ -328,5 +328,4 @@ public class TrackerActions
             .addProperty( "orgUnit", ou )
             .wrapIntoArray( "trackedEntities" );
     }
-
 }

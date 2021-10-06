@@ -110,7 +110,7 @@ public class DefaultDeletionManager
         Queue<Consumer<T>> deletionHandlers = (Queue) deletionHandlersByType.getOrDefault( clazz, EMPTY );
         if ( vetoHandlers.isEmpty() && deletionHandlers.isEmpty() )
         {
-            log.info( "No deletion handlers registered, aborting deletion handling" );
+            log.debug( "No deletion handlers registered, aborting deletion handling" );
             return;
         }
 
@@ -137,7 +137,7 @@ public class DefaultDeletionManager
                 {
                     ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, veto.getMessage() );
 
-                    log.info( "Delete was not allowed by " + handlerName + ": " + errorMessage.toString() );
+                    log.debug( "Delete was not allowed by " + handlerName + ": " + errorMessage.toString() );
 
                     throw new DeleteNotAllowedException( errorMessage );
                 }
@@ -175,7 +175,7 @@ public class DefaultDeletionManager
             return;
         }
 
-        log.info( "Deleted objects associated with object of type " + className );
+        log.debug( "Deleted objects associated with object of type " + className );
     }
 
     @SuppressWarnings( "unchecked" )

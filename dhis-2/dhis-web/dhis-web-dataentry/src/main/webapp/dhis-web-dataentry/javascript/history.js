@@ -180,7 +180,7 @@ function refreshChart()
 {	
     var periodId = $( '#selectedPeriodId' ).val();
 
-    var source = '../api/charts/history/data.png?de=' + currentDataElementId + '&co='
+    var source = '../api/visualizations/history/data.png?de=' + currentDataElementId + '&co='
     	+ currentOptionComboId + '&cp=' + currentAttributeOptionComboId + '&pe=' + periodId + 
     	'&ou=' + dhis2.de.currentOrganisationUnitId + '&r=' + Math.random();
 

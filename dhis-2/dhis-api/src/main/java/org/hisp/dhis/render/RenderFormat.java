@@ -33,5 +33,11 @@ package org.hisp.dhis.render;
 public enum RenderFormat
 {
     JSON,
-    XML
+    XML,
+    CSV;
+
+    public boolean isEqual( String format )
+    {
+        return name().equalsIgnoreCase( format );
+    }
 }
