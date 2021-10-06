@@ -42,6 +42,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.user.User;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -151,7 +152,7 @@ public interface EventService
 
     ImportSummaries deleteEvents( List<String> uids, boolean clearSession );
 
-    void validate( EventSearchParams params );
+    void validate( EventSearchParams params, User user );
 
     ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
 }
