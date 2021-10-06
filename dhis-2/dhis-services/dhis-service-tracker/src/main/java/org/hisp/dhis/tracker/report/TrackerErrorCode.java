@@ -47,7 +47,7 @@ public enum TrackerErrorCode
     E1014( "Provided Program: `{0}`, is a Program without registration. " +
         "An Enrollment cannot be created into Program without registration." ),
     E1015( "TrackedEntityInstance: `{0}`, already has an active Enrollment in Program `{1}`." ),
-    E1016( "TrackedEntityInstance: `{0}`, already has an active enrollment in Program: `{1}`, and this " +
+    E1016( "TrackedEntityInstance: `{0}`, already has an enrollment in Program: `{1}`, and this " +
         "program only allows enrolling one time." ),
     E1018( "Attribute: `{0}`, is mandatory in program `{1}` but not declared in enrollment `{2}`." ),
     E1019( "Only Program attributes is allowed for enrollment; Non valid attribute: `{0}`." ),
