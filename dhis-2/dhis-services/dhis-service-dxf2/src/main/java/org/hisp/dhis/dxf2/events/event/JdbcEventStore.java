@@ -497,7 +497,6 @@ public class JdbcEventStore implements EventStore
                         relationshipIds.addAll( Lists.newArrayList( gson.fromJson( value, Long[].class ) ) );
                     }
                 }
-
             }
         }
 
