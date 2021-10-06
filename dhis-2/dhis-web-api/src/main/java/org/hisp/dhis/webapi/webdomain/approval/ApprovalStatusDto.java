@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.webdomain.approval;
 
-import java.util.Date;
 import java.util.Map;
 
 import lombok.AccessLevel;
@@ -84,14 +83,6 @@ public class ApprovalStatusDto
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final DataApprovalPermissions permissions;
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final Date lastUpdated;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String lastUpdatedBy;
-
     public static ApprovalStatusDto from( Map.Entry<DataApproval, DataApprovalStatus> entry )
     {
         return from( entry.getKey(), entry.getValue() );
@@ -107,8 +98,6 @@ public class ApprovalStatusDto
             .pe( approval.getPeriod().getIsoDate() )
             .ou( uid( approval.getOrganisationUnit() ) )
             .aoc( uid( approval.getAttributeOptionCombo() ) )
-            .lastUpdated( approval.getLastUpdated() )
-            .lastUpdatedBy( uid( approval.getLastUpdatedBy() ) )
             .state( status != null ? status.getState() : null )
             .level( level )
             .permissions( status != null ? status.getPermissions() : null )

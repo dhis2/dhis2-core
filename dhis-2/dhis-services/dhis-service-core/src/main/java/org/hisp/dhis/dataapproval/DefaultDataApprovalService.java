@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataapproval;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
@@ -42,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryCombo;
@@ -57,7 +57,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -73,13 +72,10 @@ import com.google.common.collect.Sets;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dataapproval.DataApprovalService" )
+@AllArgsConstructor
 public class DefaultDataApprovalService
     implements DataApprovalService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataApprovalStore dataApprovalStore;
 
     private final DataApprovalAuditStore dataApprovalAuditStore;
@@ -88,47 +84,11 @@ public class DefaultDataApprovalService
 
     private final DataApprovalLevelService dataApprovalLevelService;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
 
     private final OrganisationUnitService organisationUnitService;
 
-    private final PeriodService periodService;
-
     private final SystemSettingManager systemSettingManager;
-
-    public DefaultDataApprovalService( DataApprovalStore dataApprovalStore,
-        DataApprovalAuditStore dataApprovalAuditStore, DataApprovalWorkflowStore workflowStore,
-        DataApprovalLevelService dataApprovalLevelService, CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService, PeriodService periodService,
-        SystemSettingManager systemSettingManager )
-    {
-        checkNotNull( dataApprovalStore );
-        checkNotNull( dataApprovalAuditStore );
-        checkNotNull( workflowStore );
-        checkNotNull( dataApprovalLevelService );
-        checkNotNull( currentUserService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( periodService );
-        checkNotNull( systemSettingManager );
-
-        this.dataApprovalStore = dataApprovalStore;
-        this.dataApprovalAuditStore = dataApprovalAuditStore;
-        this.workflowStore = workflowStore;
-        this.dataApprovalLevelService = dataApprovalLevelService;
-        this.currentUserService = currentUserService;
-        this.organisationUnitService = organisationUnitService;
-        this.periodService = periodService;
-        this.systemSettingManager = systemSettingManager;
-    }
-
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
 
     // -------------------------------------------------------------------------
     // Data approval workflow
