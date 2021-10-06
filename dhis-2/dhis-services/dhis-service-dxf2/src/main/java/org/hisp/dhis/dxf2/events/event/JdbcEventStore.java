@@ -68,7 +68,6 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -77,6 +76,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -129,7 +129,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
@@ -251,8 +250,11 @@ public class JdbcEventStore implements EventStore
      * actual UPDATE statement. This prevents deadlocks when Postgres tries to
      * update the same TEI.
      */
-    private final static String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (?) FOR UPDATE %s;" +
-        "update trackedentityinstance set lastupdated = ?, lastupdatedby = ? where uid in (?)";
+    private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (%s) FOR UPDATE %s;"
+        +
+        "update trackedentityinstance set lastupdated = %s, lastupdatedby = %s where uid in (%s)";
+
+    private static final String NULL = "null";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -1655,32 +1657,24 @@ public class JdbcEventStore implements EventStore
     @Override
     public void updateTrackedEntityInstances( List<String> teiUids, User user )
     {
-        if ( teiUids.isEmpty() )
-        {
-            return;
-        }
+        Optional.ofNullable( teiUids ).filter( s -> !s.isEmpty() )
+            .ifPresent( teis -> updateTrackedEntityInstances( teis.stream()
+                .sorted() // make sure the list is sorted, to prevent
+                          // deadlocks
+                .map( s -> "'" + s + "'" )
+                .collect( Collectors.joining( ", " ) ), user ) );
+    }
+
+    private void updateTrackedEntityInstances( String teisInCondition, User user )
+    {
         try
         {
-            final String result = teiUids.stream()
-                .sorted() // make sure the list is sorted, to prevent deadlocks
-                .map( s -> "'" + s + "'" )
-                .collect( Collectors.joining( ", " ) );
+            Timestamp timestamp = new Timestamp( System.currentTimeMillis() );
 
-            jdbcTemplate.execute( getUpdateTeiSql(), (PreparedStatementCallback<Boolean>) psc -> {
-                psc.setString( 1, result );
-                psc.setTimestamp( 2, JdbcEventSupport.toTimestamp( new Date() ) );
-                if ( user != null )
-                {
-                    psc.setLong( 3, user.getId() );
-                }
-                else
-                {
-                    psc.setNull( 3, Types.INTEGER );
-                }
-                psc.setString( 4, result );
-                return psc.execute();
-            } );
+            String sql = String.format( UPDATE_TEI_SQL, teisInCondition, getSkipLocked(), "'" + timestamp + "'",
+                user != null ? user.getId() : NULL, teisInCondition );
 
+            jdbcTemplate.execute( sql );
         }
         catch ( DataAccessException e )
         {
@@ -1694,11 +1688,11 @@ public class JdbcEventStore implements EventStore
      * the "SKIP LOCKED" clause, therefore we need to remove it from the SQL
      * statement when executing the H2 tests.
      *
-     * @return a SQL String
+     * @return a SQL String containing Skip Locked statement
      */
-    private String getUpdateTeiSql()
+    private String getSkipLocked()
     {
-        return String.format( UPDATE_TEI_SQL, SystemUtils.isTestRun( env.getActiveProfiles() ) ? "" : "SKIP LOCKED" );
+        return SystemUtils.isTestRun( env.getActiveProfiles() ) ? "" : "SKIP LOCKED";
     }
 
     private void bindEventParamsForInsert( PreparedStatement ps, ProgramStageInstance event )
