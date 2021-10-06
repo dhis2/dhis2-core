@@ -498,14 +498,15 @@ public class JdbcEventStore implements EventStore
                     }
                 }
 
-                final Multimap<String, Relationship> map = eventStore
-                    .getRelationshipsByIds( relationshipIds );
-
-                if ( !map.isEmpty() )
-                {
-                    events.forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
-                }
             }
+        }
+
+        final Multimap<String, Relationship> map = eventStore
+                .getRelationshipsByIds( relationshipIds );
+
+        if ( !map.isEmpty() )
+        {
+            events.forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
         }
 
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
