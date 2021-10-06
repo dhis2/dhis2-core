@@ -29,15 +29,20 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import java.util.Optional;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 
 /**
  * @author Enrico Colasante
  */
-public class RelationshipValidationUtils
+public class RelationshipUtils
 {
+    /*
+     * Validation
+     */
     public static TrackerType relationshipItemValueType( RelationshipItem item )
     {
         if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
@@ -71,4 +76,28 @@ public class RelationshipValidationUtils
         }
         return Optional.empty();
     }
+
+    /*
+     * Persisting
+     */
+    public static String generateRelationshipKey( Relationship relationship )
+    {
+        return relationship.getRelationshipType() + "_" +
+            extractRelationshipItemUid( relationship.getFrom() ) + "_" +
+            extractRelationshipItemUid( relationship.getTo() );
+    }
+
+    public static String generateRelationshipInvertedKey( Relationship relationship )
+    {
+        return relationship.getRelationshipType() + "_" +
+            extractRelationshipItemUid( relationship.getTo() ) + "_" +
+            extractRelationshipItemUid( relationship.getFrom() );
+    }
+
+    public static String extractRelationshipItemUid( RelationshipItem relationshipItem )
+    {
+        return ObjectUtils.firstNonNull( relationshipItem.getTrackedEntity(), relationshipItem.getEnrollment(),
+            relationshipItem.getEvent() );
+    }
+
 }

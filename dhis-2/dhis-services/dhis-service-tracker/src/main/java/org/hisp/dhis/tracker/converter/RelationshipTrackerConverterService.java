@@ -41,6 +41,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.validation.hooks.RelationshipUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -177,6 +178,8 @@ public class RelationshipTrackerConverterService
 
         toRelationship.setFrom( fromItem );
         toRelationship.setTo( toItem );
+        toRelationship.setKey( RelationshipUtils.generateRelationshipKey( fromRelationship ) );
+        toRelationship.setInvertedKey( RelationshipUtils.generateRelationshipKey( fromRelationship ) );
 
         return toRelationship;
     }
