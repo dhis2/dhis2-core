@@ -27,7 +27,7 @@ pipeline {
             steps {
                 echo 'Building DHIS2 ...'
                 script {
-                    withMaven {
+                    withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh 'mvn -X -T 4 clean install -f dhis-2/pom-full.xml -Pjdk8 --update-snapshots'
                     }
                 }
@@ -37,9 +37,9 @@ pipeline {
         stage ('Sync WAR') {
             steps {
                 echo 'Syncing WAR ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/sync-war-s3.sh" -O'
-                sh 'chmod +x sync-war-s3.sh'
-                sh './sync-war-s3.sh ${GIT_BRANCH}'
+                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
+                sh 'chmod +x copy-war-s3.sh'
+                sh './copy-war-s3.sh dev ${GIT_BRANCH}'
             }
         }
 
@@ -56,27 +56,15 @@ pipeline {
     }
 
     post {
-        success {
-            archiveArtifacts artifacts: 'dhis-2/dhis-web/dhis-web-portal/target/dhis.war'
-        }
-
         failure {
             script {
-                slackSend(
-                    color: '#ff0000',
-                    message: "${JOB_NAME} failed. Go to ${BUILD_URL} for more information.",
-                    channel: 'jenkins'
-                )
+                slack.sendFailureMessage()
             }
         }
 
         aborted {
             script {
-                slackSend(
-                    color: '#ff0000',
-                    message: "${JOB_NAME} was aborted due to inactivity timeout (20 minutes). Go to ${BUILD_URL} for more information.",
-                    channel: 'jenkins'
-                )
+                slack.sendInactivityMessage(20)
             }
         }
     }
