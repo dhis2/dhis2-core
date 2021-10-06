@@ -179,7 +179,7 @@ public class RelationshipTrackerConverterService
         toRelationship.setFrom( fromItem );
         toRelationship.setTo( toItem );
         toRelationship.setKey( RelationshipUtils.generateRelationshipKey( toRelationship ) );
-        toRelationship.setInvertedKey( RelationshipUtils.generateRelationshipKey( toRelationship ) );
+        toRelationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( toRelationship ) );
 
         return toRelationship;
     }
