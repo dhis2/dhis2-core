@@ -375,6 +375,6 @@ public class DataValueSetExportAccessControlTest
         CurrentUserService currentUserService = new MockCurrentUserService( user );
 
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            currentUserService, dataValueSetService, dataValueService, organisationUnitService );
+            currentUserService, dataValueSetService, dataValueSetStore, organisationUnitService );
     }
 }
