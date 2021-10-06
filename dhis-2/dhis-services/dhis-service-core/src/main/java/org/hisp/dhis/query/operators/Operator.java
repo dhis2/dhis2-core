@@ -171,7 +171,7 @@ public abstract class Operator<T extends Comparable<? super T>>
 
     public abstract boolean test( Object value );
 
-    org.hibernate.criterion.MatchMode getMatchMode( org.hisp.dhis.query.operators.MatchMode matchMode )
+    org.hibernate.criterion.MatchMode getMatchMode( MatchMode matchMode )
     {
         switch ( matchMode )
         {
@@ -188,7 +188,7 @@ public abstract class Operator<T extends Comparable<? super T>>
         }
     }
 
-    protected JpaQueryUtils.StringSearchMode getJpaMatchMode( org.hisp.dhis.query.operators.MatchMode matchMode )
+    protected JpaQueryUtils.StringSearchMode getJpaMatchMode( MatchMode matchMode )
     {
         switch ( matchMode )
         {
