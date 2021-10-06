@@ -76,6 +76,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -1766,6 +1767,8 @@ public abstract class DhisConvenienceTest
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( _from );
         relationship.setTo( _to );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
         relationship.setAutoFields();
 
