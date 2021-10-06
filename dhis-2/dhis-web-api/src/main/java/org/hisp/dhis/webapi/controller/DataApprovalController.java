@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -362,8 +361,7 @@ public class DataApprovalController
         @RequestParam( required = false ) Set<String> wf,
         @RequestParam String pe,
         @RequestParam( required = false ) String ou )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
         Period period = getAndValidatePeriod( pe );

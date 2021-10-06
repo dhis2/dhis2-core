@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.webdomain.approval;
 
+import java.util.Date;
 import java.util.Map;
 
 import lombok.AccessLevel;
@@ -35,6 +36,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalPermissions;
 import org.hisp.dhis.dataapproval.DataApprovalState;
@@ -82,6 +84,14 @@ public class ApprovalStatusDto
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final DataApprovalPermissions permissions;
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private final Date lastUpdated;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private final String lastUpdatedBy;
+
     public static ApprovalStatusDto from( Map.Entry<DataApproval, DataApprovalStatus> entry )
     {
         return from( entry.getKey(), entry.getValue() );
@@ -93,13 +103,20 @@ public class ApprovalStatusDto
             ? status.getApprovedLevel().getUid()
             : null;
         return builder()
-            .wf( approval.getWorkflow().getUid() )
+            .wf( uid( approval.getWorkflow() ) )
             .pe( approval.getPeriod().getIsoDate() )
-            .ou( approval.getOrganisationUnit().getUid() )
-            .aoc( approval.getAttributeOptionCombo().getUid() )
+            .ou( uid( approval.getOrganisationUnit() ) )
+            .aoc( uid( approval.getAttributeOptionCombo() ) )
+            .lastUpdated( approval.getLastUpdated() )
+            .lastUpdatedBy( uid( approval.getLastUpdatedBy() ) )
             .state( status != null ? status.getState() : null )
             .level( level )
             .permissions( status != null ? status.getPermissions() : null )
             .build();
+    }
+
+    private static String uid( IdentifiableObject object )
+    {
+        return object == null ? null : object.getUid();
     }
 }

@@ -33,7 +33,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hisp.dhis.user.User;
@@ -46,9 +45,7 @@ import org.hisp.dhis.user.User;
  * @author Jim Grace
  */
 @Getter
-@Setter
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class DataApprovalStatus
 {
@@ -107,12 +104,14 @@ public class DataApprovalStatus
      * If the selection is approved, and if present (not always needed), the
      * date at which the highest level of approval was created.
      */
+    @Setter
     private Date created;
 
     /**
      * If the selection is approved, and if present (not always needed), The
      * user who made this approval.
      */
+    @Setter
     private User creator;
 
     public DataApprovalStatus( DataApprovalState state )
