@@ -36,12 +36,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.validation.hooks.RelationshipUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -178,8 +178,8 @@ public class RelationshipTrackerConverterService
 
         toRelationship.setFrom( fromItem );
         toRelationship.setTo( toItem );
-        toRelationship.setKey( RelationshipUtils.generateRelationshipKey( fromRelationship ) );
-        toRelationship.setInvertedKey( RelationshipUtils.generateRelationshipKey( fromRelationship ) );
+        toRelationship.setKey( RelationshipUtils.generateRelationshipKey( toRelationship ) );
+        toRelationship.setInvertedKey( RelationshipUtils.generateRelationshipKey( toRelationship ) );
 
         return toRelationship;
     }

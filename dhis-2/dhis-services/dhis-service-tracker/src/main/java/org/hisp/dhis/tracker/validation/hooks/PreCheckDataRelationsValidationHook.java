@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hisp.dhis.tracker.TrackerType.*;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.RelationshipUtils.getUidFromRelationshipItem;
-import static org.hisp.dhis.tracker.validation.hooks.RelationshipUtils.relationshipItemValueType;
+import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
+import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
 import java.util.*;
 

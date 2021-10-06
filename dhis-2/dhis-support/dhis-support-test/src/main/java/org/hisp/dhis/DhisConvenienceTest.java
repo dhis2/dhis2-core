@@ -124,6 +124,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -1531,6 +1532,19 @@ public abstract class DhisConvenienceTest
         programInstance.setIncidentDate( new Date() );
 
         return programInstance;
+    }
+
+    public static ProgramStageInstance createProgramStageInstance( ProgramStage programStage,
+        ProgramInstance pi, OrganisationUnit organisationUnit )
+    {
+        ProgramStageInstance psi = new ProgramStageInstance();
+        psi.setAutoFields();
+
+        psi.setProgramStage( programStage );
+        psi.setProgramInstance( pi );
+        psi.setOrganisationUnit( organisationUnit );
+
+        return psi;
     }
 
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )
