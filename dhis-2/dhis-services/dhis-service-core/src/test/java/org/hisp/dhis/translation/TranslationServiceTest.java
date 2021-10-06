@@ -41,6 +41,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.expression.Expression;
@@ -170,8 +171,8 @@ public class TranslationServiceTest
         relationship.setFrom( from );
         relationship.setTo( to );
         relationship.setRelationshipType( relationshipType );
-        relationship.setKey( "A_A_A" );
-        relationship.setInvertedKey( "A_A_A" );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
         manager.save( relationship );
 
