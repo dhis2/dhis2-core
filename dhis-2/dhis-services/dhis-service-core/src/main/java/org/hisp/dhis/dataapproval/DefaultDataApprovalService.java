@@ -84,11 +84,20 @@ public class DefaultDataApprovalService
 
     private final DataApprovalLevelService dataApprovalLevelService;
 
-    private final CurrentUserService currentUserService;
+    private CurrentUserService currentUserService;
 
     private final OrganisationUnitService organisationUnitService;
 
     private final SystemSettingManager systemSettingManager;
+
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
 
     // -------------------------------------------------------------------------
     // Data approval workflow
