@@ -36,17 +36,23 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
+import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
@@ -56,8 +62,23 @@ public class EnrollmentsTests
     extends
     TrackerNtiApiTest
 {
+    private String multipleEnrollmentsProgram;
+
     @BeforeAll
     public void beforeAll()
+    {
+        multipleEnrollmentsProgram = programActions.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS )
+            .extractUid();
+
+        JsonObject object = programActions.get( multipleEnrollmentsProgram ).getBodyAsJsonBuilder()
+            .addProperty( "onlyEnrollOnce", "false" )
+            .addProperty( "publicAccess", "rwrw----" ).build();
+
+        programActions.update( multipleEnrollmentsProgram, object ).validateStatus( 200 );
+    }
+
+    @BeforeEach
+    public void beforeEach()
     {
         loginActions.loginAsAdmin();
     }
@@ -95,10 +116,34 @@ public class EnrollmentsTests
     }
 
     @Test
+    public void shouldAddFutureDateEnrollmentIfProgramAllowsIt()
+        throws Exception
+    {
+        // arrange
+        JsonObject object = programActions.get( multipleEnrollmentsProgram ).getBodyAsJsonBuilder()
+            .addProperty( "selectEnrollmentDatesInFuture", "true" )
+            .build();
+
+        programActions.update( multipleEnrollmentsProgram, object ).validateStatus( 200 );
+        String teiId = importTei();
+        // act
+
+        JsonObject enrollment = new EnrollmentDataBuilder()
+            .setTei( teiId )
+            .setEnrollmentDate( Instant.now().plus( 1, ChronoUnit.DAYS ).toString() )
+            .build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[0] );
+
+        // assert
+        trackerActions.postAndGetJobReport( enrollment )
+            .validateSuccessfulImport();
+    }
+
+    @Test
     public void shouldAddNote()
     {
         String enrollmentId = trackerActions
-            .postAndGetJobReport( trackerActions.buildTeiAndEnrollment( Constants.ORG_UNIT_IDS[0], Constants.TRACKER_PROGRAM_ID ) )
+            .postAndGetJobReport(
+                new TeiDataBuilder().buildWithEnrollment( Constants.ORG_UNIT_IDS[0], Constants.TRACKER_PROGRAM_ID ) )
             .extractImportedEnrollments().get( 0 );
 
         JsonObject payload = trackerActions.getEnrollment( enrollmentId ).getBodyAsJsonBuilder()
@@ -119,16 +164,43 @@ public class EnrollmentsTests
             .body( "storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
+    @Disabled( "bug" )
+    @Test
+    public void shouldEnrollMultipleTimesIfProgramAllowsIt()
+        throws Exception
+    {
+        String tei = super.importTei();
+
+        trackerActions.postAndGetJobReport(
+            new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED" ) )
+            .validateSuccessfulImport();
+
+        trackerActions.postAndGetJobReport(
+            new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) )
+            .validateSuccessfulImport();
+
+        // assert
+        trackerActions.getTrackedEntity( tei + "?fields=enrollments" )
+            .validate().body( "enrollments", hasSize( 2 ) );
+    }
+
+    @Test
+    public void shouldNotAllowMultipleActiveEnrollments()
+        throws Exception
+    {
+        String tei = super.importTeiWithEnrollment( multipleEnrollmentsProgram ).extractImportedTeis().get( 0 );
+
+        trackerActions.postAndGetJobReport(
+            new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) )
+            .validateErrorReport()
+            .body( "errorCode", hasItems( "E1016" ) );
+    }
+
     @Test
     public void shouldImportEnrollmentToExistingTei()
         throws Exception
     {
-        JsonObject teiPayload = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/importer/teis/tei.json" ) )
-            .get( JsonObject.class );
-
-        String teiId = trackerActions.postAndGetJobReport( teiPayload ).validateSuccessfulImport().extractImportedTeis()
-            .get( 0 );
+        String teiId = importTei();
 
         JsonObject enrollmentPayload = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/importer/enrollments/enrollment.json" ) )
