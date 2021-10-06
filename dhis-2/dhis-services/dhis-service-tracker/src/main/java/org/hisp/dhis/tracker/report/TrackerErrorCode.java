@@ -37,6 +37,7 @@ public enum TrackerErrorCode
     E1000( "User: `{0}`, has no write access to OrganisationUnit: `{1}`." ),
     E1001( "User: `{0}`, has no data write access to TrackedEntityType: `{1}`." ),
     E1002( "TrackedEntityInstance: `{0}`, already exists." ),
+    E1003( "OrganisationUnit: `{0}` of TrackedEntity is outside search scope of User: `{1}`." ),
     E1005( "Could not find TrackedEntityType: `{0}`." ),
     E1006( "Attribute: `{0}`, does not exist." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
