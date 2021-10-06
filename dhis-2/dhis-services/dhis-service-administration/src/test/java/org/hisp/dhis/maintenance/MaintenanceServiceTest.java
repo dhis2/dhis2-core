@@ -47,6 +47,7 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditService;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -384,6 +385,8 @@ public class MaintenanceServiceTest
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
+        r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
+        r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
 
         relationshipService.addRelationship( r );
 
@@ -429,6 +432,8 @@ public class MaintenanceServiceTest
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
+        r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
+        r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
 
         relationshipService.addRelationship( r );
 
