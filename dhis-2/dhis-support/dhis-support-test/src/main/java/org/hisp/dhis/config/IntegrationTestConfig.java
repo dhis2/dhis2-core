@@ -38,7 +38,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.testcontainers.containers.JdbcDatabaseContainer;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -54,18 +53,35 @@ public class IntegrationTestConfig
 
     public static final String CREATE_UPDATE_DELETE = "CREATE;UPDATE;DELETE";
 
+    private static final DhisPostgreSQLContainer POSTGRES_CONTAINER;
+
+    static
+    {
+        // NOSONAR
+        POSTGRES_CONTAINER = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider()
+            .newInstance()) // NOSONAR
+                .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
+                .withDatabaseName( POSTGRES_DATABASE_NAME )
+                .withUsername( POSTGRES_CREDENTIALS )
+                .withPassword( POSTGRES_CREDENTIALS );
+
+        POSTGRES_CONTAINER.start();
+
+        log.info( String.format( "PostGIS container initialized: %s", POSTGRES_CONTAINER.getJdbcUrl() ) );
+
+    }
+
     @Bean( name = "dhisConfigurationProvider" )
     public DhisConfigurationProvider dhisConfigurationProvider()
     {
         PostgresDhisConfigurationProvider dhisConfigurationProvider = new PostgresDhisConfigurationProvider();
-        JdbcDatabaseContainer<?> postgreSQLContainer = initContainer();
 
-        final String username = postgreSQLContainer.getUsername();
-        final String password = postgreSQLContainer.getPassword();
+        final String username = POSTGRES_CONTAINER.getUsername();
+        final String password = POSTGRES_CONTAINER.getPassword();
 
         Properties properties = new Properties();
 
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl();
+        String jdbcUrl = POSTGRES_CONTAINER.getJdbcUrl();
         properties.setProperty( "connection.url", jdbcUrl );
         properties.setProperty( "connection.dialect", "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect" );
         properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
@@ -84,20 +100,4 @@ public class IntegrationTestConfig
         return dhisConfigurationProvider;
     }
 
-    private JdbcDatabaseContainer<?> initContainer()
-    {
-        // NOSONAR
-        DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider()
-            .newInstance()) // NOSONAR
-                .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
-                .withDatabaseName( POSTGRES_DATABASE_NAME )
-                .withUsername( POSTGRES_CREDENTIALS )
-                .withPassword( POSTGRES_CREDENTIALS );
-
-        postgisContainer.start();
-
-        log.info( String.format( "PostGIS container initialized: %s", postgisContainer.getJdbcUrl() ) );
-
-        return postgisContainer;
-    }
 }
