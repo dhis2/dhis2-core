@@ -99,7 +99,7 @@ public enum ConfigurationKey
     ARTEMIS_EMBEDDED_THREADS( "artemis.embedded.threads", "5" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
-    LOGGING_REQUEST_ID_ENABLED( "logging.request_id.enabled", Constants.OFF, false ),
+    LOGGING_REQUEST_ID_ENABLED( "logging.request_id.enabled", Constants.ON, false ),
     LOGGING_REQUEST_ID_HASH( "logging.request_id.hash", "SHA-256", false ),
     LOGGING_REQUEST_ID_MAXSIZE( "logging.request_id.max_size", "-1", false ),
     SERVER_BASE_URL( "server.base.url", "", false ),
