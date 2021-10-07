@@ -223,7 +223,7 @@ public class EnrollmentsTests
         trackerActions.postAndGetJobReport(
             new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) )
             .validateErrorReport()
-            .body( "errorCode", hasItems( "E1016" ) );
+            .body( "errorCode", hasItems( "E1015" ) );
     }
 
     @Test
