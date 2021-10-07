@@ -34,6 +34,7 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -149,8 +150,9 @@ public class PotentialDuplicatesEnrollmentsTests
         // arrange
         String teiB = createTeiWithoutEnrollment( Constants.ORG_UNIT_IDS[0] );
 
-        TrackerApiResponse imported = trackerActions.postAndGetJobReport( trackerActions
-            .buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], TRACKER_PROGRAM_ID, TRACKER_PROGRAM_STAGE_ID ) )
+        TrackerApiResponse imported = trackerActions.postAndGetJobReport( new TeiDataBuilder()
+            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], TRACKER_PROGRAM_ID,
+                TRACKER_PROGRAM_STAGE_ID ) )
             .validateSuccessfulImport();
 
         String teiA = imported.extractImportedTeis().get( 0 );
@@ -182,7 +184,7 @@ public class PotentialDuplicatesEnrollmentsTests
 
     private String createTeiWithoutEnrollment( String ouId )
     {
-        JsonObject object = trackerActions.buildTei( Constants.TRACKED_ENTITY_TYPE, ouId );
+        JsonObject object = new TeiDataBuilder().build( Constants.TRACKED_ENTITY_TYPE, ouId );
 
         return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
     }
