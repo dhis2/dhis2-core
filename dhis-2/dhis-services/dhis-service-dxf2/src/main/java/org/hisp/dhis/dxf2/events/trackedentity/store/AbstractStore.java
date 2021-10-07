@@ -49,7 +49,7 @@ import com.google.common.collect.Multimap;
  */
 public abstract class AbstractStore
 {
-    protected final int PARITITION_SIZE = 10;
+    protected final int PARITITION_SIZE = 20000;
 
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
