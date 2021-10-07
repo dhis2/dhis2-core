@@ -64,6 +64,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
@@ -629,12 +630,9 @@ public class DataApprovalServiceCategoryOptionGroupTest
     @Override
     public void tearDownTest()
     {
-        setDependency( dataApprovalService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( dataApprovalStore, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( organisationUnitService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( hibernateCategoryOptionGroupStore, "currentUserService", currentUserService,
-            CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalService, dataApprovalStore, dataApprovalLevelService,
+            organisationUnitService, hibernateCategoryOptionGroupStore );
 
         systemSettingManager.saveSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, -1 );
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, false );
@@ -650,13 +648,9 @@ public class DataApprovalServiceCategoryOptionGroupTest
     {
         if ( mockUserService != currentMockUserService )
         {
-            setDependency( dataApprovalService, "currentUserService", mockUserService, CurrentUserService.class );
-            setDependency( dataApprovalStore, "currentUserService", mockUserService, CurrentUserService.class );
-            setDependency( dataApprovalLevelService, "currentUserService", mockUserService, CurrentUserService.class );
-            setDependency( organisationUnitService, "currentUserService", mockUserService, CurrentUserService.class );
-            setDependency( hibernateCategoryOptionGroupStore, "currentUserService", mockUserService,
-                CurrentUserService.class );
-
+            setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+                mockUserService, dataApprovalService, dataApprovalStore, dataApprovalLevelService,
+                organisationUnitService, hibernateCategoryOptionGroupStore );
             currentMockUserService = mockUserService;
         }
     }

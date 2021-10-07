@@ -46,6 +46,7 @@ import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -432,7 +433,8 @@ public class DataApprovalLevelServiceTest
         dataViewOrgUnits.add( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( assignedOrgUnits, dataViewOrgUnits );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService );
 
         Map<OrganisationUnit, Integer> readApprovalLevels = dataApprovalLevelService.getUserReadApprovalLevels();
         assertEquals( 2, readApprovalLevels.size() );
@@ -469,7 +471,9 @@ public class DataApprovalLevelServiceTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService );
 
         Map<OrganisationUnit, Integer> readApprovalLevels = dataApprovalLevelService.getUserReadApprovalLevels();
         assertEquals( 2, readApprovalLevels.size() );
@@ -512,7 +516,8 @@ public class DataApprovalLevelServiceTest
         dataViewOrgUnits.add( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( assignedOrgUnits, dataViewOrgUnits );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService );
 
         Map<OrganisationUnit, Integer> readApprovalLevels = dataApprovalLevelService.getUserReadApprovalLevels();
         assertEquals( 2, readApprovalLevels.size() );
@@ -552,7 +557,8 @@ public class DataApprovalLevelServiceTest
         dataViewOrgUnits.add( organisationUnitB );
 
         CurrentUserService currentUserService = new MockCurrentUserService( assignedOrgUnits, dataViewOrgUnits );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService );
 
         Map<OrganisationUnit, Integer> readApprovalLevels = dataApprovalLevelService.getUserReadApprovalLevels();
         assertEquals( 3, readApprovalLevels.size() );
@@ -589,7 +595,8 @@ public class DataApprovalLevelServiceTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_APPROVE );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService );
 
         List<DataApprovalLevel> levels = dataApprovalLevelService
             .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
@@ -621,7 +628,8 @@ public class DataApprovalLevelServiceTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService );
 
         List<DataApprovalLevel> levels = dataApprovalLevelService
             .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
@@ -653,7 +661,8 @@ public class DataApprovalLevelServiceTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService );
 
         List<DataApprovalLevel> levels = dataApprovalLevelService
             .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
@@ -685,7 +694,8 @@ public class DataApprovalLevelServiceTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService );
 
         List<DataApprovalLevel> levels = dataApprovalLevelService
             .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
@@ -706,7 +716,8 @@ public class DataApprovalLevelServiceTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( assignedOrgUnits, dataViewOrgUnits,
             DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService );
 
         List<DataApprovalLevel> levels = dataApprovalLevelService
             .getUserDataApprovalLevels( currentUserService.getCurrentUser() );
