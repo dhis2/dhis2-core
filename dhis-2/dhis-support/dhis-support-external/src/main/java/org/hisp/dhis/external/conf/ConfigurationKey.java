@@ -101,7 +101,7 @@ public enum ConfigurationKey
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
     LOGGING_REQUEST_ID_ENABLED( "logging.request_id.enabled", Constants.OFF, false ),
     LOGGING_REQUEST_ID_HASH( "logging.request_id.hash", "SHA-256", false ),
-    LOGGING_REQUEST_ID_MAXSIZE( "logging.request_id.maxsize", "-1", false ),
+    LOGGING_REQUEST_ID_MAXSIZE( "logging.request_id.max_size", "-1", false ),
     SERVER_BASE_URL( "server.base.url", "", false ),
     SERVER_HTTPS( "server.https", Constants.OFF ),
     MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
