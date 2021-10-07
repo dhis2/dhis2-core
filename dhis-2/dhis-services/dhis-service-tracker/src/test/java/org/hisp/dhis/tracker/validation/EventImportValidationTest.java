@@ -190,7 +190,27 @@ public class EventImportValidationTest
 
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+    }
 
+    @Test
+    public void testTrackerAndProgramEventUpdateSuccess()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/program_and_tracker_events.json" );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        trackerBundleParams.setImportStrategy( UPDATE );
+
+        trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
     }
 
     @Test

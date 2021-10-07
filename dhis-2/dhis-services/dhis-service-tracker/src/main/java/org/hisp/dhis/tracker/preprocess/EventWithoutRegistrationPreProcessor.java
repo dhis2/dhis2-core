@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.preprocess;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -55,15 +56,28 @@ public class EventWithoutRegistrationPreProcessor
 
                 if ( programStage != null )
                 {
-                    ProgramInstance enrollment = bundle.getPreheat()
-                        .getProgramInstancesWithoutRegistration( programStage.getProgram().getUid() );
-
-                    if ( enrollment != null )
-                    {
-                        event.setEnrollment( enrollment.getUid() );
-                    }
+                    setEnrollment( bundle, programStage.getProgram().getUid(), event );
                 }
             }
+            else if ( StringUtils.isNotEmpty( event.getProgram() ) )
+            {
+                Program program = bundle.getPreheat().get( Program.class, event.getProgram() );
+
+                if ( program != null )
+                {
+                    setEnrollment( bundle, program.getUid(), event );
+                }
+            }
+        }
+    }
+
+    private void setEnrollment( TrackerBundle bundle, String uid, Event event )
+    {
+        ProgramInstance enrollment = bundle.getPreheat().getProgramInstancesWithoutRegistration( uid );
+
+        if ( enrollment != null )
+        {
+            event.setEnrollment( enrollment.getUid() );
         }
     }
 }
