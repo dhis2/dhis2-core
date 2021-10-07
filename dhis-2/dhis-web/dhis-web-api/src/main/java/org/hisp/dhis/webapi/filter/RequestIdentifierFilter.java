@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_ENABLED;
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_HASHALGO;
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_MAXSIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_HASH;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_MAXSIZE;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -41,12 +41,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This filter places an hashed version of the Session ID in the Log4j Mapped
@@ -79,9 +79,9 @@ public class RequestIdentifierFilter
 
     public RequestIdentifierFilter( DhisConfigurationProvider dhisConfig )
     {
-        this.hashAlgo = dhisConfig.getProperty( MONITORING_LOG_REQUESTID_HASHALGO );
-        this.maxSize = Integer.parseInt( dhisConfig.getProperty( MONITORING_LOG_REQUESTID_MAXSIZE ) );
-        this.enabled = dhisConfig.isEnabled( MONITORING_LOG_REQUESTID_ENABLED );
+        this.hashAlgo = dhisConfig.getProperty( LOGGING_REQUEST_ID_HASH );
+        this.maxSize = Integer.parseInt( dhisConfig.getProperty( LOGGING_REQUEST_ID_MAXSIZE ) );
+        this.enabled = dhisConfig.isEnabled( LOGGING_REQUEST_ID_ENABLED );
     }
 
     @Override

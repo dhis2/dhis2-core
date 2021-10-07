@@ -28,7 +28,9 @@
 package org.hisp.dhis.servlet.filter;
 
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.external.conf.ConfigurationKey.*;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_HASH;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_MAXSIZE;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -65,7 +67,7 @@ public class RequestIdentifierFilterTest
     @Rule
     public MockitoRule mockitoRule = rule();
 
-    private static final String DEFAULT_HASH_ALGO = MONITORING_LOG_REQUESTID_HASHALGO.getDefaultValue();
+    private static final String DEFAULT_HASH_ALGO = LOGGING_REQUEST_ID_HASH.getDefaultValue();
 
     @Before
     public void setUp()
@@ -154,10 +156,10 @@ public class RequestIdentifierFilterTest
     private void init( int maxSize, String hashAlgo, boolean enabled )
     {
 
-        when( dhisConfigurationProvider.getProperty( MONITORING_LOG_REQUESTID_MAXSIZE ) )
+        when( dhisConfigurationProvider.getProperty( LOGGING_REQUEST_ID_MAXSIZE ) )
             .thenReturn( Integer.toString( maxSize ) );
-        when( dhisConfigurationProvider.isEnabled( MONITORING_LOG_REQUESTID_ENABLED ) ).thenReturn( enabled );
-        when( dhisConfigurationProvider.getProperty( MONITORING_LOG_REQUESTID_HASHALGO ) ).thenReturn( hashAlgo );
+        when( dhisConfigurationProvider.isEnabled( LOGGING_REQUEST_ID_ENABLED ) ).thenReturn( enabled );
+        when( dhisConfigurationProvider.getProperty( LOGGING_REQUEST_ID_HASH ) ).thenReturn( hashAlgo );
 
         subject = new RequestIdentifierFilter( dhisConfigurationProvider );
     }
