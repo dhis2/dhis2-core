@@ -484,28 +484,25 @@ public class JdbcEventStore implements EventStore
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
 
-            if ( params.isIncludeRelationships() )
+            if ( params.isIncludeRelationships() && rowSet.getObject( "psi_rl" ) != null )
             {
-                if ( rowSet.getObject( "psi_rl" ) != null )
+                PGobject pGobject = (PGobject) rowSet.getObject( "psi_rl" );
+
+                if ( pGobject != null )
                 {
-                    PGobject pGobject = (PGobject) rowSet.getObject( "psi_rl" );
+                    String value = pGobject.getValue();
 
-                    if ( pGobject != null )
-                    {
-                        String value = pGobject.getValue();
-
-                        relationshipIds.addAll( Lists.newArrayList( gson.fromJson( value, Long[].class ) ) );
-                    }
-                }
-
-                final Multimap<String, Relationship> map = eventStore
-                    .getRelationshipsByIds( relationshipIds );
-
-                if ( !map.isEmpty() )
-                {
-                    events.forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
+                    relationshipIds.addAll( Lists.newArrayList( gson.fromJson( value, Long[].class ) ) );
                 }
             }
+        }
+
+        final Multimap<String, Relationship> map = eventStore
+            .getRelationshipsByIds( relationshipIds );
+
+        if ( !map.isEmpty() )
+        {
+            events.forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
         }
 
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
