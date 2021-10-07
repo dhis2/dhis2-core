@@ -37,6 +37,7 @@ import org.hibernate.Session;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
@@ -70,9 +71,10 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
         TrackedEntityCommentService trackedEntityCommentService,
         TrackerSideEffectConverterService sideEffectConverterService,
         TrackerOwnershipManager trackerOwnershipManager,
-        TrackedEntityAttributeValueService attributeValueService )
+        TrackedEntityAttributeValueService attributeValueService,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService )
     {
-        super( bundleHooks, reservedValueService, attributeValueService );
+        super( bundleHooks, reservedValueService, trackedEntityAttributeValueAuditService, attributeValueService );
 
         this.enrollmentConverter = enrollmentConverter;
         this.trackedEntityCommentService = trackedEntityCommentService;

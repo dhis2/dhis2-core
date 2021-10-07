@@ -48,7 +48,6 @@ import org.springframework.stereotype.Service;
 public class TrackedEntityTrackerConverterService
     implements TrackerConverterService<TrackedEntity, TrackedEntityInstance>
 {
-
     @Override
     public TrackedEntity to( TrackedEntityInstance trackedEntityInstance )
     {
