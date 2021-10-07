@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.bundle.persister;
 
 import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -48,9 +49,10 @@ public class RelationshipPersister
     private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter;
 
     public RelationshipPersister( ReservedValueService reservedValueService,
-        TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter )
+        TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter,
+        TrackedEntityAttributeValueService attributeValueService )
     {
-        super( reservedValueService );
+        super( reservedValueService, attributeValueService );
         this.relationshipConverter = relationshipConverter;
     }
 

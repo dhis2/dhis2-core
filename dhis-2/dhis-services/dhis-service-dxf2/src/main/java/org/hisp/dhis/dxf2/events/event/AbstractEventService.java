@@ -116,6 +116,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -280,9 +281,9 @@ public abstract class AbstractEventService implements EventService
     @Override
     public Events getEvents( EventSearchParams params )
     {
-        validate( params );
-
         User user = currentUserService.getCurrentUser();
+
+        validate( params, user );
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
 
@@ -844,38 +845,44 @@ public abstract class AbstractEventService implements EventService
 
         if ( params.getOrgUnit() != null )
         {
+            organisationUnits.add( orgUnit );
+
             if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
             {
                 organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
             }
             else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
             {
-                organisationUnits.add( orgUnit );
                 organisationUnits.addAll( orgUnit.getChildren() );
-            }
-            else // SELECTED
-            {
-                organisationUnits.add( orgUnit );
             }
         }
 
         if ( user != null )
         {
+            Set<OrganisationUnit> orgUnits = new HashSet<>();
+
             if ( OrganisationUnitSelectionMode.ACCESSIBLE.equals( orgUnitSelectionMode ) )
             {
-                Set<OrganisationUnit> orgUnits = program.isRegistration()
-                    ? user.getTeiSearchOrganisationUnitsWithFallback()
-                    : user.getDataViewOrganisationUnitsWithFallback();
+                orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
 
-                organisationUnits.addAll( organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
-                    .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
+                if ( program != null && program.isWithoutRegistration() )
+                {
+                    orgUnits = user.getDataViewOrganisationUnitsWithFallback();
+                }
             }
             else if ( OrganisationUnitSelectionMode.CAPTURE.equals( orgUnitSelectionMode ) )
             {
-                organisationUnits.addAll(
-                    organisationUnitService.getOrganisationUnitsWithChildren( user.getOrganisationUnits().stream()
-                        .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
+                orgUnits = user.getOrganisationUnits();
             }
+            else if ( OrganisationUnitSelectionMode.ALL.equals( orgUnitSelectionMode )
+                && (user.isSuper() || currentUserService
+                    .currentUserIsAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() )) )
+            {
+                orgUnits = new HashSet<>( organisationUnitService.getRootOrganisationUnits() );
+            }
+
+            organisationUnits.addAll( organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
+                .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
 
         }
 
@@ -952,7 +959,7 @@ public abstract class AbstractEventService implements EventService
     }
 
     @Override
-    public void validate( EventSearchParams params )
+    public void validate( EventSearchParams params, User user )
         throws IllegalQueryException
     {
         String violation = null;
@@ -981,6 +988,13 @@ public abstract class AbstractEventService implements EventService
         if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
         {
             violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+        }
+
+        if ( params.getOrgUnitSelectionMode() != null
+            && OrganisationUnitSelectionMode.ALL.equals( params.getOrgUnitSelectionMode() )
+            && !userCanSearchOuModeALL( user ) )
+        {
+            violation = "Current user is not authorized to query across all organisation units";
         }
 
         if ( violation != null )
@@ -1080,5 +1094,16 @@ public abstract class AbstractEventService implements EventService
         }
 
         importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
+    }
+
+    private boolean userCanSearchOuModeALL( User user )
+    {
+        if ( user == null )
+        {
+            return false;
+        }
+
+        return user.isSuper()
+            || user.isAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() );
     }
 }
