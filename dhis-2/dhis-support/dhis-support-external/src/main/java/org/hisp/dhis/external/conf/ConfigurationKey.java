@@ -366,16 +366,33 @@ public enum ConfigurationKey
 
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
 
+    /**
+     * Enable OIDC
+     */
     OIDC_OAUTH2_LOGIN_ENABLED( "oidc.oauth2.login.enabled", Constants.OFF, false ),
 
+    /**
+     * DHIS 2 instance URL, do not end with a slash, not all IdPs support logout
+     * (Where to end up after calling end_session_endpoint on the IdP).
+     */
     OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "", false ),
 
+    /**
+     * Google specific parameters:
+     */
     OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "", true ),
 
     OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "", true ),
 
+    /**
+     * Optional, defaults to 'email'.
+     */
     OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "", true ),
 
+    /**
+     * DHIS 2 instance URL, do not end with a slash, e.g.:
+     * https://dhis2.org/demo.
+     */
     OIDC_PROVIDER_GOOGLE_REDIRECT_URI( "oidc.provider.google.redirect_url", "", true ),
 
     OIDC_PROVIDER_WSO2_CLIENT_ID( "oidc.provider.wso2.client_id", "", false ),
