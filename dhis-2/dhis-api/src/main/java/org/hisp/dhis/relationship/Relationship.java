@@ -73,8 +73,17 @@ public class Relationship
 
     private String description;
 
+    /**
+     * The key is an aggregated representation of the relationship and its sides
+     * based on uids. The format is type_from_to
+     */
     private String key;
 
+    /**
+     * The inverted key is a key, but with the sides switched. This will make it
+     * possible to match a key when it is bidirectional. the format is
+     * type_to_from
+     */
     private String invertedKey;
 
     // -------------------------------------------------------------------------
