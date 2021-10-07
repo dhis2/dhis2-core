@@ -114,15 +114,9 @@ public class TrackedEntityInstanceStoreTest
 
     private Program prB;
 
-    private TrackedEntityType tetA;
-
     @Override
     public void setUpTest()
     {
-        tetA = createTrackedEntityType( 'A' );
-
-        idObjectManager.save( tetA );
-
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
         atC = createTrackedEntityAttribute( 'C', ValueType.ORGANISATION_UNIT );
@@ -148,19 +142,11 @@ public class TrackedEntityInstanceStoreTest
         idObjectManager.save( prB );
 
         teiA = createTrackedEntityInstance( ouA );
-        teiA.setTrackedEntityType( tetA );
         teiB = createTrackedEntityInstance( ouB );
-        teiB.setTrackedEntityType( tetA );
         teiC = createTrackedEntityInstance( ouB );
-        teiC.setTrackedEntityType( tetA );
         teiD = createTrackedEntityInstance( ouC );
-        teiD.setTrackedEntityType( tetA );
         teiE = createTrackedEntityInstance( ouC );
-        teiE.setTrackedEntityType( tetA );
         teiF = createTrackedEntityInstance( ouC );
-        teiF.setTrackedEntityType( tetA );
-
-        dbmsManager.flushSession();
     }
 
     @Test
@@ -320,14 +306,22 @@ public class TrackedEntityInstanceStoreTest
     @Test
     public void testPotentialDuplicateInGridQuery()
     {
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+
+        teiA.setTrackedEntityType( trackedEntityTypeA );
         teiA.setPotentialDuplicate( true );
         teiStore.save( teiA );
 
+        teiB.setTrackedEntityType( trackedEntityTypeA );
         teiB.setPotentialDuplicate( true );
         teiStore.save( teiB );
 
+        teiC.setTrackedEntityType( trackedEntityTypeA );
         teiStore.save( teiC );
 
+        teiD.setTrackedEntityType( trackedEntityTypeA );
         teiStore.save( teiD );
 
         dbmsManager.flushSession();
@@ -335,7 +329,7 @@ public class TrackedEntityInstanceStoreTest
         // Get all
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setTrackedEntityType( tetA );
+        params.setTrackedEntityType( trackedEntityTypeA );
 
         List<Map<String, String>> teis = teiStore.getTrackedEntityInstancesGrid( params );
 
@@ -358,6 +352,10 @@ public class TrackedEntityInstanceStoreTest
     @Test
     public void testProgramAttributeOfTypeOrgUnitIsResolvedToOrgUnitName()
     {
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+        teiA.setTrackedEntityType( trackedEntityTypeA );
         teiStore.save( teiA );
         attributeValueService
             .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
@@ -366,7 +364,7 @@ public class TrackedEntityInstanceStoreTest
         dbmsManager.flushSession();
 
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        params.setTrackedEntityType( tetA );
+        params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
 
         QueryItem queryItem = new QueryItem( atC );
