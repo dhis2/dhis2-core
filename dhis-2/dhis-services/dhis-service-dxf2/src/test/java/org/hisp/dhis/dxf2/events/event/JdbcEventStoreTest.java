@@ -39,6 +39,7 @@ import javax.sql.DataSource;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.report.EventRow;
+import org.hisp.dhis.dxf2.events.trackedentity.store.EventStore;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Before;
@@ -75,6 +76,9 @@ public class JdbcEventStoreTest
     @Mock
     private Environment env;
 
+    @Mock
+    private EventStore eventStore;
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
@@ -87,7 +91,7 @@ public class JdbcEventStoreTest
 
         ObjectMapper objectMapper = new ObjectMapper();
         subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService,
-            manager, env );
+            manager, env, eventStore );
     }
 
     @Test
