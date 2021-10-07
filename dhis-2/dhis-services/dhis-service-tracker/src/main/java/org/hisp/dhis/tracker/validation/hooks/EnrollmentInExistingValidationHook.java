@@ -104,6 +104,7 @@ public class EnrollmentInExistingValidationHook
         // Priority to payload
         Collection<Enrollment> mergedEnrollments = Stream.of( payloadEnrollment, dbEnrollment )
             .flatMap( Set::stream )
+            .filter( e -> !Objects.equals( e.getEnrollment(), enrollment.getEnrollment() ) )
             .collect( Collectors.toMap( Enrollment::getEnrollment,
                 p -> p,
                 ( Enrollment x, Enrollment y ) -> x ) )
@@ -115,13 +116,13 @@ public class EnrollmentInExistingValidationHook
                 .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() )
                 .collect( Collectors.toSet() );
 
-            if ( !activeOnly.isEmpty() && !activeOnly.contains( enrollment ) )
+            if ( !activeOnly.isEmpty() )
             {
                 addError( reporter, E1015, tei, program );
             }
         }
 
-        if ( !mergedEnrollments.isEmpty() )
+        if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !mergedEnrollments.isEmpty() )
         {
             addError( reporter, E1016, tei, program );
         }

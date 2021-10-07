@@ -98,7 +98,7 @@ public class TrackerPreheat
 
     /**
      * List of all payload references by tracker type which are not present in
-     * thedatabase. This will be used to create the reference tree that
+     * the database. This will be used to create the reference tree that
      * represents the hierarchical structure of the references.
      */
     private ArrayListMultimap<TrackerType, ReferenceTrackerEntity> referenceTrackerEntities = ArrayListMultimap
