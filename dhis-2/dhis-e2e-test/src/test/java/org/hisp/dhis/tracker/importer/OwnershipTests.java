@@ -112,7 +112,6 @@ public class OwnershipTests
         loginActions.loginAsAdmin();
     }
 
-    @Disabled( "DHIS2-11910" )
     @Test
     public void shouldNotValidateCaptureScopeForTei()
     {

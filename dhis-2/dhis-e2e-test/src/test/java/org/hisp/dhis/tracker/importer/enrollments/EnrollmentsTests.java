@@ -174,7 +174,6 @@ public class EnrollmentsTests
             .body( "storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
-    @Disabled
     @ValueSource( strings = { "true", "false" } )
     @ParameterizedTest
     public void shouldOnlyEnrollOnce( String shouldEnrollOnce )

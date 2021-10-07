@@ -60,6 +60,12 @@ public class EventDataBuilder
         return this;
     }
 
+    public EventDataBuilder setAssignedUser( String assignedUserId ) {
+        this.builder.addProperty( "assignedUser", assignedUserId );
+
+        return this;
+    }
+
     public EventDataBuilder setProgram( String program )
     {
         this.builder.addProperty( "program", program );
