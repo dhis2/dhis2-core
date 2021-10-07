@@ -37,66 +37,135 @@ import java.util.Optional;
  */
 public enum ConfigurationKey
 {
+    /**
+     * System mode for database read operations only, can be 'off', 'on'.
+     */
     SYSTEM_READ_ONLY_MODE( "system.read_only_mode", Constants.OFF, false ),
 
+    /**
+     * Session timeout in seconds, default is 3600.
+     */
     SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600", false ),
 
+    /**
+     * System monitoring URL.
+     */
     SYSTEM_MONITORING_URL( "system.monitoring.url" ),
 
+    /**
+     * System monitoring username.
+     */
     SYSTEM_MONITORING_USERNAME( "system.monitoring.username" ),
 
+    /**
+     * System monitoring password (sensitive).
+     */
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
 
+    /**
+     * SQL view protected tables, can be 'on', 'off'.
+     */
     SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", Constants.ON, false ),
 
+    /**
+     * Disable server-side program rule execution, can be 'on', 'off'.
+     */
     SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
 
     SYSTEM_CACHE_MAX_SIZE_FACTOR( "system.cache.max_size.factor", "0.5", false ),
 
     SYSTEM_CACHE_CAP_PERCENTAGE( "system.cache.cap.percentage", "0", false ),
 
+    /**
+     * Node identifier, optional, useful in clusters.
+     */
     NODE_ID( "node.id", "", false ),
 
+    /**
+     * Encryption password (sensitive).
+     */
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
 
     /**
-     * Hibernate SQL dialect
+     * Hibernate SQL dialect.
      */
 
     CONNECTION_DIALECT( "connection.dialect", "", false ),
 
     /**
-     * JDBC driver class
+     * JDBC driver class.
      */
     CONNECTION_DRIVER_CLASS( "connection.driver_class", "", false ),
 
     /**
-     * Database connection URL
+     * Database connection URL.
      */
     CONNECTION_URL( "connection.url", "", false ),
 
+    /**
+     * Database username.
+     */
     CONNECTION_USERNAME( "connection.username", "", false ),
 
+    /**
+     * Database password (sensitive).
+     */
     CONNECTION_PASSWORD( "connection.password", "", true ),
 
     CONNECTION_SCHEMA( "connection.schema", "", false ),
 
+    /**
+     * Max size of connection pool (default: 40).
+     */
     CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "80", false ),
 
+    /**
+     * Minimum number of Connections a pool will maintain at any given time
+     * (default: 5).
+     */
     CONNECTION_POOL_MIN_SIZE( "connection.pool.min_size", "5", false ),
 
+    /**
+     * Number of Connections a pool will try to acquire upon startup. Should be
+     * between minPoolSize and maxPoolSize.
+     */
     CONNECTION_POOL_INITIAL_SIZE( "connection.pool.initial_size", "5", false ),
 
+    /**
+     * Determines how many connections at a time will try to acquire when the
+     * pool is exhausted.
+     */
     CONNECTION_POOL_ACQUIRE_INCR( "connection.pool.acquire_incr", "5", false ),
 
+    /**
+     * Seconds a Connection can remain pooled but unused before being discarded.
+     * Zero means idle connections never expire (default: 7200).
+     */
     CONNECTION_POOL_MAX_IDLE_TIME( "connection.pool.max_idle_time", "7200", false ),
 
+    /**
+     * Number of seconds that Connections in excess of minPoolSize should be
+     * permitted to remain idle in the pool before being culled (default: 0).
+     */
     CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON( "connection.pool.max_idle_time_excess_con", "0", false ),
 
+    /**
+     * If this is a number greater than 0, dhis2 will test all idle, pooled but
+     * unchecked-out connections, every this number of seconds (default: 0).
+     */
     CONNECTION_POOL_IDLE_CON_TEST_PERIOD( "connection.pool.idle.con.test.period", "0", false ),
 
+    /**
+     * If true, an operation will be performed at every connection checkout to
+     * verify that the connection is valid (default: false).
+     */
     CONNECTION_POOL_TEST_ON_CHECKOUT( "connection.pool.test.on.checkout", Constants.FALSE, false ),
 
+    /**
+     * If true, an operation will be performed asynchronously at every
+     * connection checkin to verify that the connection is valid (default:
+     * true).
+     */
     CONNECTION_POOL_TEST_ON_CHECKIN( "connection.pool.test.on.checkin", Constants.TRUE, false ),
 
     CONNECTION_POOL_TIMEOUT( "connection.pool.timeout", String.valueOf( SECONDS.toMillis( 30 ) ), false ),
@@ -104,28 +173,69 @@ public enum ConfigurationKey
     CONNECTION_POOL_VALIDATION_TIMEOUT( "connection.pool.validation_timeout", String.valueOf( SECONDS.toMillis( 5 ) ),
         false ),
 
+    /**
+     * Configure the number of helper threads used by dhis2 for jdbc operations
+     * (default: 3).
+     */
     CONNECTION_POOL_NUM_THREADS( "connection.pool.num.helper.threads", "3", false ),
 
+    /**
+     * Defines the query that will be executed for all connection tests. Ideally
+     * this config is not needed as postgresql driver already provides an
+     * efficient test query. The config is exposed simply for evaluation, do not
+     * use it unless there is a reason to.
+     */
     CONNECTION_POOL_TEST_QUERY( "connection.pool.preferred.test.query" ),
 
+    /**
+     * LDAP server URL.
+     */
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
 
+    /**
+     * LDAP manager user distinguished name.
+     */
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
 
+    /**
+     * LDAP manager user password (sensitive).
+     */
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
 
+    /**
+     * LDAP entry distinguished name search base.
+     */
     LDAP_SEARCH_BASE( "ldap.search.base", "", false ),
 
+    /**
+     * LDAP entry distinguished name filter.
+     */
     LDAP_SEARCH_FILTER( "ldap.search.filter", "(cn={0})", false ),
 
+    /**
+     * File store provider, currently 'filesystem' and 'aws-s3' are supported.
+     */
     FILESTORE_PROVIDER( "filestore.provider", "filesystem", false ),
 
+    /**
+     * Directory / bucket name, folder below DHIS2_HOME on file system, 'bucket'
+     * on AWS S3.
+     */
     FILESTORE_CONTAINER( "filestore.container", "files", false ),
 
+    /**
+     * Datacenter location (not required).
+     */
     FILESTORE_LOCATION( "filestore.location", "", false ),
 
+    /**
+     * Public identity / username.
+     */
     FILESTORE_IDENTITY( "filestore.identity", "", false ),
 
+    /**
+     * Secret key / password (sensitive).
+     */
     FILESTORE_SECRET( "filestore.secret", "", true ),
 
     GOOGLE_SERVICE_ACCOUNT_CLIENT_ID( "google.service.account.client.id", "", false ),
@@ -160,6 +270,9 @@ public enum ConfigurationKey
 
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
 
+    /**
+     * Analytics server-side cache expiration in seconds.
+     */
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
 
     ARTEMIS_MODE( "artemis.mode", "EMBEDDED" ),
@@ -188,22 +301,47 @@ public enum ConfigurationKey
 
     LOGGING_REQUEST_ID_MAX_SIZE( "logging.request_id.max_size", "-1", false ),
 
+    /**
+     * Base URL to the DHIS 2 instance.
+     */
     SERVER_BASE_URL( "server.base.url", "", false ),
 
+    /**
+     * Enable secure settings if system is deployed on HTTPS, can be 'off',
+     * 'on'.
+     */
     SERVER_HTTPS( "server.https", Constants.OFF ),
 
     MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
 
+    /**
+     * DHIS2 API monitoring.
+     */
     MONITORING_API_ENABLED( "monitoring.api.enabled", Constants.OFF, false ),
 
+    /**
+     * JVM monitoring.
+     */
     MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", Constants.OFF, false ),
 
+    /**
+     * Database connection pool monitoring.
+     */
     MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", Constants.OFF, false ),
 
+    /**
+     * Hibernate monitoring, do not use in production.
+     */
     MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", Constants.OFF, false ),
 
+    /**
+     * Uptime monitoring.
+     */
     MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", Constants.OFF, false ),
 
+    /**
+     * CPU monitoring.
+     */
     MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", Constants.OFF, false ),
 
     APPHUB_BASE_URL( "apphub.base.url", "https://apps.dhis2.org", false ),
