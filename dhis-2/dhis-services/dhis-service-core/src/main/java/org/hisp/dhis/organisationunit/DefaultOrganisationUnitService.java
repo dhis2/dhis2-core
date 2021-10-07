@@ -563,7 +563,8 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserDataViewHierarchy( User user, OrganisationUnit organisationUnit )
     {
-        if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
+        if ( user == null || user.getDataViewOrganisationUnitsWithFallback() == null
+            || user.getDataViewOrganisationUnitsWithFallback().isEmpty() )
         {
             return false;
         }
