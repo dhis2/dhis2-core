@@ -5,5 +5,5 @@
 drop table if exists datasetcompleteness;
 
 -- Remove unused visualization columns from "interpretation"
-alter table interpretation drop column "reporttableid";
-alter table interpretation drop column "chartid";
+alter table interpretation drop column if exists "reporttableid";
+alter table interpretation drop column if exists "chartid";
