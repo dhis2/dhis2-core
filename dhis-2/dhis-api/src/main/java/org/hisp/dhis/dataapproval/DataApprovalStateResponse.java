@@ -32,7 +32,6 @@ import java.util.Date;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -45,49 +44,98 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-@Getter
 @Builder
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 @JacksonXmlRootElement( localName = "dataApprovalStateResponse", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalStateResponse
 {
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+
     private final DataSet dataSet;
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private final Period period;
 
+    private final OrganisationUnit organisationUnit;
+
+    private final String state;
+
+    private final String createdByUsername;
+
+    private final Date createdDate;
+
+    private final Date lastUpdatedDate;
+
+    private final String lastUpdatedByUsername;
+
+    private final DataApprovalPermissions permissions;
+
+    /*
+     * OBS! Getter annotations are needed because of field filtering based on
+     * schema
+     */
+
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final OrganisationUnit organisationUnit;
+    public DataSet getDataSet()
+    {
+        return dataSet;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Period getPeriod()
+    {
+        return period;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OrganisationUnit getOrganisationUnit()
+    {
+        return organisationUnit;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String state;
+    public String getState()
+    {
+        return state;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String createdByUsername;
+    public String getCreatedByUsername()
+    {
+        return createdByUsername;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final Date createdDate;
+    public Date getCreatedDate()
+    {
+        return createdDate;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final Date lastUpdatedDate;
+    public Date getLastUpdatedDate()
+    {
+        return lastUpdatedDate;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final String lastUpdatedByUsername;
+    public String getLastUpdatedByUsername()
+    {
+        return lastUpdatedByUsername;
+    }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private final DataApprovalPermissions permissions;
-
+    public DataApprovalPermissions getPermissions()
+    {
+        return permissions;
+    }
 }

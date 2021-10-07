@@ -53,6 +53,8 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
 
     private String wfId;
 
+    private String dsId;
+
     @Autowired
     private PeriodService periodService;
 
@@ -76,7 +78,7 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
                 "{'name':'W1', 'periodType':'Monthly', " +
                     "'dataApprovalLevels':[{'id':'" + levelId + "'}]}" ) );
 
-        String dsId = assertStatus( HttpStatus.CREATED,
+        dsId = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly', 'workflow': {'id':'" + wfId + "'}}" ) );
     }
 
@@ -126,5 +128,24 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
             .content( HttpStatus.OK );
         assertTrue( statuses.isArray() );
         assertEquals( 0, statuses.size() );
+    }
+
+    @Test
+    public void testGetApproval()
+    {
+        JsonArray statuses = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}",
+            ouId, wfId, dsId ).content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" );
+        assertEquals( 1, statuses.size() );
+        JsonObject status1 = statuses.getObject( 0 );
+        assertEquals( "UNAPPROVABLE", status1.getString( "state" ).string() );
+
+        // now create an approval (approve it)
+        assertStatus( HttpStatus.NO_CONTENT,
+            POST( "/dataApprovals?ou={ou}&pe=202101&wf={wf}&ds={ds}", ouId, wfId, dsId ) );
+
+        status1 = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}",
+            ouId, wfId, dsId ).content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" ).getObject( 0 );
+        assertEquals( "UNAPPROVED_READY", status1.getString( "state" ).string() );
+
     }
 }

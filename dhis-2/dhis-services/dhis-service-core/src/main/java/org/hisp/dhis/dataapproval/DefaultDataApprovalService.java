@@ -527,6 +527,8 @@ public class DefaultDataApprovalService
                 {
                     status.setCreated( da.getCreated() );
                     status.setCreator( da.getCreator() );
+                    status.setLastUpdated( da.getLastUpdated() );
+                    status.setLastUpdatedBy( da.getLastUpdatedBy() );
                 }
             }
         }

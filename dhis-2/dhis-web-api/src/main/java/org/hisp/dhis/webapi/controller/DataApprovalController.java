@@ -71,6 +71,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -266,12 +267,13 @@ public class DataApprovalController
     public @ResponseBody RootNode getApproval(
         @RequestParam Set<String> ds,
         @RequestParam( required = false ) String pe,
-        @RequestParam Date startDate,
-        @RequestParam Date endDate,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
         @RequestParam Set<String> ou,
         @RequestParam( required = false ) boolean children,
         HttpServletResponse response )
-        throws WebMessageException
+        throws WebMessageException,
+        BadRequestException
     {
         List<String> fields = new ArrayList<>( contextService.getParameterValues( "fields" ) );
 
@@ -288,15 +290,27 @@ public class DataApprovalController
 
         Set<Period> periods = new HashSet<>();
 
-        PeriodType periodType = periodService.getPeriodTypeByName( pe );
-
-        if ( periodType != null )
+        if ( startDate == null || endDate == null )
         {
-            periods.addAll( periodService.getPeriodsBetweenDates( periodType, startDate, endDate ) );
+            Period period = periodService.getPeriod( pe );
+            if ( period == null )
+            {
+                throw new BadRequestException( "Either provide startDate and endDate or a valid ISO period for pe" );
+            }
+            periods.add( period );
         }
         else
         {
-            periods.addAll( periodService.getPeriodsBetweenDates( startDate, endDate ) );
+            PeriodType periodType = periodService.getPeriodTypeByName( pe );
+
+            if ( periodType != null )
+            {
+                periods.addAll( periodService.getPeriodsBetweenDates( periodType, startDate, endDate ) );
+            }
+            else
+            {
+                periods.addAll( periodService.getPeriodsBetweenDates( startDate, endDate ) );
+            }
         }
 
         Set<OrganisationUnit> organisationUnits = new HashSet<>();
@@ -333,8 +347,8 @@ public class DataApprovalController
         return rootNode;
     }
 
-    private DataApprovalStateResponse getDataApprovalStateResponse( DataSet dataSet,
-        OrganisationUnit organisationUnit, Period period )
+    private DataApprovalStateResponse getDataApprovalStateResponse( DataSet dataSet, OrganisationUnit organisationUnit,
+        Period period )
     {
         CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
 
@@ -343,11 +357,13 @@ public class DataApprovalController
 
         return DataApprovalStateResponse.builder()
             .dataSet( dataSet )
-            .period( period )
             .organisationUnit( organisationUnit )
+            .period( period )
             .state( status.getState().toString() )
             .createdDate( status.getCreated() )
             .createdByUsername( status.getCreator() == null ? null : status.getCreator().getUsername() )
+            .lastUpdatedDate( status.getLastUpdated() )
+            .lastUpdatedByUsername( status.getLastUpdatedBy() == null ? null : status.getLastUpdatedBy().getUsername() )
             .permissions( status.getPermissions() )
             .build();
     }

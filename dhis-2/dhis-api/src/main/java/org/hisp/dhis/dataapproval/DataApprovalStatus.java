@@ -121,4 +121,17 @@ public class DataApprovalStatus
     @Setter
     private User creator;
 
+    /**
+     * If the selection is approved, and if present (not always needed), the
+     * date at which the highest level of approval was last updated.
+     */
+    @Setter
+    private Date lastUpdated;
+
+    /**
+     * If the selection is approved, and if present (not always needed), The
+     * user who made the last update.
+     */
+    @Setter
+    private User lastUpdatedBy;
 }
