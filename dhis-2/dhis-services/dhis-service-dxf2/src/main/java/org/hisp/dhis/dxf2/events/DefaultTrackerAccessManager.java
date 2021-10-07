@@ -240,7 +240,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             OrganisationUnit ou = programInstance.getOrganisationUnit();
             if ( ou != null )
             {
-                if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
+                if ( !organisationUnitService.isInUserDataViewHierarchyCached( user, ou ) )
                 {
                     errors.add( "User has no read access to organisation unit: " + ou.getUid() );
                 }
@@ -432,7 +432,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             OrganisationUnit ou = programStageInstance.getOrganisationUnit();
             if ( ou != null )
             {
-                if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
+                if ( !organisationUnitService.isInUserDataViewHierarchyCached( user, ou ) )
                 {
                     errors.add( "User has no read access to organisation unit: " + ou.getUid() );
                 }
