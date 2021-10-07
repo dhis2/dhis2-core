@@ -6,7 +6,6 @@ concurrency:
     cancel-in-progress: true
 jobs:
   unit-test:
-    if: "!contains(github.event.head_commit.message, '[skip-checks]')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -34,7 +33,6 @@ jobs:
 
   integration-test:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, '[skip-checks]')"
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
