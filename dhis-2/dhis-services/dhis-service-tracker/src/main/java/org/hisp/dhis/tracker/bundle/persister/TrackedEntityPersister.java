@@ -36,6 +36,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -56,9 +57,10 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     private final TrackerConverterService<TrackedEntity, TrackedEntityInstance> teConverter;
 
     public TrackedEntityPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
-        TrackerConverterService<TrackedEntity, TrackedEntityInstance> teConverter )
+        TrackerConverterService<TrackedEntity, TrackedEntityInstance> teConverter,
+        TrackedEntityAttributeValueService attributeValueService )
     {
-        super( bundleHooks, reservedValueService );
+        super( bundleHooks, reservedValueService, attributeValueService );
         this.teConverter = teConverter;
     }
 
