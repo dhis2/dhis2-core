@@ -60,6 +60,7 @@ import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandle
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -93,6 +94,7 @@ public class TrackerImportController
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
             .trackerBundleParams( trackerBundleParams ).contextService( contextService ).userUid( currentUser.getUid() )
             .isAsync( true ).uid( jobId )
+            .authentication( SecurityContextHolder.getContext().getAuthentication() )
             .build();
 
         trackerImportStrategy
