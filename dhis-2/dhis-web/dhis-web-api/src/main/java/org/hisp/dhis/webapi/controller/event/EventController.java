@@ -536,14 +536,14 @@ public class EventController
         @RequestParam( required = false ) Set<String> filter,
         @RequestParam Map<String, String> parameters, IdSchemes idSchemes, Model model, HttpServletResponse response,
         HttpServletRequest request )
-        throws WebMessageException
     {
         WebOptions options = new WebOptions( parameters );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         if ( fields.isEmpty() )
         {
-            fields.addAll( Preset.ALL.getFields() );
+            fields.add( "event,uid,program,programType,status,assignedUser,orgUnit,orgUnitName," +
+                "eventDate,orgUnit,orgUnitName,created,lastUpdated,followup" );
         }
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( attributeCc, attributeCos,
@@ -565,6 +565,8 @@ public class EventController
             totalPages, skipPaging, getOrderParams( order ), getGridOrderParams( order, dataElementOrders ),
             false, eventIds, skipEventId, assignedUserMode, assignedUserIds, filter, dataElementOrders.keySet(),
             false, includeDeleted );
+
+        setParamBasedOnFieldParameters( params, fields );
 
         Events events = eventService.getEvents( params );
 
@@ -643,8 +645,7 @@ public class EventController
 
         if ( fields.isEmpty() )
         {
-            fields.add( "event,uid,program,programType,status,assignedUser,orgUnit,orgUnitName," +
-                "eventDate,orgUnit,orgUnitName,created,lastUpdated,followup" );
+            fields.addAll( Preset.ALL.getFields() );
         }
 
         CategoryOptionCombo attributeOptionCombo = inputUtils
@@ -666,8 +667,6 @@ public class EventController
             totalPages, skipPaging, getOrderParams( order ), getGridOrderParams( order, dataElementOrders ),
             false, eventIds, skipEventId, assignedUserMode, assignedUserIds, filter, dataElementOrders.keySet(),
             false, includeDeleted );
-
-        setParamBasedOnFieldParameters( params, fields );
 
         Events events = eventService.getEvents( params );
 
