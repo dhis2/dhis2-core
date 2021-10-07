@@ -74,6 +74,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
@@ -552,7 +553,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( params.getTrackedEntityType().getId() )
                 .append( SPACE );
         }
-        else
+        else if ( !CollectionUtils.isEmpty( params.getTrackedEntityTypes() ) )
         {
             trackedEntity
                 .append( whereAnd.whereAnd() )
