@@ -39,7 +39,10 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -271,7 +274,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void updateObjectProperty(
+    public WebMessage updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request )
@@ -306,18 +309,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         T object = deserialize( request );
-
-        if ( object == null )
-        {
-            throw new WebMessageException( badRequest( "Unknown payload format." ) );
-        }
-
-        prePatchEntity( persistedObject );
         Object value = property.getGetterMethod().invoke( object );
-        property.getSetterMethod().invoke( persistedObject, value );
-        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
-        manager.update( persistedObject );
-        postPatchEntity( persistedObject );
+        String jsonValue = jsonMapper.writeValueAsString( value );
+
+        ByteArrayInputStream patch = new ByteArrayInputStream(
+            ("[{\"op\":\"replace\", \"path\":\"/" + property + "\",\"value\":\"" + jsonValue + "\"}]")
+                .getBytes( StandardCharsets.UTF_8 ) );
+        return patchObject( pvUid, rpParameters, patch );
     }
 
     // --------------------------------------------------------------------------
@@ -342,8 +340,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         HttpServletRequest request )
         throws Exception
     {
-        WebOptions options = new WebOptions( rpParameters );
-        List<T> entities = getEntity( pvUid, options );
+        return patchObject( pvUid, rpParameters, request.getInputStream() );
+    }
+
+    private WebMessage patchObject( String pvUid, Map<String, String> rpParameters, InputStream requestBody )
+        throws Exception
+    {
+        List<T> entities = getEntity( pvUid, new WebOptions( rpParameters ) );
 
         if ( entities.isEmpty() )
         {
@@ -363,7 +366,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         prePatchEntity( persistedObject );
 
-        final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+        final JsonPatch patch = jsonMapper.readValue( requestBody, JsonPatch.class );
         final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
 
         // we don't allow changing UIDs
