@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_ENABLED;
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_HASHALGO;
-import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_LOG_REQUESTID_MAXSIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_HASH;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_MAXSIZE;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -79,9 +79,9 @@ public class RequestIdentifierFilter
 
     public RequestIdentifierFilter( DhisConfigurationProvider dhisConfig )
     {
-        this.hashAlgo = dhisConfig.getProperty( MONITORING_LOG_REQUESTID_HASHALGO );
-        this.maxSize = Integer.parseInt( dhisConfig.getProperty( MONITORING_LOG_REQUESTID_MAXSIZE ) );
-        this.enabled = dhisConfig.isEnabled( MONITORING_LOG_REQUESTID_ENABLED );
+        this.hashAlgo = dhisConfig.getProperty( LOGGING_REQUEST_ID_HASH );
+        this.maxSize = Integer.parseInt( dhisConfig.getProperty( LOGGING_REQUEST_ID_MAXSIZE ) );
+        this.enabled = dhisConfig.isEnabled( LOGGING_REQUEST_ID_ENABLED );
     }
 
     @Override
