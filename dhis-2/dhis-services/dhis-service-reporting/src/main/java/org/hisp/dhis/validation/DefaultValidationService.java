@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsServiceTarget;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionItemType;
@@ -89,7 +90,7 @@ import com.google.common.collect.Sets;
 @Transactional
 @Slf4j
 public class DefaultValidationService
-    implements ValidationService, CurrentUserServiceTarget
+    implements ValidationService, CurrentUserServiceTarget, AnalyticsServiceTarget
 {
     private final PeriodService periodService;
 
@@ -157,10 +158,7 @@ public class DefaultValidationService
         this.currentUserService = currentUserService;
     }
 
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
+    @Override
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
         this.analyticsService = analyticsService;
