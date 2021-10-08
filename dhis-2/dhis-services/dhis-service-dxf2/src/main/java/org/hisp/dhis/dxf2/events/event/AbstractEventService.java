@@ -140,7 +140,8 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-public abstract class AbstractEventService implements EventService
+public abstract class AbstractEventService
+    implements EventService
 {
     public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID,
         EVENT_CREATED_ID,
@@ -972,7 +973,9 @@ public abstract class AbstractEventService implements EventService
         }
 
         if ( params.getProgram() == null && params.getOrgUnit() == null && params.getTrackedEntityInstance() == null
-            && params.getEvents().isEmpty() )
+            && params.getEvents().isEmpty() && params.getOrgUnitSelectionMode() != null &&
+            !params.getOrgUnitSelectionMode().equals( OrganisationUnitSelectionMode.ACCESSIBLE ) &&
+            !params.getOrgUnitSelectionMode().equals( OrganisationUnitSelectionMode.ALL ) )
         {
             violation = "At least one of the following query parameters are required: orgUnit, program, trackedEntityInstance or event";
         }
