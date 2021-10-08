@@ -78,7 +78,7 @@ public class Event
 
     private String trackedEntityInstance;
 
-    private Set<Relationship> relationships;
+    private Set<Relationship> relationships = new HashSet<>();
 
     private String eventDate;
 
