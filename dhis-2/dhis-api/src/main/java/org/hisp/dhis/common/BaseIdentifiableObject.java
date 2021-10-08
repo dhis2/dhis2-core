@@ -779,6 +779,16 @@ public class BaseIdentifiableObject
         return null;
     }
 
+    /**
+     * Set legacy sharing collections to null so that the ImportService will
+     * import current object with new Sharing format.
+     */
+    public void clearLegacySharingCollections()
+    {
+        this.userAccesses = null;
+        this.userGroupAccesses = null;
+    }
+
     @Override
     public String toString()
     {
