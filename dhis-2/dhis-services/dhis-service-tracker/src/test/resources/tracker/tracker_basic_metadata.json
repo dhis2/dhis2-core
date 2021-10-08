@@ -291,6 +291,7 @@
   ],
   "organisationUnits": [
     {
+      "level": 1,
       "openingDate": "2019-03-25T00:00:00.000",
       "id": "QfUVllTs6cS",
       "lastUpdatedBy": {
@@ -310,21 +311,25 @@
       "publicAccess": "rw------"
     },
     {
+      "level": 2,
       "openingDate": "2019-03-25T00:00:00.000",
       "id": "QfUVllTs6cZ",
       "lastUpdatedBy": {
         "id": "M5zQapPyTZI"
       },
+      "parent": {
+        "id": "QfUVllTs6cS"
+      },
       "attributeValues": [],
-      "name": "Country2",
+      "name": "State",
       "translations": [],
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "code": "Country2",
+      "code": "State",
       "created": "2019-03-25T13:59:02.598",
-      "path": "/QfUVllTs6cZ",
-      "shortName": "Country2",
+      "path": "/QfUVllTs6cS/QfUVllTs6cZ",
+      "shortName": "State",
       "lastUpdated": "2019-03-25T13:59:02.692",
       "publicAccess": "rw------"
     }
@@ -669,429 +674,543 @@
       ]
     }
   ],
-  "users": [
-    {
-      "dataViewOrganisationUnits": [
+      "users": [
         {
-          "id": "QfUVllTs6cS"
+          "dataViewOrganisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "teiSearchOrganisationUnits": [],
+          "created": "2019-03-25T13:58:35.560",
+          "code": "admin",
+          "organisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "lastUpdated": "2019-03-29T08:57:41.890",
+          "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+          "userCredentials": {
+            "attributeValues": [],
+            "favorite": false,
+            "catDimensionConstraints": [],
+            "userAccesses": [],
+            "disabled": false,
+            "userRoles": [
+              {
+                "id": "yrB6vc5Ip3r"
+              }
+            ],
+            "lastUpdated": "2019-03-29T08:57:41.766",
+            "userInfo": {
+              "id": "M5zQapPyTZI"
+            },
+            "name": "admin admin",
+            "displayName": "admin admin",
+            "favorites": [],
+            "selfRegistered": false,
+            "externalAccess": false,
+            "externalAuth": false,
+            "twoFA": false,
+            "username": "admin",
+            "id": "KvMx6c1eoYo",
+            "userGroupAccesses": [],
+            "created": "2019-03-29T08:57:41.766",
+            "access": {
+              "externalize": true,
+              "read": true,
+              "manage": true,
+              "delete": true,
+              "write": true,
+              "update": true
+            },
+            "cogsDimensionConstraints": [],
+            "invitation": false,
+            "lastLogin": "2019-03-29T12:42:06.495",
+            "translations": [],
+            "passwordLastUpdated": "2019-03-29T08:57:41.766"
+          },
+          "firstName": "admin",
+          "surname": "admin",
+          "id": "M5zQapPyTZI",
+          "attributeValues": []
+        },
+        {
+          "dataViewOrganisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "teiSearchOrganisationUnits": [],
+          "created": "2019-03-25T13:58:35.560",
+          "code": "netroms",
+          "organisationUnits": [
+          ],
+          "lastUpdated": "2019-03-29T08:57:41.890",
+          "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+          "userCredentials": {
+            "attributeValues": [],
+            "favorite": false,
+            "catDimensionConstraints": [],
+            "userAccesses": [],
+            "disabled": false,
+            "userRoles": [
+              {
+                "id": "yrB6vc5Ip3r"
+              }
+            ],
+            "lastUpdated": "2019-03-29T08:57:41.766",
+            "userInfo": {
+              "id": "MbkW4Bhfw7o"
+            },
+            "name": "netroms netroms",
+            "displayName": "netroms netroms",
+            "favorites": [],
+            "selfRegistered": false,
+            "externalAccess": false,
+            "externalAuth": false,
+            "twoFA": false,
+            "username": "netroms",
+            "id": "__netroms__",
+            "userGroupAccesses": [],
+            "created": "2019-03-29T08:57:41.766",
+            "access": {
+              "externalize": true,
+              "read": true,
+              "manage": true,
+              "delete": true,
+              "write": true,
+              "update": true
+            },
+            "cogsDimensionConstraints": [],
+            "invitation": false,
+            "lastLogin": "2019-03-29T12:42:06.495",
+            "translations": [],
+            "passwordLastUpdated": "2019-03-29T08:57:41.766"
+          },
+          "firstName": "netroms",
+          "surname": "netroms",
+          "id": "MbkW4Bhfw7o",
+          "attributeValues": []
+        },
+        {
+          "dataViewOrganisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "teiSearchOrganisationUnits": [],
+          "created": "2019-03-25T13:58:35.560",
+          "code": "morten",
+          "organisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "lastUpdated": "2019-03-29T08:57:41.890",
+          "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+          "userCredentials": {
+            "attributeValues": [],
+            "favorite": false,
+            "catDimensionConstraints": [],
+            "userAccesses": [],
+            "disabled": false,
+            "userRoles": [
+              {
+                "id": "---user----"
+              }
+            ],
+            "lastUpdated": "2019-03-29T08:57:41.766",
+            "userInfo": {
+              "id": "oZZ43IHxuUM"
+            },
+            "name": "morten morten",
+            "displayName": "morten morten",
+            "favorites": [],
+            "selfRegistered": false,
+            "externalAccess": false,
+            "externalAuth": false,
+            "twoFA": false,
+            "username": "morten",
+            "id": "__morten___",
+            "userGroupAccesses": [],
+            "created": "2019-03-29T08:57:41.766",
+            "access": {
+              "externalize": true,
+              "read": true,
+              "manage": true,
+              "delete": true,
+              "write": true,
+              "update": true
+            },
+            "cogsDimensionConstraints": [],
+            "invitation": false,
+            "lastLogin": "2019-03-29T12:42:06.495",
+            "translations": [],
+            "passwordLastUpdated": "2019-03-29T08:57:41.766"
+          },
+          "firstName": "morten",
+          "surname": "morten",
+          "id": "oZZ43IHxuUM",
+          "attributeValues": []
+        },
+        {
+          "dataViewOrganisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "teiSearchOrganisationUnits": [],
+          "created": "2019-03-25T13:58:35.560",
+          "code": "nils",
+          "organisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "lastUpdated": "2019-03-29T08:57:41.890",
+          "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+          "userCredentials": {
+            "attributeValues": [],
+            "favorite": false,
+            "catDimensionConstraints": [],
+            "userAccesses": [],
+            "disabled": false,
+            "userRoles": [
+              {
+                "id": "---user----"
+              }
+            ],
+            "lastUpdated": "2019-03-29T08:57:41.766",
+            "userInfo": {
+              "id": "fY22f5N1xSy"
+            },
+            "name": "nils nilsen",
+            "displayName": "nils nilsen",
+            "favorites": [],
+            "selfRegistered": false,
+            "externalAccess": false,
+            "externalAuth": false,
+            "twoFA": false,
+            "username": "nils",
+            "id": "___nils____",
+            "userGroupAccesses": [],
+            "created": "2019-03-29T08:57:41.766",
+            "access": {
+              "externalize": true,
+              "read": true,
+              "manage": true,
+              "delete": true,
+              "write": true,
+              "update": true
+            },
+            "cogsDimensionConstraints": [],
+            "invitation": false,
+            "lastLogin": "2019-03-29T12:42:06.495",
+            "translations": [],
+            "passwordLastUpdated": "2019-03-29T08:57:41.766"
+          },
+          "firstName": "nils",
+          "surname": "nilsen",
+          "id": "fY22f5N1xSy",
+          "attributeValues": []
+        },
+        {
+          "dataViewOrganisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "teiSearchOrganisationUnits": [],
+          "created": "2019-03-25T13:58:35.560",
+          "code": "user4",
+          "organisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "lastUpdated": "2019-03-29T08:57:41.890",
+          "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+          "userCredentials": {
+            "attributeValues": [],
+            "favorite": false,
+            "catDimensionConstraints": [],
+            "userAccesses": [],
+            "disabled": false,
+            "userRoles": [
+              {
+                "id": "---user----"
+              }
+            ],
+            "lastUpdated": "2019-03-29T08:57:41.766",
+            "userInfo": {
+              "id": "iAji3gyZYQL"
+            },
+            "name": "admin admin",
+            "displayName": "admin admin",
+            "favorites": [],
+            "selfRegistered": false,
+            "externalAccess": false,
+            "externalAuth": false,
+            "twoFA": false,
+            "username": "user4",
+            "id": "___USER4___",
+            "userGroupAccesses": [],
+            "created": "2019-03-29T08:57:41.766",
+            "access": {
+              "externalize": true,
+              "read": true,
+              "manage": true,
+              "delete": true,
+              "write": true,
+              "update": true
+            },
+            "cogsDimensionConstraints": [],
+            "invitation": false,
+            "lastLogin": "2019-03-29T12:42:06.495",
+            "translations": [],
+            "passwordLastUpdated": "2019-03-29T08:57:41.766"
+          },
+          "firstName": "user4",
+          "surname": "user4",
+          "id": "iAji3gyZYQL",
+          "attributeValues": []
+        },
+        {
+          "dataViewOrganisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "teiSearchOrganisationUnits": [],
+          "created": "2019-03-25T13:58:35.560",
+          "code": "user5",
+          "organisationUnits": [
+          ],
+          "lastUpdated": "2019-03-29T08:57:41.890",
+          "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+          "userCredentials": {
+            "attributeValues": [],
+            "favorite": false,
+            "catDimensionConstraints": [],
+            "userAccesses": [],
+            "disabled": false,
+            "userRoles": [
+              {
+                "id": "---user----"
+              }
+            ],
+            "lastUpdated": "2019-03-29T08:57:41.766",
+            "userInfo": {
+              "id": "oajYcE7VMBs"
+            },
+            "name": "USER5 USER5",
+            "displayName": "USER5 USER5",
+            "favorites": [],
+            "selfRegistered": false,
+            "externalAccess": false,
+            "externalAuth": false,
+            "twoFA": false,
+            "username": "---USER5---",
+            "id": "oajYcE7VMBs",
+            "userGroupAccesses": [],
+            "created": "2019-03-29T08:57:41.766",
+            "access": {
+              "externalize": true,
+              "read": true,
+              "manage": true,
+              "delete": true,
+              "write": true,
+              "update": true
+            },
+            "cogsDimensionConstraints": [],
+            "invitation": false,
+            "lastLogin": "2019-03-29T12:42:06.495",
+            "translations": [],
+            "passwordLastUpdated": "2019-03-29T08:57:41.766"
+          },
+          "firstName": "---USER5---",
+          "surname": "---USER5---",
+          "id": "oajYcE7VMBs",
+          "attributeValues": []
+        },
+        {
+          "dataViewOrganisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "teiSearchOrganisationUnits": [],
+          "created": "2019-03-25T13:58:35.560",
+          "code": "user6",
+          "organisationUnits": [
+            {
+              "id": "QfUVllTs6cS"
+            }
+          ],
+          "lastUpdated": "2019-03-29T08:57:41.890",
+          "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+          "userCredentials": {
+            "attributeValues": [],
+            "favorite": false,
+            "catDimensionConstraints": [],
+            "userAccesses": [],
+            "disabled": false,
+            "userRoles": [
+              {
+                "id": "BBB6vc5Ip3r"
+              }
+            ],
+            "lastUpdated": "2019-03-29T08:57:41.766",
+            "userInfo": {
+              "id": "VfaA5WwHLdP"
+            },
+            "name": "netroms netroms",
+            "displayName": "netroms netroms",
+            "favorites": [],
+            "selfRegistered": false,
+            "externalAccess": false,
+            "externalAuth": false,
+            "twoFA": false,
+            "username": "user6",
+            "id": "__uuuuuuu__",
+            "userGroupAccesses": [],
+            "created": "2019-03-29T08:57:41.766",
+            "access": {
+              "externalize": true,
+              "read": true,
+              "manage": true,
+              "delete": true,
+              "write": true,
+              "update": true
+            },
+            "cogsDimensionConstraints": [],
+            "invitation": false,
+            "lastLogin": "2019-03-29T12:42:06.495",
+            "translations": [],
+            "passwordLastUpdated": "2019-03-29T08:57:41.766"
+          },
+          "firstName": "netroms",
+          "surname": "netroms",
+          "id": "VfaA5WwHLdP",
+          "attributeValues": []
+        },
+        {
+          "dataViewOrganisationUnits": [{
+            "id": "QfUVllTs6cZ"
+          }],
+          "teiSearchOrganisationUnits": [{
+            "id": "QfUVllTs6cZ"
+          }],
+          "created": "2019-03-25T13:58:35.560",
+          "code": "user7",
+          "organisationUnits": [{
+            "id": "QfUVllTs6cZ"
+          }],
+          "lastUpdated": "2019-03-29T08:57:41.890",
+          "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+          "userCredentials": {
+            "attributeValues": [],
+            "favorite": false,
+            "catDimensionConstraints": [],
+            "userAccesses": [],
+            "disabled": false,
+            "userRoles": [{
+              "id": "yrB6vc5Ip3r"
+            }],
+            "lastUpdated": "2019-03-29T08:57:41.766",
+            "userInfo": {
+              "id": "E5AiPnHG3t5"
+            },
+            "name": "State Capture Search",
+            "displayName": "State Capture Search",
+            "favorites": [],
+            "selfRegistered": false,
+            "externalAccess": false,
+            "externalAuth": false,
+            "twoFA": false,
+            "username": "user7",
+            "id": "IqmHYMV1LdS",
+            "userGroupAccesses": [],
+            "created": "2019-03-29T08:57:41.766",
+            "access": {
+              "externalize": true,
+              "read": true,
+              "manage": true,
+              "delete": true,
+              "write": true,
+              "update": true
+            },
+            "cogsDimensionConstraints": [],
+            "invitation": false,
+            "lastLogin": "2019-03-29T12:42:06.495",
+            "translations": [],
+            "passwordLastUpdated": "2019-03-29T08:57:41.766"
+          },
+          "firstName": "State",
+          "surname": "Capture Search",
+          "id": "E5AiPnHG3t5",
+          "attributeValues": []
+        },
+        {
+          "dataViewOrganisationUnits": [{
+            "id": "QfUVllTs6cS"
+          }],
+          "teiSearchOrganisationUnits": [{
+            "id": "QfUVllTs6cS"
+          }],
+          "created": "2019-03-25T13:58:35.560",
+          "code": "user8",
+          "organisationUnits": [{
+            "id": "QfUVllTs6cZ"
+          }],
+          "lastUpdated": "2019-03-29T08:57:41.890",
+          "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
+          "userCredentials": {
+            "attributeValues": [],
+            "favorite": false,
+            "catDimensionConstraints": [],
+            "userAccesses": [],
+            "disabled": false,
+            "userRoles": [{
+              "id": "yrB6vc5Ip3r"
+            }],
+            "lastUpdated": "2019-03-29T08:57:41.766",
+            "userInfo": {
+              "id": "xbgFeL0l3Ap"
+            },
+            "name": "State Capture Search",
+            "displayName": "State Capture Search",
+            "favorites": [],
+            "selfRegistered": false,
+            "externalAccess": false,
+            "externalAuth": false,
+            "twoFA": false,
+            "username": "user8",
+            "id": "HRg1AV431Iu",
+            "userGroupAccesses": [],
+            "created": "2019-03-29T08:57:41.766",
+            "access": {
+              "externalize": true,
+              "read": true,
+              "manage": true,
+              "delete": true,
+              "write": true,
+              "update": true
+            },
+            "cogsDimensionConstraints": [],
+            "invitation": false,
+            "lastLogin": "2019-03-29T12:42:06.495",
+            "translations": [],
+            "passwordLastUpdated": "2019-03-29T08:57:41.766"
+          },
+          "firstName": "State Capture",
+          "surname": "Country Search",
+          "id": "xbgFeL0l3Ap",
+          "attributeValues": []
         }
       ],
-      "teiSearchOrganisationUnits": [],
-      "created": "2019-03-25T13:58:35.560",
-      "code": "admin",
-      "organisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "lastUpdated": "2019-03-29T08:57:41.890",
-      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
-      "userCredentials": {
-        "attributeValues": [],
-        "favorite": false,
-        "catDimensionConstraints": [],
-        "userAccesses": [],
-        "disabled": false,
-        "userRoles": [
-          {
-            "id": "yrB6vc5Ip3r"
-          }
-        ],
-        "lastUpdated": "2019-03-29T08:57:41.766",
-        "userInfo": {
-          "id": "M5zQapPyTZI"
-        },
-        "name": "admin admin",
-        "displayName": "admin admin",
-        "favorites": [],
-        "selfRegistered": false,
-        "externalAccess": false,
-        "externalAuth": false,
-        "twoFA": false,
-        "username": "admin",
-        "id": "KvMx6c1eoYo",
-        "userGroupAccesses": [],
-        "created": "2019-03-29T08:57:41.766",
-        "access": {
-          "externalize": true,
-          "read": true,
-          "manage": true,
-          "delete": true,
-          "write": true,
-          "update": true
-        },
-        "cogsDimensionConstraints": [],
-        "invitation": false,
-        "lastLogin": "2019-03-29T12:42:06.495",
-        "translations": [],
-        "passwordLastUpdated": "2019-03-29T08:57:41.766"
-      },
-      "firstName": "admin",
-      "surname": "admin",
-      "id": "M5zQapPyTZI",
-      "attributeValues": []
-    },
-    {
-      "dataViewOrganisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "teiSearchOrganisationUnits": [],
-      "created": "2019-03-25T13:58:35.560",
-      "code": "netroms",
-      "organisationUnits": [
-      ],
-      "lastUpdated": "2019-03-29T08:57:41.890",
-      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
-      "userCredentials": {
-        "attributeValues": [],
-        "favorite": false,
-        "catDimensionConstraints": [],
-        "userAccesses": [],
-        "disabled": false,
-        "userRoles": [
-          {
-            "id": "yrB6vc5Ip3r"
-          }
-        ],
-        "lastUpdated": "2019-03-29T08:57:41.766",
-        "userInfo": {
-          "id": "MbkW4Bhfw7o"
-        },
-        "name": "netroms netroms",
-        "displayName": "netroms netroms",
-        "favorites": [],
-        "selfRegistered": false,
-        "externalAccess": false,
-        "externalAuth": false,
-        "twoFA": false,
-        "username": "netroms",
-        "id": "__netroms__",
-        "userGroupAccesses": [],
-        "created": "2019-03-29T08:57:41.766",
-        "access": {
-          "externalize": true,
-          "read": true,
-          "manage": true,
-          "delete": true,
-          "write": true,
-          "update": true
-        },
-        "cogsDimensionConstraints": [],
-        "invitation": false,
-        "lastLogin": "2019-03-29T12:42:06.495",
-        "translations": [],
-        "passwordLastUpdated": "2019-03-29T08:57:41.766"
-      },
-      "firstName": "netroms",
-      "surname": "netroms",
-      "id": "MbkW4Bhfw7o",
-      "attributeValues": []
-    },
-    {
-      "dataViewOrganisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "teiSearchOrganisationUnits": [],
-      "created": "2019-03-25T13:58:35.560",
-      "code": "morten",
-      "organisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "lastUpdated": "2019-03-29T08:57:41.890",
-      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
-      "userCredentials": {
-        "attributeValues": [],
-        "favorite": false,
-        "catDimensionConstraints": [],
-        "userAccesses": [],
-        "disabled": false,
-        "userRoles": [
-          {
-            "id": "---user----"
-          }
-        ],
-        "lastUpdated": "2019-03-29T08:57:41.766",
-        "userInfo": {
-          "id": "oZZ43IHxuUM"
-        },
-        "name": "morten morten",
-        "displayName": "morten morten",
-        "favorites": [],
-        "selfRegistered": false,
-        "externalAccess": false,
-        "externalAuth": false,
-        "twoFA": false,
-        "username": "morten",
-        "id": "__morten___",
-        "userGroupAccesses": [],
-        "created": "2019-03-29T08:57:41.766",
-        "access": {
-          "externalize": true,
-          "read": true,
-          "manage": true,
-          "delete": true,
-          "write": true,
-          "update": true
-        },
-        "cogsDimensionConstraints": [],
-        "invitation": false,
-        "lastLogin": "2019-03-29T12:42:06.495",
-        "translations": [],
-        "passwordLastUpdated": "2019-03-29T08:57:41.766"
-      },
-      "firstName": "morten",
-      "surname": "morten",
-      "id": "oZZ43IHxuUM",
-      "attributeValues": []
-    },
-    {
-      "dataViewOrganisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "teiSearchOrganisationUnits": [],
-      "created": "2019-03-25T13:58:35.560",
-      "code": "nils",
-      "organisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "lastUpdated": "2019-03-29T08:57:41.890",
-      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
-      "userCredentials": {
-        "attributeValues": [],
-        "favorite": false,
-        "catDimensionConstraints": [],
-        "userAccesses": [],
-        "disabled": false,
-        "userRoles": [
-          {
-            "id": "---user----"
-          }
-        ],
-        "lastUpdated": "2019-03-29T08:57:41.766",
-        "userInfo": {
-          "id": "fY22f5N1xSy"
-        },
-        "name": "nils nilsen",
-        "displayName": "nils nilsen",
-        "favorites": [],
-        "selfRegistered": false,
-        "externalAccess": false,
-        "externalAuth": false,
-        "twoFA": false,
-        "username": "nils",
-        "id": "___nils____",
-        "userGroupAccesses": [],
-        "created": "2019-03-29T08:57:41.766",
-        "access": {
-          "externalize": true,
-          "read": true,
-          "manage": true,
-          "delete": true,
-          "write": true,
-          "update": true
-        },
-        "cogsDimensionConstraints": [],
-        "invitation": false,
-        "lastLogin": "2019-03-29T12:42:06.495",
-        "translations": [],
-        "passwordLastUpdated": "2019-03-29T08:57:41.766"
-      },
-      "firstName": "nils",
-      "surname": "nilsen",
-      "id": "fY22f5N1xSy",
-      "attributeValues": []
-    },
-    {
-      "dataViewOrganisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "teiSearchOrganisationUnits": [],
-      "created": "2019-03-25T13:58:35.560",
-      "code": "user4",
-      "organisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "lastUpdated": "2019-03-29T08:57:41.890",
-      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
-      "userCredentials": {
-        "attributeValues": [],
-        "favorite": false,
-        "catDimensionConstraints": [],
-        "userAccesses": [],
-        "disabled": false,
-        "userRoles": [
-          {
-            "id": "---user----"
-          }
-        ],
-        "lastUpdated": "2019-03-29T08:57:41.766",
-        "userInfo": {
-          "id": "iAji3gyZYQL"
-        },
-        "name": "admin admin",
-        "displayName": "admin admin",
-        "favorites": [],
-        "selfRegistered": false,
-        "externalAccess": false,
-        "externalAuth": false,
-        "twoFA": false,
-        "username": "user4",
-        "id": "___USER4___",
-        "userGroupAccesses": [],
-        "created": "2019-03-29T08:57:41.766",
-        "access": {
-          "externalize": true,
-          "read": true,
-          "manage": true,
-          "delete": true,
-          "write": true,
-          "update": true
-        },
-        "cogsDimensionConstraints": [],
-        "invitation": false,
-        "lastLogin": "2019-03-29T12:42:06.495",
-        "translations": [],
-        "passwordLastUpdated": "2019-03-29T08:57:41.766"
-      },
-      "firstName": "user4",
-      "surname": "user4",
-      "id": "iAji3gyZYQL",
-      "attributeValues": []
-    },
-    {
-      "dataViewOrganisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "teiSearchOrganisationUnits": [],
-      "created": "2019-03-25T13:58:35.560",
-      "code": "user5",
-      "organisationUnits": [
-      ],
-      "lastUpdated": "2019-03-29T08:57:41.890",
-      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
-      "userCredentials": {
-        "attributeValues": [],
-        "favorite": false,
-        "catDimensionConstraints": [],
-        "userAccesses": [],
-        "disabled": false,
-        "userRoles": [
-          {
-            "id": "---user----"
-          }
-        ],
-        "lastUpdated": "2019-03-29T08:57:41.766",
-        "userInfo": {
-          "id": "oajYcE7VMBs"
-        },
-        "name": "USER5 USER5",
-        "displayName": "USER5 USER5",
-        "favorites": [],
-        "selfRegistered": false,
-        "externalAccess": false,
-        "externalAuth": false,
-        "twoFA": false,
-        "username": "---USER5---",
-        "id": "oajYcE7VMBs",
-        "userGroupAccesses": [],
-        "created": "2019-03-29T08:57:41.766",
-        "access": {
-          "externalize": true,
-          "read": true,
-          "manage": true,
-          "delete": true,
-          "write": true,
-          "update": true
-        },
-        "cogsDimensionConstraints": [],
-        "invitation": false,
-        "lastLogin": "2019-03-29T12:42:06.495",
-        "translations": [],
-        "passwordLastUpdated": "2019-03-29T08:57:41.766"
-      },
-      "firstName": "---USER5---",
-      "surname": "---USER5---",
-      "id": "oajYcE7VMBs",
-      "attributeValues": []
-    },
-    {
-      "dataViewOrganisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "teiSearchOrganisationUnits": [],
-      "created": "2019-03-25T13:58:35.560",
-      "code": "user6",
-      "organisationUnits": [
-        {
-          "id": "QfUVllTs6cS"
-        }
-      ],
-      "lastUpdated": "2019-03-29T08:57:41.890",
-      "lastCheckedInterpretations": "2019-03-29T08:57:20.392",
-      "userCredentials": {
-        "attributeValues": [],
-        "favorite": false,
-        "catDimensionConstraints": [],
-        "userAccesses": [],
-        "disabled": false,
-        "userRoles": [
-          {
-            "id": "BBB6vc5Ip3r"
-          }
-        ],
-        "lastUpdated": "2019-03-29T08:57:41.766",
-        "userInfo": {
-          "id": "VfaA5WwHLdP"
-        },
-        "name": "netroms netroms",
-        "displayName": "netroms netroms",
-        "favorites": [],
-        "selfRegistered": false,
-        "externalAccess": false,
-        "externalAuth": false,
-        "twoFA": false,
-        "username": "user6",
-        "id": "__uuuuuuu__",
-        "userGroupAccesses": [],
-        "created": "2019-03-29T08:57:41.766",
-        "access": {
-          "externalize": true,
-          "read": true,
-          "manage": true,
-          "delete": true,
-          "write": true,
-          "update": true
-        },
-        "cogsDimensionConstraints": [],
-        "invitation": false,
-        "lastLogin": "2019-03-29T12:42:06.495",
-        "translations": [],
-        "passwordLastUpdated": "2019-03-29T08:57:41.766"
-      },
-      "firstName": "netroms",
-      "surname": "netroms",
-      "id": "VfaA5WwHLdP",
-      "attributeValues": []
-    }
-  ],
   "userGroups": [
     {
       "userGroupAccesses": [],
