@@ -45,6 +45,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -153,16 +154,15 @@ public class DataApprovalStoreUserTest
         mockCurrentUserService = new MockCurrentUserService( true, Sets.newHashSet( orgUnitA ),
             Sets.newHashSet( orgUnitA ) );
 
-        setDependency( dataApprovalStore, "currentUserService", mockCurrentUserService, CurrentUserService.class );
-        setDependency( dataApprovalLevelService, "currentUserService", mockCurrentUserService,
-            CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            mockCurrentUserService, dataApprovalStore, dataApprovalLevelService );
     }
 
     @Override
     public void tearDownTest()
     {
-        setDependency( dataApprovalStore, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalStore, dataApprovalLevelService );
     }
 
     // -------------------------------------------------------------------------

@@ -55,6 +55,7 @@ package org.hisp.dhis.metadata.programs;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -64,8 +65,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -96,7 +95,7 @@ public class ProgramsTest
     @ValueSource( strings = { "WITH_REGISTRATION", "WITHOUT_REGISTRATION" } )
     public void shouldCreateProgram( String programType )
     {
-        JsonObject object = programActions.getDummy();
+        JsonObject object = programActions.buildProgram();
         object.addProperty( "programType", programType );
 
         ApiResponse response = programActions.post( object );

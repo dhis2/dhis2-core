@@ -55,6 +55,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -165,7 +166,8 @@ public class DataValueSetServiceIntegrationTest
 
         user.setOrganisationUnits( Sets.newHashSet( ouA, ouB, ouC ) );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( dataValueSetService, "currentUserService", currentUserService );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService );
     }
 
     // -------------------------------------------------------------------------

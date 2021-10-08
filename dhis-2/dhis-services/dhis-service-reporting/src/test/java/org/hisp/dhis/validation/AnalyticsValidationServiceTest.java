@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsServiceTarget;
 import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
@@ -318,13 +319,15 @@ public class AnalyticsValidationServiceTest
         MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
         mockAnalyticsSerivce.setDateGridMap( dateGridMap );
 
-        setDependency( validationService, "analyticsService", mockAnalyticsSerivce, AnalyticsService.class );
+        setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, mockAnalyticsSerivce,
+            validationService );
     }
 
     @Override
     public void tearDownTest()
     {
-        setDependency( validationService, "analyticsService", analyticsService, AnalyticsService.class );
+        setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, analyticsService,
+            validationService );
     }
 
     // -------------------------------------------------------------------------

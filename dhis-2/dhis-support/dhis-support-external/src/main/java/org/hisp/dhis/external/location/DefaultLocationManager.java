@@ -269,6 +269,11 @@ public class DefaultLocationManager extends LogOnceLogger
         return new File( externalDir );
     }
 
+    public void setExternalDir( String externalDir )
+    {
+        this.externalDir = externalDir;
+    }
+
     @Override
     public String getExternalDirectoryPath()
         throws LocationManagerException

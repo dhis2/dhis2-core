@@ -26,15 +26,15 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.tracker.importer.enrollments;
+package org.hisp.dhis.tracker.importer;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,15 +43,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.time.Instant;
-
 import static org.hamcrest.CoreMatchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EnrollmentsOwnershipTests
+public class OwnershipTests
     extends TrackerNtiApiTest
 {
     String userPassword = Constants.USER_PASSWORD;
@@ -60,18 +58,23 @@ public class EnrollmentsOwnershipTests
 
     String searchOu = "g8upMTyEZGZ";
 
-    String trackedEntityType = "Q9GufDoplCL";
+    String trackedEntityType = Constants.TRACKED_ENTITY_TYPE;
 
     String username;
 
-    String tei;
+    String teiInSearchScope;
+
+    String teiInCaptureScope;
 
     private ProgramActions programActions;
+
     private UserActions userActions;
+
     private JsonObject enrollment;
-    private JsonObject program;
 
     private String protectedProgram;
+
+    private String openProgram;
 
     @BeforeAll
     public void beforeAll()
@@ -81,21 +84,26 @@ public class EnrollmentsOwnershipTests
         programActions = new ProgramActions();
         loginActions.loginAsSuperUser();
         username = createUserWithAccessToOu();
+        protectedProgram = createProgramWithAccessLevel( "PROTECTED" );
+        openProgram = createProgramWithAccessLevel( "OPEN" );
 
-        protectedProgram = createProtectedProgram();
+        String protectedProgramStageId = programActions
+            .get( protectedProgram, new QueryParamsBuilder().add( "fields=programStages" ) ).validateStatus( 200 )
+            .extractString( "programStages.id[0]" );
 
-        program = programActions.get("/" + protectedProgram + "?fields=*").validateStatus( 200 ).getBody();
+        teiInCaptureScope = super.importTeiWithEnrollmentAndEvent( captureOu, protectedProgram, protectedProgramStageId )
+            .extractImportedTeis().get( 0 );
+        teiInSearchScope = super.importTeiWithEnrollmentAndEvent( searchOu, protectedProgram, protectedProgramStageId )
+            .extractImportedTeis().get( 0 );
 
-        String protectedProgramStageId = program.get( "programStages" ).getAsJsonArray().get(0).getAsJsonObject().get( "id" ).getAsString();
+        enrollment = trackerActions.getTrackedEntity( teiInSearchScope + "?fields=enrollments" )
+            .validateStatus( 200 )
+            .getBody();
 
-        tei = super.importTeiWithEnrollmentAndEvent( captureOu, protectedProgram, protectedProgramStageId )
-                .extractImportedTeis().get( 0 );
+        trackerActions.update( String
+            .format( "/ownership/transfer?trackedEntityInstance=%s&program=%s&ou=%s", teiInCaptureScope, protectedProgram,
+                searchOu ), new JsonObject() ).validateStatus( 200 );
 
-        enrollment = trackerActions.getTrackedEntity( tei + "?fields=enrollments" )
-                .validateStatus( 200 )
-                .getBody();
-
-         trackerActions.update( "/ownership/transfer?trackedEntityInstance=" + tei + "&program=" + protectedProgram + "&ou=" + searchOu, new JsonObject()  ).validateStatus( 200 );
     }
 
     @BeforeEach
@@ -105,10 +113,9 @@ public class EnrollmentsOwnershipTests
     }
 
     @Test
-    @Disabled("This test does not make sense. Need to correct the test setup based on what exactly we want to test")
-    public void shouldValidateCaptureScope()
+    public void shouldNotValidateCaptureScopeForTei()
     {
-        JsonObject object = trackerActions.getTrackedEntity( tei )
+        JsonObject object = trackerActions.getTrackedEntity( teiInSearchScope )
             .validateStatus( 200 )
             .getBodyAsJsonBuilder()
             .wrapIntoArray( "trackedEntities" );
@@ -116,54 +123,41 @@ public class EnrollmentsOwnershipTests
         loginActions.loginAsUser( username, userPassword );
 
         trackerActions.postAndGetJobReport( object )
-            .validateErrorReport()
-            .body( "errorCode", hasItems( "E1000" ) );
-
-        loginActions.loginAsAdmin();
+            .validateSuccessfulImport();
     }
 
-    @ValueSource( strings = { "CREATE_AND_UPDATE", "UPDATE", "DELETE" })
+    @ValueSource( strings = { "CREATE_AND_UPDATE", "UPDATE", "DELETE" } )
     @ParameterizedTest
-    public void shouldValidateEnrollmentOwnership(String importStrategy)
+    public void shouldValidateEnrollmentOwnership( String importStrategy )
     {
+        enrollment = trackerActions.getTrackedEntity( teiInCaptureScope + "?fields=enrollments" )
+            .validateStatus( 200 )
+            .getBody();
+
         loginActions.loginAsUser( username, userPassword );
 
-        trackerActions.postAndGetJobReport( enrollment, new QueryParamsBuilder().add( "importStrategy="  + importStrategy) )
+        trackerActions.postAndGetJobReport( enrollment, new QueryParamsBuilder().add( "importStrategy=" + importStrategy ) )
             .validateErrorReport()
             .body( "errorCode", hasItems( "E1102" ) );
-
-        loginActions.loginAsAdmin();
     }
 
     @Test
-    public void shouldNotEnroll() {
-        loginActions.loginAsAdmin();
-
-        trackerActions.getTrackedEntity( tei + "?fields=enrollments").validate().statusCode( 200 )
-            .body( "enrollments", hasSize(1) );
-
-
+    public void shouldNotEnrollWhenOwnershipOutsideCaptureOu()
+    {
         loginActions.loginAsUser( username, userPassword );
 
-        trackerActions.getTrackedEntity( tei + "?fields=enrollments").validate().statusCode( 200 )
+        trackerActions.getTrackedEntity( teiInSearchScope + "?fields=enrollments" ).validate().statusCode( 200 )
             .body( "enrollments", hasSize( 0 ) );
 
-
-        trackerActions.postAndGetJobReport( buildEnrollment( protectedProgram, captureOu, tei ) )
-            .validate().statusCode( 200 );
-
-        loginActions.loginAsUser( username, userPassword );
-
-        trackerActions.getTrackedEntity( tei + "?fields=enrollments").validate().statusCode( 200 )
-            .body( "enrollments", hasSize(0) );
-
-        loginActions.loginAsAdmin();
-
+        trackerActions
+            .postAndGetJobReport( new EnrollmentDataBuilder().build( protectedProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
+            .validateErrorReport()
+            .body( "errorCode", hasItems( "E1102" ) );
     }
 
     protected String createUserWithAccessToOu()
     {
-        String username = DataGenerator.randomString();
+        String username = DataGenerator.randomEntityName() + "user";
         String userid = userActions.addUser( username, Constants.USER_PASSWORD );
 
         //userActions.addRoleToUser( userid, auth );
@@ -174,23 +168,30 @@ public class EnrollmentsOwnershipTests
         return username;
     }
 
-    private JsonObject buildEnrollment( String programId, String ouId, String teiId) {
-        return new JsonObjectBuilder().addProperty( "program", programId )
-            .addProperty( "orgUnit", ouId )
-            .addProperty( "trackedEntity", teiId )
-            .addProperty( "enrolledAt", Instant.now().toString() )
-            .addProperty( "occurredAt", Instant.now().toString() )
-            .wrapIntoArray("enrollments");
+    @Test
+    public void shouldNotValidateOwnershipIfProgramIsOpen()
+    {
+        loginActions.loginAsUser( username, userPassword );
+
+        trackerActions.getTrackedEntity( teiInSearchScope + "?fields=enrollments" ).validate().statusCode( 200 )
+            .body( "enrollments", hasSize( 0 ) );
+
+        trackerActions
+            .postAndGetJobReport( new EnrollmentDataBuilder().build( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
+            .validateSuccessfulImport();
+
     }
 
-    private String createProtectedProgram() {
+    private String createProgramWithAccessLevel( String accessLevel )
+    {
         String programId = programActions.createTrackerProgram( trackedEntityType, captureOu, searchOu ).extractUid();
 
         JsonObject program = programActions.get( programId )
-            .getBody();
-
-        program.addProperty( "accessLevel", "PROTECTED" );
-        program.addProperty( "publicAccess" , "rwrw----" );
+            .getBodyAsJsonBuilder()
+            .addProperty( "accessLevel", accessLevel )
+            .addProperty( "publicAccess", "rwrw----" )
+            .addProperty( "onlyEnrollOnce", "false" )
+            .build();
 
         programActions.update( programId, program ).validateStatus( 200 );
 
