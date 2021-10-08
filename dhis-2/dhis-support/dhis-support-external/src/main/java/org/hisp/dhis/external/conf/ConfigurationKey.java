@@ -390,7 +390,7 @@ public enum ConfigurationKey
     /**
      * Optional. (default: email).
      */
-    OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "", true ),
+    OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true ),
 
     /**
      * DHIS 2 instance URL, do not end with a slash, e.g.:
