@@ -63,7 +63,6 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         TrackedEntityAttribute teAttr )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
-        checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
         checkNotNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         ValueType valueType = teAttr.getValueType();

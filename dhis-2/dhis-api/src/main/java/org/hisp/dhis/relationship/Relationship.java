@@ -29,6 +29,9 @@ package org.hisp.dhis.relationship;
 
 import java.io.Serializable;
 
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -44,6 +47,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Stian Sandvold
  */
 @JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
+@Auditable( scope = AuditScope.TRACKER )
 public class Relationship
     extends BaseNameableObject
     implements Serializable
@@ -53,10 +57,13 @@ public class Relationship
      */
     private static final long serialVersionUID = 3818815755138507997L;
 
+    @AuditAttribute
     private RelationshipType relationshipType;
 
+    @AuditAttribute
     private RelationshipItem from;
 
+    @AuditAttribute
     private RelationshipItem to;
 
     private ObjectStyle style;

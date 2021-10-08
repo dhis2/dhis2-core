@@ -39,8 +39,10 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -54,7 +56,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "programDataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramDataElementDimensionItem
-    extends BaseDimensionalItemObject implements EmbeddedObject
+    extends BaseDimensionalItemObject implements EmbeddedObject, ValueTypedDimensionalItemObject
 {
     private Program program;
 
@@ -90,6 +92,19 @@ public class ProgramDataElementDimensionItem
         return program.getDisplayShortName() + " " + dataElement.getDisplayShortName();
     }
 
+    @Override
+    public boolean hasOptionSet()
+    {
+        return dataElement.hasOptionSet();
+    }
+
+    @Override
+    public OptionSet getOptionSet()
+    {
+        return dataElement.getOptionSet();
+    }
+
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()

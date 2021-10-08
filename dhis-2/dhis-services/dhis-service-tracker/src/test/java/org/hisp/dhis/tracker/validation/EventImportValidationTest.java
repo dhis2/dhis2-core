@@ -38,7 +38,6 @@ import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -886,7 +885,7 @@ public class EventImportValidationTest
             assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
-            assertNull( comment.getCreator() );
+            assertNotNull( comment.getCreator() );
             assertEquals( ADMIN_USER_UID, comment.getLastUpdatedBy().getUid() );
         } );
     }
@@ -916,7 +915,7 @@ public class EventImportValidationTest
             assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
-            assertNull( comment.getCreator() );
+            assertNotNull( comment.getCreator() );
             assertEquals( ADMIN_USER_UID, comment.getLastUpdatedBy().getUid() );
         } );
     }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import javax.sql.DataSource;
@@ -46,6 +48,9 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
+import org.hisp.dhis.webapi.security.vote.ExternalAccessVoter;
+import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
+import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -54,6 +59,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.access.AccessDecisionManager;
+import org.springframework.security.access.vote.AuthenticatedVoter;
+import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
@@ -86,12 +94,23 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
+import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import com.google.common.collect.ImmutableList;
 
 /**
+ * The {@code DhisWebApiWebSecurityConfig} class configures mostly all
+ * authentication and authorization related to the /api endpoint.
+ *
+ * Almost all other endpoints are configured in
+ * {@code DhisWebCommonsWebSecurityConfig}
+ *
+ * The biggest practical benefit of having separate configs for /api and the
+ * rest is that we can start a server only serving request to /api/**
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
@@ -174,7 +193,6 @@ public class DhisWebApiWebSecurityConfig
             @Override
             @SuppressWarnings( "unchecked" )
             public void init( HttpSecurity builder )
-                throws Exception
             {
                 // This is a quirk to remove the default
                 // DaoAuthenticationConfigurer,
@@ -190,14 +208,12 @@ public class DhisWebApiWebSecurityConfig
 
         @Override
         public void configure( AuthorizationServerSecurityConfigurer security )
-            throws Exception
         {
             // Intentionally empty
         }
 
         @Override
         public void configure( ClientDetailsServiceConfigurer configurer )
-            throws Exception
         {
             // Intentionally empty
         }
@@ -210,7 +226,6 @@ public class DhisWebApiWebSecurityConfig
 
         @Override
         public void configure( final AuthorizationServerEndpointsConfigurer endpoints )
-            throws Exception
         {
             ProviderManager providerManager = new ProviderManager(
                 ImmutableList.of( twoFactorAuthenticationProvider, customLdapAuthenticationProvider ) );
@@ -262,8 +277,8 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
+        @Override
         public void configure( AuthenticationManagerBuilder auth )
-            throws Exception
         {
             auth.authenticationEventPublisher( authenticationEventPublisher );
         }
@@ -330,8 +345,10 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private DhisBearerJwtTokenAuthenticationEntryPoint bearerTokenEntryPoint;
 
+        @Autowired
+        private ExternalAccessVoter externalAccessVoter;
+
         public void configure( AuthenticationManagerBuilder auth )
-            throws Exception
         {
             auth.authenticationProvider( customLdapAuthenticationProvider );
             auth.authenticationProvider( twoFactorAuthenticationProvider );
@@ -345,7 +362,7 @@ public class DhisWebApiWebSecurityConfig
          * endpoints. It is used only by the
          * OAuth2AuthenticationProcessingFilter.
          */
-        private AuthenticationManager oauthAuthenticationManager( HttpSecurity http )
+        private AuthenticationManager oauthAuthenticationManager()
         {
             OAuth2AuthenticationManager oauthAuthenticationManager = new OAuth2AuthenticationManager();
             oauthAuthenticationManager.setResourceId( "oauth2-resource" );
@@ -355,10 +372,41 @@ public class DhisWebApiWebSecurityConfig
             return oauthAuthenticationManager;
         }
 
+        public WebExpressionVoter apiWebExpressionVoter()
+        {
+            WebExpressionVoter voter = new WebExpressionVoter();
+
+            DefaultWebSecurityExpressionHandler handler;
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            {
+                handler = new OAuth2WebSecurityExpressionHandler();
+            }
+            else
+            {
+                handler = new DefaultWebSecurityExpressionHandler();
+            }
+            handler.setDefaultRolePrefix( "" );
+
+            voter.setExpressionHandler( handler );
+
+            return voter;
+        }
+
+        public LogicalOrAccessDecisionManager apiAccessDecisionManager()
+        {
+            List<AccessDecisionManager> decisionVoters = Arrays.asList(
+                new UnanimousBased( ImmutableList.of( new SimpleAccessVoter( "ALL" ) ) ),
+                new UnanimousBased( ImmutableList.of( apiWebExpressionVoter() ) ),
+                new UnanimousBased( ImmutableList.of( externalAccessVoter ) ),
+                new UnanimousBased( ImmutableList.of( new AuthenticatedVoter() ) ) );
+
+            return new LogicalOrAccessDecisionManager( decisionVoters );
+        }
+
         private void configureAccessRestrictions(
             ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorize )
         {
-            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {
                 authorize.expressionHandler( new OAuth2WebSecurityExpressionHandler() );
             }
@@ -374,7 +422,10 @@ public class DhisWebApiWebSecurityConfig
                 .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
                 .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
                 .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
-                .anyRequest().authenticated();
+
+                .anyRequest()
+                .authenticated()
+                .accessDecisionManager( apiAccessDecisionManager() );
         }
 
         protected void configure( HttpSecurity http )
@@ -387,7 +438,7 @@ public class DhisWebApiWebSecurityConfig
                 .authenticationEntryPoint( basicAuthenticationEntryPoint() )
                 .and().csrf().disable();
 
-            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {
                 http.exceptionHandling().accessDeniedHandler( new OAuth2AccessDeniedHandler() );
             }
@@ -409,7 +460,7 @@ public class DhisWebApiWebSecurityConfig
 
                 OAuth2AuthenticationProcessingFilter filter = new OAuth2AuthenticationProcessingFilter();
                 filter.setAuthenticationEntryPoint( authenticationEntryPoint );
-                filter.setAuthenticationManager( oauthAuthenticationManager( http ) );
+                filter.setAuthenticationManager( oauthAuthenticationManager() );
                 filter.setStateless( false );
 
                 http.addFilterAfter( filter, BasicAuthenticationFilter.class );
@@ -454,6 +505,14 @@ public class DhisWebApiWebSecurityConfig
             return jwtFilter;
         }
 
+        /**
+         * Entrypoint to "re-direct" http basic authentications to the login
+         * form page. Without this, the default http basic pop-up window in the
+         * browser will be used.
+         *
+         * @return DHIS2BasicAuthenticationEntryPoint entryPoint to use in http
+         *         config.
+         */
         @Bean
         public DHIS2BasicAuthenticationEntryPoint basicAuthenticationEntryPoint()
         {

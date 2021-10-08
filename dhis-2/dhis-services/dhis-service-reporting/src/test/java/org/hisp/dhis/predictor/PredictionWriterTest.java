@@ -155,14 +155,12 @@ public class PredictionWriterTest
 
         predictionSummary = new PredictionSummary();
 
-        String storedBy = "me";
-
         when( batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ) )
             .thenReturn( dataValueBatchHandler );
 
         when( dataValueBatchHandler.init() ).thenReturn( dataValueBatchHandler );
 
-        writer.init( existingOutputPeriods, predictionSummary, storedBy );
+        writer.init( existingOutputPeriods, predictionSummary );
     }
 
     private String writeSummary( PredictionSummary summary )

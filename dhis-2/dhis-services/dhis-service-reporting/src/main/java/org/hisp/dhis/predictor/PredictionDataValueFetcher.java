@@ -29,6 +29,7 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -188,6 +189,13 @@ public class PredictionDataValueFetcher
 
         producerSemaphore = new Semaphore( 1 );
         consumerSemaphore = new Semaphore( 1 );
+
+        if ( isEmpty( dataElements ) && isEmpty( dataElementOperands ) )
+        {
+            endOfData = true;
+
+            return;
+        }
 
         producerSemaphore.acquireUninterruptibly();
         consumerSemaphore.acquireUninterruptibly();
