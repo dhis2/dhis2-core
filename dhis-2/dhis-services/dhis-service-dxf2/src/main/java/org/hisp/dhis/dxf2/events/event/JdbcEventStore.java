@@ -100,6 +100,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
@@ -123,6 +124,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
@@ -136,6 +138,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -144,6 +149,8 @@ import com.google.common.collect.ImmutableMap;
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
 public class JdbcEventStore implements EventStore
 {
+    private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.programstageinstanceid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl FROM relationshipitem ri"
+        + " GROUP by ri_psi_id)  as fgh on fgh.ri_psi_id=event.psi_id ";
 
     private static final String PSI_EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
         " psinote.trackedentitycommentid as psinote_id," +
@@ -272,9 +279,12 @@ public class JdbcEventStore implements EventStore
 
     private final Environment env;
 
+    private final org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore;
+
     public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
         @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper,
-        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env )
+        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env,
+        org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore )
     {
         checkNotNull( statementBuilder );
         checkNotNull( jdbcTemplate );
@@ -282,6 +292,7 @@ public class JdbcEventStore implements EventStore
         checkNotNull( identifiableObjectManager );
         checkNotNull( jsonMapper );
         checkNotNull( env );
+        checkNotNull( eventStore );
 
         this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
@@ -289,6 +300,7 @@ public class JdbcEventStore implements EventStore
         this.manager = identifiableObjectManager;
         this.jsonMapper = jsonMapper;
         this.env = env;
+        this.eventStore = eventStore;
 
     }
 
@@ -306,6 +318,9 @@ public class JdbcEventStore implements EventStore
 
         Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
         List<Event> events = new ArrayList<>();
+        List<Long> relationshipIds = new ArrayList<>();
+
+        final Gson gson = new Gson();
 
         String sql = buildSql( params, organisationUnits, user );
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -468,6 +483,29 @@ public class JdbcEventStore implements EventStore
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
+
+            if ( params.isIncludeRelationships() )
+            {
+                if ( rowSet.getObject( "psi_rl" ) != null )
+                {
+                    PGobject pGobject = (PGobject) rowSet.getObject( "psi_rl" );
+
+                    if ( pGobject != null )
+                    {
+                        String value = pGobject.getValue();
+
+                        relationshipIds.addAll( Lists.newArrayList( gson.fromJson( value, Long[].class ) ) );
+                    }
+                }
+            }
+        }
+
+        final Multimap<String, Relationship> map = eventStore
+            .getRelationshipsByIds( relationshipIds );
+
+        if ( !map.isEmpty() )
+        {
+            events.forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
         }
 
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
@@ -575,6 +613,7 @@ public class JdbcEventStore implements EventStore
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
@@ -893,6 +932,11 @@ public class JdbcEventStore implements EventStore
 
         sqlBuilder.append( ") as cm on event.psi_id=cm.psic_id " );
 
+        if ( params.isIncludeRelationships() )
+        {
+            sqlBuilder.append( RELATIONSHIP_IDS_QUERY );
+        }
+
         sqlBuilder.append( getOrderQuery( params ) );
 
         return sqlBuilder.toString();
@@ -905,7 +949,8 @@ public class JdbcEventStore implements EventStore
         SqlHelper hlp = new SqlHelper();
 
         StringBuilder sqlBuilder = new StringBuilder().append( "select "
-            + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() ) + " psi.uid as psi_uid, "
+            + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() )
+            + " psi.uid as psi_uid, "
             + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, "
             + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
