@@ -186,8 +186,9 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
                 Map.Entry::getKey,
                 Map.Entry::getValue,
                 ( v1, v2 ) -> {
-                    v1.addAll( v2 );
-                    return v1;
+                    List<Attribute> attributes = Lists.newArrayList( v1 );
+                    attributes.addAll( v2 );
+                    return attributes;
                 } ) );
     }
 
