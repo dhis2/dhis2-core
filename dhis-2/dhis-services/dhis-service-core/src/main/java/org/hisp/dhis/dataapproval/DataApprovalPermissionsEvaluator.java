@@ -264,7 +264,8 @@ class DataApprovalPermissionsEvaluator
         permissions.setApprovedAt( status.getCreated() );
 
         if ( status.getState() == DataApprovalState.APPROVED_HERE
-            || (status.getState() == DataApprovalState.APPROVED_ABOVE && userLevelIndex < dataLevelIndex) )
+            || (status.getState() == DataApprovalState.APPROVED_ABOVE && userLevelIndex < dataLevelIndex)
+            || status.getState() == DataApprovalState.ACCEPTED_HERE )
         {
             permissions.setApprovedBy( status.getCreator() != null ? status.getCreator().getName() : null );
         }

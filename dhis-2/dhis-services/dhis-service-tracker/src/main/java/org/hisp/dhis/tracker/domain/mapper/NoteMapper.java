@@ -35,6 +35,5 @@ import org.mapstruct.Mapping;
 public interface NoteMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Note, Note>
 {
     @Mapping( target = "storedAt", source = "storedDate" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
     Note from( org.hisp.dhis.dxf2.events.event.Note note );
 }
