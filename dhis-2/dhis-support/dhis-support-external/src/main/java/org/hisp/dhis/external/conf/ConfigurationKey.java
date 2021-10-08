@@ -393,8 +393,8 @@ public enum ConfigurationKey
     OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true ),
 
     /**
-     * DHIS 2 instance URL, do not end with a slash, e.g.:
-     * https://dhis2.org/demo.
+     * DHIS 2 instance URL, do not end with a slash, <br />
+     * e.g. https://dhis2.org/demo.
      */
     OIDC_PROVIDER_GOOGLE_REDIRECT_URI( "oidc.provider.google.redirect_url", "", true ),
 
