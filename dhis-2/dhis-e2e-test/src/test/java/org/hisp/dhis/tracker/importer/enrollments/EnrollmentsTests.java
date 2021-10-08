@@ -164,36 +164,55 @@ public class EnrollmentsTests
             .body( "storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
-    @Disabled( "bug" )
-    @Test
-    public void shouldEnrollMultipleTimesIfProgramAllowsIt()
-        throws Exception
+    @ValueSource( strings = { "true", "false" } )
+    @ParameterizedTest
+    public void shouldOnlyEnrollOnce( String shouldEnrollOnce )
+            throws Exception
     {
+        // arrange
+        String program = programActions.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS )
+                .extractUid();
+
+        JsonObject object = programActions.get( program ).getBodyAsJsonBuilder()
+                .addProperty( "onlyEnrollOnce", shouldEnrollOnce )
+                .addProperty( "publicAccess", "rwrw----" ).build();
+
+        programActions.update( program, object ).validateStatus( 200 );
+
         String tei = super.importTei();
 
         trackerActions.postAndGetJobReport(
-            new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED" ) )
-            .validateSuccessfulImport();
+                new EnrollmentDataBuilder().build( program, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED" ) )
+                .validateSuccessfulImport();
 
-        trackerActions.postAndGetJobReport(
-            new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) )
-            .validateSuccessfulImport();
+        // act
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport(
+                new EnrollmentDataBuilder().build( program, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) );
 
         // assert
+        if ( Boolean.parseBoolean( shouldEnrollOnce ) )
+        {
+            response.validateErrorReport()
+                    .body( "errorCode", hasItems( "E1016" ) );
+            return;
+        }
+
+        response.validateSuccessfulImport();
         trackerActions.getTrackedEntity( tei + "?fields=enrollments" )
-            .validate().body( "enrollments", hasSize( 2 ) );
+                .validate().body( "enrollments", hasSize( 2 ) );
     }
 
     @Test
     public void shouldNotAllowMultipleActiveEnrollments()
-        throws Exception
+            throws Exception
     {
         String tei = super.importTeiWithEnrollment( multipleEnrollmentsProgram ).extractImportedTeis().get( 0 );
 
         trackerActions.postAndGetJobReport(
-            new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) )
-            .validateErrorReport()
-            .body( "errorCode", hasItems( "E1016" ) );
+                new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) )
+                .validateErrorReport()
+                .body( "errorCode", hasItems( "E1015" ) );
     }
 
     @Test
