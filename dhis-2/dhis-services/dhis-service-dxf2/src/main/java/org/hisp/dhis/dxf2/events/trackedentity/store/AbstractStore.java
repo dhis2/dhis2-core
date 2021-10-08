@@ -49,7 +49,7 @@ import com.google.common.collect.Multimap;
  */
 public abstract class AbstractStore
 {
-    protected final static int PARTITION_SIZE = 20000;
+    protected final static int PARITITION_SIZE = 20000;
 
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -102,7 +102,7 @@ public abstract class AbstractStore
 
     public Multimap<String, Relationship> getRelationships( List<Long> ids )
     {
-        List<List<Long>> partitionedIds = Lists.partition( ids, PARTITION_SIZE );
+        List<List<Long>> partitionedIds = Lists.partition( ids, PARITITION_SIZE );
 
         Multimap<String, Relationship> relationshipMultimap = ArrayListMultimap.create();
 
@@ -188,7 +188,7 @@ public abstract class AbstractStore
      */
     protected <T> Multimap<String, T> fetch( String sql, AbstractMapper<T> handler, List<Long> ids )
     {
-        List<List<Long>> idPartitions = Lists.partition( ids, PARTITION_SIZE );
+        List<List<Long>> idPartitions = Lists.partition( ids, PARITITION_SIZE );
 
         Multimap<String, T> multimap = ArrayListMultimap.create();
 
