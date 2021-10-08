@@ -29,7 +29,11 @@ package org.hisp.dhis.dataset;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -56,6 +60,7 @@ import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
@@ -167,9 +172,9 @@ public class DataSetServiceTest
 
         mockCurrentUserService = new MockCurrentUserService( true, newHashSet( unitA ), newHashSet( unitA ),
             UserAuthorityGroup.AUTHORITY_ALL );
-        setDependency( approvalService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
-        setDependency( approvalStore, "currentUserService", mockCurrentUserService, CurrentUserService.class );
-        setDependency( levelService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
+
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            mockCurrentUserService, approvalService, approvalStore, levelService );
 
         User user = mockCurrentUserService.getCurrentUser();
         user.setFirstName( "John" );
@@ -181,9 +186,8 @@ public class DataSetServiceTest
     @Override
     public void tearDownTest()
     {
-        setDependency( approvalService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( approvalStore, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( levelService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, approvalService, approvalStore, levelService );
     }
 
     // -------------------------------------------------------------------------

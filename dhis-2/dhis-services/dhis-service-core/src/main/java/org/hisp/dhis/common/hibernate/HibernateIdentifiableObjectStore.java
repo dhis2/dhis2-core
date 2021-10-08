@@ -68,10 +68,11 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInfo;
-import org.hisp.dhis.util.*;
+import org.hisp.dhis.util.SharingUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -82,7 +83,8 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
-    extends HibernateGenericStore<T> implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>
+    extends HibernateGenericStore<T>
+    implements GenericDimensionalObjectStore<T>, InternalHibernateGenericStore<T>, CurrentUserServiceTarget
 {
     protected CurrentUserService currentUserService;
 
@@ -104,10 +106,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         this.cacheable = cacheable;
     }
 
-    /**
-     * Only used by tests, remove after fixing the tests
-     */
-    @Deprecated
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;

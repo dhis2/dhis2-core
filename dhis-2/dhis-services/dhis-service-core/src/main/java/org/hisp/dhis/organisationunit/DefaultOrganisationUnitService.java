@@ -59,6 +59,7 @@ import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilt
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -72,8 +73,7 @@ import com.google.common.collect.Sets;
  */
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
 public class DefaultOrganisationUnitService
-    implements
-    OrganisationUnitService
+    implements OrganisationUnitService, CurrentUserServiceTarget
 {
     private static final String LEVEL_PREFIX = "Level ";
 
@@ -126,10 +126,7 @@ public class DefaultOrganisationUnitService
         this.inUserOrgUnitViewHierarchyCache = cacheProvider.createInUserViewOrgUnitHierarchyCache();
     }
 
-    /**
-     * Used only by test harness. Remove after test refactoring
-     */
-    @Deprecated
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;

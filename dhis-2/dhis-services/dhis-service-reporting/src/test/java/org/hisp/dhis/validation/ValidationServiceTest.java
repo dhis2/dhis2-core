@@ -86,6 +86,7 @@ import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -253,7 +254,8 @@ public class ValidationServiceTest
         this.userService = injectUserService;
 
         CurrentUserService currentUserService = new MockCurrentUserService( allSources, null );
-        setDependency( validationService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, validationService );
 
         ptWeekly = new WeeklyPeriodType();
         ptMonthly = new MonthlyPeriodType();

@@ -164,6 +164,12 @@ public final class GistQuery
     private final boolean describe;
 
     /**
+     * Weather or not to include the API endpoints references
+     */
+    @JsonProperty
+    private final boolean references;
+
+    /**
      * The extend to which fields are included by default
      */
     @JsonProperty( value = "auto" )
@@ -214,6 +220,7 @@ public final class GistQuery
             .absoluteUrls( params.getBoolean( "absoluteUrls", false ) )
             .headless( params.getBoolean( "headless", false ) )
             .describe( params.getBoolean( "describe", false ) )
+            .references( params.getBoolean( "references", true ) )
             .anyFilter( params.getString( "rootJunction", "AND" ).equalsIgnoreCase( "OR" ) )
             .fields( params.getStrings( "fields", FIELD_SPLIT ).stream()
                 .map( Field::parse ).collect( toList() ) )

@@ -25,38 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain;
+package org.hisp.dhis.common;
 
-import java.time.Instant;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.quick.BatchHandlerFactory;
 
 /**
- * Notes are text-only objects attached to Events and Enrollments. An Event or
- * Enrollment may have multiple notes.
+ * OBS! This should not become a part of the dhis-api module!
+ * <p>
+ * Added to managed bean implementation classes (not their interface) which are
+ * provided with a {@link BatchHandlerFactory} during testing.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Note
+public interface BatchHandlerFactoryTarget
 {
-    @JsonProperty
-    private String note;
-
-    @JsonProperty
-    private Instant storedAt;
-
-    @JsonProperty
-    private String storedBy;
-
-    @JsonProperty
-    private String value;
+    /**
+     * This is only a workaround until a better solution is found.
+     *
+     * @param batchHandlerFactory dynamically update {@link BatchHandlerFactory}
+     *        during testing
+     */
+    void setBatchHandlerFactory( BatchHandlerFactory batchHandlerFactory );
 }
