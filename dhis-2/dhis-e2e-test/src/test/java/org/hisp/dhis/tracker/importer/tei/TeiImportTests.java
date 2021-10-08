@@ -116,6 +116,32 @@ public class TeiImportTests
     }
 
     @Test
+    public void shouldImportTeiAndEnrollmentWithAttributes()
+            throws Exception
+    {
+        JsonObject teiBody = new FileReaderUtils()
+                .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndAttributes.json" ) );
+
+        // act
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiBody );
+
+        // assert
+        response.validateSuccessfulImport()
+                .validate()
+                .body( "stats.created", equalTo( 2 ) )
+                .rootPath( "bundleReport.typeReportMap" )
+                .body( "TRACKED_ENTITY.objectReports", hasSize( 1 ) )
+                .body( "ENROLLMENT.objectReports", hasSize( 1 ) );
+
+        // assert that the TEI was imported
+        String teiId = response.extractImportedTeis().get( 0 );
+
+        ApiResponse teiResponse = trackerActions.getTrackedEntity( teiId );
+
+        teiResponse.validate().statusCode( 200 );
+    }
+
+    @Test
     public void shouldImportTeisWithEnrollmentsEventsAndRelationship()
         throws Exception
     {
