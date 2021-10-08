@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -163,50 +164,104 @@ public class EnrollmentInExistingValidationHookTest
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
 
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+
+        assertFalse( validationErrorReporter.hasErrors() );
     }
 
     @Test
-    public void shouldFailEnrollmentAlreadyInPayload()
+    public void shouldFailActiveEnrollmentAlreadyInPayload()
     {
-
         setEnrollmentInPayload( EnrollmentStatus.ACTIVE );
 
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
 
         assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 2, validationErrorReporter.getReportList().size() );
+        assertEquals( 1, validationErrorReporter.getReportList().size() );
 
         assertThat( validationErrorReporter.getReportList(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
-
-        assertThat( validationErrorReporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
-
     }
 
     @Test
-    public void shouldFailEnrollmentAlreadyInDb()
+    public void shouldFailNotActiveEnrollmentAlreadyInPayloadAndEnrollOnce()
     {
+        Program program = new Program();
+        program.setUid( programUid );
+        program.setOnlyEnrollOnce( true );
 
+        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
+
+        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+
+        assertTrue( validationErrorReporter.hasErrors() );
+        assertEquals( 1, validationErrorReporter.getReportList().size() );
+
+        assertThat( validationErrorReporter.getReportList(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
+    }
+
+    @Test
+    public void shouldPassNotActiveEnrollmentAlreadyInPayloadAndNotEnrollOnce()
+    {
+        setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
+
+        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+
+        assertFalse( validationErrorReporter.hasErrors() );
+    }
+
+    @Test
+    public void shouldFailActiveEnrollmentAlreadyInDb()
+    {
         setTeiInDb();
 
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
 
         assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 2, validationErrorReporter.getReportList().size() );
+        assertEquals( 1, validationErrorReporter.getReportList().size() );
 
         assertThat( validationErrorReporter.getReportList(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
-
-        assertThat( validationErrorReporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
-
     }
 
     @Test
-    public void shouldFailWithPriorityInPayload()
+    public void shouldFailNotActiveEnrollmentAlreadyInDbAndEnrollOnce()
     {
+        Program program = new Program();
+        program.setUid( programUid );
+        program.setOnlyEnrollOnce( true );
 
+        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        setTeiInDb( ProgramStatus.COMPLETED );
+
+        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+
+        assertTrue( validationErrorReporter.hasErrors() );
+        assertEquals( 1, validationErrorReporter.getReportList().size() );
+
+        assertThat( validationErrorReporter.getReportList(),
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
+    }
+
+    @Test
+    public void shouldPassNotActiveEnrollmentAlreadyInDbAndNotEnrollOnce()
+    {
+        setTeiInDb( ProgramStatus.COMPLETED );
+
+        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+
+        assertFalse( validationErrorReporter.hasErrors() );
+    }
+
+    @Test
+    public void shouldFailAnotherEnrollmentAndEnrollOnce()
+    {
+        Program program = new Program();
+        program.setUid( programUid );
+        program.setOnlyEnrollOnce( true );
+
+        when( validationContext.getProgram( programUid ) ).thenReturn( program );
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
         setTeiInDb();
 
@@ -220,7 +275,29 @@ public class EnrollmentInExistingValidationHookTest
 
     }
 
+    @Test
+    public void shouldPassWhenAnotherEnrollmentAndNotEnrollOnce()
+    {
+        Program program = new Program();
+        program.setUid( programUid );
+        program.setOnlyEnrollOnce( false );
+
+        when( validationContext.getProgram( programUid ) ).thenReturn( program );
+        setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
+        setTeiInDb();
+
+        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+
+        assertFalse( validationErrorReporter.hasErrors() );
+
+    }
+
     private void setTeiInDb()
+    {
+        setTeiInDb( ProgramStatus.ACTIVE );
+    }
+
+    private void setTeiInDb( ProgramStatus programStatus )
     {
         when( preheat.getTrackedEntityToProgramInstanceMap() ).thenReturn( new HashMap<String, List<ProgramInstance>>()
         {
@@ -231,7 +308,7 @@ public class EnrollmentInExistingValidationHookTest
                 program.setUid( programUid );
 
                 programInstance.setUid( "another_enrollment" );
-                programInstance.setStatus( ProgramStatus.ACTIVE );
+                programInstance.setStatus( programStatus );
                 programInstance.setProgram( program );
 
                 put( trackedEntity, Collections.singletonList( programInstance ) );
