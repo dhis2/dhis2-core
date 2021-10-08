@@ -311,9 +311,9 @@ public class TrackerActions
         return new JsonObjectBuilder()
                 .addProperty( "relationshipType", relationshipType )
                 .addObject( "from", new JsonObjectBuilder()
-                        .addProperty( "trackedEntity", trackedEntity_1 ) )
+                        .addProperty( "trackedEntity", fromEntityId ) )
                 .addObject( "to", new JsonObjectBuilder()
-                        .addProperty( "trackedEntity", trackedEntity_2 ) )
+                        .addProperty( "trackedEntity", toEntityId ) )
                 .build();
     }
 
