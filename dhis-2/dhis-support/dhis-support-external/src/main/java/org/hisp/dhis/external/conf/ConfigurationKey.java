@@ -39,11 +39,12 @@ public enum ConfigurationKey
 {
     /**
      * System mode for database read operations only, can be 'off', 'on'.
+     * (default: off).
      */
     SYSTEM_READ_ONLY_MODE( "system.read_only_mode", Constants.OFF, false ),
 
     /**
-     * Session timeout in seconds, default is 3600.
+     * Session timeout in seconds. (default: 3600).
      */
     SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600", false ),
 
@@ -63,12 +64,13 @@ public enum ConfigurationKey
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
 
     /**
-     * SQL view protected tables, can be 'on', 'off'.
+     * SQL view protected tables, can be 'on', 'off'. (default: on)
      */
     SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", Constants.ON, false ),
 
     /**
-     * Disable server-side program rule execution, can be 'on', 'off'.
+     * Disable server-side program rule execution, can be 'on', 'off'. <br />
+     * (default: on)
      */
     SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
 
@@ -115,7 +117,7 @@ public enum ConfigurationKey
     CONNECTION_SCHEMA( "connection.schema", "", false ),
 
     /**
-     * Max size of connection pool (default: 40).
+     * Max size of connection pool (default: 80).
      */
     CONNECTION_POOL_MAX_SIZE( "connection.pool.max_size", "80", false ),
 
@@ -127,13 +129,13 @@ public enum ConfigurationKey
 
     /**
      * Number of Connections a pool will try to acquire upon startup. Should be
-     * between minPoolSize and maxPoolSize.
+     * between minPoolSize and maxPoolSize. (default: 5).
      */
     CONNECTION_POOL_INITIAL_SIZE( "connection.pool.initial_size", "5", false ),
 
     /**
      * Determines how many connections at a time will try to acquire when the
-     * pool is exhausted.
+     * pool is exhausted. (default: 5).
      */
     CONNECTION_POOL_ACQUIRE_INCR( "connection.pool.acquire_incr", "5", false ),
 
@@ -188,7 +190,7 @@ public enum ConfigurationKey
     CONNECTION_POOL_TEST_QUERY( "connection.pool.preferred.test.query" ),
 
     /**
-     * LDAP server URL.
+     * LDAP server URL. (default: ldaps://0:1)
      */
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
 
@@ -208,18 +210,19 @@ public enum ConfigurationKey
     LDAP_SEARCH_BASE( "ldap.search.base", "", false ),
 
     /**
-     * LDAP entry distinguished name filter.
+     * LDAP entry distinguished name filter. (default: (cn={0}) ).
      */
     LDAP_SEARCH_FILTER( "ldap.search.filter", "(cn={0})", false ),
 
     /**
      * File store provider, currently 'filesystem' and 'aws-s3' are supported.
+     * (default: filesystem)
      */
     FILESTORE_PROVIDER( "filestore.provider", "filesystem", false ),
 
     /**
      * Directory / bucket name, folder below DHIS2_HOME on file system, 'bucket'
-     * on AWS S3.
+     * on AWS S3. (default: files)
      */
     FILESTORE_CONTAINER( "filestore.container", "files", false ),
 
@@ -271,7 +274,7 @@ public enum ConfigurationKey
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
 
     /**
-     * Analytics server-side cache expiration in seconds.
+     * Analytics server-side cache expiration in seconds. (default: 0)
      */
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
 
@@ -325,22 +328,22 @@ public enum ConfigurationKey
     MONITORING_JVM_ENABLED( "monitoring.jvm.enabled", Constants.OFF, false ),
 
     /**
-     * Database connection pool monitoring.
+     * Database connection pool monitoring. (default: off)
      */
     MONITORING_DBPOOL_ENABLED( "monitoring.dbpool.enabled", Constants.OFF, false ),
 
     /**
-     * Hibernate monitoring, do not use in production.
+     * Hibernate monitoring, do not use in production. (default: off)
      */
     MONITORING_HIBERNATE_ENABLED( "monitoring.hibernate.enabled", Constants.OFF, false ),
 
     /**
-     * Uptime monitoring.
+     * Uptime monitoring. (default: off)
      */
     MONITORING_UPTIME_ENABLED( "monitoring.uptime.enabled", Constants.OFF, false ),
 
     /**
-     * CPU monitoring.
+     * CPU monitoring. (default: off)
      */
     MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", Constants.OFF, false ),
 
@@ -367,7 +370,7 @@ public enum ConfigurationKey
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
 
     /**
-     * Enable OIDC
+     * Enable OIDC. (default: off).
      */
     OIDC_OAUTH2_LOGIN_ENABLED( "oidc.oauth2.login.enabled", Constants.OFF, false ),
 
@@ -385,7 +388,7 @@ public enum ConfigurationKey
     OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "", true ),
 
     /**
-     * Optional, defaults to 'email'.
+     * Optional. (default: email).
      */
     OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "", true ),
 
