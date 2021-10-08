@@ -82,15 +82,15 @@ public class EventExportTests
     }
 
     @ValueSource( strings = {
-        "?event=eventId&fields=*",
-        "?event=eventId&fields=relationships",
-        "?program=programId&fields=*",
-        "?program=programId&fields=relationships"
+        "?event=eventId&ouMode=orgUnitMode&fields=*",
+        "?event=eventId&ouMode=orgUnitMode&fields=relationships",
+        "?program=programId&ouMode=orgUnitMode&fields=*",
+        "?program=programId&ouMode=orgUnitMode&fields=relationships"
     } )
     @ParameterizedTest
     public void shouldFetchRelationships( String queryParams )
     {
-        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) );
+        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ).replace( "orgUnitMode", "ACCESSIBLE" ) );
         String body = "relationships";
 
         if ( response.extractList( "events" ) != null )
@@ -105,14 +105,14 @@ public class EventExportTests
     }
 
     @ValueSource( strings = {
-        "?event=eventId",
-        "?event=eventId&fields=*,!relationships",
-        "?program=programId&fields=*,!relationships"
+        "?event=eventId&ouMode=orgUnitMode&",
+        "?event=eventId&ouMode=orgUnitMode&fields=*,!relationships",
+        "?program=programId&ouMode=orgUnitMode&fields=*,!relationships"
     } )
     @ParameterizedTest
     public void shouldSkipRelationshipsForEventId( String queryParams )
     {
-        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) );
+        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ).replace( "orgUnitMode", "ACCESSIBLE" ) );
         String body = "relationships";
 
         if ( response.extractList( "events" ) != null )
