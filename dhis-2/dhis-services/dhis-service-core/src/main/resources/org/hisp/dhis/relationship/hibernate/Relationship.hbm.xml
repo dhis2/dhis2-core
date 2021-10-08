@@ -41,5 +41,9 @@
                      unique="true"
                      cascade="all-delete-orphan"/>
 
+        <property name="key" column="key" type="string" length="255" not-null="true" />
+
+        <property name="invertedKey" column="inverted_key" type="string" length="255" not-null="true" />
+
     </class>
 </hibernate-mapping>
