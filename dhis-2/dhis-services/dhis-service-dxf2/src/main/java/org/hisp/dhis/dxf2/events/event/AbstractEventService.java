@@ -969,11 +969,6 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "Query parameters can not be empty" );
         }
 
-        if ( params.getOrgUnit() == null && params.getOrgUnitSelectionMode() == null )
-        {
-            violation = "At least one of the following query parameters are required: orgUnit, ouMode";
-        }
-
         if ( params.getProgram() == null && params.getOrgUnit() == null && params.getTrackedEntityInstance() == null
             && params.getEvents().isEmpty() )
         {
