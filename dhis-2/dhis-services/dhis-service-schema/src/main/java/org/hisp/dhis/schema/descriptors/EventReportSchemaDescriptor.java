@@ -49,7 +49,7 @@ public class EventReportSchemaDescriptor
     {
         Schema schema = new Schema( EventReport.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setOrder( 1540 );
+        schema.setOrder( 1640 );
         schema.setImplicitPrivateAuthority( true );
 
         schema.getAuthorities()

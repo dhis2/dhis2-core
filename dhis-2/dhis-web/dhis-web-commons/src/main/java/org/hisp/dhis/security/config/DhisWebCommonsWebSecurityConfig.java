@@ -41,15 +41,15 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
-import org.hisp.dhis.security.vote.ExternalAccessVoter;
-import org.hisp.dhis.security.vote.LogicalOrAccessDecisionManager;
 import org.hisp.dhis.security.vote.ModuleAccessVoter;
-import org.hisp.dhis.security.vote.SimpleAccessVoter;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.handler.CustomExceptionMappingAuthenticationFailureHandler;
 import org.hisp.dhis.webapi.handler.DefaultAuthenticationSuccessHandler;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
+import org.hisp.dhis.webapi.security.vote.ExternalAccessVoter;
+import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
+import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -79,6 +79,14 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
+ * The {@code DhisWebCommonsWebSecurityConfig} class configures mostly all
+ * authentication and authorization NOT on the /api endpoint.
+ *
+ * Almost all /api/* endpoints are configured in
+ * {@code DhisWebApiWebSecurityConfig}
+ *
+ * Most of the configuration here is related to Struts security.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration

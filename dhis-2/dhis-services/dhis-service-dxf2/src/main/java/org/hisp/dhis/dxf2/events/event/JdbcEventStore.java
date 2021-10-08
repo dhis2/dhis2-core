@@ -68,7 +68,6 @@ import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -77,6 +76,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -99,6 +99,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
@@ -118,11 +119,11 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
@@ -132,6 +133,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
@@ -143,6 +147,8 @@ import com.vividsolutions.jts.io.WKTReader;
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
 public class JdbcEventStore implements EventStore
 {
+    private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.programstageinstanceid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl FROM relationshipitem ri"
+        + " GROUP by ri_psi_id)  as fgh on fgh.ri_psi_id=event.psi_id ";
 
     private static final String PSI_EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
         " psinote.trackedentitycommentid as psinote_id," +
@@ -242,8 +248,11 @@ public class JdbcEventStore implements EventStore
      * actual UPDATE statement. This prevents deadlocks when Postgres tries to
      * update the same TEI.
      */
-    private final static String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (?) FOR UPDATE %s;" +
-        "update trackedentityinstance set lastupdated = ?, lastupdatedby = ? where uid in (?)";
+    private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (%s) FOR UPDATE %s;"
+        +
+        "update trackedentityinstance set lastupdated = %s, lastupdatedby = %s where uid in (%s)";
+
+    private static final String NULL = "null";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -268,9 +277,12 @@ public class JdbcEventStore implements EventStore
 
     private final Environment env;
 
+    private final org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore;
+
     public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
         @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper,
-        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env )
+        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env,
+        org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore )
     {
         checkNotNull( statementBuilder );
         checkNotNull( jdbcTemplate );
@@ -278,6 +290,7 @@ public class JdbcEventStore implements EventStore
         checkNotNull( identifiableObjectManager );
         checkNotNull( jsonMapper );
         checkNotNull( env );
+        checkNotNull( eventStore );
 
         this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
@@ -285,6 +298,7 @@ public class JdbcEventStore implements EventStore
         this.manager = identifiableObjectManager;
         this.jsonMapper = jsonMapper;
         this.env = env;
+        this.eventStore = eventStore;
 
     }
 
@@ -302,6 +316,9 @@ public class JdbcEventStore implements EventStore
 
         Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
         List<Event> events = new ArrayList<>();
+        List<Long> relationshipIds = new ArrayList<>();
+
+        final Gson gson = new Gson();
 
         String sql = buildSql( params, organisationUnits, user );
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -465,6 +482,26 @@ public class JdbcEventStore implements EventStore
                 event.getNotes().add( note );
                 notes.add( rowSet.getString( "psinote_id" ) );
             }
+
+            if ( params.isIncludeRelationships() && rowSet.getObject( "psi_rl" ) != null )
+            {
+                PGobject pGobject = (PGobject) rowSet.getObject( "psi_rl" );
+
+                if ( pGobject != null )
+                {
+                    String value = pGobject.getValue();
+
+                    relationshipIds.addAll( Lists.newArrayList( gson.fromJson( value, Long[].class ) ) );
+                }
+            }
+        }
+
+        final Multimap<String, Relationship> map = eventStore
+            .getRelationshipsByIds( relationshipIds );
+
+        if ( !map.isEmpty() )
+        {
+            events.forEach( e -> e.getRelationships().addAll( map.get( e.getEvent() ) ) );
         }
 
         IdSchemes idSchemes = ObjectUtils.firstNonNull( params.getIdSchemes(), new IdSchemes() );
@@ -572,6 +609,7 @@ public class JdbcEventStore implements EventStore
         List<EventRow> eventRows = new ArrayList<>();
 
         String sql = buildSql( params, organisationUnits, user );
+
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         log.debug( "Event query SQL: " + sql );
@@ -890,6 +928,11 @@ public class JdbcEventStore implements EventStore
 
         sqlBuilder.append( ") as cm on event.psi_id=cm.psic_id " );
 
+        if ( params.isIncludeRelationships() )
+        {
+            sqlBuilder.append( RELATIONSHIP_IDS_QUERY );
+        }
+
         sqlBuilder.append( getOrderQuery( params ) );
 
         return sqlBuilder.toString();
@@ -902,7 +945,8 @@ public class JdbcEventStore implements EventStore
         SqlHelper hlp = new SqlHelper();
 
         StringBuilder sqlBuilder = new StringBuilder().append( "select "
-            + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() ) + " psi.uid as psi_uid, "
+            + getEventSelectIdentifiersByIdScheme( params.getIdSchemes() )
+            + " psi.uid as psi_uid, "
             + "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, coc.uid as coc_uid, "
             + "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, "
             + "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, "
@@ -1630,31 +1674,24 @@ public class JdbcEventStore implements EventStore
     @Override
     public void updateTrackedEntityInstances( List<String> teiUids, User user )
     {
-        if ( teiUids.isEmpty() )
-        {
-            return;
-        }
+        Optional.ofNullable( teiUids ).filter( s -> !s.isEmpty() )
+            .ifPresent( teis -> updateTrackedEntityInstances( teis.stream()
+                .sorted() // make sure the list is sorted, to prevent
+                          // deadlocks
+                .map( s -> "'" + s + "'" )
+                .collect( Collectors.joining( ", " ) ), user ) );
+    }
+
+    private void updateTrackedEntityInstances( String teisInCondition, User user )
+    {
         try
         {
-            final String result = teiUids.stream()
-                .sorted() // make sure the list is sorted, to prevent deadlocks
-                .map( s -> "'" + s + "'" )
-                .collect( Collectors.joining( ", " ) );
+            Timestamp timestamp = new Timestamp( System.currentTimeMillis() );
 
-            jdbcTemplate.execute( getUpdateTeiSql(), (PreparedStatementCallback<Boolean>) psc -> {
-                psc.setString( 1, result );
-                psc.setTimestamp( 2, JdbcEventSupport.toTimestamp( new Date() ) );
-                if ( user != null )
-                {
-                    psc.setLong( 3, user.getId() );
-                }
-                else
-                {
-                    psc.setNull( 3, Types.INTEGER );
-                }
-                psc.setString( 4, result );
-                return psc.execute();
-            } );
+            String sql = String.format( UPDATE_TEI_SQL, teisInCondition, getSkipLocked(), "'" + timestamp + "'",
+                user != null ? user.getId() : NULL, teisInCondition );
+
+            jdbcTemplate.execute( sql );
         }
         catch ( DataAccessException e )
         {
@@ -1668,11 +1705,11 @@ public class JdbcEventStore implements EventStore
      * the "SKIP LOCKED" clause, therefore we need to remove it from the SQL
      * statement when executing the H2 tests.
      *
-     * @return a SQL String
+     * @return a SQL String containing Skip Locked statement
      */
-    private String getUpdateTeiSql()
+    private String getSkipLocked()
     {
-        return String.format( UPDATE_TEI_SQL, SystemUtils.isTestRun( env.getActiveProfiles() ) ? "" : "SKIP LOCKED" );
+        return SystemUtils.isTestRun( env.getActiveProfiles() ) ? "" : "SKIP LOCKED";
     }
 
     private void bindEventParamsForInsert( PreparedStatement ps, ProgramStageInstance event )

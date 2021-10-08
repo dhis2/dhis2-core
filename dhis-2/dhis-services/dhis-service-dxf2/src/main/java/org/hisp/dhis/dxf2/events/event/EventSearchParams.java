@@ -155,6 +155,8 @@ public class EventSearchParams
 
     private List<Order> orders;
 
+    private boolean includeRelationships;
+
     private List<String> gridOrders;
 
     private boolean includeAttributes;
@@ -745,5 +747,16 @@ public class EventSearchParams
     public boolean isIncludeOnlyAssignedEvents()
     {
         return AssignedUserSelectionMode.ANY.equals( this.assignedUserSelectionMode );
+    }
+
+    public boolean isIncludeRelationships()
+    {
+        return includeRelationships;
+    }
+
+    public EventSearchParams setIncludeRelationships( boolean includeRelationships )
+    {
+        this.includeRelationships = includeRelationships;
+        return this;
     }
 }

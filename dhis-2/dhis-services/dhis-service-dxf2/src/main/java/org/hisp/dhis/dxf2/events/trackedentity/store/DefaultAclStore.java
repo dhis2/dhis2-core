@@ -75,8 +75,8 @@ public class DefaultAclStore
         + "WHERE " + PUBLIC_ACCESS_CONDITION + " OR ( "
         + "ps.programstageid IN (SELECT psua.programstageid "
         + "FROM programstageuseraccesses psua WHERE psua.useraccessid IN " + USERACCESS_CONDITION + ")"
-        + "OR ps.programid IN "
-        + "(SELECT psuga.programid FROM programstageusergroupaccesses psuga "
+        + "OR ps.programstageid IN "
+        + "(SELECT psuga.programstageid FROM programstageusergroupaccesses psuga "
         + "WHERE psuga.usergroupaccessid IN " + USERGROUPACCESS_CONDITION + "))";
 
     private final static String GET_RELATIONSHIPTYPE_ACL = "SELECT rs.relationshiptypeid "
