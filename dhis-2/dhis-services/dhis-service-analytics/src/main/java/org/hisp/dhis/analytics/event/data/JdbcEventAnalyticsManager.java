@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
+import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
@@ -56,14 +57,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -78,6 +78,7 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsType;
@@ -406,9 +407,7 @@ public class JdbcEventAnalyticsManager
         }
         else if ( params.hasStartEndDate() )
         {
-            String timeCol = params.getOutputType() == EventOutputType.ENROLLMENT
-                ? quoteAlias( TimeField.ENROLLMENT_DATE.getField() )
-                : quoteAlias( TimeField.EVENT_DATE.getField() );
+            String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
 
             sql += hlp.whereAnd() + " " + timeCol + " >= '" + getMediumDateString( params.getStartDate() ) + "' ";
             sql += hlp.whereAnd() + " " + timeCol + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
@@ -441,13 +440,20 @@ public class JdbcEventAnalyticsManager
         }
         else // Descendants
         {
-            DimensionalObject orgUnitDim = params.getDimensionOrFilter( ORGUNIT_DIM_ID );
-
             String orgUnitAlias = getOrgUnitAlias( params );
-            String orgUnitCol = quote( orgUnitAlias, orgUnitDim.getDimensionName() );
 
-            sql += hlp.whereAnd() + " " + orgUnitCol + OPEN_IN +
-                getQuotedCommaDelimitedString( getUids( orgUnitDim.getItems() ) ) + ") ";
+            sql += hlp.whereAnd() + " (";
+
+            for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
+            {
+                OrganisationUnit unit = (OrganisationUnit) object;
+
+                String orgUnitCol = quote( orgUnitAlias, "uidlevel" + unit.getLevel() );
+
+                sql += orgUnitCol + " = '" + unit.getUid() + "' or ";
+            }
+
+            sql = removeLastOr( sql ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -468,7 +474,7 @@ public class JdbcEventAnalyticsManager
         // Program stage
         // ---------------------------------------------------------------------
 
-        if ( params.hasProgramStage() && params.getOutputType() != EventOutputType.ENROLLMENT )
+        if ( params.hasProgramStage() )
         {
             sql += hlp.whereAnd() + " " + quoteAlias( "ps" ) + " = '" + params.getProgramStage().getUid() + "' ";
         }

@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static org.hisp.dhis.tracker.report.TrackerTimingsStats.*;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.COMMIT_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PREHEAT_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PREPROCESS_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PROGRAMRULE_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.TOTAL_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.VALIDATE_PROGRAMRULE_OPS;
+import static org.hisp.dhis.tracker.report.TrackerTimingsStats.VALIDATION_OPS;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -43,8 +49,13 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.tracker.*;
+import org.hisp.dhis.tracker.AtomicMode;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
@@ -106,6 +117,8 @@ public class DefaultTrackerImportService
 
             bundleReport = commit( params, opsTimer, trackerBundle );
 
+            postCommit( trackerBundle );
+
             TrackerImportReport trackerImportReport = TrackerImportReportFinalizer.withImportCompleted(
                 TrackerStatus.OK,
                 bundleReport, validationReport,
@@ -155,7 +168,7 @@ public class DefaultTrackerImportService
             return true;
         }
 
-        if ( !trackerBundle.isSkipRuleEngine() )
+        if ( !trackerBundle.isSkipRuleEngine() && !params.getImportStrategy().isDelete() )
         {
             validationReport.add( execRuleEngine( params, opsTimer, trackerBundle ) );
         }
@@ -178,6 +191,11 @@ public class DefaultTrackerImportService
 
         notifyOps( params, COMMIT_OPS, opsTimer );
         return bundleReport;
+    }
+
+    private void postCommit( TrackerBundle trackerBundle )
+    {
+        trackerBundleService.postCommit( trackerBundle );
     }
 
     protected TrackerValidationReport validateBundle( TrackerImportParams params, TrackerBundle trackerBundle,

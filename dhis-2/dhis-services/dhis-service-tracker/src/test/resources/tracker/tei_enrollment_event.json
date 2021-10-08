@@ -53,7 +53,17 @@
       "updatedAt": "2019-01-28T12:10:38.109",
       "createdAt": "2019-01-28T12:10:38.108",
       "completedAt": "2019-01-28T00:00:00.000",
-      "completedBy": "admin"
+      "completedBy": "admin",
+      "dataValues": [
+        {
+          "updatedAt": "2019-01-28T12:10:38.113",
+          "storedBy": "admin",
+          "createdAt": "2019-01-28T12:10:38.113",
+          "dataElement": "DATAEL00002",
+          "value": "text",
+          "providedElsewhere": false
+        }
+      ]
     }
   ]
 }

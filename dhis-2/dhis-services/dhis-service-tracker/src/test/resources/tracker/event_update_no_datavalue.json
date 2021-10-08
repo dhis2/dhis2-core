@@ -20,8 +20,8 @@
           "updatedAt": "2019-01-28T12:10:38.113",
           "storedBy": "admin",
           "createdAt": "2019-01-28T12:10:38.113",
-          "dataElement": "DATAEL00001",
-          "value": "text",
+          "dataElement": "DATAEL00002",
+          "value": "NEWTEXT",
           "providedElsewhere": false
         }
       ]
