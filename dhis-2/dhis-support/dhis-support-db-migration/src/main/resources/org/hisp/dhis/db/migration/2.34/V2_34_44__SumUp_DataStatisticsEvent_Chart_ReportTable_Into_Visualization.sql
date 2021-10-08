@@ -1,11 +1,9 @@
--- This duplicates all rows that contains CHART_VIEW and REPORT_TABLE_VIEW.
--- They will be duplicated using VISUALIZATION_VIEW as the event type.
--- Used the default Hibernate sequence (native).
+-- This will sum-up CHART_VIEW and REPORT_TABLE_VIEW into VISUALIZATION_VIEW.
 -- See JIRA DHIS2-11693
 
 -- Populate the visualizationviews based on existing metrics for report table and charts.
 UPDATE datastatistics
-SET visualizationviews = reporttableviews + chartviews;
+SET visualizationviews = reporttableviews + chartviews WHERE visualizationviews IS NULL;
 
 UPDATE datastatistics
-SET visualizations = reporttables + charts;
+SET visualizations = reporttables + charts WHERE visualizations IS NULL;
