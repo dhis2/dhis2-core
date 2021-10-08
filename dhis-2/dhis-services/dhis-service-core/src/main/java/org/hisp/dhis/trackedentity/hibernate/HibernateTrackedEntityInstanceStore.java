@@ -29,7 +29,6 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getTokens;
@@ -39,7 +38,6 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACT
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
@@ -55,8 +53,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -77,6 +73,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
@@ -108,6 +105,10 @@ public class HibernateTrackedEntityInstanceStore
     implements TrackedEntityInstanceStore
 {
     private final static String TEI_HQL_BY_UIDS = "from TrackedEntityInstance as tei where tei.uid in (:uids)";
+
+    private final static String TEI_HQL_BY_IDS = "from TrackedEntityInstance as tei where tei.id in (:ids)";
+
+    private static final String AND_PSI_STATUS_EQUALS_SINGLE_QUOTE = "and psi.status = '";
 
     private static final String OFFSET = "OFFSET";
 
@@ -162,39 +163,24 @@ public class HibernateTrackedEntityInstanceStore
     // -------------------------------------------------------------------------
 
     @Override
-    public int countTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
-    {
-        String hql = buildTrackedEntityInstanceCountHql( params );
-        Query query = getQuery( hql );
-
-        return ((Number) query.iterate().next()).intValue();
-    }
-
-    @Override
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
-        String hql = buildTrackedEntityInstanceHql( params, false );
+        List<Long> teiIds = getTrackedEntityInstanceIds( params );
+        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+        List<List<Long>> idsPartitions = Lists.partition( Lists.newArrayList( teiIds ), 20000 );
 
-        // If it is a sync job running a query, I need to adjust an HQL a bit,
-        // because I am adding 2 joins and don't want duplicates in results
-        if ( params.isSynchronizationQuery() )
+        for ( List<Long> idsPartition : idsPartitions )
         {
-            hql = hql.replaceFirst( SELECT_TEI, "select distinct tei from" );
+            if ( !idsPartition.isEmpty() )
+            {
+                trackedEntityInstances.addAll( getSession().createQuery( TEI_HQL_BY_IDS, TrackedEntityInstance.class )
+                    .setParameter( "ids", idsPartition ).list() );
+            }
         }
-
-        Query query = getQuery( hql );
-
-        if ( !params.isSkipPaging() )
-        {
-            query.setFirstResult( params.getOffset() );
-            query.setMaxResults( params.getPageSizeWithDefault() );
-        }
-
-        return query.list();
+        return trackedEntityInstances;
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params )
     {
         String sql = getQuery( params, false );
@@ -211,207 +197,6 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return ids;
-    }
-
-    private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
-    {
-        return buildTrackedEntityInstanceHql( params, false )
-            .replaceFirst( SELECT_TEI, "select count(distinct tei) from" )
-            .replaceFirst( "inner join fetch tei.programInstances", "inner join tei.programInstances" )
-            .replaceFirst( "inner join fetch pi.programStageInstances", "inner join pi.programStageInstances" )
-            .replaceFirst( "inner join fetch psi.assignedUser", "inner join psi.assignedUser" )
-            .replaceFirst( "inner join fetch tei.programOwners", "inner join tei.programOwners" )
-            .replaceFirst( Pattern.quote( getOrderClauseHql( params ) ), " " );
-    }
-
-    private String withProgram( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
-    {
-        String hql = "";
-
-        if ( params.hasProgram() )
-        {
-            hql += "inner join fetch tei.programInstances as pi ";
-
-            // Joining program owners and using that as tei ou source
-            hql += "inner join fetch tei.programOwners as po ";
-
-            if ( params.hasFilterForEvents() )
-            {
-                hql += " inner join fetch pi.programStageInstances psi ";
-
-                hql += addConditionally( params.hasAssignedUsers(), () -> "inner join fetch psi.assignedUser au" );
-
-                hql += hlp.whereAnd() + getEventWhereClauseHql( params );
-
-            }
-
-            hql += hlp.whereAnd() + " po.program.uid = '" + params.getProgram().getUid() + "'";
-
-            hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
-
-            hql += addWhereConditionally( hlp, params.hasProgramStatus(),
-                () -> "pi.status = '" + params.getProgramStatus() + "'" );
-
-            hql += addWhereConditionally( hlp, params.hasFollowUp(), () -> "pi.followup = " + params.getFollowUp() );
-
-            hql += addWhereConditionally( hlp, params.hasProgramEnrollmentStartDate(),
-                () -> "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "'" );
-
-            hql += addWhereConditionally( hlp, params.hasProgramEnrollmentEndDate(),
-                () -> "pi.enrollmentDate < '" + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "'" );
-
-            hql += addWhereConditionally( hlp, params.hasProgramIncidentStartDate(),
-                () -> "pi.incidentDate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "'" );
-
-            hql += addWhereConditionally( hlp, params.hasProgramIncidentEndDate(),
-                () -> "pi.incidentDate < '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "'" );
-
-            hql += addWhereConditionally( hlp, !params.isIncludeDeleted(),
-                () -> "pi.deleted is false " );
-
-        }
-        return hql;
-    }
-
-    private String withOrgUnits( TrackedEntityInstanceQueryParams params, SqlHelper hlp, String teiOuSource )
-    {
-        String hql = "";
-        if ( params.hasOrganisationUnits() )
-        {
-            if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
-            {
-                String ouClause = "(";
-
-                SqlHelper orHlp = new SqlHelper( true );
-
-                for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
-                {
-                    ouClause += orHlp.or() + teiOuSource + ".path LIKE '" + organisationUnit.getPath() + "%'";
-                }
-
-                ouClause += ")";
-
-                hql += hlp.whereAnd() + ouClause;
-            }
-            else
-            {
-                hql += hlp.whereAnd() + teiOuSource + ".uid in ("
-                    + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ")";
-            }
-        }
-        return hql;
-    }
-
-    private String withFilters( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
-    {
-        String hql = "";
-        if ( params.hasFilters() )
-        {
-            for ( QueryItem queryItem : params.getFilters() )
-            {
-                for ( QueryFilter queryFilter : queryItem.getFilters() )
-                {
-                    String encodedFilter = queryFilter.getSqlFilter(
-                        statementBuilder.encode( StringUtils.lowerCase( queryFilter.getFilter() ), false ) );
-
-                    hql += hlp.whereAnd()
-                        + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
-
-                    hql += " and teav.attribute.uid='" + queryItem.getItemId() + "'";
-
-                    hql += addConditionally( queryItem.isNumeric(),
-                        " and teav.plainValue " + queryFilter.getSqlOperator() + encodedFilter + ")",
-                        " and lower(teav.plainValue) " + queryFilter.getSqlOperator() + encodedFilter + ")" );
-                }
-            }
-        }
-        return hql;
-    }
-
-    private String buildTrackedEntityInstanceHql( TrackedEntityInstanceQueryParams params, boolean idOnly )
-    {
-        SqlHelper hlp = new SqlHelper( true );
-
-        String hql = "select " + (idOnly ? "tei.id" : "tei") + " from TrackedEntityInstance tei ";
-
-        // Used for switching between registration org unit or ownership org
-        // unit. Default source is registration ou.
-        String teiOuSource = params.hasProgram() ? "po.organisationUnit" : "tei.organisationUnit";
-
-        if ( params.hasAttributeAsOrder() )
-        {
-            hql += " left join tei.trackedEntityAttributeValues teav2 " +
-                "left join teav2.attribute as attr2 ";
-        }
-
-        hql += withProgram( params, hlp );
-
-        if ( params.hasAttributeAsOrder() )
-        {
-            hql += hlp.whereAnd() + " attr2.uid='" + params.getFirstAttributeOrder() + "'  ";
-        }
-
-        // If sync job, fetch only TEAVs that are supposed to be synchronized
-
-        hql += addConditionally( params.isSynchronizationQuery(),
-            () -> "left join tei.trackedEntityAttributeValues teav1 " +
-                "left join teav1.attribute as attr" + hlp.whereAnd() + " attr.skipSynchronization = false" );
-
-        hql += addWhereConditionally( hlp, params.hasTrackedEntityType(),
-            () -> " tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'" );
-
-        hql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
-            () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
-
-        if ( params.hasLastUpdatedDuration() )
-        {
-            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + " '" +
-                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
-        }
-        else
-        {
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(),
-                () -> TEI_LASTUPDATED + GT_EQUAL + " '" +
-                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
-
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> TEI_LASTUPDATED + " < '" +
-                getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
-        }
-
-        hql += addWhereConditionally( hlp, params.isSynchronizationQuery(),
-            () -> TEI_LASTUPDATED + " > tei.lastSynchronized" );
-
-        // Comparing milliseconds instead of always creating new Date( 0 )
-
-        if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
-        {
-            String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            hql += hlp.whereAnd() + TEI_LASTUPDATED + GT_EQUAL + " '" + skipChangedBefore + "'";
-        }
-
-        params.handleOrganisationUnits();
-
-        hql += withOrgUnits( params, hlp, teiOuSource );
-
-        if ( params.hasQuery() )
-        {
-            QueryFilter queryFilter = params.getQuery();
-
-            String encodedFilter = queryFilter
-                .getSqlFilter( statementBuilder.encode( queryFilter.getFilter(), false ) );
-
-            hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
-
-            hql += " and teav.plainValue " + queryFilter.getSqlOperator() + encodedFilter + ")";
-        }
-
-        hql += withFilters( params, hlp );
-
-        hql += addWhereConditionally( hlp, !params.isIncludeDeleted(), () -> " tei.deleted is false " );
-
-        hql += getOrderClauseHql( params );
-
-        return hql;
     }
 
     @Override
@@ -766,7 +551,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( params.getTrackedEntityType().getId() )
                 .append( SPACE );
         }
-        else
+        else if ( !CollectionUtils.isEmpty( params.getTrackedEntityTypes() ) )
         {
             trackedEntity
                 .append( whereAnd.whereAnd() )
@@ -1374,6 +1159,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.ou, " )
             .append( "TEI.ouname, " )
             .append( "TET.uid, " )
+            .append( "TEI.potentialduplicate, " )
             .append( "TEI.inactive " )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted " : "") );
 
@@ -1391,38 +1177,6 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return groupBy.toString();
-    }
-
-    private String getOrderClauseHql( TrackedEntityInstanceQueryParams params )
-    {
-        String orderQuery = "order by tei.lastUpdated desc ";
-
-        ArrayList<String> orderFields = new ArrayList<>();
-
-        if ( params.hasOrders() )
-        {
-            for ( OrderParam orderParam : params.getOrders() )
-            {
-                if ( isStaticColumn( orderParam.getField() ) )
-                {
-                    String columName = getColumn( orderParam.getField() );
-                    orderFields.add( columName + " " + orderParam.getDirection() );
-                }
-                else
-                {
-                    orderFields.add( "teav2.plainValue " + orderParam.getDirection() );
-                    break; // currently we support only a single attribute
-                           // order
-                }
-            }
-
-            if ( !orderFields.isEmpty() )
-            {
-                orderQuery = "order by " + StringUtils.join( orderFields, ',' );
-            }
-        }
-
-        return orderQuery;
     }
 
     /**
@@ -1620,63 +1374,6 @@ public class HibernateTrackedEntityInstanceStore
         }
     }
 
-    private String getEventWhereClauseHql( TrackedEntityInstanceQueryParams params )
-    {
-        String hql = "";
-
-        if ( params.hasEventStatus() )
-        {
-            String start = getMediumDateString( params.getEventStartDate() );
-            String end = getMediumDateString( params.getEventEndDate() );
-
-            if ( params.isEventStatus( EventStatus.COMPLETED ) )
-            {
-                hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' "
-                    + "and psi.status = '" + EventStatus.COMPLETED.name()
-                    + "' and ";
-            }
-            else if ( params.isEventStatus( EventStatus.VISITED ) || params.isEventStatus( EventStatus.ACTIVE ) )
-            {
-                hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' "
-                    + "and psi.status = '" + EventStatus.ACTIVE.name()
-                    + "' and ";
-            }
-            else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
-            {
-                hql += " psi.executionDate is null and psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' "
-                    + "and psi.status is not null and current_date <= psi.dueDate and ";
-            }
-            else if ( params.isEventStatus( EventStatus.OVERDUE ) )
-            {
-                hql += " psi.executionDate is null and psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' "
-                    + "and psi.status is not null and current_date > psi.dueDate and ";
-            }
-            else if ( params.isEventStatus( EventStatus.SKIPPED ) )
-            {
-                hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + "and psi.status = '"
-                    + EventStatus.SKIPPED.name() + "' and ";
-            }
-        }
-
-        if ( params.hasProgramStage() )
-        {
-            hql += " psi.programStage.uid = " + params.getProgramStage().getUid() + " and ";
-        }
-
-        hql += addConditionally( params.hasAssignedUsers(),
-            () -> "(au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and" );
-
-        hql += addConditionally( params.isIncludeOnlyUnassignedEvents(),
-            () -> "(psi.assignedUser is null) and" );
-
-        hql += addConditionally( params.isIncludeOnlyAssignedEvents(),
-            () -> "(psi.assignedUser is not null) and" );
-
-        hql += " psi.deleted=false ";
-
-        return hql;
-    }
-
     @Override
     public boolean exists( String uid )
     {
@@ -1763,17 +1460,15 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
-        {
-            List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
+        List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
 
-            List<TrackedEntityInstance> instances = new ArrayList<>();
-            for ( List<String> partition : uidPartitions )
-            {
-                instances.addAll( getList( getCriteriaBuilder(),
-                    newJpaParameters().addPredicate( root -> root.get( "uid" ).in( partition ) ) ) );
-            }
-            return instances;
+        List<TrackedEntityInstance> instances = new ArrayList<>();
+        for ( List<String> partition : uidPartitions )
+        {
+            instances.addAll( getList( getCriteriaBuilder(),
+                newJpaParameters().addPredicate( root -> root.get( "uid" ).in( partition ) ) ) );
         }
+        return instances;
     }
 
     @Override
@@ -1834,20 +1529,5 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return StringUtils.EMPTY;
-    }
-
-    private String addConditionally( boolean condition, Supplier<String> sqlSnippet )
-    {
-        return condition ? " " + sqlSnippet.get() + " " : "";
-    }
-
-    private String addWhereConditionally( SqlHelper hlp, boolean condition, Supplier<String> sqlSnippet )
-    {
-        return condition ? hlp.whereAnd() + sqlSnippet.get() : "";
-    }
-
-    private String addConditionally( boolean condition, String sqlSnippet, String falseSqlSnippet )
-    {
-        return condition ? " " + sqlSnippet + " " : " " + falseSqlSnippet + " ";
     }
 }
