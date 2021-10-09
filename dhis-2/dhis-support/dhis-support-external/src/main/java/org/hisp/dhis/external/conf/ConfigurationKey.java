@@ -170,6 +170,10 @@ public enum ConfigurationKey
      */
     CONNECTION_POOL_TEST_ON_CHECKIN( "connection.pool.test.on.checkin", Constants.TRUE, false ),
 
+    /**
+     * Hikari DB pool feature. Connection pool timeout: Set the maximum number
+     * of milliseconds that a client will wait for a connection from the pool
+     */
     CONNECTION_POOL_TIMEOUT( "connection.pool.timeout", String.valueOf( SECONDS.toMillis( 30 ) ), false ),
 
     CONNECTION_POOL_VALIDATION_TIMEOUT( "connection.pool.validation_timeout", String.valueOf( SECONDS.toMillis( 5 ) ),
@@ -381,74 +385,160 @@ public enum ConfigurationKey
     OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "", false ),
 
     /**
-     * Google specific parameters:
+     * Google IdP specific parameters. Provider client ID: This is the
+     * identifier that the IdP assigned to your application.
      */
     OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "", true ),
 
+    /**
+     * Google IdP specific parameters. Provider client secret: This value is a
+     * secret and should be kept secure.
+     */
     OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "", true ),
 
     /**
-     * Optional. (default: email).
+     * Google IdP specific parameters. Mapping claim: *Optional. (default:
+     * email).
      */
     OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true ),
 
     /**
-     * DHIS 2 instance URL, do not end with a slash, <br />
+     * Google IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not
+     * end with a slash, <br />
      * e.g. https://dhis2.org/demo.
      */
     OIDC_PROVIDER_GOOGLE_REDIRECT_URI( "oidc.provider.google.redirect_url", "", true ),
 
+    /**
+     * WSO2 IdP specific parameters. Provider client ID: This is the identifier
+     * that the IdP assigned to your application.
+     */
     OIDC_PROVIDER_WSO2_CLIENT_ID( "oidc.provider.wso2.client_id", "", false ),
 
+    /**
+     * WSO2 IdP specific parameters. Provider client secret: This value is a
+     * secret and should be kept secure.
+     */
     OIDC_PROVIDER_WSO2_CLIENT_SECRET( "oidc.provider.wso2.client_secret", "", false ),
 
+    /**
+     * WSO2 IdP specific parameters. Mapping claim: *Optional. (default: email).
+     */
     OIDC_PROVIDER_WSO2_MAPPING_CLAIM( "oidc.provider.wso2.mapping_claim", "email", false ),
 
+    /**
+     * WSO2 IdP specific parameters. Server URL
+     */
     OIDC_PROVIDER_WSO2_SERVER_URL( "oidc.provider.wso2.server_url", "", false ),
 
+    /**
+     * WSO2 IdP specific parameters. Redirect URL: DHIS 2 instance URL, do not
+     * end with a slash, <br />
+     * e.g. https://dhis2.org/demo.
+     */
     OIDC_PROVIDER_WSO2_REDIRECT_URI( "oidc.provider.wso2.redirect_url", "", false ),
 
+    /**
+     * WSO2 IdP specific parameters. Display alias
+     */
     OIDC_PROVIDER_WSO2_DISPLAY_ALIAS( "oidc.provider.wso2.display_alias", "", false ),
 
+    /**
+     * WSO2 IdP specific parameters. Enable logout
+     */
     OIDC_PROVIDER_WSO2_ENABLE_LOGOUT( "oidc.provider.wso2.enable_logout", Constants.TRUE, false ),
 
+    /**
+     * Database debugging feature. Defines threshold for logging of slow queries
+     * in the log.
+     */
     SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS( "slow.query.logging.threshold.time", String.valueOf( SECONDS.toMillis( 1 ) ),
         false ),
 
+    /**
+     * Database debugging feature. Enables logging of all SQL queries to the
+     * log.
+     */
     ENABLE_QUERY_LOGGING( "enable.query.logging", Constants.FALSE, false ),
 
+    /**
+     * Database debugging feature. Defines database logging before/after methods
+     */
     METHOD_QUERY_LOGGING_ENABLED( "method.query.logging.enabled", Constants.FALSE, false ),
 
+    /**
+     * Database debugging feature. Enable time query logging.
+     */
     ELAPSED_TIME_QUERY_LOGGING_ENABLED( "elapsed.time.query.logging.enabled", Constants.FALSE, false ),
 
+    /**
+     * Database datasource pool type. Supported pool types are: c3p0 (default)
+     * or hikari
+     */
     DB_POOL_TYPE( "db.pool.type", "c3p0", false ),
 
     ACTIVE_READ_REPLICAS( "active.read.replicas", "0", false ),
 
     AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
 
+    /**
+     * OAuth2 authorization server feature. Enable or disable.
+     */
     ENABLE_OAUTH2_AUTHORIZATION_SERVER( "oauth2.authorization.server.enabled", Constants.ON, false ),
 
+    /**
+     * JWT OIDC token authentication feature. Enable or disable.
+     */
     ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION( "oidc.jwt.token.authentication.enabled", Constants.OFF, false ),
 
+    /**
+     * Cache invalidation feature. Enable or disable.
+     */
     DEBEZIUM_ENABLED( "debezium.enabled", Constants.OFF, false ),
 
+    /**
+     * Cache invalidation feature. DB connection username
+     */
     DEBEZIUM_CONNECTION_USERNAME( "debezium.connection.username", "", false ),
 
+    /**
+     * Cache invalidation feature. DB connection password
+     */
     DEBEZIUM_CONNECTION_PASSWORD( "debezium.connection.password", "", false ),
 
+    /**
+     * Cache invalidation feature. DB hostname
+     */
     DEBEZIUM_DB_HOSTNAME( "debezium.db.hostname", "", false ),
 
+    /**
+     * Cache invalidation feature. DB port number
+     */
     DEBEZIUM_DB_PORT( "debezium.db.port", "", false ),
 
+    /**
+     * Cache invalidation feature. DB name
+     */
     DEBEZIUM_DB_NAME( "debezium.db.name", "", false ),
 
+    /**
+     * Cache invalidation feature. Replication slot name
+     */
     DEBEZIUM_SLOT_NAME( "debezium.slot.name", "", false ),
 
+    /**
+     * Cache invalidation feature. Table exclude list
+     */
     DEBEZIUM_EXCLUDE_LIST( "debezium.exclude.list", "", false ),
 
+    /**
+     * Cache invalidation feature. Shutdown server if connector loose connection
+     */
     DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.OFF, false ),
 
+    /**
+     * API authentication feature. Enable or disable personal access tokens.
+     */
     ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false );
 
     private final String key;
