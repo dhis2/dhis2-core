@@ -1,0 +1,17 @@
+.git
+.gitignore
+**/.gitignore
+.github
+.idea
+docker
+jenkinsfiles
+.patches
+.mailmap
+.tx
+*.sh
+*.md
+LICENSE
+
+**/target
+**/src/test
+**/dhis2-e2e-test
