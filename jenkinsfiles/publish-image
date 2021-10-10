@@ -78,7 +78,7 @@ pipeline {
                     DOCKER_BASE_IMAGE_FULL_NAME = "${DOCKER_HUB_BASE_REPOSITORY}:${DOCKER_IMAGE_TAG}"
                     echo "Will tag base image as ${DOCKER_BASE_IMAGE_FULL_NAME}"
 
-                    sh "docker build -t ${DOCKER_BASE_IMAGE_FULL_NAME} --build-arg IDENTIFIER=${DOCKER_IMAGE_TAG} ."
+                    sh "docker build -t ${DOCKER_BASE_IMAGE_FULL_NAME} --target base --build-arg IDENTIFIER=${DOCKER_IMAGE_TAG} ."
                 }
             }
         }

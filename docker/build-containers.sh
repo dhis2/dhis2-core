@@ -51,60 +51,53 @@ setup () {
 
         if [ -f "dhis.war" ]; then
             echo "Using existing 'dhis.war' to build."
-        else
-            echo "No 'dhis.war' file found."
-            echo "Either run ./extract-artifacts.sh or provide a dhis.war"
-            exit 1
+
+            echo "Checksum valiations:"
+
+            if [ -f "sha256sum.txt" ]; then
+                sha256sum -c sha256sum.txt
+            else
+                echo "Skipping... No SHA256 checksum found."
+            fi
+
+            if [ -f "md5sum.txt" ]; then
+                md5sum -c md5sum.txt
+            else
+                echo "Skipping... No MD5 checksum found."
+            fi
+
+            popd
         fi
-
-        echo "Checksum valiations:"
-
-        if [ -f "sha256sum.txt" ]; then
-            sha256sum -c sha256sum.txt
-        else
-            echo "Skipping... No SHA256 checksum found."
-        fi
-
-        if [ -f "md5sum.txt" ]; then
-            md5sum -c md5sum.txt
-        else
-            echo "Skipping... No MD5 checksum found."
-        fi
-
-        popd
-    else
-        echo "No existing artifact directory found"
-        echo "Either run ./extract-artifacts.sh or provide a dhis.war"
-        exit 1
     fi
 }
 
-build () {
-    local TAG=$1
-    local TC_TAG=$2
-    local TYPE=$3
-
-    docker build \
-        --tag "${TAG}" \
-        --file "${DIR}/tomcat-${TYPE}/Dockerfile" \
-        --build-arg TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TC_TAG}" \
-        --build-arg IDENTIFIER="${IDENTIFIER}" \
-        "$DIR"
-}
-
 build_default_container () {
-    build "$CORE_IMAGE" "$DEFAULT_TOMCAT_TAG" "debian"
+    docker build \
+        --tag "${CORE_IMAGE}-${TOMCAT_IMAGE}-${DEFAULT_TOMCAT_TAG}" \
+        --file "${DIR}/../Dockerfile" \
+        --build-arg IDENTIFIER="${IDENTIFIER}" \
+        "${DIR}/.."
 }
 
 build_debian_containers () {
     for TOMCAT_TAG in "${TOMCAT_DEBIAN_TAGS[@]}"; do
-        build "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" "$TOMCAT_TAG" "debian"
+        docker build \
+            --tag "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" \
+            --file "${DIR}/../Dockerfile" \
+            --build-arg DEBIAN_TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TOMCAT_TAG}" \
+            --build-arg IDENTIFIER="${IDENTIFIER}" \
+            "${DIR}/.."
     done
 }
 
 build_alpine_containers () {
     for TOMCAT_TAG in "${TOMCAT_ALPINE_TAGS[@]}"; do
-        build "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" "$TOMCAT_TAG" "alpine"
+        docker build \
+            --tag "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" \
+            --file "${DIR}/../Dockerfile" \
+            --build-arg ALPINE_TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TOMCAT_TAG}" \
+            --build-arg IDENTIFIER="${IDENTIFIER}" \
+            "${DIR}/.."
     done
 }
 
