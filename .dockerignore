@@ -3,7 +3,6 @@
 **/.gitignore
 .github
 .idea
-docker
 jenkinsfiles
 .patches
 .mailmap
