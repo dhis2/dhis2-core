@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import java.util.AbstractMap;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +39,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.NonNull;
@@ -44,11 +47,11 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
@@ -57,6 +60,10 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Lists;
 
 /**
+ * This supplier will populate a list of {@link UniqueAttributeValue}s that
+ * contains all the attribute values that are unique and which value is either
+ * already present in the DB or duplicated in the payload
+ *
  * @author Luciano Fiandesio
  */
 @RequiredArgsConstructor
@@ -72,124 +79,44 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        preheat.setUniqueAttributeValues( calculateUniqueAttributeValues( params, preheat ) );
-    }
-
-    private List<UniqueAttributeValue> calculateUniqueAttributeValues(
-        TrackerImportParams params, TrackerPreheat preheat )
-    {
         List<TrackedEntityAttribute> uniqueTrackedEntityAttributes = trackedEntityAttributeService
             .getAllUniqueTrackedEntityAttributes();
 
-        Map<TrackedEntity, List<Attribute>> allAttributes = getAllAttributesByTrackedEntity( params, preheat );
+        Map<TrackedEntity, List<Attribute>> allUniqueAttributesByTrackedEntity = getAllAttributesByTrackedEntity(
+            params, preheat, uniqueTrackedEntityAttributes );
 
-        List<UniqueAttributeValue> uniqueAttributeValuesFromPayload = getNonUniqueValuesInPayload( allAttributes,
-            uniqueTrackedEntityAttributes );
+        List<UniqueAttributeValue> uniqueAttributeValuesFromPayload = getDuplicatedUniqueValuesInPayload(
+            allUniqueAttributesByTrackedEntity );
 
-        List<Attribute> allUniqueAttributes = allAttributes
-            .values()
-            .stream()
-            .flatMap( Collection::stream )
-            .filter( tea -> uniqueTrackedEntityAttributes.stream()
-                .anyMatch( uniqueAttr -> uniqueAttr.getUid().equals( tea.getAttribute() ) ) )
-            .distinct()
-            .collect( Collectors.toList() );
+        List<UniqueAttributeValue> uniqueAttributeValuesFromDB = getAlreadyPresentInDbUniqueValues(
+            allUniqueAttributesByTrackedEntity, uniqueTrackedEntityAttributes );
 
-        Map<TrackedEntityAttribute, List<String>> uniqueAttributes = allUniqueAttributes
-            .stream()
-            .collect( Collectors.toMap( a -> extractAttribute( a.getAttribute(), uniqueTrackedEntityAttributes ),
-                a -> extractValues( allUniqueAttributes, a.getAttribute() ) ) );
+        List<UniqueAttributeValue> uniqueAttributeValues = Stream
+            .concat( uniqueAttributeValuesFromPayload.stream(), uniqueAttributeValuesFromDB.stream() )
+            .collect( toList() );
 
-        // Merge unique attributes from DB and from Payload
-        return Stream.concat( uniqueAttributeValuesFromPayload.stream(),
-            trackedEntityAttributeValueService.getUniqueAttributeByValues( uniqueAttributes )
-                .stream()
-                .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(), av.getAttribute().getUid(),
-                    av.getValue(), av.getEntityInstance().getOrganisationUnit().getUid() ) ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<UniqueAttributeValue> getNonUniqueValuesInPayload( Map<TrackedEntity, List<Attribute>> allAttributes,
-        List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
-    {
-
-        // TEIs grouped by Attribute.
-        // Two attributes with the same value and uid are considered equals
-        TreeMap<Attribute, List<TrackedEntity>> teiByAttributeValue = new TreeMap<>( ( o1, o2 ) -> {
-            if ( Objects.equals( o1.getValue(), o2.getValue() )
-                && Objects.equals( o1.getAttribute(), o2.getAttribute() ) )
-            {
-                return 0;
-            }
-            return 1;
-        } );
-
-        for ( Map.Entry<TrackedEntity, List<Attribute>> entry : allAttributes.entrySet() )
-        {
-            for ( Attribute attribute : entry.getValue() )
-            {
-                if ( !teiByAttributeValue.containsKey( attribute ) )
-                {
-                    teiByAttributeValue.put( attribute, Lists.newArrayList() );
-                }
-                teiByAttributeValue.get( attribute ).add( entry.getKey() );
-            }
-        }
-
-        // In the list of unique attribute values there are all the attributes
-        // with the same value that appear in 2 or more TEIs
-        return teiByAttributeValue
-            .entrySet()
-            .stream()
-            .filter( e -> e.getValue().size() > 1 )
-            .flatMap( av -> buildUniqueAttributeValues( av.getKey(), av.getValue() ).stream() )
-            .filter( tea -> uniqueTrackedEntityAttributes.stream()
-                .anyMatch( uniqueAttr -> Objects.equals( uniqueAttr.getUid(), tea.getAttributeUid() ) ) )
-            .collect( Collectors.toList() );
-    }
-
-    private Collection<UniqueAttributeValue> buildUniqueAttributeValues( Attribute attribute,
-        List<TrackedEntity> value )
-    {
-        return value.stream()
-            .map( tei -> new UniqueAttributeValue( tei.getUid(), attribute.getAttribute(), attribute.getValue(),
-                tei.getOrgUnit() ) )
-            .collect( Collectors.toList() );
-
+        preheat.setUniqueAttributeValues( uniqueAttributeValues );
     }
 
     private Map<TrackedEntity, List<Attribute>> getAllAttributesByTrackedEntity( TrackerImportParams params,
-        TrackerPreheat preheat )
+        TrackerPreheat preheat, List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
     {
-        Map<TrackedEntity, List<Attribute>> teiAttributes = params.getTrackedEntities()
+        Map<TrackedEntity, List<Attribute>> teiUniqueAttributes = params.getTrackedEntities()
             .stream()
-            .collect( Collectors.toMap( Function.identity(), TrackedEntity::getAttributes ) );
-        Map<TrackedEntity, List<Attribute>> enrollmentAttributes = params.getEnrollments()
+            .collect( toMap( Function.identity(),
+                tei -> filterUniqueAttributes( tei.getAttributes(), uniqueTrackedEntityAttributes ) ) );
+
+        Map<TrackedEntity, List<Attribute>> enrollmentUniqueAttributes = params.getEnrollments()
             .stream()
-            .collect( Collectors.groupingBy( Enrollment::getTrackedEntity ) )
+            .collect( groupingBy( e -> getEntityForEnrollment( params, preheat, e.getUid() ) ) )
             .entrySet()
             .stream()
-            .map( e -> new AbstractMap.SimpleEntry<>( getEntityForEnrollment( params, preheat, e.getKey() ),
-                e.getValue().stream().flatMap( en -> en.getAttributes().stream() ).collect( Collectors.toList() ) ) )
-            .collect( Collectors.toMap( Map.Entry::getKey, Map.Entry::getValue ) );
+            .collect( toMap( Map.Entry::getKey, e -> e.getValue().stream().flatMap(
+                en -> filterUniqueAttributes(
+                    en.getAttributes(), uniqueTrackedEntityAttributes ).stream() )
+                .collect( toList() ) ) );
 
-        return mergeAttributes( teiAttributes, enrollmentAttributes );
-
-    }
-
-    private Map<TrackedEntity, List<Attribute>> mergeAttributes( Map<TrackedEntity, List<Attribute>> teiAttributes,
-        Map<TrackedEntity, List<Attribute>> enrollmentAttributes )
-    {
-        return Stream.concat( teiAttributes.entrySet().stream(),
-            enrollmentAttributes.entrySet().stream() )
-            .collect( Collectors.toMap(
-                Map.Entry::getKey,
-                Map.Entry::getValue,
-                ( v1, v2 ) -> {
-                    List<Attribute> attributes = Lists.newArrayList( v1 );
-                    attributes.addAll( v2 );
-                    return attributes;
-                } ) );
+        return mergeAttributes( teiUniqueAttributes, enrollmentUniqueAttributes );
     }
 
     private TrackedEntity getEntityForEnrollment( TrackerImportParams params, TrackerPreheat preheat, String teiUid )
@@ -212,8 +139,8 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
             tei.setOrgUnit( trackedEntity.getOrganisationUnit().getUid() );
             return tei;
         }
-        else // TEI is not present. A validation error will be thrown in
-             // validation phase
+        else // TEI is not present. but we do not fail here.
+             // A validation error will be thrown in validation phase
         {
             TrackedEntity tei = new TrackedEntity();
             tei.setTrackedEntity( teiUid );
@@ -221,13 +148,89 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
         }
     }
 
-    private List<String> extractValues( Collection<Attribute> attributes, String attribute )
+    private Map<TrackedEntity, List<Attribute>> mergeAttributes( Map<TrackedEntity, List<Attribute>> teiAttributes,
+        Map<TrackedEntity, List<Attribute>> enrollmentAttributes )
     {
-        return attributes
+        return Stream.concat( teiAttributes.entrySet().stream(),
+            enrollmentAttributes.entrySet().stream() )
+            .collect( toMap(
+                Map.Entry::getKey,
+                Map.Entry::getValue,
+                ( v1, v2 ) -> {
+                    List<Attribute> attributes = Lists.newArrayList( v1 );
+                    attributes.addAll( v2 );
+                    return attributes;
+                } ) );
+    }
+
+    private List<UniqueAttributeValue> getDuplicatedUniqueValuesInPayload(
+        Map<TrackedEntity, List<Attribute>> allAttributes )
+    {
+
+        // TEIs grouped by attribute and value.
+        // Two attributes with the same value and uid are considered equals
+        TreeMap<Attribute, List<TrackedEntity>> teiByAttributeValue = new TreeMap<>( ( o1, o2 ) -> {
+            if ( Objects.equals( o1.getValue(), o2.getValue() )
+                && Objects.equals( o1.getAttribute(), o2.getAttribute() ) )
+            {
+                return 0;
+            }
+            return 1;
+        } );
+
+        for ( Map.Entry<TrackedEntity, List<Attribute>> entry : allAttributes.entrySet() )
+        {
+            for ( Attribute attribute : entry.getValue() )
+            {
+                if ( !teiByAttributeValue.containsKey( attribute ) )
+                {
+                    teiByAttributeValue.put( attribute, Lists.newArrayList() );
+                }
+                teiByAttributeValue.get( attribute ).add( entry.getKey() );
+            }
+        }
+
+        // If an attribute and value appear in 2 or more teis
+        // it means that is not unique
+        return teiByAttributeValue
+            .entrySet()
             .stream()
-            .filter( a -> a.getAttribute().equals( attribute ) )
-            .map( Attribute::getValue )
-            .collect( Collectors.toList() );
+            .filter( e -> e.getValue().size() > 1 )
+            .flatMap( av -> buildUniqueAttributeValues( av.getKey(), av.getValue() ).stream() )
+            .collect( toList() );
+    }
+
+    private Collection<UniqueAttributeValue> buildUniqueAttributeValues( Attribute attribute,
+        List<TrackedEntity> teis )
+    {
+        return teis.stream()
+            .map( tei -> new UniqueAttributeValue( tei.getUid(), attribute.getAttribute(), attribute.getValue(),
+                tei.getOrgUnit() ) )
+            .collect( toList() );
+
+    }
+
+    private List<UniqueAttributeValue> getAlreadyPresentInDbUniqueValues(
+        Map<TrackedEntity, List<Attribute>> allAttributesByTrackedEntity,
+        List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
+    {
+
+        Map<TrackedEntityAttribute, List<String>> uniqueValuesByAttribute = allAttributesByTrackedEntity
+            .values()
+            .stream()
+            .flatMap( Collection::stream )
+            .distinct()
+            .collect( groupingBy( a -> extractAttribute( a.getAttribute(), uniqueTrackedEntityAttributes ),
+                mapping( Attribute::getValue, toList() ) ) );
+
+        List<TrackedEntityAttributeValue> uniqueAttributeAlreadyPresentInDB = trackedEntityAttributeValueService
+            .getUniqueAttributeByValues( uniqueValuesByAttribute );
+
+        return uniqueAttributeAlreadyPresentInDB
+            .stream()
+            .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(), av.getAttribute().getUid(),
+                av.getValue(), av.getEntityInstance().getOrganisationUnit().getUid() ) )
+            .collect( toList() );
     }
 
     private TrackedEntityAttribute extractAttribute( String attribute,
@@ -238,5 +241,15 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
             .filter( a -> a.getUid().equals( attribute ) )
             .findAny()
             .orElse( null );
+    }
+
+    private List<Attribute> filterUniqueAttributes( List<Attribute> attributes,
+        List<TrackedEntityAttribute> uniqueTrackedEntityAttributes )
+    {
+        return attributes.stream()
+            .filter( tea -> uniqueTrackedEntityAttributes.stream().anyMatch(
+                uniqueAttr -> uniqueAttr.getUid().equals( tea.getAttribute() ) ) )
+            .distinct()
+            .collect( toList() );
     }
 }
