@@ -871,7 +871,7 @@ public abstract class AbstractEventService implements EventService
     {
         if ( !userCanSearchOuModeALL( user ) )
         {
-            throw new IllegalQueryException( "User is not authorized to search across ALL organisation units. " );
+            throw new IllegalQueryException( "User is not authorized to use ALL organisation units. " );
         }
 
         return organisationUnitService
@@ -883,7 +883,7 @@ public abstract class AbstractEventService implements EventService
     {
         if ( params.getOrgUnit() == null )
         {
-            throw new IllegalQueryException( "Organisation unit is required to search using CHILDREN scope." );
+            throw new IllegalQueryException( "Organisation unit is required to use CHILDREN scope." );
         }
 
         return organisationUnitService.getOrganisationUnitsWithChildren( params.getOrgUnit().getChildren().stream()
@@ -894,7 +894,7 @@ public abstract class AbstractEventService implements EventService
     {
         if ( params.getOrgUnit() == null )
         {
-            throw new IllegalQueryException( "Organisation unit is required to search using DESCENDANTS scope. " );
+            throw new IllegalQueryException( "Organisation unit is required to use DESCENDANTS scope. " );
         }
 
         return organisationUnitService.getOrganisationUnitWithChildren( params.getOrgUnit().getUid() );
@@ -904,7 +904,7 @@ public abstract class AbstractEventService implements EventService
     {
         if ( user == null )
         {
-            throw new IllegalQueryException( "User can not be null to search using CAPTURE scope." );
+            throw new IllegalQueryException( "User is required to use CAPTURE scope." );
         }
 
         return organisationUnitService.getOrganisationUnitsWithChildren( user.getOrganisationUnits().stream()
@@ -915,7 +915,7 @@ public abstract class AbstractEventService implements EventService
     {
         if ( user == null )
         {
-            throw new IllegalQueryException( "User can not be null to search using ACCESSIBLE scope." );
+            throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
         }
 
         Set<OrganisationUnit> orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
