@@ -48,6 +48,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
@@ -110,6 +111,18 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
     @Override
     public Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, AggregateContext ctx )
     {
+        List<List<Long>> idPartitions = Lists.partition( ids, PARITITION_SIZE );
+
+        Map<String, TrackedEntityInstance> trackedEntityMap = new HashMap<>();
+
+        idPartitions
+            .forEach( partition -> trackedEntityMap.putAll( getTrackedEntityInstancesPartitioned( partition, ctx ) ) );
+        return trackedEntityMap;
+    }
+
+    private Map<String, TrackedEntityInstance> getTrackedEntityInstancesPartitioned( List<Long> ids,
+        AggregateContext ctx )
+    {
         TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();
 
         if ( !ctx.isSuperUser() && ctx.getTrackedEntityTypes().isEmpty() )
@@ -139,6 +152,19 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
 
     @Override
     public Multimap<String, String> getOwnedTeis( List<Long> ids, AggregateContext ctx )
+    {
+        List<List<Long>> teiIds = Lists.partition( ids, PARITITION_SIZE );
+
+        Multimap<String, String> ownedTeisMultiMap = ArrayListMultimap.create();
+
+        teiIds.forEach( partition -> {
+            ownedTeisMultiMap.putAll( getOwnedTeisPartitioned( partition, ctx ) );
+        } );
+
+        return ownedTeisMultiMap;
+    }
+
+    private Multimap<String, String> getOwnedTeisPartitioned( List<Long> ids, AggregateContext ctx )
     {
         OwnedTeiMapper handler = new OwnedTeiMapper();
 
