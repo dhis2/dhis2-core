@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build core image
-        run: docker build --tag dhis2/core:local .
+        run: docker build --tag dhis2/core:local --target alpine .
 
       - name: Run tests
         run: |
