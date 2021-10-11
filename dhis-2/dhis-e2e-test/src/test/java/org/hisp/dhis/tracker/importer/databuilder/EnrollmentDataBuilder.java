@@ -32,6 +32,7 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -44,7 +45,7 @@ public class EnrollmentDataBuilder
     {
         jsonObjectBuilder = new JsonObjectBuilder();
         //setStatus( "ACTIVE" );
-        setEnrollmentDate( Instant.now().toString() );
+        setEnrollmentDate( Instant.now().minus( 1, ChronoUnit.HOURS ).toString() );
         setIncidentDate( Instant.now().toString() );
     }
 
@@ -119,6 +120,16 @@ public class EnrollmentDataBuilder
 
         return addEvent(
             new EventDataBuilder().setProgramStage( programStage ).setOu( orgUnit ).setStatus( status ) );
+    }
+
+    public EnrollmentDataBuilder addAttribute( String attributeId, String value )
+    {
+        jsonObjectBuilder.addOrAppendToArray( "attributes", new JsonObjectBuilder()
+            .addProperty( "attribute", attributeId )
+            .addProperty( "value", value )
+            .build());
+
+        return this;
     }
 
     public JsonObject build( String program, String ou )

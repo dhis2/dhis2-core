@@ -31,17 +31,19 @@ import com.google.gson.JsonObject;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
+import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
+import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -64,6 +66,8 @@ public class EnrollmentsTests
 {
     private String multipleEnrollmentsProgram;
 
+    private String multipleEnrollmentsProgramStage;
+
     @BeforeAll
     public void beforeAll()
     {
@@ -75,6 +79,10 @@ public class EnrollmentsTests
             .addProperty( "publicAccess", "rwrw----" ).build();
 
         programActions.update( multipleEnrollmentsProgram, object ).validateStatus( 200 );
+
+        multipleEnrollmentsProgramStage = programActions
+            .createProgramStage( multipleEnrollmentsProgram, "Enrollment tests program stage " + DataGenerator.randomString() );
+
     }
 
     @BeforeEach
@@ -132,10 +140,13 @@ public class EnrollmentsTests
         JsonObject enrollment = new EnrollmentDataBuilder()
             .setTei( teiId )
             .setEnrollmentDate( Instant.now().plus( 2, ChronoUnit.DAYS ).toString() )
+            .addEvent( new EventDataBuilder().setProgram( multipleEnrollmentsProgram ).setOu( Constants.ORG_UNIT_IDS[0] )
+                .setProgramStage( multipleEnrollmentsProgramStage ) )
             .build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[0] );
 
         // assert
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( enrollment );
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( enrollment, new QueryParamsBuilder().add( "async", "false" ) );
         if ( Boolean.parseBoolean( shouldAddFutureDays ) )
         {
             response.validateSuccessfulImport();
@@ -144,8 +155,8 @@ public class EnrollmentsTests
         }
 
         response.validateErrorReport()
+            .body( "errorCode", hasSize( 1 ) )
             .body( "errorCode", hasItems( "E1020" ) );
-
     }
 
     @Test
@@ -191,8 +202,10 @@ public class EnrollmentsTests
 
         String tei = super.importTei();
 
-        trackerActions.postAndGetJobReport(
-            new EnrollmentDataBuilder().build( program, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED" ) )
+        JsonObject enrollment = new EnrollmentDataBuilder().setId( new IdGenerator().generateUniqueId() )
+            .build( program, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED" );
+
+        trackerActions.postAndGetJobReport( enrollment )
             .validateSuccessfulImport();
 
         // act
@@ -211,18 +224,6 @@ public class EnrollmentsTests
         response.validateSuccessfulImport();
         trackerActions.getTrackedEntity( tei + "?fields=enrollments" )
             .validate().body( "enrollments", hasSize( 2 ) );
-    }
-
-    @Test
-    public void shouldNotAllowMultipleActiveEnrollments()
-        throws Exception
-    {
-        String tei = super.importTeiWithEnrollment( multipleEnrollmentsProgram ).extractImportedTeis().get( 0 );
-
-        trackerActions.postAndGetJobReport(
-            new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) )
-            .validateErrorReport()
-            .body( "errorCode", hasItems( "E1015" ) );
     }
 
     @Test
