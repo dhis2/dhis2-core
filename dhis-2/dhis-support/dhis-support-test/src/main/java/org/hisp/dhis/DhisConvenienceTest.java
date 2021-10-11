@@ -75,6 +75,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -124,6 +125,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -1501,6 +1503,19 @@ public abstract class DhisConvenienceTest
         return programInstance;
     }
 
+    public static ProgramStageInstance createProgramStageInstance( ProgramStage programStage,
+        ProgramInstance pi, OrganisationUnit organisationUnit )
+    {
+        ProgramStageInstance psi = new ProgramStageInstance();
+        psi.setAutoFields();
+
+        psi.setProgramStage( programStage );
+        psi.setProgramInstance( pi );
+        psi.setOrganisationUnit( organisationUnit );
+
+        return psi;
+    }
+
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )
     {
         ProgramRule programRule = new ProgramRule();
@@ -1720,6 +1735,8 @@ public abstract class DhisConvenienceTest
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( _from );
         relationship.setTo( _to );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
         relationship.setAutoFields();
 
