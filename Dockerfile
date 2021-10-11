@@ -56,13 +56,13 @@ RUN apt-get update && \
         unzip \
         fontconfig
 
-COPY ./docker/shared/wait-for-it.sh /usr/local/bin/
-COPY ./docker/tomcat-debian/docker-entrypoint.sh /usr/local/bin/
+COPY ./docker/docker-image-resources/wait-for-it.sh /usr/local/bin/
+COPY ./docker/docker-image-resources/debian-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN chmod +rx /usr/local/bin/docker-entrypoint.sh && \
     chmod +rx /usr/local/bin/wait-for-it.sh
 
-COPY ./docker/shared/server.xml /usr/local/tomcat/conf
+COPY ./docker/docker-image-resources/server.xml /usr/local/tomcat/conf
 COPY --from=build /dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
@@ -94,13 +94,13 @@ RUN apk add --update --no-cache \
         fontconfig \
         ttf-dejavu
 
-COPY ./docker/shared/wait-for-it.sh /usr/local/bin/
-COPY ./docker/tomcat-alpine/docker-entrypoint.sh /usr/local/bin/
+COPY ./docker/docker-image-resources/wait-for-it.sh /usr/local/bin/
+COPY ./docker/docker-image-resources/alpine-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN chmod +rx /usr/local/bin/docker-entrypoint.sh && \
     chmod +rx /usr/local/bin/wait-for-it.sh
 
-COPY ./docker/shared/server.xml /usr/local/tomcat/conf
+COPY ./docker/docker-image-resources/server.xml /usr/local/tomcat/conf
 COPY --from=build /dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

@@ -35,7 +35,7 @@ ARTIFACTS="${DIR}/artifacts"
 ## config
 #
 
-. "${DIR}/shared/containers-list.sh"
+. "${DIR}/containers-list.sh"
 
 
 
