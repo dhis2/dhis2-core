@@ -249,6 +249,9 @@ public enum ConfigurationKey
 
     META_DATA_SYNC_RETRY( "metadata.sync.retry", "3", false ),
 
+    /**
+     * Sets up {@see RetryTemplate} retry frequency.
+     */
     META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC( "metadata.sync.retry.time.frequency.millisec", "30000", false ),
 
     CLUSTER_HOSTNAME( "cluster.hostname", "", false ),
@@ -259,15 +262,30 @@ public enum ConfigurationKey
 
     CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
 
+    /**
+     * Redis host to use for cache. (default: localhost)
+     */
     REDIS_HOST( "redis.host", "localhost", false ),
 
+    /**
+     * Redis port to use for cache. (default: 6379)
+     */
     REDIS_PORT( "redis.port", "6379", false ),
 
+    /**
+     * Redis password to use for cache.
+     */
     REDIS_PASSWORD( "redis.password", "", true ),
 
-    REDIS_ENABLED( "redis.enabled", Constants.FALSE, false ),
-
+    /**
+     * Use SSL for connecting to redis. (default: false)
+     */
     REDIS_USE_SSL( "redis.use.ssl", Constants.FALSE, false ),
+
+    /**
+     * Enable redis cache. (default: false)
+     */
+    REDIS_ENABLED( "redis.enabled", Constants.FALSE, false ),
 
     FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", Constants.FALSE, false ),
 
