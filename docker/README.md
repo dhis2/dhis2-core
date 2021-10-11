@@ -2,8 +2,7 @@
 ### General idea
 
 The `dhis2-core/Dockerfile` handles building DHIS2 from source, and then
-leaves the `dhis.war` available at `/dhis.war`, along with `CHECKSUM`
-files..
+leaves the `dhis.war` available at `/dhis.war`.
 
 This base image can be tagged as necessary and be reused across multiple
 other assemblies at this point.
@@ -80,26 +79,3 @@ TODO provide instructions
 ```sh
 ./docker/publish-containers.sh <image>
 ```
-
-#### Checksums
-
-Checksums are now generated for the build artifact and stored alongside
-the WAR-file in sha256 and md5. These should generally be a part of our
-releases.
-
-```
-/ # ls -l /
-total 257984
-...
--rw-r--r--    1 root     root     264106108 Oct  9 06:58 dhis.war
--rw-r--r--    1 root     root            44 Oct  9 06:58 md5sum.txt
--rw-r--r--    1 root     root            76 Oct  9 06:58 sha256sum.txt
-...
-
-/ # sha256sum -c /sha256sum.txt
-/dhis.war: OK
-
-/ # md5sum -c /md5sum.txt
-/dhis.war: OK
-```
-

@@ -21,17 +21,11 @@ COPY . .
 RUN mvn clean install -Pdev -Pjdk11 -f dhis-2/pom.xml -DskipTests -pl -dhis-web-embedded-jetty
 RUN mvn clean install -Pdev -Pjdk11 -U -f dhis-2/dhis-web/pom.xml -DskipTests
 
-RUN cp dhis-2/dhis-web/dhis-web-portal/target/dhis.war /dhis.war && \
-    cd / && \
-    sha256sum dhis.war > /sha256sum.txt && \
-    md5sum dhis.war > /md5sum.txt
-
+RUN cp dhis-2/dhis-web/dhis-web-portal/target/dhis.war /dhis.war
 
 FROM alpine:latest as base
 
 COPY --from=build /dhis.war /srv/dhis2/dhis.war
-COPY --from=build /sha256sum.txt /srv/dhis2/sha256sum.txt
-COPY --from=build /md5sum.txt /srv/dhis2/md5sum.txt
 
 FROM $DEBIAN_TOMCAT_IMAGE as debian
 
