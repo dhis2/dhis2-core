@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 
@@ -288,30 +289,7 @@ public class DataApprovalController
 
         Set<DataSet> dataSets = parseDataSetsWithWorkflow( ds );
 
-        Set<Period> periods = new HashSet<>();
-
-        if ( startDate == null || endDate == null )
-        {
-            Period period = periodService.getPeriod( pe );
-            if ( period == null )
-            {
-                throw new BadRequestException( "Either provide startDate and endDate or a valid ISO period for pe" );
-            }
-            periods.add( period );
-        }
-        else
-        {
-            PeriodType periodType = periodService.getPeriodTypeByName( pe );
-
-            if ( periodType != null )
-            {
-                periods.addAll( periodService.getPeriodsBetweenDates( periodType, startDate, endDate ) );
-            }
-            else
-            {
-                periods.addAll( periodService.getPeriodsBetweenDates( startDate, endDate ) );
-            }
-        }
+        Set<Period> periods = parsePeriods( pe, startDate, endDate );
 
         Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -345,6 +323,27 @@ public class DataApprovalController
             new FieldFilterParams( responses, fields ) ) );
 
         return rootNode;
+    }
+
+    private Set<Period> parsePeriods( String pe, Date startDate, Date endDate )
+        throws BadRequestException
+    {
+        if ( startDate == null || endDate == null )
+        {
+            Period period = periodService.getPeriod( pe );
+            if ( period == null )
+            {
+                throw new BadRequestException( "Either provide startDate and endDate or a valid ISO period for pe" );
+            }
+            return singleton( period );
+        }
+
+        PeriodType periodType = periodService.getPeriodTypeByName( pe );
+        if ( periodType != null )
+        {
+            return new HashSet<>( periodService.getPeriodsBetweenDates( periodType, startDate, endDate ) );
+        }
+        return new HashSet<>( periodService.getPeriodsBetweenDates( startDate, endDate ) );
     }
 
     private DataApprovalStateResponse getDataApprovalStateResponse( DataSet dataSet, OrganisationUnit organisationUnit,
