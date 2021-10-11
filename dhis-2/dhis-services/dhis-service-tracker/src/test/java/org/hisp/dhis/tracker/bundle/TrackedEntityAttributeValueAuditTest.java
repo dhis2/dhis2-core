@@ -148,6 +148,6 @@ public class TrackedEntityAttributeValueAuditTest extends TrackerTest
             .getTrackedEntityAttributeValueAudits(
                 attributes1, trackedEntityInstances, AuditType.UPDATE );
 
-        assertEquals( 2, attributeValueAudits.size() );
+        assertEquals( 1, attributeValueAudits.size() );
     }
 }
