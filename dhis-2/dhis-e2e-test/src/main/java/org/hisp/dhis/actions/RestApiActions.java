@@ -297,5 +297,10 @@ public class RestApiActions
             TestRunStorage.addCreatedEntity( endpoint, response.extractUid() );
         }
     }
+
+    protected void addCreatedEntity( String ep, String id )
+    {
+        TestRunStorage.addCreatedEntity( ep, id );
+    }
 }
 
