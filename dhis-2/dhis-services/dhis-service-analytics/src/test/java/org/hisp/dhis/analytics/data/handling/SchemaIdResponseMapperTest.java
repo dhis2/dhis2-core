@@ -27,34 +27,6 @@
  */
 package org.hisp.dhis.analytics.data.handling;
 
-/*
- * Copyright (c) 2004-2020, University of Oslo
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- * Redistributions of source code must retain the above copyright notice, this
- * list of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice,
- * this list of conditions and the following disclaimer in the documentation
- * and/or other materials provided with the distribution.
- * Neither the name of the HISP project nor the names of its contributors may
- * be used to endorse or promote products derived from this software without
- * specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.valueOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -225,10 +197,10 @@ public class SchemaIdResponseMapperTest
     public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet()
     {
         // Given
-        final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
+        final List<DataElement> dataElementsStub = stubDataElements();
         final OrganisationUnit orUnitStub = stubOrgUnit();
         final Period periodStub = stubPeriod();
-        final DataQueryParams theDataQueryParams = stubQueryParams( dataElementOperandsStub, orUnitStub, periodStub,
+        final DataQueryParams theDataQueryParams = stubDataElementQueryParams( dataElementsStub, orUnitStub, periodStub,
             DATA_VALUE_SET );
         theDataQueryParams.setOutputDataElementIdScheme( NAME );
 
@@ -238,16 +210,13 @@ public class SchemaIdResponseMapperTest
         // Then
         final String orgUnitUid = orUnitStub.getUid();
         final String periodIsoDate = periodStub.getIsoDate();
-        final DataElement dataElementA = dataElementOperandsStub.get( 0 ).getDataElement();
-        final DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
-        final CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
+        final DataElement dataElementA = dataElementsStub.get( 0 );
+        final DataElement dataElementB = dataElementsStub.get( 1 );
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
         assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getName() ) ) );
         assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getName() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getName() ) ) );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getName() ) ) );
     }
 
     @Test
@@ -573,6 +542,19 @@ public class SchemaIdResponseMapperTest
             .build();
     }
 
+    private DataQueryParams stubDataElementQueryParams( final List<DataElement> dataElements,
+        final OrganisationUnit organisationUnit, final Period period, final OutputFormat outputFormat )
+    {
+        return newBuilder()
+            .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DATA_X, dataElements ) )
+            .addDimension(
+                new BaseDimensionalObject( ORGUNIT_DIM_ID, ORGANISATION_UNIT, newArrayList( organisationUnit ) ) )
+            .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, PERIOD,
+                newArrayList( period ) ) )
+            .withOutputFormat( outputFormat )
+            .build();
+    }
+
     private Period stubPeriod()
     {
         final Period period = getPeriodFromIsoString( "202010" );
@@ -601,6 +583,19 @@ public class SchemaIdResponseMapperTest
         final DataElementOperand dataElementOperandB = new DataElementOperand( dataElementB, categoryOptionCombo );
 
         return newArrayList( dataElementOperandA, dataElementOperandB );
+    }
+
+    private List<DataElement> stubDataElements()
+    {
+        final DataElement dataElementA = new DataElement( "NameA" );
+        dataElementA.setUid( "uid1234567A" );
+        dataElementA.setCode( "CodeA" );
+
+        final DataElement dataElementB = new DataElement( "NameB" );
+        dataElementB.setUid( "uid1234567B" );
+        dataElementB.setCode( "CodeB" );
+
+        return newArrayList( dataElementA, dataElementB );
     }
 
     private OrganisationUnit stubOrgUnit()

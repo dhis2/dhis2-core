@@ -57,6 +57,7 @@ package org.hisp.dhis.analytics.data.handling;
 
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementIdSchemeMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementOperandIdSchemeMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSchemeMap;
 
@@ -105,14 +106,22 @@ public class SchemaIdResponseMapper
         }
 
         // This section overrides the general schema, so it can be fine-grained.
-        if ( params.isOutputFormat( DATA_VALUE_SET ) && !params.getDataElementOperands().isEmpty() )
+        if ( params.isOutputFormat( DATA_VALUE_SET ) )
         {
-            // If "outputDataElementIdScheme" is set, we replace all data
-            // elements values
-            // respecting it's definition.
             if ( params.isOutputDataElementIdSchemeSet() )
             {
-                applyDataElementOperandsIdSchemaMapping( params, responseMap );
+                if ( !params.getDataElementOperands().isEmpty() )
+                {
+                    // Replace all data elements operands respecting it's
+                    // schema definition.
+                    applyDataElementOperandsIdSchemaMapping( params, responseMap );
+                }
+                else if ( !params.getDataElements().isEmpty() )
+                {
+                    // Replace all data elements respecting it's schema
+                    // definition.
+                    applyDataElementsIdSchemaMapping( params, responseMap );
+                }
             }
         }
 
@@ -136,6 +145,12 @@ public class SchemaIdResponseMapper
     private void applyDataElementOperandsIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
     {
         map.putAll( getDataElementOperandIdSchemeMap( asTypedList( params.getDataElementOperands() ),
+            params.getOutputDataElementIdScheme() ) );
+    }
+
+    private void applyDataElementsIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
+    {
+        map.putAll( getDataElementIdSchemeMap( asTypedList( params.getDataElements() ),
             params.getOutputDataElementIdScheme() ) );
     }
 
