@@ -37,7 +37,7 @@ import org.hisp.dhis.utils.DataGenerator;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class RelationshipTypeActions
-    extends RestApiActions
+        extends RestApiActions
 {
     public RelationshipTypeActions()
     {
@@ -45,19 +45,19 @@ public class RelationshipTypeActions
     }
 
     public String createRelationshipType( String fromEntityType, String fromConstraintId, String toEntityType,
-        String toConstraintId,
-        boolean bidirectional )
+                                          String toConstraintId,
+                                          boolean bidirectional )
     {
         JsonObject object = new JsonObjectBuilder()
-            .addProperty( "publicAccess", "rwrw----" )
-            .addProperty( "name", "TA_RELATIONSHIP_TYPE " + DataGenerator.randomString() )
-            .addProperty( "fromToName", "Test to" )
-            .addProperty( "toFromName", "Test from" )
-            .addObject( "fromConstraint", createRelationshipConstraint( fromEntityType, fromConstraintId ) )
-            .addObject( "toConstraint", createRelationshipConstraint( toEntityType, toConstraintId ) )
-            .addProperty( "bidirectional", String.valueOf( bidirectional ) )
-            .addUserGroupAccess()
-            .build();
+                .addProperty( "publicAccess", "rwrw----" )
+                .addProperty( "name", "TA_RELATIONSHIP_TYPE " + DataGenerator.randomString() )
+                .addProperty( "fromToName", "Test to" )
+                .addProperty( "toFromName", "Test from" )
+                .addObject( "fromConstraint", createRelationshipConstraint( fromEntityType, fromConstraintId ) )
+                .addObject( "toConstraint", createRelationshipConstraint( toEntityType, toConstraintId ) )
+                .addProperty( "bidirectional", String.valueOf( bidirectional ) )
+                .addUserGroupAccess()
+                .build();
 
         return this.create( object );
     }
@@ -67,14 +67,14 @@ public class RelationshipTypeActions
         JsonObjectBuilder builder = new JsonObjectBuilder().addProperty( "relationshipEntity", type );
         switch ( type )
         {
-        case "PROGRAM_STAGE_INSTANCE":
-            builder
-                .addObject( "program", new JsonObjectBuilder().addProperty( "id", id ) );
-            break;
+            case "PROGRAM_STAGE_INSTANCE":
+                builder
+                        .addObject( "program", new JsonObjectBuilder().addProperty( "id", id ) );
+                break;
 
-        case "TRACKED_ENTITY_INSTANCE":
-            builder.addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", id ) );
-            break;
+            case "TRACKED_ENTITY_INSTANCE":
+                builder.addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", id ) );
+                break;
 
         }
 
