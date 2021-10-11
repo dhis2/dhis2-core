@@ -93,6 +93,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
 
         List<UniqueAttributeValue> uniqueAttributeValues = Stream
             .concat( uniqueAttributeValuesFromPayload.stream(), uniqueAttributeValuesFromDB.stream() )
+            .distinct()
             .collect( toList() );
 
         preheat.setUniqueAttributeValues( uniqueAttributeValues );
@@ -108,7 +109,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
 
         Map<TrackedEntity, List<Attribute>> enrollmentUniqueAttributes = params.getEnrollments()
             .stream()
-            .collect( groupingBy( e -> getEntityForEnrollment( params, preheat, e.getUid() ) ) )
+            .collect( groupingBy( e -> getEntityForEnrollment( params, preheat, e.getTrackedEntity() ) ) )
             .entrySet()
             .stream()
             .collect( toMap( Map.Entry::getKey, e -> e.getValue().stream().flatMap(
