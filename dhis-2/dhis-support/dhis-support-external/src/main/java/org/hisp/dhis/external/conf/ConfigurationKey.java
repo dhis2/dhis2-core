@@ -114,7 +114,10 @@ public enum ConfigurationKey
      */
     CONNECTION_PASSWORD( "connection.password", "", true ),
 
-    CONNECTION_SCHEMA( "connection.schema", "", false ),
+    /**
+     * Sets 'hibernate.hbm2ddl.auto', used in tests only. (default: none)
+     */
+    CONNECTION_SCHEMA( "connection.schema", "none", false ),
 
     /**
      * Max size of connection pool (default: 80).
@@ -176,12 +179,16 @@ public enum ConfigurationKey
      */
     CONNECTION_POOL_TIMEOUT( "connection.pool.timeout", String.valueOf( SECONDS.toMillis( 30 ) ), false ),
 
+    /**
+     * Sets the maximum number of milliseconds that the Hikari pool will wait
+     * for a connection to be validated as alive. (default: 5ms)
+     */
     CONNECTION_POOL_VALIDATION_TIMEOUT( "connection.pool.validation_timeout", String.valueOf( SECONDS.toMillis( 5 ) ),
         false ),
 
     /**
-     * Configure the number of helper threads used by dhis2 for jdbc operations
-     * (default: 3).
+     * Configure the number of helper threads used by C3P0 pool for jdbc
+     * operations (default: 3).
      */
     CONNECTION_POOL_NUM_THREADS( "connection.pool.num.helper.threads", "3", false ),
 
@@ -497,6 +504,10 @@ public enum ConfigurationKey
 
     ACTIVE_READ_REPLICAS( "active.read.replicas", "0", false ),
 
+    /**
+     * Allows enabling/disabling audits system-wide (without configuring the
+     * audit matrix). (default: true)
+     */
     AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
 
     /**
