@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.period.PeriodService;
@@ -64,8 +65,7 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
         periodService.addPeriod( createPeriod( "202101" ) );
 
         ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/",
-                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
+            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
 
         assertStatus( HttpStatus.NO_CONTENT,
             POST( "/users/" + getCurrentUser().getUid() + "/organisationUnits/" + ouId ) );
@@ -79,7 +79,10 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
                     "'dataApprovalLevels':[{'id':'" + levelId + "'}]}" ) );
 
         dsId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly', 'workflow': {'id':'" + wfId + "'}}" ) );
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly', " +
+                "'workflow': {'id':'" + wfId + "'}," +
+                "'organisationUnits':[{'id':'" + ouId + "'}]" +
+                "}" ) );
     }
 
     @Test
@@ -87,11 +90,11 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
     {
         JsonDataApprovalPermissions permissions = GET( "/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
             .content( HttpStatus.OK ).as( JsonDataApprovalPermissions.class );
-        assertEquals( "UNAPPROVABLE", permissions.getState() );
+        assertEquals( "UNAPPROVED_READY", permissions.getState() );
         assertTrue( permissions.isMayReadData() );
         assertFalse( permissions.isMayAccept() );
         assertFalse( permissions.isMayUnaccept() );
-        assertFalse( permissions.isMayApprove() );
+        assertTrue( permissions.isMayApprove() );
         assertFalse( permissions.isMayUnapprove() );
     }
 
@@ -127,7 +130,7 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
         JsonArray statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
             .content( HttpStatus.OK );
         assertTrue( statuses.isArray() );
-        assertEquals( 0, statuses.size() );
+        assertEquals( 1, statuses.size() );
     }
 
     @Test
@@ -136,16 +139,33 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
         JsonArray statuses = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}",
             ouId, wfId, dsId ).content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" );
         assertEquals( 1, statuses.size() );
-        JsonObject status1 = statuses.getObject( 0 );
-        assertEquals( "UNAPPROVABLE", status1.getString( "state" ).string() );
+        JsonObject status_t0 = statuses.getObject( 0 );
+        assertEquals( "UNAPPROVED_READY", status_t0.getString( "state" ).string() );
+        assertFalse( status_t0.getString( "lastUpdatedDate" ).exists() );
+        assertFalse( status_t0.getString( "lastUpdatedByUsername" ).exists() );
 
         // now create an approval (approve it)
         assertStatus( HttpStatus.NO_CONTENT,
-            POST( "/dataApprovals?ou={ou}&pe=202101&wf={wf}&ds={ds}", ouId, wfId, dsId ) );
+            POST( "/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId ) );
 
-        status1 = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}",
+        JsonObject status_t1 = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}",
             ouId, wfId, dsId ).content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" ).getObject( 0 );
-        assertEquals( "UNAPPROVED_READY", status1.getString( "state" ).string() );
+        assertEquals( "APPROVED_HERE", status_t1.getString( "state" ).string() );
+        assertTrue( status_t1.has( "lastUpdatedDate", "lastUpdatedByUsername", "createdByUsername", "createdDate" ) );
+        assertEquals( "admin", status_t1.getString( "lastUpdatedByUsername" ).string() );
+        assertTrue( status_t1.getString( "lastUpdatedDate" ).exists() );
 
+        // now accept it
+        assertStatus( HttpStatus.NO_CONTENT, POST( "/dataAcceptances?wf=" + wfId + "&ou=" + ouId + "&pe=202101" ) );
+
+        JsonObject status_t2 = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}",
+            ouId, wfId, dsId ).content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" ).getObject( 0 );
+        assertEquals( "ACCEPTED_HERE", status_t2.getString( "state" ).string() );
+        assertEquals( "admin", status_t2.getString( "lastUpdatedByUsername" ).string() );
+        assertTrue( status_t2.getString( "lastUpdatedDate" ).exists() );
+
+        assertNotEquals( "last updated should have changed by accepting",
+            status_t1.getString( "lastUpdatedDate" ).string(),
+            status_t2.getString( "lastUpdatedDate" ).string() );
     }
 }
