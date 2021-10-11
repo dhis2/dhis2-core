@@ -48,6 +48,7 @@ public interface TrackedEntityTypeMapper
     @Mapping( target = "featureType" )
     @Mapping( target = "sharing" )
     @Mapping( target = "trackedEntityTypeAttributes" )
+    @Mapping( target = "allowAuditLog" )
     TrackedEntityType map( TrackedEntityType trackedEntityType );
 
     List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
