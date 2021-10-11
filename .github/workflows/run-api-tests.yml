@@ -16,8 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Build core image
-        run: |
-          bash ./dhis-2/build-dev.sh
+        run: docker build --tag dhis2/core:local .
 
       - name: Run tests
         run: |
