@@ -27,14 +27,8 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
-
-import java.io.File;
-import java.util.stream.Stream;
-
+import com.google.gson.JsonObject;
+import io.restassured.http.ContentType;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
@@ -45,6 +39,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -54,8 +49,13 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
-import io.restassured.http.ContentType;
+import java.io.File;
+import java.util.stream.Stream;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -90,10 +90,10 @@ public class EventsTests
             .body( "objectReports", notNullValue() )
             .body( "objectReports[0].errorReports", empty() );
 
-        eventBody.getAsJsonArray("events").forEach( event -> {
-                 String eventId = event.getAsJsonObject().get( "event" ).getAsString();
-                 ApiResponse response = trackerActions.get( "/events/" + eventId );
-                 response.validate().statusCode( 200 );
+        eventBody.getAsJsonArray( "events" ).forEach( event -> {
+                String eventId = event.getAsJsonObject().get( "event" ).getAsString();
+                ApiResponse response = trackerActions.get( "/events/" + eventId );
+                response.validate().statusCode( 200 );
 
                 assertThat( response.getBody(), matchesJSON( event ) );
             }
@@ -141,15 +141,14 @@ public class EventsTests
                 "filter=repeatable:eq:" + repeatableStage ) )
             .extractString( "programStages.id[0]" );
 
-        TrackerApiResponse response = importTeiWithEnrollment( program, programStage );
+        TrackerApiResponse response = importTeiWithEnrollment( program );
         String teiId = response.extractImportedTeis().get( 0 );
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
-        JsonObject event = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], program, programStage )
-            .getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
-
-        event.addProperty( "trackedEntity", teiId );
-        event.addProperty( "enrollment", enrollmentId );
+        JsonObject event = new EventDataBuilder()
+            .setEnrollment( enrollmentId )
+            .setTei( teiId )
+            .build( Constants.ORG_UNIT_IDS[0], program, programStage ).getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
 
         JsonObject payload = new JsonObjectBuilder().addArray( "events", event, event ).build();
 
@@ -178,15 +177,13 @@ public class EventsTests
         String programId = Constants.TRACKER_PROGRAM_ID;
         String programStageId = "nlXNK4b7LVr";
 
-        TrackerApiResponse response = importTeiWithEnrollment( programId, programStageId );
+        TrackerApiResponse response = importTeiWithEnrollment( programId );
 
         String enrollmentId = response.extractImportedEnrollments().get( 0 );
 
-        JsonObject event = new JsonObjectBuilder(
-            trackerActions.buildEvent( Constants.ORG_UNIT_IDS[1], programId, programStageId ).getAsJsonArray(
-                "events" ).get( 0 ).getAsJsonObject() )
-                    .addProperty( "enrollment", enrollmentId )
-                    .wrapIntoArray( "events" );
+        JsonObject event = new EventDataBuilder()
+            .setEnrollment( enrollmentId )
+            .build( Constants.ORG_UNIT_IDS[1], programId, programStageId );
 
         response = trackerActions.postAndGetJobReport( event )
             .validateSuccessfulImport();

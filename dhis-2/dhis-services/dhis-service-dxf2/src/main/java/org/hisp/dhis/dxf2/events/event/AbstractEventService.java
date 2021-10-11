@@ -281,9 +281,9 @@ public abstract class AbstractEventService implements EventService
     @Override
     public Events getEvents( EventSearchParams params )
     {
-        validate( params );
-
         User user = currentUserService.getCurrentUser();
+
+        validate( params, user );
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
 
@@ -836,27 +836,23 @@ public abstract class AbstractEventService implements EventService
 
     private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params, User user )
     {
-        Set<OrganisationUnit> organisationUnits = new HashSet<>();
+        List<OrganisationUnit> organisationUnits = new ArrayList<>();
 
         Program program = params.getProgram();
-
         OrganisationUnit orgUnit = params.getOrgUnit();
         OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
 
         if ( params.getOrgUnit() != null )
         {
+            organisationUnits.add( orgUnit );
+
             if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
             {
                 organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
             }
             else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
             {
-                organisationUnits.add( orgUnit );
                 organisationUnits.addAll( orgUnit.getChildren() );
-            }
-            else // SELECTED
-            {
-                organisationUnits.add( orgUnit );
             }
         }
 
@@ -866,27 +862,28 @@ public abstract class AbstractEventService implements EventService
 
             if ( OrganisationUnitSelectionMode.ACCESSIBLE.equals( orgUnitSelectionMode ) )
             {
-                orgUnits = program.isRegistration()
-                    ? user.getTeiSearchOrganisationUnitsWithFallback()
-                    : user.getDataViewOrganisationUnitsWithFallback();
+                orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+
+                if ( program != null && program.isWithoutRegistration() )
+                {
+                    orgUnits = user.getDataViewOrganisationUnitsWithFallback();
+                }
             }
             else if ( OrganisationUnitSelectionMode.CAPTURE.equals( orgUnitSelectionMode ) )
             {
                 orgUnits = user.getOrganisationUnits();
             }
             else if ( OrganisationUnitSelectionMode.ALL.equals( orgUnitSelectionMode )
-                && (user.isSuper() || currentUserService
-                    .currentUserIsAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() )) )
+                && userCanSearchOuModeALL( user ) )
             {
                 orgUnits = new HashSet<>( organisationUnitService.getRootOrganisationUnits() );
             }
 
             organisationUnits.addAll( organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
                 .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
-
         }
 
-        return new ArrayList<>( organisationUnits );
+        return organisationUnits;
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user,
@@ -959,7 +956,7 @@ public abstract class AbstractEventService implements EventService
     }
 
     @Override
-    public void validate( EventSearchParams params )
+    public void validate( EventSearchParams params, User user )
         throws IllegalQueryException
     {
         String violation = null;
@@ -967,11 +964,6 @@ public abstract class AbstractEventService implements EventService
         if ( params == null )
         {
             throw new IllegalQueryException( "Query parameters can not be empty" );
-        }
-
-        if ( params.getOrgUnit() == null && params.getOrgUnitSelectionMode() == null )
-        {
-            violation = "At least one of the following query parameters are required: orgUnit, ouMode";
         }
 
         if ( params.getProgram() == null && params.getOrgUnit() == null && params.getTrackedEntityInstance() == null
@@ -988,6 +980,13 @@ public abstract class AbstractEventService implements EventService
         if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
         {
             violation = "Duration is not valid: " + params.getLastUpdatedDuration();
+        }
+
+        if ( params.getOrgUnitSelectionMode() != null
+            && OrganisationUnitSelectionMode.ALL.equals( params.getOrgUnitSelectionMode() )
+            && !userCanSearchOuModeALL( user ) )
+        {
+            violation = "Current user is not authorized to query across all organisation units";
         }
 
         if ( violation != null )
@@ -1087,5 +1086,16 @@ public abstract class AbstractEventService implements EventService
         }
 
         importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
+    }
+
+    private boolean userCanSearchOuModeALL( User user )
+    {
+        if ( user == null )
+        {
+            return false;
+        }
+
+        return user.isSuper()
+            || user.isAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() );
     }
 }

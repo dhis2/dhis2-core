@@ -41,9 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -60,12 +57,16 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jim Grace
@@ -74,7 +75,7 @@ import com.google.common.collect.Sets;
 @Service( "org.hisp.dhis.dataapproval.DataApprovalService" )
 @AllArgsConstructor
 public class DefaultDataApprovalService
-    implements DataApprovalService
+    implements DataApprovalService, CurrentUserServiceTarget
 {
     private final DataApprovalStore dataApprovalStore;
 
@@ -90,10 +91,7 @@ public class DefaultDataApprovalService
 
     private final SystemSettingManager systemSettingManager;
 
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;

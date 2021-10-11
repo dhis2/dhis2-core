@@ -180,22 +180,11 @@ public class HibernateRelationshipStore
     {
         List<Object> c = getSession()
             .createNativeQuery( new StringBuilder()
-                .append( "WITH relationshipitemuids AS ( " )
-                .append( "SELECT RI.relationshipitemid, coalesce(TE.uid, PI.uid, PSI.uid) as uid " )
-                .append( "FROM relationshipitem RI " )
-                .append(
-                    "LEFT JOIN trackedentityinstance TE ON TE.trackedentityinstanceid = RI.trackedentityinstanceid " )
-                .append( "LEFT JOIN programinstance PI ON PI.programinstanceid = RI.programinstanceid " )
-                .append(
-                    "LEFT JOIN programstageinstance PSI ON PSI.programstageinstanceid = RI.programstageinstanceid " )
-                .append( ") " )
                 .append( "SELECT R.uid " )
                 .append( "FROM relationship R " )
                 .append( "INNER JOIN relationshiptype RT ON RT.relationshiptypeid = R.relationshiptypeid " )
-                .append( "INNER JOIN relationshipitemuids F ON F.relationshipitemid = R.from_relationshipitemid " )
-                .append( "INNER JOIN relationshipitemuids T ON T.relationshipitemid = R.to_relationshipitemid " )
-                .append( "WHERE concat(RT.uid, '-', F.uid, '-', T.uid) IN (:keys) " )
-                .append( "OR (RT.bidirectional AND concat(RT.uid, '-', T.uid, '-', F.uid) IN (:keys)) " )
+                .append( "WHERE R.key IN (:keys) " )
+                .append( "OR (R.inverted_key IN (:keys) AND RT.bidirectional = TRUE)" )
                 .toString() )
             .setParameter( "keys", relationshipKeyList )
             .getResultList();

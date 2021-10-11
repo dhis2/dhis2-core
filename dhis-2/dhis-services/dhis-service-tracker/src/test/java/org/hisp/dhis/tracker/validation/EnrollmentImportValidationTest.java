@@ -229,7 +229,7 @@ public class EnrollmentImportValidationTest
     }
 
     @Test
-    public void testEnrollmentInAnotherProgramExists()
+    public void testActiveEnrollmentAlreadyExists()
         throws IOException
     {
         TrackerImportParams trackerImportParams = createBundleFromJson(
@@ -248,13 +248,10 @@ public class EnrollmentImportValidationTest
 
         validationReport = trackerImportReport.getValidationReport();
 
-        assertEquals( 2, validationReport.getErrorReports().size() );
+        assertEquals( 1, validationReport.getErrorReports().size() );
 
         assertThat( validationReport.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
-
-        assertThat( validationReport.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
     }
 
     /**

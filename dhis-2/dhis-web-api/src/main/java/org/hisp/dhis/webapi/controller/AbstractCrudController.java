@@ -371,6 +371,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         prePatchEntity( persistedObject, patchedObject );
 
+        // Only supports new Sharing format
+        ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
+
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 
         if ( !parameterValuesMap.containsKey( "importReportMode" ) )

@@ -62,6 +62,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
@@ -355,7 +356,8 @@ public class ValidationResultStoreTest
     @Override
     public void tearDownTest()
     {
-        setDependency( validationResultStore, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, validationResultStore );
     }
 
     // -------------------------------------------------------------------------
@@ -364,7 +366,8 @@ public class ValidationResultStoreTest
 
     private void setMockUserService( CurrentUserService mockUserService )
     {
-        setDependency( validationResultStore, "currentUserService", mockUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            mockUserService, validationResultStore );
     }
 
     // -------------------------------------------------------------------------

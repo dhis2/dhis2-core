@@ -40,6 +40,7 @@ import java.util.Set;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsServiceTarget;
 import org.hisp.dhis.category.CategoryManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalObject;
@@ -80,6 +81,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -358,10 +360,12 @@ public class EventPredictionServiceTest
         MockAnalyticsService mockAnalyticsSerivce = new MockAnalyticsService();
         mockAnalyticsSerivce.setItemGridMap( itemGridMap );
 
-        setDependency( predictionService, "analyticsService", mockAnalyticsSerivce, AnalyticsService.class );
+        setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, mockAnalyticsSerivce,
+            predictionService );
 
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, orgUnitASet, orgUnitASet );
-        setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            mockCurrentUserService, predictionService );
 
         dataValueService
             .addDataValue( createDataValue( dataElementE, periodMar, orgUnitA, defaultCombo, defaultCombo, "100" ) );
@@ -374,8 +378,10 @@ public class EventPredictionServiceTest
     @Override
     public void tearDownTest()
     {
-        setDependency( predictionService, "analyticsService", analyticsService, AnalyticsService.class );
-        setDependency( predictionService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( AnalyticsServiceTarget.class, AnalyticsServiceTarget::setAnalyticsService, analyticsService,
+            predictionService );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, predictionService );
     }
 
     // -------------------------------------------------------------------------

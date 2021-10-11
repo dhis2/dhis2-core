@@ -41,7 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 public class RelationshipKey
 {
 
-    private static final String RELATIONSHIP_KEY_SEPARATOR = "-";
+    private static final String RELATIONSHIP_KEY_SEPARATOR = "_";
 
     private final String type;
 

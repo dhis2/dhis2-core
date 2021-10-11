@@ -66,6 +66,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.joda.time.DateTime;
@@ -325,13 +326,15 @@ public class PredictionServiceTest
 
         Set<OrganisationUnit> units = newHashSet( sourceA, sourceB, sourceG );
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, units, units );
-        setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            mockCurrentUserService, predictionService );
     }
 
     @Override
     public void tearDownTest()
     {
-        setDependency( predictionService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, predictionService );
     }
 
     // -------------------------------------------------------------------------
@@ -626,7 +629,8 @@ public class PredictionServiceTest
 
         Set<OrganisationUnit> units = newHashSet( sourceA );
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, units, units );
-        setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            mockCurrentUserService, predictionService );
 
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential",
             expressionH, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
