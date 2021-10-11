@@ -135,9 +135,10 @@ public class EventExportTests
 
     private String createRelationship( String eventId, String event2Id, String relationshipTypeId )
     {
-        JsonObject relationships = new JsonObjectBuilder( trackerActions
-            .buildRelationship( "event", eventId, "event", event2Id, relationshipTypeId ) )
-            .wrapIntoArray( "relationships" );
+        JsonObject relationships = new org.hisp.dhis.tracker.importer.relationships.RelationshipDataBuilder().setToEntity( "event", eventId )
+                .setFromEntity( "event", event2Id )
+                .setRelationshipType( relationshipTypeId )
+                .wrapToArray();
 
         return trackerActions.postAndGetJobReport( relationships )
             .validateSuccessfulImport().extractImportedRelationships().get( 0 );
