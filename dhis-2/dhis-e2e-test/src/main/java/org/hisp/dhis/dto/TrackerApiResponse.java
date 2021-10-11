@@ -42,7 +42,6 @@ import io.restassured.response.ValidatableResponse;
 public class TrackerApiResponse
     extends ApiResponse
 {
-
     public TrackerApiResponse( ApiResponse response )
     {
         super( response.raw );
@@ -127,5 +126,4 @@ public class TrackerApiResponse
             .body( "bundleReport.typeReportMap.RELATIONSHIP", notNullValue() )
             .rootPath( "bundleReport.typeReportMap.RELATIONSHIP" );
     }
-
 }

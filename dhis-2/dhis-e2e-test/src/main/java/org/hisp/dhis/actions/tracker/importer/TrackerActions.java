@@ -328,5 +328,4 @@ public class TrackerActions
             .addProperty( "orgUnit", ou )
             .wrapIntoArray( "trackedEntities" );
     }
-
 }
