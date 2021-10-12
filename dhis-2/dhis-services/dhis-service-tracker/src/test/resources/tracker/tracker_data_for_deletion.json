@@ -21,18 +21,7 @@
   "trackedEntities": [{
     "trackedEntityType": "bPJ0FMtcnEh",
     "trackedEntity": "PB9VMezGkwA",
-    "attributes": [
-      {
-        "attribute": "fmBIpOStKkF",
-        "value": "PersonA",
-        "storedBy": "admin"
-      },
-      {
-        "attribute": "sTJvSLN7Kcb",
-        "value": "AddressA",
-        "storedBy": "admin"
-      }
-    ],
+    "attributes": [],
     "orgUnit": "QfUVllTs6cS",
     "inactive": false
   }]

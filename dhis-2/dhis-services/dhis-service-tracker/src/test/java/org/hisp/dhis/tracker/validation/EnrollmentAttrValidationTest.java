@@ -39,11 +39,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.junit.Ignore;
@@ -64,6 +66,9 @@ public class EnrollmentAttrValidationTest
 
     @Autowired
     private DefaultTrackerValidationService trackerValidationService;
+
+    @Autowired
+    private TrackerImportService trackerImportService;
 
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
@@ -194,6 +199,82 @@ public class EnrollmentAttrValidationTest
 
         assertThat( validationReport.getErrorReports(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1018 ) ) ) );
+    }
+
+    @Test
+    public void testAttributesUniquenessInSameTei()
+        throws IOException
+    {
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+    }
+
+    @Test
+    public void testAttributesUniquenessAlreadyInDB()
+        throws IOException
+    {
+        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
+        manager.flush();
+        manager.clear();
+
+        params = createBundleFromJson(
+            "tracker/validations/enrollments_te_unique_attr_same_tei.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        manager.flush();
+        manager.clear();
+
+        params = createBundleFromJson(
+            "tracker/validations/enrollments_te_unique_attr_in_db.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
+    }
+
+    @Test
+    public void testAttributesUniquenessInDifferentTeis()
+        throws IOException
+    {
+        TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data_3.json" );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
+        manager.flush();
+        manager.clear();
+
+        params = createBundleFromJson(
+            "tracker/validations/enrollments_te_unique_attr.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
+
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
     }
 
     @Test
