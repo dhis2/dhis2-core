@@ -45,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  * @author Lars Helge Overland
  */
 public interface IdentifiableObject
-    extends UniqueObject, LinkableObject, Comparable<IdentifiableObject>, Serializable
+    extends PrimaryKeyObject, LinkableObject, Comparable<IdentifiableObject>, Serializable
 {
     String getCode();
 

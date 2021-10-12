@@ -38,7 +38,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.UniqueObject;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -68,7 +68,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @NoArgsConstructor
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 @JacksonXmlRootElement( localName = "metadataProposal", namespace = DxfNamespaces.DXF_2_0 )
-public class MetadataProposal implements UniqueObject
+public class MetadataProposal implements PrimaryKeyObject
 {
     private long id;
 

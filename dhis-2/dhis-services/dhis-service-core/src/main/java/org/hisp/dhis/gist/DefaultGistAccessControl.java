@@ -40,7 +40,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.UniqueObject;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -101,7 +101,7 @@ public class DefaultGistAccessControl implements GistAccessControl
     }
 
     @Override
-    public boolean canRead( Class<? extends UniqueObject> type )
+    public boolean canRead( Class<? extends PrimaryKeyObject> type )
     {
         if ( !IdentifiableObject.class.isAssignableFrom( type ) )
         {
@@ -113,7 +113,7 @@ public class DefaultGistAccessControl implements GistAccessControl
     }
 
     @Override
-    public boolean canReadObject( Class<? extends UniqueObject> type, String uid )
+    public boolean canReadObject( Class<? extends PrimaryKeyObject> type, String uid )
     {
         if ( !IdentifiableObject.class.isAssignableFrom( type ) )
         {
@@ -138,7 +138,7 @@ public class DefaultGistAccessControl implements GistAccessControl
     }
 
     @Override
-    public boolean canRead( Class<? extends UniqueObject> type, String path )
+    public boolean canRead( Class<? extends PrimaryKeyObject> type, String path )
     {
         if ( !IdentifiableObject.class.isAssignableFrom( type ) )
         {

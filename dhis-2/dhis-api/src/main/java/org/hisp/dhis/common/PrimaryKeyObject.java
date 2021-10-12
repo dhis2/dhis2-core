@@ -36,7 +36,7 @@ import java.io.Serializable;
  *
  * @author Jan Bernitt
  */
-public interface UniqueObject extends Serializable
+public interface PrimaryKeyObject extends Serializable
 {
     /**
      * @return internal unique ID of the object as used in the database
