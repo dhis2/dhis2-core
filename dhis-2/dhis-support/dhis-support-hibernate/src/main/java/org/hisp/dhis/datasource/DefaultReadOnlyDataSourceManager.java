@@ -70,8 +70,6 @@ public class DefaultReadOnlyDataSourceManager
 
     private static final int MAX_READ_REPLICAS = 5;
 
-    private static final String DEFAULT_POOL_SIZE = "40";
-
     private final DhisConfigurationProvider config;
 
     public DefaultReadOnlyDataSourceManager( DhisConfigurationProvider config )
@@ -124,8 +122,7 @@ public class DefaultReadOnlyDataSourceManager
         String mainUser = config.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String mainPassword = config.getProperty( ConfigurationKey.CONNECTION_PASSWORD );
         String driverClass = config.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS );
-        String maxPoolSize = config.getPropertyOrDefault( ConfigurationKey.CONNECTION_POOL_MAX_SIZE,
-            DEFAULT_POOL_SIZE );
+        String maxPoolSize = config.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE );
         String dbPoolType = config.getProperty( ConfigurationKey.DB_POOL_TYPE );
 
         Properties props = config.getProperties();
