@@ -149,7 +149,7 @@ public class OwnershipTests
             .body( "enrollments", hasSize( 0 ) );
 
         trackerActions
-            .postAndGetJobReport( new EnrollmentDataBuilder().build( protectedProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
+            .postAndGetJobReport( new EnrollmentDataBuilder().array( protectedProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
             .validateErrorReport()
             .body( "errorCode", hasItems( "E1102" ) );
     }
@@ -176,7 +176,7 @@ public class OwnershipTests
             .body( "enrollments", hasSize( 0 ) );
 
         trackerActions
-            .postAndGetJobReport( new EnrollmentDataBuilder().build( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
+            .postAndGetJobReport( new EnrollmentDataBuilder().array( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
             .validateSuccessfulImport();
 
     }

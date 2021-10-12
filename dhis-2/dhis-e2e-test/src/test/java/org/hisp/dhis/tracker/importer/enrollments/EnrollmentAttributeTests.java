@@ -44,6 +44,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.Matchers.*;
@@ -94,7 +95,7 @@ public class EnrollmentAttributeTests
 
         JsonObject payload = new EnrollmentDataBuilder()
             .setTei( tei )
-            .build( programId, Constants.ORG_UNIT_IDS[1] );
+            .array( programId, Constants.ORG_UNIT_IDS[1] );
 
         trackerActions.postAndGetJobReport( payload )
             .validateErrorReport()
@@ -113,7 +114,7 @@ public class EnrollmentAttributeTests
             .setId( new IdGenerator().generateUniqueId() )
             .setTei( tei )
             .addAttribute( numberAttributeId, "5" )
-            .build( programId, Constants.ORG_UNIT_IDS[1] );
+            .array( programId, Constants.ORG_UNIT_IDS[1] );
 
         trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
 
@@ -139,7 +140,7 @@ public class EnrollmentAttributeTests
         JsonObject payload = new EnrollmentDataBuilder()
             .setTei( tei )
             .addAttribute( optionSetAttributeId, "TA_YES" )
-            .build( programId, Constants.ORG_UNIT_IDS[1] );
+            .array( programId, Constants.ORG_UNIT_IDS[1] );
 
         trackerActions.postAndGetJobReport( payload, new QueryParamsBuilder().add( "async=false" ) ).validateSuccessfulImport();
 
@@ -161,7 +162,7 @@ public class EnrollmentAttributeTests
             .setId( new IdGenerator().generateUniqueId() )
             .setTei( tei )
             .addAttribute( optionSetAttributeId, "TA_YES" )
-            .build( programId, Constants.ORG_UNIT_IDS[1] );
+            .array( programId, Constants.ORG_UNIT_IDS[1] );
 
         trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
 
@@ -189,7 +190,7 @@ public class EnrollmentAttributeTests
             .setId( new IdGenerator().generateUniqueId() )
             .setTei( tei )
             .addAttribute( tetAttribute, "NOT_A_VALUE" )
-            .build( programId, Constants.ORG_UNIT_IDS[1] );
+            .array( programId, Constants.ORG_UNIT_IDS[1] );
 
         trackerActions.postAndGetJobReport( payload ).validateErrorReport()
             .body( "", hasSize( 3 ) )
@@ -209,7 +210,7 @@ public class EnrollmentAttributeTests
             .setId( new IdGenerator().generateUniqueId() )
             .setTei( tei )
             .addAttribute( uniqueAttributeId, value )
-            .build( programId, Constants.ORG_UNIT_IDS[1] );
+            .array( programId, Constants.ORG_UNIT_IDS[1] );
 
         trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
 
@@ -217,7 +218,33 @@ public class EnrollmentAttributeTests
             .setId( new IdGenerator().generateUniqueId() )
             .setTei( importTei() )
             .addAttribute( uniqueAttributeId, value )
-            .build( programId, Constants.ORG_UNIT_IDS[1] );
+            .array( programId, Constants.ORG_UNIT_IDS[1] );
+
+        trackerActions.postAndGetJobReport( payload ).validateErrorReport();
+    }
+
+    @Disabled( "DHIS2-11950" )
+    @Test
+    public void shouldValidateUniquenessWithinThePayload()
+        throws Exception
+    {
+        String tei = importTei();
+        String teiB = importTei();
+        String value = DataGenerator.randomString();
+
+        Function<String, JsonObject> singleEnrollment = ( teiId ) -> {
+            return new EnrollmentDataBuilder()
+                .setId( new IdGenerator().generateUniqueId() )
+                .setTei( teiId )
+                .addAttribute( uniqueAttributeId, value )
+                .setProgram( programId )
+                .setOu( Constants.ORG_UNIT_IDS[1] )
+                .single();
+        };
+
+        JsonObject payload = new JsonObjectBuilder()
+            .addOrAppendToArray( "enrollments", singleEnrollment.apply( tei ), singleEnrollment.apply( teiB ) )
+            .build();
 
         trackerActions.postAndGetJobReport( payload ).validateErrorReport();
     }

@@ -78,7 +78,7 @@ public class TeiValidationTests
         JsonObject payload = new TeiDataBuilder()
             .addAttribute( uniqueTetAttribute, value )
             .addAttribute( mandatoryTetAttribute, value )
-            .build( trackedEntityType, Constants.ORG_UNIT_IDS[0] );
+            .array( trackedEntityType, Constants.ORG_UNIT_IDS[0] );
 
         trackerActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
@@ -93,7 +93,7 @@ public class TeiValidationTests
     public void shouldReturnErrorReportsWhenTeiIncorrect()
     {
         // arrange
-        JsonObject trackedEntities = new TeiDataBuilder().build( "", Constants.ORG_UNIT_IDS[0] );
+        JsonObject trackedEntities = new TeiDataBuilder().array( "", Constants.ORG_UNIT_IDS[0] );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -106,7 +106,7 @@ public class TeiValidationTests
     @Test
     public void shouldNotReturnErrorWhenMandatoryTetAttributeIsPresent()
     {
-        JsonObject trackedEntities = buildTeiWithMandatoryAttribute().build();
+        JsonObject trackedEntities = buildTeiWithMandatoryAttribute().array();
 
         // assert
         trackerActions.postAndGetJobReport( trackedEntities )
@@ -117,7 +117,7 @@ public class TeiValidationTests
     public void shouldReturnErrorWhenMandatoryAttributesMissing()
     {
         // arrange
-        JsonObject trackedEntities = new TeiDataBuilder().build( trackedEntityType, Constants.ORG_UNIT_IDS[0] );
+        JsonObject trackedEntities = new TeiDataBuilder().array( trackedEntityType, Constants.ORG_UNIT_IDS[0] );
 
         // assert
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -130,7 +130,7 @@ public class TeiValidationTests
     @Test
     public void shouldReturnErrorWhenRemovingMandatoryAttributes()
     {
-        JsonObject object = buildTeiWithEnrollmentAndMandatoryAttributes().build();
+        JsonObject object = buildTeiWithEnrollmentAndMandatoryAttributes().array();
 
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( object, new QueryParamsBuilder().add( "async=false" ) );
@@ -161,7 +161,7 @@ public class TeiValidationTests
     @Test
     public void shouldNotReturnErrorWhenRemovingNotMandatoryAttributes()
     {
-        JsonObject payload = buildTeiWithMandatoryAndOptionSetAttribute().build();
+        JsonObject payload = buildTeiWithMandatoryAndOptionSetAttribute().array();
 
         String teiId = trackerActions
             .postAndGetJobReport( payload,
@@ -202,7 +202,7 @@ public class TeiValidationTests
     {
         JsonObject trackedEntities = buildTeiWithMandatoryAttribute()
             .addAttribute( attributeWithOptionSet, DataGenerator.randomString() )
-            .build();
+            .array();
 
         trackerActions.postAndGetJobReport( trackedEntities, new QueryParamsBuilder().add( "async=false" ) )
             .validateErrorReport()
@@ -213,7 +213,7 @@ public class TeiValidationTests
     @Test
     public void shouldNotReturnErrorWhenAttributeWithOptionSetIsPresent()
     {
-        JsonObject trackedEntities = buildTeiWithMandatoryAndOptionSetAttribute().build();
+        JsonObject trackedEntities = buildTeiWithMandatoryAndOptionSetAttribute().array();
 
         trackerActions.postAndGetJobReport( trackedEntities ).validateSuccessfulImport();
 

@@ -37,7 +37,7 @@ import java.time.temporal.ChronoUnit;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EnrollmentDataBuilder
+public class EnrollmentDataBuilder implements TrackerImporterDataBuilder
 {
     private JsonObjectBuilder jsonObjectBuilder;
 
@@ -103,9 +103,7 @@ public class EnrollmentDataBuilder
     public EnrollmentDataBuilder addEvent( EventDataBuilder builder )
     {
         jsonObjectBuilder.addOrAppendToArray( "events",
-            builder.build()
-                .getAsJsonArray( "events" ).get(
-                0 ).getAsJsonObject() );
+            builder.single());
         return this;
     }
 
@@ -132,22 +130,29 @@ public class EnrollmentDataBuilder
         return this;
     }
 
-    public JsonObject build( String program, String ou )
+    public JsonObject array( String program, String ou )
     {
         setProgram( program ).setOu( ou );
-        return build();
+        return array();
     }
 
-    public JsonObject build( String program, String ou, String tei, String status )
+    public JsonObject array( String program, String ou, String tei, String status )
     {
         setProgram( program ).setOu( ou ).setStatus( status ).setTei( tei );
 
-        return build();
+        return array();
     }
 
-    public JsonObject build()
+    @Override
+    public JsonObject array()
     {
         return jsonObjectBuilder.wrapIntoArray( "enrollments" );
+    }
+
+    @Override
+    public JsonObject single()
+    {
+        return jsonObjectBuilder.build();
     }
 
 }

@@ -142,7 +142,7 @@ public class EnrollmentsTests
             .setEnrollmentDate( Instant.now().plus( 2, ChronoUnit.DAYS ).toString() )
             .addEvent( new EventDataBuilder().setProgram( multipleEnrollmentsProgram ).setOu( Constants.ORG_UNIT_IDS[0] )
                 .setProgramStage( multipleEnrollmentsProgramStage ) )
-            .build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[0] );
+            .array( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[0] );
 
         // assert
         TrackerApiResponse response = trackerActions
@@ -203,7 +203,7 @@ public class EnrollmentsTests
         String tei = super.importTei();
 
         JsonObject enrollment = new EnrollmentDataBuilder().setId( new IdGenerator().generateUniqueId() )
-            .build( program, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED" );
+            .array( program, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED" );
 
         trackerActions.postAndGetJobReport( enrollment )
             .validateSuccessfulImport();
@@ -211,7 +211,7 @@ public class EnrollmentsTests
         // act
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
-            new EnrollmentDataBuilder().build( program, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) );
+            new EnrollmentDataBuilder().array( program, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) );
 
         // assert
         if ( Boolean.parseBoolean( shouldEnrollOnce ) )

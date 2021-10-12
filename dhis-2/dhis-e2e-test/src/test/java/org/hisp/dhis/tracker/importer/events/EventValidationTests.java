@@ -126,7 +126,7 @@ public class EventValidationTests
             .setStatus( status )
             .setEventDate( occurredAt )
             .setEnrollment( enrollment )
-            .build( OU_ID, trackerProgramId, trackerProgramStageId );
+            .array( OU_ID, trackerProgramId, trackerProgramStageId );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
         response.validateErrorReport()
@@ -138,7 +138,7 @@ public class EventValidationTests
     {
         JsonObject eventBody = new EventDataBuilder()
             .setEnrollment( enrollment )
-            .build( OU_ID, trackerProgramId, trackerProgramStageId );
+            .array( OU_ID, trackerProgramId, trackerProgramStageId );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( eventBody );
 
@@ -154,7 +154,7 @@ public class EventValidationTests
     public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId,
         String errorCode )
     {
-        JsonObject jsonObject = new EventDataBuilder().build( ouId, programId, programStageId );
+        JsonObject jsonObject = new EventDataBuilder().array( ouId, programId, programStageId );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
@@ -167,7 +167,7 @@ public class EventValidationTests
     {
         JsonObject jsonObject = new EventDataBuilder()
             .setEnrollment( enrollment )
-            .build( OU_ID, anotherTrackerProgramId, trackerProgramStageId );
+            .array( OU_ID, anotherTrackerProgramId, trackerProgramStageId );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
@@ -178,7 +178,7 @@ public class EventValidationTests
     @Test
     public void eventImportShouldPassValidationWhenOnlyEventProgramIsDefined()
     {
-        JsonObject jsonObject = new EventDataBuilder().build( OU_ID, eventProgramId, null );
+        JsonObject jsonObject = new EventDataBuilder().array( OU_ID, eventProgramId, null );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 

@@ -110,7 +110,7 @@ public class EventNotesTests
             .setProgram( Constants.EVENT_PROGRAM_ID )
             .setProgramStage( Constants.EVENT_PROGRAM_STAGE_ID )
             .addNote( DataGenerator.randomString() )
-            .build();
+            .array();
         return ob;
     }
 
