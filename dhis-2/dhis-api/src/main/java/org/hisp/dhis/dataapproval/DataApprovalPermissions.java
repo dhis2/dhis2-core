@@ -34,6 +34,9 @@ import org.hisp.dhis.common.DxfNamespaces;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import lombok.Setter;
+
+@Setter
 @JacksonXmlRootElement( localName = "dataApprovalPermissions", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalPermissions
 {
@@ -47,29 +50,18 @@ public class DataApprovalPermissions
 
     private boolean mayReadData;
 
+    private transient boolean mayReadUsers;
+
     private transient String state;
 
     private transient String approvedBy;
 
     private transient Date approvedAt;
 
-    public DataApprovalPermissions()
-    {
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
     @JsonProperty
     public boolean isMayApprove()
     {
         return mayApprove;
-    }
-
-    public void setMayApprove( boolean mayApprove )
-    {
-        this.mayApprove = mayApprove;
     }
 
     @JsonProperty
@@ -78,20 +70,10 @@ public class DataApprovalPermissions
         return mayUnapprove;
     }
 
-    public void setMayUnapprove( boolean mayUnapprove )
-    {
-        this.mayUnapprove = mayUnapprove;
-    }
-
     @JsonProperty
     public boolean isMayAccept()
     {
         return mayAccept;
-    }
-
-    public void setMayAccept( boolean mayAccept )
-    {
-        this.mayAccept = mayAccept;
     }
 
     @JsonProperty
@@ -100,20 +82,19 @@ public class DataApprovalPermissions
         return mayUnaccept;
     }
 
-    public void setMayUnaccept( boolean mayUnaccept )
-    {
-        this.mayUnaccept = mayUnaccept;
-    }
-
     @JsonProperty
     public boolean isMayReadData()
     {
         return mayReadData;
     }
 
-    public void setMayReadData( boolean mayReadData )
+    /**
+     * @return true, if the user is allowed to see what user has approved the
+     *         data
+     */
+    public boolean isMayReadUsers()
     {
-        this.mayReadData = mayReadData;
+        return mayReadUsers;
     }
 
     @JsonProperty
@@ -122,31 +103,16 @@ public class DataApprovalPermissions
         return state;
     }
 
-    public void setState( String state )
-    {
-        this.state = state;
-    }
-
     @JsonProperty
     public String getApprovedBy()
     {
         return approvedBy;
     }
 
-    public void setApprovedBy( String approvedBy )
-    {
-        this.approvedBy = approvedBy;
-    }
-
     @JsonProperty
     public Date getApprovedAt()
     {
         return approvedAt;
-    }
-
-    public void setApprovedAt( Date approvedAt )
-    {
-        this.approvedAt = approvedAt;
     }
 
     // ----------------------------------------------------------------------

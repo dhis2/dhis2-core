@@ -41,9 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -67,6 +64,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jim Grace
@@ -507,31 +507,36 @@ public class DefaultDataApprovalService
 
         if ( statuses == null || statuses.isEmpty() )
         {
-            status = DataApprovalStatus.UNAPPROVABLE;
+            status = DataApprovalStatus.builder()
+                .state( DataApprovalState.UNAPPROVABLE )
+                .build();
         }
         else
         {
             status = statuses.get( 0 );
+        }
 
-            if ( status.getApprovedLevel() != null )
+        makePermissionsEvaluator().evaluatePermissions( status, workflow );
+
+        if ( status.getState() != DataApprovalState.UNAPPROVABLE && status.getApprovedLevel() != null )
+        {
+            OrganisationUnit approvedOrgUnit = organisationUnitService
+                .getOrganisationUnit( status.getApprovedOrgUnitId() );
+
+            DataApproval da = dataApprovalStore.getDataApproval( status.getActionLevel(),
+                workflow, period, approvedOrgUnit, attributeOptionCombo );
+
+            if ( da != null )
             {
-                OrganisationUnit approvedOrgUnit = organisationUnitService
-                    .getOrganisationUnit( status.getApprovedOrgUnitId() );
-
-                DataApproval da = dataApprovalStore.getDataApproval( status.getActionLevel(),
-                    workflow, period, approvedOrgUnit, attributeOptionCombo );
-
-                if ( da != null )
+                status.setCreated( da.getCreated() );
+                status.setCreator( da.getCreator() );
+                status.setLastUpdated( da.getLastUpdated() );
+                if ( status.getPermissions().isMayReadUsers() )
                 {
-                    status.setCreated( da.getCreated() );
-                    status.setCreator( da.getCreator() );
-                    status.setLastUpdated( da.getLastUpdated() );
                     status.setLastUpdatedBy( da.getLastUpdatedBy() );
                 }
             }
         }
-
-        makePermissionsEvaluator().evaluatePermissions( status, workflow );
 
         return status;
     }
