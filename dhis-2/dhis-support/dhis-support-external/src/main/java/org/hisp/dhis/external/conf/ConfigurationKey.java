@@ -306,8 +306,19 @@ public enum ConfigurationKey
      */
     REDIS_ENABLED( "redis.enabled", Constants.FALSE, false ),
 
+    /**
+     * Allows Flyway migrations to be run "out of order".
+     * <p>
+     * If you already have versions 1 and 3 applied, and now a version 2 is
+     * found, it will be applied too instead of being ignored.
+     * </p>
+     */
     FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", Constants.FALSE, false ),
 
+    /**
+     * Repairs the Flyway schema history table on startup before Flyway
+     * migrations is applied. (default: false).
+     */
     FLYWAY_REPAIR_BEFORE_MIGRATION( "flyway.repair_before_migration", Constants.FALSE, false ),
 
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
