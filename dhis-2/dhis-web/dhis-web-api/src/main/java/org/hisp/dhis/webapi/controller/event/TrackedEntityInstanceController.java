@@ -47,7 +47,6 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -128,8 +127,6 @@ import com.google.common.collect.Lists;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class TrackedEntityInstanceController
 {
-    private static final int TEI_COUNT_THRESHOLD_FOR_USE_LEGACY = 500;
-
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
@@ -212,30 +209,14 @@ public class TrackedEntityInstanceController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
-
-        // Validating here to avoid further querying
-        if ( queryParams.getMaxTeiLimit() > 0 && count > 0
-            && count > queryParams.getMaxTeiLimit() )
-        {
-            throw new IllegalQueryException( "maxteicountreached" );
-        }
-
-        if ( criteria.isUseLegacy() || (count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging()) )
-        {
-            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                getTrackedEntityInstanceParams( fields ), true );
-        }
-        else
-        {
-            trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
-                getTrackedEntityInstanceParams( fields ), true );
-        }
+        trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
+                getTrackedEntityInstanceParams( fields ), false );
 
         RootNode rootNode = NodeUtils.createMetadata();
 
         if ( queryParams.isPaging() && queryParams.isTotalPages() )
         {
+            int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true );
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
