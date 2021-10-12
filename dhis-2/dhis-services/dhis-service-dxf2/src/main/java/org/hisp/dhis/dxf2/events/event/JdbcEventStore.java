@@ -270,7 +270,6 @@ public class JdbcEventStore implements EventStore
         "eventdatavalues" );            // 22
     // @formatter:on
 
-
     private final static String INSERT_EVENT_SQL = "insert into programstageinstance (" +
         String.join( ",", INSERT_COLUMNS ) + ") " +
         "values ( nextval('programstageinstance_sequence'), " +
