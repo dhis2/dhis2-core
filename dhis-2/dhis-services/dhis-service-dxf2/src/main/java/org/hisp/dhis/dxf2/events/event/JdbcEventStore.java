@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
@@ -58,6 +57,20 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_STORED_BY_
 import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.jsonToUserInfo;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.userInfoToJson;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.COMPLETEDBY;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.COMPLETEDDATE;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.CREATED;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.CREATEDCLIENT;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.DELETED;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.DUE_DATE;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.EXECUTION_DATE;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.GEOMETRY;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.ID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.STATUS;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.STOREDBY;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UID;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATED;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATEDCLIENT;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
@@ -80,6 +93,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -137,6 +151,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -147,6 +162,7 @@ import com.google.gson.Gson;
  */
 @Slf4j
 @Repository( "org.hisp.dhis.dxf2.events.event.EventStore" )
+@RequiredArgsConstructor
 public class JdbcEventStore implements EventStore
 {
     private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.programstageinstanceid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl FROM relationshipitem ri"
@@ -178,71 +194,122 @@ public class JdbcEventStore implements EventStore
     private static final String DOT_NAME = ".name)";
 
     private static final Map<String, String> QUERY_PARAM_COL_MAP = ImmutableMap.<String, String> builder()
-        .put( "event", "psi_uid" ).put( "program", "p_uid" ).put( "programStage", "ps_uid" )
-        .put( "enrollment", "pi_uid" ).put( "enrollmentStatus", "pi_status" ).put( "orgUnit", "ou_uid" )
-        .put( "orgUnitName", "ou_name" ).put( "trackedEntityInstance", "tei_uid" )
-        .put( "eventDate", "psi_executiondate" ).put( "followup", "pi_followup" ).put( "status", "psi_status" )
-        .put( "dueDate", "psi_duedate" ).put( "storedBy", "psi_storedby" )
-        .put( "lastUpdatedByUserInfo", "psi_lastupdatedbyuserinfo" ).put( "createdByUserInfo", "psi_createdbyuserinfo" )
-        .put( "created", "psi_created" )
-        .put( "lastUpdated", "psi_lastupdated" ).put( "completedBy", "psi_completedby" )
-        .put( "attributeOptionCombo", "psi_aoc" ).put( "completedDate", "psi_completeddate" )
-        .put( "deleted", "psi_deleted" ).put( "assignedUser", "user_assigned_username" )
-        .put( "assignedUserDisplayName", "user_assigned_name" ).build();
+        .put( EVENT_ID, "psi_uid" )
+        .put( EVENT_PROGRAM_ID, "p_uid" )
+        .put( EVENT_PROGRAM_STAGE_ID, "ps_uid" )
+        .put( EVENT_ENROLLMENT_ID, "pi_uid" )
+        .put( "enrollmentStatus", "pi_status" )
+        .put( EVENT_ORG_UNIT_ID, "ou_uid" )
+        .put( EVENT_ORG_UNIT_NAME, "ou_name" )
+        .put( "trackedEntityInstance", "tei_uid" )
+        .put( EVENT_EXECUTION_DATE_ID, "psi_executiondate" )
+        .put( "followup", "pi_followup" )
+        .put( EVENT_STATUS_ID, "psi_status" )
+        .put( EVENT_DUE_DATE_ID, "psi_duedate" )
+        .put( EVENT_STORED_BY_ID, "psi_storedby" )
+        .put( EVENT_LAST_UPDATED_BY_USER_INFO_ID, "psi_lastupdatedbyuserinfo" )
+        .put( EVENT_CREATED_BY_USER_INFO_ID, "psi_createdbyuserinfo" )
+        .put( EVENT_CREATED_ID, "psi_created" )
+        .put( EVENT_LAST_UPDATED_ID, "psi_lastupdated" )
+        .put( EVENT_COMPLETED_BY_ID, "psi_completedby" )
+        .put( EVENT_ATTRIBUTE_OPTION_COMBO_ID, "psi_aoc" )
+        .put( EVENT_COMPLETED_DATE_ID, "psi_completeddate" )
+        .put( EVENT_DELETED, "psi_deleted" )
+        .put( "assignedUser", "user_assigned_username" )
+        .put( "assignedUserDisplayName", "user_assigned_name" )
+        .build();
+
+    private static final Map<String, String> COLUMNS_ALIAS_MAP = ImmutableMap.<String, String> builder()
+        .put( ID.getQueryElement().useInSelect(), EVENT_ID )
+        .put( CREATED.getQueryElement().useInSelect(), EVENT_CREATED_ID )
+        .put( UPDATED.getQueryElement().useInSelect(), EVENT_LAST_UPDATED_ID )
+        .put( STOREDBY.getQueryElement().useInSelect(), EVENT_STORED_BY_ID )
+        .put( "psi.createdbyuserinfo", EVENT_CREATED_BY_USER_INFO_ID )
+        .put( "psi.lastupdatedbyuserinfo", EVENT_LAST_UPDATED_BY_USER_INFO_ID )
+        .put( COMPLETEDBY.getQueryElement().useInSelect(), EVENT_COMPLETED_BY_ID )
+        .put( COMPLETEDDATE.getQueryElement().useInSelect(), EVENT_COMPLETED_DATE_ID )
+        .put( DUE_DATE.getQueryElement().useInSelect(), EVENT_DUE_DATE_ID )
+        .put( EXECUTION_DATE.getQueryElement().useInSelect(), EVENT_EXECUTION_DATE_ID )
+        .put( "ou.uid", EVENT_ORG_UNIT_ID )
+        .put( "ou.name", EVENT_ORG_UNIT_NAME )
+        .put( STATUS.getQueryElement().useInSelect(), EVENT_STATUS_ID )
+        .put( "pi.uid", EVENT_ENROLLMENT_ID )
+        .put( "ps.uid", EVENT_PROGRAM_STAGE_ID )
+        .put( "p.uid", EVENT_PROGRAM_ID )
+        .put( "coc.uid", EVENT_ATTRIBUTE_OPTION_COMBO_ID )
+        .put( DELETED.getQueryElement().useInSelect(), EVENT_DELETED )
+        .put( "psi.geometry", EVENT_GEOMETRY )
+        .build();
 
     // SQL QUERIES
 
-    private final static String INSERT_EVENT_SQL = "insert into programstageinstance (" +
+    private final static List<String> INSERT_COLUMNS = ImmutableList.of(
     // @formatter:off
-        "programstageinstanceid, " +    // 0
-        "programinstanceid, " +         // 1
-        "programstageid, " +            // 2
-        "duedate, " +                   // 3
-        "executiondate, " +             // 4
-        "organisationunitid, " +        // 5
-        "status, " +                    // 6
-        "completeddate, " +             // 7
-        "uid, " +                       // 8
-        "created, " +                   // 9
-        "lastupdated, " +               // 10
-        "attributeoptioncomboid, " +    // 11
-        "storedby, " +                  // 12
-        "createdbyuserinfo, " +         // 13
-        "lastupdatedbyuserinfo, " +     // 14
-        "completedby, " +               // 15
-        "deleted, " +                   // 16
-        "code, " +                      // 17
-        "createdatclient, " +           // 18
-        "lastupdatedatclient, " +       // 19
-        "geometry, " +                  // 20
-        "assigneduserid, " +            // 21
-        "eventdatavalues) " +           // 22
-        // @formatter:on
-        "values ( nextval('programstageinstance_sequence'), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+        ID.getColumnName(),             // nextval
+        "programinstanceid",            // 1
+        "programstageid",               // 2
+        DUE_DATE.getColumnName(),       // 3
+        EXECUTION_DATE.getColumnName(), // 4
+        "organisationunitid",           // 5
+        STATUS.getColumnName(),         // 6
+        COMPLETEDDATE.getColumnName(),  // 7
+        UID.getColumnName(),            // 8
+        CREATED.getColumnName(),        // 9
+        UPDATED.getColumnName(),        // 10
+        "attributeoptioncomboid",       // 11
+        STOREDBY.getColumnName(),       // 12
+        "createdbyuserinfo",            // 13
+        "lastupdatedbyuserinfo",        // 14
+        COMPLETEDBY.getColumnName(),    // 15
+        DELETED.getColumnName(),        // 16
+        "code",                         // 17
+        CREATEDCLIENT.getColumnName(),  // 18
+        UPDATEDCLIENT.getColumnName(),  // 19
+        GEOMETRY.getColumnName(),       // 20
+        "assigneduserid",               // 21
+        "eventdatavalues" );            // 22
+    // @formatter:on
+
+
+    private final static String INSERT_EVENT_SQL = "insert into programstageinstance (" +
+        String.join( ",", INSERT_COLUMNS ) + ") " +
+        "values ( nextval('programstageinstance_sequence'), " +
+        INSERT_COLUMNS.stream()
+            .skip( 1L )
+            .map( column -> "?" )
+            .collect( Collectors.joining( "," ) )
+        + ")";
+
+    private final static List<String> UPDATE_COLUMNS = ImmutableList.of(
+    // @formatter:off
+        "programInstanceId",            // 1
+        "programstageid",               // 2
+        DUE_DATE.getColumnName(),       // 3
+        EXECUTION_DATE.getColumnName(), // 4
+        "organisationunitid",           // 5
+        STATUS.getColumnName(),         // 6
+        COMPLETEDDATE.getColumnName(),  // 7
+        UPDATED.getColumnName(),        // 8
+        "attributeoptioncomboid",       // 9
+        STOREDBY.getColumnName(),       // 10
+        "lastupdatedbyuserinfo",        // 11
+        COMPLETEDBY.getColumnName(),    // 12
+        DELETED.getColumnName(),        // 13
+        "code",                         // 14
+        CREATEDCLIENT.getColumnName(),  // 15
+        UPDATEDCLIENT.getColumnName(),  // 16
+        GEOMETRY.getColumnName(),       // 17
+        "assigneduserid",               // 18
+        "eventdatavalues",              // 19
+        UID.getColumnName() );          // 20
+    // @formatter:on
 
     private final static String UPDATE_EVENT_SQL = "update programstageinstance set " +
-    // @formatter:off
-        "programinstanceid = ?, " +         // 1
-        "programstageid = ?, " +            // 2
-        "duedate = ?, " +                   // 3
-        "executiondate = ?, " +             // 4
-        "organisationunitid = ?, " +        // 5
-        "status = ?, " +                    // 6
-        "completeddate = ?, " +             // 7
-        "lastupdated = ?, " +               // 8
-        "attributeoptioncomboid = ?, " +    // 9
-        "storedby = ?, " +                  // 10
-        "lastupdatedbyuserinfo = ?, " +     // 11
-        "completedby = ?, " +               // 12
-        "deleted = ?, " +                   // 13
-        "code = ?, " +                      // 14
-        "createdatclient = ?, " +           // 15
-        "lastupdatedatclient = ?, " +       // 16
-        "geometry = ?, " +                  // 17
-        "assigneduserid = ?, " +            // 18
-        "eventdatavalues = ? " +            // 19
-        "where uid = ?;";                   // 20
-    // @formatter:on
+        UPDATE_COLUMNS.stream()
+            .map( column -> column + " = ?" )
+            .limit( UPDATE_COLUMNS.size() - 1 )
+            .collect( Collectors.joining( "," ) )
+        + " where uid = ?;";
 
     /**
      * Updates Tracked Entity Instance after an event update. In order to
@@ -251,8 +318,7 @@ public class JdbcEventStore implements EventStore
      * update the same TEI.
      */
     private static final String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (%s) FOR UPDATE %s;"
-        +
-        "update trackedentityinstance set lastupdated = %s, lastupdatedby = %s where uid in (%s)";
+        + "update trackedentityinstance set lastupdated = %s, lastupdatedby = %s where uid in (%s)";
 
     private static final String NULL = "null";
 
@@ -271,38 +337,16 @@ public class JdbcEventStore implements EventStore
 
     private final JdbcTemplate jdbcTemplate;
 
+    @Qualifier( "dataValueJsonMapper" )
+    private final ObjectMapper jsonMapper;
+
     private final CurrentUserService currentUserService;
 
     private final IdentifiableObjectManager manager;
 
-    private final ObjectMapper jsonMapper;
-
     private final Environment env;
 
     private final org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore;
-
-    public JdbcEventStore( StatementBuilder statementBuilder, JdbcTemplate jdbcTemplate,
-        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper,
-        CurrentUserService currentUserService, IdentifiableObjectManager identifiableObjectManager, Environment env,
-        org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore )
-    {
-        checkNotNull( statementBuilder );
-        checkNotNull( jdbcTemplate );
-        checkNotNull( currentUserService );
-        checkNotNull( identifiableObjectManager );
-        checkNotNull( jsonMapper );
-        checkNotNull( env );
-        checkNotNull( eventStore );
-
-        this.statementBuilder = statementBuilder;
-        this.jdbcTemplate = jdbcTemplate;
-        this.currentUserService = currentUserService;
-        this.manager = identifiableObjectManager;
-        this.jsonMapper = jsonMapper;
-        this.env = env;
-        this.eventStore = eventStore;
-
-    }
 
     // -------------------------------------------------------------------------
     // EventStore implementation
@@ -850,21 +894,11 @@ public class JdbcEventStore implements EventStore
         // Select clause
         // ---------------------------------------------------------------------
 
-        StringBuilder sqlBuilder = new StringBuilder().append( "select psi.uid as " + EVENT_ID + ", "
-            + "psi.created as " + EVENT_CREATED_ID + ", "
-            + "psi.lastupdated as " + EVENT_LAST_UPDATED_ID + ", " + "psi.storedby as " + EVENT_STORED_BY_ID + ", "
-            + "psi.createdbyuserinfo as " + EVENT_CREATED_BY_USER_INFO_ID + ", " + "psi.lastupdatedbyuserinfo as "
-            + EVENT_LAST_UPDATED_BY_USER_INFO_ID + ", "
-            + "psi.completedby as " + EVENT_COMPLETED_BY_ID + ", " + "psi.completeddate as " + EVENT_COMPLETED_DATE_ID
-            + ", "
-            + "psi.duedate as " + EVENT_DUE_DATE_ID + ", " + "psi.executiondate as " + EVENT_EXECUTION_DATE_ID + ", "
-            + "ou.uid as " + EVENT_ORG_UNIT_ID + ", " + "ou.name as " + EVENT_ORG_UNIT_NAME + ", "
-            + "psi.status as " + EVENT_STATUS_ID + ", "
-            + "pi.uid as " + EVENT_ENROLLMENT_ID + ", "
-            + "ps.uid as " + EVENT_PROGRAM_STAGE_ID + ", " + "p.uid as "
-            + EVENT_PROGRAM_ID + ", " + "coc.uid as " + EVENT_ATTRIBUTE_OPTION_COMBO_ID + ", " + "psi.deleted as "
-            + EVENT_DELETED + ", "
-            + "psi.geometry as " + EVENT_GEOMETRY + ", " );
+        StringBuilder sqlBuilder = new StringBuilder().append( "select " )
+            .append( COLUMNS_ALIAS_MAP.entrySet().stream()
+                .map( columnAliasEntry -> columnAliasEntry.getKey() + " as " + columnAliasEntry.getValue() )
+                .collect( Collectors.joining( ", " ) ) )
+            .append( " , " );
 
         for ( QueryItem item : params.getDataElementsAndFilters() )
         {
