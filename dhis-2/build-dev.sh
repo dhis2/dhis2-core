@@ -21,13 +21,40 @@ D2CLUSTER="${1:-}"
 IMAGE=dhis2/core
 TAG=local
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+ROOT="$DIR/.."
+ARTIFACTS="$ROOT/docker/artifacts"
+
 print() {
     echo -e "\033[1m$1\033[0m" 1>&2
 }
 
-print "Creating Docker image $IMAGE:$TAG..."
+#
+## The Business
+#
 
-docker build --tag $IMAGE:$TAG .
+# Requires maven to be on the classpath
+# Skips clean and test phases
+
+print "Building dhis2-core..."
+
+
+MAVEN_BUILD_OPTS="-Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25"
+
+mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
+mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/dhis-web/pom.xml $MAVEN_BUILD_OPTS
+
+rm -rf "$ARTIFACTS/*"
+mkdir -p "$ARTIFACTS"
+cp -f "$DIR/dhis-web/dhis-web-portal/target/dhis.war" "$ARTIFACTS/dhis.war"
+
+print "Build succeeded, creating Docker image $IMAGE:$TAG..."
+
+cd $ARTIFACTS
+sha256sum ./dhis.war > ./sha256sum.txt
+md5sum ./dhis.war > ./md5sum.txt
+
+docker build --tag $IMAGE:$TAG --build-arg WAR_SOURCE=local .
 
 print "Successfully created Docker image $IMAGE:$TAG"
 

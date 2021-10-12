@@ -51,23 +51,33 @@ setup () {
 
         if [ -f "dhis.war" ]; then
             echo "Using existing 'dhis.war' to build."
-
-            echo "Checksum valiations:"
-
-            if [ -f "sha256sum.txt" ]; then
-                sha256sum -c sha256sum.txt
-            else
-                echo "Skipping... No SHA256 checksum found."
-            fi
-
-            if [ -f "md5sum.txt" ]; then
-                md5sum -c md5sum.txt
-            else
-                echo "Skipping... No MD5 checksum found."
-            fi
-
-            popd
+        else
+            echo "No 'dhis.war' file found."
+            echo "Either run ./extract-artifacts.sh or provide a dhis.war"
+            exit 1
         fi
+
+        echo "Checksum valiations:"
+
+        if [ -f "sha256sum.txt" ]; then
+            sha256sum -c sha256sum.txt
+        else
+            echo "No SHA256 checksum found. Creating it..."
+            sha256sum dhis.war > sha256sum.txt
+        fi
+
+        if [ -f "md5sum.txt" ]; then
+            md5sum -c md5sum.txt
+        else
+            echo "No MD5 checksum found. Creating it..."
+            md5sum dhis.war > md5sum.txt
+        fi
+
+        popd
+    else
+        echo "No existing artifact directory found"
+        echo "Either run ./extract-artifacts.sh or provide a dhis.war"
+        exit 1
     fi
 }
 
@@ -76,6 +86,7 @@ build_default_container () {
         --tag "${CORE_IMAGE}-${TOMCAT_IMAGE}-${DEFAULT_TOMCAT_TAG}" \
         --file "${DIR}/../Dockerfile" \
         --build-arg IDENTIFIER="${IDENTIFIER}" \
+        --build-arg WAR_SOURCE=local \
         "${DIR}/.."
 }
 
@@ -86,6 +97,7 @@ build_debian_containers () {
             --file "${DIR}/../Dockerfile" \
             --build-arg DEBIAN_TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TOMCAT_TAG}" \
             --build-arg IDENTIFIER="${IDENTIFIER}" \
+            --build-arg WAR_SOURCE=local \
             "${DIR}/.."
     done
 }
@@ -97,6 +109,7 @@ build_alpine_containers () {
             --file "${DIR}/../Dockerfile" \
             --build-arg ALPINE_TOMCAT_IMAGE="${TOMCAT_IMAGE}:${TOMCAT_TAG}" \
             --build-arg IDENTIFIER="${IDENTIFIER}" \
+            --build-arg WAR_SOURCE=local \
             "${DIR}/.."
     done
 }

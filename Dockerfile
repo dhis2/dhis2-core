@@ -1,7 +1,11 @@
-# each target (debian & alpine) recieves its own default
+# each target (debian & alpine) receives its own default
 # so building each target works without providing it
 ARG DEBIAN_TOMCAT_IMAGE=tomcat:8.5-jdk8-openjdk-slim
 ARG ALPINE_TOMCAT_IMAGE=tomcat:8.5.34-jre8-alpine
+# build war in Docker by default but provide a way to bake in a pre-built war
+# from outside of Docker. Passing build-arg WAR_SOURCE=local will use the war
+# at ./docker/artifacts
+ARG WAR_SOURCE=build
 
 FROM maven:3.8.1-jdk-11-slim as build
 
@@ -27,11 +31,20 @@ RUN cp dhis-2/dhis-web/dhis-web-portal/target/dhis.war /dhis.war && \
     md5sum dhis.war > /md5sum.txt
 
 
+FROM alpine:latest as local
+
+COPY ./docker/artifacts/dhis.war /dhis.war
+COPY ./docker/artifacts/sha256sum.txt /sha256sum.txt
+COPY ./docker/artifacts/md5sum.txt /md5sum.txt
+
+FROM $WAR_SOURCE as war
+
+
 FROM alpine:latest as base
 
-COPY --from=build /dhis.war /srv/dhis2/dhis.war
-COPY --from=build /sha256sum.txt /srv/dhis2/sha256sum.txt
-COPY --from=build /md5sum.txt /srv/dhis2/md5sum.txt
+COPY --from=war /dhis.war /srv/dhis2/dhis.war
+COPY --from=war /sha256sum.txt /srv/dhis2/sha256sum.txt
+COPY --from=war /md5sum.txt /srv/dhis2/md5sum.txt
 
 FROM $DEBIAN_TOMCAT_IMAGE as debian
 
@@ -63,7 +76,7 @@ RUN chmod +rx /usr/local/bin/docker-entrypoint.sh && \
     chmod +rx /usr/local/bin/wait-for-it.sh
 
 COPY ./docker/docker-image-resources/server.xml /usr/local/tomcat/conf
-COPY --from=build /dhis.war /usr/local/tomcat/webapps/ROOT.war
+COPY --from=war /dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
@@ -101,7 +114,7 @@ RUN chmod +rx /usr/local/bin/docker-entrypoint.sh && \
     chmod +rx /usr/local/bin/wait-for-it.sh
 
 COPY ./docker/docker-image-resources/server.xml /usr/local/tomcat/conf
-COPY --from=build /dhis.war /usr/local/tomcat/webapps/ROOT.war
+COPY --from=war /dhis.war /usr/local/tomcat/webapps/ROOT.war
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
