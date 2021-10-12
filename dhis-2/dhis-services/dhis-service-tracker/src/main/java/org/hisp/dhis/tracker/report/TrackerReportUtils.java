@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static java.text.MessageFormat.format;
-
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -48,11 +46,6 @@ import org.hisp.dhis.util.ObjectUtils;
  */
 public class TrackerReportUtils
 {
-    public static String formatMessage( TrackerErrorCode errorCode, Object... arguments )
-    {
-        return format( errorCode.getMessage(), arguments );
-    }
-
     protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
     {
         final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( bundle.getIdentifier() ).build();
