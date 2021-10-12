@@ -74,8 +74,16 @@ public enum ConfigurationKey
      */
     SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
 
+    /**
+     * Set the maximum size for the cache instance to be built. If set to 0, no
+     * caching will take place. Cannot be a negative value. (default: 0).
+     */
     SYSTEM_CACHE_MAX_SIZE_FACTOR( "system.cache.max_size.factor", "0.5", false ),
 
+    /**
+     * Percentage cap limit for all cache memory usages. If set to 0, no limit
+     * is set. (default: 0).
+     */
     SYSTEM_CACHE_CAP_PERCENTAGE( "system.cache.cap.percentage", "0", false ),
 
     /**
@@ -362,14 +370,41 @@ public enum ConfigurationKey
      */
     ARTEMIS_PASSWORD( "artemis.password", "guest", true ),
 
+    /**
+     * Enable/disable security for the embedded Artemis. (default: false).
+     * <p>
+     * If enabled will use {@link #ARTEMIS_USERNAME} and
+     * {@link #ARTEMIS_PASSWORD}.
+     */
     ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", Constants.FALSE ),
 
+    /**
+     * Enable/disable Artemis persistence. (default. false).
+     * <p>
+     * We do not currently support any kind of recovery on failure, so this
+     * should only be set if the volume on the queue is too high, and we want to
+     * fall back to disk storage.
+     */
     ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", Constants.FALSE ),
 
+    /**
+     * Number of threads to use for processing incoming packets. (default: 5).
+     * <p>
+     * This can also be set to "-1" which means use the Artemis default, which
+     * is number of cores times 3.
+     */
     ARTEMIS_EMBEDDED_THREADS( "artemis.embedded.threads", "5" ),
 
+    /**
+     * Max filesize for log files in "HOME/logs/" directory. Does not affect
+     * size of audit logs. (default: 100MB).
+     */
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
 
+    /**
+     * Number of log file archives to keep around. Does not affect audit logs.
+     * (default: 1).
+     */
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
 
     /**
@@ -388,8 +423,6 @@ public enum ConfigurationKey
      * 'on'.
      */
     SERVER_HTTPS( "server.https", Constants.OFF ),
-
-    MONITORING_PROVIDER( "monitoring.provider", "prometheus" ),
 
     /**
      * DHIS2 API monitoring.
@@ -421,27 +454,59 @@ public enum ConfigurationKey
      */
     MONITORING_CPU_ENABLED( "monitoring.cpu.enabled", Constants.OFF, false ),
 
+    /**
+     * AppHub base URL. (default: https://apps.dhis2.org).
+     */
     APPHUB_BASE_URL( "apphub.base.url", "https://apps.dhis2.org", false ),
 
+    /**
+     * AppHub api URL. (default: https://apps.dhis2.org/api).
+     */
     APPHUB_API_URL( "apphub.api.url", "https://apps.dhis2.org/api", false ),
 
+    /**
+     * Enable/disable changelog/history log of aggregate data values. <br/>
+     * (default: on)
+     */
     CHANGELOG_AGGREGATE( "changelog.aggregate", Constants.ON ),
 
+    /**
+     * Enable/disable changelog/history log of tracker data values. <br/>
+     * (default: on)
+     */
     CHANGELOG_TRACKER( "changelog.tracker", Constants.ON ),
 
+    /**
+     * Use in-memory queue before sending audits into the Artemis queue.
+     * (default: off).
+     */
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", Constants.OFF ),
-
     AUDIT_USE_IN_MEMORY_QUEUE_ENABLED( "audit.in_memory_queue.enabled", Constants.OFF ),
 
+    /**
+     * Send audits to "logs/dhis-audit.log". (default: on).
+     */
     AUDIT_LOGGER( "audit.logger", Constants.ON, false ),
 
+    /**
+     * Save audits to database table "audit". (default: on).
+     */
     AUDIT_DATABASE( "audit.database", Constants.OFF, false ),
 
+    /**
+     * Sets the audit matrix for metadata. (default: none).
+     */
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
 
-    AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
-
+    /**
+     * Sets the audit matrix for aggregate. (default: none).
+     */
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
+
+    /**
+     * Sets the audit matrix for tracker. (default: none).
+     */
+    AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
 
     /**
      * Enable OIDC. (default: off).
