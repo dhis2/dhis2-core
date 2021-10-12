@@ -261,12 +261,24 @@ public enum ConfigurationKey
      */
     META_DATA_SYNC_RETRY_TIME_FREQUENCY_MILLISEC( "metadata.sync.retry.time.frequency.millisec", "30000", false ),
 
+    /**
+     * EHCache replication host.
+     */
     CLUSTER_HOSTNAME( "cluster.hostname", "", false ),
 
+    /**
+     * EHCache replication members.
+     */
     CLUSTER_MEMBERS( "cluster.members", "", false ),
 
+    /**
+     * EHCache replication port.
+     */
     CLUSTER_CACHE_PORT( "cluster.cache.port", "4001", false ),
 
+    /**
+     * EHCache replication remote object port.
+     */
     CLUSTER_CACHE_REMOTE_OBJECT_PORT( "cluster.cache.remote.object.port", "0", false ),
 
     /**
