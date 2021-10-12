@@ -50,9 +50,11 @@ cp -f "$DIR/dhis-web/dhis-web-portal/target/dhis.war" "$ARTIFACTS/dhis.war"
 
 print "Build succeeded, creating Docker image $IMAGE:$TAG..."
 
-cd $ARTIFACTS
-sha256sum ./dhis.war > ./sha256sum.txt
-md5sum ./dhis.war > ./md5sum.txt
+(
+    cd $ARTIFACTS
+    sha256sum ./dhis.war > ./sha256sum.txt
+    md5sum ./dhis.war > ./md5sum.txt
+)
 
 docker build --tag $IMAGE:$TAG --build-arg WAR_SOURCE=local .
 
