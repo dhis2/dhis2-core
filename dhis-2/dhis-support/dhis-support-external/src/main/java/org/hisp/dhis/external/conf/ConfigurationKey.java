@@ -480,8 +480,8 @@ public enum ConfigurationKey
      * Use in-memory queue before sending audits into the Artemis queue.
      * (default: off).
      */
-    AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", Constants.OFF ),
-    AUDIT_USE_IN_MEMORY_QUEUE_ENABLED( "audit.in_memory_queue.enabled", Constants.OFF ),
+    AUDIT_USE_IN_MEMORY_QUEUE_ENABLED( "audit.in_memory-queue.enabled", Constants.OFF, false,
+        new String[] { "audit.inmemory_queue.enabled" } ),
 
     /**
      * Send audits to "logs/dhis-audit.log". (default: on).
@@ -686,11 +686,14 @@ public enum ConfigurationKey
 
     private final boolean confidential;
 
+    private final String[] aliases;
+
     ConfigurationKey( String key )
     {
         this.key = key;
         this.defaultValue = null;
         this.confidential = false;
+        this.aliases = new String[] {};
     }
 
     ConfigurationKey( String key, String defaultValue )
@@ -698,6 +701,7 @@ public enum ConfigurationKey
         this.key = key;
         this.defaultValue = defaultValue;
         this.confidential = false;
+        this.aliases = new String[] {};
     }
 
     ConfigurationKey( String key, String defaultValue, boolean confidential )
@@ -705,6 +709,15 @@ public enum ConfigurationKey
         this.key = key;
         this.defaultValue = defaultValue;
         this.confidential = confidential;
+        this.aliases = new String[] {};
+    }
+
+    ConfigurationKey( String key, String defaultValue, boolean confidential, String[] aliases )
+    {
+        this.key = key;
+        this.defaultValue = defaultValue;
+        this.confidential = confidential;
+        this.aliases = aliases;
     }
 
     public String getKey()
@@ -720,6 +733,11 @@ public enum ConfigurationKey
     public boolean isConfidential()
     {
         return confidential;
+    }
+
+    public String[] getAliases()
+    {
+        return aliases;
     }
 
     public static Optional<ConfigurationKey> getByKey( String key )
