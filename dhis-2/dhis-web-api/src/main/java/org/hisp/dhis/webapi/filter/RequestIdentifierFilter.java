@@ -28,8 +28,6 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_HASH;
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_MAX_SIZE;
 
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -41,12 +39,12 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This filter places an hashed version of the Session ID in the Log4j Mapped
@@ -58,20 +56,14 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 @Component
 public class RequestIdentifierFilter
-    extends
-    OncePerRequestFilter
+    extends OncePerRequestFilter
 {
     private final static String SESSION_ID_KEY = "sessionId";
 
     /**
-     * The hash algorithm to use (default is SHA-256)
+     * The hash algorithm to use.
      */
-    private final String hashAlgo;
-
-    /**
-     * Set the maximum length of the String used as request id
-     */
-    private final int maxSize;
+    private final String hashAlgo = "SHA-256";
 
     private final static String IDENTIFIER_PREFIX = "ID";
 
@@ -79,8 +71,6 @@ public class RequestIdentifierFilter
 
     public RequestIdentifierFilter( DhisConfigurationProvider dhisConfig )
     {
-        this.hashAlgo = dhisConfig.getProperty( LOGGING_REQUEST_ID_HASH );
-        this.maxSize = Integer.parseInt( dhisConfig.getProperty( LOGGING_REQUEST_ID_MAX_SIZE ) );
         this.enabled = dhisConfig.isEnabled( LOGGING_REQUEST_ID_ENABLED );
     }
 
@@ -93,7 +83,7 @@ public class RequestIdentifierFilter
         {
             try
             {
-                MDC.put( SESSION_ID_KEY, IDENTIFIER_PREFIX + truncate( hashToBase64( req.getSession().getId() ) ) );
+                MDC.put( SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64( req.getSession().getId() ) );
 
             }
             catch ( NoSuchAlgorithmException e )
@@ -103,12 +93,6 @@ public class RequestIdentifierFilter
         }
 
         chain.doFilter( req, res );
-    }
-
-    private String truncate( String id )
-    {
-        // only truncate if MAX SIZE <> -1
-        return id.substring( 0, (this.maxSize == -1 ? id.length() : this.maxSize) );
     }
 
     private String hashToBase64( String sessionId )

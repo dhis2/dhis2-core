@@ -307,14 +307,36 @@ public enum ConfigurationKey
      */
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
 
+    /**
+     * Artemis support mode, 2 modes supported: EMBEDDED (starts up an embedded
+     * Artemis which lives in the same process as your DHIS2 instance), NATIVE
+     * (connects to an external Artemis instance, remember to set username /
+     * password if required). (default: EMBEDDED)
+     */
     ARTEMIS_MODE( "artemis.mode", "EMBEDDED" ),
 
+    /**
+     * Artemis host to use for connection (only relevant for NATIVE mode).
+     * (default: 127.0.0.1)
+     */
     ARTEMIS_HOST( "artemis.host", "127.0.0.1" ),
 
+    /**
+     * Artemis port to use for connection (only relevant for NATIVE mode).
+     * (default: 25672)
+     */
     ARTEMIS_PORT( "artemis.port", "25672" ),
 
+    /**
+     * Artemis username to use for connection (only relevant for NATIVE mode).
+     * (default: guest)
+     */
     ARTEMIS_USERNAME( "artemis.username", "guest", true ),
 
+    /**
+     * Artemis password to use for connection (only relevant for NATIVE mode).
+     * (default: guest)
+     */
     ARTEMIS_PASSWORD( "artemis.password", "guest", true ),
 
     ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", Constants.FALSE ),
@@ -327,11 +349,11 @@ public enum ConfigurationKey
 
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
 
-    LOGGING_REQUEST_ID_HASH( "logging.request_id.hash", "SHA-256", false ),
-
+    /**
+     * Adds a hashed (SHA-256) session_id to each log line. Useful for tracking
+     * which user is responsible for the logging line.
+     */
     LOGGING_REQUEST_ID_ENABLED( "logging.request_id.enabled", Constants.ON, false ),
-
-    LOGGING_REQUEST_ID_MAX_SIZE( "logging.request_id.max_size", "-1", false ),
 
     /**
      * Base URL to the DHIS 2 instance.
