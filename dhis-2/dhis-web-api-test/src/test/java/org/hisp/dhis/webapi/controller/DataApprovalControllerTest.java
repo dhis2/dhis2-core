@@ -50,7 +50,9 @@ import org.springframework.http.HttpStatus;
  */
 public class DataApprovalControllerTest extends DhisControllerConvenienceTest
 {
-    private String ouId;
+    private String ou1Id;
+
+    private String ou2Id;
 
     private String wfId;
 
@@ -64,31 +66,40 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
     {
         periodService.addPeriod( createPeriod( "202101" ) );
 
-        ouId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
+        ou1Id = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My Root Unit', 'shortName':'OU0', 'openingDate': '2020-01-01'}" ) );
+
+        ou2Id = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01', " +
+                    "'parent':{'id': '" + ou1Id + "'}}" ) );
 
         assertStatus( HttpStatus.NO_CONTENT,
-            POST( "/users/" + getCurrentUser().getUid() + "/organisationUnits/" + ouId ) );
+            POST( "/users/" + getCurrentUser().getUid() + "/organisationUnits/" + ou1Id ) );
+        assertStatus( HttpStatus.NO_CONTENT,
+            POST( "/users/" + getCurrentUser().getUid() + "/organisationUnits/" + ou2Id ) );
 
-        String levelId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataApprovalLevels/", "{'name':'L1', 'orgUnitLevel': 1}" ) );
+        String level1Id = assertStatus( HttpStatus.CREATED,
+            POST( "/dataApprovalLevels/", "{'name':'L1', 'level': 1, 'orgUnitLevel': 1}" ) );
+        String level2Id = assertStatus( HttpStatus.CREATED,
+            POST( "/dataApprovalLevels/", "{'name':'L2', 'level': 2, 'orgUnitLevel': 2}" ) );
 
         wfId = assertStatus( HttpStatus.CREATED,
             POST( "/dataApprovalWorkflows/",
                 "{'name':'W1', 'periodType':'Monthly', " +
-                    "'dataApprovalLevels':[{'id':'" + levelId + "'}]}" ) );
+                    "'dataApprovalLevels':[{'id':'" + level1Id + "'}, {'id':'" + level2Id + "'}]}" ) );
 
         dsId = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly', " +
                 "'workflow': {'id':'" + wfId + "'}," +
-                "'organisationUnits':[{'id':'" + ouId + "'}]" +
+                "'organisationUnits':[{'id':'" + ou1Id + "'},{'id':'" + ou2Id + "'}]" +
                 "}" ) );
     }
 
     @Test
     public void testGetApprovalPermissions()
     {
-        JsonDataApprovalPermissions permissions = GET( "/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
+        JsonDataApprovalPermissions permissions = GET( "/dataApprovals?ou={ou}&pe=202101&wf={wf}", ou2Id, wfId )
             .content( HttpStatus.OK ).as( JsonDataApprovalPermissions.class );
         assertEquals( "UNAPPROVED_READY", permissions.getState() );
         assertTrue( permissions.isMayReadData() );
@@ -101,12 +112,12 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetMultipleApprovalPermissions_Multiple()
     {
-        JsonArray statuses = GET( "/dataApprovals/multiple?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
+        JsonArray statuses = GET( "/dataApprovals/multiple?ou={ou}&pe=202101&wf={wf}", ou2Id, wfId )
             .content( HttpStatus.OK );
         assertEquals( 1, statuses.size() );
         JsonObject status = statuses.getObject( 0 );
         assertTrue( status.has( "wf", "pe", "ou", "aoc" ) );
-        assertEquals( ouId, status.getString( "ou" ).string() );
+        assertEquals( ou2Id, status.getString( "ou" ).string() );
         assertEquals( wfId, status.getString( "wf" ).string() );
         assertEquals( "202101", status.getString( "pe" ).string() );
     }
@@ -114,12 +125,12 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetMultipleApprovalPermissions_Approvals()
     {
-        JsonArray statuses = GET( "/dataApprovals/approvals?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
+        JsonArray statuses = GET( "/dataApprovals/approvals?ou={ou}&pe=202101&wf={wf}", ou2Id, wfId )
             .content( HttpStatus.OK );
         assertEquals( 1, statuses.size() );
         JsonObject status = statuses.getObject( 0 );
         assertTrue( status.has( "wf", "pe", "ou", "aoc" ) );
-        assertEquals( ouId, status.getString( "ou" ).string() );
+        assertEquals( ou2Id, status.getString( "ou" ).string() );
         assertEquals( wfId, status.getString( "wf" ).string() );
         assertEquals( "202101", status.getString( "pe" ).string() );
     }
@@ -127,7 +138,7 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetApprovalByCategoryOptionCombos()
     {
-        JsonArray statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}", ouId, wfId )
+        JsonArray statuses = GET( "/dataApprovals/categoryOptionCombos?ou={ou}&pe=202101&wf={wf}", ou2Id, wfId )
             .content( HttpStatus.OK );
         assertTrue( statuses.isArray() );
         assertEquals( 1, statuses.size() );
@@ -136,8 +147,8 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetApproval()
     {
-        JsonArray statuses = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}",
-            ouId, wfId, dsId ).content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" );
+        JsonArray statuses = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}", ou2Id, wfId, dsId )
+            .content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" );
         assertEquals( 1, statuses.size() );
         JsonObject status_t0 = statuses.getObject( 0 );
         assertEquals( "UNAPPROVED_READY", status_t0.getString( "state" ).string() );
@@ -146,20 +157,20 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
 
         // now create an approval (approve it)
         assertStatus( HttpStatus.NO_CONTENT,
-            POST( "/dataApprovals?ou={ou}&pe=202101&wf={wf}", ouId, wfId ) );
+            POST( "/dataApprovals?ou={ou}&pe=202101&wf={wf}", ou2Id, wfId ) );
 
-        JsonObject status_t1 = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}",
-            ouId, wfId, dsId ).content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" ).getObject( 0 );
+        JsonObject status_t1 = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}", ou2Id, wfId, dsId )
+            .content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" ).getObject( 0 );
         assertEquals( "APPROVED_HERE", status_t1.getString( "state" ).string() );
         assertTrue( status_t1.has( "lastUpdatedDate", "lastUpdatedByUsername", "createdByUsername", "createdDate" ) );
         assertEquals( "admin", status_t1.getString( "lastUpdatedByUsername" ).string() );
         assertTrue( status_t1.getString( "lastUpdatedDate" ).exists() );
 
         // now accept it
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/dataAcceptances?wf=" + wfId + "&ou=" + ouId + "&pe=202101" ) );
+        assertStatus( HttpStatus.NO_CONTENT, POST( "/dataAcceptances?wf=" + wfId + "&ou=" + ou2Id + "&pe=202101" ) );
 
-        JsonObject status_t2 = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}",
-            ouId, wfId, dsId ).content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" ).getObject( 0 );
+        JsonObject status_t2 = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}", ou2Id, wfId, dsId )
+            .content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" ).getObject( 0 );
         assertEquals( "ACCEPTED_HERE", status_t2.getString( "state" ).string() );
         assertEquals( "admin", status_t2.getString( "lastUpdatedByUsername" ).string() );
         assertTrue( status_t2.getString( "lastUpdatedDate" ).exists() );
