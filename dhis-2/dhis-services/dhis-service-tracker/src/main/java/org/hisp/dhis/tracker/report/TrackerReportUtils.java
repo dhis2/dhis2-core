@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.report;
 
 import java.text.DateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,6 +66,10 @@ public class TrackerReportUtils
         else if ( Date.class.isAssignableFrom( argument.getClass() ) )
         {
             return (DateFormat.getInstance().format( argument ));
+        }
+        else if ( Instant.class.isAssignableFrom( argument.getClass() ) )
+        {
+            return DateFormat.getInstance().format( Date.from( (Instant) argument ) );
         }
         else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
         {
