@@ -45,8 +45,14 @@ import org.hisp.dhis.util.ObjectUtils;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackerReportUtils
+class TrackerReportUtils
 {
+
+    private TrackerReportUtils()
+    {
+        // not meant to be inherited from
+    }
+
     protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
     {
         final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( bundle.getIdentifier() ).build();
