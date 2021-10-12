@@ -1347,29 +1347,14 @@ public abstract class AbstractEventService
         // 1. only once for whole event
         // 2. only if data value is associated with any ProgramRuleVariable
 
-        boolean isLinkedWithRuleVariable = false;
-
-        for ( DataValue dv : event.getDataValues() )
-        {
-            DataElement dataElement = dataElementCache.get( dv.getDataElement() );
-
-            if ( dataElement != null )
-            {
-                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
-
-                if ( isLinkedWithRuleVariable )
-                {
-                    break;
-                }
-            }
-        }
+        boolean isLinkedWithRuleVariable = isDataValueLinkedToProgramRules( program, event );
 
         if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
         {
             eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
         }
 
-        sendProgramNotification( programStageInstance, importOptions );
+        sendProgramNotification( programStageInstance, importOptions, isLinkedWithRuleVariable );
 
         if ( !importOptions.isSkipLastUpdated() )
         {
@@ -1800,7 +1785,15 @@ public abstract class AbstractEventService
         }
 
         programInstanceCache.put( programInstance.getUid(), programInstance );
-        sendProgramNotification( programStageInstance, importOptions );
+
+        boolean isLinkedWithRuleVariable = isDataValueLinkedToProgramRules( program, event );
+
+        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
+        {
+            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
+        }
+
+        sendProgramNotification( programStageInstance, importOptions, isLinkedWithRuleVariable );
 
         if ( importSummary.getConflicts().size() > 0 )
         {
@@ -1816,17 +1809,21 @@ public abstract class AbstractEventService
         return importSummary;
     }
 
-    private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions )
+    private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions, boolean isLinkedToProgramRules )
     {
         if ( !importOptions.isSkipNotifications() )
         {
             if ( programStageInstance.isCompleted() )
             {
                 eventPublisher.publishEvent( new ProgramStageCompletionNotificationEvent( this, programStageInstance.getId() ) );
-                eventPublisher.publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getId() ) );
+
+                if ( isLinkedToProgramRules )
+                {
+                    eventPublisher.publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getId() ) );
+                }
             }
 
-            if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )
+            if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) && isLinkedToProgramRules )
             {
                 eventPublisher.publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getId() ) );
             }
@@ -2555,5 +2552,27 @@ public abstract class AbstractEventService
 
         return user.isSuper()
             || user.isAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() );
+    }
+
+    private boolean isDataValueLinkedToProgramRules( Program program, Event event )
+    {
+        boolean isLinkedWithRuleVariable = false;
+
+        for ( DataValue dv : event.getDataValues() )
+        {
+            DataElement dataElement = dataElementCache.get( dv.getDataElement() );
+
+            if ( dataElement != null )
+            {
+                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+
+                if ( isLinkedWithRuleVariable )
+                {
+                    return true;
+                }
+            }
+        }
+
+        return isLinkedWithRuleVariable;
     }
 }
