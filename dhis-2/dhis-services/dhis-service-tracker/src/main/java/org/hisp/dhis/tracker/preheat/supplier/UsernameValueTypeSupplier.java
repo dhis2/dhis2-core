@@ -68,7 +68,6 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
-        List<Event> events = params.getEvents();
 
         List<String> usernameAttributes = attributes.stream()
             .filter( at -> at.getValueType() == ValueType.USERNAME )
@@ -81,8 +80,8 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
             .forEach( te -> collectResourceIds( usernameAttributes, usernames, te.getAttributes() ) );
         params.getEnrollments()
             .forEach( en -> collectResourceIds( usernameAttributes, usernames, en.getAttributes() ) );
-        List<String> usernamesFromEvents = events.stream()
-            .map( e -> e.getCreatedBy() )
+        List<String> usernamesFromEvents = params.getEvents().stream()
+            .map( Event::getCreatedBy )
             .filter( Objects::nonNull )
             .collect( Collectors.toList() );
         usernames.addAll( usernamesFromEvents );
