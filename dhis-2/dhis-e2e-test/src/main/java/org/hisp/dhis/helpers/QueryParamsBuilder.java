@@ -94,6 +94,11 @@ public class QueryParamsBuilder
         return this;
     }
 
+    public QueryParamsBuilder add( String param, String value )
+    {
+        return this.add( param + "=" + value );
+    }
+
     public QueryParamsBuilder addAll( String... params )
     {
         for ( String param : params )
