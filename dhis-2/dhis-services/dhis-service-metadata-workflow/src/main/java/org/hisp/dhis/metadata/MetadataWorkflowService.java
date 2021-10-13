@@ -35,7 +35,7 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
  *
  * @author Jan Bernitt
  */
-public interface MetadataProposalService
+public interface MetadataWorkflowService
 {
     /**
      * Get a {@link MetadataProposal} by UID
@@ -54,7 +54,7 @@ public interface MetadataProposalService
      * @throws MetadataValidationException when the proposal cannot possibly be
      *         applied successful
      */
-    MetadataProposal propose( MetadataProposalParams params )
+    MetadataProposal propose( MetadataProposeParams params )
         throws MetadataValidationException;
 
     /**
@@ -70,7 +70,7 @@ public interface MetadataProposalService
      * @throws MetadataValidationException when the proposal cannot possibly be
      *         applied successful
      */
-    MetadataProposal adjust( String uid, MetadataProposalAdjustParams params )
+    MetadataProposal adjust( String uid, MetadataAdjustParams params )
         throws MetadataValidationException;
 
     /**

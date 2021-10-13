@@ -28,6 +28,7 @@
 package org.hisp.dhis.metadata;
 
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.util.JsonUtils.jsonToObject;
 
 import java.util.Date;
 
@@ -60,14 +61,13 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Service
 @AllArgsConstructor
-public class DefaultMetadataProposalService implements MetadataProposalService
+public class DefaultMetadataWorkflowService implements MetadataWorkflowService
 {
 
     private final MetadataProposalStore store;
@@ -108,7 +108,7 @@ public class DefaultMetadataProposalService implements MetadataProposalService
 
     @Override
     @Transactional
-    public MetadataProposal propose( MetadataProposalParams params )
+    public MetadataProposal propose( MetadataProposeParams params )
     {
         validateConsistency( params.getType(), params.getTargetUid(), params.getChange() );
         MetadataProposal proposal = MetadataProposal.builder()
@@ -126,7 +126,7 @@ public class DefaultMetadataProposalService implements MetadataProposalService
 
     @Override
     @Transactional
-    public MetadataProposal adjust( String uid, MetadataProposalAdjustParams params )
+    public MetadataProposal adjust( String uid, MetadataAdjustParams params )
     {
         MetadataProposal proposal = getByUid( uid );
         checkHasStatus( proposal, MetadataProposalStatus.NEEDS_UPDATE );
@@ -257,14 +257,13 @@ public class DefaultMetadataProposalService implements MetadataProposalService
     private MetadataImportParams createImportParams( ObjectBundleMode mode, ImportStrategy strategy,
         IdentifiableObject obj )
     {
-        MetadataImportParams params = new MetadataImportParams();
-        params.addObject( obj );
-        params.setImportStrategy( strategy );
-        params.setUser( mode == ObjectBundleMode.VALIDATE
-            ? userService.getUserByUsername( "system" )
-            : currentUserService.getCurrentUser() );
-        params.setImportMode( mode );
-        return params;
+        return new MetadataImportParams()
+            .addObject( obj )
+            .setImportStrategy( strategy )
+            .setImportMode( mode )
+            .setUser( mode == ObjectBundleMode.VALIDATE
+                ? userService.getUserByUsername( "system" )
+                : currentUserService.getCurrentUser() );
     }
 
     private void checkHasStatus( MetadataProposal proposal, MetadataProposalStatus expected )
@@ -277,16 +276,7 @@ public class DefaultMetadataProposalService implements MetadataProposalService
 
     private <T> T mapJsonChangeToObject( JsonNode change, Class<T> type )
     {
-        try
-        {
-            return jsonMapper.treeToValue( change, type );
-
-        }
-        catch ( JsonProcessingException ex )
-        {
-            log.debug( "Failed to map proposal change to type " + type.getSimpleName(), ex );
-            return null;
-        }
+        return jsonToObject( change, type, null, jsonMapper );
     }
 
     private ImportReport createJsonErrorReport( MetadataProposal proposal )

@@ -42,6 +42,7 @@ import org.hisp.dhis.metadata.MetadataProposalType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.json.JsonMetadataProposal;
+import org.hisp.dhis.webapi.controller.metadata.MetadataWorkflowController;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonOrganisationUnit;
@@ -52,12 +53,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
 /**
- * Tests the
- * {@link org.hisp.dhis.webapi.controller.metadata.MetadataProposalController}.
+ * Tests the {@link MetadataWorkflowController}.
  *
  * @author Jan Bernitt
  */
-public class MetadataProposalControllerTest extends DhisControllerConvenienceTest
+public class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
 {
     private String defaultTargetUid;
 

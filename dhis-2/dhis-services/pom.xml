@@ -40,7 +40,7 @@
     <module>dhis-service-administration</module>
     <module>dhis-service-dxf2</module>
     <!-- Level 8 -->
-    <module>dhis-service-proposal</module>
+    <module>dhis-service-metadata-workflow</module>
     <module>dhis-service-analytics</module>
     <module>dhis-service-tracker</module>
     <!-- Level 9 -->

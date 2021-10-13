@@ -25,27 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata;
+package org.hisp.dhis.util;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.util.function.Function;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.extern.slf4j.Slf4j;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Input when an existing {@link MetadataProposal} is adjusted.
+ * Helper methods to deserialise JSON back to POJOs using jackson's
+ * {@link com.fasterxml.jackson.databind.ObjectMapper}.
  *
  * @author Jan Bernitt
  */
-@Getter
-@Setter
-public class MetadataProposalAdjustParams
+@Slf4j
+public class JsonUtils
 {
-    @JsonProperty
-    private String targetUid;
+    private JsonUtils()
+    {
+        throw new UnsupportedOperationException( "util" );
+    }
 
-    @JsonProperty
-    private JsonNode change;
+    public static <T, E extends Exception> T jsonToObject( JsonNode value, Class<T> type, ObjectMapper mapper,
+        Function<JsonProcessingException, E> handler )
+        throws E
+    {
+        try
+        {
+            return mapper.treeToValue( value, type );
+        }
+        catch ( JsonProcessingException ex )
+        {
+            throw handler.apply( ex );
+        }
+    }
 
+    public static <T> T jsonToObject( JsonNode value, Class<T> type, T defaultValue, ObjectMapper mapper )
+    {
+        try
+        {
+            return mapper.treeToValue( value, type );
+        }
+        catch ( JsonProcessingException ex )
+        {
+            if ( log.isDebugEnabled() )
+            {
+                log.debug( ex.getMessage() );
+            }
+            return defaultValue;
+        }
+    }
 }

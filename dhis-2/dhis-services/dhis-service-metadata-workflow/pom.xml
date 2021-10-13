@@ -10,7 +10,7 @@
         <version>2.38-SNAPSHOT</version>
     </parent>
 
-    <artifactId>dhis-service-proposal</artifactId>
+    <artifactId>dhis-service-metadata-workflow</artifactId>
     <packaging>jar</packaging>
     <name>DHIS Metadata Proposals</name>
 

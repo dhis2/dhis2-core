@@ -44,12 +44,12 @@ import org.hisp.dhis.dxf2.metadata.MetadataValidationException;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.metadata.MetadataAdjustParams;
 import org.hisp.dhis.metadata.MetadataProposal;
-import org.hisp.dhis.metadata.MetadataProposalAdjustParams;
-import org.hisp.dhis.metadata.MetadataProposalParams;
 import org.hisp.dhis.metadata.MetadataProposalSchemaDescriptor;
-import org.hisp.dhis.metadata.MetadataProposalService;
 import org.hisp.dhis.metadata.MetadataProposalType;
+import org.hisp.dhis.metadata.MetadataProposeParams;
+import org.hisp.dhis.metadata.MetadataWorkflowService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.webapi.controller.AbstractGistReadOnlyController;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
@@ -80,10 +80,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 @RequestMapping( "/metadata/proposals" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @AllArgsConstructor
-public class MetadataProposalController extends AbstractGistReadOnlyController<MetadataProposal>
+public class MetadataWorkflowController extends AbstractGistReadOnlyController<MetadataProposal>
 {
 
-    private final MetadataProposalService service;
+    private final MetadataWorkflowService service;
 
     @GetMapping( value = { "/{uid}/", "/{uid}" }, produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<JsonNode> getProposal( @PathVariable( "uid" ) String uid,
@@ -103,7 +103,7 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
 
     @PostMapping( value = "/", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage proposeProposal( @RequestBody MetadataProposalParams params )
+    public WebMessage proposeProposal( @RequestBody MetadataProposeParams params )
     {
         try
         {
@@ -123,12 +123,10 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
     @PutMapping( value = { "/{uid}/", "/{uid}" }, consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage adjustProposal( @PathVariable( "uid" ) String uid,
-        @RequestBody( required = false ) MetadataProposalAdjustParams params )
+        @RequestBody( required = false ) MetadataAdjustParams params )
         throws NotFoundException
     {
-        MetadataProposal proposal = service.getByUid( uid );
-        if ( proposal == null )
-            throw notFoundUid( uid );
+        checkProposalExists( uid );
         try
         {
             service.adjust( uid, params );
@@ -149,9 +147,7 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
     public WebMessage acceptProposal( @PathVariable( "uid" ) String uid )
         throws NotFoundException
     {
-        MetadataProposal proposal = service.getByUid( uid );
-        if ( proposal == null )
-            throw notFoundUid( uid );
+        MetadataProposal proposal = checkProposalExists( uid );
         ImportReport report = service.accept( proposal );
         if ( report.getStatus() != Status.OK )
         {
@@ -172,10 +168,7 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
     public void opposeProposal( @PathVariable( "uid" ) String uid, @RequestBody( required = false ) String reason )
         throws NotFoundException
     {
-        MetadataProposal proposal = service.getByUid( uid );
-        if ( proposal == null )
-            throw notFoundUid( uid );
-        service.oppose( proposal, reason );
+        service.oppose( checkProposalExists( uid ), reason );
     }
 
     @DeleteMapping( value = { "/{uid}/", "/{uid}" }, consumes = MediaType.TEXT_PLAIN_VALUE )
@@ -183,9 +176,17 @@ public class MetadataProposalController extends AbstractGistReadOnlyController<M
     public void rejectProposal( @PathVariable( "uid" ) String uid, @RequestBody( required = false ) String reason )
         throws NotFoundException
     {
+        service.reject( checkProposalExists( uid ), reason );
+    }
+
+    private MetadataProposal checkProposalExists( String uid )
+        throws NotFoundException
+    {
         MetadataProposal proposal = service.getByUid( uid );
         if ( proposal == null )
+        {
             throw notFoundUid( uid );
-        service.reject( proposal, reason );
+        }
+        return proposal;
     }
 }
