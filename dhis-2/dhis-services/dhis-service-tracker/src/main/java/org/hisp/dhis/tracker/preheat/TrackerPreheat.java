@@ -208,6 +208,7 @@ public class TrackerPreheat
      * entity attributes, used in validation and persisting TEIs.
      */
     @Getter
+    @Setter
     private Map<String, User> users = Maps.newHashMap();
 
     /**
