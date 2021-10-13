@@ -614,7 +614,7 @@ public class DimensionalObjectUtils
      * dimension item identifier defined by the given identifier scheme. This
      * mapping is specific for data elements.
      *
-     * @param itemObjects the data elements.
+     * @param itemObjects the dimensional items.
      * @param idScheme the identifier scheme.
      * @return a mapping between dimension item identifiers.
      */
