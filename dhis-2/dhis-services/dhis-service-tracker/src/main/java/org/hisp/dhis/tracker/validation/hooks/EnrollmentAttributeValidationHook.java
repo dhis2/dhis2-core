@@ -36,7 +36,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -89,18 +88,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         {
             validateRequiredProperties( reporter, attribute, program );
 
-            if ( attribute.getAttribute() != null && attribute.getValue() != null )
+            TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
+
+            if ( attribute.getAttribute() != null && attribute.getValue() != null && teAttribute != null )
             {
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
-
-                TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
-
-                if ( teAttribute == null )
-                {
-                    addError( reporter, E1006, attribute.getAttribute() );
-                    continue;
-                }
 
                 validateAttrValueType( reporter, attribute, teAttribute );
                 validateOptionSet( reporter, teAttribute, attribute.getValue() );
@@ -113,7 +106,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             }
         }
 
-        validateMandatoryAttributes( reporter, program, enrollment );
+        validateMandatoryAttributes( reporter, program, attributeValueMap, enrollment );
     }
 
     protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute, Program program )
@@ -135,12 +128,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             TrackedEntityAttribute teAttribute = reporter.getValidationContext()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
-            addErrorIfNull( teAttribute, reporter, E1017, attribute.getAttribute() );
+            addErrorIfNull( teAttribute, reporter, E1006, attribute.getAttribute() );
         }
     }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
-        Program program, Enrollment enrollment )
+        Program program, Map<String, String> enrollmentNonEmptyAttributeUids, Enrollment enrollment )
     {
         // Build a data structures of attributes eligible for mandatory
         // validations:
@@ -148,14 +141,6 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         // 2 - attributes already existing in TEI (from preheat)
 
         // 1 - attributes from enrollment whose value is non-empty
-        Map<String, String> enrollmentNonEmptyAttributeUids = Optional.of( enrollment )
-            .map( Enrollment::getAttributes )
-            .orElse( Collections.emptyList() )
-            .stream()
-            .filter( this::isNonEmpty )
-            .collect( Collectors.toMap(
-                Attribute::getAttribute,
-                Attribute::getValue ) );
 
         // 2 - attributes uids from existing TEI (if any) from preheat
         Set<String> teiAttributeUids = buildTeiAttributeUids( reporter, enrollment.getTrackedEntity() );
@@ -201,11 +186,6 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .map( TrackedEntityAttributeValue::getAttribute )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
-    }
-
-    private boolean isNonEmpty( Attribute attribute )
-    {
-        return StringUtils.isNotBlank( attribute.getValue() ) && StringUtils.isNotBlank( attribute.getAttribute() );
     }
 
     private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid )

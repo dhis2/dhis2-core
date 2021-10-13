@@ -119,7 +119,6 @@ public enum TrackerErrorCode
     E1126( "Not allowed to update Tracked Entity property: {0}." ),
     E1127( "Not allowed to update Enrollment property: {0}." ),
     E1128( "Not allowed to update Event property: {0}." ),
-    E1017( "Attribute: `{0}`, does not exist." ),
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
     E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),
