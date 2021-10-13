@@ -58,6 +58,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -114,6 +115,8 @@ final class GistBuilder
 
     private static final String SHARING_PROPERTY = "sharing";
 
+    private static final String ATTRIBUTES_PROPERTY = "attributeValues";
+
     static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, GistAccessControl access,
         Function<String, List<String>> userGroupsByUserId )
     {
@@ -151,33 +154,46 @@ final class GistBuilder
         GistQuery extended = query;
         for ( Field f : query.getFields() )
         {
-            if ( Field.REFS_PATH.equals( f.getPropertyPath() ) )
-            {
-                continue;
-            }
-            Property p = context.resolveMandatory( f.getPropertyPath() );
-
-            // ID column not present but ID column required?
-            if ( (isPersistentCollectionField( p ) || isHrefProperty( p ))
-                && !existsSameParentField( extended, f, ID_PROPERTY ) )
-            {
-                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), ID_PROPERTY ) );
-            }
-
-            // translatable fields? => make sure we have translations
-            if ( (query.isTranslate() || f.isTranslate()) && p.isTranslatable()
-                && !existsSameParentField( extended, f, TRANSLATIONS_PROPERTY ) )
-            {
-                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), TRANSLATIONS_PROPERTY ) );
-            }
-
-            // Access based on Sharing
-            if ( isAccessProperty( p ) && !existsSameParentField( extended, f, SHARING_PROPERTY ) )
-            {
-                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), SHARING_PROPERTY ) );
-            }
+            extended = addSupportFields( extended, context, f );
         }
         return extended;
+    }
+
+    private static GistQuery addSupportFields( GistQuery query, RelativePropertyContext context, Field f )
+    {
+        if ( Field.REFS_PATH.equals( f.getPropertyPath() ) )
+        {
+            return query;
+        }
+
+        // attribute fields? => make sure we have attributeValues
+        if ( f.isAttribute() && !existsSameParentField( query, f, ATTRIBUTES_PROPERTY ) )
+        {
+            return query.withField( pathOnSameParent( f.getPropertyPath(), ATTRIBUTES_PROPERTY ) );
+        }
+
+        Property p = context.resolveMandatory( f.getPropertyPath() );
+
+        // ID column not present but ID column required?
+        if ( (isPersistentCollectionField( p ) || isHrefProperty( p ))
+            && !existsSameParentField( query, f, ID_PROPERTY ) )
+        {
+            return query.withField( pathOnSameParent( f.getPropertyPath(), ID_PROPERTY ) );
+        }
+
+        // translatable fields? => make sure we have translations
+        if ( (query.isTranslate() || f.isTranslate()) && p.isTranslatable()
+            && !existsSameParentField( query, f, TRANSLATIONS_PROPERTY ) )
+        {
+            return query.withField( pathOnSameParent( f.getPropertyPath(), TRANSLATIONS_PROPERTY ) );
+        }
+
+        // Access based on Sharing
+        if ( isAccessProperty( p ) && !existsSameParentField( query, f, SHARING_PROPERTY ) )
+        {
+            return query.withField( pathOnSameParent( f.getPropertyPath(), SHARING_PROPERTY ) );
+        }
+        return query;
     }
 
     private static boolean existsSameParentField( GistQuery query, Field field, String property )
@@ -223,6 +239,20 @@ final class GistBuilder
     private void addTransformer( Consumer<Object[]> transformer )
     {
         fieldResultTransformers.add( transformer );
+    }
+
+    private Object attributeValue( String attributeUid, Object attributeValues )
+    {
+        @SuppressWarnings( "unchecked" )
+        Set<AttributeValue> values = (Set<AttributeValue>) attributeValues;
+        for ( AttributeValue v : values )
+        {
+            if ( attributeUid.equals( v.getAttribute().getUid() ) )
+            {
+                return v.getValue();
+            }
+        }
+        return null;
     }
 
     private Object translate( Object value, String property, Object translations )
@@ -336,6 +366,12 @@ final class GistBuilder
         String path = field.getPropertyPath();
         if ( Field.REFS_PATH.equals( path ) )
         {
+            return HQL_NULL;
+        }
+        if ( field.isAttribute() )
+        {
+            int attrValuesFieldIndex = getSameParentFieldIndex( "", ATTRIBUTES_PROPERTY );
+            addTransformer( row -> row[index] = attributeValue( path, row[attrValuesFieldIndex] ) );
             return HQL_NULL;
         }
         Property property = context.resolveMandatory( path );
@@ -608,9 +644,9 @@ final class GistBuilder
             || obj instanceof Number && ((Number) obj).intValue() == 0;
     }
 
-    private Integer getSameParentFieldIndex( String path, String translations )
+    private Integer getSameParentFieldIndex( String path, String property )
     {
-        return fieldIndexByPath.get( pathOnSameParent( path, translations ) );
+        return fieldIndexByPath.get( pathOnSameParent( path, property ) );
     }
 
     private String getSameParentEndpointRoot( String path )

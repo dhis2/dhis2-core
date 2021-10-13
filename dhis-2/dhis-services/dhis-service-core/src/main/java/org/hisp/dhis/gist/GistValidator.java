@@ -102,7 +102,7 @@ final class GistValidator
     private void validateField( Field f, RelativePropertyContext context )
     {
         String path = f.getPropertyPath();
-        if ( Field.REFS_PATH.equals( path ) )
+        if ( Field.REFS_PATH.equals( path ) || f.isAttribute() )
         {
             return;
         }

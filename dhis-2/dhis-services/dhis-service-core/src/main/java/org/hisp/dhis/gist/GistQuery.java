@@ -411,9 +411,12 @@ public final class GistQuery
         @JsonProperty
         private final boolean translate;
 
+        @JsonProperty
+        private final boolean attribute;
+
         public Field( String propertyPath, Transform transformation )
         {
-            this( propertyPath, transformation, "", null, false );
+            this( propertyPath, transformation, "", null, false, false );
         }
 
         @JsonProperty
@@ -440,6 +443,11 @@ public final class GistQuery
         public Field withTranslate()
         {
             return toBuilder().translate( true ).build();
+        }
+
+        public Field asAttribute()
+        {
+            return toBuilder().attribute( true ).build();
         }
 
         @Override
@@ -476,7 +484,7 @@ public final class GistQuery
                     }
                 }
             }
-            return new Field( parts[0], transform, alias, arg, false );
+            return new Field( parts[0], transform, alias, arg, false, false );
         }
 
         private static String parseArgument( String part )
