@@ -180,7 +180,7 @@ public class EnrollmentAttrValidationTest
         assertEquals( 1, validationReport.getErrorReports().size() );
 
         assertThat( validationReport.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1017 ) ) ) );
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1006 ) ) ) );
     }
 
     @Test
