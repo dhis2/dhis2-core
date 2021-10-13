@@ -29,13 +29,13 @@ package org.hisp.dhis.dataapproval;
 
 import java.util.Date;
 
-import org.hisp.dhis.user.User;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+
+import org.hisp.dhis.user.User;
 
 /**
  * Current status of data approval for a given selection of data from a data

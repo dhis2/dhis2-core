@@ -30,6 +30,8 @@ package org.hisp.dhis.dataapproval;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -37,8 +39,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This package private class holds the context for deciding on data approval
@@ -263,13 +263,15 @@ class DataApprovalPermissionsEvaluator
         permissions.setMayReadData( mayReadData );
         permissions.setApprovedAt( status.getCreated() );
 
-        boolean mayReadUsers = status.getState() == DataApprovalState.APPROVED_HERE
+        if ( status.getState() == DataApprovalState.APPROVED_HERE
             || (status.getState() == DataApprovalState.APPROVED_ABOVE && userLevelIndex < dataLevelIndex)
-            || status.getState() == DataApprovalState.ACCEPTED_HERE;
-        permissions.setMayReadUsers( mayReadUsers );
-        if ( mayReadUsers )
+            || status.getState() == DataApprovalState.ACCEPTED_HERE )
         {
             permissions.setApprovedBy( status.getCreator() != null ? status.getCreator().getName() : null );
+        }
+        else
+        {
+            status.setLastUpdatedBy( null ); // user is not allowed to know
         }
     }
 

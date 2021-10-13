@@ -29,12 +29,12 @@ package org.hisp.dhis.dataapproval;
 
 import java.util.Date;
 
+import lombok.Setter;
+
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-import lombok.Setter;
 
 @Setter
 @JacksonXmlRootElement( localName = "dataApprovalPermissions", namespace = DxfNamespaces.DXF_2_0 )
@@ -49,8 +49,6 @@ public class DataApprovalPermissions
     private boolean mayUnaccept;
 
     private boolean mayReadData;
-
-    private transient boolean mayReadUsers;
 
     private transient String state;
 
@@ -86,15 +84,6 @@ public class DataApprovalPermissions
     public boolean isMayReadData()
     {
         return mayReadData;
-    }
-
-    /**
-     * @return true, if the user is allowed to see what user has approved the
-     *         data
-     */
-    public boolean isMayReadUsers()
-    {
-        return mayReadUsers;
     }
 
     @JsonProperty
