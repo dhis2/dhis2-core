@@ -152,15 +152,15 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     }
 
     @Override
-    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
+    public void implementEnrollmentAction( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
-        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
+        implement( ruleEffect, programInstance );
     }
 
     @Override
-    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
+    public void implementEventAction( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
-        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
+        implement( ruleEffect, programStageInstance );
     }
 
     private void handleSingleEvent( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )

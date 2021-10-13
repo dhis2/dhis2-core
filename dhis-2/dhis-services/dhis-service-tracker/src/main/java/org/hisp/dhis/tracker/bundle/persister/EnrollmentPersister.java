@@ -135,6 +135,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
             .object( programInstance.getUid() )
             .importStrategy( bundle.getImportStrategy() )
             .accessedBy( bundle.getUsername() )
+            .preheat( bundle.getPreheat() )
             .build();
     }
 

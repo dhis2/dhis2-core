@@ -54,7 +54,7 @@ public interface RuleActionImplementer
      * @param ruleEffect received tracker importer
      * @param programInstance enrollment to implement the action against
      */
-    void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance );
+    void implementEnrollmentAction( RuleEffect ruleEffect, ProgramInstance programInstance );
 
     /**
      * This method is directly called by SideEffectHandlerService to implement
@@ -63,5 +63,5 @@ public interface RuleActionImplementer
      * @param ruleEffect received tracker importer
      * @param programStageInstance event to implement the action against
      */
-    void implementEventAction( RuleEffect ruleEffect, String programStageInstance );
+    void implementEventAction( RuleEffect ruleEffect, ProgramStageInstance programStageInstance );
 }

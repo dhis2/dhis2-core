@@ -188,16 +188,16 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     @Override
     @Transactional
-    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
+    public void implementEnrollmentAction( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
-        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
+        implement( ruleEffect, programInstance );
     }
 
     @Override
     @Transactional
-    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
+    public void implementEventAction( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
-        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
+        implement( ruleEffect, programStageInstance );
     }
 
     // -------------------------------------------------------------------------
