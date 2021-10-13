@@ -35,9 +35,12 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 /**
  * Class represents a thread which will be triggered as soon as tracker rule
@@ -51,6 +54,10 @@ import org.springframework.stereotype.Component;
 @Scope( BeanDefinition.SCOPE_PROTOTYPE )
 public class TrackerRuleEngineThread extends SecurityContextRunnable
 {
+    private final RuleActionImplementer sendMessageRuleActionImplementer;
+
+    private final RuleActionImplementer scheduleMessageRuleActionImplementer;
+
     private final List<RuleActionImplementer> ruleActionImplementers;
 
     private final TrackerSideEffectConverterService trackerSideEffectConverterService;
@@ -59,12 +66,19 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers, Notifier notifier,
-        TrackerSideEffectConverterService trackerSideEffectConverterService )
+    public TrackerRuleEngineThread(
+        @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" ) RuleActionImplementer sendMessageRuleActionImplementer,
+        @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" ) RuleActionImplementer scheduleMessageRuleActionImplementer,
+        TrackerSideEffectConverterService trackerSideEffectConverterService,
+        Notifier notifier, TrackerSideEffectDataBundle sideEffectDataBundle )
     {
-        this.ruleActionImplementers = ruleActionImplementers;
+        this.sendMessageRuleActionImplementer = sendMessageRuleActionImplementer;
+        this.scheduleMessageRuleActionImplementer = scheduleMessageRuleActionImplementer;
+        this.ruleActionImplementers = Lists.newArrayList( scheduleMessageRuleActionImplementer,
+            sendMessageRuleActionImplementer );
         this.trackerSideEffectConverterService = trackerSideEffectConverterService;
         this.notifier = notifier;
+        this.sideEffectDataBundle = sideEffectDataBundle;
     }
 
     @Override
