@@ -29,8 +29,17 @@ jobs:
         with:
           context: .
           push: false
-          load: true
-          tags: dhis2/core:local
+          load: true # https://github.com/docker/build-push-action/blob/5e11b373bfed0d8024ef33d1586c675819690e95/docs/advanced/export-docker.md
+          tags: ${{ env.CORE_IMAGE_NAME }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Build test image
+        uses: docker/build-push-action@v2
+        with:
+          context: dhis-2/dhis-e2e-test
+          push: false
+          load: true # https://github.com/docker/build-push-action/blob/5e11b373bfed0d8024ef33d1586c675819690e95/docs/advanced/export-docker.md
+          tags: ${{ env.TEST_IMAGE_NAME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -38,7 +47,6 @@ jobs:
         run: |
           cd dhis-2/dhis-e2e-test
           IMAGE_NAME=$CORE_IMAGE_NAME docker-compose up -d
-          docker build -t $TEST_IMAGE_NAME .
           IMAGE_NAME=$TEST_IMAGE_NAME docker-compose -f docker-compose.e2e.yml up --exit-code-from e2e-test
 
       - name: Upload logs
