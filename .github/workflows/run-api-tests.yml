@@ -31,6 +31,7 @@ jobs:
           push: false
           load: true # https://github.com/docker/build-push-action/blob/5e11b373bfed0d8024ef33d1586c675819690e95/docs/advanced/export-docker.md
           tags: ${{ env.CORE_IMAGE_NAME }}
+          target: alpine
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Build test image
