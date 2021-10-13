@@ -514,22 +514,22 @@ public class DefaultDataApprovalService
         else
         {
             status = statuses.get( 0 );
-        }
 
-        if ( status.getState() != DataApprovalState.UNAPPROVABLE && status.getApprovedLevel() != null )
-        {
-            OrganisationUnit approvedOrgUnit = organisationUnitService
-                .getOrganisationUnit( status.getApprovedOrgUnitId() );
-
-            DataApproval da = dataApprovalStore.getDataApproval( status.getActionLevel(),
-                workflow, period, approvedOrgUnit, attributeOptionCombo );
-
-            if ( da != null )
+            if ( status.getApprovedLevel() != null )
             {
-                status.setCreated( da.getCreated() );
-                status.setCreator( da.getCreator() );
-                status.setLastUpdated( da.getLastUpdated() );
-                status.setLastUpdatedBy( da.getLastUpdatedBy() );
+                OrganisationUnit approvedOrgUnit = organisationUnitService
+                    .getOrganisationUnit( status.getApprovedOrgUnitId() );
+
+                DataApproval da = dataApprovalStore.getDataApproval( status.getActionLevel(),
+                    workflow, period, approvedOrgUnit, attributeOptionCombo );
+
+                if ( da != null )
+                {
+                    status.setCreated( da.getCreated() );
+                    status.setCreator( da.getCreator() );
+                    status.setLastUpdated( da.getLastUpdated() );
+                    status.setLastUpdatedBy( da.getLastUpdatedBy() );
+                }
             }
         }
 
