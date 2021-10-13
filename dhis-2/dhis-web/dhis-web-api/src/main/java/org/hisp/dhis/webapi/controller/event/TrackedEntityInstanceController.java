@@ -210,7 +210,7 @@ public class TrackedEntityInstanceController
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
         trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                getTrackedEntityInstanceParams( fields ), false );
+            getTrackedEntityInstanceParams( fields ), false );
 
         RootNode rootNode = NodeUtils.createMetadata();
 
