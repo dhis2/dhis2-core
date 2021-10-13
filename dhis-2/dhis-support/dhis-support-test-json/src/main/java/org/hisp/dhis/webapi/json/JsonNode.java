@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.json;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -138,6 +139,16 @@ public interface JsonNode extends Serializable
     void visit( JsonNodeType type, Consumer<JsonNode> visitor );
 
     /**
+     * Searches for a node in this subtree that matches type and returns true
+     * from the provided test.
+     *
+     * @param type node type tested
+     * @param test test performed, returns true when node is found
+     * @return the first found node or empty
+     */
+    Optional<JsonNode> find( JsonNodeType type, Predicate<JsonNode> test );
+
+    /**
      * Count matching nodes in a the subtree of this node including this node.
      *
      * @param type type of node to passed to the visitor
@@ -146,7 +157,7 @@ public interface JsonNode extends Serializable
      * @return total number of nodes in the subtree of this node for which the
      *         visitor returned true
      */
-    default int visit( JsonNodeType type, Predicate<JsonNode> visitor )
+    default int count( JsonNodeType type, Predicate<JsonNode> visitor )
     {
         AtomicInteger count = new AtomicInteger();
         visit( type, node -> {
@@ -167,7 +178,7 @@ public interface JsonNode extends Serializable
      */
     default int count( JsonNodeType type )
     {
-        return visit( type, node -> true );
+        return count( type, node -> true );
     }
 
     /*
@@ -220,7 +231,7 @@ public interface JsonNode extends Serializable
     JsonNode replaceWith( String json );
 
     /**
-     * Adds an additional property to this node assuming this node represents a
+     * Adds a property to this node assuming this node represents a
      * {@link JsonNodeType#OBJECT}.
      *
      * @param name a JSON object property name
