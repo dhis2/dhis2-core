@@ -2803,7 +2803,7 @@ public abstract class AbstractEventService
 
                 if ( isLinkedWithRuleVariable )
                 {
-                    break;
+                    return true;
                 }
             }
         }
