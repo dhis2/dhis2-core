@@ -84,7 +84,9 @@ class GistPlanner
 
     public GistQuery plan()
     {
-        return query.withFields( planFields() ).withFilters( planFilters() );
+        return query
+            .withFields( planFields() )
+            .withFilters( planFilters() );
     }
 
     private List<Field> planFields()
@@ -107,9 +109,17 @@ class GistPlanner
     private List<Filter> planFilters()
     {
         List<Filter> filters = query.getFilters();
+        filters = withAttributeFilters( filters ); // 1:1
         filters = withIdentifiableCollectionAutoIdFilters( filters ); // 1:1
         filters = withCurrentUserDefaultForAccessFilters( filters ); // 1:1
         return filters;
+    }
+
+    private List<Filter> withAttributeFilters( List<Filter> filters )
+    {
+        return map1to1( filters,
+            f -> isAttributePath( f.getPropertyPath() ) && context.resolve( f.getPropertyPath() ) == null,
+            Filter::asAttribute );
     }
 
     /**
@@ -124,6 +134,10 @@ class GistPlanner
 
     private boolean isCollectionFilterWithoutIdField( Filter f )
     {
+        if ( f.isAttribute() )
+        {
+            return false;
+        }
         Property p = context.resolveMandatory( f.getPropertyPath() );
         return !f.getOperator().isAccessCompare()
             && p.isCollection() && !isCollectionSizeFilter( f, p )

@@ -527,6 +527,7 @@ public final class GistQuery
     }
 
     @Getter
+    @AllArgsConstructor( access = AccessLevel.PRIVATE )
     public static final class Filter
     {
         @JsonProperty
@@ -538,11 +539,12 @@ public final class GistQuery
         @JsonProperty
         private final String[] value;
 
+        @JsonProperty
+        private final boolean attribute;
+
         public Filter( String propertyPath, Comparison operator, String... value )
         {
-            this.propertyPath = propertyPath;
-            this.operator = operator;
-            this.value = value;
+            this( propertyPath, operator, value, false );
         }
 
         public Filter withPropertyPath( String path )
@@ -553,6 +555,11 @@ public final class GistQuery
         public Filter withValue( String... value )
         {
             return new Filter( propertyPath, operator, value );
+        }
+
+        public Filter asAttribute()
+        {
+            return new Filter( propertyPath, operator, value, true );
         }
 
         public static Filter parse( String filter )

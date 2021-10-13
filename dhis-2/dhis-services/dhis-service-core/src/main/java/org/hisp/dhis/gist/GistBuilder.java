@@ -681,7 +681,8 @@ final class GistBuilder
                 return createExistsFilterHQL( index, filter, path );
             }
         }
-        return createFilterHQL( index, filter, "e." + getMemberPath( filter.getPropertyPath() ) );
+        String memberPath = filter.isAttribute() ? ATTRIBUTES_PROPERTY : getMemberPath( filter.getPropertyPath() );
+        return createFilterHQL( index, filter, "e." + memberPath );
     }
 
     private boolean isExistsInCollectionFilter( List<Property> path )
@@ -712,13 +713,16 @@ final class GistBuilder
             return createAccessFilterHQL( index, filter, field );
         }
         StringBuilder str = new StringBuilder();
-        Property property = context.resolveMandatory( filter.getPropertyPath() );
         String fieldTemplate = "%s";
-        if ( isStringLengthFilter( filter, property ) )
+        if ( filter.isAttribute() )
+        {
+            fieldTemplate = "jsonb_extract_path_text(%s, '" + filter.getPropertyPath() + "', 'value')";
+        }
+        else if ( isStringLengthFilter( filter, context.resolveMandatory( filter.getPropertyPath() ) ) )
         {
             fieldTemplate = "length(%s)";
         }
-        else if ( isCollectionSizeFilter( filter, property ) )
+        else if ( isCollectionSizeFilter( filter, context.resolveMandatory( filter.getPropertyPath() ) ) )
         {
             fieldTemplate = "size(%s)";
         }
@@ -899,8 +903,12 @@ final class GistBuilder
             Comparison operator = filter.getOperator();
             if ( !operator.isUnary() && !operator.isAccessCompare() )
             {
-                Property property = context.resolveMandatory( filter.getPropertyPath() );
-                Object value = getParameterValue( property, filter, argumentParser );
+                Object value = filter.isAttribute()
+                    ? argumentParser.apply( filter.getValue()[0], String.class ) // TODO
+                                                                                 // get
+                                                                                 // attr
+                                                                                 // type
+                    : getParameterValue( context.resolveMandatory( filter.getPropertyPath() ), filter, argumentParser );
                 dest.accept( "f_" + i, operator.isStringCompare()
                     ? completeLikeExpression( operator, (String) value )
                     : value );

@@ -161,6 +161,10 @@ final class GistValidator
 
     private void validateFilter( Filter f, RelativePropertyContext context )
     {
+        if ( f.isAttribute() )
+        {
+            return;
+        }
         Property filter = context.resolveMandatory( f.getPropertyPath() );
         if ( !filter.isPersisted() )
         {
