@@ -72,6 +72,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 
 import com.google.api.client.util.Lists;
+import com.google.api.client.util.Maps;
 import com.google.common.collect.ArrayListMultimap;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
@@ -201,14 +202,14 @@ public class TrackerPreheat
     private Map<String, ProgramInstance> programInstancesWithoutRegistration = new HashMap<>();
 
     /**
-     * A list of valid usernames that are present in the payload. A username not
-     * available in this cache means, payload's username is invalid. These users
-     * are primarily used to represent the ValueType.USERNAME of tracked entity
-     * attributes, used in validation and persisting TEIs.
+     * A map of valid users by username that are present in the payload. A user
+     * not available in this cache means, payload's username is invalid. These
+     * users are primarily used to represent the ValueType.USERNAME of tracked
+     * entity attributes, used in validation and persisting TEIs.
      */
     @Getter
     @Setter
-    private List<String> usernames = Lists.newArrayList();
+    private Map<String, User> users = Maps.newHashMap();
 
     /**
      * A list of all unique attribute values that are both present in the
