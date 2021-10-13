@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -66,7 +67,6 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.CaseFormat;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -90,116 +90,119 @@ public class DefaultSchemaService
         .put( AnalyticalObject.class, BaseAnalyticalObject.class )
         .build();
 
-    private static final ImmutableList<SchemaDescriptor> DESCRIPTORS = new ImmutableList.Builder<SchemaDescriptor>()
-        .add( new MetadataVersionSchemaDescriptor() )
-        .add( new AnalyticsTableHookSchemaDescriptor() )
-        .add( new AttributeSchemaDescriptor() )
-        .add( new AttributeValueSchemaDescriptor() )
-        .add( new CategoryComboSchemaDescriptor() )
-        .add( new CategoryOptionComboSchemaDescriptor() )
-        .add( new CategoryOptionGroupSchemaDescriptor() )
-        .add( new CategoryOptionGroupSetSchemaDescriptor() )
-        .add( new CategoryOptionSchemaDescriptor() )
-        .add( new CategorySchemaDescriptor() )
-        .add( new ConstantSchemaDescriptor() )
-        .add( new DashboardItemSchemaDescriptor() )
-        .add( new DashboardSchemaDescriptor() )
-        .add( new DataApprovalLevelSchemaDescriptor() )
-        .add( new DataApprovalWorkflowSchemaDescriptor() )
-        .add( new DataElementGroupSchemaDescriptor() )
-        .add( new DataElementGroupSetSchemaDescriptor() )
-        .add( new DataElementOperandSchemaDescriptor() )
-        .add( new DataElementSchemaDescriptor() )
-        .add( new DataEntryFormSchemaDescriptor() )
-        .add( new DataSetSchemaDescriptor() )
-        .add( new DataSetElementSchemaDescriptor() )
-        .add( new DataSetNotificationTemplateSchemaDescriptor() )
-        .add( new DocumentSchemaDescriptor() )
-        .add( new EventChartSchemaDescriptor() )
-        .add( new EventReportSchemaDescriptor() )
-        .add( new ExpressionSchemaDescriptor() )
-        .add( new FileResourceSchemaDescriptor() )
-        .add( new IconSchemaDescriptor() )
-        .add( new IndicatorGroupSchemaDescriptor() )
-        .add( new IndicatorGroupSetSchemaDescriptor() )
-        .add( new IndicatorSchemaDescriptor() )
-        .add( new IndicatorTypeSchemaDescriptor() )
-        .add( new InterpretationCommentSchemaDescriptor() )
-        .add( new InterpretationSchemaDescriptor() )
-        .add( new LegendSchemaDescriptor() )
-        .add( new LegendSetSchemaDescriptor() )
-        .add( new ExternalMapLayerSchemaDescriptor() )
-        .add( new MapSchemaDescriptor() )
-        .add( new MapViewSchemaDescriptor() )
-        .add( new MessageConversationSchemaDescriptor() )
-        .add( new OAuth2ClientSchemaDescriptor() )
-        .add( new OptionSchemaDescriptor() )
-        .add( new OptionSetSchemaDescriptor() )
-        .add( new OrganisationUnitGroupSchemaDescriptor() )
-        .add( new OrganisationUnitGroupSetSchemaDescriptor() )
-        .add( new OrganisationUnitLevelSchemaDescriptor() )
-        .add( new OrganisationUnitSchemaDescriptor() )
-        .add( new PredictorSchemaDescriptor() )
-        .add( new PredictorGroupSchemaDescriptor() )
-        .add( new ProgramDataElementDimensionItemSchemaDescriptor() )
-        .add( new ProgramIndicatorSchemaDescriptor() )
-        .add( new AnalyticsPeriodBoundarySchemaDescriptor() )
-        .add( new ProgramRuleActionSchemaDescriptor() )
-        .add( new ProgramRuleSchemaDescriptor() )
-        .add( new ProgramRuleVariableSchemaDescriptor() )
-        .add( new ProgramSchemaDescriptor() )
-        .add( new ProgramStageDataElementSchemaDescriptor() )
-        .add( new ProgramStageSchemaDescriptor() )
-        .add( new ProgramStageSectionSchemaDescriptor() )
-        .add( new ProgramSectionSchemaDescriptor() )
-        .add( new ProgramTrackedEntityAttributeSchemaDescriptor() )
-        .add( new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor() )
-        .add( new ProgramNotificationTemplateSchemaDescriptor() )
-        .add( new RelationshipTypeSchemaDescriptor() )
-        .add( new ReportSchemaDescriptor() )
-        .add( new SectionSchemaDescriptor() )
-        .add( new SqlViewSchemaDescriptor() )
-        .add( new TrackedEntityAttributeSchemaDescriptor() )
-        .add( new TrackedEntityAttributeValueSchemaDescriptor() )
-        .add( new TrackedEntityInstanceSchemaDescriptor() )
-        .add( new TrackedEntityInstanceFilterSchemaDescriptor() )
-        .add( new TrackedEntityTypeSchemaDescriptor() )
-        .add( new TrackedEntityTypeAttributeSchemaDescriptor() )
-        .add( new TrackedEntityDataElementDimensionSchemaDescriptor() )
-        .add( new TrackedEntityProgramIndicatorDimensionSchemaDescriptor() )
-        .add( new UserCredentialsSchemaDescriptor() )
-        .add( new UserGroupSchemaDescriptor() )
-        .add( new UserRoleSchemaDescriptor() )
-        .add( new UserSchemaDescriptor() )
-        .add( new ValidationRuleGroupSchemaDescriptor() )
-        .add( new ValidationRuleSchemaDescriptor() )
-        .add( new ValidationNotificationTemplateSchemaDescriptor() )
-        .add( new PushAnalysisSchemaDescriptor() )
-        .add( new ProgramIndicatorGroupSchemaDescriptor() )
-        .add( new ExternalFileResourceSchemaDescriptor() )
-        .add( new OptionGroupSchemaDescriptor() )
-        .add( new OptionGroupSetSchemaDescriptor() )
-        .add( new ProgramTrackedEntityAttributeGroupSchemaDescriptor() )
-        .add( new DataInputPeriodSchemaDescriptor() )
-        .add( new ReportingRateSchemaDescriptor() )
-        .add( new UserAccessSchemaDescriptor() )
-        .add( new UserGroupAccessSchemaDescriptor() )
-        .add( new MinMaxDataElementSchemaDescriptor() )
-        .add( new ValidationResultSchemaDescriptor() )
-        .add( new JobConfigurationSchemaDescriptor() )
-        .add( new SmsCommandSchemaDescriptor() )
-        .add( new CategoryDimensionSchemaDescriptor() )
-        .add( new CategoryOptionGroupSetDimensionSchemaDescriptor() )
-        .add( new DataElementGroupSetDimensionSchemaDescriptor() )
-        .add( new OrganisationUnitGroupSetDimensionSchemaDescriptor() )
-        .add( new RelationshipSchemaDescriptor() )
-        .add( new KeyJsonValueSchemaDescriptor() )
-        .add( new ProgramStageInstanceSchemaDescriptor() )
-        .add( new ProgramInstanceSchemaDescriptor() )
-        .add( new ProgramStageInstanceFilterSchemaDescriptor() )
-        .add( new VisualizationSchemaDescriptor() )
-        .add( new ApiTokenSchemaDescriptor() )
-        .build();
+    private final Map<Class<?>, SchemaDescriptor> descriptors = new ConcurrentHashMap<>();
+
+    private void init()
+    {
+        register( new MetadataVersionSchemaDescriptor() );
+        register( new AnalyticsTableHookSchemaDescriptor() );
+        register( new AttributeSchemaDescriptor() );
+        register( new AttributeValueSchemaDescriptor() );
+        register( new CategoryComboSchemaDescriptor() );
+        register( new CategoryOptionComboSchemaDescriptor() );
+        register( new CategoryOptionGroupSchemaDescriptor() );
+        register( new CategoryOptionGroupSetSchemaDescriptor() );
+        register( new CategoryOptionSchemaDescriptor() );
+        register( new CategorySchemaDescriptor() );
+        register( new ConstantSchemaDescriptor() );
+        register( new DashboardItemSchemaDescriptor() );
+        register( new DashboardSchemaDescriptor() );
+        register( new DataApprovalLevelSchemaDescriptor() );
+        register( new DataApprovalWorkflowSchemaDescriptor() );
+        register( new DataElementGroupSchemaDescriptor() );
+        register( new DataElementGroupSetSchemaDescriptor() );
+        register( new DataElementOperandSchemaDescriptor() );
+        register( new DataElementSchemaDescriptor() );
+        register( new DataEntryFormSchemaDescriptor() );
+        register( new DataSetSchemaDescriptor() );
+        register( new DataSetElementSchemaDescriptor() );
+        register( new DataSetNotificationTemplateSchemaDescriptor() );
+        register( new DocumentSchemaDescriptor() );
+        register( new EventChartSchemaDescriptor() );
+        register( new EventReportSchemaDescriptor() );
+        register( new ExpressionSchemaDescriptor() );
+        register( new FileResourceSchemaDescriptor() );
+        register( new IconSchemaDescriptor() );
+        register( new IndicatorGroupSchemaDescriptor() );
+        register( new IndicatorGroupSetSchemaDescriptor() );
+        register( new IndicatorSchemaDescriptor() );
+        register( new IndicatorTypeSchemaDescriptor() );
+        register( new InterpretationCommentSchemaDescriptor() );
+        register( new InterpretationSchemaDescriptor() );
+        register( new LegendSchemaDescriptor() );
+        register( new LegendSetSchemaDescriptor() );
+        register( new ExternalMapLayerSchemaDescriptor() );
+        register( new MapSchemaDescriptor() );
+        register( new MapViewSchemaDescriptor() );
+        register( new MessageConversationSchemaDescriptor() );
+        register( new OAuth2ClientSchemaDescriptor() );
+        register( new OptionSchemaDescriptor() );
+        register( new OptionSetSchemaDescriptor() );
+        register( new OrganisationUnitGroupSchemaDescriptor() );
+        register( new OrganisationUnitGroupSetSchemaDescriptor() );
+        register( new OrganisationUnitLevelSchemaDescriptor() );
+        register( new OrganisationUnitSchemaDescriptor() );
+        register( new PredictorSchemaDescriptor() );
+        register( new PredictorGroupSchemaDescriptor() );
+        register( new ProgramDataElementDimensionItemSchemaDescriptor() );
+        register( new ProgramIndicatorSchemaDescriptor() );
+        register( new AnalyticsPeriodBoundarySchemaDescriptor() );
+        register( new ProgramRuleActionSchemaDescriptor() );
+        register( new ProgramRuleSchemaDescriptor() );
+        register( new ProgramRuleVariableSchemaDescriptor() );
+        register( new ProgramSchemaDescriptor() );
+        register( new ProgramStageDataElementSchemaDescriptor() );
+        register( new ProgramStageSchemaDescriptor() );
+        register( new ProgramStageSectionSchemaDescriptor() );
+        register( new ProgramSectionSchemaDescriptor() );
+        register( new ProgramTrackedEntityAttributeSchemaDescriptor() );
+        register( new ProgramTrackedEntityAttributeDimensionItemSchemaDescriptor() );
+        register( new ProgramNotificationTemplateSchemaDescriptor() );
+        register( new RelationshipTypeSchemaDescriptor() );
+        register( new ReportSchemaDescriptor() );
+        register( new SectionSchemaDescriptor() );
+        register( new SqlViewSchemaDescriptor() );
+        register( new TrackedEntityAttributeSchemaDescriptor() );
+        register( new TrackedEntityAttributeValueSchemaDescriptor() );
+        register( new TrackedEntityInstanceSchemaDescriptor() );
+        register( new TrackedEntityInstanceFilterSchemaDescriptor() );
+        register( new TrackedEntityTypeSchemaDescriptor() );
+        register( new TrackedEntityTypeAttributeSchemaDescriptor() );
+        register( new TrackedEntityDataElementDimensionSchemaDescriptor() );
+        register( new TrackedEntityProgramIndicatorDimensionSchemaDescriptor() );
+        register( new UserCredentialsSchemaDescriptor() );
+        register( new UserGroupSchemaDescriptor() );
+        register( new UserRoleSchemaDescriptor() );
+        register( new UserSchemaDescriptor() );
+        register( new ValidationRuleGroupSchemaDescriptor() );
+        register( new ValidationRuleSchemaDescriptor() );
+        register( new ValidationNotificationTemplateSchemaDescriptor() );
+        register( new PushAnalysisSchemaDescriptor() );
+        register( new ProgramIndicatorGroupSchemaDescriptor() );
+        register( new ExternalFileResourceSchemaDescriptor() );
+        register( new OptionGroupSchemaDescriptor() );
+        register( new OptionGroupSetSchemaDescriptor() );
+        register( new ProgramTrackedEntityAttributeGroupSchemaDescriptor() );
+        register( new DataInputPeriodSchemaDescriptor() );
+        register( new ReportingRateSchemaDescriptor() );
+        register( new UserAccessSchemaDescriptor() );
+        register( new UserGroupAccessSchemaDescriptor() );
+        register( new MinMaxDataElementSchemaDescriptor() );
+        register( new ValidationResultSchemaDescriptor() );
+        register( new JobConfigurationSchemaDescriptor() );
+        register( new SmsCommandSchemaDescriptor() );
+        register( new CategoryDimensionSchemaDescriptor() );
+        register( new CategoryOptionGroupSetDimensionSchemaDescriptor() );
+        register( new DataElementGroupSetDimensionSchemaDescriptor() );
+        register( new OrganisationUnitGroupSetDimensionSchemaDescriptor() );
+        register( new RelationshipSchemaDescriptor() );
+        register( new KeyJsonValueSchemaDescriptor() );
+        register( new ProgramStageInstanceSchemaDescriptor() );
+        register( new ProgramInstanceSchemaDescriptor() );
+        register( new ProgramStageInstanceFilterSchemaDescriptor() );
+        register( new VisualizationSchemaDescriptor() );
+        register( new ApiTokenSchemaDescriptor() );
+    }
 
     private final Map<Class<?>, Schema> classSchemaMap = new HashMap<>();
 
@@ -222,6 +225,13 @@ public class DefaultSchemaService
 
         this.propertyIntrospectorService = propertyIntrospectorService;
         this.sessionFactory = sessionFactory;
+        init();
+    }
+
+    @Override
+    public void register( SchemaDescriptor descriptor )
+    {
+        descriptors.putIfAbsent( descriptor.getSchema().getKlass(), descriptor );
     }
 
     @Override
@@ -238,7 +248,7 @@ public class DefaultSchemaService
     @EventListener
     public void handleContextRefresh( ContextRefreshedEvent contextRefreshedEvent )
     {
-        for ( SchemaDescriptor descriptor : DESCRIPTORS )
+        for ( SchemaDescriptor descriptor : descriptors.values() )
         {
             Schema schema = descriptor.getSchema();
 

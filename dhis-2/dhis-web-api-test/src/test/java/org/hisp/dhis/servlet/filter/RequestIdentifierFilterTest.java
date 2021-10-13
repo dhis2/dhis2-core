@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.servlet.filter;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_HASH;
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_MAX_SIZE;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -67,8 +64,6 @@ public class RequestIdentifierFilterTest
     @Rule
     public MockitoRule mockitoRule = rule();
 
-    private static final String DEFAULT_HASH_ALGO = LOGGING_REQUEST_ID_HASH.getDefaultValue();
-
     @Before
     public void setUp()
     {
@@ -76,65 +71,25 @@ public class RequestIdentifierFilterTest
     }
 
     @Test
-    public void testHashSessionIdNoTruncate()
+    public void testIsDisabled()
         throws ServletException,
         IOException
     {
-        init( -1, DEFAULT_HASH_ALGO, true );
-
-        doFilter();
-
-        assertThat( MDC.get( "sessionId" ), is( "IDJShqHVoTDIhlsHjr7eIvUrMsMM7Gs2LYGjog1W6nQFo=" ) );
-
-    }
-
-    @Test
-    public void testHashSessionIdWithTruncate()
-        throws ServletException,
-        IOException
-    {
-        init( 5, DEFAULT_HASH_ALGO, true );
-
-        doFilter();
-
-        assertThat( MDC.get( "sessionId" ), is( "IDJShqH" ) );
-
-    }
-
-    @Test
-    public void testHashSessionIdWithMd5()
-        throws ServletException,
-        IOException
-    {
-        init( -1, "MD5", true );
-        doFilter();
-
-        assertThat( MDC.get( "sessionId" ), is( "IDrBKUxIZl6blN7EtczRa7fQ==" ) );
-
-    }
-
-    @Test
-    public void testHashSessionIdWithInvalidAlgorithm()
-        throws ServletException,
-        IOException
-    {
-        init( -1, "NO-SUCH-ALGORITHM", true );
+        init( false );
         doFilter();
 
         assertNull( MDC.get( "sessionId" ) );
-
     }
 
     @Test
-    public void testisDisabled()
+    public void testIsEnabled()
         throws ServletException,
         IOException
     {
-        init( -1, "SHA-256", false );
+        init( true );
         doFilter();
 
-        assertNull( MDC.get( "sessionId" ) );
-
+        assertNotNull( MDC.get( "sessionId" ) );
     }
 
     private void doFilter()
@@ -153,14 +108,9 @@ public class RequestIdentifierFilterTest
         subject.doFilter( req, res, filterChain );
     }
 
-    private void init( int maxSize, String hashAlgo, boolean enabled )
+    private void init( boolean enabled )
     {
-
-        when( dhisConfigurationProvider.getProperty( LOGGING_REQUEST_ID_MAX_SIZE ) )
-            .thenReturn( Integer.toString( maxSize ) );
         when( dhisConfigurationProvider.isEnabled( LOGGING_REQUEST_ID_ENABLED ) ).thenReturn( enabled );
-        when( dhisConfigurationProvider.getProperty( LOGGING_REQUEST_ID_HASH ) ).thenReturn( hashAlgo );
-
         subject = new RequestIdentifierFilter( dhisConfigurationProvider );
     }
 }

@@ -53,6 +53,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -244,6 +245,8 @@ public abstract class TrackerTest extends IntegrationTestBase
         relationship.setFrom( from );
         relationship.setTo( to );
         relationship.setRelationshipType( relationshipType );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
         relationshipService.addRelationship( relationship );
 

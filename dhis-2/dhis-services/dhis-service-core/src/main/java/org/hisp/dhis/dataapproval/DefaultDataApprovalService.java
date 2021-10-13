@@ -61,6 +61,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,7 +75,7 @@ import com.google.common.collect.Sets;
 @Slf4j
 @Service( "org.hisp.dhis.dataapproval.DataApprovalService" )
 public class DefaultDataApprovalService
-    implements DataApprovalService
+    implements DataApprovalService, CurrentUserServiceTarget
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -121,10 +122,7 @@ public class DefaultDataApprovalService
         this.systemSettingManager = systemSettingManager;
     }
 
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;

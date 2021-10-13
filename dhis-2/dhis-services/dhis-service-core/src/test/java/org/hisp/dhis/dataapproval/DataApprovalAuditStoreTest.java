@@ -49,6 +49,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -136,7 +137,8 @@ public class DataApprovalAuditStoreTest
     public void setUpTest()
         throws Exception
     {
-        setDependency( dataApprovalAuditStore, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalAuditStore );
 
         // ---------------------------------------------------------------------
         // Add supporting data
@@ -292,7 +294,8 @@ public class DataApprovalAuditStoreTest
         assertEquals( auditA, audits.get( 0 ) );
 
         CurrentUserService mockUserService = new MockCurrentUserService( Sets.newHashSet( sourceB ), null );
-        setDependency( dataApprovalAuditStore, "currentUserService", mockUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService, mockUserService,
+            dataApprovalAuditStore );
 
         params = new DataApprovalAuditQueryParams();
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );

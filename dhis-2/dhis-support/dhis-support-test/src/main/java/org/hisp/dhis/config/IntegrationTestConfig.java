@@ -71,7 +71,7 @@ public class IntegrationTestConfig
         properties.setProperty( "connection.driver_class", "org.postgresql.Driver" );
         properties.setProperty( "connection.username", username );
         properties.setProperty( "connection.password", password );
-        properties.setProperty( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED.getKey(), "off" );
+        properties.setProperty( ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED.getKey(), "off" );
         properties.setProperty( "metadata.audit.persist", "on" );
         properties.setProperty( "tracker.audit.persist", "on" );
         properties.setProperty( "aggregate.audit.persist", "on" );

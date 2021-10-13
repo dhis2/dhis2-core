@@ -174,19 +174,37 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     @Override
     public String getProperty( ConfigurationKey key )
     {
-        return properties.getProperty( key.getKey(), key.getDefaultValue() );
+        return getPropertyOrDefault( key, key.getDefaultValue() );
     }
 
     @Override
     public String getPropertyOrDefault( ConfigurationKey key, String defaultValue )
     {
+        for ( String alias : key.getAliases() )
+        {
+            if ( properties.contains( alias ) )
+            {
+                return properties.getProperty( alias );
+            }
+        }
+
         return properties.getProperty( key.getKey(), defaultValue );
     }
 
     @Override
     public boolean hasProperty( ConfigurationKey key )
     {
-        return StringUtils.isNotEmpty( properties.getProperty( key.getKey() ) );
+        String value = properties.getProperty( key.getKey() );
+
+        for ( String alias : key.getAliases() )
+        {
+            if ( properties.contains( alias ) )
+            {
+                value = alias;
+            }
+        }
+
+        return StringUtils.isNotEmpty( value );
     }
 
     @Override
@@ -347,9 +365,8 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
 
     private void substituteEnvironmentVariables( Properties properties )
     {
-        final StringSubstitutor substitutor = new StringSubstitutor( System.getenv() ); // Matches
-                                                                                        // on
-                                                                                        // ${...}
+        // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( System.getenv() );
 
         properties.entrySet().forEach( entry -> entry.setValue( substitutor.replace( entry.getValue() ).trim() ) );
     }

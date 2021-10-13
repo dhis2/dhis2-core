@@ -58,6 +58,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
@@ -398,9 +399,8 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     @Override
     public void tearDownTest()
     {
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( dataApprovalAuditService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( dataApprovalAuditStore, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalLevelService, dataApprovalAuditService, dataApprovalAuditStore );
     }
 
     // -------------------------------------------------------------------------
@@ -409,9 +409,8 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 
     private void setMockUserService( CurrentUserService mockUserService )
     {
-        setDependency( dataApprovalLevelService, "currentUserService", mockUserService, CurrentUserService.class );
-        setDependency( dataApprovalAuditService, "currentUserService", mockUserService, CurrentUserService.class );
-        setDependency( dataApprovalAuditStore, "currentUserService", mockUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            mockUserService, dataApprovalLevelService, dataApprovalAuditService, dataApprovalAuditStore );
     }
 
     // -------------------------------------------------------------------------

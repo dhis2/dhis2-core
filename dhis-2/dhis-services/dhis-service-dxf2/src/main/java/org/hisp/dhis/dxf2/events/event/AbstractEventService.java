@@ -50,7 +50,6 @@ import static org.hisp.dhis.dxf2.events.event.EventSearchParams.PAGER_META_KEY;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -281,9 +280,9 @@ public abstract class AbstractEventService implements EventService
     @Override
     public Events getEvents( EventSearchParams params )
     {
-        validate( params );
-
         User user = currentUserService.getCurrentUser();
+
+        validate( params, user );
 
         List<OrganisationUnit> organisationUnits = getOrganisationUnits( params, user );
 
@@ -836,57 +835,97 @@ public abstract class AbstractEventService implements EventService
 
     private List<OrganisationUnit> getOrganisationUnits( EventSearchParams params, User user )
     {
-        Set<OrganisationUnit> organisationUnits = new HashSet<>();
-
-        Program program = params.getProgram();
-
-        OrganisationUnit orgUnit = params.getOrgUnit();
         OrganisationUnitSelectionMode orgUnitSelectionMode = params.getOrgUnitSelectionMode();
 
-        if ( params.getOrgUnit() != null )
+        if ( orgUnitSelectionMode == null )
         {
-            if ( OrganisationUnitSelectionMode.DESCENDANTS.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( orgUnit.getUid() ) );
-            }
-            else if ( OrganisationUnitSelectionMode.CHILDREN.equals( orgUnitSelectionMode ) )
-            {
-                organisationUnits.add( orgUnit );
-                organisationUnits.addAll( orgUnit.getChildren() );
-            }
-            else // SELECTED
-            {
-                organisationUnits.add( orgUnit );
-            }
+            return getAccessibleOrgUnits( params, user );
         }
 
-        if ( user != null )
+        List<OrganisationUnit> organisationUnits;
+
+        switch ( orgUnitSelectionMode )
         {
-            Set<OrganisationUnit> orgUnits = new HashSet<>();
-
-            if ( OrganisationUnitSelectionMode.ACCESSIBLE.equals( orgUnitSelectionMode ) )
-            {
-                orgUnits = program.isRegistration()
-                    ? user.getTeiSearchOrganisationUnitsWithFallback()
-                    : user.getDataViewOrganisationUnitsWithFallback();
-            }
-            else if ( OrganisationUnitSelectionMode.CAPTURE.equals( orgUnitSelectionMode ) )
-            {
-                orgUnits = user.getOrganisationUnits();
-            }
-            else if ( OrganisationUnitSelectionMode.ALL.equals( orgUnitSelectionMode )
-                && (user.isSuper() || currentUserService
-                    .currentUserIsAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() )) )
-            {
-                orgUnits = new HashSet<>( organisationUnitService.getRootOrganisationUnits() );
-            }
-
-            organisationUnits.addAll( organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
-                .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) ) );
-
+        case ALL:
+            organisationUnits = getAllOrgUnits( user );
+            break;
+        case CHILDREN:
+            organisationUnits = getChildrenOrgUnits( params );
+            break;
+        case DESCENDANTS:
+            organisationUnits = getDescendantOrgUnits( params );
+            break;
+        case CAPTURE:
+            organisationUnits = getCaptureOrgUnits( user );
+            break;
+        default:
+            organisationUnits = getAccessibleOrgUnits( params, user );
+            break;
         }
 
-        return new ArrayList<>( organisationUnits );
+        return organisationUnits;
+    }
+
+    private List<OrganisationUnit> getAllOrgUnits( User user )
+    {
+        if ( !userCanSearchOuModeALL( user ) )
+        {
+            throw new IllegalQueryException( "User is not authorized to use ALL organisation units. " );
+        }
+
+        return organisationUnitService
+            .getOrganisationUnitsWithChildren( organisationUnitService.getRootOrganisationUnits().stream()
+                .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+    }
+
+    private List<OrganisationUnit> getChildrenOrgUnits( EventSearchParams params )
+    {
+        if ( params.getOrgUnit() == null )
+        {
+            throw new IllegalQueryException( "Organisation unit is required to use CHILDREN scope." );
+        }
+
+        return organisationUnitService.getOrganisationUnitsWithChildren( params.getOrgUnit().getChildren().stream()
+            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+    }
+
+    private List<OrganisationUnit> getDescendantOrgUnits( EventSearchParams params )
+    {
+        if ( params.getOrgUnit() == null )
+        {
+            throw new IllegalQueryException( "Organisation unit is required to use DESCENDANTS scope. " );
+        }
+
+        return organisationUnitService.getOrganisationUnitWithChildren( params.getOrgUnit().getUid() );
+    }
+
+    private List<OrganisationUnit> getCaptureOrgUnits( User user )
+    {
+        if ( user == null )
+        {
+            throw new IllegalQueryException( "User is required to use CAPTURE scope." );
+        }
+
+        return organisationUnitService.getOrganisationUnitsWithChildren( user.getOrganisationUnits().stream()
+            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+    }
+
+    private List<OrganisationUnit> getAccessibleOrgUnits( EventSearchParams params, User user )
+    {
+        if ( user == null )
+        {
+            throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
+        }
+
+        Set<OrganisationUnit> orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+
+        if ( params.getProgram() != null && params.getProgram().isWithoutRegistration() )
+        {
+            orgUnits = user.getDataViewOrganisationUnitsWithFallback();
+        }
+
+        return organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
+            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user,
@@ -959,26 +998,10 @@ public abstract class AbstractEventService implements EventService
     }
 
     @Override
-    public void validate( EventSearchParams params )
+    public void validate( EventSearchParams params, User user )
         throws IllegalQueryException
     {
         String violation = null;
-
-        if ( params == null )
-        {
-            throw new IllegalQueryException( "Query parameters can not be empty" );
-        }
-
-        if ( params.getOrgUnit() == null && params.getOrgUnitSelectionMode() == null )
-        {
-            violation = "At least one of the following query parameters are required: orgUnit, ouMode";
-        }
-
-        if ( params.getProgram() == null && params.getOrgUnit() == null && params.getTrackedEntityInstance() == null
-            && params.getEvents().isEmpty() )
-        {
-            violation = "At least one of the following query parameters are required: orgUnit, program, trackedEntityInstance or event";
-        }
 
         if ( params.hasLastUpdatedDuration() && (params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate()) )
         {
@@ -990,12 +1013,43 @@ public abstract class AbstractEventService implements EventService
             violation = "Duration is not valid: " + params.getLastUpdatedDuration();
         }
 
+        if ( params.getOrgUnitSelectionMode() != null )
+        {
+            violation = getOuModeViolation( params, user );
+        }
+
         if ( violation != null )
         {
             log.warn( "Validation failed: " + violation );
 
             throw new IllegalQueryException( violation );
         }
+    }
+
+    private String getOuModeViolation( EventSearchParams params, User user )
+    {
+        OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
+
+        String violation = null;
+
+        switch ( selectedOuMode )
+        {
+        case ALL:
+            violation = userCanSearchOuModeALL( user ) ? null
+                : "Current user is not authorized to query across all organisation units";
+            break;
+        case CAPTURE:
+        case DESCENDANTS:
+            violation = params.getOrgUnit() == null
+                ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
+                : null;
+            break;
+        default:
+            violation = null;
+            break;
+        }
+
+        return violation;
     }
 
     /**
@@ -1087,5 +1141,16 @@ public abstract class AbstractEventService implements EventService
         }
 
         importOptions.setUser( userService.getUser( importOptions.getUser().getId() ) );
+    }
+
+    private boolean userCanSearchOuModeALL( User user )
+    {
+        if ( user == null )
+        {
+            return false;
+        }
+
+        return user.isSuper()
+            || user.isAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() );
     }
 }

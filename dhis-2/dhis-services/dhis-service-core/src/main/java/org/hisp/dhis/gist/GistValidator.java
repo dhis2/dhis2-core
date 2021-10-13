@@ -34,7 +34,7 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -151,7 +151,7 @@ final class GistValidator
         {
             Schema fieldOwner = context.switchedTo( path ).getHome();
             @SuppressWarnings( "unchecked" )
-            Class<? extends IdentifiableObject> ownerType = (Class<? extends IdentifiableObject>) fieldOwner.getKlass();
+            Class<? extends PrimaryKeyObject> ownerType = (Class<? extends PrimaryKeyObject>) fieldOwner.getKlass();
             if ( fieldOwner.isIdentifiableObject() && !access.canRead( ownerType, field.getName() ) )
             {
                 throw createNoReadAccess( f, ownerType );
@@ -243,7 +243,7 @@ final class GistValidator
         return new IllegalArgumentException( String.format( message, filter.toString() ) );
     }
 
-    private ReadAccessDeniedException createNoReadAccess( Field field, Class<? extends IdentifiableObject> ownerType )
+    private ReadAccessDeniedException createNoReadAccess( Field field, Class<? extends PrimaryKeyObject> ownerType )
     {
         if ( ownerType == null )
         {

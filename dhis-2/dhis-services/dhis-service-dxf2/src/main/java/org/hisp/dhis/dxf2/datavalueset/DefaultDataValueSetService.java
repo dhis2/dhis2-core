@@ -54,6 +54,7 @@ import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.BatchHandlerFactoryTarget;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -112,6 +113,7 @@ import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
@@ -131,7 +133,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.datavalueset.DataValueSetService" )
 @AllArgsConstructor
-public class DefaultDataValueSetService implements DataValueSetService
+public class DefaultDataValueSetService
+    implements DataValueSetService, CurrentUserServiceTarget, BatchHandlerFactoryTarget
 {
     private static final String ERROR_OBJECT_NEEDED_TO_COMPLETE = "Must be provided to complete data set";
 
@@ -179,19 +182,13 @@ public class DefaultDataValueSetService implements DataValueSetService
 
     private final SchemaService schemaService;
 
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
     }
 
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
+    @Override
     public void setBatchHandlerFactory( BatchHandlerFactory batchHandlerFactory )
     {
         this.batchHandlerFactory = batchHandlerFactory;

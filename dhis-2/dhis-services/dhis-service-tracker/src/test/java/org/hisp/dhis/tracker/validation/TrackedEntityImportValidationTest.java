@@ -146,6 +146,21 @@ public class TrackedEntityImportValidationTest
     }
 
     @Test
+    public void failValidationWhenTrackedEntityAttributesHaveSameUniqueValues()
+        throws IOException
+    {
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/te-with_unique_attributes.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
+    }
+
+    @Test
     public void testTeValidationOkAll()
         throws IOException
     {

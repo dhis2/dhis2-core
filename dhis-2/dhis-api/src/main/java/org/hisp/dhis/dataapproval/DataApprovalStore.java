@@ -43,7 +43,6 @@ import org.hisp.dhis.period.Period;
  * @author Jim Grace
  */
 public interface DataApprovalStore
-// extends GenericStore<DataApproval>
 {
     String ID = DataApprovalStore.class.getName();
 
