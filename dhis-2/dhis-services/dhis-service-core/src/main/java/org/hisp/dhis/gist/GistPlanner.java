@@ -53,6 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -124,7 +125,7 @@ class GistPlanner
         Property p = context.resolveMandatory( f.getPropertyPath() );
         return !f.getOperator().isAccessCompare()
             && p.isCollection() && !isCollectionSizeFilter( f, p )
-            && IdentifiableObject.class.isAssignableFrom( p.getItemKlass() );
+            && PrimaryKeyObject.class.isAssignableFrom( p.getItemKlass() );
     }
 
     private List<Filter> withCurrentUserDefaultForAccessFilters( List<Filter> filters )
@@ -252,7 +253,7 @@ class GistPlanner
     private boolean canRead( Schema schema, String path )
     {
         return !schema.isIdentifiableObject()
-            || access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), path );
+            || access.canRead( (Class<? extends PrimaryKeyObject>) schema.getKlass(), path );
     }
 
     private List<Field> withDisplayAsTranslatedFields( List<Field> fields )
@@ -309,7 +310,7 @@ class GistPlanner
                 String propertyName = path.substring( path.lastIndexOf( '.' ) + 1 );
                 Property collection = context.resolveMandatory( parentPath );
                 if ( "id".equals( propertyName )
-                    && IdentifiableObject.class.isAssignableFrom( collection.getItemKlass() ) )
+                    && PrimaryKeyObject.class.isAssignableFrom( collection.getItemKlass() ) )
                 {
                     mapped.add( f
                         .withPropertyPath( parentPath )

@@ -25,44 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.dxf2.metadata;
 
-import org.hisp.dhis.webapi.json.JsonObject;
+import lombok.Getter;
+
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ * Used when Import is used in
+ * {@link org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode#VALIDATE}
+ * and resulting report has errors while the method performing the validation
+ * does return a different type than {@link ImportReport}.
  *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
+@Getter
+public class MetadataValidationException extends MetadataImportException
 {
-    default String getHttpStatus()
-    {
-        return getString( "httpStatus" ).string();
-    }
+    private final transient ImportReport report;
 
-    default int getHttpStatusCode()
+    public MetadataValidationException( ImportReport report, String message )
     {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
-
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
-
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
-
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
+        super( message );
+        this.report = report;
     }
 }

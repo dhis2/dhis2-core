@@ -25,44 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.metadata;
 
-import org.hisp.dhis.webapi.json.JsonObject;
-
-/**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
- *
- * @author Jan Bernitt
- */
-public interface JsonWebMessage extends JsonObject
+public interface MetadataProposalStore
 {
-    default String getHttpStatus()
-    {
-        return getString( "httpStatus" ).string();
-    }
+    MetadataProposal getByUid( String uid );
 
-    default int getHttpStatusCode()
-    {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
+    void save( MetadataProposal proposal );
 
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
+    void update( MetadataProposal proposal );
 
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
-
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
-    }
 }

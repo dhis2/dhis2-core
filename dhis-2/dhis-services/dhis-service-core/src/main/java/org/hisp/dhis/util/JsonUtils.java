@@ -25,44 +25,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.util;
 
-import org.hisp.dhis.webapi.json.JsonObject;
+import java.util.function.Function;
+
+import lombok.extern.slf4j.Slf4j;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ * Helper methods to deserialise JSON back to POJOs using jackson's
+ * {@link com.fasterxml.jackson.databind.ObjectMapper}.
  *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
+@Slf4j
+public class JsonUtils
 {
-    default String getHttpStatus()
+    private JsonUtils()
     {
-        return getString( "httpStatus" ).string();
+        throw new UnsupportedOperationException( "util" );
     }
 
-    default int getHttpStatusCode()
+    public static <T, E extends Exception> T jsonToObject( JsonNode value, Class<T> type, ObjectMapper mapper,
+        Function<JsonProcessingException, E> handler )
+        throws E
     {
-        return getNumber( "httpStatusCode" ).intValue();
+        try
+        {
+            return mapper.treeToValue( value, type );
+        }
+        catch ( JsonProcessingException ex )
+        {
+            throw handler.apply( ex );
+        }
     }
 
-    default String getStatus()
+    public static <T> T jsonToObject( JsonNode value, Class<T> type, T defaultValue, ObjectMapper mapper )
     {
-        return getString( "status" ).string();
-    }
-
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
-
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
+        try
+        {
+            return mapper.treeToValue( value, type );
+        }
+        catch ( JsonProcessingException ex )
+        {
+            if ( log.isDebugEnabled() )
+            {
+                log.debug( ex.getMessage() );
+            }
+            return defaultValue;
+        }
     }
 }

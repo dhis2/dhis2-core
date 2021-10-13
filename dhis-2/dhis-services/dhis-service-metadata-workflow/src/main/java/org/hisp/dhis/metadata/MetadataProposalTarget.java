@@ -25,44 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.metadata;
 
-import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ * The set of metadata object a {@link MetadataProposal} can be made for.
  *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
+public enum MetadataProposalTarget
 {
-    default String getHttpStatus()
+    ORGANISATION_UNIT( OrganisationUnit.class );
+
+    private Class<? extends IdentifiableObject> type;
+
+    MetadataProposalTarget( Class<? extends IdentifiableObject> type )
     {
-        return getString( "httpStatus" ).string();
+        this.type = type;
     }
 
-    default int getHttpStatusCode()
+    public Class<? extends IdentifiableObject> getType()
     {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
-
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
-
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
-
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
+        return type;
     }
 }

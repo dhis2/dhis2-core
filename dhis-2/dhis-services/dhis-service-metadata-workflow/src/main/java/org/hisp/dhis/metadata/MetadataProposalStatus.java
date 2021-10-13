@@ -25,44 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
-
-import org.hisp.dhis.webapi.json.JsonObject;
+package org.hisp.dhis.metadata;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ * Life-cycle of a {@link MetadataProposal}.
  *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
+public enum MetadataProposalStatus
 {
-    default String getHttpStatus()
-    {
-        return getString( "httpStatus" ).string();
-    }
-
-    default int getHttpStatusCode()
-    {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
-
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
-
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
-
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
-    }
+    /**
+     * Proposal has been made but not yet accepted or rejected (initial state)
+     */
+    PROPOSED,
+    /**
+     * Proposal was successfully accepted (final state)
+     */
+    ACCEPTED,
+    /**
+     * Proposal was rejected (final state)
+     */
+    REJECTED,
+    /**
+     * Proposal was accepted but failed to be applied or manually moved to this
+     * state by a user. Allows the proposing user to update the change.
+     */
+    NEEDS_UPDATE
 }

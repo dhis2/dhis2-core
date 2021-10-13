@@ -25,44 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.webapi.json.JsonObject;
+import java.io.Serializable;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ * Common interface for objects that have a unique ID used in RESTful APIs but
+ * that might not have use for a name and other fundamentals that come with
+ * {@link IdentifiableObject}s.
  *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
+public interface PrimaryKeyObject extends Serializable
 {
-    default String getHttpStatus()
-    {
-        return getString( "httpStatus" ).string();
-    }
+    /**
+     * @return internal unique ID of the object as used in the database
+     */
+    long getId();
 
-    default int getHttpStatusCode()
-    {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
-
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
-
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
-
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
-    }
+    /**
+     * @return external unique ID of the object as used in the RESTful API
+     */
+    String getUid();
 }

@@ -359,9 +359,9 @@ final class GistBuilder
         {
             int sharingFieldIndex = getSameParentFieldIndex( path, SHARING_PROPERTY );
             @SuppressWarnings( "unchecked" )
-            Class<? extends IdentifiableObject> objType = isNonNestedPath( path )
+            Class<? extends IdentifiableObject> objType = (Class<? extends IdentifiableObject>) (isNonNestedPath( path )
                 ? query.getElementType()
-                : (Class<? extends IdentifiableObject>) property.getKlass();
+                : property.getKlass());
             addTransformer( row -> row[index] = access.asAccess( objType, (Sharing) row[sharingFieldIndex] ) );
             return HQL_NULL;
         }

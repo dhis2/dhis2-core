@@ -25,44 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import org.hisp.dhis.webapi.json.JsonObject;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.UncheckedIOException;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ * Converts a binary JSON to a {@link com.fasterxml.jackson.databind.JsonNode}.
+ * This includes all types of nodes.
+ *
+ * The key difference is that we use
+ * {@link com.fasterxml.jackson.databind.ObjectReader#readTree(Reader)} instead
+ * of {@link com.fasterxml.jackson.databind.ObjectReader#readValue(String)}.
  *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
+public class JsonNodeBinaryType extends JsonBinaryType
 {
-    default String getHttpStatus()
-    {
-        return getString( "httpStatus" ).string();
-    }
 
-    default int getHttpStatusCode()
+    @Override
+    protected Object convertJsonToObject( String content )
     {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
-
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
-
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
-
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
+        try
+        {
+            return reader.readTree( content );
+        }
+        catch ( IOException e )
+        {
+            throw new UncheckedIOException( e );
+        }
     }
 }

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.jsonpatch;
 
+import static org.hisp.dhis.util.JsonUtils.jsonToObject;
+
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.schema.Property;
@@ -36,7 +38,6 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -92,14 +93,8 @@ public class JsonPatchManager
 
         node = patch.apply( node );
 
-        try
-        {
-            return (T) jsonMapper.treeToValue( node, object.getClass() );
-        }
-        catch ( JsonProcessingException e )
-        {
-            throw new JsonPatchException( e.getMessage() );
-        }
+        return (T) jsonToObject( node, object.getClass(), jsonMapper,
+            ex -> new JsonPatchException( ex.getMessage() ) );
     }
 
     private <T> void handleCollectionUpdates( T object, Schema schema, ObjectNode node )

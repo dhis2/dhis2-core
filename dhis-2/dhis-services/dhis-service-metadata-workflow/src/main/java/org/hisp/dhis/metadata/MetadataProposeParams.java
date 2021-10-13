@@ -25,44 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.metadata;
 
-import org.hisp.dhis.webapi.json.JsonObject;
+import lombok.Getter;
+import lombok.Setter;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
+ * Input when making a {@link org.hisp.dhis.metadata.MetadataProposal}.
  *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
+@Getter
+@Setter
+public class MetadataProposeParams
 {
-    default String getHttpStatus()
-    {
-        return getString( "httpStatus" ).string();
-    }
+    private final MetadataProposalType type;
 
-    default int getHttpStatusCode()
-    {
-        return getNumber( "httpStatusCode" ).intValue();
-    }
+    private final MetadataProposalTarget target;
 
-    default String getStatus()
-    {
-        return getString( "status" ).string();
-    }
+    @JsonProperty
+    private String targetUid;
 
-    default String getMessage()
-    {
-        return getString( "message" ).string();
-    }
+    @JsonProperty
+    private JsonNode change;
 
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
+    @JsonProperty
+    private String comment;
 
-    default JsonObject getResponse()
+    @JsonCreator
+    public MetadataProposeParams(
+        @JsonProperty( value = "type", required = true ) MetadataProposalType type,
+        @JsonProperty( value = "target", required = true ) MetadataProposalTarget target )
     {
-        return getObject( "response" );
+        this.type = type;
+        this.target = target;
     }
 }

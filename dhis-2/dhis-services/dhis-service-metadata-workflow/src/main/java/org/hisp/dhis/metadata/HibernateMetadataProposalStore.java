@@ -25,44 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.metadata;
 
-import org.hisp.dhis.webapi.json.JsonObject;
+import lombok.AllArgsConstructor;
+
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.stereotype.Repository;
 
 /**
- * Web API equivalent of a {@code WebMessage} or {@code DescriptiveWebMessage}
- *
  * @author Jan Bernitt
  */
-public interface JsonWebMessage extends JsonObject
+@Repository
+@AllArgsConstructor
+public class HibernateMetadataProposalStore implements MetadataProposalStore
 {
-    default String getHttpStatus()
+
+    private final SessionFactory sessionFactory;
+
+    private Session getSession()
     {
-        return getString( "httpStatus" ).string();
+        return sessionFactory.getCurrentSession();
     }
 
-    default int getHttpStatusCode()
+    @Override
+    public MetadataProposal getByUid( String uid )
     {
-        return getNumber( "httpStatusCode" ).intValue();
+        return getSession().createQuery( "from MetadataProposal p where p.uid = :uid", MetadataProposal.class )
+            .setParameter( "uid", uid )
+            .getSingleResult();
     }
 
-    default String getStatus()
+    @Override
+    public void save( MetadataProposal proposal )
     {
-        return getString( "status" ).string();
+        proposal.setAutoFields();
+        getSession().save( proposal );
     }
 
-    default String getMessage()
+    @Override
+    public void update( MetadataProposal proposal )
     {
-        return getString( "message" ).string();
+        getSession().saveOrUpdate( proposal );
     }
 
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default JsonObject getResponse()
-    {
-        return getObject( "response" );
-    }
 }
