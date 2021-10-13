@@ -614,19 +614,19 @@ public class DimensionalObjectUtils
      * dimension item identifier defined by the given identifier scheme. This
      * mapping is specific for data elements.
      *
-     * @param dataElements the data elements.
+     * @param itemObjects the data elements.
      * @param idScheme the identifier scheme.
      * @return a mapping between dimension item identifiers.
      */
     public static Map<String, String> getDataElementIdSchemeMap(
-        Collection<DataElement> dataElements, IdScheme idScheme )
+        Collection<DimensionalItemObject> itemObjects, IdScheme idScheme )
     {
         Map<String, String> map = Maps.newHashMap();
 
-        for ( DataElement dataElement : dataElements )
+        for ( DimensionalItemObject itemObject : itemObjects )
         {
-            map.put( dataElement.getDimensionItem(),
-                dataElement.getDimensionItem( IdScheme.from( idScheme ) ) );
+            map.put( itemObject.getDimensionItem(),
+                itemObject.getDimensionItem( IdScheme.from( idScheme ) ) );
         }
 
         return map;
