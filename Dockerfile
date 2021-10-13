@@ -19,13 +19,13 @@ RUN apt-get update && \
 WORKDIR /src
 
 # NB: web-apps build uses `git rev-parse` to tag the build, so just copy over the whole tree for now
-COPY . .
+COPY dhis-2 .
 
 # TODO: We should be able to achieve much faster incremental builds and cached dependencies using
-RUN mvn clean install -Pdev -Pjdk11 -f dhis-2/pom.xml -DskipTests -pl -dhis-web-embedded-jetty
-RUN mvn clean install -Pdev -Pjdk11 -U -f dhis-2/dhis-web/pom.xml -DskipTests
+RUN mvn clean install -Pdev -Pjdk11 -f pom.xml -DskipTests -pl -dhis-web-embedded-jetty
+RUN mvn clean install -Pdev -Pjdk11 -U -f dhis-web/pom.xml -DskipTests
 
-RUN cp dhis-2/dhis-web/dhis-web-portal/target/dhis.war /dhis.war && \
+RUN cp dhis-web/dhis-web-portal/target/dhis.war /dhis.war && \
     cd / && \
     sha256sum dhis.war > /sha256sum.txt && \
     md5sum dhis.war > /md5sum.txt
