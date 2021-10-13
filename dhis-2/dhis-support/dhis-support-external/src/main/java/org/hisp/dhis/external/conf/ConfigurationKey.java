@@ -183,7 +183,8 @@ public enum ConfigurationKey
 
     /**
      * Hikari DB pool feature. Connection pool timeout: Set the maximum number
-     * of milliseconds that a client will wait for a connection from the pool
+     * of milliseconds that a client will wait for a connection from the pool.
+     * (default: 30s)
      */
     CONNECTION_POOL_TIMEOUT( "connection.pool.timeout", String.valueOf( SECONDS.toMillis( 30 ) ), false ),
 
@@ -489,7 +490,7 @@ public enum ConfigurationKey
     AUDIT_LOGGER( "audit.logger", Constants.ON, false ),
 
     /**
-     * Save audits to database table "audit". (default: on).
+     * Save audits to database table "audit". (default: off).
      */
     AUDIT_DATABASE( "audit.database", Constants.OFF, false ),
 
