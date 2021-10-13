@@ -43,10 +43,6 @@ public interface RuleActionImplementer
 {
     boolean accept( RuleAction ruleAction );
 
-    void implement( RuleEffect ruleEffect, ProgramInstance programInstance );
-
-    void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance );
-
     /**
      * This method is directly called by SideEffectHandlerService to implement
      * actions
@@ -54,7 +50,7 @@ public interface RuleActionImplementer
      * @param ruleEffect received tracker importer
      * @param programInstance enrollment to implement the action against
      */
-    void implementEnrollmentAction( RuleEffect ruleEffect, ProgramInstance programInstance );
+    void implement( RuleEffect ruleEffect, ProgramInstance programInstance );
 
     /**
      * This method is directly called by SideEffectHandlerService to implement
@@ -63,5 +59,5 @@ public interface RuleActionImplementer
      * @param ruleEffect received tracker importer
      * @param programStageInstance event to implement the action against
      */
-    void implementEventAction( RuleEffect ruleEffect, ProgramStageInstance programStageInstance );
+    void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance );
 }

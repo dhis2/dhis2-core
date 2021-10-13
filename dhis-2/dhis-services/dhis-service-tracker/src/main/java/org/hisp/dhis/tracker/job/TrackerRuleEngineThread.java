@@ -97,20 +97,20 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
         {
             for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
             {
+                ProgramInstance pi = preheat.get( ProgramInstance.class, entry.getKey() );
                 entry.getValue()
                     .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                    .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect,
-                        preheat.get( ProgramInstance.class, entry.getKey() ) ) );
+                    .forEach( effect -> ruleActionImplementer.implement( effect, pi ) );
             }
 
             for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
             {
+                ProgramStageInstance psi = preheat.get( ProgramStageInstance.class, entry.getKey() );
                 entry.getValue()
                     .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                    .forEach( effect -> ruleActionImplementer.implementEventAction( effect,
-                        preheat.get( ProgramStageInstance.class, entry.getKey() ) ) );
+                    .forEach( effect -> ruleActionImplementer.implement( effect, psi ) );
             }
         }
 

@@ -151,18 +151,6 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
         notificationLoggingService.save( entry );
     }
 
-    @Override
-    public void implementEnrollmentAction( RuleEffect ruleEffect, ProgramInstance programInstance )
-    {
-        implement( ruleEffect, programInstance );
-    }
-
-    @Override
-    public void implementEventAction( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
-    {
-        implement( ruleEffect, programStageInstance );
-    }
-
     private void handleSingleEvent( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
