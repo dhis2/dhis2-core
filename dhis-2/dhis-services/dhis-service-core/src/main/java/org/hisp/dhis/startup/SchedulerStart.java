@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,8 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 @Slf4j
 public class SchedulerStart extends AbstractStartupRoutine
 {
+    private static final String CRON_DAILY_1AM_RANDOM_MIN = String.format( "0 0 3 %d * *",
+        ThreadLocalRandom.current().nextInt( 1, 60 + 1 ) );
     private static final String CRON_DAILY_2AM = "0 0 2 ? * *";
 
     private static final String CRON_DAILY_7AM = "0 0 7 ? * *";
@@ -69,6 +72,9 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     enum SystemJob
     {
+        SYSTEM_SOFTWARE_UPDATE( CRON_DAILY_1AM_RANDOM_MIN, "vt21671bgno", JobType.SYSTEM_SOFTWARE_UPDATE,
+            "File resource clean up" ),
+
         FILE_RESOURCE( CRON_DAILY_2AM, "pd6O228pqr0", FILE_RESOURCE_CLEANUP,
             "File resource clean up" ),
         DATA_STATISTICS( CRON_DAILY_2AM, "BFa3jDsbtdO", JobType.DATA_STATISTICS,
@@ -190,6 +196,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         addDefaultJob( SystemJob.ACCOUNT_EXPIRY_ALERT, jobConfigurations );
         addDefaultJob( SystemJob.DATA_SET_NOTIFICATION, jobConfigurations );
         addDefaultJob( SystemJob.REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations );
+        addDefaultJob( SystemJob.SYSTEM_SOFTWARE_UPDATE, jobConfigurations );
 
         if ( verifyNoJobExist( SystemJob.LEADER_ELECTION.name, jobConfigurations )
             && "true".equalsIgnoreCase( redisEnabled ) )
