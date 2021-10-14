@@ -2556,7 +2556,7 @@ public abstract class AbstractEventService
 
     private boolean isDataValueLinkedToProgramRules( Program program, Event event )
     {
-        boolean isLinkedWithRuleVariable = false;
+        boolean isLinkedWithRuleVariable;
 
         for ( DataValue dv : event.getDataValues() )
         {
@@ -2564,7 +2564,7 @@ public abstract class AbstractEventService
 
             if ( dataElement != null )
             {
-                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariableCached( program, dataElement );
 
                 if ( isLinkedWithRuleVariable )
                 {
@@ -2573,6 +2573,6 @@ public abstract class AbstractEventService
             }
         }
 
-        return isLinkedWithRuleVariable;
+        return false;
     }
 }
