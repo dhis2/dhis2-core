@@ -112,7 +112,7 @@ public class OrgUnitMergeServiceTest
 
         IllegalQueryException ex = assertThrows(
             IllegalQueryException.class, () -> service.getFromQuery( query ) );
-        assertEquals( ErrorCode.E1102, ex.getErrorCode() );
+        assertEquals( ErrorCode.E1503, ex.getErrorCode() );
     }
 
     @Test

@@ -177,6 +177,6 @@ public class DefaultOrgUnitMergeService
         throws IllegalQueryException
     {
         return ObjectUtils.throwIfNull( idObjectManager.get( OrganisationUnit.class, uid ),
-            new IllegalQueryException( new ErrorMessage( ErrorCode.E1102, uid ) ) );
+            new IllegalQueryException( new ErrorMessage( ErrorCode.E1503, uid ) ) );
     }
 }

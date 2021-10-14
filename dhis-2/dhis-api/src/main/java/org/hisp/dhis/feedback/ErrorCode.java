@@ -49,6 +49,7 @@ public enum ErrorCode
     E1500( "At least two source orgs unit must be specified" ),
     E1501( "Target org unit must be specified" ),
     E1502( "Target org unit cannot be a source org unit" ),
+    E1503( "Source org unit does not exist: `{0}`" ),
 
     /* Org unit split */
     E1510( "Source org unit must be specified" ),
@@ -56,12 +57,13 @@ public enum ErrorCode
     E1512( "Source org unit cannot be a target org unit" ),
     E1513( "Primary target must be specified" ),
     E1514( "Primary target must be a target org unit" ),
+    E1515( "Target org unit does not exist: `{0}`" ),
 
     /* Org unit move */
-    E1515( "User `{0}` is not allowed to move organisation units" ),
-    E1516( "User `{0}` is not allowed to move organisation `{1}`" ),
-    E1517( "User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`" ),
-    E1518( "User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`" ),
+    E1520( "User `{0}` is not allowed to move organisation units" ),
+    E1521( "User `{0}` is not allowed to move organisation `{1}`" ),
+    E1522( "User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`" ),
+    E1523( "User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`" ),
 
     /* Data */
     E2000( "Query parameters cannot be null" ),
