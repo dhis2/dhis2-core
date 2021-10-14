@@ -404,9 +404,12 @@ public final class GistQuery
         @JsonProperty
         private final boolean translate;
 
+        @JsonProperty
+        private final boolean attribute;
+
         public Field( String propertyPath, Transform transformation )
         {
-            this( propertyPath, transformation, "", null, false );
+            this( propertyPath, transformation, "", null, false, false );
         }
 
         @JsonProperty
@@ -433,6 +436,11 @@ public final class GistQuery
         public Field withTranslate()
         {
             return toBuilder().translate( true ).build();
+        }
+
+        public Field asAttribute()
+        {
+            return toBuilder().attribute( true ).build();
         }
 
         @Override
@@ -469,7 +477,7 @@ public final class GistQuery
                     }
                 }
             }
-            return new Field( parts[0], transform, alias, arg, false );
+            return new Field( parts[0], transform, alias, arg, false, false );
         }
 
         private static String parseArgument( String part )
@@ -512,6 +520,7 @@ public final class GistQuery
     }
 
     @Getter
+    @AllArgsConstructor( access = AccessLevel.PRIVATE )
     public static final class Filter
     {
         @JsonProperty
@@ -523,11 +532,12 @@ public final class GistQuery
         @JsonProperty
         private final String[] value;
 
+        @JsonProperty
+        private final boolean attribute;
+
         public Filter( String propertyPath, Comparison operator, String... value )
         {
-            this.propertyPath = propertyPath;
-            this.operator = operator;
-            this.value = value;
+            this( propertyPath, operator, value, false );
         }
 
         public Filter withPropertyPath( String path )
@@ -538,6 +548,11 @@ public final class GistQuery
         public Filter withValue( String... value )
         {
             return new Filter( propertyPath, operator, value );
+        }
+
+        public Filter asAttribute()
+        {
+            return new Filter( propertyPath, operator, value, true );
         }
 
         public static Filter parse( String filter )

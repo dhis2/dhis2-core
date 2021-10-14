@@ -102,7 +102,7 @@ final class GistValidator
     private void validateField( Field f, RelativePropertyContext context )
     {
         String path = f.getPropertyPath();
-        if ( Field.REFS_PATH.equals( path ) )
+        if ( Field.REFS_PATH.equals( path ) || f.isAttribute() )
         {
             return;
         }
@@ -161,6 +161,10 @@ final class GistValidator
 
     private void validateFilter( Filter f, RelativePropertyContext context )
     {
+        if ( f.isAttribute() )
+        {
+            return;
+        }
         Property filter = context.resolveMandatory( f.getPropertyPath() );
         if ( !filter.isPersisted() )
         {

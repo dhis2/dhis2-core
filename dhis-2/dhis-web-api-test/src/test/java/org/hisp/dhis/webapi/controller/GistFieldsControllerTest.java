@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonString;
@@ -203,4 +204,40 @@ public class GistFieldsControllerTest extends AbstractGistControllerTest
         assertTrue( access.getBoolean( "delete" ).booleanValue() );
     }
 
+    @Test
+    public void testField_Attribute()
+    {
+        // setup a DE with custom attribute value
+        String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" +
+            "'name':'extra', " +
+            "'valueType':'TEXT', " +
+            "'" + ObjectType.DATA_ELEMENT.getPropertyName() + "':true}" ) );
+
+        String ccId = GET(
+            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
+                .content().getObject( 0 ).getString( "id" ).string();
+
+        String deId = assertStatus( HttpStatus.CREATED, POST( "/dataElements/",
+            "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', " +
+                "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', " +
+                "'categoryCombo': {'id': '" + ccId + "'}," +
+                "'attributeValues':[{'attribute': {'id':'" + attrId + "'}, 'value':'extra-value'}]" +
+                "}" ) );
+
+        // test single field
+        assertEquals( "extra-value", GET( "/dataElements/{de}/gist?fields={attr}", deId, attrId ).content().string() );
+
+        // test multiple fields also with an alias 'extra'
+        JsonObject dataElement = GET( "/dataElements/{de}/gist?fields=id,name,{attr}::rename(extra)", deId, attrId )
+            .content();
+        assertEquals( deId, dataElement.getString( "id" ).string() );
+        assertEquals( "My data element", dataElement.getString( "name" ).string() );
+        assertEquals( "extra-value", dataElement.getString( "extra" ).string() );
+
+        // test in listing
+        JsonArray dataElements = GET( "/dataElements/gist?fields=id,name,{attr}::rename(extra)&headless=true", attrId )
+            .content();
+        assertEquals( 1, dataElements.size() );
+        assertEquals( "extra-value", dataElements.getObject( 0 ).getString( "extra" ).string() );
+    }
 }
