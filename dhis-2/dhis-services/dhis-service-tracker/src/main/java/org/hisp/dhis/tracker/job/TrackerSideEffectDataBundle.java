@@ -37,9 +37,11 @@ import lombok.Data;
 import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -69,7 +71,13 @@ public class TrackerSideEffectDataBundle implements Message
     private JobConfiguration jobConfiguration;
 
     @JsonProperty
-    private TrackerPreheat preheat;
+    private Program program;
+
+    @JsonProperty
+    private ProgramInstance programInstance;
+
+    @JsonProperty
+    private ProgramStageInstance programStageInstance;
 
     @JsonProperty
     @Builder.Default

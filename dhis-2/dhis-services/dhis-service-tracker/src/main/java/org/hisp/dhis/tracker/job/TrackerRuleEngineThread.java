@@ -37,7 +37,6 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -69,13 +68,12 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
         @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" ) RuleActionImplementer sendMessageRuleActionImplementer,
         @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" ) RuleActionImplementer scheduleMessageRuleActionImplementer,
         TrackerSideEffectConverterService trackerSideEffectConverterService,
-        Notifier notifier, TrackerSideEffectDataBundle sideEffectDataBundle )
+        Notifier notifier )
     {
         this.ruleActionImplementers = Lists.newArrayList( scheduleMessageRuleActionImplementer,
             sendMessageRuleActionImplementer );
         this.trackerSideEffectConverterService = trackerSideEffectConverterService;
         this.notifier = notifier;
-        this.sideEffectDataBundle = sideEffectDataBundle;
     }
 
     @Override
@@ -86,8 +84,6 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
             return;
         }
 
-        TrackerPreheat preheat = sideEffectDataBundle.getPreheat();
-
         Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerSideEffectConverterService
             .toRuleEffects( sideEffectDataBundle.getEnrollmentRuleEffects() );
         Map<String, List<RuleEffect>> eventRuleEffects = trackerSideEffectConverterService
@@ -97,7 +93,9 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
         {
             for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
             {
-                ProgramInstance pi = preheat.get( ProgramInstance.class, entry.getKey() );
+                ProgramInstance pi = sideEffectDataBundle.getProgramInstance();
+                pi.setProgram( sideEffectDataBundle.getProgram() );
+
                 entry.getValue()
                     .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
@@ -106,7 +104,9 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
 
             for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
             {
-                ProgramStageInstance psi = preheat.get( ProgramStageInstance.class, entry.getKey() );
+                ProgramStageInstance psi = sideEffectDataBundle.getProgramStageInstance();
+                psi.getProgramStage().setProgram( sideEffectDataBundle.getProgram() );
+
                 entry.getValue()
                     .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )

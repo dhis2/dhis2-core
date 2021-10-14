@@ -98,7 +98,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         String key = generateKey( template, programInstance );
 
-        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance.getId() ) );
+        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance ) );
 
         if ( result.getLogEntry() != null )
         {
@@ -137,7 +137,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         String key = generateKey( template, pi );
 
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance.getId() ) );
+        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance ) );
 
         if ( result.getLogEntry() != null )
         {
@@ -160,6 +160,6 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
             return;
         }
 
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance.getId() ) );
+        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance ) );
     }
 }
