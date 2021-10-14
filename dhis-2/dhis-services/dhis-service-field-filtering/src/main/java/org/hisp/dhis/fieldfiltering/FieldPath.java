@@ -54,8 +54,19 @@ public class FieldPath
      */
     private final List<String> path;
 
+    /**
+     * True if field path should be excluded (removed) from the set of paths to
+     * include. In the API this is exposed as "?fields=id,name,!do_not_include"
+     * where "!" marks the path as not to be included.
+     */
     private final boolean exclude;
 
+    /**
+     * True if the field path should be handled as a preset path, which means we
+     * have to expand before going into the filtering process. For example
+     * ":owner" would be expanded to include all properties where
+     * "property.owner=true".
+     */
     private final boolean preset;
 
     /**
