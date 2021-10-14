@@ -169,7 +169,9 @@ final class GistBuilder
         // attribute fields? => make sure we have attributeValues
         if ( f.isAttribute() && !existsSameParentField( query, f, ATTRIBUTES_PROPERTY ) )
         {
-            return query.withField( pathOnSameParent( f.getPropertyPath(), ATTRIBUTES_PROPERTY ) );
+            return f.getTransformation() == Transform.PLUCK
+                ? query
+                : query.withField( pathOnSameParent( f.getPropertyPath(), ATTRIBUTES_PROPERTY ) );
         }
 
         Property p = context.resolveMandatory( f.getPropertyPath() );
@@ -370,6 +372,10 @@ final class GistBuilder
         }
         if ( field.isAttribute() )
         {
+            if ( field.getTransformation() == Transform.PLUCK )
+            {
+                return "jsonb_extract_path_text(e.attributeValues, '" + field.getPropertyPath() + "', 'value')";
+            }
             int attrValuesFieldIndex = getSameParentFieldIndex( "", ATTRIBUTES_PROPERTY );
             addTransformer( row -> row[index] = attributeValue( path, row[attrValuesFieldIndex] ) );
             return HQL_NULL;
@@ -904,10 +910,7 @@ final class GistBuilder
             if ( !operator.isUnary() && !operator.isAccessCompare() )
             {
                 Object value = filter.isAttribute()
-                    ? argumentParser.apply( filter.getValue()[0], String.class ) // TODO
-                                                                                 // get
-                                                                                 // attr
-                                                                                 // type
+                    ? filter.getValue()[0]
                     : getParameterValue( context.resolveMandatory( filter.getPropertyPath() ), filter, argumentParser );
                 dest.accept( "f_" + i, operator.isStringCompare()
                     ? completeLikeExpression( operator, (String) value )

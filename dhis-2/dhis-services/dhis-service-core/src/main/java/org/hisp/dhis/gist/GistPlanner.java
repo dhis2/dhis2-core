@@ -194,7 +194,8 @@ class GistPlanner
     private Field withEffectiveTransformation( Field field )
     {
         return field.isAttribute()
-            ? field.withTransformation( Transform.NONE )
+            ? field
+                .withTransformation( field.getTransformation() == Transform.PLUCK ? Transform.PLUCK : Transform.NONE )
             : field.withTransformation( effectiveTransform(
                 context.resolveMandatory( field.getPropertyPath() ), query.getDefaultTransformation(),
                 field.getTransformation() ) );
