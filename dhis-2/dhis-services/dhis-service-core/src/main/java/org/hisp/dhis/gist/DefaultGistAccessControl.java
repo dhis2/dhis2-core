@@ -40,6 +40,7 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -100,20 +101,32 @@ public class DefaultGistAccessControl implements GistAccessControl
     }
 
     @Override
-    public boolean canRead( Class<? extends IdentifiableObject> type )
+    public boolean canRead( Class<? extends PrimaryKeyObject> type )
     {
-        return aclService.canRead( currentUser, type );
+        if ( !IdentifiableObject.class.isAssignableFrom( type ) )
+        {
+            return true;
+        }
+        @SuppressWarnings( "unchecked" )
+        Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
+        return aclService.canRead( currentUser, ioType );
     }
 
     @Override
-    public boolean canReadObject( Class<? extends IdentifiableObject> type, String uid )
+    public boolean canReadObject( Class<? extends PrimaryKeyObject> type, String uid )
     {
-        if ( !aclService.isClassShareable( type ) )
+        if ( !IdentifiableObject.class.isAssignableFrom( type ) )
         {
-            return aclService.canRead( currentUser, type );
+            return true;
+        }
+        @SuppressWarnings( "unchecked" )
+        Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
+        if ( !aclService.isClassShareable( ioType ) )
+        {
+            return aclService.canRead( currentUser, ioType );
         }
         List<?> res = gistService.gist( GistQuery.builder()
-            .elementType( type )
+            .elementType( ioType )
             .autoType( GistAutoType.M )
             .fields( singletonList( new Field( "sharing", Transform.NONE ) ) )
             .filters( singletonList( new Filter( "id", Comparison.EQ, uid ) ) )
@@ -121,12 +134,16 @@ public class DefaultGistAccessControl implements GistAccessControl
         Sharing sharing = res.isEmpty() ? new Sharing() : (Sharing) res.get( 0 );
         BaseIdentifiableObject object = new BaseIdentifiableObject();
         object.setSharing( sharing );
-        return aclService.canRead( currentUser, object, type );
+        return aclService.canRead( currentUser, object, ioType );
     }
 
     @Override
-    public boolean canRead( Class<? extends IdentifiableObject> type, String path )
+    public boolean canRead( Class<? extends PrimaryKeyObject> type, String path )
     {
+        if ( !IdentifiableObject.class.isAssignableFrom( type ) )
+        {
+            return true;
+        }
         boolean isUserField = type == User.class;
         boolean isUserCredentialsField = type == UserCredentials.class;
         if ( isUserField && PUBLIC_USER_PROPERTY_PATHS.contains( path ) )
@@ -137,7 +154,9 @@ public class DefaultGistAccessControl implements GistAccessControl
         {
             return true;
         }
-        return PUBLIC_PROPERTY_PATHS.contains( path ) || aclService.canRead( currentUser, type );
+        @SuppressWarnings( "unchecked" )
+        Class<? extends IdentifiableObject> ioType = (Class<? extends IdentifiableObject>) type;
+        return PUBLIC_PROPERTY_PATHS.contains( path ) || aclService.canRead( currentUser, ioType );
     }
 
     @Override
