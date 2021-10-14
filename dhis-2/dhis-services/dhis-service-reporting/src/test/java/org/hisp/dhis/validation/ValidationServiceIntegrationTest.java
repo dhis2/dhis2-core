@@ -49,6 +49,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +118,8 @@ public class ValidationServiceIntegrationTest
 
         CurrentUserService currentUserService = new MockCurrentUserService( Sets.newHashSet( orgUnitA ), null );
 
-        setDependency( validationService, "currentUserService", currentUserService, CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, validationService );
 
         periodTypeMonthly = new MonthlyPeriodType();
 

@@ -53,6 +53,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BatchHandlerFactoryTarget;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -88,6 +89,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -209,7 +211,9 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         mockBatchHandlerFactory.registerBatchHandler( DataValueBatchHandler.class, mockDataValueBatchHandler );
         mockBatchHandlerFactory.registerBatchHandler( DataValueAuditBatchHandler.class,
             mockDataValueAuditBatchHandler );
-        setDependency( dataValueSetService, "batchHandlerFactory", mockBatchHandlerFactory );
+
+        setDependency( BatchHandlerFactoryTarget.class, BatchHandlerFactoryTarget::setBatchHandlerFactory,
+            mockBatchHandlerFactory, dataValueSetService );
 
         attribute = new Attribute( "CUSTOM_ID", ValueType.TEXT );
         attribute.setUid( ATTRIBUTE_UID );
@@ -339,7 +343,8 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         injectSecurityContext( user );
 
         CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( dataValueSetService, "currentUserService", currentUserService );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService );
 
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );

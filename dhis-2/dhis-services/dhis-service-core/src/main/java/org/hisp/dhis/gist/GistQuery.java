@@ -44,8 +44,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -85,7 +85,7 @@ public final class GistQuery
         /**
          * The object type that has the collection
          */
-        private final Class<? extends IdentifiableObject> type;
+        private final Class<? extends PrimaryKeyObject> type;
 
         /**
          * Id of the collection owner object.
@@ -106,7 +106,7 @@ public final class GistQuery
 
     private final Owner owner;
 
-    private final Class<? extends IdentifiableObject> elementType;
+    private final Class<? extends PrimaryKeyObject> elementType;
 
     @JsonProperty
     private final int pageOffset;
@@ -164,6 +164,12 @@ public final class GistQuery
     private final boolean describe;
 
     /**
+     * Weather or not to include the API endpoints references
+     */
+    @JsonProperty
+    private final boolean references;
+
+    /**
      * The extend to which fields are included by default
      */
     @JsonProperty( value = "auto" )
@@ -214,6 +220,7 @@ public final class GistQuery
             .absoluteUrls( params.getBoolean( "absoluteUrls", false ) )
             .headless( params.getBoolean( "headless", false ) )
             .describe( params.getBoolean( "describe", false ) )
+            .references( params.getBoolean( "references", true ) )
             .anyFilter( params.getString( "rootJunction", "AND" ).equalsIgnoreCase( "OR" ) )
             .fields( params.getStrings( "fields", FIELD_SPLIT ).stream()
                 .map( Field::parse ).collect( toList() ) )

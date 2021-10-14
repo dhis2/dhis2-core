@@ -78,26 +78,37 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
     @Override
     public String getProperty( ConfigurationKey key )
     {
-        return this.properties.getProperty( key.getKey(), key.getDefaultValue() );
-    }
-
-    @Override
-    public String getServerBaseUrl()
-    {
-        return this.properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey(),
-            ConfigurationKey.SERVER_BASE_URL.getDefaultValue() );
+        return getPropertyOrDefault( key, key.getDefaultValue() );
     }
 
     @Override
     public String getPropertyOrDefault( ConfigurationKey key, String defaultValue )
     {
-        return this.properties.getProperty( key.getKey(), defaultValue );
+        for ( String alias : key.getAliases() )
+        {
+            if ( properties.contains( alias ) )
+            {
+                return properties.getProperty( alias );
+            }
+        }
+
+        return properties.getProperty( key.getKey(), defaultValue );
     }
 
     @Override
     public boolean hasProperty( ConfigurationKey key )
     {
-        return StringUtils.isNotEmpty( this.properties.getProperty( key.getKey() ) );
+        String value = properties.getProperty( key.getKey() );
+
+        for ( String alias : key.getAliases() )
+        {
+            if ( properties.contains( alias ) )
+            {
+                value = alias;
+            }
+        }
+
+        return StringUtils.isNotEmpty( value );
     }
 
     @Override
@@ -140,6 +151,13 @@ public class H2DhisConfigurationProvider implements DhisConfigurationProvider
     public boolean isClusterEnabled()
     {
         return false;
+    }
+
+    @Override
+    public String getServerBaseUrl()
+    {
+        return this.properties.getProperty( ConfigurationKey.SERVER_BASE_URL.getKey(),
+            ConfigurationKey.SERVER_BASE_URL.getDefaultValue() );
     }
 
     @Override

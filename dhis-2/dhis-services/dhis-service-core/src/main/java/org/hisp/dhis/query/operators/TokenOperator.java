@@ -40,14 +40,13 @@ import org.hisp.dhis.query.planner.QueryPath;
 /**
  * @author Henning Håkonsen
  */
-public class TokenOperator<T extends Comparable<? super T>>
-    extends Operator<T>
+public class TokenOperator<T extends Comparable<? super T>> extends Operator<T>
 {
     private final boolean caseSensitive;
 
     private final org.hibernate.criterion.MatchMode matchMode;
 
-    public TokenOperator( T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
+    public TokenOperator( T arg, boolean caseSensitive, MatchMode matchMode )
     {
         super( "token", Typed.from( String.class ), arg );
         this.caseSensitive = caseSensitive;
@@ -74,10 +73,8 @@ public class TokenOperator<T extends Comparable<? super T>>
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public boolean test( Object value )
     {
-        String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-        return TokenUtils.test( args, (T) value, targetValue, caseSensitive, matchMode );
+        return TokenUtils.test( value, getValue( String.class ), caseSensitive, matchMode );
     }
 }

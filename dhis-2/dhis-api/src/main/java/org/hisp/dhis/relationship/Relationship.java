@@ -37,6 +37,7 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -71,6 +72,19 @@ public class Relationship
     private String formName;
 
     private String description;
+
+    /**
+     * The key is an aggregated representation of the relationship and its sides
+     * based on uids. The format is type_from_to
+     */
+    private String key;
+
+    /**
+     * The inverted key is a key, but with the sides switched. This will make it
+     * possible to match a key when it is bidirectional. the format is
+     * type_to_from
+     */
+    private String invertedKey;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -161,6 +175,28 @@ public class Relationship
     public void setTo( RelationshipItem to )
     {
         this.to = to;
+    }
+
+    @JsonIgnore
+    public String getKey()
+    {
+        return key;
+    }
+
+    public void setKey( String key )
+    {
+        this.key = key;
+    }
+
+    @JsonIgnore
+    public String getInvertedKey()
+    {
+        return invertedKey;
+    }
+
+    public void setInvertedKey( String invertedKey )
+    {
+        this.invertedKey = invertedKey;
     }
 
     @Override

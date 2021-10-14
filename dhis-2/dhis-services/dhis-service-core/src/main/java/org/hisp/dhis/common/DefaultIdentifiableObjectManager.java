@@ -66,6 +66,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserInfo;
+import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -1009,7 +1010,7 @@ public class DefaultIdentifiableObjectManager
 
         schema.getProperties()
             .stream()
-            .filter( p -> !p.isOwner() && p.getSetterMethod() != null )
+            .filter( p -> !p.isOwner() && p.getSetterMethod() != null && !SharingUtils.isLegacySharingProperty( p ) )
             .forEach( p -> {
                 Class<?> parameterType = p.getSetterMethod().getParameterTypes()[0];
 

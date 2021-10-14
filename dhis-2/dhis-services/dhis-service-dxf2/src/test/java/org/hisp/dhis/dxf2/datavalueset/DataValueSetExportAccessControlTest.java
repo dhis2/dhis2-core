@@ -57,6 +57,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -372,8 +373,8 @@ public class DataValueSetExportAccessControlTest
         userService.addUser( user );
 
         CurrentUserService currentUserService = new MockCurrentUserService( user );
-        setDependency( dataValueSetService, "currentUserService", currentUserService );
-        setDependency( dataValueSetStore, "currentUserService", currentUserService );
-        setDependency( organisationUnitService, "currentUserService", currentUserService );
+
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataValueSetService, dataValueSetStore, organisationUnitService );
     }
 }

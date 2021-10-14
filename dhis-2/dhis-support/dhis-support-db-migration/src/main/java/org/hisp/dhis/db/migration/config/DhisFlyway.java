@@ -39,10 +39,9 @@ import org.flywaydb.core.api.output.MigrateResult;
  *
  */
 public class DhisFlyway
-    extends
-    Flyway
+    extends Flyway
 {
-    private boolean repairBeforeMigrate = false;
+    private boolean repairBeforeMigrate;
 
     public DhisFlyway( Configuration configuration, boolean repairBeforeMigrate )
     {
@@ -58,6 +57,7 @@ public class DhisFlyway
         {
             super.repair();
         }
+
         return super.migrate();
     }
 }

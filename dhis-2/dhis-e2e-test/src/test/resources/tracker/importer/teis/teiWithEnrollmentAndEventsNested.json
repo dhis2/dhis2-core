@@ -2,14 +2,11 @@
   "trackedEntities": [
     {
       "orgUnit": "O6uvpzGd5pu",
-      "trackedEntity": "Kj6vYde4LHh",
       "trackedEntityType": "Q9GufDoplCL",
       "enrollments": [
         {
           "orgUnit": "O6uvpzGd5pu",
           "program": "f1AyMswryyQ",
-          "trackedEntity": "Kj6vYde4LHh",
-          "enrollment": "MNWZ6hnuhSw",
           "trackedEntityType": "Q9GufDoplCL",
           "enrolledAt": "2019-08-19T00:00:00.000",
           "deleted": false,
@@ -22,11 +19,8 @@
             {
               "scheduledAt": "2019-08-19T13:59:13.688",
               "program": "f1AyMswryyQ",
-              "event": "XwwuwNp6gVE",
               "programStage": "PaOOjwLVW23",
               "orgUnit": "O6uvpzGd5pu",
-              "trackedEntity": "Kj6vYde4LHh",
-              "enrollment": "MNWZ6hnuhSw",
               "enrollmentStatus": "ACTIVE",
               "status": "ACTIVE",
               "occurredAt": "2019-08-01T00:00:00.000",

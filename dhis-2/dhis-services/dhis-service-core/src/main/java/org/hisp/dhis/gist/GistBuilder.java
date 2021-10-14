@@ -359,9 +359,9 @@ final class GistBuilder
         {
             int sharingFieldIndex = getSameParentFieldIndex( path, SHARING_PROPERTY );
             @SuppressWarnings( "unchecked" )
-            Class<? extends IdentifiableObject> objType = isNonNestedPath( path )
+            Class<? extends IdentifiableObject> objType = (Class<? extends IdentifiableObject>) (isNonNestedPath( path )
                 ? query.getElementType()
-                : (Class<? extends IdentifiableObject>) property.getKlass();
+                : property.getKlass());
             addTransformer( row -> row[index] = access.asAccess( objType, (Sharing) row[sharingFieldIndex] ) );
             return HQL_NULL;
         }
@@ -403,7 +403,7 @@ final class GistBuilder
         if ( property.isIdentifiableObject() )
         {
             String endpointRoot = getEndpointRoot( property );
-            if ( endpointRoot != null )
+            if ( endpointRoot != null && query.isReferences() )
             {
                 int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
                 addTransformer(
@@ -430,7 +430,7 @@ final class GistBuilder
         String path = field.getPropertyPath();
         Property property = context.resolveMandatory( path );
         String endpointRoot = getSameParentEndpointRoot( path );
-        if ( endpointRoot != null )
+        if ( endpointRoot != null && query.isReferences() )
         {
             int idFieldIndex = getSameParentFieldIndex( path, ID_PROPERTY );
             int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
