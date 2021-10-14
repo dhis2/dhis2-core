@@ -66,7 +66,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         {
             String path = fieldPath.toFullPath();
 
-            if ( path.startsWith( getPath( writer, jgen ) ) || path.contains( "*" ) )
+            if ( path.startsWith( getPath( writer, jgen ) ) )
             {
                 return true;
             }
