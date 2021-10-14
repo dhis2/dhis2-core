@@ -38,6 +38,8 @@ import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link AttributeController}.
+ *
+ * @author Jan Bernitt
  */
 public class AttributeControllerTest extends DhisControllerConvenienceTest
 {
