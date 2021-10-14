@@ -30,11 +30,14 @@ package org.hisp.dhis.merge.orgunit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -98,6 +101,18 @@ public class OrgUnitMergeServiceTest
         assertEquals( DataMergeStrategy.LAST_UPDATED, request.getDataValueMergeStrategy() );
         assertEquals( DataMergeStrategy.LAST_UPDATED, request.getDataApprovalMergeStrategy() );
         assertTrue( request.isDeleteSources() );
+    }
+
+    @Test
+    public void testSourceOrgUnitNotFound()
+    {
+        OrgUnitMergeQuery query = new OrgUnitMergeQuery();
+        query.setSources( Lists.newArrayList( BASE_OU_UID + 'A', BASE_OU_UID + 'X' ) );
+        query.setTarget( BASE_OU_UID + 'C' );
+
+        IllegalQueryException ex = assertThrows(
+            IllegalQueryException.class, () -> service.getFromQuery( query ) );
+        assertEquals( ErrorCode.E1503, ex.getErrorCode() );
     }
 
     @Test
