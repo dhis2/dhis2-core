@@ -61,4 +61,8 @@ public interface JsonWebMessage extends JsonObject
         return getString( "description" ).string();
     }
 
+    default JsonObject getResponse()
+    {
+        return getObject( "response" );
+    }
 }

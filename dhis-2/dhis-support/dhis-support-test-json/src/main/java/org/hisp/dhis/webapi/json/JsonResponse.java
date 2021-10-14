@@ -75,6 +75,8 @@ import org.hisp.dhis.webapi.json.JsonDocument.JsonPathException;
 public final class JsonResponse implements JsonObject, JsonArray, JsonString, JsonNumber, JsonBoolean, Serializable
 {
 
+    public static final JsonResponse NULL = new JsonResponse( new JsonDocument( "null" ), "$" );
+
     private final JsonDocument content;
 
     private final String path;
