@@ -28,6 +28,8 @@
 package org.hisp.dhis.fieldfiltering;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -242,27 +244,75 @@ public class FieldFilterParserTest
         List<FieldPath> fieldPaths = FieldFilterParser
             .parse( Sets.newHashSet( "id,name,!code,:owner" ) );
 
-        assertFieldPathContains( fieldPaths, "id" );
-        assertFieldPathContains( fieldPaths, "name" );
-        assertFieldPathContains( fieldPaths, "!code" );
-        assertFieldPathContains( fieldPaths, ":owner" );
+        FieldPath id = getFieldPath( fieldPaths, "id" );
+        assertNotNull( id );
+        assertFalse( id.isExclude() );
+        assertFalse( id.isPreset() );
+
+        FieldPath name = getFieldPath( fieldPaths, "name" );
+        assertNotNull( name );
+        assertFalse( name.isExclude() );
+        assertFalse( name.isPreset() );
+
+        FieldPath code = getFieldPath( fieldPaths, "code" );
+        assertNotNull( code );
+        assertTrue( code.isExclude() );
+        assertFalse( code.isPreset() );
+
+        FieldPath owner = getFieldPath( fieldPaths, "owner" );
+        assertNotNull( owner );
+        assertFalse( owner.isExclude() );
+        assertTrue( owner.isPreset() );
     }
 
     @Test
     public void testParseWithPreset2()
     {
         List<FieldPath> fieldPaths = FieldFilterParser
-            .parse( Sets.newHashSet( "id,name,!code,:owner,group[:owner,:all]" ) );
+            .parse( Sets.newHashSet( "id,name,!code,:owner,group[:owner,:all,!code,hello]" ) );
 
-        assertFieldPathContains( fieldPaths, "id" );
-        assertFieldPathContains( fieldPaths, "name" );
-        assertFieldPathContains( fieldPaths, "!code" );
-        assertFieldPathContains( fieldPaths, ":owner" );
-        assertFieldPathContains( fieldPaths, "group.:owner" );
-        assertFieldPathContains( fieldPaths, "group.:all" );
+        FieldPath id = getFieldPath( fieldPaths, "id" );
+        assertNotNull( id );
+        assertFalse( id.isExclude() );
+        assertFalse( id.isPreset() );
+
+        FieldPath name = getFieldPath( fieldPaths, "name" );
+        assertNotNull( name );
+        assertFalse( name.isExclude() );
+        assertFalse( name.isPreset() );
+
+        FieldPath code = getFieldPath( fieldPaths, "code" );
+        assertNotNull( code );
+        assertTrue( code.isExclude() );
+        assertFalse( code.isPreset() );
+
+        FieldPath owner = getFieldPath( fieldPaths, "owner" );
+        assertNotNull( owner );
+        assertFalse( owner.isExclude() );
+        assertTrue( owner.isPreset() );
+
+        FieldPath groupOwner = getFieldPath( fieldPaths, "group.owner" );
+        assertNotNull( groupOwner );
+        assertFalse( groupOwner.isExclude() );
+        assertTrue( groupOwner.isPreset() );
+
+        FieldPath groupAll = getFieldPath( fieldPaths, "group.all" );
+        assertNotNull( groupAll );
+        assertFalse( groupAll.isExclude() );
+        assertTrue( groupAll.isPreset() );
+
+        FieldPath groupCode = getFieldPath( fieldPaths, "group.code" );
+        assertNotNull( groupCode );
+        assertTrue( groupCode.isExclude() );
+        assertFalse( groupCode.isPreset() );
+
+        FieldPath groupHello = getFieldPath( fieldPaths, "group.hello" );
+        assertNotNull( groupHello );
+        assertFalse( groupHello.isExclude() );
+        assertFalse( groupHello.isPreset() );
     }
 
-    private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected, boolean hasTransformer )
+    private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected, boolean isTransformer )
     {
         boolean condition = false;
 
@@ -272,7 +322,7 @@ public class FieldFilterParserTest
 
             if ( path.startsWith( expected ) )
             {
-                condition = !fieldPath.getTransformers().isEmpty() == hasTransformer;
+                condition = fieldPath.isTransformer() == isTransformer;
                 break;
             }
         }
@@ -296,5 +346,20 @@ public class FieldFilterParserTest
         }
 
         assertTrue( condition );
+    }
+
+    private FieldPath getFieldPath( List<FieldPath> fieldPaths, String path )
+    {
+        for ( FieldPath fieldPath : fieldPaths )
+        {
+            String fullPath = fieldPath.toFullPath();
+
+            if ( path.equals( fullPath ) )
+            {
+                return fieldPath;
+            }
+        }
+
+        return null;
     }
 }

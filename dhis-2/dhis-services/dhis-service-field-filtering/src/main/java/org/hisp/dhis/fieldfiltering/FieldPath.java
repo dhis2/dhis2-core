@@ -54,6 +54,10 @@ public class FieldPath
      */
     private final List<String> path;
 
+    private final boolean exclude;
+
+    private final boolean preset;
+
     /**
      * Transformers to apply to field, can be empty.
      */
@@ -63,6 +67,8 @@ public class FieldPath
     {
         this.name = name;
         this.path = path;
+        this.exclude = false;
+        this.preset = false;
         this.transformers = new ArrayList<>();
     }
 
@@ -72,5 +78,13 @@ public class FieldPath
     public String toFullPath()
     {
         return path.isEmpty() ? name : StringUtils.join( path, FIELD_PATH_SEPARATOR ) + FIELD_PATH_SEPARATOR + name;
+    }
+
+    /**
+     * @return true if we have at least one field path transformer
+     */
+    public boolean isTransformer()
+    {
+        return transformers != null && !transformers.isEmpty();
     }
 }
