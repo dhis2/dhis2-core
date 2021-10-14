@@ -178,6 +178,6 @@ public class DefaultOrgUnitSplitService
         throws IllegalQueryException
     {
         return ObjectUtils.throwIfNull( idObjectManager.get( OrganisationUnit.class, uid ),
-            new IllegalQueryException( new ErrorMessage( ErrorCode.E1515, uid ) ) );
+            () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E1515, uid ) ) );
     }
 }

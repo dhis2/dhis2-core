@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -182,12 +183,12 @@ public class ObjectUtils
      * @param ex the {@link RuntimeException}.
      * @throws RuntimeException
      */
-    public static <T, U extends RuntimeException> T throwIfNull( T object, U ex )
+    public static <T, U extends RuntimeException> T throwIfNull( T object, Supplier<U> ex )
         throws U
     {
         if ( object == null )
         {
-            throw ex;
+            throw ex.get();
         }
 
         return object;
