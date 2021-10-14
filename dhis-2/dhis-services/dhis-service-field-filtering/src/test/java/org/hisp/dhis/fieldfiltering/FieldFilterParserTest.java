@@ -215,31 +215,7 @@ public class FieldFilterParserTest
     }
 
     @Test
-    public void testParseWithExclusions1()
-    {
-        List<FieldPath> fieldPaths = FieldFilterParser
-            .parse( Sets.newHashSet( "id,!code,name" ) );
-
-        assertFieldPathContains( fieldPaths, "id" );
-        assertFieldPathContains( fieldPaths, "!code" );
-        assertFieldPathContains( fieldPaths, "name" );
-    }
-
-    @Test
-    public void testParseWithExclusions2()
-    {
-        List<FieldPath> fieldPaths = FieldFilterParser
-            .parse( Sets.newHashSet( "id,!code,name,group[id,!name]" ) );
-
-        assertFieldPathContains( fieldPaths, "id" );
-        assertFieldPathContains( fieldPaths, "!code" );
-        assertFieldPathContains( fieldPaths, "name" );
-        assertFieldPathContains( fieldPaths, "group.id" );
-        assertFieldPathContains( fieldPaths, "group.!name" );
-    }
-
-    @Test
-    public void testParseWithPreset1()
+    public void testParseWithPresetAndExclude1()
     {
         List<FieldPath> fieldPaths = FieldFilterParser
             .parse( Sets.newHashSet( "id,name,!code,:owner" ) );
@@ -266,7 +242,7 @@ public class FieldFilterParserTest
     }
 
     @Test
-    public void testParseWithPreset2()
+    public void testParseWithPresetAndExclude()
     {
         List<FieldPath> fieldPaths = FieldFilterParser
             .parse( Sets.newHashSet( "id,name,!code,:owner,group[:owner,:all,!code,hello]" ) );
