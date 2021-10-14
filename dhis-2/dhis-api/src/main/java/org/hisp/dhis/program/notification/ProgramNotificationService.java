@@ -29,6 +29,7 @@ package org.hisp.dhis.program.notification;
 
 import java.util.Date;
 
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
@@ -79,6 +80,8 @@ public interface ProgramNotificationService
      * @param programInstance the ProgramInstance id.
      */
     void sendProgramRuleTriggeredNotifications( long pnt, long programInstance );
+
+    void sendProgramRuleTriggeredNotifications( long pnt, ProgramInstance programInstance );
 
     /**
      * Send completion notifications for the ProgramStageInstance triggered by

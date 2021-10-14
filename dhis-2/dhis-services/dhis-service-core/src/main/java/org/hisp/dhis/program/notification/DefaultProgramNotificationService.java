@@ -288,6 +288,15 @@ public class DefaultProgramNotificationService
 
     @Override
     @Transactional
+    public void sendProgramRuleTriggeredNotifications( long pnt, ProgramInstance programInstance )
+    {
+        MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateService.get( pnt ),
+            Collections.singletonList( programInstance ) );
+        sendAll( messageBatch );
+    }
+
+    @Override
+    @Transactional
     public void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance )
     {
         MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
