@@ -62,10 +62,6 @@ public class DataApprovalStateResponse
 
     private final Date createdDate;
 
-    private final Date lastUpdatedDate;
-
-    private final String lastUpdatedByUsername;
-
     private final DataApprovalPermissions permissions;
 
     /*
@@ -116,20 +112,6 @@ public class DataApprovalStateResponse
     public Date getCreatedDate()
     {
         return createdDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Date getLastUpdatedDate()
-    {
-        return lastUpdatedDate;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getLastUpdatedByUsername()
-    {
-        return lastUpdatedByUsername;
     }
 
     @JsonProperty

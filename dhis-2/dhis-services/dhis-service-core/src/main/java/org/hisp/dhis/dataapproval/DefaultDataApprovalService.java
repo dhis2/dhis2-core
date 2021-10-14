@@ -514,27 +514,34 @@ public class DefaultDataApprovalService
         else
         {
             status = statuses.get( 0 );
-
-            if ( status.getApprovedLevel() != null )
-            {
-                OrganisationUnit approvedOrgUnit = organisationUnitService
-                    .getOrganisationUnit( status.getApprovedOrgUnitId() );
-
-                DataApproval da = dataApprovalStore.getDataApproval( status.getActionLevel(),
-                    workflow, period, approvedOrgUnit, attributeOptionCombo );
-
-                if ( da != null )
-                {
-                    status.setCreated( da.getCreated() );
-                    status.setCreator( da.getCreator() );
-                    status.setLastUpdated( da.getLastUpdated() );
-                    status.setLastUpdatedBy( da.getLastUpdatedBy() );
-                }
-            }
         }
 
         makePermissionsEvaluator().evaluatePermissions( status, workflow );
 
+        if ( status.getApprovedLevel() != null )
+        {
+            OrganisationUnit approvedOrgUnit = organisationUnitService
+                .getOrganisationUnit( status.getApprovedOrgUnitId() );
+
+            DataApproval da = dataApprovalStore.getDataApproval( status.getActionLevel(),
+                workflow, period, approvedOrgUnit, attributeOptionCombo );
+
+            if ( da != null )
+            {
+                status.setCreated( da.getCreated() );
+                status.setCreator( da.getCreator() );
+                status.setLastUpdated( da.getLastUpdated() );
+                status.setLastUpdatedBy( da.getLastUpdatedBy() );
+                DataApprovalPermissions permissions = status.getPermissions();
+                permissions.setApprovedAt( da.getCreated() );
+                permissions.setAcceptedAt( da.getLastUpdated() );
+                if ( permissions.isMayReadActor() )
+                {
+                    permissions.setApprovedBy( da.getCreator() != null ? da.getCreator().getName() : null );
+                    permissions.setAcceptedBy( da.getLastUpdatedBy() != null ? da.getLastUpdatedBy().getName() : null );
+                }
+            }
+        }
         return status;
     }
 

@@ -354,6 +354,7 @@ public class DataApprovalController
         DataApprovalStatus status = dataApprovalService.getDataApprovalStatus( dataSet.getWorkflow(), period,
             organisationUnit, optionCombo );
 
+        DataApprovalPermissions permissions = status.getPermissions();
         return DataApprovalStateResponse.builder()
             .dataSet( dataSet )
             .organisationUnit( organisationUnit )
@@ -361,9 +362,7 @@ public class DataApprovalController
             .state( status.getState().toString() )
             .createdDate( status.getCreated() )
             .createdByUsername( status.getCreator() == null ? null : status.getCreator().getUsername() )
-            .lastUpdatedDate( status.getLastUpdated() )
-            .lastUpdatedByUsername( status.getLastUpdatedBy() == null ? null : status.getLastUpdatedBy().getUsername() )
-            .permissions( status.getPermissions() )
+            .permissions( permissions )
             .build();
     }
 

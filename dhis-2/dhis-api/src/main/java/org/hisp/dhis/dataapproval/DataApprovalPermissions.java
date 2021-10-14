@@ -50,11 +50,17 @@ public class DataApprovalPermissions
 
     private boolean mayReadData;
 
-    private transient String state;
+    private boolean mayReadActor;
 
-    private transient String approvedBy;
+    private String state;
 
-    private transient Date approvedAt;
+    private String approvedBy;
+
+    private Date approvedAt;
+
+    private String acceptedBy;
+
+    private Date acceptedAt;
 
     @JsonProperty
     public boolean isMayApprove()
@@ -87,6 +93,12 @@ public class DataApprovalPermissions
     }
 
     @JsonProperty
+    public boolean isMayReadActor()
+    {
+        return mayReadActor;
+    }
+
+    @JsonProperty
     public String getState()
     {
         return state;
@@ -102,6 +114,18 @@ public class DataApprovalPermissions
     public Date getApprovedAt()
     {
         return approvedAt;
+    }
+
+    @JsonProperty
+    public String getAcceptedBy()
+    {
+        return acceptedBy;
+    }
+
+    @JsonProperty
+    public Date getAcceptedAt()
+    {
+        return acceptedAt;
     }
 
     // ----------------------------------------------------------------------

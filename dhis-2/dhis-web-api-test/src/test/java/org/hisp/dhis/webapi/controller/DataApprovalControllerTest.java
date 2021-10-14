@@ -147,8 +147,9 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
         assertEquals( 1, statuses.size() );
         JsonObject status_t0 = statuses.getObject( 0 );
         assertEquals( "UNAPPROVED_READY", status_t0.getString( "state" ).string() );
-        assertFalse( status_t0.getString( "lastUpdatedDate" ).exists() );
-        assertFalse( status_t0.getString( "lastUpdatedByUsername" ).exists() );
+        JsonObject permissions = status_t0.getObject( "permissions" );
+        assertFalse( permissions.getString( "acceptedBy" ).exists() );
+        assertFalse( permissions.getString( "acceptedAt" ).exists() );
 
         // now create an approval (approve it)
         assertStatus( HttpStatus.NO_CONTENT,
@@ -157,8 +158,8 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
         JsonObject status_t1 = GET( "/dataApprovals/status?ou={ou}&pe=202101&wf={wf}&ds={ds}", ouId, wfId, dsId )
             .content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" ).getObject( 0 );
         assertEquals( "APPROVED_HERE", status_t1.getString( "state" ).string() );
-        assertTrue( status_t1.has( "lastUpdatedDate", "lastUpdatedByUsername", "createdByUsername", "createdDate" ) );
-        assertEquals( "admin", status_t1.getString( "lastUpdatedByUsername" ).string() );
-        assertTrue( status_t1.getString( "lastUpdatedDate" ).exists() );
+        permissions = status_t1.getObject( "permissions" );
+        assertEquals( "admin admin", permissions.getString( "acceptedBy" ).string() );
+        assertTrue( permissions.getString( "acceptedAt" ).exists() );
     }
 }
