@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store.query;
 
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
+
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.Function;
 import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.Subselect;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luciano Fiandesio
@@ -96,7 +100,7 @@ public class EventQuery
 
     private static final Collection<QueryElement> QUERY_ELEMENTS = Arrays.stream( COLUMNS.values() )
         .map( COLUMNS::getQueryElement )
-        .collect( Collectors.toList() );
+        .collect( collectingAndThen( toList(), ImmutableList::copyOf ) );
 
     public static String getQuery()
     {

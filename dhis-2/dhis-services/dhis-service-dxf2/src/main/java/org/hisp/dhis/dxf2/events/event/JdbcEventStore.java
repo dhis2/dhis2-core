@@ -895,7 +895,7 @@ public class JdbcEventStore implements EventStore
 
         StringBuilder sqlBuilder = new StringBuilder().append( "select " )
             .append( COLUMNS_ALIAS_MAP.entrySet().stream()
-                .map( columnAliasEntry -> columnAliasEntry.getKey() + " as " + columnAliasEntry.getValue() )
+                .map( col -> col.getKey() + " as " + col.getValue() )
                 .collect( Collectors.joining( ", " ) ) )
             .append( " , " );
 
