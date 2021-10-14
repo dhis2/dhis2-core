@@ -172,4 +172,24 @@ public class ObjectUtils
 
         return StringUtils.join( list, separator );
     }
+
+    /**
+     * Throws the given runtime exception if the given object is null.
+     *
+     * @param <T> the object type.
+     * @param <U> the runtime exception type.
+     * @param object the object.
+     * @param ex the {@link RuntimeException}.
+     * @throws RuntimeException
+     */
+    public static <T, U extends RuntimeException> T throwIfNull( T object, U ex )
+        throws U
+    {
+        if ( object == null )
+        {
+            throw ex;
+        }
+
+        return object;
+    }
 }
