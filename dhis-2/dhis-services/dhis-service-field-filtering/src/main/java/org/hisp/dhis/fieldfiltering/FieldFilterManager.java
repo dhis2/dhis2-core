@@ -62,6 +62,7 @@ public class FieldFilterManager
     public List<ObjectNode> toObjectNode( FieldFilterParams<?> params )
     {
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
+        System.err.println( fieldPaths );
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );

@@ -180,6 +180,11 @@ public class FieldFilterParser
             {
                 isPreset = true;
             }
+            else if ( isAllAlias( token ) )
+            {
+                tokenBuilder.append( "all" );
+                isPreset = true;
+            }
             else if ( isAlphanumericOrSpecial( token ) )
             {
                 tokenBuilder.append( token );
@@ -253,6 +258,12 @@ public class FieldFilterParser
     private static boolean isPreset( String token )
     {
         return StringUtils.containsAny( token, ":" );
+    }
+
+    private static boolean isAllAlias( String token )
+    {
+        // special case, convert * to all (preset=true)
+        return StringUtils.containsAny( token, "*" );
     }
 
     private static boolean isTransformer( String[] fieldSplit, int idx )

@@ -288,6 +288,45 @@ public class FieldFilterParserTest
         assertFalse( groupHello.isPreset() );
     }
 
+    @Test
+    public void testParseWithAsterisk1()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "*,!code" ) );
+
+        FieldPath asterisk = getFieldPath( fieldPaths, "all" );
+        assertNotNull( asterisk );
+        assertFalse( asterisk.isExclude() );
+        assertTrue( asterisk.isPreset() );
+
+        FieldPath code = getFieldPath( fieldPaths, "code" );
+        assertNotNull( code );
+        assertTrue( code.isExclude() );
+        assertFalse( code.isPreset() );
+    }
+
+    @Test
+    public void testParseWithAsterisk2()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser
+            .parse( Sets.newHashSet( "*,!code,group[*]" ) );
+
+        FieldPath asterisk = getFieldPath( fieldPaths, "all" );
+        assertNotNull( asterisk );
+        assertFalse( asterisk.isExclude() );
+        assertTrue( asterisk.isPreset() );
+
+        FieldPath code = getFieldPath( fieldPaths, "code" );
+        assertNotNull( code );
+        assertTrue( code.isExclude() );
+        assertFalse( code.isPreset() );
+
+        FieldPath groupAsterisk = getFieldPath( fieldPaths, "group.all" );
+        assertNotNull( groupAsterisk );
+        assertFalse( groupAsterisk.isExclude() );
+        assertTrue( groupAsterisk.isPreset() );
+    }
+
     private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected, boolean isTransformer )
     {
         boolean condition = false;
