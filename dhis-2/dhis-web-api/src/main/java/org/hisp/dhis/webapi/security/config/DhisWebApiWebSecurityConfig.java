@@ -52,8 +52,9 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
-import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
+import org.hisp.dhis.webapi.security.EmbeddedJettyBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.ExternalAccessVoter;
+import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
 import org.hisp.dhis.webapi.security.vote.LogicalOrAccessDecisionManager;
@@ -401,10 +402,21 @@ public class DhisWebApiWebSecurityConfig
 
         public WebExpressionVoter apiWebExpressionVoter()
         {
-            DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-            handler.setDefaultRolePrefix( "" );
             WebExpressionVoter voter = new WebExpressionVoter();
+
+            DefaultWebSecurityExpressionHandler handler;
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            {
+                handler = new OAuth2WebSecurityExpressionHandler();
+            }
+            else
+            {
+                handler = new DefaultWebSecurityExpressionHandler();
+            }
+            handler.setDefaultRolePrefix( "" );
+
             voter.setExpressionHandler( handler );
+
             return voter;
         }
 
@@ -422,7 +434,7 @@ public class DhisWebApiWebSecurityConfig
         private void configureAccessRestrictions(
             ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorize )
         {
-            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {
                 authorize.expressionHandler( new OAuth2WebSecurityExpressionHandler() );
             }
@@ -473,17 +485,17 @@ public class DhisWebApiWebSecurityConfig
             if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
             {
                 // This config will redirect unauthorized requests to standard
-                // http basic (pop-up login form) Using the default
-                // "AuthenticationEntryPoint"
+                // http basic (pop-up login form) Using the default based
+                // "EmbeddedJettyBasicAuthenticationEntryPoint"
                 http.antMatcher( "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic();
+                    .httpBasic()
+                    .authenticationEntryPoint( embeddedJettyBasicAuthenticationEntryPoint() );
 
                 /*
-                 * Setup session handling, this is configured in
-                 *
-                 * @see:DhisWebCommonsWebSecurityConfig when running in
-                 * non-embedded Jetty mode.
+                 * Setup session handling, this is configured normally in
+                 * DhisWebCommonsWebSecurityConfig when running in non-embedded
+                 * Jetty mode.
                  */
                 http
                     .sessionManagement()
@@ -500,14 +512,14 @@ public class DhisWebApiWebSecurityConfig
                 http.antMatcher( apiContextPath + "/**" )
                     .authorizeRequests( this::configureAccessRestrictions )
                     .httpBasic()
-                    .authenticationEntryPoint( basicAuthenticationEntryPoint() );
+                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
             }
         }
 
         private void configureOAuthAuthorizationServer( HttpSecurity http )
             throws Exception
         {
-            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {
                 http.exceptionHandling().accessDeniedHandler( new OAuth2AccessDeniedHandler() );
             }
@@ -626,9 +638,23 @@ public class DhisWebApiWebSecurityConfig
          *         config.
          */
         @Bean
-        public DHIS2BasicAuthenticationEntryPoint basicAuthenticationEntryPoint()
+        public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint()
         {
-            return new DHIS2BasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+            return new FormLoginBasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
+        }
+
+        /**
+         * HTTP Basic entrypoint for the /api server when running in embedded
+         * Jetty mode. We don't want to redirect into the web pages, since they
+         * are not running.
+         *
+         * @return EmbeddedJettyBasicAuthenticationEntryPoint entryPoint to use
+         *         in http config.
+         */
+        @Bean
+        public EmbeddedJettyBasicAuthenticationEntryPoint embeddedJettyBasicAuthenticationEntryPoint()
+        {
+            return new EmbeddedJettyBasicAuthenticationEntryPoint( "DHIS2_API" );
         }
     }
 

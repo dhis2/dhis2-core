@@ -182,7 +182,7 @@ public class DefaultHibernateConfigurationProvider
         }
 
         // ---------------------------------------------------------------------
-        // Handle cache replication
+        // Handle ehcache replication
         // ---------------------------------------------------------------------
         if ( configProvider.isClusterEnabled() )
         {

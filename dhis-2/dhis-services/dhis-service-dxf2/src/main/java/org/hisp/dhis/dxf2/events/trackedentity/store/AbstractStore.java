@@ -41,6 +41,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
@@ -48,6 +49,8 @@ import com.google.common.collect.Multimap;
  */
 public abstract class AbstractStore
 {
+    protected final int PARITITION_SIZE = 20000;
+
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
     private final static String GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL = "select ri.%s as id, r.relationshipid "
@@ -99,6 +102,17 @@ public abstract class AbstractStore
 
     public Multimap<String, Relationship> getRelationships( List<Long> ids )
     {
+        List<List<Long>> partitionedIds = Lists.partition( ids, PARITITION_SIZE );
+
+        Multimap<String, Relationship> relationshipMultimap = ArrayListMultimap.create();
+
+        partitionedIds.forEach( partition -> relationshipMultimap.putAll( getRelationshipsPartitioned( partition ) ) );
+
+        return relationshipMultimap;
+    }
+
+    private Multimap<String, Relationship> getRelationshipsPartitioned( List<Long> ids )
+    {
         String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL,
             getRelationshipEntityColumn(), getRelationshipEntityColumn() );
 
@@ -118,6 +132,18 @@ public abstract class AbstractStore
     }
 
     public Multimap<String, Relationship> getRelationshipsByIds( List<Long> ids )
+    {
+        List<List<Long>> partitionedIds = Lists.partition( ids, PARITITION_SIZE );
+
+        Multimap<String, Relationship> relationshipMultimap = ArrayListMultimap.create();
+
+        partitionedIds
+            .forEach( partition -> relationshipMultimap.putAll( getRelationshipsByIdsPartitioned( partition ) ) );
+
+        return relationshipMultimap;
+    }
+
+    private Multimap<String, Relationship> getRelationshipsByIdsPartitioned( List<Long> ids )
     {
         if ( !ids.isEmpty() )
         {
@@ -173,6 +199,16 @@ public abstract class AbstractStore
      *         {@see RowCallbackHandler}
      */
     protected <T> Multimap<String, T> fetch( String sql, AbstractMapper<T> handler, List<Long> ids )
+    {
+        List<List<Long>> idPartitions = Lists.partition( ids, PARITITION_SIZE );
+
+        Multimap<String, T> multimap = ArrayListMultimap.create();
+
+        idPartitions.forEach( partition -> multimap.putAll( fetchPartitioned( sql, handler, partition ) ) );
+        return multimap;
+    }
+
+    private <T> Multimap<String, T> fetchPartitioned( String sql, AbstractMapper<T> handler, List<Long> ids )
     {
         jdbcTemplate.query( sql, createIdsParam( ids ), handler );
         return handler.getItems();

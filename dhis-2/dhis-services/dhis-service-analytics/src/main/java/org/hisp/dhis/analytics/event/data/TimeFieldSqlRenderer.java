@@ -27,125 +27,55 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.EventOutputType.ENROLLMENT;
-import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
-import static org.hisp.dhis.analytics.event.data.JdbcEventAnalyticsManager.OPEN_IN;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.program.AnalyticsPeriodBoundary;
-import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
-class TimeFieldSqlRenderer
+public abstract class TimeFieldSqlRenderer
 {
 
-    private final StatementBuilder statementBuilder;
-
-    public String renderTimeFieldSql( EventQueryParams params, Collection<TimeField> allowedTimeFields )
+    public String renderTimeFieldSql( EventQueryParams params )
     {
-        StringBuilder sql = new StringBuilder();
-
-        Optional<TimeField> timeField = TimeField.of( params.getTimeField() )
-            .filter( allowedTimeFields::contains );
-
-        if ( params.hasNonDefaultBoundaries() )
         {
-            for ( AnalyticsPeriodBoundary boundary : params.getProgramIndicator().getAnalyticsPeriodBoundaries() )
+            StringBuilder sql = new StringBuilder();
+
+            if ( params.hasNonDefaultBoundaries() )
             {
-                sql
-                    .append( statementBuilder.getBoundaryCondition( boundary, params.getProgramIndicator(),
-                        params.getTimeFieldAsField(), params.getEarliestStartDate(), params.getLatestEndDate() ) )
-                    .append( " " );
+                sql.append( getSqlConditionForNonDefaultBoundaries( params ) );
             }
-        }
-        else if ( params.hasStartEndDate() )
-        {
-            String timeCol = getTimeCol( params.getOutputType(), timeField );
-
-            sql.append( timeCol )
-                .append( " >= '" )
-                .append( getMediumDateString( params.getStartDate() ) )
-                .append( "' and " )
-                .append( timeCol )
-                .append( " <= '" )
-                .append( getMediumDateString( params.getEndDate() ) )
-                .append( "' " );
-        }
-        else // Periods -- should never go here when linelist, only Pivot table
-        {
-            final List<DimensionalItemObject> periods = params.getDimensionOrFilterItems( PERIOD_DIM_ID );
-
-            if ( timeField.isPresent() )
+            else if ( params.hasStartEndDate() )
             {
-                sql.append( periods.stream()
-                    .filter( dimensionalItemObject -> dimensionalItemObject instanceof Period )
-                    .map( dimensionalItemObject -> (Period) dimensionalItemObject )
-                    .map( period -> toSqlCondition( period, timeField.get() ) )
-                    .collect( Collectors.joining( " or ", "(", ")" ) ) );
+                sql.append( getSqlConditionHasStartEndDate( params ) );
             }
-            else
+            else // Periods -- should never go here when linelist, only Pivot
+                 // table
             {
-                String alias = getPeriodAlias( params );
-
-                sql.append( quote( alias, params.getPeriodType().toLowerCase() ) )
-                    .append( OPEN_IN )
-                    .append( getQuotedCommaDelimitedString( getUids( periods ) ) )
-                    .append( ") " );
+                sql.append( getSqlConditionForPeriods( params ) );
             }
+
+            return sql.toString();
         }
-
-        return sql.toString();
     }
 
-    private String getTimeCol( EventOutputType outputType, Optional<TimeField> timeField )
+    protected Optional<TimeField> getTimeField( EventQueryParams params )
     {
-        if ( ENROLLMENT.equals( outputType ) )
-        {
-            return quoteAlias( TimeField.ENROLLMENT_DATE.getField() );
-        }
-        // EVENTS
-        return quoteAlias(
-            timeField
-                .map( TimeField::getField )
-                .orElse( EVENT_DATE.getField() ) );
+        return TimeField.of( params.getTimeField() )
+            .filter( this::isAllowed );
     }
 
-    private String toSqlCondition( Period period, TimeField timeField )
+    private boolean isAllowed( TimeField timeField )
     {
-        String timeCol = quoteAlias( timeField.getField() );
-        return "( " + timeCol + " >= '" + getMediumDateString( period.getStartDate() ) + "' and " + timeCol + " <= '"
-            + getMediumDateString( period.getEndDate() ) + "') ";
+        return getAllowedTimeFields().contains( timeField );
     }
 
-    /**
-     * Returns the analytics table alias for the period dimension.
-     *
-     * @param params the event query parameters.
-     */
-    private String getPeriodAlias( EventQueryParams params )
-    {
-        return params.hasTimeField() ? DATE_PERIOD_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
-    }
+    protected abstract String getSqlConditionForPeriods( EventQueryParams params );
+
+    protected abstract String getSqlConditionHasStartEndDate( EventQueryParams params );
+
+    protected abstract String getSqlConditionForNonDefaultBoundaries( EventQueryParams params );
+
+    protected abstract Collection<TimeField> getAllowedTimeFields();
 
 }

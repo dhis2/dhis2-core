@@ -25,28 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.security;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import javax.xml.bind.DatatypeConverter;
 
-import org.hisp.dhis.attribute.AttributeValue;
+import org.apache.commons.lang.SerializationUtils;
+import org.springframework.security.core.Authentication;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class AttributeUtils
+public class AuthenticationSerializer
 {
-    public static Map<String, String> getAttributeValueMap( Set<AttributeValue> attributeValues )
+
+    public static String serialize( Authentication authentication )
     {
-        Map<String, String> attributeValuesMap = new HashMap<>();
+        byte[] bytes = SerializationUtils.serialize( authentication );
+        return DatatypeConverter.printBase64Binary( bytes );
+    }
 
-        for ( AttributeValue attributeValue : attributeValues )
-        {
-            attributeValuesMap.put( attributeValue.getAttribute().getUid(), attributeValue.getValue() );
-        }
-
-        return attributeValuesMap;
+    public static Authentication deserialize( String authentication )
+    {
+        byte[] decoded = DatatypeConverter.parseBase64Binary( authentication );
+        Authentication auth = (Authentication) SerializationUtils.deserialize( decoded );
+        return auth;
     }
 }

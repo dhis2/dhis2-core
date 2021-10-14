@@ -53,6 +53,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultStore;
@@ -70,7 +71,7 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.validation.ValidationResultStore" )
 public class HibernateValidationResultStore
     extends HibernateGenericStore<ValidationResult>
-    implements ValidationResultStore
+    implements ValidationResultStore, CurrentUserServiceTarget
 {
     protected CurrentUserService currentUserService;
 
@@ -149,9 +150,7 @@ public class HibernateValidationResultStore
         query.executeUpdate();
     }
 
-    /**
-     * Allows injection (e.g. by a unit test)
-     */
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;

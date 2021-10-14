@@ -86,7 +86,7 @@ public class ProgramActions
 
     public ApiResponse createProgram( String programType )
     {
-        JsonObject object = getDummy( programType );
+        JsonObject object = buildProgram( programType );
 
         if ( programType.equalsIgnoreCase( "WITH_REGISTRATION" ) )
         {
@@ -106,7 +106,7 @@ public class ProgramActions
     {
         String programStageId = createProgramStage( "DEFAULT STAGE" );
 
-        JsonObject body = getDummy( "WITHOUT_REGISTRATION", null, orgUnitsIds );
+        JsonObject body = buildProgram( "WITHOUT_REGISTRATION", null, orgUnitsIds );
 
         JsonArray programStages = new JsonArray();
 
@@ -122,7 +122,7 @@ public class ProgramActions
 
     public ApiResponse createProgram( String programType, String trackedEntityTypeId, String... orgUnitIds )
     {
-        JsonObject object = getDummy( programType, trackedEntityTypeId, orgUnitIds );
+        JsonObject object = buildProgram( programType, trackedEntityTypeId, orgUnitIds );
 
         return post( object );
     }
@@ -201,7 +201,7 @@ public class ProgramActions
         return this.update( programId, object );
     }
 
-    public JsonObject getDummy()
+    public JsonObject buildProgram()
     {
         String random = DataGenerator.randomString();
 
@@ -214,17 +214,17 @@ public class ProgramActions
         return object;
     }
 
-    public JsonObject getDummy( String programType )
+    public JsonObject buildProgram( String programType )
     {
-        JsonObject program = getDummy();
+        JsonObject program = buildProgram();
         program.addProperty( "programType", programType );
 
         return program;
     }
 
-    JsonObject getDummy( String programType,String trackedEntityTypeId, String... orgUnitIds )
+    public JsonObject buildProgram( String programType,String trackedEntityTypeId, String... orgUnitIds )
     {
-        JsonObject object = getDummy( programType );
+        JsonObject object = buildProgram( programType );
         JsonArray orgUnits = new JsonArray();
 
         for ( String ouid : orgUnitIds )

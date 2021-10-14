@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -39,67 +38,62 @@ import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.net.HttpHeaders;
 
-/**
- * @author Viet Nguyen <viet@dhis2.org>
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class DHIS2BasicAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint
+public class EmbeddedJettyBasicAuthenticationEntryPoint implements AuthenticationEntryPoint
 {
     @Autowired
     private RenderService renderService;
 
-    /**
-     * @param loginFormUrl URL where the login page can be found. Should either
-     *        be relative to the web-app context path (include a leading
-     *        {@code /}) or an absolute URL.
-     */
-    public DHIS2BasicAuthenticationEntryPoint( String loginFormUrl )
+    private String realmName;
+
+    public EmbeddedJettyBasicAuthenticationEntryPoint( String realmName )
     {
-        super( loginFormUrl );
+        this.realmName = realmName;
     }
 
     @Override
     public void commence( HttpServletRequest request, HttpServletResponse response,
         AuthenticationException authException )
-        throws IOException,
-        ServletException
+        throws IOException
     {
         String acceptHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.ACCEPT ), "" );
-        String requestWithHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.X_REQUESTED_WITH ), "" );
-        String authorizationHeader = MoreObjects.firstNonNull( request.getHeader( HttpHeaders.AUTHORIZATION ), "" );
 
-        if ( "XMLHttpRequest".equals( requestWithHeader ) || authorizationHeader.contains( "Basic" ) )
+        response.addHeader( "WWW-Authenticate", "Basic realm=\"" + this.realmName + "\"" );
+        response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+
+        String message = "Unauthorized";
+
+        if ( ExceptionUtils.indexOfThrowable( authException, DisabledException.class ) != -1 )
         {
-            String message = "Unauthorized";
-
-            if ( ExceptionUtils.indexOfThrowable( authException, LockedException.class ) != -1 )
-            {
-                message = "Account locked";
-            }
-
-            response.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
-
-            if ( acceptHeader.contains( MediaType.APPLICATION_XML_VALUE ) )
-            {
-                response.setContentType( MediaType.APPLICATION_XML_VALUE );
-                renderService.toXml( response.getOutputStream(), unauthorized( message ) );
-            }
-            else
-            {
-                response.setContentType( MediaType.APPLICATION_JSON_VALUE );
-                renderService.toJson( response.getOutputStream(), unauthorized( message ) );
-            }
-
-            return;
+            message = "Account disabled";
         }
 
-        super.commence( request, response, authException );
+        if ( acceptHeader.contains( MediaType.APPLICATION_XML_VALUE ) )
+        {
+            response.setContentType( MediaType.APPLICATION_XML_VALUE );
+            renderService.toXml( response.getOutputStream(), unauthorized( message ) );
+        }
+        else
+        {
+            response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+            renderService.toJson( response.getOutputStream(), unauthorized( message ) );
+        }
     }
+
+    public String getRealmName()
+    {
+        return this.realmName;
+    }
+
+    public void setRealmName( String realmName )
+    {
+        this.realmName = realmName;
+    }
+
 }

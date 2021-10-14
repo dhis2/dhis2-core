@@ -14,18 +14,7 @@
         }
       ],
       "relationships": [],
-      "attributes": [
-        {
-          "storedBy": "admin",
-          "attribute": "fmBIpOStKkF",
-          "value": "PersonX"
-        },
-        {
-          "storedBy": "admin",
-          "attribute": "sTJvSLN7Kcb",
-          "value": "AddressX"
-        }
-      ]
+      "attributes": []
     },
     {
       "trackedEntityType": "XXXbPJ0FMtc",
@@ -41,18 +30,7 @@
         }
       ],
       "relationships": [],
-      "attributes": [
-        {
-          "storedBy": "admin",
-          "attribute": "fmBIpOStKkF",
-          "value": "PersonX"
-        },
-        {
-          "storedBy": "admin",
-          "attribute": "sTJvSLN7Kcb",
-          "value": "AddressX"
-        }
-      ]
+      "attributes": []
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
@@ -68,18 +46,7 @@
         }
       ],
       "relationships": [],
-      "attributes": [
-        {
-          "storedBy": "admin",
-          "attribute": "fmBIpOStKkF",
-          "value": "PersonX"
-        },
-        {
-          "storedBy": "admin",
-          "attribute": "sTJvSLN7Kcb",
-          "value": "AddressX"
-        }
-      ]
+      "attributes": []
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
@@ -95,18 +62,7 @@
         }
       ],
       "relationships": [],
-      "attributes": [
-        {
-          "storedBy": "admin",
-          "attribute": "fmBIpOStKkF",
-          "value": "PersonX"
-        },
-        {
-          "storedBy": "admin",
-          "attribute": "sTJvSLN7Kcb",
-          "value": "AddressX"
-        }
-      ]
+      "attributes": []
     },
     {
       "trackedEntityType": "bPJ0FMtcnEh",
@@ -122,18 +78,7 @@
         }
       ],
       "relationships": [],
-      "attributes": [
-        {
-          "storedBy": "admin",
-          "attribute": "fmBIpOStKkF",
-          "value": "PersonX"
-        },
-        {
-          "storedBy": "admin",
-          "attribute": "sTJvSLN7Kcb",
-          "value": "AddressX"
-        }
-      ]
+      "attributes": []
     }
   ]
 }

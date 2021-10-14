@@ -2559,6 +2559,37 @@ public class DataApprovalServiceTest
             statusAndPermissions( workflow1234, periodC, organisationUnitC, defaultOptionCombo ) );
     }
 
+    @Test
+    public void testGetApprovedByOfAcceptedHere()
+    {
+        Date date = new Date();
+
+        DataApproval dataApprovalA = new DataApproval( level1, workflow1234, periodA, organisationUnitA,
+            defaultOptionCombo, ACCEPTED, date, userA );
+        DataApproval dataApprovalB = new DataApproval( level2, workflow1234, periodB, organisationUnitB,
+            defaultOptionCombo, NOT_ACCEPTED, date, userA );
+
+        transactionTemplate.execute( status -> {
+            systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, true );
+            createUserAndInjectSecurityContext( singleton( organisationUnitA ), false, AUTH_APPR_LEVEL );
+
+            dataApprovalStore.addDataApproval( dataApprovalA );
+            dataApprovalStore.addDataApproval( dataApprovalB );
+
+            dbmsManager.flushSession();
+            return null;
+        } );
+
+        DataApprovalStatus status = dataApprovalService.getDataApprovalStatus( workflow1234, periodA,
+            organisationUnitA, defaultOptionCombo );
+        assertEquals( level1, status.getApprovedLevel() );
+        assertEquals( organisationUnitA.getUid(), status.getOrganisationUnitUid() );
+        assertEquals( DataApprovalState.ACCEPTED_HERE, status.getState() );
+        assertEquals( false, status.getPermissions().isMayAccept() );
+        assertEquals( userA.getName(), status.getPermissions().getApprovedBy() );
+        assertEquals( date, status.getPermissions().getApprovedAt() );
+    }
+
     /**
      * Returns approval status and permissions information as a string. This
      * allows a test to compare the result against a string and test several

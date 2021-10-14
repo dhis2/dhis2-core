@@ -36,10 +36,23 @@ import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
-import org.hisp.dhis.relationship.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipService;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.Test;
@@ -107,6 +120,8 @@ public class RelationshipStoreTest extends TransactionalIntegrationTest
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( relationshipItemFrom );
         relationship.setTo( relationshipItemTo );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
         relationshipService.addRelationship( relationship );
     }
@@ -156,6 +171,8 @@ public class RelationshipStoreTest extends TransactionalIntegrationTest
         relationshipA.setRelationshipType( relationshipType );
         relationshipA.setFrom( relationshipItemFrom );
         relationshipA.setTo( relationshipItemTo );
+        relationshipA.setKey( RelationshipUtils.generateRelationshipKey( relationshipA ) );
+        relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
 
         relationshipService.addRelationship( relationshipA );
 

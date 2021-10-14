@@ -304,6 +304,52 @@ public class TrackedEntityInstanceStoreTest
     }
 
     @Test
+    public void testPotentialDuplicateInGridQuery()
+    {
+        TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+
+        teiA.setTrackedEntityType( trackedEntityTypeA );
+        teiA.setPotentialDuplicate( true );
+        teiStore.save( teiA );
+
+        teiB.setTrackedEntityType( trackedEntityTypeA );
+        teiB.setPotentialDuplicate( true );
+        teiStore.save( teiB );
+
+        teiC.setTrackedEntityType( trackedEntityTypeA );
+        teiStore.save( teiC );
+
+        teiD.setTrackedEntityType( trackedEntityTypeA );
+        teiStore.save( teiD );
+
+        dbmsManager.flushSession();
+
+        // Get all
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setTrackedEntityType( trackedEntityTypeA );
+
+        List<Map<String, String>> teis = teiStore.getTrackedEntityInstancesGrid( params );
+
+        assertEquals( 4, teis.size() );
+        teis.forEach( teiMap -> {
+            if ( teiMap.get( TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID ).equals( teiA.getUid() )
+                || teiMap.get( TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID ).equals( teiB.getUid() ) )
+            {
+                assertTrue(
+                    Boolean.parseBoolean( teiMap.get( TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE ) ) );
+            }
+            else
+            {
+                assertFalse(
+                    Boolean.parseBoolean( teiMap.get( TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE ) ) );
+            }
+        } );
+    }
+
+    @Test
     public void testProgramAttributeOfTypeOrgUnitIsResolvedToOrgUnitName()
     {
         TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
@@ -329,7 +375,7 @@ public class TrackedEntityInstanceStoreTest
         List<Map<String, String>> grid = teiStore.getTrackedEntityInstancesGrid( params );
 
         assertThat( grid, hasSize( 1 ) );
-        assertThat( grid.get( 0 ).keySet(), hasSize( 8 ) );
+        assertThat( grid.get( 0 ).keySet(), hasSize( 9 ) );
         assertThat( grid.get( 0 ).get( atC.getUid() ), is( "OrganisationUnitC" ) );
 
     }
