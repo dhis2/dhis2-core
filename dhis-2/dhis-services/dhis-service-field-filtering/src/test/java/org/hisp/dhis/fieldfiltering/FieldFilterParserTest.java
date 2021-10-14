@@ -296,7 +296,7 @@ public class FieldFilterParserTest
         {
             String path = fieldPath.toFullPath();
 
-            if ( path.startsWith( expected ) )
+            if ( path.equals( expected ) )
             {
                 condition = fieldPath.isTransformer() == isTransformer;
                 break;
@@ -314,7 +314,7 @@ public class FieldFilterParserTest
         {
             String path = fieldPath.toFullPath();
 
-            if ( path.startsWith( expected ) )
+            if ( path.equals( expected ) )
             {
                 condition = true;
                 break;
