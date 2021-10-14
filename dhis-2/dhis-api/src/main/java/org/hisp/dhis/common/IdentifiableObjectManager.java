@@ -72,9 +72,9 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> boolean exists( Class<T> type, String uid );
 
-    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, String uid );
+    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> types, String uid );
 
-    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, IdScheme idScheme,
+    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> types, IdScheme idScheme,
         String value );
 
     <T extends IdentifiableObject> T getByCode( Class<T> type, String code );
@@ -109,7 +109,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getByUid( Class<T> type, Collection<String> uids );
 
-    <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> classes,
+    <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> types,
         Collection<String> uids );
 
     <T extends IdentifiableObject> List<T> getById( Class<T> type, Collection<Long> ids );

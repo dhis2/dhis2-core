@@ -302,9 +302,9 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, String uid )
+    public <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> types, String uid )
     {
-        for ( Class<? extends IdentifiableObject> type : classes )
+        for ( Class<? extends IdentifiableObject> type : types )
         {
             T object = (T) get( type, uid );
 
@@ -320,10 +320,10 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes,
+    public <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> types,
         IdScheme idScheme, String identifier )
     {
-        for ( Class<? extends IdentifiableObject> type : classes )
+        for ( Class<? extends IdentifiableObject> type : types )
         {
             T object = (T) getObject( type, idScheme, identifier );
 
@@ -594,12 +594,12 @@ public class DefaultIdentifiableObjectManager
     @Override
     @Transactional( readOnly = true )
     @SuppressWarnings( "unchecked" )
-    public <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> classes,
+    public <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> types,
         Collection<String> uids )
     {
         List<T> list = new ArrayList<>();
 
-        for ( Class<? extends IdentifiableObject> type : classes )
+        for ( Class<? extends IdentifiableObject> type : types )
         {
             list.addAll( (List<T>) getByUid( type, uids ) );
         }
