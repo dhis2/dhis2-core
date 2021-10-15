@@ -605,6 +605,10 @@ public class JdbcEventAnalyticsManager
         return sql;
     }
 
+    /**
+     * Generates a sub query which provides a filter by organisation -
+     * descendant level
+     */
     private String getOrgDescendantsSqlSnippet( String orgUnitAlias,
         List<DimensionalItemObject> dimensionOrFilterItems )
     {
