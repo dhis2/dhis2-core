@@ -47,6 +47,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -64,8 +65,20 @@ public class FieldFilterManager
 
     public FieldFilterManager( ObjectMapper jsonMapper, SchemaService schemaService )
     {
-        this.jsonMapper = jsonMapper.copy();
+        this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
         this.schemaService = schemaService;
+    }
+
+    private ObjectMapper configureFieldFilterObjectMapper( ObjectMapper objectMapper )
+    {
+        objectMapper = objectMapper.copy();
+
+        SimpleModule module = new SimpleModule();
+        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
+
+        objectMapper.registerModule( module );
+
+        return objectMapper;
     }
 
     public List<ObjectNode> toObjectNode( FieldFilterParams<?> params )
