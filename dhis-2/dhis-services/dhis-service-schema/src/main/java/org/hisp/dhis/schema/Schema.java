@@ -56,6 +56,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.fieldfiltering.FieldFilterMixin;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 import org.springframework.core.Ordered;
@@ -73,7 +74,7 @@ import com.google.common.collect.Maps;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "schema", namespace = DxfNamespaces.DXF_2_0 )
-public class Schema implements Ordered, Klass
+public class Schema implements Ordered, Klass, FieldFilterMixin
 {
     /**
      * Class that is described in this schema.

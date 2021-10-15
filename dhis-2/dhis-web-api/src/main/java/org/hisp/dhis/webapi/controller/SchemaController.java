@@ -32,39 +32,40 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.fieldfiltering.FieldFilterManager;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.schema.Schemas;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 
-import com.google.common.collect.Lists;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -72,67 +73,57 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping( "/schemas" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequiredArgsConstructor
 public class SchemaController
 {
-    @Autowired
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    @Autowired
-    private SchemaValidator schemaValidator;
+    private final SchemaValidator schemaValidator;
 
-    @Autowired
-    private RenderService renderService;
+    private final LinkService linkService;
 
-    @Autowired
-    private LinkService linkService;
+    private final FieldFilterManager fieldFilterManager;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
-
-    @Autowired
-    private ContextService contextService;
+    @Qualifier( "jsonMapper" )
+    private final ObjectMapper objectMapper;
 
     @GetMapping
-    public @ResponseBody RootNode getSchemas()
+    public @ResponseBody ResponseEntity<JsonRoot> getSchemas(
+        @RequestParam( defaultValue = "*" ) Set<String> fields )
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+        List<Schema> schemas = schemaService.getSortedSchemas();
+        linkService.generateSchemaLinks( schemas );
 
-        if ( fields.isEmpty() )
-        {
-            fields.add( "*" );
-        }
+        FieldFilterParams<Schema> params = FieldFilterParams
+            .<Schema> builder()
+            .objects( schemas )
+            .filters( fields )
+            .build();
 
-        Schemas schemas = new Schemas( schemaService.getSortedSchemas() );
-        linkService.generateSchemaLinks( schemas.getSchemas() );
+        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
-        RootNode rootNode = NodeUtils.createRootNode( "schemas" );
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( Schema.class,
-            new FieldFilterParams( schemas.getSchemas(), fields ) );
-        collectionNode.setWrapping( false );
-        rootNode.addChild( collectionNode );
-
-        return rootNode;
+        return ResponseEntity.ok( JsonRoot.of( "schemas", objectNodes ) );
     }
 
     @GetMapping( "/{type}" )
-    public @ResponseBody RootNode getSchema( @PathVariable String type )
+    public @ResponseBody ResponseEntity<ObjectNode> getSchema( @PathVariable String type,
+        @RequestParam( defaultValue = "*" ) Set<String> fields )
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-
-        if ( fields.isEmpty() )
-        {
-            fields.add( "*" );
-        }
-
         Schema schema = getSchemaFromType( type );
 
         if ( schema != null )
         {
             linkService.generateSchemaLinks( schema );
 
-            CollectionNode collectionNode = fieldFilterService.toCollectionNode( Schema.class,
-                new FieldFilterParams( Collections.singletonList( schema ), fields ) );
-            return NodeUtils.createRootNode( collectionNode.getChildren().get( 0 ) );
+            FieldFilterParams<Schema> params = FieldFilterParams
+                .<Schema> builder()
+                .objects( Collections.singletonList( schema ) )
+                .filters( fields )
+                .build();
+
+            List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
+
+            return ResponseEntity.ok( objectNodes.get( 0 ) );
         }
 
         throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Type " + type + " does not exist." );
@@ -152,7 +143,7 @@ public class SchemaController
             throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Type " + type + " does not exist." );
         }
 
-        Object object = renderService.fromJson( request.getInputStream(), schema.getKlass() );
+        Object object = objectMapper.readValue( request.getInputStream(), schema.getKlass() );
         List<ErrorReport> validationViolations = schemaValidator.validate( object );
 
         return errorReports( validationViolations );

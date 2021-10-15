@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 
 /**
@@ -40,12 +42,70 @@ import org.hisp.dhis.schema.SchemaService;
  */
 public class FieldPathHelper
 {
+    public static final String PRESET_ALL = "all";
+
+    public static final String PRESET_OWNER = "owner";
+
     public static List<FieldPath> applyPresets( List<FieldPath> fieldPaths, Class<?> klass,
         SchemaService schemaService )
     {
         List<FieldPath> presets = fieldPaths.stream().filter( FieldPath::isPreset ).collect( Collectors.toList() );
+        presets.forEach( p -> fieldPaths.addAll( expandPreset( p, klass, schemaService ) ) );
 
         return fieldPaths;
+    }
+
+    private static List<FieldPath> expandPreset( FieldPath fpPreset, Class<?> klass, SchemaService schemaService )
+    {
+        List<FieldPath> fieldPaths = new ArrayList<>();
+        Schema schema = getSchemaByPath( fpPreset, klass, schemaService );
+
+        if ( schema == null )
+        {
+            return fieldPaths;
+        }
+
+        if ( PRESET_ALL.equals( fpPreset.getName() ) )
+        {
+            schema.getProperties()
+                .forEach( p -> fieldPaths.add( new FieldPath( p.getName(), fpPreset.getPath() ) ) );
+        }
+        else if ( PRESET_OWNER.equals( fpPreset.getName() ) )
+        {
+            schema.getProperties()
+                .stream().filter( Property::isOwner )
+                .forEach( p -> fieldPaths.add( new FieldPath( p.getName(), fpPreset.getPath() ) ) );
+        }
+
+        return fieldPaths;
+    }
+
+    private static Schema getSchemaByPath( FieldPath fieldPath, Class<?> klass, SchemaService schemaService )
+    {
+        // get root schema
+        Schema schema = schemaService.getDynamicSchema( klass );
+        Property currentProperty;
+
+        for ( String path : fieldPath.getPath() )
+        {
+            currentProperty = schema.getProperty( path );
+
+            if ( currentProperty == null )
+            {
+                return null; // invalid path
+            }
+
+            if ( currentProperty.isCollection() )
+            {
+                schema = schemaService.getDynamicSchema( currentProperty.getItemKlass() );
+            }
+            else
+            {
+                schema = schemaService.getDynamicSchema( currentProperty.getKlass() );
+            }
+        }
+
+        return schema;
     }
 
     public static List<FieldPath> applyExclusions( List<FieldPath> fieldPaths )

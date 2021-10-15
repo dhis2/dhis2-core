@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import lombok.Builder;
+
 import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -45,6 +47,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 @JsonRootName( value = "root", namespace = DxfNamespaces.DXF_2_0 )
 public class JsonRoot
 {
+    @Builder.Default
     private final Map<String, List<? extends JsonNode>> properties = new TreeMap<>();
 
     public JsonRoot()
@@ -54,6 +57,11 @@ public class JsonRoot
     public JsonRoot( String property, List<? extends JsonNode> nodes )
     {
         setProperty( property, nodes );
+    }
+
+    public static JsonRoot of( String property, List<? extends JsonNode> nodes )
+    {
+        return new JsonRoot( property, nodes );
     }
 
     @JsonAnySetter

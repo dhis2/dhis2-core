@@ -30,6 +30,7 @@ package org.hisp.dhis.schema;
 import java.util.List;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.fieldfiltering.FieldFilterMixin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -41,7 +42,7 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @JacksonXmlRootElement( localName = "schemas", namespace = DxfNamespaces.DXF_2_0 )
-public class Schemas
+public class Schemas implements FieldFilterMixin
 {
     private List<Schema> schemas = Lists.newArrayList();
 

@@ -34,6 +34,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.fieldfiltering.FieldFilterManager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.period.PeriodService;
@@ -70,7 +71,7 @@ public class PeriodTypeController
     }
 
     @GetMapping
-    public @ResponseBody ResponseEntity<List<ObjectNode>> getPeriodTypes(
+    public @ResponseBody ResponseEntity<JsonRoot> getPeriodTypes(
         @RequestParam( defaultValue = "*" ) Set<String> fields )
     {
         List<PeriodType> periodTypes = periodService.getAllPeriodTypes().stream()
@@ -84,7 +85,7 @@ public class PeriodTypeController
 
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
-        return ResponseEntity.ok( objectNodes );
+        return ResponseEntity.ok( JsonRoot.of( "periodTypes", objectNodes ) );
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
