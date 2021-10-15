@@ -91,11 +91,24 @@ public class FieldPath
         return path.isEmpty() ? name : StringUtils.join( path, FIELD_PATH_SEPARATOR ) + FIELD_PATH_SEPARATOR + name;
     }
 
+    public String toPath()
+    {
+        return StringUtils.join( path, FIELD_PATH_SEPARATOR );
+    }
+
     /**
      * @return true if we have at least one field path transformer
      */
     public boolean isTransformer()
     {
         return transformers != null && !transformers.isEmpty();
+    }
+
+    /**
+     * @return true if name is the root of the path
+     */
+    public boolean isRoot()
+    {
+        return path.isEmpty();
     }
 }

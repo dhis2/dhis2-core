@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import static org.hisp.dhis.fieldfiltering.FieldPathHelper.applyExclusions;
+import static org.hisp.dhis.fieldfiltering.FieldPathHelper.applyPresets;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +42,7 @@ import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
+import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Component;
@@ -59,16 +63,25 @@ public class FieldFilterManager
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
+    private final SchemaService schemaService;
+
     public List<ObjectNode> toObjectNode( FieldFilterParams<?> params )
     {
+        List<ObjectNode> objectNodes = new ArrayList<>();
+
+        if ( params.getObjects().isEmpty() )
+        {
+            return objectNodes;
+        }
+
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
-        System.err.println( fieldPaths );
+
+        Class<?> klass = params.getObjects().iterator().next().getClass();
+        fieldPaths = applyExclusions( applyPresets( fieldPaths, klass, schemaService ) );
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
         Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
-
-        List<ObjectNode> objectNodes = new ArrayList<>();
 
         for ( Object object : params.getObjects() )
         {
@@ -90,7 +103,7 @@ public class FieldFilterManager
 
             if ( transformers != null )
             {
-                transformers.forEach( t -> t.apply( path.substring( 1 ), node, parent ) );
+                transformers.forEach( tf -> tf.apply( path.substring( 1 ), node, parent ) );
             }
         }
 
