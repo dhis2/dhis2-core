@@ -98,9 +98,14 @@ public class EventQuery
         }
     }
 
-    private static final Collection<QueryElement> QUERY_ELEMENTS = Arrays.stream( COLUMNS.values() )
-        .map( COLUMNS::getQueryElement )
-        .collect( collectingAndThen( toList(), ImmutableList::copyOf ) );
+    private static final Collection<QueryElement> QUERY_ELEMENTS;
+
+    static
+    {
+        QUERY_ELEMENTS = Arrays.stream( COLUMNS.values() )
+            .map( COLUMNS::getQueryElement )
+            .collect( collectingAndThen( toList(), ImmutableList::copyOf ) );
+    }
 
     public static String getQuery()
     {
