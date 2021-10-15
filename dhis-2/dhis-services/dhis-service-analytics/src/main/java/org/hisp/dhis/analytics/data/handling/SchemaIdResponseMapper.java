@@ -57,7 +57,6 @@ package org.hisp.dhis.analytics.data.handling;
 
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementIdSchemeMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDataElementOperandIdSchemeMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemIdSchemeMap;
 
@@ -150,7 +149,7 @@ public class SchemaIdResponseMapper
 
     private void applyDataElementsIdSchemaMapping( final DataQueryParams params, final Map<String, String> map )
     {
-        map.putAll( getDataElementIdSchemeMap( asTypedList( params.getDataElements() ),
+        map.putAll( getDimensionItemIdSchemeMap( asTypedList( params.getDataElements() ),
             params.getOutputDataElementIdScheme() ) );
     }
 

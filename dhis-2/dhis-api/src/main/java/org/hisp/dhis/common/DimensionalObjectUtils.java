@@ -610,29 +610,6 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a mapping between the base dimension item identifier and the
-     * dimension item identifier defined by the given identifier scheme. This
-     * mapping is specific for data elements.
-     *
-     * @param itemObjects the dimensional items.
-     * @param idScheme the identifier scheme.
-     * @return a mapping between dimension item identifiers.
-     */
-    public static Map<String, String> getDataElementIdSchemeMap(
-        Collection<DimensionalItemObject> itemObjects, IdScheme idScheme )
-    {
-        Map<String, String> map = Maps.newHashMap();
-
-        for ( DimensionalItemObject itemObject : itemObjects )
-        {
-            map.put( itemObject.getDimensionItem(),
-                itemObject.getDimensionItem( IdScheme.from( idScheme ) ) );
-        }
-
-        return map;
-    }
-
-    /**
      * Returns a dimension item identifier for the given data set identifier and
      * reporting date metric.
      *
