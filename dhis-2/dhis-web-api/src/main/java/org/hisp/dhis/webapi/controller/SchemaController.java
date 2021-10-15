@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -94,12 +93,7 @@ public class SchemaController
         List<Schema> schemas = schemaService.getSortedSchemas();
         linkService.generateSchemaLinks( schemas );
 
-        FieldFilterParams<Schema> params = FieldFilterParams
-            .<Schema> builder()
-            .objects( schemas )
-            .filters( fields )
-            .build();
-
+        FieldFilterParams<Schema> params = FieldFilterParams.of( schemas, fields );
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
         return ResponseEntity.ok( JsonRoot.of( "schemas", objectNodes ) );
@@ -115,12 +109,7 @@ public class SchemaController
         {
             linkService.generateSchemaLinks( schema );
 
-            FieldFilterParams<Schema> params = FieldFilterParams
-                .<Schema> builder()
-                .objects( Collections.singletonList( schema ) )
-                .filters( fields )
-                .build();
-
+            FieldFilterParams<Schema> params = FieldFilterParams.of( schema, fields );
             List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
             return ResponseEntity.ok( objectNodes.get( 0 ) );

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -46,4 +47,22 @@ public class FieldFilterParams<T>
 
     @Builder.Default
     private final Set<String> filters = Sets.newHashSet( "*" );
+
+    public static <O> FieldFilterParams<O> of( List<O> objects, Set<String> filters )
+    {
+        return FieldFilterParams
+            .<O> builder()
+            .objects( objects )
+            .filters( filters )
+            .build();
+    }
+
+    public static <O> FieldFilterParams<O> of( O object, Set<String> filters )
+    {
+        return FieldFilterParams
+            .<O> builder()
+            .objects( Collections.singletonList( object ) )
+            .filters( filters )
+            .build();
+    }
 }
