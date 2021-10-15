@@ -29,6 +29,8 @@ package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -39,14 +41,10 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 /**
  * @author Morten Olav Hansen
  */
+@RequiredArgsConstructor
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter
 {
     private final List<FieldPath> fieldPaths;
-
-    public FieldFilterSimpleBeanPropertyFilter( List<FieldPath> fieldPaths )
-    {
-        this.fieldPaths = fieldPaths;
-    }
 
     @Override
     protected boolean include( final BeanPropertyWriter writer )
@@ -62,11 +60,13 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     protected boolean include( final PropertyWriter writer, final JsonGenerator jgen )
     {
+        String path = getPath( writer, jgen );
+
         for ( FieldPath fieldPath : fieldPaths )
         {
-            String path = fieldPath.toFullPath();
+            String fullPath = fieldPath.toFullPath();
 
-            if ( path.startsWith( getPath( writer, jgen ) ) )
+            if ( fullPath.equals( path ) )
             {
                 return true;
             }

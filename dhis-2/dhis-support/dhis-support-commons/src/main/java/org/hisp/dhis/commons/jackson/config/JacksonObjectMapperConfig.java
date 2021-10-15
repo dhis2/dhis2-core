@@ -32,6 +32,7 @@ import java.util.Date;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
+import org.hisp.dhis.fieldfiltering.FieldFilterMixin;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +47,8 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -153,6 +156,7 @@ public class JacksonObjectMapperConfig
         module.addDeserializer( JsonPointer.class, new JsonPointerStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
         module.addSerializer( JsonPointer.class, new JsonPointerStdSerializer() );
+        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
 
         // Registering a custom Instant serializer/deserializer for DTOs using
         // Instant
@@ -174,6 +178,10 @@ public class JacksonObjectMapperConfig
 
         objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
         objectMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
+
+        SimpleFilterProvider filterProvider = new SimpleFilterProvider();
+        filterProvider.addFilter( "field-filter", SimpleBeanPropertyFilter.serializeAll() );
+        objectMapper.setFilterProvider( filterProvider );
 
         if ( !autoDetectGetters )
         {

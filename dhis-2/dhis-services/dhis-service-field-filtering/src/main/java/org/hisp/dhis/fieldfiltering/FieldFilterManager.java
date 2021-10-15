@@ -35,8 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
@@ -57,13 +55,18 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
  * @author Morten Olav Hansen
  */
 @Component
-@RequiredArgsConstructor
 public class FieldFilterManager
 {
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
     private final SchemaService schemaService;
+
+    public FieldFilterManager( ObjectMapper jsonMapper, SchemaService schemaService )
+    {
+        this.jsonMapper = jsonMapper.copy();
+        this.schemaService = schemaService;
+    }
 
     public List<ObjectNode> toObjectNode( FieldFilterParams<?> params )
     {
@@ -81,6 +84,7 @@ public class FieldFilterManager
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
+
         Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
 
         for ( Object object : params.getObjects() )
