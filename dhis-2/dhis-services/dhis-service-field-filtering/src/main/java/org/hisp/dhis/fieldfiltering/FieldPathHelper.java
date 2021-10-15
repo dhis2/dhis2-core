@@ -68,13 +68,15 @@ public class FieldPathHelper
         if ( PRESET_ALL.equals( fpPreset.getName() ) )
         {
             schema.getProperties()
-                .forEach( p -> fieldPaths.add( new FieldPath( p.getName(), fpPreset.getPath() ) ) );
+                .forEach( p -> fieldPaths.add(
+                    new FieldPath( p.isCollection() ? p.getCollectionName() : p.getName(), fpPreset.getPath() ) ) );
         }
         else if ( PRESET_OWNER.equals( fpPreset.getName() ) )
         {
             schema.getProperties()
                 .stream().filter( Property::isOwner )
-                .forEach( p -> fieldPaths.add( new FieldPath( p.getName(), fpPreset.getPath() ) ) );
+                .forEach( p -> fieldPaths.add(
+                    new FieldPath( p.isCollection() ? p.getCollectionName() : p.getName(), fpPreset.getPath() ) ) );
         }
 
         return fieldPaths;

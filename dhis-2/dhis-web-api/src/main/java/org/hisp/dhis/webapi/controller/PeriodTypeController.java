@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.fieldfiltering.FieldFilterManager;
@@ -56,19 +58,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @RestController
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( value = "/periodTypes" )
+@RequiredArgsConstructor
 public class PeriodTypeController
 {
     private final PeriodService periodService;
 
     private final FieldFilterManager fieldFilterManager;
-
-    public PeriodTypeController(
-        PeriodService periodService,
-        FieldFilterManager fieldFilterManager )
-    {
-        this.periodService = periodService;
-        this.fieldFilterManager = fieldFilterManager;
-    }
 
     @GetMapping
     public @ResponseBody ResponseEntity<JsonRoot> getPeriodTypes(
