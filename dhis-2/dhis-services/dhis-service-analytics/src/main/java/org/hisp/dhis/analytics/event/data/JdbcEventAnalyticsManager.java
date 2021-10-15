@@ -41,15 +41,18 @@ import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -111,6 +114,8 @@ public class JdbcEventAnalyticsManager
 {
 
     private static final String OPEN_IN = " in (";
+
+    private static final String ORG_UNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
 
     public JdbcEventAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
@@ -442,18 +447,8 @@ public class JdbcEventAnalyticsManager
         {
             String orgUnitAlias = getOrgUnitAlias( params );
 
-            sql += hlp.whereAnd() + " (";
-
-            for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
-            {
-                OrganisationUnit unit = (OrganisationUnit) object;
-
-                String orgUnitCol = quote( orgUnitAlias, "uidlevel" + unit.getLevel() );
-
-                sql += orgUnitCol + " = '" + unit.getUid() + "' or ";
-            }
-
-            sql = removeLastOr( sql ) + ") ";
+            sql += hlp.whereAnd() + " "
+                + getOrgDescendantsSqlSnippet( orgUnitAlias, params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
         }
 
         // ---------------------------------------------------------------------
@@ -608,6 +603,41 @@ public class JdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    private String getOrgDescendantsSqlSnippet( String orgUnitAlias,
+        List<DimensionalItemObject> dimensionOrFilterItems )
+    {
+        final Map<String, List<String>> organisationMap = new HashMap<>();
+
+        dimensionOrFilterItems.stream()
+            .map( object -> (OrganisationUnit) object )
+            .forEach( unit -> {
+                String orgUnitCol = quote( orgUnitAlias, ORG_UNIT_UID_LEVEL_COLUMN_PREFIX + unit.getLevel() );
+
+                String quotedUid = "'" + unit.getUid() + "'";
+
+                if ( organisationMap.containsKey( orgUnitCol ) )
+                {
+                    organisationMap.get( orgUnitCol ).add( quotedUid );
+                }
+                else
+                {
+                    List<String> uidList = new ArrayList<>();
+
+                    uidList.add( quotedUid );
+
+                    organisationMap.put( orgUnitCol, uidList );
+                }
+            } );
+
+        Set<String> orgUnitCols = organisationMap.keySet();
+
+        List<String> orgSqlList = orgUnitCols.stream()
+            .map( org -> org + OPEN_IN + String.join( ",", organisationMap.get( org ) ) + ") " )
+            .collect( Collectors.toList() );
+
+        return String.join( "and ", orgSqlList );
     }
 
     /**
