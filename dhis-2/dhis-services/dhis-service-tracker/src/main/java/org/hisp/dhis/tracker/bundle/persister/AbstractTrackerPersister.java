@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
@@ -67,23 +68,13 @@ import org.hisp.dhis.tracker.report.TrackerTypeReport;
  * @author Luciano Fiandesio
  */
 @Slf4j
+@RequiredArgsConstructor( access = AccessLevel.PROTECTED )
 public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends BaseIdentifiableObject>
     implements TrackerPersister<T, V>
 {
     protected final ReservedValueService reservedValueService;
 
-    protected final TrackedEntityAttributeValueService attributeValueService;
-
     protected final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
-
-    protected AbstractTrackerPersister( ReservedValueService reservedValueService,
-        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
-        TrackedEntityAttributeValueService attributeValueService )
-    {
-        this.reservedValueService = reservedValueService;
-        this.attributeValueService = attributeValueService;
-        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
-    }
 
     /**
      * Template method that can be used by classes extending this class to
@@ -344,12 +335,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
-        // TODO: Do not use attributeValueService.
-        // We should have the right version of attribute values present in the
-        // TEI
-        // at any moment
-        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = attributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance )
+        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = trackedEntityInstance
+            .getTrackedEntityAttributeValues()
             .stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
@@ -400,6 +387,14 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 }
 
                 saveOrUpdate( session, isNew, attributeValue );
+
+                // let's put newly stored TEAV in the tracked entity instance
+                // that will go in the preheat
+                // but only if it doesn't already contains it.
+                if ( !existsAttributeValue( trackedEntityInstance, attributeValue ) )
+                {
+                    trackedEntityInstance.getTrackedEntityAttributeValues().add( attributeValue );
+                }
                 auditType = isNew ? AuditType.CREATE : AuditType.UPDATE;
             }
 
@@ -408,6 +403,16 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
             handleReservedValue( attributeValue );
         }
+    }
+
+    private boolean existsAttributeValue( TrackedEntityInstance trackedEntityInstance,
+        TrackedEntityAttributeValue attributeValue )
+    {
+        return trackedEntityInstance.getTrackedEntityAttributeValues().stream()
+            .filter( trackedEntityAttributeValue -> trackedEntityAttributeValue.getAttribute()
+                .equals( attributeValue.getAttribute() ) )
+            .anyMatch( trackedEntityAttributeValue -> trackedEntityAttributeValue.getValue()
+                .equals( attributeValue.getValue() ) );
     }
 
     private void handleReservedValue( TrackedEntityAttributeValue attributeValue )
