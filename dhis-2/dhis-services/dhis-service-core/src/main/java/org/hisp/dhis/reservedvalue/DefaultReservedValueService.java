@@ -49,6 +49,7 @@ import org.hisp.dhis.textpattern.TextPatternMethod;
 import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,7 +73,8 @@ public class DefaultReservedValueService
 
     @Override
     @Transactional
-    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
+    public List<ReservedValue> reserve( TrackedEntityAttribute trackedEntityAttribute, int numberOfReservations,
+        Map<String, String> values,
         Date expires )
         throws ReserveValueException,
         TextPatternGenerationException
@@ -81,6 +83,8 @@ public class DefaultReservedValueService
         int attemptsLeft = RESERVED_VALUE_GENERATION_ATTEMPT;
 
         List<ReservedValue> resultList = new ArrayList<>();
+
+        TextPattern textPattern = trackedEntityAttribute.getTextPattern();
 
         TextPatternSegment generatedSegment = textPattern.getSegments()
             .stream()
@@ -121,11 +125,17 @@ public class DefaultReservedValueService
         }
         else
         {
+            if ( !trackedEntityAttribute.isGenerated() )
+                throw new ReserveValueException( "Tracked Entity Attribute must use a generated pattern method" );
+
             List<String> generatedValues = new ArrayList<>();
 
             int numberOfValuesLeftToGenerate = numberOfReservations;
 
             boolean isPersistable = generatedSegment.getMethod().isPersistable();
+
+            reservedValue.setTrackedentityattributeid( trackedEntityAttribute.getId() );
+
             try
             {
                 while ( attemptsLeft-- > 0 && numberOfValuesLeftToGenerate > 0 )
@@ -154,7 +164,8 @@ public class DefaultReservedValueService
                     if ( isPersistable )
                     {
                         List<ReservedValue> availableValues = reservedValueStore.getAvailableValues( reservedValue,
-                            resolvedPatterns.stream().distinct().collect( Collectors.toList() ) );
+                            resolvedPatterns.stream().distinct().collect( Collectors.toList() ),
+                            textPattern.getOwnerObject().name() );
 
                         List<ReservedValue> requiredValues = availableValues.subList( 0,
                             Math.min( availableValues.size(), numberOfReservations ) );
