@@ -35,11 +35,12 @@ print() {
 
 # Requires maven to be on the classpath
 # Skips clean and test phases
+# Also skips copying test resources and compiling tests
 
 print "Building dhis2-core..."
 
 
-MAVEN_BUILD_OPTS="-Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25"
+MAVEN_BUILD_OPTS="-Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25 -Dmaven.test.skip=true"
 
 mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
 mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/dhis-web/pom.xml $MAVEN_BUILD_OPTS
