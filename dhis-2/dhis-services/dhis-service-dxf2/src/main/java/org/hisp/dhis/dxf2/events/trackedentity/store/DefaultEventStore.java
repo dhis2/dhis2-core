@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -42,6 +43,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
@@ -87,6 +90,19 @@ public class DefaultEventStore
     @Override
     public Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, AggregateContext ctx )
     {
+        List<List<Long>> enrollmentIdsPartitions = Lists.partition( enrollmentsId, PARITITION_SIZE );
+
+        Multimap<String, Event> eventMultimap = ArrayListMultimap.create();
+
+        enrollmentIdsPartitions
+            .forEach( partition -> eventMultimap.putAll( getEventsByEnrollmentIdsPartitioned( partition, ctx ) ) );
+
+        return eventMultimap;
+    }
+
+    private Multimap<String, Event> getEventsByEnrollmentIdsPartitioned( List<Long> enrollmentsId,
+        AggregateContext ctx )
+    {
         EventRowCallbackHandler handler = new EventRowCallbackHandler();
 
         AclQueryWithParams aclQueryWithParams = getAclQueryWithParams( ctx, createIdsParam( enrollmentsId ) );
@@ -128,6 +144,17 @@ public class DefaultEventStore
 
     @Override
     public Map<String, List<DataValue>> getDataValues( List<Long> programStageInstanceId )
+    {
+        List<List<Long>> psiIdsPartitions = Lists.partition( programStageInstanceId, PARITITION_SIZE );
+
+        Map<String, List<DataValue>> dataValueListMultimap = new HashMap<>();
+
+        psiIdsPartitions.forEach( partition -> dataValueListMultimap.putAll( getDataValuesPartitioned( partition ) ) );
+
+        return dataValueListMultimap;
+    }
+
+    private Map<String, List<DataValue>> getDataValuesPartitioned( List<Long> programStageInstanceId )
     {
         EventDataValueRowCallbackHandler handler = new EventDataValueRowCallbackHandler();
 
