@@ -33,9 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.matchers.DateTimeFormatMatcher.hasDateTimeFormat;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -723,6 +721,27 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         {
             fail();
         }
+    }
+
+    @Test
+    public void testSkipSyncFunctionality()
+    {
+        doInTransaction( this::persistTrackedEntityInstance );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setIncludeDeleted( true );
+        queryParams.setSynchronizationQuery( true );
+        queryParams.setOrganisationUnits( Collections.singleton( organisationUnitA ) );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+        params.setDataSynchronizationQuery( true );
+        params.setIncludeDeleted( true );
+
+        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false );
+
+        assertEquals( 1, fetchedTeis.get( 0 ).getAttributes().size() );
     }
 
     @Test
