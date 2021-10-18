@@ -49,20 +49,30 @@ public class RelationshipDataBuilder
         return this;
     }
 
-    public RelationshipDataBuilder setFromTrackedEntity( String trackedEntityId )
+    public RelationshipDataBuilder setFromEntity( String entityName, String entityId )
     {
         this.jsonBuilder.addObject( "from", new JsonObjectBuilder()
-            .addProperty( "trackedEntity", trackedEntityId ) );
+            .addProperty( entityName, entityId ) );
+
+        return this;
+    }
+
+    public RelationshipDataBuilder setFromTrackedEntity( String trackedEntityId )
+    {
+        return setFromEntity( "trackedEntity", trackedEntityId );
+    }
+
+    public RelationshipDataBuilder setToEntity( String entityName, String entityId )
+    {
+        this.jsonBuilder.addObject( "to", new JsonObjectBuilder()
+            .addProperty( entityName, entityId ) );
 
         return this;
     }
 
     public RelationshipDataBuilder setToTrackedEntity( String trackedEntityId )
     {
-        this.jsonBuilder.addObject( "to", new JsonObjectBuilder()
-            .addProperty( "trackedEntity", trackedEntityId ) );
-
-        return this;
+        return setToEntity( "trackedEntity", trackedEntityId );
     }
 
     public RelationshipDataBuilder buildUniDirectionalRelationship( String teiA, String teiB )

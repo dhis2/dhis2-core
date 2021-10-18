@@ -37,7 +37,8 @@ import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
+import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -82,15 +83,18 @@ public class EventExportTests
     }
 
     @ValueSource( strings = {
-        "?event=eventId&ouMode=orgUnitMode&fields=*",
-        "?event=eventId&ouMode=orgUnitMode&fields=relationships",
-        "?program=programId&ouMode=orgUnitMode&fields=*",
-        "?program=programId&ouMode=orgUnitMode&fields=relationships"
+        "?ouMode=ACCESSIBLE&program=programId&event=eventId&fields=*",
+        "?ouMode=ACCESSIBLE&program=programId&event=eventId&fields=relationships",
+        "?ouMode=ACCESSIBLE&event=eventId&fields=*",
+        "?ouMode=ACCESSIBLE&event=eventId&fields=relationships",
+        "?ouMode=ACCESSIBLE&program=programId&fields=*",
+        "?ouMode=ACCESSIBLE&program=programId&fields=relationships"
     } )
     @ParameterizedTest
     public void shouldFetchRelationships( String queryParams )
     {
-        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ).replace( "orgUnitMode", "ACCESSIBLE" ) );
+        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) )
+            .validateStatus( 200 );
         String body = "relationships";
 
         if ( response.extractList( "events" ) != null )
@@ -105,14 +109,14 @@ public class EventExportTests
     }
 
     @ValueSource( strings = {
-        "?event=eventId&ouMode=orgUnitMode&",
-        "?event=eventId&ouMode=orgUnitMode&fields=*,!relationships",
-        "?program=programId&ouMode=orgUnitMode&fields=*,!relationships"
+        "?event=eventId",
+        "?event=eventId&fields=*,!relationships",
+        "?program=programId&fields=*,!relationships"
     } )
     @ParameterizedTest
     public void shouldSkipRelationshipsForEventId( String queryParams )
     {
-        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ).replace( "orgUnitMode", "ACCESSIBLE" ) );
+        ApiResponse response = eventActions.get( queryParams.replace( "eventId", eventId ).replace( "programId", eventProgramId ) );
         String body = "relationships";
 
         if ( response.extractList( "events" ) != null )
@@ -128,16 +132,17 @@ public class EventExportTests
     private String createEvent()
     {
         return trackerActions
-            .postAndGetJobReport( trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, eventProgramStageID ) )
+            .postAndGetJobReport( new EventDataBuilder().build( Constants.ORG_UNIT_IDS[0], eventProgramId, eventProgramStageID ) )
             .validateSuccessfulImport()
             .extractImportedEvents().get( 0 );
     }
 
     private String createRelationship( String eventId, String event2Id, String relationshipTypeId )
     {
-        JsonObject relationships = new JsonObjectBuilder( trackerActions
-            .buildRelationship( "event", eventId, "event", event2Id, relationshipTypeId ) )
-            .wrapIntoArray( "relationships" );
+        JsonObject relationships = new RelationshipDataBuilder().setToEntity( "event", eventId )
+            .setFromEntity( "event", event2Id )
+            .setRelationshipType( relationshipTypeId )
+            .wrapToArray();
 
         return trackerActions.postAndGetJobReport( relationships )
             .validateSuccessfulImport().extractImportedRelationships().get( 0 );

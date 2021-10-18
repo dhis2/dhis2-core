@@ -115,13 +115,14 @@ public class EnrollmentsTests
             .body( "trackedEntity", equalTo( teiId ) );
     }
 
-    @Test
-    public void shouldAddFutureDateEnrollmentIfProgramAllowsIt()
+    @ParameterizedTest
+    @ValueSource( strings = { "true", "false " } )
+    public void shouldAllowFutureEnrollments( String shouldAddFutureDays )
         throws Exception
     {
         // arrange
         JsonObject object = programActions.get( multipleEnrollmentsProgram ).getBodyAsJsonBuilder()
-            .addProperty( "selectEnrollmentDatesInFuture", "true" )
+            .addProperty( "selectEnrollmentDatesInFuture", shouldAddFutureDays )
             .build();
 
         programActions.update( multipleEnrollmentsProgram, object ).validateStatus( 200 );
@@ -130,12 +131,21 @@ public class EnrollmentsTests
 
         JsonObject enrollment = new EnrollmentDataBuilder()
             .setTei( teiId )
-            .setEnrollmentDate( Instant.now().plus( 1, ChronoUnit.DAYS ).toString() )
+            .setEnrollmentDate( Instant.now().plus( 2, ChronoUnit.DAYS ).toString() )
             .build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[0] );
 
         // assert
-        trackerActions.postAndGetJobReport( enrollment )
-            .validateSuccessfulImport();
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( enrollment );
+        if ( Boolean.parseBoolean( shouldAddFutureDays ) )
+        {
+            response.validateSuccessfulImport();
+
+            return;
+        }
+
+        response.validateErrorReport()
+            .body( "errorCode", hasItems( "E1020" ) );
+
     }
 
     @Test
@@ -167,52 +177,52 @@ public class EnrollmentsTests
     @ValueSource( strings = { "true", "false" } )
     @ParameterizedTest
     public void shouldOnlyEnrollOnce( String shouldEnrollOnce )
-            throws Exception
+        throws Exception
     {
         // arrange
         String program = programActions.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS )
-                .extractUid();
+            .extractUid();
 
         JsonObject object = programActions.get( program ).getBodyAsJsonBuilder()
-                .addProperty( "onlyEnrollOnce", shouldEnrollOnce )
-                .addProperty( "publicAccess", "rwrw----" ).build();
+            .addProperty( "onlyEnrollOnce", shouldEnrollOnce )
+            .addProperty( "publicAccess", "rwrw----" ).build();
 
         programActions.update( program, object ).validateStatus( 200 );
 
         String tei = super.importTei();
 
         trackerActions.postAndGetJobReport(
-                new EnrollmentDataBuilder().build( program, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED" ) )
-                .validateSuccessfulImport();
+            new EnrollmentDataBuilder().build( program, Constants.ORG_UNIT_IDS[2], tei, "COMPLETED" ) )
+            .validateSuccessfulImport();
 
         // act
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
-                new EnrollmentDataBuilder().build( program, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) );
+            new EnrollmentDataBuilder().build( program, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) );
 
         // assert
         if ( Boolean.parseBoolean( shouldEnrollOnce ) )
         {
             response.validateErrorReport()
-                    .body( "errorCode", hasItems( "E1016" ) );
+                .body( "errorCode", hasItems( "E1016" ) );
             return;
         }
 
         response.validateSuccessfulImport();
         trackerActions.getTrackedEntity( tei + "?fields=enrollments" )
-                .validate().body( "enrollments", hasSize( 2 ) );
+            .validate().body( "enrollments", hasSize( 2 ) );
     }
 
     @Test
     public void shouldNotAllowMultipleActiveEnrollments()
-            throws Exception
+        throws Exception
     {
         String tei = super.importTeiWithEnrollment( multipleEnrollmentsProgram ).extractImportedTeis().get( 0 );
 
         trackerActions.postAndGetJobReport(
-                new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) )
-                .validateErrorReport()
-                .body( "errorCode", hasItems( "E1015" ) );
+            new EnrollmentDataBuilder().build( multipleEnrollmentsProgram, Constants.ORG_UNIT_IDS[2], tei, "ACTIVE" ) )
+            .validateErrorReport()
+            .body( "errorCode", hasItems( "E1015" ) );
     }
 
     @Test
