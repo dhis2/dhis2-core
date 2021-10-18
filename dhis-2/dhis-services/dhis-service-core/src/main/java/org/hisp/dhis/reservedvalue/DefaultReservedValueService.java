@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
@@ -95,21 +96,14 @@ public class DefaultReservedValueService
         String key = textPatternService.resolvePattern( textPattern, values );
 
         // Used for searching value tables
-        String valueKey = (generatedSegment != null
-            ? key.replaceAll( Pattern.quote( generatedSegment.getRawSegment() ), "%" )
-            : key);
+        String valueKey = Optional.ofNullable( generatedSegment )
+            .map( gs -> key.replaceAll( Pattern.quote( gs.getRawSegment() ), "%" ) ).orElse( key );
 
         ReservedValue reservedValue = ReservedValue.builder().created( new Date() )
             .ownerObject( textPattern.getOwnerObject().name() )
             .ownerUid( textPattern.getOwnerUid() ).key( key ).value( valueKey ).expiryDate( expires ).build();
 
-        if ( (generatedSegment == null || !TextPatternMethod.SEQUENTIAL.equals( generatedSegment.getMethod() ))
-            && !hasEnoughValuesLeft( reservedValue,
-                TextPatternValidationUtils.getTotalValuesPotential( generatedSegment ),
-                numberOfReservations ) )
-        {
-            throw new ReserveValueException( "Not enough values left to reserve " + numberOfReservations + " values." );
-        }
+        checkIfEnoughValues( numberOfReservations, generatedSegment, reservedValue );
 
         if ( generatedSegment == null )
         {
@@ -134,7 +128,7 @@ public class DefaultReservedValueService
 
             boolean isPersistable = generatedSegment.getMethod().isPersistable();
 
-            reservedValue.setTrackedentityattributeid( trackedEntityAttribute.getId() );
+            reservedValue.setTrackedentityattributeId( trackedEntityAttribute.getId() );
 
             try
             {
@@ -161,26 +155,8 @@ public class DefaultReservedValueService
                                 .build() ) );
                     }
 
-                    if ( isPersistable )
-                    {
-                        List<ReservedValue> availableValues = reservedValueStore.getAvailableValues( reservedValue,
-                            resolvedPatterns.stream().distinct().collect( Collectors.toList() ),
-                            textPattern.getOwnerObject().name() );
-
-                        List<ReservedValue> requiredValues = availableValues.subList( 0,
-                            Math.min( availableValues.size(), numberOfReservations ) );
-
-                        reservedValueStore.bulkInsertReservedValues(
-                            requiredValues );
-
-                        resultList.addAll( requiredValues );
-                    }
-                    else
-                    {
-                        resultList.addAll(
-                            resolvedPatterns.stream().map( value -> reservedValue.toBuilder().value( value ).build() )
-                                .collect( Collectors.toList() ) );
-                    }
+                    saveGeneratedValues( numberOfReservations, resultList, textPattern, reservedValue, isPersistable,
+                        resolvedPatterns );
 
                     numberOfValuesLeftToGenerate = numberOfReservations - resultList.size();
 
@@ -210,6 +186,44 @@ public class DefaultReservedValueService
         }
 
         return resultList;
+    }
+
+    private void checkIfEnoughValues( int numberOfReservations, TextPatternSegment generatedSegment,
+        ReservedValue reservedValue )
+        throws ReserveValueException
+    {
+        if ( (generatedSegment == null || !TextPatternMethod.SEQUENTIAL.equals( generatedSegment.getMethod() ))
+            && !hasEnoughValuesLeft( reservedValue,
+                TextPatternValidationUtils.getTotalValuesPotential( generatedSegment ),
+                numberOfReservations ) )
+        {
+            throw new ReserveValueException( "Not enough values left to reserve " + numberOfReservations + " values." );
+        }
+    }
+
+    private void saveGeneratedValues( int numberOfReservations, List<ReservedValue> resultList, TextPattern textPattern,
+        ReservedValue reservedValue, boolean isPersistable, List<String> resolvedPatterns )
+    {
+        if ( isPersistable )
+        {
+            List<ReservedValue> availableValues = reservedValueStore.getAvailableValues( reservedValue,
+                resolvedPatterns.stream().distinct().collect( Collectors.toList() ),
+                textPattern.getOwnerObject().name() );
+
+            List<ReservedValue> requiredValues = availableValues.subList( 0,
+                Math.min( availableValues.size(), numberOfReservations ) );
+
+            reservedValueStore.bulkInsertReservedValues(
+                requiredValues );
+
+            resultList.addAll( requiredValues );
+        }
+        else
+        {
+            resultList.addAll(
+                resolvedPatterns.stream().map( value -> reservedValue.toBuilder().value( value ).build() )
+                    .collect( Collectors.toList() ) );
+        }
     }
 
     private boolean hasEnoughValuesLeft( ReservedValue reservedValue, long totalValues, int valuesRequired )

@@ -96,7 +96,7 @@ public class HibernateReservedValueStore
             v -> !v.isEmpty() && reservedValue.getOwnerObject().equals( ownerObject ) )
             .ifPresent(
                 v -> values.removeAll( getSession().createNamedQuery( "getRandomGeneratedAvailableValuesNamedQuery" )
-                    .setParameter( "teaId", reservedValue.getTrackedentityattributeid() )
+                    .setParameter( "teaId", reservedValue.getTrackedentityattributeId() )
                     .setParameter( "ownerObject", reservedValue.getOwnerObject() )
                     .setParameter( "ownerUid", reservedValue.getOwnerUid() )
                     .setParameter( "key", reservedValue.getKey() )
