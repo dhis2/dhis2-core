@@ -198,57 +198,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         return set1;
     }
 
-    private List<TrackedEntityInstance> getTrackedEntityInstancesLegacy( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
-    {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService
-            .getTrackedEntityInstances( queryParams, skipAccessValidation, skipSearchScopeValidation );
-
-        List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
-        User user = queryParams.getUser();
-
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = this.trackedEntityAttributeService
-            .getTrackedEntityAttributesByTrackedEntityTypes();
-
-        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = this.trackedEntityAttributeService
-            .getTrackedEntityAttributesByProgram();
-
-        if ( queryParams != null && queryParams.isIncludeAllAttributes() )
-        {
-            daoTEIs.forEach( t -> {
-                Set<TrackedEntityAttribute> attributes = new HashSet<>();
-                for ( Program program : teaByProgram.keySet() )
-                {
-                    attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get( program ),
-                        trackerOwnershipAccessManager.hasAccess( user, t, program ) );
-                }
-                dtoTeis.add( getTei( t, attributes, params, user ) );
-
-            } );
-        }
-        else
-        {
-            Set<TrackedEntityAttribute> attributes;
-            attributes = new HashSet<>( trackedEntityTypeAttributes );
-
-            if ( queryParams.hasProgram() )
-            {
-                attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
-            }
-
-            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
-            {
-                if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance,
-                    queryParams.getProgram() ) )
-                {
-                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-                }
-            }
-        }
-
-        return dtoTeis;
-    }
-
     @Override
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
@@ -260,26 +209,18 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
         List<TrackedEntityInstance> trackedEntityInstances;
 
-        if ( queryParams.isUseLegacy() )
+        final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation,
+            skipSearchScopeValidation );
+
+        if ( ids.isEmpty() )
         {
-            trackedEntityInstances = getTrackedEntityInstancesLegacy( queryParams, params, skipAccessValidation,
-                skipSearchScopeValidation );
+            return Collections.emptyList();
         }
-        else
-        {
-            final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation,
-                skipSearchScopeValidation );
 
-            if ( ids.isEmpty() )
-            {
-                return Collections.emptyList();
-            }
+        trackedEntityInstances = this.trackedEntityInstanceAggregate.find( ids, params,
+            queryParams );
 
-            trackedEntityInstances = this.trackedEntityInstanceAggregate.find( ids, params,
-                queryParams );
-
-            addSearchAudit( trackedEntityInstances, queryParams.getUser() );
-        }
+        addSearchAudit( trackedEntityInstances, queryParams.getUser() );
 
         return trackedEntityInstances;
     }

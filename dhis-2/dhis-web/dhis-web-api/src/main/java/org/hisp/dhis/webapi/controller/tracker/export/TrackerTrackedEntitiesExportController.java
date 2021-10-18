@@ -75,11 +75,6 @@ public class TrackerTrackedEntitiesExportController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        if ( queryParams.isSkipPaging() )
-        {
-            queryParams.setUseLegacy( true );
-        }
-
         Collection<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
                 trackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
