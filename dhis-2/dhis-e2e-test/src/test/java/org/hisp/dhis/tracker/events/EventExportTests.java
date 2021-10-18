@@ -132,7 +132,7 @@ public class EventExportTests
     private String createEvent()
     {
         return trackerActions
-            .postAndGetJobReport( new EventDataBuilder().build( Constants.ORG_UNIT_IDS[0], eventProgramId, eventProgramStageID ) )
+            .postAndGetJobReport( new EventDataBuilder().array( Constants.ORG_UNIT_IDS[0], eventProgramId, eventProgramStageID ) )
             .validateSuccessfulImport()
             .extractImportedEvents().get( 0 );
     }
@@ -142,7 +142,7 @@ public class EventExportTests
         JsonObject relationships = new RelationshipDataBuilder().setToEntity( "event", eventId )
             .setFromEntity( "event", event2Id )
             .setRelationshipType( relationshipTypeId )
-            .wrapToArray();
+            .array();
 
         return trackerActions.postAndGetJobReport( relationships )
             .validateSuccessfulImport().extractImportedRelationships().get( 0 );
