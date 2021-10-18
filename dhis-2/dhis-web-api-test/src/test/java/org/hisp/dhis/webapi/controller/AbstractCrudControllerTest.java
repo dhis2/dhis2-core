@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.WebClient.Body;
+import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertError;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
@@ -54,6 +55,7 @@ import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 
 /**
  * Tests the generic operations offered by the {@link AbstractCrudController}
@@ -174,7 +176,7 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testUpdateObjectProperty()
+    public void testPatchObject()
     {
         String id = getCurrentUser().getUid();
         assertStatus( HttpStatus.OK,
@@ -182,6 +184,22 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
                 "[{'op': 'add', 'path': '/firstName', 'value': 'Fancy Mike'}]" ) );
 
         assertEquals( "Fancy Mike", GET( "/users/{id}", id )
+            .content().as( JsonUser.class ).getFirstName() );
+    }
+
+    @Test
+    public void testUpdateObjectProperty()
+    {
+        String id = getCurrentUser().getUid();
+        assertEquals( "admin", GET( "/users/{id}", id )
+            .content().as( JsonUser.class ).getFirstName() );
+
+        assertWebMessage( "OK", 200, "OK", null,
+            PATCH( "/users/" + id + "/firstName",
+                Body( "{'firstName': 'Berny'}" ), ContentType( MediaType.APPLICATION_JSON ) )
+                    .content( HttpStatus.OK ) );
+
+        assertEquals( "Berny", GET( "/users/{id}", id )
             .content().as( JsonUser.class ).getFirstName() );
     }
 

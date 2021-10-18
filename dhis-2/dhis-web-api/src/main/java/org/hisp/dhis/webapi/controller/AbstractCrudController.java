@@ -270,8 +270,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void updateObjectProperty(
+    @ResponseBody
+    public WebMessage updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request )
@@ -283,13 +283,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( entities.isEmpty() )
         {
-            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
+            return notFound( getEntityClass(), pvUid );
         }
 
         if ( !getSchema().haveProperty( pvProperty ) )
         {
-            throw new WebMessageException(
-                notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
+            return notFound( "Property " + pvProperty + " does not exist on " + getEntityName() );
         }
 
         Property property = getSchema().getProperty( pvProperty );
@@ -309,20 +308,28 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( object == null )
         {
-            throw new WebMessageException( badRequest( "Unknown payload format." ) );
+            return badRequest( "Unknown payload format." );
         }
 
-        prePatchEntity( persistedObject );
-        Object value = property.getGetterMethod().invoke( object );
-        property.getSetterMethod().invoke( persistedObject, value );
-        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
-        manager.update( persistedObject );
-        postPatchEntity( persistedObject );
+        return patchObject( pvUid, persistedObject, persisted -> {
+            Object value = property.getGetterMethod().invoke( object );
+            property.getSetterMethod().invoke( persistedObject, value );
+            return persisted;
+        } );
     }
 
     // --------------------------------------------------------------------------
     // PATCH
     // --------------------------------------------------------------------------
+
+    /**
+     * The means by which the actual patch is applied
+     */
+    interface PatchProcedure<T extends IdentifiableObject>
+    {
+        T patch( T persistedObject )
+            throws Exception;
+    }
 
     /**
      * Adds support for HTTP Patch using JSON Patch (RFC 6902), updated object
@@ -359,12 +366,18 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
+        return patchObject( pvUid, persistedObject, persisted -> jsonPatchManager
+            .apply( jsonMapper.readValue( request.getInputStream(), JsonPatch.class ), persisted ) );
+    }
+
+    private WebMessage patchObject( String pvUid, T persistedObject, PatchProcedure<T> procedure )
+        throws Exception
+    {
         manager.resetNonOwnerProperties( persistedObject );
 
         prePatchEntity( persistedObject );
 
-        final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
-        final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
+        final T patchedObject = procedure.patch( persistedObject );
 
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
@@ -383,7 +396,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
 
-        params.setUser( user )
+        params.setUser( currentUserService.getCurrentUser() )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( patchedObject );
 
