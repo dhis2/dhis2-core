@@ -119,8 +119,7 @@ public class DefaultReservedValueService
         }
         else
         {
-            if ( !trackedEntityAttribute.isGenerated() )
-                throw new ReserveValueException( "Tracked Entity Attribute must use a generated pattern method" );
+            checkIsGenerated( trackedEntityAttribute );
 
             List<String> generatedValues = new ArrayList<>();
 
@@ -134,10 +133,7 @@ public class DefaultReservedValueService
             {
                 while ( attemptsLeft-- > 0 && numberOfValuesLeftToGenerate > 0 )
                 {
-                    if ( System.currentTimeMillis() - startTime >= RESERVED_VALUE_GENERATION_TIMEOUT )
-                    {
-                        throw new TimeoutException( "Generation and reservation of values took too long" );
-                    }
+                    checkTimeout( startTime );
 
                     List<String> resolvedPatterns = new ArrayList<>();
 
@@ -145,15 +141,8 @@ public class DefaultReservedValueService
                         .addAll( valueGeneratorService.generateValues( generatedSegment, textPattern, key,
                             numberOfReservations - resultList.size() ) );
 
-                    // Get a list of resolved patterns
-                    for ( String generatedValue : generatedValues )
-                    {
-                        resolvedPatterns.add( textPatternService.resolvePattern( textPattern,
-                            ImmutableMap.<String, String> builder()
-                                .putAll( values )
-                                .put( generatedSegment.getMethod().name(), generatedValue )
-                                .build() ) );
-                    }
+                    addGeneratedValuesToResolvedPatterns( values, textPattern, generatedSegment, generatedValues,
+                        resolvedPatterns );
 
                     saveGeneratedValues( numberOfReservations, resultList, textPattern, reservedValue, isPersistable,
                         resolvedPatterns );
@@ -186,6 +175,38 @@ public class DefaultReservedValueService
         }
 
         return resultList;
+    }
+
+    private void addGeneratedValuesToResolvedPatterns( Map<String, String> values, TextPattern textPattern,
+        TextPatternSegment generatedSegment, List<String> generatedValues, List<String> resolvedPatterns )
+        throws TextPatternGenerationException
+    {
+        for ( String generatedValue : generatedValues )
+        {
+            resolvedPatterns.add( textPatternService.resolvePattern( textPattern,
+                ImmutableMap.<String, String> builder()
+                    .putAll( values )
+                    .put( generatedSegment.getMethod().name(), generatedValue )
+                    .build() ) );
+        }
+    }
+
+    private void checkIsGenerated( TrackedEntityAttribute trackedEntityAttribute )
+        throws ReserveValueException
+    {
+        if ( !trackedEntityAttribute.isGenerated() )
+        {
+            throw new ReserveValueException( "Tracked Entity Attribute must use a generated pattern method" );
+        }
+    }
+
+    private void checkTimeout( long startTime )
+        throws TimeoutException
+    {
+        if ( System.currentTimeMillis() - startTime >= RESERVED_VALUE_GENERATION_TIMEOUT )
+        {
+            throw new TimeoutException( "Generation and reservation of values took too long" );
+        }
     }
 
     private void checkIfEnoughValues( int numberOfReservations, TextPatternSegment generatedSegment,
