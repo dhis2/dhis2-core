@@ -47,12 +47,9 @@ import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -447,8 +444,13 @@ public class JdbcEventAnalyticsManager
         {
             String orgUnitAlias = getOrgUnitAlias( params );
 
-            sql += hlp.whereAnd() + " "
-                + getOrgDescendantsSqlSnippet( orgUnitAlias, params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+            String sqlSnippet = getOrgDescendantsSqlSnippet( orgUnitAlias,
+                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
+
+            if ( sqlSnippet != null && !sqlSnippet.trim().isEmpty() )
+            {
+                sql += hlp.whereAnd() + " " + sqlSnippet;
+            }
         }
 
         // ---------------------------------------------------------------------
@@ -612,36 +614,23 @@ public class JdbcEventAnalyticsManager
     private String getOrgDescendantsSqlSnippet( String orgUnitAlias,
         List<DimensionalItemObject> dimensionOrFilterItems )
     {
-        final Map<String, List<String>> organisationMap = new HashMap<>();
-
-        dimensionOrFilterItems.stream()
+        Map<String, List<OrganisationUnit>> collect = dimensionOrFilterItems.stream()
             .map( object -> (OrganisationUnit) object )
-            .forEach( unit -> {
-                String orgUnitCol = quote( orgUnitAlias, ORG_UNIT_UID_LEVEL_COLUMN_PREFIX + unit.getLevel() );
+            .collect( Collectors.groupingBy(
+                unit -> quote( orgUnitAlias, ORG_UNIT_UID_LEVEL_COLUMN_PREFIX + unit.getLevel() ) ) );
 
-                String quotedUid = "'" + unit.getUid() + "'";
+        return collect.keySet()
+            .stream()
+            .map( org -> toInCondition( org, collect.get( org ) ) )
+            .collect( Collectors.joining( " and " ) );
+    }
 
-                if ( organisationMap.containsKey( orgUnitCol ) )
-                {
-                    organisationMap.get( orgUnitCol ).add( quotedUid );
-                }
-                else
-                {
-                    List<String> uidList = new ArrayList<>();
-
-                    uidList.add( quotedUid );
-
-                    organisationMap.put( orgUnitCol, uidList );
-                }
-            } );
-
-        Set<String> orgUnitCols = organisationMap.keySet();
-
-        List<String> orgSqlList = orgUnitCols.stream()
-            .map( org -> org + OPEN_IN + String.join( ",", organisationMap.get( org ) ) + ") " )
-            .collect( Collectors.toList() );
-
-        return String.join( "and ", orgSqlList );
+    private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
+    {
+        return organisationUnits.stream()
+            .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
+            .map( unit -> "'" + unit.getUid() + "'" )
+            .collect( Collectors.joining( ",", org + OPEN_IN, ") " ) );
     }
 
     /**
