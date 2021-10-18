@@ -43,6 +43,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -160,6 +161,10 @@ public class TrackerBundle
     {
         return User.username( user );
     }
+
+    @Builder.Default
+    @JsonIgnore
+    private Set<String> updatedTeis = new HashSet<>();
 
     public Optional<TrackedEntity> getTrackedEntity( String id )
     {

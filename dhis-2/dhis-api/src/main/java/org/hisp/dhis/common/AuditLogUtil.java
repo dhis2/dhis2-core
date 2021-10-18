@@ -78,7 +78,7 @@ public class AuditLogUtil
                     builder.append( ", uid: " ).append( idObject.getUid() );
                 }
 
-                log.info( builder.toString() );
+                log.debug( builder.toString() );
             }
         }
     }

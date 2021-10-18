@@ -31,6 +31,8 @@ import java.util.List;
 
 import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -51,9 +53,12 @@ public class RelationshipPersister
     private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter;
 
     public RelationshipPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
-        TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter )
+        TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        TrackedEntityAttributeValueService attributeValueService )
+
     {
-        super( bundleHooks, reservedValueService );
+        super( bundleHooks, reservedValueService, trackedEntityAttributeValueAuditService, attributeValueService );
         this.relationshipConverter = relationshipConverter;
     }
 
@@ -145,5 +150,11 @@ public class RelationshipPersister
     {
         // NOTHING TO DO
 
+    }
+
+    @Override
+    protected String getUpdatedTrackedEntity( org.hisp.dhis.relationship.Relationship entity )
+    {
+        return null;
     }
 }
