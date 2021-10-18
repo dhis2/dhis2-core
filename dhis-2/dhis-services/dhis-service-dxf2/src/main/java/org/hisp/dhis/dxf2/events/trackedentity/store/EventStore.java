@@ -69,10 +69,20 @@ public interface EventStore
      * specified in the arg as "left" or "right" relationship
      *
      * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
+     * @return a MultiMap where key is a {@see Enrollment} uid and the value a
      *         List of {@see Relationship} objects
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids );
+
+    /**
+     * Fetch all the relationships based on provided relationship ids and return
+     * the response as Map of entity as key and List of Relationships as value
+     *
+     * @param ids Relationship ids
+     * @return Multimap containing entity uid as key and its associated list of
+     *         Relationships as value.
+     */
+    Multimap<String, Relationship> getRelationshipsByIds( List<Long> ids );
 
     Multimap<String, Note> getNotes( List<Long> eventIds );
 }

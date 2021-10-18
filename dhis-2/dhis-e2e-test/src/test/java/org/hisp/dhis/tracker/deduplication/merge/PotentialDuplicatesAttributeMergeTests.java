@@ -35,6 +35,7 @@ import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -118,12 +119,12 @@ public class PotentialDuplicatesAttributeMergeTests
             .rootPath( "trackedEntityAttributeValueAudits" )
             .body( "", hasSize( greaterThanOrEqualTo( 2 ) ) )
             .appendRootPath( String.format( "find{it.trackedEntityAttribute.id=='%s'}", attributes.get( 1 ) ) )
-                .body( "value", equalTo( "attribute B" ) )
-                .body( "auditType", equalTo( "CREATE" ) )
+            .body( "value", equalTo( "attribute B" ) )
+            .body( "auditType", equalTo( "CREATE" ) )
             .rootPath(
                 String.format( "trackedEntityAttributeValueAudits.find{it.trackedEntityAttribute.id=='%s'}", attributes.get( 0 ) ) )
-                .body( "value", equalTo( "attribute A - changed" ) )
-                .body( "auditType", equalTo( "UPDATE" ) );
+            .body( "value", equalTo( "attribute A - changed" ) )
+            .body( "auditType", equalTo( "UPDATE" ) );
     }
 
     private JsonObject createAttribute( String tet, String value )
@@ -137,7 +138,7 @@ public class PotentialDuplicatesAttributeMergeTests
     private String createTeiWithAttributes( JsonObject... attributes )
     {
         JsonObjectBuilder tei =
-            JsonObjectBuilder.jsonObject( trackerActions.buildTei( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] ) );
+            JsonObjectBuilder.jsonObject( new TeiDataBuilder().build( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] ) );
 
         for ( JsonObject attribute : attributes )
         {

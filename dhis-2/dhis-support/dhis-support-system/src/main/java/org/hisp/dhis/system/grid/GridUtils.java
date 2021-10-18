@@ -651,6 +651,11 @@ public class GridUtils
      */
     public static String getValue( TagNode cell )
     {
+        if ( cell.getChildren() == null || cell.getChildren().size() == 0 )
+        {
+            return EMPTY;
+        }
+
         StringBuilder builder = new StringBuilder();
 
         for ( Node child : cell.getChildren().toNodeArray() )

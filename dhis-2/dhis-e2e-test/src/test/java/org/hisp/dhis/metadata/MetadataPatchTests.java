@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.metadata;
 
-import static org.hamcrest.Matchers.hasSize;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
@@ -37,13 +37,16 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.DataElementActions;
 import org.hisp.dhis.actions.metadata.SharingActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -79,50 +82,71 @@ public class MetadataPatchTests
             "TEXT" ) );
 
         dataElementGroupId = dataElementGroupActions
-            .create( new JsonObjectBuilder().addProperty( "name", DataGenerator.randomString() ).build() );
+            .create( new JsonObjectBuilder()
+                .addProperty( "name", DataGenerator.randomString() )
+                .addArray( "dataElements", new JsonObjectBuilder().addProperty( "id", dataElementId ).build() )
+                .build() );
     }
 
-    @Disabled( "DHIS2-11483" )
     @Test
     public void shouldReplaceArray()
     {
         sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID,
             Constants.ADMIN_ID );
+        dataElementActions.get( dataElementId ).validate().body( "userAccesses", hasSize( 2 ) );
 
-        JsonObject userAccesses = JsonObjectBuilder.jsonObject()
+        JsonArray userAccesses = JsonObjectBuilder.jsonObject()
             .addProperty( "access", "rw------" )
             .addProperty( "id", Constants.SUPER_USER_ID )
-            .build();
+            .wrapIntoArray();
 
-        JsonArray array = new JsonArray();
+        dataElementActions.patch( dataElementId, Arrays.asList( buildOperation( "replace", "/userAccesses", userAccesses ) ) )
+            .validate().statusCode( 200 );
 
-        array.add(
-            buildOperation( "replace", "/userAccesses", new JsonObjectBuilder( userAccesses ).wrapIntoArray() ) );
-
-        dataElementActions.patch( dataElementId, array ).validate().statusCode( 200 );
-        dataElementActions.get( dataElementId ).validate().body( "userAccesses", hasSize( 1 ) );
+        dataElementActions.get( dataElementId )
+            .validate().body( "userAccesses", hasSize( 1 ) )
+            .rootPath( "userAccesses[0]" )
+            .body( "access", equalTo( "rw------" ) )
+            .body( "id", equalTo( Constants.SUPER_USER_ID ) );
     }
 
-    @Disabled( "DHIS2-11483" )
+    @Disabled( "DHIS2-11434" )
+    @Test
+    public void shouldReturnErrors()
+    {
+        JsonObject object = JsonObjectBuilder.jsonObject()
+            .addProperty( "op", "remove" )
+            .addProperty( "path", "/dataElementGroups" )
+            .build();
+
+        dataElementActions
+            .patch( dataElementId, Arrays.asList( object ), new QueryParamsBuilder().add( "importReportMode", "ERRORS_NOT_OWNER" ) )
+            .validate().statusCode( 200 )
+            .body( "response.errorReports", hasSize( 1 ) );
+
+        dataElementActions.get( dataElementId )
+            .validate()
+            .body( "dataElementGroups", hasSize( 0 ) );
+
+    }
+
     @Test
     public void shouldRemoveArray()
     {
         sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID,
             Constants.ADMIN_ID );
 
-        JsonArray array = new JsonArray();
+        JsonObject object = JsonObjectBuilder.jsonObject()
+            .addProperty( "op", "remove" )
+            .addProperty( "path", "/sharing/users" )
+            .build();
 
-        array.add(
-            JsonObjectBuilder
-                .jsonObject( buildOperation( "remove", "/sharing[users]", new JsonObjectBuilder().build() ) )
-                .addArray( "value", new JsonObjectBuilder().build() ).build() );
+        dataElementActions.patch( dataElementId, Arrays.asList( object ) )
+            .validateStatus( 200 ).prettyPrint();
 
-        dataElementActions.patch( dataElementId, array )
-            .validate()
-            .statusCode( 200 );
         dataElementActions.get( dataElementId )
             .validate()
-            .body( "userAccesses", Matchers.emptyArray() );
+            .body( "userAccesses", emptyIterable() );
     }
 
     @Test
@@ -130,12 +154,13 @@ public class MetadataPatchTests
     {
         String replacedProp = DataGenerator.randomString() + "-replaced";
 
-        JsonArray array = new JsonArray();
+        List<JsonObject> object = Arrays
+            .asList(
+                buildOperation( "replace", "/shortName", replacedProp ),
+                buildOperation( "add", "/code", replacedProp )
+            );
 
-        array.add( buildOperation( "replace", "/shortName", replacedProp ) );
-        array.add( buildOperation( "add", "/code", replacedProp ) );
-
-        dataElementActions.patch( dataElementId, array ).validate().statusCode( 200 );
+        dataElementActions.patch( dataElementId, object ).validate().statusCode( 200 );
 
         dataElementActions.get( dataElementId )
             .validate()
@@ -146,12 +171,10 @@ public class MetadataPatchTests
     @Test
     public void shouldAddToArrays()
     {
-        JsonArray array = new JsonArray();
+        JsonObject operation = buildOperation( "add", "/dataElements/-", new JsonObjectBuilder().addProperty(
+            "id", dataElementId ).build() );
 
-        array.add( buildOperation( "add", "/dataElements/-", new JsonObjectBuilder().addProperty(
-            "id", dataElementId ).build() ) );
-
-        dataElementGroupActions.patch( dataElementGroupId, array ).validate()
+        dataElementGroupActions.patch( dataElementGroupId, Arrays.asList( operation ) ).validate()
             .statusCode( 200 );
 
         dataElementActions.get( dataElementId ).validate()

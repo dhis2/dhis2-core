@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.tracker.importer;
 
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-
-import java.io.File;
-
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MessageConversationsActions;
@@ -42,12 +39,15 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import java.io.File;
+
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -76,9 +76,9 @@ public class SideEffectsTests
     @ValueSource( strings = { "true", "false" } )
     public void shouldSendNotificationIfNotSkipSideEffects( Boolean shouldSkipSideEffects )
     {
-        JsonObject object = trackerActions
-            .buildTeiWithEnrollmentAndEvent( Constants.ORG_UNIT_IDS[0], trackerProgramId, trackerProgramStageId,
-                "COMPLETED" );
+        JsonObject object = new TeiDataBuilder()
+            .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], trackerProgramId,
+                trackerProgramStageId, "COMPLETED" );
 
         ApiResponse response = new RestApiActions( "/messageConversations" ).get( "",
             new QueryParamsBuilder().add( "fields=*" ) );

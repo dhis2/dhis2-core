@@ -60,14 +60,15 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Ameen <ameen@dhis2.org>
  */
 @Component
-public class PreCheckOwnershipValidationHook
+public class PreCheckSecurityOwnershipValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     private final TrackerImportAccessManager trackerImportAccessManager;
 
-    public PreCheckOwnershipValidationHook( TrackerImportAccessManager trackerImportAccessManager )
+    public PreCheckSecurityOwnershipValidationHook( TrackerImportAccessManager trackerImportAccessManager )
     {
         checkNotNull( trackerImportAccessManager );
 
@@ -83,6 +84,22 @@ public class PreCheckOwnershipValidationHook
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( trackedEntity.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+
+        // If trackedEntity is newly created, or going to be deleted, capture
+        // scope has to be checked
+        if ( strategy.isCreate() || strategy.isDelete() )
+        {
+            trackerImportAccessManager.checkOrgUnitInCaptureScope( reporter,
+                context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+        }
+        // if its to update trackedEntity, search scope has to be checked
+        else
+        {
+            trackerImportAccessManager.checkOrgUnitInSearchScope( reporter,
+                context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
+        }
 
         if ( strategy.isDelete() )
         {
@@ -111,6 +128,18 @@ public class PreCheckOwnershipValidationHook
         OrganisationUnit ownerOrgUnit = context.getOwnerOrganisationUnit( enrollment.getTrackedEntity(),
             enrollment.getProgram() );
 
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
+        checkNotNull( enrollment.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+
+        // If enrollment is newly created, or going to be deleted, capture scope
+        // has to be checked
+        if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
+        {
+            trackerImportAccessManager
+                .checkOrgUnitInCaptureScope( reporter, context.getOrganisationUnit( enrollment.getOrgUnit() ) );
+        }
+
         if ( strategy.isDelete() )
         {
             boolean hasNonDeletedEvents = context.programInstanceHasEvents( enrollment.getEnrollment() );
@@ -134,10 +163,20 @@ public class PreCheckOwnershipValidationHook
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( event, EVENT_CANT_BE_NULL );
+        checkNotNull( event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         Program program = context.getProgram( event.getProgram() );
+
+        // If event is newly created, or going to be deleted, capture scope
+        // has to be checked
+        if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
+        {
+            trackerImportAccessManager
+                .checkOrgUnitInCaptureScope( reporter, organisationUnit );
+        }
 
         String teiUid = getTeiUidFromEvent( context, event, program );
 
@@ -226,8 +265,10 @@ public class PreCheckOwnershipValidationHook
 
         if ( programInstance == null )
         {
-            Enrollment enrollment = context.getBundle().getEnrollment( event.getEnrollment() ).get();
-            return enrollment.getTrackedEntity();
+            return context.getBundle()
+                .getEnrollment( event.getEnrollment() )
+                .map( Enrollment::getTrackedEntity )
+                .orElse( null );
         }
         else
         {

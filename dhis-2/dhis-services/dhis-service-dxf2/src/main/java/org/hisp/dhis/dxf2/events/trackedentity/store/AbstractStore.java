@@ -41,6 +41,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
@@ -48,13 +49,15 @@ import com.google.common.collect.Multimap;
  */
 public abstract class AbstractStore
 {
+    protected final int PARITITION_SIZE = 20000;
+
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private final static String GET_RELATIONSHIP_ID_BY_ENTITYTYPE_SQL = "select ri.%s as id, r.relationshipid "
+    private final static String GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL = "select ri.%s as id, r.relationshipid "
         + "FROM relationshipitem ri left join relationship r on ri.relationshipid = r.relationshipid "
         + "where ri.%s in (:ids)";
 
-    private final static String GET_RELATIONSHIP_SQL = "select "
+    private final static String GET_RELATIONSHIP_BY_RELATIONSHIP_ID = "select "
         + "r.uid as rel_uid, r.created, r.lastupdated, rst.name as reltype_name, rst.uid as reltype_uid, rst.bidirectional as reltype_bi, "
         + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
         + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
@@ -99,26 +102,53 @@ public abstract class AbstractStore
 
     public Multimap<String, Relationship> getRelationships( List<Long> ids )
     {
-        String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITYTYPE_SQL,
+        List<List<Long>> partitionedIds = Lists.partition( ids, PARITITION_SIZE );
+
+        Multimap<String, Relationship> relationshipMultimap = ArrayListMultimap.create();
+
+        partitionedIds.forEach( partition -> relationshipMultimap.putAll( getRelationshipsPartitioned( partition ) ) );
+
+        return relationshipMultimap;
+    }
+
+    private Multimap<String, Relationship> getRelationshipsPartitioned( List<Long> ids )
+    {
+        String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL,
             getRelationshipEntityColumn(), getRelationshipEntityColumn() );
 
         // Get all the relationship ids that have at least one relationship item
         // having
         // the ids in the tei|pi|psi column (depending on the subclass)
 
-        List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList( getRelationshipsHavingIdSQL,
-            createIdsParam( ids ) );
-
-        List<Long> relationshipIds = new ArrayList<>();
-        for ( Map<String, Object> relationshipIdsMap : relationshipIdsList )
-        {
-            relationshipIds.add( (Long) relationshipIdsMap.get( "relationshipid" ) );
-        }
+        List<Long> relationshipIds = getRelationshipIds( getRelationshipsHavingIdSQL, createIdsParam( ids ) );
 
         if ( !relationshipIds.isEmpty() )
         {
             RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
-            jdbcTemplate.query( GET_RELATIONSHIP_SQL, createIdsParam( relationshipIds ), handler );
+            jdbcTemplate.query( GET_RELATIONSHIP_BY_RELATIONSHIP_ID, createIdsParam( relationshipIds ), handler );
+            return handler.getItems();
+        }
+        return ArrayListMultimap.create();
+    }
+
+    public Multimap<String, Relationship> getRelationshipsByIds( List<Long> ids )
+    {
+        List<List<Long>> partitionedIds = Lists.partition( ids, PARITITION_SIZE );
+
+        Multimap<String, Relationship> relationshipMultimap = ArrayListMultimap.create();
+
+        partitionedIds
+            .forEach( partition -> relationshipMultimap.putAll( getRelationshipsByIdsPartitioned( partition ) ) );
+
+        return relationshipMultimap;
+    }
+
+    private Multimap<String, Relationship> getRelationshipsByIdsPartitioned( List<Long> ids )
+    {
+        if ( !ids.isEmpty() )
+        {
+            RelationshipRowCallbackHandler handler = new RelationshipRowCallbackHandler();
+            jdbcTemplate.query( GET_RELATIONSHIP_BY_RELATIONSHIP_ID, createIdsParam( ids ), handler );
             return handler.getItems();
         }
         return ArrayListMultimap.create();
@@ -170,6 +200,16 @@ public abstract class AbstractStore
      */
     protected <T> Multimap<String, T> fetch( String sql, AbstractMapper<T> handler, List<Long> ids )
     {
+        List<List<Long>> idPartitions = Lists.partition( ids, PARITITION_SIZE );
+
+        Multimap<String, T> multimap = ArrayListMultimap.create();
+
+        idPartitions.forEach( partition -> multimap.putAll( fetchPartitioned( sql, handler, partition ) ) );
+        return multimap;
+    }
+
+    private <T> Multimap<String, T> fetchPartitioned( String sql, AbstractMapper<T> handler, List<Long> ids )
+    {
         jdbcTemplate.query( sql, createIdsParam( ids ), handler );
         return handler.getItems();
     }
@@ -178,5 +218,19 @@ public abstract class AbstractStore
     {
         return "SELECT "
             + columnMap.values().stream().map( TableColumn::useInSelect ).collect( Collectors.joining( ", " ) ) + " ";
+    }
+
+    private List<Long> getRelationshipIds( String sql, MapSqlParameterSource parameterSource )
+    {
+        List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList( sql,
+            parameterSource );
+
+        List<Long> relationshipIds = new ArrayList<>();
+        for ( Map<String, Object> relationshipIdsMap : relationshipIdsList )
+        {
+            relationshipIds.add( (Long) relationshipIdsMap.get( "relationshipid" ) );
+        }
+
+        return relationshipIds;
     }
 }
