@@ -34,7 +34,7 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -102,7 +102,7 @@ final class GistValidator
     private void validateField( Field f, RelativePropertyContext context )
     {
         String path = f.getPropertyPath();
-        if ( Field.REFS_PATH.equals( path ) )
+        if ( Field.REFS_PATH.equals( path ) || f.isAttribute() )
         {
             return;
         }
@@ -151,7 +151,7 @@ final class GistValidator
         {
             Schema fieldOwner = context.switchedTo( path ).getHome();
             @SuppressWarnings( "unchecked" )
-            Class<? extends IdentifiableObject> ownerType = (Class<? extends IdentifiableObject>) fieldOwner.getKlass();
+            Class<? extends PrimaryKeyObject> ownerType = (Class<? extends PrimaryKeyObject>) fieldOwner.getKlass();
             if ( fieldOwner.isIdentifiableObject() && !access.canRead( ownerType, field.getName() ) )
             {
                 throw createNoReadAccess( f, ownerType );
@@ -161,6 +161,10 @@ final class GistValidator
 
     private void validateFilter( Filter f, RelativePropertyContext context )
     {
+        if ( f.isAttribute() )
+        {
+            return;
+        }
         Property filter = context.resolveMandatory( f.getPropertyPath() );
         if ( !filter.isPersisted() )
         {
@@ -243,7 +247,7 @@ final class GistValidator
         return new IllegalArgumentException( String.format( message, filter.toString() ) );
     }
 
-    private ReadAccessDeniedException createNoReadAccess( Field field, Class<? extends IdentifiableObject> ownerType )
+    private ReadAccessDeniedException createNoReadAccess( Field field, Class<? extends PrimaryKeyObject> ownerType )
     {
         if ( ownerType == null )
         {

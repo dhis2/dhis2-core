@@ -32,6 +32,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.gist.GistLogic.effectiveTransform;
+import static org.hisp.dhis.gist.GistLogic.isAttributePath;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isIncludedField;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
@@ -53,6 +54,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.gist.GistQuery.Comparison;
@@ -82,7 +84,9 @@ class GistPlanner
 
     public GistQuery plan()
     {
-        return query.withFields( planFields() ).withFilters( planFilters() );
+        return query
+            .withFields( planFields() )
+            .withFilters( planFilters() );
     }
 
     private List<Field> planFields()
@@ -93,6 +97,7 @@ class GistPlanner
             fields = singletonList( Field.ALL );
         }
         fields = withPresetFields( fields ); // 1:n
+        fields = withAttributeFields( fields ); // 1:1
         fields = withDisplayAsTranslatedFields( fields ); // 1:1
         fields = withInnerAsSeparateFields( fields ); // 1:n
         fields = withCollectionItemPropertyAsTransformation( fields ); // 1:1
@@ -104,9 +109,17 @@ class GistPlanner
     private List<Filter> planFilters()
     {
         List<Filter> filters = query.getFilters();
+        filters = withAttributeFilters( filters ); // 1:1
         filters = withIdentifiableCollectionAutoIdFilters( filters ); // 1:1
         filters = withCurrentUserDefaultForAccessFilters( filters ); // 1:1
         return filters;
+    }
+
+    private List<Filter> withAttributeFilters( List<Filter> filters )
+    {
+        return map1to1( filters,
+            f -> isAttributePath( f.getPropertyPath() ) && context.resolve( f.getPropertyPath() ) == null,
+            Filter::asAttribute );
     }
 
     /**
@@ -121,10 +134,14 @@ class GistPlanner
 
     private boolean isCollectionFilterWithoutIdField( Filter f )
     {
+        if ( f.isAttribute() )
+        {
+            return false;
+        }
         Property p = context.resolveMandatory( f.getPropertyPath() );
         return !f.getOperator().isAccessCompare()
             && p.isCollection() && !isCollectionSizeFilter( f, p )
-            && IdentifiableObject.class.isAssignableFrom( p.getItemKlass() );
+            && PrimaryKeyObject.class.isAssignableFrom( p.getItemKlass() );
     }
 
     private List<Filter> withCurrentUserDefaultForAccessFilters( List<Filter> filters )
@@ -176,8 +193,12 @@ class GistPlanner
 
     private Field withEffectiveTransformation( Field field )
     {
-        return field.withTransformation( effectiveTransform( context.resolveMandatory( field.getPropertyPath() ),
-            query.getDefaultTransformation(), field.getTransformation() ) );
+        return field.isAttribute()
+            ? field
+                .withTransformation( field.getTransformation() == Transform.PLUCK ? Transform.PLUCK : Transform.NONE )
+            : field.withTransformation( effectiveTransform(
+                context.resolveMandatory( field.getPropertyPath() ), query.getDefaultTransformation(),
+                field.getTransformation() ) );
     }
 
     /**
@@ -252,7 +273,14 @@ class GistPlanner
     private boolean canRead( Schema schema, String path )
     {
         return !schema.isIdentifiableObject()
-            || access.canRead( (Class<? extends IdentifiableObject>) schema.getKlass(), path );
+            || access.canRead( (Class<? extends PrimaryKeyObject>) schema.getKlass(), path );
+    }
+
+    private List<Field> withAttributeFields( List<Field> fields )
+    {
+        return map1to1( fields,
+            f -> isAttributePath( f.getPropertyPath() ) && context.resolve( f.getPropertyPath() ) == null,
+            Field::asAttribute );
     }
 
     private List<Field> withDisplayAsTranslatedFields( List<Field> fields )
@@ -309,7 +337,7 @@ class GistPlanner
                 String propertyName = path.substring( path.lastIndexOf( '.' ) + 1 );
                 Property collection = context.resolveMandatory( parentPath );
                 if ( "id".equals( propertyName )
-                    && IdentifiableObject.class.isAssignableFrom( collection.getItemKlass() ) )
+                    && PrimaryKeyObject.class.isAssignableFrom( collection.getItemKlass() ) )
                 {
                     mapped.add( f
                         .withPropertyPath( parentPath )
@@ -341,6 +369,10 @@ class GistPlanner
             return fields;
         }
         boolean hasReferences = fields.stream().anyMatch( field -> {
+            if ( field.isAttribute() )
+            {
+                return false;
+            }
             Property p = context.resolveMandatory( field.getPropertyPath() );
             return isPersistentReferenceField( p ) && p.isIdentifiableObject()
                 || isPersistentCollectionField( p );
@@ -350,7 +382,7 @@ class GistPlanner
             return fields;
         }
         ArrayList<Field> extended = new ArrayList<>( fields );
-        extended.add( new Field( Field.REFS_PATH, Transform.NONE, "apiEndpoints", null, false ) );
+        extended.add( new Field( Field.REFS_PATH, Transform.NONE ).withAlias( "apiEndpoints" ) );
         return extended;
     }
 

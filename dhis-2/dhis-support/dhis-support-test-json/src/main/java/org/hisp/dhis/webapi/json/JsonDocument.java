@@ -40,7 +40,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 /**
  * {@link JsonDocument} is a JSON parser specifically designed as a verifying
@@ -204,6 +206,22 @@ public final class JsonDocument implements Serializable
         }
 
         @Override
+        public Optional<JsonNode> find( JsonNodeType type, Predicate<JsonNode> test )
+        {
+            if ( type == getType() && test.test( this ) )
+            {
+                return Optional.of( this );
+            }
+            return findChildren( type, test );
+        }
+
+        Optional<JsonNode> findChildren( JsonNodeType type, Predicate<JsonNode> test )
+        {
+            // by default node has no children, no match
+            return Optional.empty();
+        }
+
+        @Override
         public final String toString()
         {
             return getDeclaration();
@@ -314,6 +332,20 @@ public final class JsonDocument implements Serializable
         }
 
         @Override
+        Optional<JsonNode> findChildren( JsonNodeType type, Predicate<JsonNode> test )
+        {
+            for ( JsonNode e : members().values() )
+            {
+                Optional<JsonNode> res = e.find( type, test );
+                if ( res.isPresent() )
+                {
+                    return res;
+                }
+            }
+            return Optional.empty();
+        }
+
+        @Override
         Serializable parseValue()
         {
             LinkedHashMap<String, JsonNode> object = new LinkedHashMap<>();
@@ -378,6 +410,20 @@ public final class JsonDocument implements Serializable
         void visitChildren( JsonNodeType type, Consumer<JsonNode> visitor )
         {
             elements().forEach( node -> node.visit( type, visitor ) );
+        }
+
+        @Override
+        Optional<JsonNode> findChildren( JsonNodeType type, Predicate<JsonNode> test )
+        {
+            for ( JsonNode e : elements() )
+            {
+                Optional<JsonNode> res = e.find( type, test );
+                if ( res.isPresent() )
+                {
+                    return res;
+                }
+            }
+            return Optional.empty();
         }
 
         @Override

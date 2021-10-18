@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.gist.GistAutoType;
 import org.hisp.dhis.gist.GistQuery;
@@ -77,7 +78,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Jan Bernitt
  */
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public abstract class AbstractGistReadOnlyController<T extends IdentifiableObject>
+public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
 {
 
     @Autowired
@@ -152,7 +153,7 @@ public abstract class AbstractGistReadOnlyController<T extends IdentifiableObjec
     }
 
     private static GistQuery createGistQuery( HttpServletRequest request,
-        Class<? extends IdentifiableObject> elementType, GistAutoType autoDefault )
+        Class<? extends PrimaryKeyObject> elementType, GistAutoType autoDefault )
     {
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
         Locale translationLocale = !params.getString( "locale", "" ).isEmpty()

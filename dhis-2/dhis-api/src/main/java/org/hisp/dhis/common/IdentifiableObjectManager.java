@@ -66,98 +66,98 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> T get( String uid );
 
-    <T extends IdentifiableObject> T get( Class<T> clazz, long id );
+    <T extends IdentifiableObject> T get( Class<T> type, long id );
 
-    <T extends IdentifiableObject> T get( Class<T> clazz, String uid );
+    <T extends IdentifiableObject> T get( Class<T> type, String uid );
 
-    <T extends IdentifiableObject> boolean exists( Class<T> clazz, String uid );
+    <T extends IdentifiableObject> boolean exists( Class<T> type, String uid );
 
-    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, String uid );
+    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> types, String uid );
 
-    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, IdScheme idScheme,
+    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> types, IdScheme idScheme,
         String value );
 
-    <T extends IdentifiableObject> T getByCode( Class<T> clazz, String code );
+    <T extends IdentifiableObject> T getByCode( Class<T> type, String code );
 
-    <T extends IdentifiableObject> List<T> getByCode( Class<T> clazz, Collection<String> codes );
+    <T extends IdentifiableObject> List<T> getByCode( Class<T> type, Collection<String> codes );
 
-    <T extends IdentifiableObject> T getByName( Class<T> clazz, String name );
+    <T extends IdentifiableObject> T getByName( Class<T> type, String name );
 
-    <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value );
+    <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute, String value );
 
-    <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> clazz, Attribute attribute, String value,
+    <T extends IdentifiableObject> T getByUniqueAttributeValue( Class<T> type, Attribute attribute, String value,
         UserInfo userInfo );
 
-    <T extends IdentifiableObject> T search( Class<T> clazz, String query );
+    <T extends IdentifiableObject> T search( Class<T> type, String query );
 
-    <T extends IdentifiableObject> List<T> filter( Class<T> clazz, String query );
+    <T extends IdentifiableObject> List<T> filter( Class<T> type, String query );
 
-    <T extends IdentifiableObject> List<T> getAll( Class<T> clazz );
+    <T extends IdentifiableObject> List<T> getAll( Class<T> type );
 
-    <T extends IdentifiableObject> List<T> getDataWriteAll( Class<T> clazz );
+    <T extends IdentifiableObject> List<T> getDataWriteAll( Class<T> type );
 
-    <T extends IdentifiableObject> List<T> getDataReadAll( Class<T> clazz );
+    <T extends IdentifiableObject> List<T> getDataReadAll( Class<T> type );
 
-    <T extends IdentifiableObject> List<T> getAllSorted( Class<T> clazz );
+    <T extends IdentifiableObject> List<T> getAllSorted( Class<T> type );
 
-    <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> klass, List<Attribute> attributes );
+    <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> type, List<Attribute> attributes );
 
-    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass,
+    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> type,
         List<Attribute> attributes );
 
-    <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
+    <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> type, List<Attribute> attributes );
 
-    <T extends IdentifiableObject> List<T> getByUid( Class<T> clazz, Collection<String> uids );
+    <T extends IdentifiableObject> List<T> getByUid( Class<T> type, Collection<String> uids );
 
-    <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> classes,
+    <T extends IdentifiableObject> List<T> getByUid( Collection<Class<? extends IdentifiableObject>> types,
         Collection<String> uids );
 
-    <T extends IdentifiableObject> List<T> getById( Class<T> clazz, Collection<Long> ids );
+    <T extends IdentifiableObject> List<T> getById( Class<T> type, Collection<Long> ids );
 
-    <T extends IdentifiableObject> List<T> getOrdered( Class<T> clazz, IdScheme idScheme, Collection<String> values );
+    <T extends IdentifiableObject> List<T> getOrdered( Class<T> type, IdScheme idScheme, Collection<String> values );
 
-    <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> clazz, List<String> uids );
+    <T extends IdentifiableObject> List<T> getByUidOrdered( Class<T> type, List<String> uids );
 
-    <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name );
+    <T extends IdentifiableObject> List<T> getLikeName( Class<T> type, String name );
 
-    <T extends IdentifiableObject> List<T> getLikeName( Class<T> clazz, String name, boolean caseSensitive );
+    <T extends IdentifiableObject> List<T> getLikeName( Class<T> type, String name, boolean caseSensitive );
 
-    <T extends IdentifiableObject> List<T> getBetweenSorted( Class<T> clazz, int first, int max );
+    <T extends IdentifiableObject> List<T> getBetweenSorted( Class<T> type, int first, int max );
 
-    <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> clazz, Set<String> words, int first, int max );
+    <T extends IdentifiableObject> List<T> getBetweenLikeName( Class<T> type, Set<String> words, int first, int max );
 
-    <T extends IdentifiableObject> Date getLastUpdated( Class<T> clazz );
+    <T extends IdentifiableObject> Date getLastUpdated( Class<T> type );
 
-    <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> clazz, IdentifiableProperty property );
+    <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> type, IdentifiableProperty property );
 
-    <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> clazz, IdScheme idScheme );
+    <T extends IdentifiableObject> Map<String, T> getIdMap( Class<T> type, IdScheme idScheme );
 
-    <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> clazz, IdentifiableProperty property );
+    <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> type, IdentifiableProperty property );
 
-    <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> clazz, IdScheme idScheme );
+    <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> type, IdScheme idScheme );
 
-    <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property,
+    <T extends IdentifiableObject> List<T> getObjects( Class<T> type, IdentifiableProperty property,
         Collection<String> identifiers );
 
-    <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Long> identifiers );
+    <T extends IdentifiableObject> List<T> getObjects( Class<T> type, Collection<Long> identifiers );
 
-    <T extends IdentifiableObject> T getObject( Class<T> clazz, IdentifiableProperty property, String value );
+    <T extends IdentifiableObject> T getObject( Class<T> type, IdentifiableProperty property, String value );
 
-    <T extends IdentifiableObject> T getObject( Class<T> clazz, IdScheme idScheme, String value );
+    <T extends IdentifiableObject> T getObject( Class<T> type, IdScheme idScheme, String value );
 
     IdentifiableObject getObject( String uid, String simpleClassName );
 
     IdentifiableObject getObject( long id, String simpleClassName );
 
-    <T extends IdentifiableObject> int getCount( Class<T> clazz );
+    <T extends IdentifiableObject> int getCount( Class<T> type );
 
-    <T extends IdentifiableObject> int getCountByCreated( Class<T> clazz, Date created );
+    <T extends IdentifiableObject> int getCountByCreated( Class<T> type, Date created );
 
-    <T extends IdentifiableObject> int getCountByLastUpdated( Class<T> clazz, Date lastUpdated );
+    <T extends IdentifiableObject> int getCountByLastUpdated( Class<T> type, Date lastUpdated );
 
-    <T extends DimensionalObject> List<T> getDataDimensions( Class<T> clazz );
+    <T extends DimensionalObject> List<T> getDataDimensions( Class<T> type );
 
-    <T extends DimensionalObject> List<T> getDataDimensionsNoAcl( Class<T> clazz );
+    <T extends DimensionalObject> List<T> getDataDimensionsNoAcl( Class<T> type );
 
     void refresh( Object object );
 
@@ -174,26 +174,26 @@ public interface IdentifiableObjectManager
 
     void evict( Object object );
 
-    <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> klass, Attribute attribute, String value );
+    <T extends IdentifiableObject> List<T> getByAttributeAndValue( Class<T> type, Attribute attribute, String value );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object,
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> type, T object,
         AttributeValue attributeValue );
 
-    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> klass, T object,
+    <T extends IdentifiableObject> boolean isAttributeValueUnique( Class<? extends IdentifiableObject> type, T object,
         Attribute attribute, String value );
 
-    List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> klass,
+    List<? extends IdentifiableObject> getAllByAttributeAndValues( Class<? extends IdentifiableObject> type,
         Attribute attribute, List<String> values );
 
     Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults();
 
     void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations );
 
-    <T extends IdentifiableObject> List<T> getNoAcl( Class<T> clazz, Collection<String> uids );
+    <T extends IdentifiableObject> List<T> getNoAcl( Class<T> type, Collection<String> uids );
 
     boolean isDefault( IdentifiableObject object );
 
-    List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> klass, Date date );
+    List<String> getUidsCreatedBefore( Class<? extends IdentifiableObject> type, Date date );
 
     /**
      * Remove given UserGroup UID from all sharing records in database
@@ -204,9 +204,9 @@ public interface IdentifiableObjectManager
     // NO ACL
     // -------------------------------------------------------------------------
 
-    <T extends IdentifiableObject> T getNoAcl( Class<T> clazz, String uid );
+    <T extends IdentifiableObject> T getNoAcl( Class<T> type, String uid );
 
     <T extends IdentifiableObject> void updateNoAcl( T object );
 
-    <T extends IdentifiableObject> List<T> getAllNoAcl( Class<T> clazz );
+    <T extends IdentifiableObject> List<T> getAllNoAcl( Class<T> type );
 }
