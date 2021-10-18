@@ -32,11 +32,12 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EnrollmentDataBuilder
+public class EnrollmentDataBuilder implements TrackerImporterDataBuilder
 {
     private JsonObjectBuilder jsonObjectBuilder;
 
@@ -44,7 +45,7 @@ public class EnrollmentDataBuilder
     {
         jsonObjectBuilder = new JsonObjectBuilder();
         //setStatus( "ACTIVE" );
-        setEnrollmentDate( Instant.now().toString() );
+        setEnrollmentDate( Instant.now().minus( 1, ChronoUnit.HOURS ).toString() );
         setIncidentDate( Instant.now().toString() );
     }
 
@@ -102,9 +103,7 @@ public class EnrollmentDataBuilder
     public EnrollmentDataBuilder addEvent( EventDataBuilder builder )
     {
         jsonObjectBuilder.addOrAppendToArray( "events",
-            builder.build()
-                .getAsJsonArray( "events" ).get(
-                0 ).getAsJsonObject() );
+            builder.single());
         return this;
     }
 
@@ -121,22 +120,39 @@ public class EnrollmentDataBuilder
             new EventDataBuilder().setProgramStage( programStage ).setOu( orgUnit ).setStatus( status ) );
     }
 
-    public JsonObject build( String program, String ou )
+    public EnrollmentDataBuilder addAttribute( String attributeId, String value )
     {
-        setProgram( program ).setOu( ou );
-        return build();
+        jsonObjectBuilder.addOrAppendToArray( "attributes", new JsonObjectBuilder()
+            .addProperty( "attribute", attributeId )
+            .addProperty( "value", value )
+            .build());
+
+        return this;
     }
 
-    public JsonObject build( String program, String ou, String tei, String status )
+    public JsonObject array( String program, String ou )
+    {
+        setProgram( program ).setOu( ou );
+        return array();
+    }
+
+    public JsonObject array( String program, String ou, String tei, String status )
     {
         setProgram( program ).setOu( ou ).setStatus( status ).setTei( tei );
 
-        return build();
+        return array();
     }
 
-    public JsonObject build()
+    @Override
+    public JsonObject array()
     {
         return jsonObjectBuilder.wrapIntoArray( "enrollments" );
+    }
+
+    @Override
+    public JsonObject single()
+    {
+        return jsonObjectBuilder.build();
     }
 
 }

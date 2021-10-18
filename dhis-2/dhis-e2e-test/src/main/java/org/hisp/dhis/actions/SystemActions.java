@@ -92,7 +92,7 @@ public class SystemActions
 
     public List<ImportSummary> getTaskSummaries( String taskType, String taskId )
     {
-        return getTaskSummariesResponse( taskType, taskId ).getImportSummaries();
+        return getTaskSummariesResponse( taskType, taskId ).validateStatus( 200 ).getImportSummaries();
     }
 
     public ApiResponse getTaskSummariesResponse( String taskType, String taskId )
