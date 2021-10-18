@@ -142,22 +142,22 @@ public class OrganisationUnitObjectBundleHook extends AbstractObjectBundleHook<O
         if ( !user.isAuthorized( "F_ORGANISATIONUNIT_MOVE" ) )
         {
             addReports.accept(
-                new ErrorReport( OrganisationUnit.class, ErrorCode.E1515, user.getUid() ) );
+                new ErrorReport( OrganisationUnit.class, ErrorCode.E1520, user.getUid() ) );
             return;
         }
         if ( !aclService.canWrite( user, unit ) )
         {
-            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1516, user.getUid(),
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1521, user.getUid(),
                 getUidOrName( unit ) ) );
         }
         if ( oldParent != null && !aclService.canWrite( user, oldParent ) )
         {
-            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1517, user.getUid(),
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1522, user.getUid(),
                 getUidOrName( unit ), getUidOrName( oldParent ) ) );
         }
         if ( newParent != null && !aclService.canWrite( user, newParent ) )
         {
-            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1518, user.getUid(),
+            addReports.accept( new ErrorReport( OrganisationUnit.class, ErrorCode.E1523, user.getUid(),
                 getUidOrName( unit ), getUidOrName( newParent ) ) );
         }
     }

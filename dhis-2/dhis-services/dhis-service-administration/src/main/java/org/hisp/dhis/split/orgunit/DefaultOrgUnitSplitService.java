@@ -28,20 +28,24 @@
 package org.hisp.dhis.split.orgunit;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.split.orgunit.handler.AnalyticalObjectOrgUnitSplitHandler;
 import org.hisp.dhis.split.orgunit.handler.DataOrgUnitSplitHandler;
 import org.hisp.dhis.split.orgunit.handler.MetadataOrgUnitSplitHandler;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 
 /**
  * Main class for org unit split.
@@ -100,8 +104,9 @@ public class DefaultOrgUnitSplitService
 
         OrganisationUnit source = idObjectManager.get( OrganisationUnit.class, query.getSource() );
 
-        Set<OrganisationUnit> targets = Sets.newHashSet(
-            idObjectManager.getByUid( OrganisationUnit.class, query.getTargets() ) );
+        Set<OrganisationUnit> targets = query.getTargets().stream()
+            .map( this::getAndVerifyOrgUnit )
+            .collect( Collectors.toSet() );
 
         OrganisationUnit primaryTarget = idObjectManager.get( OrganisationUnit.class, query.getPrimaryTarget() );
 
@@ -160,5 +165,19 @@ public class DefaultOrgUnitSplitService
         {
             idObjectManager.delete( request.getSource() );
         }
+    }
+
+    /**
+     * Retrieves the org unit with the given identifier. Throws an
+     * {@link IllegalQueryException} if it does not exist.
+     *
+     * @param uid the org unit identifier.
+     * @throws IllegalQueryException if the object is null.
+     */
+    private OrganisationUnit getAndVerifyOrgUnit( String uid )
+        throws IllegalQueryException
+    {
+        return ObjectUtils.throwIfNull( idObjectManager.get( OrganisationUnit.class, uid ),
+            () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E1515, uid ) ) );
     }
 }

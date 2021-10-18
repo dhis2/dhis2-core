@@ -72,7 +72,6 @@ import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -81,7 +80,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-@Ignore
 public class DataApprovalServiceCategoryOptionGroupTest
     extends IntegrationTestBase
 {
@@ -304,10 +302,11 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         userGroupService.addUserGroup( userGroup );
 
-        users.forEach( user -> {
+        for ( User user : users )
+        {
             user.getGroups().add( userGroup );
             userService.updateUser( user );
-        } );
+        }
 
         return userGroup;
     }
@@ -327,8 +326,8 @@ public class DataApprovalServiceCategoryOptionGroupTest
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
         object.getSharing().setPublicAccess( ACCESS_NONE );
-        // object.getSharing().setOwner( userA ); // Needed for sharing to work
-        // object.setUser( userA );
+        object.getSharing().setOwner( userA ); // Needed for sharing to work
+        object.setUser( userA );
         object.getSharing().resetUserGroupAccesses();
         object.getSharing().resetUserAccesses();
         for ( UserGroup group : userGroups )
