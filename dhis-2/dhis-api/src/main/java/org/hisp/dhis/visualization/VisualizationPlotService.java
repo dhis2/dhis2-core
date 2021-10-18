@@ -25,31 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.visualization;
 
-import java.util.List;
+import java.util.Date;
 
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.User;
+import org.jfree.chart.JFreeChart;
 
-@Mapper( uses = { DebugMapper.class, TrackedEntityTypeAttributeMapper.class } )
-public interface TrackedEntityTypeMapper
-    extends PreheatMapper<TrackedEntityType>
+/**
+ * This service is used to wrap and support the rendering of different type of
+ * charts based on different visualization types. This code of this class is not
+ * new, it was just sightly re-adapted from the old ChartService in order to to
+ * support Visualization charts.
+ *
+ * This is mainly needed because of the deprecation process of charts and report
+ * tables.
+ *
+ * @author maikel arabori
+ */
+public interface VisualizationPlotService
 {
-    TrackedEntityTypeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeMapper.class );
+    JFreeChart getJFreeChart( PlotData plotData, Date date, OrganisationUnit organisationUnit, I18nFormat format,
+        User currentUser );
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "trackedEntityTypeAttributes" )
-    @Mapping( target = "allowAuditLog" )
-    TrackedEntityType map( TrackedEntityType trackedEntityType );
+    JFreeChart getJFreePeriodChart( Indicator indicator, OrganisationUnit organisationUnit, boolean title,
+        I18nFormat format );
 
-    List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
+    JFreeChart getJFreeOrganisationUnitChart( Indicator indicator, OrganisationUnit parent, boolean title,
+        I18nFormat format );
+
+    JFreeChart getJFreeChartHistory( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, Period lastPeriod, OrganisationUnit organisationUnit,
+        int historyLength, I18nFormat format );
 }

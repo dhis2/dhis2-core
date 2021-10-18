@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.helpers;
 
 import com.google.gson.JsonArray;
@@ -37,6 +36,8 @@ import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
 import org.hisp.dhis.Constants;
 
+import java.util.List;
+
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
@@ -45,7 +46,7 @@ public class JsonObjectBuilder
     private JsonObject jsonObject;
 
     private Configuration jsonPathConfiguration = Configuration.builder().jsonProvider( new GsonJsonProvider() )
-        .options( Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS, Option.DEFAULT_PATH_LEAF_TO_NULL ).build();
+            .options( Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS, Option.DEFAULT_PATH_LEAF_TO_NULL ).build();
 
     public JsonObjectBuilder()
     {
@@ -111,9 +112,31 @@ public class JsonObjectBuilder
         return this;
     }
 
+    public JsonObjectBuilder addArray( String name, List<String> array )
+    {
+        JsonArray jsonArray = new JsonArray();
+        array.forEach( jsonArray::add );
+
+        return addArray( name, jsonArray );
+    }
+
+    public JsonObjectBuilder addArray( String name, JsonArray array )
+    {
+        jsonObject.add( name, array );
+
+        return this;
+    }
+
     public JsonObjectBuilder addObject( String property, JsonObjectBuilder obj )
     {
         jsonObject.add( property, obj.build() );
+
+        return this;
+    }
+
+    public JsonObjectBuilder addObject( String property, JsonObject obj )
+    {
+        jsonObject.add( property, obj );
 
         return this;
     }
@@ -134,10 +157,11 @@ public class JsonObjectBuilder
     public JsonObjectBuilder addArrayByJsonPath( String path, String arrayName, JsonObject... objects )
     {
         JsonObject object = new JsonObjectBuilder()
-            .addArray( arrayName, objects )
-            .build();
+                .addArray( arrayName, objects )
+                .build();
 
-        JsonPath.using( jsonPathConfiguration ).parse( jsonObject ).put( path, arrayName, object.getAsJsonArray( arrayName ) );
+        JsonPath.using( jsonPathConfiguration ).parse( jsonObject ).put( path, arrayName,
+                object.getAsJsonArray( arrayName ) );
 
         return this;
     }
@@ -155,9 +179,8 @@ public class JsonObjectBuilder
         }
         else
         {
-            new JsonObjectBuilder()
-                .addArray( arrayName, objects )
-                .build();
+            this.addArrayByJsonPath( path, arrayName, objects )
+                    .build();
         }
 
         return this;
@@ -186,10 +209,10 @@ public class JsonObjectBuilder
         JsonArray userGroupAccesses = new JsonArray();
 
         JsonObject userGroupAccess = JsonObjectBuilder.jsonObject()
-            .addProperty( "access", "rwrw----" )
-            .addProperty( "userGroupId", Constants.USER_GROUP_ID )
-            .addProperty( "id", Constants.USER_GROUP_ID )
-            .build();
+                .addProperty( "access", "rwrw----" )
+                .addProperty( "userGroupId", Constants.USER_GROUP_ID )
+                .addProperty( "id", Constants.USER_GROUP_ID )
+                .build();
 
         userGroupAccesses.add( userGroupAccess );
 
@@ -209,6 +232,15 @@ public class JsonObjectBuilder
         newObj.add( arrayName, array );
 
         return newObj;
+    }
+
+    public JsonArray wrapIntoArray()
+    {
+        JsonArray array = new JsonArray();
+
+        array.add( jsonObject );
+
+        return array;
     }
 
     public JsonObject build()
