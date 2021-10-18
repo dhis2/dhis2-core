@@ -353,7 +353,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
             TrackedEntityAttributeValue attributeValue = attributeValueByUid.get( at.getAttribute() );
 
-
             if ( attributeValue == null )
             {
                 attributeValue = new TrackedEntityAttributeValue();
@@ -361,18 +360,21 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 attributeValue.setEntityInstance( trackedEntityInstance );
 
                 isNewAttribute = true;
-                
+
             }
 
             attributeValue
                 .setValue( at.getValue() )
                 .setStoredBy( at.getStoredBy() );
 
-            // We cannot use attributeValue.getValue() because it uses encryption logic
+            // We cannot use attributeValue.getValue() because it uses
+            // encryption logic
             // So we need to use at.getValue()
-            if ( StringUtils.isEmpty( at.getValue() ) ) // if it's a DELETE operation
+            if ( StringUtils.isEmpty( at.getValue() ) ) // if it's a DELETE
+                                                        // operation
             {
-                // DELETE on a new attribute doesn't make sense, so in this case we don't need to do anything
+                // DELETE on a new attribute doesn't make sense, so in this case
+                // we don't need to do anything
                 if ( !isNewAttribute )
                 {
                     if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
@@ -385,7 +387,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     auditType = AuditType.DELETE;
 
                     logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
-                            trackedEntityInstance, auditType );
+                        trackedEntityInstance, auditType );
                 }
             }
             else
@@ -404,11 +406,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 {
                     trackedEntityInstance.getTrackedEntityAttributeValues().add( attributeValue );
                 }
-                
+
                 auditType = isNewAttribute ? AuditType.CREATE : AuditType.UPDATE;
 
                 logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
-                        trackedEntityInstance, auditType );
+                    trackedEntityInstance, auditType );
             }
 
             handleReservedValue( attributeValue );
