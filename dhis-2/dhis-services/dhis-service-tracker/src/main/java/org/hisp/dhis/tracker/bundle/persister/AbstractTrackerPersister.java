@@ -335,14 +335,14 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
-        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = trackedEntityInstance
+        Map<String, TrackedEntityAttributeValue> attributeValueByUid = trackedEntityInstance
             .getTrackedEntityAttributeValues()
             .stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
         for ( Attribute at : payloadAttributes )
         {
-            boolean isNew = false;
+            boolean isNewAttribute = false;
             AuditType auditType;
 
             TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, at.getAttribute() );
@@ -351,7 +351,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 "Attribute " + at.getAttribute()
                     + " should never be NULL here if validation is enforced before commit." );
 
-            TrackedEntityAttributeValue attributeValue = attributeValueDBMap.get( at.getAttribute() );
+            TrackedEntityAttributeValue attributeValue = attributeValueByUid.get( at.getAttribute() );
+
 
             if ( attributeValue == null )
             {
@@ -359,25 +360,33 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 attributeValue.setAttribute( attribute );
                 attributeValue.setEntityInstance( trackedEntityInstance );
 
-                isNew = true;
+                isNewAttribute = true;
+                
             }
 
             attributeValue
                 .setValue( at.getValue() )
                 .setStoredBy( at.getStoredBy() );
 
-            // We cannot use attributeValue.getValue() because it uses
-            // encryption logic
+            // We cannot use attributeValue.getValue() because it uses encryption logic
             // So we need to use at.getValue()
-            if ( StringUtils.isEmpty( at.getValue() ) )
+            if ( StringUtils.isEmpty( at.getValue() ) ) // if it's a DELETE operation
             {
-                if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
+                // DELETE on a new attribute doesn't make sense, so in this case we don't need to do anything
+                if ( !isNewAttribute )
                 {
-                    unassignFileResource( session, preheat, attributeValueDBMap.get( at.getAttribute() ).getValue() );
-                }
+                    if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
+                    {
+                        unassignFileResource( session, preheat,
+                            attributeValueByUid.get( at.getAttribute() ).getValue() );
+                    }
 
-                session.remove( attributeValue );
-                auditType = AuditType.DELETE;
+                    session.remove( attributeValue );
+                    auditType = AuditType.DELETE;
+
+                    logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
+                            trackedEntityInstance, auditType );
+                }
             }
             else
             {
@@ -386,33 +395,24 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     assignFileResource( session, preheat, attributeValue.getValue() );
                 }
 
-                saveOrUpdate( session, isNew, attributeValue );
+                saveOrUpdate( session, isNewAttribute, attributeValue );
 
                 // let's put newly stored TEAV in the tracked entity instance
                 // that will go in the preheat
-                // but only if it doesn't already contains it.
-                if ( !existsAttributeValue( trackedEntityInstance, attributeValue ) )
+                // but only if its a new attribute
+                if ( isNewAttribute )
                 {
                     trackedEntityInstance.getTrackedEntityAttributeValues().add( attributeValue );
                 }
-                auditType = isNew ? AuditType.CREATE : AuditType.UPDATE;
-            }
+                
+                auditType = isNewAttribute ? AuditType.CREATE : AuditType.UPDATE;
 
-            logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
-                trackedEntityInstance, auditType );
+                logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
+                        trackedEntityInstance, auditType );
+            }
 
             handleReservedValue( attributeValue );
         }
-    }
-
-    private boolean existsAttributeValue( TrackedEntityInstance trackedEntityInstance,
-        TrackedEntityAttributeValue attributeValue )
-    {
-        return trackedEntityInstance.getTrackedEntityAttributeValues().stream()
-            .filter( trackedEntityAttributeValue -> trackedEntityAttributeValue.getAttribute()
-                .equals( attributeValue.getAttribute() ) )
-            .anyMatch( trackedEntityAttributeValue -> trackedEntityAttributeValue.getValue()
-                .equals( attributeValue.getValue() ) );
     }
 
     private void handleReservedValue( TrackedEntityAttributeValue attributeValue )
