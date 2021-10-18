@@ -917,27 +917,11 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
         }
 
-        Set<OrganisationUnit> orgUnits;
+        Set<OrganisationUnit> orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
 
-        if ( params.getProgram() == null )
+        if ( params.getProgram() != null && params.getProgram().isWithoutRegistration() )
         {
-            orgUnits = user.getOrganisationUnits();
-        }
-        else
-        {
-            if ( params.getProgram().isWithoutRegistration() )
-            {
-                orgUnits = user.getDataViewOrganisationUnitsWithFallback();
-            }
-            else
-            {
-                orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
-
-                if ( params.getProgram().isClosed() )
-                {
-                    orgUnits = user.getOrganisationUnits();
-                }
-            }
+            orgUnits = user.getDataViewOrganisationUnitsWithFallback();
         }
 
         return organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
