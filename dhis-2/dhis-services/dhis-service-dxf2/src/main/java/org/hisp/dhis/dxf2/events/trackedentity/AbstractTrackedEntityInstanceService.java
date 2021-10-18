@@ -179,80 +179,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     // READ
     // -------------------------------------------------------------------------
 
-    /**
-     * Merges the two sets, if the passed condition is true
-     *
-     * @param set1 a Set
-     * @param set2 a second Set
-     * @param condition a boolean condition
-     * @return if condition is true, a new Set consisting of the first and
-     *         second set. If false, the first set
-     */
-    private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2,
-        boolean condition )
-    {
-        if ( condition )
-        {
-            set1.addAll( set2 );
-        }
-        return set1;
-    }
-
     @Override
-    @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params, boolean skipAccessValidation )
-    {
-        List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService
-            .getTrackedEntityInstances( queryParams, skipAccessValidation );
-
-        List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
-        User user = queryParams.getUser();
-
-        Set<TrackedEntityAttribute> trackedEntityTypeAttributes = this.trackedEntityAttributeService
-            .getTrackedEntityAttributesByTrackedEntityTypes();
-
-        Map<Program, Set<TrackedEntityAttribute>> teaByProgram = this.trackedEntityAttributeService
-            .getTrackedEntityAttributesByProgram();
-
-        if ( queryParams != null && queryParams.isIncludeAllAttributes() )
-        {
-            daoTEIs.forEach( t -> {
-                Set<TrackedEntityAttribute> attributes = new HashSet<>();
-                for ( Program program : teaByProgram.keySet() )
-                {
-                    attributes = mergeIf( trackedEntityTypeAttributes, teaByProgram.get( program ),
-                        trackerOwnershipAccessManager.hasAccess( user, t, program ) );
-                }
-                dtoTeis.add( getTei( t, attributes, params, user ) );
-
-            } );
-        }
-        else
-        {
-            Set<TrackedEntityAttribute> attributes;
-            attributes = new HashSet<>( trackedEntityTypeAttributes );
-
-            if ( queryParams.hasProgram() )
-            {
-                attributes.addAll( new HashSet<>( queryParams.getProgram().getTrackedEntityAttributes() ) );
-            }
-
-            for ( org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance : daoTEIs )
-            {
-                if ( trackerOwnershipAccessManager.hasAccess( user, daoTrackedEntityInstance,
-                    queryParams.getProgram() ) )
-                {
-                    dtoTeis.add( getTei( daoTrackedEntityInstance, attributes, params, user ) );
-                }
-            }
-        }
-
-        return dtoTeis;
-    }
-
-    @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstances2( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation )
     {
         if ( queryParams == null )
