@@ -194,7 +194,7 @@ public class DefaultReservedValueService
     private void checkIsGenerated( TrackedEntityAttribute trackedEntityAttribute )
         throws ReserveValueException
     {
-        if ( !trackedEntityAttribute.isGenerated() )
+        if ( Boolean.FALSE.equals( trackedEntityAttribute.isGenerated() ) )
         {
             throw new ReserveValueException( "Tracked Entity Attribute must use a generated pattern method" );
         }
