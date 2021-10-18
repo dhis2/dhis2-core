@@ -182,7 +182,7 @@ public class EnrollmentAttributeTests
     public void shouldRejectTetAttributes()
         throws Exception
     {
-        String tetAttribute = "IvcLJpReZPS";
+        String tetAttribute = "dIVt4l5vIOa";
 
         String tei = importTei();
 
@@ -193,12 +193,11 @@ public class EnrollmentAttributeTests
             .array( programId, Constants.ORG_UNIT_IDS[1] );
 
         trackerActions.postAndGetJobReport( payload ).validateErrorReport()
-            .body( "", hasSize( 3 ) )
+            .body( "", hasSize( 1 ) )
             .body( "errorCode", hasItem( "E1019" ) )
             .body( "message", hasItem( containsStringIgnoringCase( "Only program attributes" ) ) );
     }
 
-    @Disabled( "DHIS2-11950" )
     @Test
     public void shouldValidateUniqueness()
         throws Exception
@@ -223,7 +222,6 @@ public class EnrollmentAttributeTests
         trackerActions.postAndGetJobReport( payload ).validateErrorReport();
     }
 
-    @Disabled( "DHIS2-11950" )
     @Test
     public void shouldValidateUniquenessWithinThePayload()
         throws Exception
