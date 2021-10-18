@@ -124,6 +124,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Lists;
 
@@ -529,17 +530,19 @@ public class EventController
         EventCriteria eventCriteria, @RequestParam Map<String, String> parameters, Model model,
         HttpServletResponse response,
         HttpServletRequest request )
-        throws WebMessageException
     {
         WebOptions options = new WebOptions( parameters );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         if ( fields.isEmpty() )
         {
-            fields.addAll( Preset.ALL.getFields() );
+            fields.add(
+                "event,uid,program,programType,status,assignedUser,orgUnit,orgUnitName,eventDate,orgUnit,orgUnitName,created,lastUpdated,followup" );
         }
 
         EventSearchParams params = requestToSearchParamsMapper.map( eventCriteria );
+
+        setParamBasedOnFieldParameters( params, fields );
 
         Events events = eventService.getEvents( params );
 
@@ -1133,5 +1136,22 @@ public class EventController
     private String getParamValue( Map<String, List<String>> params, String key )
     {
         return params.get( key ) != null ? params.get( key ).get( 0 ) : null;
+    }
+
+    private void setParamBasedOnFieldParameters( EventSearchParams params, List<String> fields )
+    {
+        String joined = Joiner.on( "" ).join( fields );
+
+        if ( joined.contains( "*" ) )
+        {
+            params.setIncludeAllDataElements( true );
+            params.setIncludeAttributes( true );
+            params.setIncludeRelationships( true );
+        }
+
+        if ( joined.contains( "relationships" ) )
+        {
+            params.setIncludeRelationships( true );
+        }
     }
 }
