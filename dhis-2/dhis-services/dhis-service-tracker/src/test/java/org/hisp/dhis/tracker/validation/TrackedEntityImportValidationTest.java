@@ -58,11 +58,13 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
@@ -82,6 +84,9 @@ public class TrackedEntityImportValidationTest
 
     @Autowired
     private TrackerBundleService trackerBundleService;
+
+    @Autowired
+    private TrackerImportService trackerImportService;
 
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -155,6 +160,21 @@ public class TrackedEntityImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 0, report.getErrorReports().size() );
+    }
+
+    @Test
+    public void failValidationWhenTrackedEntityAttributesHaveSameUniqueValues()
+        throws IOException
+    {
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/te-with_unique_attributes.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1064 ) ) ) );
     }
 
     @Test
