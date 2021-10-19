@@ -89,7 +89,8 @@ public class DefaultReservedValueService
 
         TextPatternSegment generatedSegment = textPattern.getSegments()
             .stream()
-            .filter( ( tp ) -> tp.getMethod().isGenerated() )
+            .filter(
+                ( tp ) -> tp.getMethod().isGenerated() && Boolean.TRUE.equals( trackedEntityAttribute.isGenerated() ) )
             .findFirst()
             .orElse( null );
 
@@ -117,7 +118,7 @@ public class DefaultReservedValueService
                 return reservedValues;
             }
         }
-        else if ( Boolean.TRUE.equals( trackedEntityAttribute.isGenerated() ) )
+        else
         {
             int numberOfValuesLeftToGenerate = numberOfReservations;
 
