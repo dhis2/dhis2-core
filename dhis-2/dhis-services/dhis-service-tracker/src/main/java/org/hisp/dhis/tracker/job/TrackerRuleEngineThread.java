@@ -30,14 +30,19 @@ package org.hisp.dhis.tracker.job;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 /**
  * Class represents a thread which will be triggered as soon as tracker rule
@@ -59,10 +64,14 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
 
-    public TrackerRuleEngineThread( List<RuleActionImplementer> ruleActionImplementers, Notifier notifier,
-        TrackerSideEffectConverterService trackerSideEffectConverterService )
+    public TrackerRuleEngineThread(
+        @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" ) RuleActionImplementer sendMessageRuleActionImplementer,
+        @Qualifier( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" ) RuleActionImplementer scheduleMessageRuleActionImplementer,
+        TrackerSideEffectConverterService trackerSideEffectConverterService,
+        Notifier notifier )
     {
-        this.ruleActionImplementers = ruleActionImplementers;
+        this.ruleActionImplementers = Lists.newArrayList( scheduleMessageRuleActionImplementer,
+            sendMessageRuleActionImplementer );
         this.trackerSideEffectConverterService = trackerSideEffectConverterService;
         this.notifier = notifier;
     }
@@ -84,18 +93,24 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
         {
             for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
             {
+                ProgramInstance pi = sideEffectDataBundle.getProgramInstance();
+                pi.setProgram( sideEffectDataBundle.getProgram() );
+
                 entry.getValue()
                     .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                    .forEach( effect -> ruleActionImplementer.implementEnrollmentAction( effect, entry.getKey() ) );
+                    .forEach( effect -> ruleActionImplementer.implement( effect, pi ) );
             }
 
             for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
             {
+                ProgramStageInstance psi = sideEffectDataBundle.getProgramStageInstance();
+                psi.getProgramStage().setProgram( sideEffectDataBundle.getProgram() );
+
                 entry.getValue()
                     .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                    .forEach( effect -> ruleActionImplementer.implementEventAction( effect, entry.getKey() ) );
+                    .forEach( effect -> ruleActionImplementer.implement( effect, psi ) );
             }
         }
 
