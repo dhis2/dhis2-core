@@ -117,13 +117,8 @@ public class DefaultReservedValueService
                 return reservedValues;
             }
         }
-        else
+        else if ( Boolean.TRUE.equals( trackedEntityAttribute.isGenerated() ) )
         {
-            if ( Boolean.FALSE.equals( trackedEntityAttribute.isGenerated() ) )
-            {
-                throw new ReserveValueException( "Tracked Entity Attribute must use a generated pattern method" );
-            }
-
             int numberOfValuesLeftToGenerate = numberOfReservations;
 
             boolean isPersistable = generatedSegment.getMethod().isPersistable();
