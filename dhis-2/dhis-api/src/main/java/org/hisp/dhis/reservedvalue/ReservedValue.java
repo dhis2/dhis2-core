@@ -73,7 +73,7 @@ public class ReservedValue
 
     private Date expiryDate;
 
-    private transient long trackedentityattributeId;
+    private transient long trackedEntityAttributeId;
 
     public int getId()
     {
