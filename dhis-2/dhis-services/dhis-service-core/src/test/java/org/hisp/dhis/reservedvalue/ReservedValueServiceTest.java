@@ -246,19 +246,6 @@ public class ReservedValueServiceTest
                 .size() );
     }
 
-    @Test
-    public void shouldThrowAttributeNotGenerated()
-        throws TextPatternParser.TextPatternParsingException
-    {
-        TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( Objects.TRACKEDENTITYATTRIBUTE,
-            ownerUid, randomText );
-        trackedEntityAttribute.setGenerated( false );
-
-        assertThrows( ReserveValueException.class, () -> reservedValueService
-            .reserve( trackedEntityAttribute, 2,
-                new HashMap<>(), futureDate ) );
-    }
-
     private static TrackedEntityAttribute createTrackedEntityAttribute( Objects objects, String uid, String pattern )
         throws TextPatternParser.TextPatternParsingException
     {
