@@ -132,10 +132,7 @@ public class DefaultReservedValueService
 
                 while ( attemptsLeft-- > 0 && numberOfValuesLeftToGenerate > 0 )
                 {
-                    if ( System.currentTimeMillis() - startTime >= RESERVED_VALUE_GENERATION_TIMEOUT )
-                    {
-                        throw new TimeoutException( "Generation and reservation of values took too long" );
-                    }
+                    checkTimeout( startTime );
 
                     generatedValues
                         .addAll( valueGeneratorService.generateValues( generatedSegment, textPattern, key,
@@ -175,6 +172,15 @@ public class DefaultReservedValueService
         }
 
         return resultList;
+    }
+
+    private void checkTimeout( long startTime )
+        throws TimeoutException
+    {
+        if ( System.currentTimeMillis() - startTime >= RESERVED_VALUE_GENERATION_TIMEOUT )
+        {
+            throw new TimeoutException( "Generation and reservation of values took too long" );
+        }
     }
 
     private List<String> getResolvedPatterns( Map<String, String> values, TextPattern textPattern,
