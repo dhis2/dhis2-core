@@ -29,6 +29,9 @@ package org.hisp.dhis.program.notification;
 
 import java.util.Date;
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
+
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -78,6 +81,8 @@ public interface ProgramNotificationService
      */
     void sendProgramRuleTriggeredNotifications( long pnt, long programInstance );
 
+    void sendProgramRuleTriggeredNotifications( long pnt, ProgramInstance programInstance );
+
     /**
      * Send completion notifications for the ProgramStageInstance triggered by
      * ProgramRule evaluation. {@link ProgramNotificationTemplate templates},
@@ -87,6 +92,8 @@ public interface ProgramNotificationService
      * @param programStageInstance the ProgramStageInstance id.
      */
     void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance );
+
+    void sendProgramRuleTriggeredEventNotifications( long pnt, ProgramStageInstance programStageInstance );
 
     /**
      * Send completion notifications for the ProgramInstance. If the Program is
