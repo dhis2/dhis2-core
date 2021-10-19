@@ -45,6 +45,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
@@ -190,17 +191,50 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testUpdateObjectProperty()
     {
-        String id = getCurrentUser().getUid();
-        assertEquals( "admin", GET( "/users/{id}", id )
-            .content().as( JsonUser.class ).getFirstName() );
+        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'userCredentials':{'username':'peter47'}}";
+        String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
 
-        assertWebMessage( "OK", 200, "OK", null,
-            PATCH( "/users/" + id + "/firstName",
-                Body( "{'firstName': 'Berny'}" ), ContentType( MediaType.APPLICATION_JSON ) )
-                    .content( HttpStatus.OK ) );
+        JsonResponse roles = GET( "/userRoles?fields=id" ).content();
+        String roleId = roles.getArray( "userRoles" ).getObject( 0 ).getString( "id" ).string();
+        assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + peterUserId ) );
 
-        assertEquals( "Berny", GET( "/users/{id}", id )
-            .content().as( JsonUser.class ).getFirstName() );
+        JsonUser oldPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
+        assertEquals( "Peter", oldPeter.getFirstName() );
+        assertEquals( 1, oldPeter.getUserCredentials().getArray( "userRoles" ).size() );
+
+        assertStatus( HttpStatus.NO_CONTENT,
+            PATCH( "/users/" + peterUserId + "/firstName",
+                Body( "{'firstName': 'Fry'}" ), ContentType( MediaType.APPLICATION_JSON ) ) );
+
+        JsonUser newPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
+        assertEquals( "Fry", newPeter.getFirstName() );
+        // are user roles still there?
+        assertEquals( 1, newPeter.getUserCredentials().getArray( "userRoles" ).size() );
+    }
+
+    @Test
+    public void testUpdateObject()
+    {
+        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'userCredentials':{'username':'peter47'}}";
+        String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
+
+        JsonResponse roles = GET( "/userRoles?fields=id" ).content();
+        String roleId = roles.getArray( "userRoles" ).getObject( 0 ).getString( "id" ).string();
+        assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + peterUserId ) );
+
+        JsonUser oldPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
+        assertEquals( "Peter", oldPeter.getFirstName() );
+        assertEquals( 1, oldPeter.getUserCredentials().getArray( "userRoles" ).size() );
+
+        assertStatus( HttpStatus.OK,
+            PUT( "/users/" + peterUserId,
+                Body( oldPeter.getString( "firstName" ).node().replaceWith( "\"Fry\"" ).getDeclaration() ),
+                ContentType( MediaType.APPLICATION_JSON ) ) );
+
+        JsonUser newPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
+        assertEquals( "Fry", newPeter.getFirstName() );
+        // are user roles still there?
+        assertEquals( 1, newPeter.getUserCredentials().getArray( "userRoles" ).size() );
     }
 
     @Test

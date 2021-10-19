@@ -96,8 +96,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -269,9 +267,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
-    @ResponseBody
-    public WebMessage updateObjectProperty(
+    @PatchMapping( "/{uid}/{property}" )
+    @ResponseStatus( value = HttpStatus.NO_CONTENT )
+    public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request )
@@ -283,18 +281,20 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( entities.isEmpty() )
         {
-            return notFound( getEntityClass(), pvUid );
+            throw new WebMessageException( notFound( getEntityClass(), pvUid ) );
         }
 
         if ( !getSchema().haveProperty( pvProperty ) )
         {
-            return notFound( "Property " + pvProperty + " does not exist on " + getEntityName() );
+            throw new WebMessageException(
+                notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
         }
 
         Property property = getSchema().getProperty( pvProperty );
         T persistedObject = entities.get( 0 );
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), persistedObject ) )
+        User user = currentUserService.getCurrentUser();
+        if ( !aclService.canUpdate( user, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -308,28 +308,30 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( object == null )
         {
-            return badRequest( "Unknown payload format." );
+            throw new WebMessageException( badRequest( "Unknown payload format." ) );
         }
 
-        return patchObject( pvUid, persistedObject, persisted -> {
-            Object value = property.getGetterMethod().invoke( object );
-            property.getSetterMethod().invoke( persistedObject, value );
-            return persisted;
-        } );
+        prePatchEntity( persistedObject );
+        Object value = property.getGetterMethod().invoke( object );
+        property.getSetterMethod().invoke( persistedObject, value );
+
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( persistedObject );
+
+        ImportReport importReport = importService.importMetadata( params );
+        if ( importReport.getStatus() != Status.OK )
+        {
+            throw new WebMessageException( objectReport( importReport ) );
+        }
+
+        postPatchEntity( persistedObject );
     }
 
     // --------------------------------------------------------------------------
     // PATCH
     // --------------------------------------------------------------------------
-
-    /**
-     * The means by which the actual patch is applied
-     */
-    interface PatchProcedure<T extends IdentifiableObject>
-    {
-        T patch( T persistedObject )
-            throws Exception;
-    }
 
     /**
      * Adds support for HTTP Patch using JSON Patch (RFC 6902), updated object
@@ -366,18 +368,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        return patchObject( pvUid, persistedObject, persisted -> jsonPatchManager
-            .apply( jsonMapper.readValue( request.getInputStream(), JsonPatch.class ), persisted ) );
-    }
-
-    private WebMessage patchObject( String pvUid, T persistedObject, PatchProcedure<T> procedure )
-        throws Exception
-    {
         manager.resetNonOwnerProperties( persistedObject );
 
         prePatchEntity( persistedObject );
 
-        final T patchedObject = procedure.patch( persistedObject );
+        final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+        final T patchedObject = jsonPatchManager.apply( patch, persistedObject );
 
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
@@ -396,7 +392,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
 
-        params.setUser( currentUserService.getCurrentUser() )
+        params.setUser( user )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( patchedObject );
 

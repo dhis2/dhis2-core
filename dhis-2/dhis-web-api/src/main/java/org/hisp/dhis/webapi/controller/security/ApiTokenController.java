@@ -110,7 +110,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     }
 
     @Override
-    public WebMessage updateObjectProperty( String pvUid, String pvProperty, Map<String, String> rpParameters,
+    public void updateObjectProperty( String pvUid, String pvProperty, Map<String, String> rpParameters,
         HttpServletRequest request )
     {
         throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
