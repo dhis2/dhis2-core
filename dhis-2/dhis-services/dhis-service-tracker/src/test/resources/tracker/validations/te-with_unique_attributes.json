@@ -2,16 +2,11 @@
   "trackedEntities": [
     {
       "trackedEntityType": "bPJ0FMtcnEh",
-      "trackedEntity": "NCc1rCEOKaY",
+      "trackedEntity": "bPJ0FMtcnER",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonA",
-          "storedBy": "admin"
-        },
-        {
-          "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
+          "value": "uniqueName",
           "storedBy": "admin"
         }
       ],
@@ -19,17 +14,12 @@
       "inactive": false
     },
     {
-      "trackedEntityType": "ERROR---bPJ0FMtcnEh---ERROR",
-      "trackedEntity": "PB9VMezGkwA",
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "trackedEntity": "bPJ0FMtcnEL",
       "attributes": [
         {
           "attribute": "fmBIpOStKkF",
-          "value": "PersonB",
-          "storedBy": "admin"
-        },
-        {
-          "attribute": "sTJvSLN7Kcb",
-          "value": "AddressA",
+          "value": "uniqueName",
           "storedBy": "admin"
         }
       ],
