@@ -35,7 +35,7 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TeiDataBuilder
+public class TeiDataBuilder implements TrackerImporterDataBuilder
 {
     private JsonObjectBuilder jsonObjectBuilder;
 
@@ -68,14 +68,23 @@ public class TeiDataBuilder
     public TeiDataBuilder addEnrollment( EnrollmentDataBuilder enrollmentDataBuilder )
     {
         jsonObjectBuilder.addOrAppendToArray( "enrollments",
-            enrollmentDataBuilder.build().getAsJsonArray( "enrollments" ).get(
-                0 ).getAsJsonObject() );
+            enrollmentDataBuilder.single());
         return this;
     }
 
     public TeiDataBuilder addEnrollment( String programId, String ouId )
     {
         return addEnrollment( new EnrollmentDataBuilder().setProgram( programId ).setOu( ouId ) );
+    }
+
+    public TeiDataBuilder addAttribute( String attributeId, String value )
+    {
+        this.jsonObjectBuilder.addOrAppendToArray( "attributes", new JsonObjectBuilder()
+            .addProperty( "attribute", attributeId )
+            .addProperty( "value", value )
+            .build() );
+
+        return this;
     }
 
     public TeiDataBuilder addRelationship( RelationshipDataBuilder builder )
@@ -85,32 +94,41 @@ public class TeiDataBuilder
         return this;
     }
 
-    public JsonObject build( String trackedEntityType, String ou )
+    public JsonObject array( String trackedEntityType, String ou )
     {
         this.setOu( ou ).setTeiType( trackedEntityType );
-        return build();
+        return array();
     }
 
     public JsonObject buildWithEnrollment( String ou, String program )
     {
         this.setOu( ou ).addEnrollment( program, ou );
 
-        return build();
+        return array();
     }
 
     public JsonObject buildWithEnrollment( String trackedEntityType, String ou, String program )
     {
         this.setOu( ou ).setTeiType( trackedEntityType ).addEnrollment( program, ou );
 
-        return build();
+        return array();
     }
 
+    /**
+     * Builds a tei with enrollment and event
+     *
+     * @param trackedEntityType
+     * @param ou
+     * @param program
+     * @param programStage
+     * @return
+     */
     public JsonObject buildWithEnrollmentAndEvent( String trackedEntityType, String ou, String program, String programStage )
     {
         this.setOu( ou ).setTeiType( trackedEntityType ).addEnrollment( new EnrollmentDataBuilder()
             .setProgram( program ).setOu( ou ).addEvent( programStage, ou ) );
 
-        return build();
+        return array();
     }
 
     public JsonObject buildWithEnrollmentAndEvent( String trackedEntityType, String ou, String program, String programStage,
@@ -120,12 +138,18 @@ public class TeiDataBuilder
             .setProgram( program ).setOu( ou )
             .addEvent( new EventDataBuilder().setProgramStage( programStage ).setStatus( eventStatus ).setOu( ou ) ) );
 
-        return build();
+        return array();
     }
 
-    public JsonObject build()
+    @Override
+    public JsonObject array()
     {
         return jsonObjectBuilder.wrapIntoArray( "trackedEntities" );
     }
 
+    @Override
+    public JsonObject single()
+    {
+        return jsonObjectBuilder.build();
+    }
 }

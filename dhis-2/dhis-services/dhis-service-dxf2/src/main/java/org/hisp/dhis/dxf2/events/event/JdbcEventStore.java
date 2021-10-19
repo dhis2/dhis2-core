@@ -270,14 +270,7 @@ public class JdbcEventStore implements EventStore
         "eventdatavalues" );            // 22
     // @formatter:on
 
-    private final static String INSERT_EVENT_SQL = "insert into programstageinstance (" +
-        String.join( ",", INSERT_COLUMNS ) + ") " +
-        "values ( nextval('programstageinstance_sequence'), " +
-        INSERT_COLUMNS.stream()
-            .skip( 1L )
-            .map( column -> "?" )
-            .collect( Collectors.joining( "," ) )
-        + ")";
+    private final static String INSERT_EVENT_SQL;
 
     private final static List<String> UPDATE_COLUMNS = ImmutableList.of(
     // @formatter:off
@@ -303,12 +296,7 @@ public class JdbcEventStore implements EventStore
         UID.getColumnName() );          // 20
     // @formatter:on
 
-    private final static String UPDATE_EVENT_SQL = "update programstageinstance set " +
-        UPDATE_COLUMNS.stream()
-            .map( column -> column + " = ?" )
-            .limit( UPDATE_COLUMNS.size() - 1 )
-            .collect( Collectors.joining( "," ) )
-        + " where uid = ?;";
+    private final static String UPDATE_EVENT_SQL;
 
     /**
      * Updates Tracked Entity Instance after an event update. In order to
@@ -320,6 +308,25 @@ public class JdbcEventStore implements EventStore
         + "update trackedentityinstance set lastupdated = %s, lastupdatedby = %s where uid in (%s)";
 
     private static final String NULL = "null";
+
+    static
+    {
+        INSERT_EVENT_SQL = "insert into programstageinstance (" +
+            String.join( ",", INSERT_COLUMNS ) + ") " +
+            "values ( nextval('programstageinstance_sequence'), " +
+            INSERT_COLUMNS.stream()
+                .skip( 1L )
+                .map( column -> "?" )
+                .collect( Collectors.joining( "," ) )
+            + ")";
+
+        UPDATE_EVENT_SQL = "update programstageinstance set " +
+            UPDATE_COLUMNS.stream()
+                .map( column -> column + " = ?" )
+                .limit( UPDATE_COLUMNS.size() - 1 )
+                .collect( Collectors.joining( "," ) )
+            + " where uid = ?;";
+    }
 
     // -------------------------------------------------------------------------
     // Dependencies

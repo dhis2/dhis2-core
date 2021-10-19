@@ -34,7 +34,7 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipDataBuilder
+public class RelationshipDataBuilder implements TrackerImporterDataBuilder
 {
     private JsonObjectBuilder jsonBuilder;
 
@@ -106,8 +106,15 @@ public class RelationshipDataBuilder
         return jsonBuilder.build();
     }
 
-    public JsonObject wrapToArray()
+    @Override
+    public JsonObject array()
     {
         return jsonBuilder.wrapIntoArray( "relationships" );
+    }
+
+    @Override
+    public JsonObject single()
+    {
+        return jsonBuilder.build();
     }
 }

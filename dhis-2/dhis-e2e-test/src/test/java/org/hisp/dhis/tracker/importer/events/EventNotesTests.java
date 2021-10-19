@@ -74,7 +74,8 @@ public class EventNotesTests
             .body( "stats.updated", equalTo( 1 ) );
 
         trackerActions.getEvent( eventId + "?fields=notes" )
-            .validate().statusCode( 200 ).body( "notes", hasSize( 2 ) )
+            .validate().statusCode( 200 )
+            .body( "notes", hasSize( 2 ) )
             .body( "notes.storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
@@ -109,7 +110,7 @@ public class EventNotesTests
             .setProgram( Constants.EVENT_PROGRAM_ID )
             .setProgramStage( Constants.EVENT_PROGRAM_STAGE_ID )
             .addNote( DataGenerator.randomString() )
-            .build();
+            .array();
         return ob;
     }
 
