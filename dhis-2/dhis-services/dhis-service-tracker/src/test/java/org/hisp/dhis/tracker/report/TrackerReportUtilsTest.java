@@ -25,31 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.tracker.report;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
+
+import java.text.DateFormat;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.junit.Before;
+import org.junit.Test;
 
-@Mapper( uses = { DebugMapper.class, TrackedEntityTypeAttributeMapper.class } )
-public interface TrackedEntityTypeMapper
-    extends PreheatMapper<TrackedEntityType>
+public class TrackerReportUtilsTest
 {
-    TrackedEntityTypeMapper INSTANCE = Mappers.getMapper( TrackedEntityTypeMapper.class );
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "featureType" )
-    @Mapping( target = "sharing" )
-    @Mapping( target = "trackedEntityTypeAttributes" )
-    @Mapping( target = "allowAuditLog" )
-    TrackedEntityType map( TrackedEntityType trackedEntityType );
+    private TrackerBundle bundle;
 
-    List<TrackedEntityTypeAttribute> map( List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes );
+    @Before
+    public void setUp()
+    {
+        bundle = TrackerBundle.builder().build();
+    }
+
+    @Test
+    public void buildArgumentListShouldTurnInstantIntoArgument()
+    {
+        final Instant now = Instant.now();
+        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
+
+        assertThat( args.size(), is( 1 ) );
+        assertThat( args.get( 0 ), is( DateFormat.getInstance().format( Date.from( now ) ) ) );
+    }
+
+    @Test
+    public void buildArgumentListShouldTurnDateIntoArgument()
+    {
+        final Date now = Date.from( Instant.now() );
+        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
+
+        assertThat( args.size(), is( 1 ) );
+        assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
+    }
+
+    @Test
+    public void buildArgumentListShouldTurnStringsIntoArguments()
+    {
+        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( "foo", "faa" ) );
+
+        assertThat( args, contains( "foo", "faa" ) );
+    }
 }
