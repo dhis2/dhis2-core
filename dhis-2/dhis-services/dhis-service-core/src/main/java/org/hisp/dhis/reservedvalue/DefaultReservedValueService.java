@@ -121,16 +121,16 @@ public class DefaultReservedValueService
         {
             checkIsGenerated( trackedEntityAttribute );
 
-            List<String> generatedValues = new ArrayList<>();
-
             int numberOfValuesLeftToGenerate = numberOfReservations;
 
             boolean isPersistable = generatedSegment.getMethod().isPersistable();
 
-            reservedValue.setTrackedentityattributeId( trackedEntityAttribute.getId() );
+            reservedValue.setTrackedEntityAttributeId( trackedEntityAttribute.getId() );
 
             try
             {
+                List<String> generatedValues = new ArrayList<>();
+
                 while ( attemptsLeft-- > 0 && numberOfValuesLeftToGenerate > 0 )
                 {
                     checkTimeout( startTime );
