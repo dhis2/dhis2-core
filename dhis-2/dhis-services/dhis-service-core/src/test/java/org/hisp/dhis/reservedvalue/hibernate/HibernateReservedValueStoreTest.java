@@ -233,7 +233,7 @@ public class HibernateReservedValueStoreTest
         trackedEntityAttributeValueStore.save( teav );
 
         ReservedValue rv = reservedValue.value( prog001 ).build();
-        rv.setTrackedentityattributeId( teav.getAttribute().getId() );
+        rv.setTrackedEntityAttributeId( teav.getAttribute().getId() );
 
         assertEquals( 1, trackedEntityAttributeValueStore.getAll().size() );
 
