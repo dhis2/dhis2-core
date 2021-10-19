@@ -858,6 +858,9 @@ public abstract class AbstractEventService implements EventService
         case CAPTURE:
             organisationUnits = getCaptureOrgUnits( user );
             break;
+        case SELECTED:
+            organisationUnits = getSelectedOrgUnits( params );
+            break;
         default:
             organisationUnits = getAccessibleOrgUnits( params, user );
             break;
@@ -889,6 +892,16 @@ public abstract class AbstractEventService implements EventService
             .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
     }
 
+    private List<OrganisationUnit> getSelectedOrgUnits( EventSearchParams params )
+    {
+        if ( params.getOrgUnit() == null )
+        {
+            throw new IllegalQueryException( "Organisation unit is required to use SELECTED scope. " );
+        }
+
+        return Collections.singletonList( params.getOrgUnit() );
+    }
+
     private List<OrganisationUnit> getDescendantOrgUnits( EventSearchParams params )
     {
         if ( params.getOrgUnit() == null )
@@ -917,26 +930,15 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
         }
 
-        Set<OrganisationUnit> orgUnits;
+        Set<OrganisationUnit> orgUnits = user.getOrganisationUnits();
 
-        if ( params.getProgram() == null )
+        if ( params.getProgram() != null )
         {
-            orgUnits = user.getOrganisationUnits();
-        }
-        else
-        {
-            if ( params.getProgram().isWithoutRegistration() )
-            {
-                orgUnits = user.getDataViewOrganisationUnitsWithFallback();
-            }
-            else
-            {
-                orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+            orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
 
-                if ( params.getProgram().isClosed() )
-                {
-                    orgUnits = user.getOrganisationUnits();
-                }
+            if ( params.getProgram().isClosed() )
+            {
+                orgUnits = user.getOrganisationUnits();
             }
         }
 
