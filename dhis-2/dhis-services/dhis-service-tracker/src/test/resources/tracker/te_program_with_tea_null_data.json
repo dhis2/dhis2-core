@@ -37,6 +37,15 @@
           "valueType": "TEXT",
           "attribute": "TsfP85GKsU5",
           "value": "TEXT1"
+        },
+        {
+          "lastUpdated": "2020-02-20T12:09:21.852",
+          "storedBy": "admin",
+          "displayName": "Attribute_Integer",
+          "created": "2020-02-20T12:09:21.852",
+          "valueType": "INTEGER",
+          "attribute": "sYn3tkL3XKa",
+          "value": "321"
         }
       ]
     }
