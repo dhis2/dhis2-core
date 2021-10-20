@@ -51,6 +51,9 @@ public interface MessageConversationStore
     List<MessageConversation> getMessageConversations( User user, MessageConversationStatus status,
         boolean followUpOnly, boolean unreadOnly, Integer first, Integer max );
 
+    List<MessageConversation> getMessagesConversationFromSenderMatching( User user,
+        String messageText );
+
     /**
      * Returns the MessageConversations given by the supplied UIDs.
      *

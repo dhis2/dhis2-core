@@ -62,8 +62,15 @@ import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 @Slf4j
 public class SchedulerStart extends AbstractStartupRoutine
 {
-    private static final String CRON_DAILY_1AM_RANDOM_MIN = String.format( "0 0 3 %d * *",
-        ThreadLocalRandom.current().nextInt( 1, 60 + 1 ) );
+
+    // Execute at 3-5AM every night and, use a random min/sec, so we don't have
+    // all servers in the world
+    // requesting at the same time.
+    private static final String CRON_DAILY_3AM_RANDOM_MIN_SEC = String.format( "%d %d %d ? * *",
+        ThreadLocalRandom.current().nextInt( 0, 60 + 1 ),
+        ThreadLocalRandom.current().nextInt( 0, 60 + 1 ),
+        ThreadLocalRandom.current().nextInt( 3, 5 + 1 ) );
+
     private static final String CRON_DAILY_2AM = "0 0 2 ? * *";
 
     private static final String CRON_DAILY_7AM = "0 0 7 ? * *";
@@ -72,8 +79,8 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     enum SystemJob
     {
-        SYSTEM_SOFTWARE_UPDATE( CRON_DAILY_1AM_RANDOM_MIN, "vt21671bgno", JobType.SYSTEM_SOFTWARE_UPDATE,
-            "File resource clean up" ),
+        SYSTEM_SOFTWARE_UPDATE( CRON_DAILY_3AM_RANDOM_MIN_SEC, "vt21671bgno", JobType.SYSTEM_SOFTWARE_UPDATE,
+            "Software update available notification" ),
 
         FILE_RESOURCE( CRON_DAILY_2AM, "pd6O228pqr0", FILE_RESOURCE_CLEANUP,
             "File resource clean up" ),

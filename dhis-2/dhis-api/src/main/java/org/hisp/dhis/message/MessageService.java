@@ -82,6 +82,10 @@ public interface MessageService
 
     List<MessageConversation> getMessageConversations( int first, int max );
 
+    List<MessageConversation> getMessageConversationsForUser( User user, Integer first, Integer max );
+
+    List<MessageConversation> getMessagesConversationFromSenderMatching( User sender, String messageText );
+
     List<MessageConversation> getMessageConversations( User user, Collection<String> uids );
 
     void deleteMessages( User sender );
@@ -95,4 +99,6 @@ public interface MessageService
      * @return true if user is part of the feedback recipients group.
      */
     boolean hasAccessToManageFeedbackMessages( User user );
+
+    Set<User> getFeedbackRecipients();
 }

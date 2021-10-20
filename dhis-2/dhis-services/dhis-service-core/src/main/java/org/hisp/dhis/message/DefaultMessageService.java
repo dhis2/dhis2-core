@@ -407,6 +407,20 @@ public class DefaultMessageService
 
     @Override
     @Transactional( readOnly = true )
+    public List<MessageConversation> getMessageConversationsForUser( User user, Integer first, Integer max )
+    {
+        return messageConversationStore
+            .getMessageConversations( user, null, false, false, first, max );
+    }
+
+    @Override
+    public List<MessageConversation> getMessagesConversationFromSenderMatching( User sender, String messageText )
+    {
+        return messageConversationStore.getMessagesConversationFromSenderMatching( sender, messageText );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<MessageConversation> getMessageConversations( User user, Collection<String> uid )
     {
         List<MessageConversation> conversations = messageConversationStore
@@ -452,7 +466,8 @@ public class DefaultMessageService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Set<User> getFeedbackRecipients()
+    @Override
+    public Set<User> getFeedbackRecipients()
     {
         UserGroup feedbackRecipients = configurationService.getConfiguration().getFeedbackRecipients();
 

@@ -80,6 +80,21 @@ public class HibernateMessageConversationStore
     // -------------------------------------------------------------------------
 
     @Override
+    public List<MessageConversation> getMessagesConversationFromSenderMatching( User user, String messageText )
+    {
+        getSession().enableFilter( "userMessageUser" ).setParameter( "userid", user.getId() );
+
+        String hql = "from MessageConversation mc JOIN mc.messages ms "
+            + "where ms.sender is null and ms.text like :messageText";
+
+        Query query = getQuery( hql );
+        query.setParameter( "messageText", messageText );
+
+        List list = query.list();
+        return list;
+    }
+
+    @Override
     @SuppressWarnings( "unchecked" )
     public List<MessageConversation> getMessageConversations( User user, MessageConversationStatus status,
         boolean followUpOnly, boolean unreadOnly,

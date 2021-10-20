@@ -25,50 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.system;
+package org.hisp.dhis.system;
 
-import java.util.Map;
+import junit.framework.TestCase;
 
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.system.SystemUpdateService;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-
-import com.vdurmont.semver4j.Semver;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-@Controller
-@RequestMapping
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class SystemSoftwareUpdateNotifyController
+public class SystemUpdateAlertJobTest extends TestCase
 {
-
-    public static final String RESOURCE_PATH = "/checkSystemUpdates";
-
-    @Autowired
-    private SystemUpdateService systemUpdateService;
-
-    @GetMapping( SystemSoftwareUpdateNotifyController.RESOURCE_PATH )
-    @ResponseBody
-    public WebMessage checkSystemUpdate()
-        throws Exception
-    {
-        Map<Semver, Map<String, String>> newerVersions = systemUpdateService.getLatestNewerThan(
-            new Semver( "2.36.1" ) );
-
-        systemUpdateService.sendMessageForEachVersion( newerVersions );
-
-        WebMessage ok = WebMessageUtils.ok();
-        ok.setResponse( new SoftwareUpdateResponse( newerVersions ) );
-        return ok;
-    }
 
 }
