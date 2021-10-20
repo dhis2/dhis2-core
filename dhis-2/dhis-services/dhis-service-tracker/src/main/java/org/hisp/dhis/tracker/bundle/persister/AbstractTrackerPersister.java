@@ -362,11 +362,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
         if ( ctx.isDelete() )
         {
-            executeDelete( ctx );
+            delete( ctx );
         }
         else
         {
-            handleSaveOrUpdate( ctx );
+            saveOrUpdate( ctx );
         }
 
         executeAudit( ctx );
@@ -374,7 +374,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         handleReservedValue( ctx.getTrackedEntityAttributeValueToStore() );
     }
 
-    private void executeDelete( TrackedEntityAttributeValueContext ctx )
+    private void delete(TrackedEntityAttributeValueContext ctx )
     {
         Session session = ctx.getSession();
         if ( ctx.isFileResource() )
@@ -386,7 +386,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         session.remove( ctx.getTrackedEntityAttributeValueToStore() );
     }
 
-    private void handleSaveOrUpdate( TrackedEntityAttributeValueContext ctx )
+    private void saveOrUpdate(TrackedEntityAttributeValueContext ctx )
     {
         Session session = ctx.getSession();
         if ( ctx.isFileResource() )
