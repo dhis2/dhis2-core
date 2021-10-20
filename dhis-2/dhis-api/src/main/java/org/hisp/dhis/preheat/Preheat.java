@@ -337,7 +337,11 @@ public class Preheat
         {
             if ( !isDefault( object ) )
             {
-                put( byKey, identifier, identifier.getIdentifier( object ), object );
+                String key = identifier.getIdentifier( object );
+                if ( !StringUtils.isEmpty( key ) )
+                {
+                    put( byKey, identifier, key, object );
+                }
             }
         }
         return this;
