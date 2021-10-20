@@ -283,7 +283,8 @@ public class Preheat
         getOrCreate( identifier, klass ).put( key, object );
         if ( object instanceof User )
         {
-            getOrCreate( identifier, UserCredentials.class ).put( key, ((User) object).getUserCredentials() );
+            getOrCreate( identifier, UserCredentials.class ).putIfAbsent( key,
+                ((User) object).getUserCredentials() );
         }
         return this;
     }
