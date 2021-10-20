@@ -60,8 +60,6 @@ class TrackedEntityAttributeValueContext
 
     private Attribute attributeFromPayload;
 
-    private TrackedEntityAttributeValue trackedEntityAttributeValueToStore;
-
     TrackedEntityAttributeValueContext( Session session, TrackerPreheat trackerPreheat,
         TrackedEntityInstance trackedEntityInstance )
     {
@@ -100,39 +98,11 @@ class TrackedEntityAttributeValueContext
         return Objects.isNull( getTrackedEntityAttributeValueFromMap() );
     }
 
-    void createTrackedEntityAttributeValue()
-    {
-        TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
-        trackedEntityAttributeValue.setAttribute( getTrackedEntityAttributeFromPreheat() );
-        trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
-        trackedEntityAttributeValueToStore = trackedEntityAttributeValue;
-    }
-
-    void setTrackedEntityAttributeValueFromMap()
-    {
-        trackedEntityAttributeValueToStore = getTrackedEntityAttributeValueFromMap();
-    }
-
-    void setValueAndStoredBy()
-    {
-        trackedEntityAttributeValueToStore
-            .setValue( attributeFromPayload.getValue() )
-            .setStoredBy( attributeFromPayload.getStoredBy() );
-    }
-
     boolean isDelete()
     {
         // We cannot get the value from attributeToStore because it uses
         // encryption logic, so we need to use the one from payload
         return StringUtils.isEmpty( getAttributeFromPayload().getValue() );
-    }
-
-    void addTrackedEntityAttributeValueToTeiIfNecessary()
-    {
-        if ( isNewAttribute() )
-        {
-            trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValueToStore );
-        }
     }
 
     boolean isFileResource()

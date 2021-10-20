@@ -349,32 +349,31 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             return;
         }
 
-        if ( ctx.isNewAttribute() )
-        {
-            ctx.createTrackedEntityAttributeValue();
-        }
-        else
-        {
-            ctx.setTrackedEntityAttributeValueFromMap();
-        }
+        TrackedEntityAttributeValue trackedEntityAttributeValue = Optional
+            .ofNullable( ctx.getTrackedEntityAttributeValueFromMap() )
+            .orElseGet( () -> new TrackedEntityAttributeValue()
+                .setAttribute( ctx.getTrackedEntityAttributeFromPreheat() )
+                .setEntityInstance( ctx.getTrackedEntityInstance() ) );
 
-        ctx.setValueAndStoredBy();
+        trackedEntityAttributeValue.setStoredBy( ctx.getAttributeFromPayload().getStoredBy() );
+        trackedEntityAttributeValue.setValue( ctx.getAttributeFromPayload().getStoredBy() );
 
         if ( ctx.isDelete() )
         {
-            delete( ctx );
+            delete( ctx, trackedEntityAttributeValue );
         }
         else
         {
-            saveOrUpdate( ctx );
+            saveOrUpdate( ctx, trackedEntityAttributeValue );
         }
 
-        executeAudit( ctx );
+        executeAudit( ctx, trackedEntityAttributeValue );
 
-        handleReservedValue( ctx.getTrackedEntityAttributeValueToStore() );
+        handleReservedValue( trackedEntityAttributeValue );
     }
 
-    private void delete(TrackedEntityAttributeValueContext ctx )
+    private void delete( TrackedEntityAttributeValueContext ctx,
+        TrackedEntityAttributeValue trackedEntityAttributeValue )
     {
         Session session = ctx.getSession();
         if ( ctx.isFileResource() )
@@ -383,30 +382,35 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 ctx.getTrackedEntityAttributeValueFromMap().getValue() );
         }
 
-        session.remove( ctx.getTrackedEntityAttributeValueToStore() );
+        session.remove( trackedEntityAttributeValue );
     }
 
-    private void saveOrUpdate(TrackedEntityAttributeValueContext ctx )
+    private void saveOrUpdate( TrackedEntityAttributeValueContext ctx,
+        TrackedEntityAttributeValue trackedEntityAttributeValue )
     {
         Session session = ctx.getSession();
         if ( ctx.isFileResource() )
         {
             assignFileResource( session, ctx.getTrackerPreheat(),
-                ctx.getTrackedEntityAttributeValueToStore().getValue() );
+                trackedEntityAttributeValue.getValue() );
         }
 
-        saveOrUpdate( session, ctx.isNewAttribute(), ctx.getTrackedEntityAttributeValueToStore() );
+        saveOrUpdate( session, ctx.isNewAttribute(), trackedEntityAttributeValue );
 
         // In case it's a newly created attribute we'll add it back to TEI,
         // so it can end up in preheat
-        ctx.addTrackedEntityAttributeValueToTeiIfNecessary();
+        if ( ctx.isNewAttribute() )
+        {
+            ctx.getTrackedEntityInstance().getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
+        }
     }
 
-    private void executeAudit( TrackedEntityAttributeValueContext ctx )
+    private void executeAudit( TrackedEntityAttributeValueContext ctx,
+        TrackedEntityAttributeValue trackedEntityAttributeValue )
     {
         logTrackedEntityAttributeValueHistory(
             ctx.getTrackerPreheat().getUsername(),
-            ctx.getTrackedEntityAttributeValueToStore(),
+            trackedEntityAttributeValue,
             ctx.getTrackedEntityInstance(),
             ctx.getAuditType() );
     }
