@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.gist;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
@@ -84,6 +85,12 @@ final class GistLogic
     static boolean isNonNestedPath( String path )
     {
         return path.indexOf( '.' ) < 0;
+    }
+
+    static boolean isAttributePath( String path )
+    {
+        return path.length() == 11
+            && CodeGenerator.isValidUid( path );
     }
 
     static String parentPath( String path )

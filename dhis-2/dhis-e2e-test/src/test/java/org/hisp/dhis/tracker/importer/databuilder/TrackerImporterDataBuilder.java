@@ -25,46 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+package org.hisp.dhis.tracker.importer.databuilder;
 
-import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
-import org.springframework.http.HttpStatus;
+import com.google.gson.JsonObject;
 
 /**
- * Tests the {@link AttributeController}.
- *
- * @author Jan Bernitt
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AttributeControllerTest extends DhisControllerConvenienceTest
+public interface TrackerImporterDataBuilder
 {
+    public JsonObject single();
 
-    /**
-     * Tests that each type only sets the property the type relates to
-     */
-    @Test
-    public void testObjectTypes()
-    {
-        for ( ObjectType testedType : ObjectType.values() )
-        {
-            String propertyName = testedType.getPropertyName();
-            String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" +
-                "'name':'" + testedType + "', " +
-                "'valueType':'INTEGER', " +
-                "'" + propertyName + "':true}" ) );
-            JsonObject attr = GET( "/attributes/{uid}", uid ).content();
-
-            for ( ObjectType otherType : ObjectType.values() )
-            {
-                assertEquals( testedType == otherType,
-                    attr.getBoolean( otherType.getPropertyName() ).booleanValue() );
-            }
-        }
-    }
-
+    public JsonObject array();
 }

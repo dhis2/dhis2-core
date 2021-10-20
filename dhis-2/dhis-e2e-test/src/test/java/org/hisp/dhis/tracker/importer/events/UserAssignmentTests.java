@@ -137,7 +137,7 @@ public class UserAssignmentTests
     {
         JsonObject jsonObject = new EventDataBuilder()
             .setAssignedUser( assignedUserId )
-            .build( Constants.ORG_UNIT_IDS[0], programId, programStageId );
+            .array( Constants.ORG_UNIT_IDS[0], programId, programStageId );
 
         TrackerApiResponse eventResponse = trackerActions.postAndGetJobReport( jsonObject );
 

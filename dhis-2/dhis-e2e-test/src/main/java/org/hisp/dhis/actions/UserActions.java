@@ -143,14 +143,15 @@ public class UserActions
 
     public void grantUserAccessToOrgUnit( String userId, String orgUnitId )
     {
-        JsonObject object = this.get( userId ).getBody();
+        this.grantUserAccessToOrgUnits( userId, orgUnitId, orgUnitId, orgUnitId );
+    }
 
-        JsonObject orgUnit = new JsonObject();
-        orgUnit.addProperty( "id", orgUnitId );
-
-        object.get( "organisationUnits" ).getAsJsonArray().add( orgUnit );
-        object.get( "dataViewOrganisationUnits" ).getAsJsonArray().add( orgUnit );
-        object.get( "teiSearchOrganisationUnits" ).getAsJsonArray().add( orgUnit );
+    public void grantUserAccessToOrgUnits( String userId, String captureOu, String searchOu, String dataReadOu ) {
+        JsonObject object = this.get( userId ).getBodyAsJsonBuilder()
+            .addOrAppendToArray( "organisationUnits", new JsonObjectBuilder().addProperty( "id", captureOu ).build() )
+            .addOrAppendToArray( "dataViewOrganisationUnits", new JsonObjectBuilder().addProperty( "id", dataReadOu ).build() )
+            .addOrAppendToArray( "teiSearchOrganisationUnits", new JsonObjectBuilder().addProperty( "id", searchOu ).build() )
+            .build();
 
         ApiResponse response = this.update( userId, object );
         response.validate().statusCode( 200 )
@@ -158,12 +159,31 @@ public class UserActions
     }
 
     public void grantUserSearchAccessToOrgUnit( String userId, String orgUnitId ) {
-        JsonObject object = this.get( userId ).getBody();
+        JsonObject object = this.get( userId ).getBodyAsJsonBuilder()
+            .addOrAppendToArray( "teiSearchOrganisationUnits", new JsonObjectBuilder().addProperty( "id", orgUnitId ).build() )
+            .build();
 
-        JsonObject orgUnit = new JsonObject();
-        orgUnit.addProperty( "id", orgUnitId );
+        ApiResponse response = this.update( userId, object );
 
-        object.get( "teiSearchOrganisationUnits" ).getAsJsonArray().add( orgUnit );
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "OK" ) );
+    }
+
+    public void grantUserDataViewAccessToOrgUnit( String userId, String orgUnitId ) {
+        JsonObject object = this.get( userId ).getBodyAsJsonBuilder()
+            .addOrAppendToArray( "dataViewOrganisationUnits", new JsonObjectBuilder().addProperty( "id", orgUnitId ).build() )
+            .build();
+
+        ApiResponse response = this.update( userId, object );
+
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo( "OK" ) );
+    }
+
+    public void grantUserCaptureAccessToOrgUnit( String userId, String orgUnitId ) {
+        JsonObject object = this.get( userId ).getBodyAsJsonBuilder()
+            .addOrAppendToArray( "organisationUnits", new JsonObjectBuilder().addProperty( "id", orgUnitId ).build() )
+            .build();
 
         ApiResponse response = this.update( userId, object );
 

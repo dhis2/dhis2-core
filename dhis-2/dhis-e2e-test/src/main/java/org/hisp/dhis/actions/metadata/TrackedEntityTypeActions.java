@@ -25,46 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+package org.hisp.dhis.actions.metadata;
 
-import org.hisp.dhis.attribute.Attribute.ObjectType;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
-import org.springframework.http.HttpStatus;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.utils.DataGenerator;
 
 /**
- * Tests the {@link AttributeController}.
- *
- * @author Jan Bernitt
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AttributeControllerTest extends DhisControllerConvenienceTest
+public class TrackedEntityTypeActions
+    extends RestApiActions
 {
-
-    /**
-     * Tests that each type only sets the property the type relates to
-     */
-    @Test
-    public void testObjectTypes()
+    public TrackedEntityTypeActions()
     {
-        for ( ObjectType testedType : ObjectType.values() )
-        {
-            String propertyName = testedType.getPropertyName();
-            String uid = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" +
-                "'name':'" + testedType + "', " +
-                "'valueType':'INTEGER', " +
-                "'" + propertyName + "':true}" ) );
-            JsonObject attr = GET( "/attributes/{uid}", uid ).content();
-
-            for ( ObjectType otherType : ObjectType.values() )
-            {
-                assertEquals( testedType == otherType,
-                    attr.getBoolean( otherType.getPropertyName() ).booleanValue() );
-            }
-        }
+        super( "/trackedEntityTypes" );
     }
 
+    public String create()
+    {
+        JsonObject payload = JsonObjectBuilder.jsonObject()
+            .addProperty( "name", DataGenerator.randomEntityName() )
+            .addProperty( "shortName", DataGenerator.randomEntityName() )
+            .addUserGroupAccess()
+            .build();
+
+        return this.create( payload );
+    }
+
+    public void addAttribute( String tet, String attribute, boolean mandatory )
+    {
+        JsonObject object = this.get( tet ).getBodyAsJsonBuilder()
+            .addOrAppendToArray( "trackedEntityTypeAttributes",
+                new JsonObjectBuilder()
+                    .addProperty( "mandatory", String.valueOf( mandatory ) )
+                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
+                        .addProperty( "id", attribute ) )
+                    .build() )
+            .build();
+
+        this.update( tet, object ).validateStatus( 200 );
+    }
 }
