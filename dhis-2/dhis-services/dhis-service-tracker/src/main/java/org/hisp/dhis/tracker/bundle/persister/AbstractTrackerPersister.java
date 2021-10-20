@@ -327,7 +327,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
-        // returns immediately if there's nothing to do
         if ( payloadAttributes.isEmpty() )
         {
             return;
@@ -343,7 +342,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
     private void handleTrackedEntityAttributeValue( TrackedEntityAttributeValueContext ctx )
     {
-        // No need to do anything for deletes on new attributes
         if ( ctx.isDelete() && ctx.isNewAttribute() )
         {
             return;
@@ -356,7 +354,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 .setEntityInstance( ctx.getTrackedEntityInstance() ) );
 
         trackedEntityAttributeValue.setStoredBy( ctx.getAttributeFromPayload().getStoredBy() );
-        trackedEntityAttributeValue.setValue( ctx.getAttributeFromPayload().getStoredBy() );
+        trackedEntityAttributeValue.setValue( ctx.getAttributeFromPayload().getValue() );
 
         if ( ctx.isDelete() )
         {
@@ -367,7 +365,14 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             saveOrUpdate( ctx, trackedEntityAttributeValue );
         }
 
-        executeAudit( ctx, trackedEntityAttributeValue );
+        AuditType auditType = ctx.isDelete() ? AuditType.DELETE
+            : ctx.isNewAttribute() ? AuditType.CREATE : AuditType.UPDATE;
+
+        logTrackedEntityAttributeValueHistory(
+            ctx.getTrackerPreheat().getUsername(),
+            trackedEntityAttributeValue,
+            ctx.getTrackedEntityInstance(),
+            auditType );
 
         handleReservedValue( trackedEntityAttributeValue );
     }
@@ -403,16 +408,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         {
             ctx.getTrackedEntityInstance().getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
         }
-    }
-
-    private void executeAudit( TrackedEntityAttributeValueContext ctx,
-        TrackedEntityAttributeValue trackedEntityAttributeValue )
-    {
-        logTrackedEntityAttributeValueHistory(
-            ctx.getTrackerPreheat().getUsername(),
-            trackedEntityAttributeValue,
-            ctx.getTrackedEntityInstance(),
-            ctx.getAuditType() );
     }
 
     private void handleReservedValue( TrackedEntityAttributeValue attributeValue )

@@ -38,7 +38,6 @@ import lombok.Data;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
-import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -110,9 +109,4 @@ class TrackedEntityAttributeValueContext
         return getTrackedEntityAttributeFromPreheat().getValueType() == ValueType.FILE_RESOURCE;
     }
 
-    public AuditType getAuditType()
-    {
-        return isDelete() ? AuditType.DELETE
-            : isNewAttribute() ? AuditType.CREATE : AuditType.UPDATE;
-    }
 }
