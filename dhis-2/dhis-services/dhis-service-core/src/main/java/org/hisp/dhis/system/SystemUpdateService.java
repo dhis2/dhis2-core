@@ -52,7 +52,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.hibernate.HibernateUserCredentialsStore;
-
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.http.HttpStatusCodes;
