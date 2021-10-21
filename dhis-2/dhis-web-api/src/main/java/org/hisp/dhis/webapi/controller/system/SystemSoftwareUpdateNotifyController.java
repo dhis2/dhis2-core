@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.vdurmont.semver4j.Semver;
@@ -50,7 +51,6 @@ import com.vdurmont.semver4j.Semver;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SystemSoftwareUpdateNotifyController
 {
-
     public static final String RESOURCE_PATH = "/checkSystemUpdates";
 
     @Autowired
@@ -58,11 +58,16 @@ public class SystemSoftwareUpdateNotifyController
 
     @GetMapping( SystemSoftwareUpdateNotifyController.RESOURCE_PATH )
     @ResponseBody
-    public WebMessage checkSystemUpdate()
+    public WebMessage checkSystemUpdate( @RequestParam( value = "forceVersion", required = false ) String forceVersion )
         throws Exception
     {
-        Map<Semver, Map<String, String>> newerVersions = systemUpdateService.getLatestNewerThan(
-            new Semver( "2.36.1" ) );
+        Semver currentVersion = SystemUpdateService.getCurrentVersion();
+        if ( forceVersion != null )
+        {
+            currentVersion = new Semver( forceVersion );
+        }
+
+        Map<Semver, Map<String, String>> newerVersions = SystemUpdateService.getLatestNewerThan( currentVersion );
 
         systemUpdateService.sendMessageForEachVersion( newerVersions );
 
@@ -70,5 +75,4 @@ public class SystemSoftwareUpdateNotifyController
         ok.setResponse( new SoftwareUpdateResponse( newerVersions ) );
         return ok;
     }
-
 }

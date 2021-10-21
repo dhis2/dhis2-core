@@ -29,11 +29,8 @@ package org.hisp.dhis.system;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -42,8 +39,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
-
-import com.vdurmont.semver4j.Semver;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -82,12 +77,6 @@ public class SystemUpdateAlertJob implements Job
     }
 
     @Override
-    public ErrorReport validate()
-    {
-        return Job.super.validate();
-    }
-
-    @Override
     public void execute( JobConfiguration jobConfiguration )
     {
         boolean isSoftwareUpdateAlertEnabled = systemSettingManager.getBoolSetting(
@@ -102,9 +91,7 @@ public class SystemUpdateAlertJob implements Job
 
         try
         {
-            Map<Semver, Map<String, String>> newerPatchVersions = systemUpdateService.getLatestNewerThanCurrent();
-
-            systemUpdateService.sendMessageForEachVersion( newerPatchVersions );
+            systemUpdateService.sendMessageForEachVersion( SystemUpdateService.getLatestNewerThanCurrent() );
 
             log.info( "SOMETHING SHOULD HAPPEN HERE" );
         }

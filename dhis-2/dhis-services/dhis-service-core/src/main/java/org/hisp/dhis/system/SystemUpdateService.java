@@ -31,17 +31,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.TreeMap;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.message.Message;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
@@ -55,7 +52,6 @@ import org.hisp.dhis.user.hibernate.HibernateUserCredentialsStore;
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.http.HttpStatusCodes;
-import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -82,8 +78,6 @@ public class SystemUpdateService
     public static final String FIELD_NAME_NAME = "name";
 
     public static final String FIELD_NAME_DOWNLOAD_URL = "downloadUrl";
-
-    public static final String FIELD_NAME_DESCRIPTION_URL = "descriptionUrl";
 
     public static final String FIELD_NAME_URL = "url";
 
@@ -214,11 +208,6 @@ public class SystemUpdateService
                 patchJsonObject.getAsJsonPrimitive( FIELD_NAME_RELEASE_DATE ).getAsString() );
             metadata.put( FIELD_NAME_DOWNLOAD_URL, patchJsonObject.getAsJsonPrimitive( FIELD_NAME_URL ).getAsString() );
 
-            // We need something like this to get metadata
-            // metadata.put( DESCRIPTION_URL,
-            // patchJsonObject.getAsJsonPrimitive( DESCRIPTION_URL
-            // ).getAsString() );
-
             versionsAndMetadata.put( new Semver( versionName ), metadata );
         }
 
@@ -259,9 +248,6 @@ public class SystemUpdateService
 
     private List<User> getRecipients()
     {
-        // TODO: Should we use the getFeedbackRecipients only/not or both?
-        // final Set<User> recipients = messageService.getFeedbackRecipients();
-
         List<UserCredentials> usersWithAllAuthority = hibernateUserCredentialsStore.getUsersWithAuthority( "ALL" );
 
         List<User> recipients = new ArrayList<>();
@@ -286,46 +272,11 @@ public class SystemUpdateService
         String version = messageValues.get( FIELD_NAME_VERSION );
         String releaseDate = messageValues.get( FIELD_NAME_RELEASE_DATE );
         String downloadUrl = messageValues.get( FIELD_NAME_DOWNLOAD_URL );
-        String descriptionUrl = MoreObjects.firstNonNull( messageValues.get( FIELD_NAME_DESCRIPTION_URL ), "" );
 
         return NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT + LN + LN
             + "Version: " + version + LN
             + "Release date: " + releaseDate + LN
             + "Download URL: " + downloadUrl + LN;
-        // + "Description: " + descriptionUrl + LN + LN;
-    }
-
-    private Map<String, Collection<MessageConversation>> getAllRecipientsMessages( Set<User> recipients )
-    {
-        Map<String, Collection<MessageConversation>> usersMessages = new HashMap<>();
-        for ( User recipient : recipients )
-        {
-            Collection<MessageConversation> messages = messageService.getMessageConversationsForUser( recipient, null,
-                null );
-
-            usersMessages.put( recipient.getUsername(), messages );
-        }
-
-        return usersMessages;
-    }
-
-    private boolean hasMessageAlready( Collection<MessageConversation> messageConversations, String messageToSend )
-    {
-        for ( MessageConversation messageConversation : messageConversations )
-        {
-            List<Message> messages = messageConversation.getMessages();
-            for ( Message message : messages )
-            {
-                String text = message.getText();
-                if ( messageToSend.equals( text ) )
-                {
-                    log.debug( "Message already exist; message=" + text );
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     public static Semver getCurrentVersion()

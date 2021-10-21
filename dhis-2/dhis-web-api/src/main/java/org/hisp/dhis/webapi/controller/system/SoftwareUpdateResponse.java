@@ -35,9 +35,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.vdurmont.semver4j.Semver;
 
+/**
+ * @author Morten Svanaes
+ */
 public class SoftwareUpdateResponse extends AbstractWebMessageResponse
 {
-    private Map<Semver, Map<String, String>> versionMetadata;
+    private final Map<Semver, Map<String, String>> versionMetadata;
 
     public SoftwareUpdateResponse( Map<Semver, Map<String, String>> versionMetadata )
     {
