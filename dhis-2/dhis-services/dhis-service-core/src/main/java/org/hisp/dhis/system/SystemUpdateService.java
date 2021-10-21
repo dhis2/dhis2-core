@@ -73,7 +73,19 @@ public class SystemUpdateService
 
     public static final String NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT = "System update available";
 
-    private static final int MAX_RECIPIENTS = 100;
+    private static final int MAX_NOTIFING_RECIPIENTS = 100;
+
+    public static final String FIELD_NAME_VERSION = "version";
+
+    public static final String FIELD_NAME_RELEASE_DATE = "releaseDate";
+
+    public static final String FIELD_NAME_NAME = "name";
+
+    public static final String FIELD_NAME_DOWNLOAD_URL = "downloadUrl";
+
+    public static final String FIELD_NAME_DESCRIPTION_URL = "descriptionUrl";
+
+    public static final String FIELD_NAME_URL = "url";
 
     private final HibernateUserCredentialsStore hibernateUserCredentialsStore;
 
@@ -143,7 +155,7 @@ public class SystemUpdateService
             // we need to at patch version to the string, so we can parse it as
             // a valid SemVer
             Semver semver = new Semver(
-                versionElement.getAsJsonObject().getAsJsonPrimitive( "name" ).getAsString() + ".0" );
+                versionElement.getAsJsonObject().getAsJsonPrimitive( FIELD_NAME_NAME ).getAsString() + ".0" );
 
             // Skip other major/minor versions, we are only interested in the
             // patch versions on the current installed.
@@ -168,7 +180,7 @@ public class SystemUpdateService
 
             for ( JsonElement patchElement : versionElement.getAsJsonObject().getAsJsonArray( "patchVersions" ) )
             {
-                int patchVersion = patchElement.getAsJsonObject().getAsJsonPrimitive( "version" ).getAsInt();
+                int patchVersion = patchElement.getAsJsonObject().getAsJsonPrimitive( FIELD_NAME_VERSION ).getAsInt();
 
                 // If new patch version is greater than current patch version,
                 // add it to the list of alerts we want to send
@@ -193,17 +205,18 @@ public class SystemUpdateService
         {
             JsonObject patchJsonObject = newerPatchVersion.getAsJsonObject();
 
-            String versionName = patchJsonObject.getAsJsonPrimitive( "name" ).getAsString();
+            String versionName = patchJsonObject.getAsJsonPrimitive( FIELD_NAME_NAME ).getAsString();
             log.info( "Found a newer patch version; version=" + versionName );
 
             Map<String, String> metadata = new HashMap<>();
-            metadata.put( "version", patchJsonObject.getAsJsonPrimitive( "name" ).getAsString() );
-            metadata.put( "releaseDate", patchJsonObject.getAsJsonPrimitive( "releaseDate" ).getAsString() );
-            metadata.put( "downloadUrl", patchJsonObject.getAsJsonPrimitive( "url" ).getAsString() );
+            metadata.put( FIELD_NAME_VERSION, patchJsonObject.getAsJsonPrimitive( FIELD_NAME_NAME ).getAsString() );
+            metadata.put( FIELD_NAME_RELEASE_DATE,
+                patchJsonObject.getAsJsonPrimitive( FIELD_NAME_RELEASE_DATE ).getAsString() );
+            metadata.put( FIELD_NAME_DOWNLOAD_URL, patchJsonObject.getAsJsonPrimitive( FIELD_NAME_URL ).getAsString() );
 
             // We need something like this to get metadata
-            // metadata.put( "descriptionUrl",
-            // patchJsonObject.getAsJsonPrimitive( "descriptionUrl"
+            // metadata.put( DESCRIPTION_URL,
+            // patchJsonObject.getAsJsonPrimitive( DESCRIPTION_URL
             // ).getAsString() );
 
             versionsAndMetadata.put( new Semver( versionName ), metadata );
@@ -246,6 +259,7 @@ public class SystemUpdateService
 
     private List<User> getRecipients()
     {
+        // TODO: Should we use the getFeedbackRecipients only/not or both?
         // final Set<User> recipients = messageService.getFeedbackRecipients();
 
         List<UserCredentials> usersWithAllAuthority = hibernateUserCredentialsStore.getUsersWithAuthority( "ALL" );
@@ -257,11 +271,11 @@ public class SystemUpdateService
             recipients.add( userByUsername );
         }
 
-        if ( recipients.size() > MAX_RECIPIENTS )
+        if ( recipients.size() > MAX_NOTIFING_RECIPIENTS )
         {
             log.warn( "There is more recipients than the max allowed, limiting recipients list to max allowed size: "
-                + MAX_RECIPIENTS );
-            recipients = recipients.subList( 0, MAX_RECIPIENTS - 1 );
+                + MAX_NOTIFING_RECIPIENTS );
+            recipients = recipients.subList( 0, MAX_NOTIFING_RECIPIENTS - 1 );
         }
 
         return recipients;
@@ -269,10 +283,10 @@ public class SystemUpdateService
 
     private String buildMessageText( Map<String, String> messageValues )
     {
-        String version = messageValues.get( "version" );
-        String releaseDate = messageValues.get( "releaseDate" );
-        String downloadUrl = messageValues.get( "downloadUrl" );
-        String descriptionUrl = MoreObjects.firstNonNull( messageValues.get( "descriptionUrl" ), "" );
+        String version = messageValues.get( FIELD_NAME_VERSION );
+        String releaseDate = messageValues.get( FIELD_NAME_RELEASE_DATE );
+        String downloadUrl = messageValues.get( FIELD_NAME_DOWNLOAD_URL );
+        String descriptionUrl = MoreObjects.firstNonNull( messageValues.get( FIELD_NAME_DESCRIPTION_URL ), "" );
 
         return NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT + LN + LN
             + "Version: " + version + LN
@@ -328,5 +342,4 @@ public class SystemUpdateService
 
         return new Semver( buildVersion );
     }
-
 }
