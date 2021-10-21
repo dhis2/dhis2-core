@@ -67,8 +67,8 @@ public class SchedulerStart extends AbstractStartupRoutine
     // all servers in the world
     // requesting at the same time.
     private static final String CRON_DAILY_3AM_RANDOM_MIN_SEC = String.format( "%d %d %d ? * *",
-        ThreadLocalRandom.current().nextInt( 0, 60 + 1 ),
-        ThreadLocalRandom.current().nextInt( 0, 60 + 1 ),
+        ThreadLocalRandom.current().nextInt( 59 + 1 ),
+        ThreadLocalRandom.current().nextInt( 59 + 1 ),
         ThreadLocalRandom.current().nextInt( 3, 5 + 1 ) );
 
     private static final String CRON_DAILY_2AM = "0 0 2 ? * *";
@@ -79,8 +79,8 @@ public class SchedulerStart extends AbstractStartupRoutine
 
     enum SystemJob
     {
-        SYSTEM_SOFTWARE_UPDATE( CRON_DAILY_3AM_RANDOM_MIN_SEC, "vt21671bgno", JobType.SYSTEM_SOFTWARE_UPDATE,
-            "Software update available notification" ),
+        SYSTEM_VERSION_UPDATE_CHECK( CRON_DAILY_3AM_RANDOM_MIN_SEC, "vt21671bgno", JobType.SYSTEM_VERSION_UPDATE_CHECK,
+            "System version update check notification" ),
 
         FILE_RESOURCE( CRON_DAILY_2AM, "pd6O228pqr0", FILE_RESOURCE_CLEANUP,
             "File resource clean up" ),
@@ -203,7 +203,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         addDefaultJob( SystemJob.ACCOUNT_EXPIRY_ALERT, jobConfigurations );
         addDefaultJob( SystemJob.DATA_SET_NOTIFICATION, jobConfigurations );
         addDefaultJob( SystemJob.REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations );
-        addDefaultJob( SystemJob.SYSTEM_SOFTWARE_UPDATE, jobConfigurations );
+        addDefaultJob( SystemJob.SYSTEM_VERSION_UPDATE_CHECK, jobConfigurations );
 
         if ( verifyNoJobExist( SystemJob.LEADER_ELECTION.name, jobConfigurations )
             && "true".equalsIgnoreCase( redisEnabled ) )

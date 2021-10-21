@@ -103,7 +103,7 @@ public enum JobType
     DISABLE_INACTIVE_USERS( true, SchedulingType.CRON,
         DisableInactiveUsersJobParameters.class, null ),
     ACCOUNT_EXPIRY_ALERT( false ),
-    SYSTEM_SOFTWARE_UPDATE( false ),
+    SYSTEM_VERSION_UPDATE_CHECK( false ),
 
     // Testing purposes
     MOCK( false, SchedulingType.CRON, MockJobParameters.class, null ),

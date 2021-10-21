@@ -406,17 +406,9 @@ public class DefaultMessageService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<MessageConversation> getMessageConversationsForUser( User user, Integer first, Integer max )
+    public List<MessageConversation> getMessagesConversationsMatchingText( User user, String messageText )
     {
-        return messageConversationStore
-            .getMessageConversations( user, null, false, false, first, max );
-    }
-
-    @Override
-    public List<MessageConversation> getMessagesConversationFromSenderMatching( User sender, String messageText )
-    {
-        return messageConversationStore.getMessagesConversationFromSenderMatching( sender, messageText );
+        return messageConversationStore.getMessagesConversationFromSenderMatching( user, messageText );
     }
 
     @Override

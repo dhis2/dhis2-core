@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.system;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.commons.util.TextUtils.LN;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +34,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.message.MessageConversation;
@@ -63,6 +62,7 @@ import com.vdurmont.semver4j.Semver;
  */
 @Slf4j
 @Service
+@AllArgsConstructor
 public class SystemUpdateService
 {
     public static final String DHIS_2_ORG_VERSIONS_JSON = "https://releases.dhis2.org/versions.json";
@@ -81,23 +81,14 @@ public class SystemUpdateService
 
     public static final String FIELD_NAME_URL = "url";
 
+    @NonNull
     private final HibernateUserCredentialsStore hibernateUserCredentialsStore;
 
+    @NonNull
     private final UserService userService;
 
+    @NonNull
     private final MessageService messageService;
-
-    public SystemUpdateService( MessageService messageService,
-        HibernateUserCredentialsStore hibernateUserCredentialsStore, UserService userService )
-    {
-        checkNotNull( userService );
-        checkNotNull( messageService );
-        checkNotNull( hibernateUserCredentialsStore );
-
-        this.userService = userService;
-        this.messageService = messageService;
-        this.hibernateUserCredentialsStore = hibernateUserCredentialsStore;
-    }
 
     public static Map<Semver, Map<String, String>> getLatestNewerThanCurrent()
         throws Exception
@@ -153,35 +144,30 @@ public class SystemUpdateService
 
             // Skip other major/minor versions, we are only interested in the
             // patch versions on the current installed.
-            if ( !Objects.equals( currentVersion.getMajor(), semver.getMajor() ) || !Objects.equals(
+            if ( Objects.equals( currentVersion.getMajor(), semver.getMajor() ) && Objects.equals(
                 currentVersion.getMinor(), semver.getMinor() ) )
             {
-                continue;
-            }
+                int latestPatchVersion = versionElement.getAsJsonObject().getAsJsonPrimitive( "latestPatchVersion" )
+                    .getAsInt();
 
-            int latestPatchVersion = versionElement.getAsJsonObject().getAsJsonPrimitive( "latestPatchVersion" )
-                .getAsInt();
-
-            // We are on current latest patch version or a greater one (should
-            // not possible, but better to be sure we don't proceed if it is)
-            if ( currentVersion.getPatch() >= latestPatchVersion )
-            {
-                // We are on latest patch version, nothing to report here, break
-                // out.
-                log.debug( "We are on latest patch release version, nothing to do here." );
-                break;
-            }
-
-            for ( JsonElement patchElement : versionElement.getAsJsonObject().getAsJsonArray( "patchVersions" ) )
-            {
-                int patchVersion = patchElement.getAsJsonObject().getAsJsonPrimitive( FIELD_NAME_VERSION ).getAsInt();
-
-                // If new patch version is greater than current patch version,
-                // add it to the list of alerts we want to send
-                if ( currentVersion.getPatch() < patchVersion )
+                if ( currentVersion.getPatch() < latestPatchVersion )
                 {
-                    log.debug( "Found a new patch version, adding it the result list; version=" + patchVersion );
-                    newerPatchVersions.add( patchElement );
+                    for ( JsonElement patchElement : versionElement.getAsJsonObject()
+                        .getAsJsonArray( "patchVersions" ) )
+                    {
+                        int patchVersion = patchElement.getAsJsonObject().getAsJsonPrimitive( FIELD_NAME_VERSION )
+                            .getAsInt();
+
+                        // If new patch version is greater than current patch
+                        // version,
+                        // add it to the list of alerts we want to send
+                        if ( currentVersion.getPatch() < patchVersion )
+                        {
+                            log.debug(
+                                "Found a new patch version, adding it the result list; version=" + patchVersion );
+                            newerPatchVersions.add( patchElement );
+                        }
+                    }
                 }
             }
         }
@@ -228,7 +214,7 @@ public class SystemUpdateService
                 // NOTE: Messages are always soft deleted, so we also search the
                 // "deleted" messages.
                 List<MessageConversation> messagesConv = messageService
-                    .getMessagesConversationFromSenderMatching( recipient, messageText );
+                    .getMessagesConversationsMatchingText( recipient, messageText );
 
                 // Only send message if there is no similar message text been
                 // sent to the user before.
@@ -273,10 +259,15 @@ public class SystemUpdateService
         String releaseDate = messageValues.get( FIELD_NAME_RELEASE_DATE );
         String downloadUrl = messageValues.get( FIELD_NAME_DOWNLOAD_URL );
 
-        return NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT + LN + LN
-            + "Version: " + version + LN
-            + "Release date: " + releaseDate + LN
-            + "Download URL: " + downloadUrl + LN;
+        return String.format(
+            "%s %n%n"
+                + "Version: %s%n"
+                + "Release data: %s%n"
+                + "Download URL: %s%n",
+            NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT,
+            version,
+            releaseDate,
+            downloadUrl );
     }
 
     public static Semver getCurrentVersion()

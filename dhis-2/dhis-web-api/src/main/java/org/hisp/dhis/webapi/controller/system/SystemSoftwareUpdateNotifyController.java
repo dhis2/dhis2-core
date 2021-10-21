@@ -51,7 +51,7 @@ import com.vdurmont.semver4j.Semver;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class SystemSoftwareUpdateNotifyController
 {
-    public static final String RESOURCE_PATH = "/checkSystemUpdates";
+    public static final String RESOURCE_PATH = "/systemUpdates";
 
     @Autowired
     private SystemUpdateService systemUpdateService;

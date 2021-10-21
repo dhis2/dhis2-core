@@ -82,9 +82,7 @@ public interface MessageService
 
     List<MessageConversation> getMessageConversations( int first, int max );
 
-    List<MessageConversation> getMessageConversationsForUser( User user, Integer first, Integer max );
-
-    List<MessageConversation> getMessagesConversationFromSenderMatching( User sender, String messageText );
+    List<MessageConversation> getMessagesConversationsMatchingText( User sender, String messageText );
 
     List<MessageConversation> getMessageConversations( User user, Collection<String> uids );
 

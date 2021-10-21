@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.system;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.message.MessageService;
@@ -45,35 +45,25 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component( "systemUpdateAlertJob" )
+@AllArgsConstructor
 public class SystemUpdateAlertJob implements Job
 {
+    @NonNull
     private final SystemSettingManager systemSettingManager;
 
+    @NonNull
     private final SystemUpdateService systemUpdateService;
 
+    @NonNull
     private final Notifier notifier;
 
+    @NonNull
     private final MessageService messageService;
-
-    public SystemUpdateAlertJob( SystemSettingManager systemSettingManager, SystemUpdateService systemUpdateService,
-        Notifier notifier,
-        MessageService messageService )
-    {
-        checkNotNull( systemSettingManager );
-        checkNotNull( systemUpdateService );
-        checkNotNull( notifier );
-        checkNotNull( messageService );
-
-        this.systemSettingManager = systemSettingManager;
-        this.systemUpdateService = systemUpdateService;
-        this.notifier = notifier;
-        this.messageService = messageService;
-    }
 
     @Override
     public JobType getJobType()
     {
-        return JobType.SYSTEM_SOFTWARE_UPDATE;
+        return JobType.SYSTEM_VERSION_UPDATE_CHECK;
     }
 
     @Override
@@ -92,8 +82,6 @@ public class SystemUpdateAlertJob implements Job
         try
         {
             systemUpdateService.sendMessageForEachVersion( SystemUpdateService.getLatestNewerThanCurrent() );
-
-            log.info( "SOMETHING SHOULD HAPPEN HERE" );
         }
         catch ( Exception e )
         {
