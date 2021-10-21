@@ -374,11 +374,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 }
                 else
                 {
-                    trackedEntityAttributeValue = new TrackedEntityAttributeValue()
-                        .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
-                        .setEntityInstance( trackedEntityInstance )
-                        .setStoredBy( attribute.getStoredBy() )
-                        .setValue( attribute.getValue() );
+                    trackedEntityAttributeValue = Optional.ofNullable( trackedEntityAttributeValue )
+                        .orElseGet( () -> new TrackedEntityAttributeValue()
+                            .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
+                            .setEntityInstance( trackedEntityInstance )
+                            .setStoredBy( attribute.getStoredBy() )
+                            .setValue( attribute.getValue() ) );
 
                     saveOrUpdate( session, preheat, isNew, trackedEntityInstance, trackedEntityAttributeValue );
                 }
