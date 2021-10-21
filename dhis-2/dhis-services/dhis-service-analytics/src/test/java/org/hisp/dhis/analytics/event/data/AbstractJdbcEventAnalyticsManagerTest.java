@@ -371,6 +371,6 @@ public class AbstractJdbcEventAnalyticsManagerTest
         // Then
         assertThat( whereClause,
             containsString(
-                "and (ax.\"uidlevel0\" = 'ouabcdefghA' or ax.\"uidlevel0\" = 'ouabcdefghB' or ax.\"uidlevel0\" = 'ouabcdefghC' )" ) );
+                "and ax.\"uidlevel0\" in ('ouabcdefghA','ouabcdefghB','ouabcdefghC')" ) );
     }
 }
