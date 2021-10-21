@@ -32,6 +32,7 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -354,10 +355,9 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 // encryption logic, so we need to use the one from payload
                 boolean isDelete = StringUtils.isEmpty( attribute.getValue() );
 
-                Optional<TrackedEntityAttributeValue> trackedEntityAttributeValueOptional = Optional
-                    .ofNullable( attributeValueByUid.get( attribute.getAttribute() ) );
+                TrackedEntityAttributeValue trackedEntityAttributeValue = attributeValueByUid.get( attribute.getAttribute() );
 
-                if ( !trackedEntityAttributeValueOptional.isPresent() )
+                if ( Objects.isNull( trackedEntityAttributeValue ) )
                 {
                     isNew = true;
                 }
@@ -367,17 +367,16 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     return;
                 }
 
-                TrackedEntityAttributeValue trackedEntityAttributeValue = trackedEntityAttributeValueOptional
-                    .orElseGet( () -> new TrackedEntityAttributeValue()
-                        .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
-                        .setEntityInstance( trackedEntityInstance ) );
-
                 if ( isDelete )
                 {
                     delete( session, preheat, trackedEntityAttributeValue, trackedEntityInstance );
                 }
                 else
                 {
+                    trackedEntityAttributeValue = new TrackedEntityAttributeValue()
+                            .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
+                            .setEntityInstance( trackedEntityInstance );
+
                     trackedEntityAttributeValue.setStoredBy( attribute.getStoredBy() );
                     trackedEntityAttributeValue.setValue( attribute.getValue() );
 
