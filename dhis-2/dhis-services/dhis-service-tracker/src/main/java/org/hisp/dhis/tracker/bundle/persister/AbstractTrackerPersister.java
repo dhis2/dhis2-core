@@ -375,10 +375,9 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 {
                     trackedEntityAttributeValue = new TrackedEntityAttributeValue()
                             .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
-                            .setEntityInstance( trackedEntityInstance );
-
-                    trackedEntityAttributeValue.setStoredBy( attribute.getStoredBy() );
-                    trackedEntityAttributeValue.setValue( attribute.getValue() );
+                            .setEntityInstance( trackedEntityInstance )
+                            .setStoredBy( attribute.getStoredBy() )
+                            .setValue( attribute.getValue() );
 
                     saveOrUpdate( session, preheat, isNew, trackedEntityInstance, trackedEntityAttributeValue );
                 }
