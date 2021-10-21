@@ -25,33 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.user;
+package org.hisp.dhis.dxf2.events.event;
 
-import org.hisp.dhis.schema.descriptors.UserGroupSchemaDescriptor;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Controller
-@Profile( "!test" )
-@RequestMapping( value = UserGroupSchemaDescriptor.API_ENDPOINT )
-public class UserGroupController
-    extends AbstractCrudController<UserGroup>
+public interface SkipLockedProvider
 {
-    @Override
-    protected void postUpdateEntity( UserGroup entity )
-    {
-        hibernateCacheManager.clearCache();
-    }
-
-    @Override
-    protected void postDeleteEntity( String entityUid )
-    {
-        manager.removeUserGroupFromSharing( entityUid );
-    }
+    String getSkipLocked();
 }

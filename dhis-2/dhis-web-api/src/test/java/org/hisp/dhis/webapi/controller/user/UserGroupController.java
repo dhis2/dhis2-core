@@ -35,23 +35,17 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
 @Controller
-@Profile( "!test" )
+@Profile( "test" )
 @RequestMapping( value = UserGroupSchemaDescriptor.API_ENDPOINT )
 public class UserGroupController
     extends AbstractCrudController<UserGroup>
 {
     @Override
-    protected void postUpdateEntity( UserGroup entity )
-    {
-        hibernateCacheManager.clearCache();
-    }
-
-    @Override
     protected void postDeleteEntity( String entityUid )
     {
-        manager.removeUserGroupFromSharing( entityUid );
+        return;
     }
 }
