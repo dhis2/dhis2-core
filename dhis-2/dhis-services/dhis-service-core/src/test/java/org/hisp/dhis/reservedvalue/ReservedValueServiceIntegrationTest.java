@@ -33,7 +33,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections4.ListUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
@@ -60,13 +64,13 @@ public class ReservedValueServiceIntegrationTest extends TransactionalIntegratio
     // Preset values
     private static Date future;
 
-    private static TextPattern simpleTextPattern;
+    private static TrackedEntityAttribute simpleTextPattern;
 
-    private static TextPattern simpleSequentialTextPattern;
+    private static TrackedEntityAttribute simpleSequentialTextPattern;
 
-    private static TextPattern simpleRandomTextPattern;
+    private static TrackedEntityAttribute simpleRandomTextPattern;
 
-    private static TextPattern simpleStringPattern;
+    private static TrackedEntityAttribute simpleStringPattern;
 
     @BeforeClass
     public static void setUpClass()
@@ -218,7 +222,7 @@ public class ReservedValueServiceIntegrationTest extends TransactionalIntegratio
     {
         reservedValueService.reserve( simpleTextPattern, 1, new HashMap<>(), future );
 
-        assertTrue( reservedValueService.useReservedValue( simpleTextPattern, "FOOBAR" ) );
+        assertTrue( reservedValueService.useReservedValue( simpleTextPattern.getTextPattern(), "FOOBAR" ) );
 
         assertEquals( 0, reservedValueStore.getCount() );
     }
@@ -226,20 +230,24 @@ public class ReservedValueServiceIntegrationTest extends TransactionalIntegratio
     @Test
     public void testUseReservationWhenNotReserved()
     {
-        assertFalse( reservedValueService.useReservedValue( simpleTextPattern, "FOOBAR" ) );
+        assertFalse( reservedValueService.useReservedValue( simpleTextPattern.getTextPattern(), "FOOBAR" ) );
 
         assertEquals( 0, reservedValueStore.getCount() );
     }
 
-    private static TextPattern createTextPattern( IdentifiableObject owner, String pattern )
+    private static TrackedEntityAttribute createTextPattern( IdentifiableObject owner, String pattern )
     {
         try
         {
-            TextPattern tp = TextPatternParser.parse( pattern );
-            tp.setOwnerObject( Objects.fromClass( owner.getClass() ) );
-            tp.setOwnerUid( owner.getUid() );
+            TextPattern textPattern = TextPatternParser.parse( pattern );
+            textPattern.setOwnerObject( Objects.fromClass( owner.getClass() ) );
+            textPattern.setOwnerUid( owner.getUid() );
 
-            return tp;
+            TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+            trackedEntityAttribute.setTextPattern( textPattern );
+            trackedEntityAttribute.setGenerated( true );
+
+            return trackedEntityAttribute;
         }
         catch ( TextPatternParser.TextPatternParsingException | IllegalAccessException e )
         {
