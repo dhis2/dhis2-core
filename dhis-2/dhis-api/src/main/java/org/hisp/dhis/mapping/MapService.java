@@ -34,5 +34,6 @@ public enum MapService
 {
     WMS,
     TMS,
-    XYZ
+    XYZ,
+    VectorStyle
 }
