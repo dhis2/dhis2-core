@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.helpers;
 
-import org.hisp.dhis.Constants;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.jayway.jsonpath.Configuration;
@@ -36,6 +34,7 @@ import com.jayway.jsonpath.DocumentContext;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.jayway.jsonpath.spi.json.GsonJsonProvider;
+import org.hisp.dhis.Constants;
 
 import java.util.List;
 
@@ -79,7 +78,7 @@ public class JsonObjectBuilder
     /**
      * Adds additional property to the path.
      *
-     * @param path eg "events[0]
+     * @param path         eg "events[0]
      * @param propertyName eg "event"
      * @param value
      * @return
@@ -113,12 +112,14 @@ public class JsonObjectBuilder
         return this;
     }
 
-    public JsonObjectBuilder addArray( String name, List<String> array ) {
+    public JsonObjectBuilder addArray( String name, List<String> array )
+    {
         JsonArray jsonArray = new JsonArray();
         array.forEach( jsonArray::add );
 
         return addArray( name, jsonArray );
     }
+
     public JsonObjectBuilder addArray( String name, JsonArray array )
     {
         jsonObject.add( name, array );
@@ -178,7 +179,7 @@ public class JsonObjectBuilder
         }
         else
         {
-           this.addArrayByJsonPath(path, arrayName, objects )
+            this.addArrayByJsonPath( path, arrayName, objects )
                 .build();
         }
 

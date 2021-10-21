@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
 
 import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -94,9 +95,10 @@ public class RelationshipItem
     public String toString()
     {
         return "RelationshipItem{" +
-            "trackedEntityInstance=" + trackedEntityInstance.getTrackedEntityInstance() +
-            ", enrollment=" + enrollment.getEnrollment() +
-            ", event=" + event.getEvent() +
+            "trackedEntityInstance="
+            + StringUtils.defaultIfBlank( trackedEntityInstance.getTrackedEntityInstance(), "" ) +
+            ", enrollment=" + StringUtils.defaultIfBlank( enrollment.getEnrollment(), "" ) +
+            ", event=" + StringUtils.defaultIfBlank( event.getEvent(), "" ) +
             '}';
     }
 

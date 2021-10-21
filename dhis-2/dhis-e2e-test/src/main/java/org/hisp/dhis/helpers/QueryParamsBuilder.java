@@ -55,10 +55,10 @@ package org.hisp.dhis.helpers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.tuple.MutablePair;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang3.tuple.MutablePair;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -70,6 +70,11 @@ public class QueryParamsBuilder
     public QueryParamsBuilder()
     {
         queryParams = new ArrayList<>();
+    }
+
+    public QueryParamsBuilder add( String param, String value )
+    {
+        return this.add( param + "=" + value );
     }
 
     /**

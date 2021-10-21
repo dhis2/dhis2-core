@@ -51,7 +51,6 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
@@ -68,15 +67,11 @@ public class EventTrackerConverterService
 
     private final NotesConverterService notesConverterService;
 
-    private final UserService userService;
-
-    public EventTrackerConverterService( NotesConverterService notesConverterService, UserService userService )
+    public EventTrackerConverterService( NotesConverterService notesConverterService )
     {
         checkNotNull( notesConverterService );
-        checkNotNull( userService );
 
         this.notesConverterService = notesConverterService;
-        this.userService = userService;
     }
 
     @Override
@@ -278,7 +273,7 @@ public class EventTrackerConverterService
             eventDataValue.setDataElement( dataValue.getDataElement() );
             eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
 
-            User createdBy = userService.getUserByUsername( dataValue.getCreatedBy() );
+            User createdBy = preheat.getUsers().get( dataValue.getCreatedBy() );
             eventDataValue
                 .setCreatedByUserInfo( Optional.ofNullable( createdBy ).map( u -> UserInfoSnapshot.from( createdBy ) )
                     .orElseGet( () -> UserInfoSnapshot.from( preheat.getUser() ) ) );

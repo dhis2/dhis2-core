@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static java.text.MessageFormat.format;
-
 import java.text.DateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -46,11 +45,12 @@ import org.hisp.dhis.util.ObjectUtils;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackerReportUtils
+class TrackerReportUtils
 {
-    public static String formatMessage( TrackerErrorCode errorCode, Object... arguments )
+
+    private TrackerReportUtils()
     {
-        return format( errorCode.getMessage(), arguments );
+        // not meant to be inherited from
     }
 
     protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
@@ -72,6 +72,10 @@ public class TrackerReportUtils
         else if ( Date.class.isAssignableFrom( argument.getClass() ) )
         {
             return (DateFormat.getInstance().format( argument ));
+        }
+        else if ( Instant.class.isAssignableFrom( argument.getClass() ) )
+        {
+            return DateFormat.getInstance().format( Date.from( (Instant) argument ) );
         }
         else if ( Enrollment.class.isAssignableFrom( argument.getClass() ) )
         {
