@@ -341,6 +341,8 @@ public class PredictionDataValueFetcher
         }
         catch ( InterruptedException e )
         {
+            Thread.currentThread().interrupt();
+
             throw new IllegalStateException( "could not fetch next DeflatedDataValue" );
         }
     }
@@ -401,6 +403,8 @@ public class PredictionDataValueFetcher
         }
         catch ( InterruptedException ex )
         {
+            Thread.currentThread().interrupt();
+
             throw new IllegalStateException( "could not add end of deflated data values marker" );
         }
     }

@@ -596,6 +596,8 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         }
         catch ( InterruptedException e )
         {
+            Thread.currentThread().interrupt();
+
             return false;
         }
     }
