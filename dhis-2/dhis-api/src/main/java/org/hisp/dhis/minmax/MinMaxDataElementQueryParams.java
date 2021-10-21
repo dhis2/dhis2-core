@@ -29,7 +29,7 @@ package org.hisp.dhis.minmax;
 
 import java.util.List;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 

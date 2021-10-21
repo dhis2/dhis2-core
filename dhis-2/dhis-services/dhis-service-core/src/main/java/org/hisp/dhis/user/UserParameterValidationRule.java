@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.user;
 
-import static org.apache.commons.lang.StringUtils.containsIgnoreCase;
-import static org.apache.commons.lang.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_CONTAINS_NAME_OR_EMAIL;
 
 /**
