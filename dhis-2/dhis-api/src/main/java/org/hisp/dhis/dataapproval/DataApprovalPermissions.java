@@ -50,7 +50,7 @@ public class DataApprovalPermissions
 
     private boolean mayReadData;
 
-    private boolean mayReadActor;
+    private boolean mayReadAcceptedBy;
 
     private String state;
 
@@ -93,9 +93,9 @@ public class DataApprovalPermissions
     }
 
     @JsonProperty
-    public boolean isMayReadActor()
+    public boolean isMayReadAcceptedBy()
     {
-        return mayReadActor;
+        return mayReadAcceptedBy;
     }
 
     @JsonProperty

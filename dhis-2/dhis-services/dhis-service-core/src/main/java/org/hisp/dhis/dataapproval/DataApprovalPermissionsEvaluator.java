@@ -244,10 +244,9 @@ class DataApprovalPermissionsEvaluator
         permissions.setMayAccept( mayAccept );
         permissions.setMayUnaccept( mayUnaccept );
         permissions.setMayReadData( mayReadData );
-        permissions.setMayReadActor(
-            state == DataApprovalState.APPROVED_HERE
-                || state == DataApprovalState.ACCEPTED_HERE
-                || (state == DataApprovalState.APPROVED_ABOVE && userLevelIndex < dataLevelIndex) );
+        permissions.setMayReadAcceptedBy( acceptanceRequiredForApproval
+            && (state == DataApprovalState.APPROVED_HERE || state == DataApprovalState.ACCEPTED_HERE)
+            && (userLevelIndex < dataLevelIndex) );
     }
 
     private DataApprovalLevel getUserApprovalLevelWithCache( String orgUnitUid, DataApprovalWorkflow workflow )

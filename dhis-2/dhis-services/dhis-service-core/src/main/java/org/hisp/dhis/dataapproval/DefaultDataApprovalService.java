@@ -531,14 +531,15 @@ public class DefaultDataApprovalService
                 status.setCreated( da.getCreated() );
                 status.setCreator( da.getCreator() );
                 status.setLastUpdated( da.getLastUpdated() );
-                status.setLastUpdatedBy( da.getLastUpdatedBy() );
                 DataApprovalPermissions permissions = status.getPermissions();
                 permissions.setApprovedAt( da.getCreated() );
+                permissions.setApprovedBy( da.getCreator() != null ? da.getCreator().getName() : null );
                 permissions.setAcceptedAt( da.getLastUpdated() );
-                if ( permissions.isMayReadActor() )
+                if ( permissions.isMayReadAcceptedBy() )
                 {
-                    permissions.setApprovedBy( da.getCreator() != null ? da.getCreator().getName() : null );
-                    permissions.setAcceptedBy( da.getLastUpdatedBy() != null ? da.getLastUpdatedBy().getName() : null );
+                    User lastUpdatedBy = da.getLastUpdatedBy();
+                    status.setLastUpdatedBy( lastUpdatedBy );
+                    permissions.setAcceptedBy( lastUpdatedBy != null ? lastUpdatedBy.getName() : null );
                 }
             }
         }

@@ -159,7 +159,7 @@ public class DataApprovalControllerTest extends DhisControllerConvenienceTest
             .content( HttpStatus.OK ).getArray( "dataApprovalStateResponses" ).getObject( 0 );
         assertEquals( "APPROVED_HERE", status_t1.getString( "state" ).string() );
         permissions = status_t1.getObject( "permissions" );
-        assertEquals( "admin admin", permissions.getString( "acceptedBy" ).string() );
+        assertFalse( permissions.getBoolean( "mayReadAcceptedBy" ).booleanValue() );
         assertTrue( permissions.getString( "acceptedAt" ).exists() );
     }
 }
