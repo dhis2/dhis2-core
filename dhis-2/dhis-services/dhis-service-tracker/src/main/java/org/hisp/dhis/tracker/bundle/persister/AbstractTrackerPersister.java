@@ -355,7 +355,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 // encryption logic, so we need to use the one from payload
                 boolean isDelete = StringUtils.isEmpty( attribute.getValue() );
 
-                TrackedEntityAttributeValue trackedEntityAttributeValue = attributeValueByUid.get( attribute.getAttribute() );
+                TrackedEntityAttributeValue trackedEntityAttributeValue = attributeValueByUid
+                    .get( attribute.getAttribute() );
 
                 if ( Objects.isNull( trackedEntityAttributeValue ) )
                 {
@@ -374,10 +375,10 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 else
                 {
                     trackedEntityAttributeValue = new TrackedEntityAttributeValue()
-                            .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
-                            .setEntityInstance( trackedEntityInstance )
-                            .setStoredBy( attribute.getStoredBy() )
-                            .setValue( attribute.getValue() );
+                        .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
+                        .setEntityInstance( trackedEntityInstance )
+                        .setStoredBy( attribute.getStoredBy() )
+                        .setValue( attribute.getValue() );
 
                     saveOrUpdate( session, preheat, isNew, trackedEntityInstance, trackedEntityAttributeValue );
                 }
