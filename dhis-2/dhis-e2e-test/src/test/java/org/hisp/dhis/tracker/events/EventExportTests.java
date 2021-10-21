@@ -124,7 +124,7 @@ public class EventExportTests
         loginActions.loginAsSuperUser();
 
         setupUser();
-        closedProgramId = programActions.createProgramWithAccessLevel( "CLOSED", Constants.ORG_UNIT_IDS );
+        closedProgramId = programActions.createProgramWithAccessLevel( "CLOSED", rootOu, captureOu, searchOu, dataReadOu );
         closedProgramProgramStageId = programActions.createProgramStage( closedProgramId, "Event export tests" + DataGenerator.randomString()  );
         setupTrackerEvents();
         setupEvents();

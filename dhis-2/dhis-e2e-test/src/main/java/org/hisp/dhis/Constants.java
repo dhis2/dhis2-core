@@ -83,7 +83,6 @@ public class Constants
     public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
 
     public static String[] ORG_UNIT_IDS = {
-        "ImspTQPwCqd",
         "DiszpKrYNg8",
         "g8upMTyEZGZ",
         "O6uvpzGd5pu",
