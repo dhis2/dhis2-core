@@ -323,6 +323,9 @@ public class HibernateDataApprovalStore
         // Get other information
         // ---------------------------------------------------------------------
 
+        boolean acceptanceRequiredForApproval = systemSettingManager
+            .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+
         final boolean isSuperUser = currentUserService.currentUserIsSuper();
 
         final String startDate = DateUtils.getMediumDateString( period.getStartDate() );
@@ -462,9 +465,6 @@ public class HibernateDataApprovalStore
 
         if ( approvalLevelBelowOrgUnit != null )
         {
-            boolean acceptanceRequiredForApproval = systemSettingManager
-                .getBoolSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
-
             readyBelowSubquery = "not exists ( " + // Ready if nothing expected
                                                    // below is
                                                    // unapproved(/unaccepted)
@@ -641,7 +641,8 @@ public class HibernateDataApprovalStore
             DataApprovalLevel approvedLevel = (level == 0 ? null : levelMap.get( level ));
             DataApprovalLevel actionLevel = (approvedLevel == null ? lowestApprovalLevelForOrgUnit : approvedLevel);
 
-            if ( approvedAbove && accepted && approvedAboveLevel == approvalLevelAboveUser )
+            if ( approvedAbove && accepted && acceptanceRequiredForApproval
+                && approvedAboveLevel == approvalLevelAboveUser )
             {
                 approvedAbove = false; // Hide higher-level approval from user.
             }

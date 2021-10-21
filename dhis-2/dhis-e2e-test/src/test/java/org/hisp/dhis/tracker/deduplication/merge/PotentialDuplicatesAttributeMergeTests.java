@@ -138,7 +138,7 @@ public class PotentialDuplicatesAttributeMergeTests
     private String createTeiWithAttributes( JsonObject... attributes )
     {
         JsonObjectBuilder tei =
-            JsonObjectBuilder.jsonObject( new TeiDataBuilder().build( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] ) );
+            JsonObjectBuilder.jsonObject( new TeiDataBuilder().array( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] ) );
 
         for ( JsonObject attribute : attributes )
         {

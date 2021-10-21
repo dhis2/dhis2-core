@@ -96,7 +96,7 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
 
         assertEquals( Status.ERROR, report.getStatus() );
-        assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1515 ) );
+        assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1520 ) );
     }
 
     @Test
@@ -109,7 +109,7 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
 
         assertEquals( Status.ERROR, report.getStatus() );
-        assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1516 ) );
+        assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1521 ) );
     }
 
     @Test
@@ -126,7 +126,7 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
 
         assertEquals( Status.ERROR, report.getStatus() );
         assertEquals( 1, report.getErrorReportsCount() );
-        assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1517 ) );
+        assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1522 ) );
     }
 
     @Test
@@ -143,7 +143,7 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
 
         assertEquals( Status.ERROR, report.getStatus() );
         assertEquals( 1, report.getErrorReportsCount() );
-        assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1518 ) );
+        assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1523 ) );
     }
 
     @Test

@@ -147,7 +147,7 @@ public class PotentialDuplicatesRelationshipTests
     {
         JsonObject payload = new RelationshipDataBuilder()
             .buildBidirectionalRelationship( teiA, teiB )
-            .wrapToArray();
+            .array();
 
         return trackerActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
@@ -157,7 +157,7 @@ public class PotentialDuplicatesRelationshipTests
     {
         JsonObject payload = new RelationshipDataBuilder()
             .buildUniDirectionalRelationship( teiA, teiB )
-            .wrapToArray();
+            .array();
 
         return trackerActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
