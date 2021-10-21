@@ -181,7 +181,7 @@ public class TrackedEntityAttributeController
         try
         {
             List<ReservedValue> result = reservedValueService
-                .reserve( attribute.getTextPattern(), numberToReserve, values, expiration );
+                .reserve( attribute, numberToReserve, values, expiration );
 
             if ( result.isEmpty() )
             {
