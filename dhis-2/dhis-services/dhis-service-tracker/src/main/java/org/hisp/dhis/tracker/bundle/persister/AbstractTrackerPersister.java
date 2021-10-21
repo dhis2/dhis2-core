@@ -349,8 +349,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         payloadAttributes
             .forEach( attribute -> {
 
-                boolean isNew = false;
-
                 // We cannot get the value from attributeToStore because it uses
                 // encryption logic, so we need to use the one from payload
                 boolean isDelete = StringUtils.isEmpty( attribute.getValue() );
@@ -358,10 +356,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 TrackedEntityAttributeValue trackedEntityAttributeValue = attributeValueByUid
                     .get( attribute.getAttribute() );
 
-                if ( Objects.isNull( trackedEntityAttributeValue ) )
-                {
-                    isNew = true;
-                }
+                boolean isNew = Objects.isNull( trackedEntityAttributeValue );
 
                 if ( isDelete && isNew )
                 {
