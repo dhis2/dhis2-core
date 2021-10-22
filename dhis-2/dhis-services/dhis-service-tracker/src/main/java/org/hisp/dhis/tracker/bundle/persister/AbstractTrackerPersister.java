@@ -356,7 +356,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 TrackedEntityAttributeValue trackedEntityAttributeValue = attributeValueByUid
                     .get( attribute.getAttribute() );
 
-                String persistedValue = StringUtils.EMPTY;
+                boolean isUpdated = false;
 
                 boolean isNew = Objects.isNull( trackedEntityAttributeValue );
 
@@ -373,7 +373,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 {
                     if ( !isNew )
                     {
-                        persistedValue = trackedEntityAttributeValue.getPlainValue();
+                        isUpdated = !trackedEntityAttributeValue.getPlainValue().equals( attribute.getValue() );
                     }
 
                     trackedEntityAttributeValue = Optional.ofNullable( trackedEntityAttributeValue )
@@ -384,7 +384,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                         .setValue( attribute.getValue() );
 
                     saveOrUpdate( session, preheat, isNew, trackedEntityInstance, trackedEntityAttributeValue,
-                        attribute, persistedValue );
+                        attribute, isUpdated );
                 }
 
                 handleReservedValue( trackedEntityAttributeValue );
@@ -410,7 +410,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
     private void saveOrUpdate( Session session, TrackerPreheat preheat, boolean isNew,
         TrackedEntityInstance trackedEntityInstance, TrackedEntityAttributeValue trackedEntityAttributeValue,
-        Attribute at, String persistedValue )
+        Attribute at, boolean isUpdated )
     {
         if ( isFileResource( trackedEntityAttributeValue ) )
         {
@@ -431,7 +431,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         {
             session.merge( trackedEntityAttributeValue );
 
-            if ( !persistedValue.equals( at.getValue() ) )
+            if ( isUpdated )
             {
                 auditType = AuditType.UPDATE;
             }
