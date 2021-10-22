@@ -224,6 +224,8 @@ public class DefaultDataQueryService
             .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
             .withDisplayProperty( request.getDisplayProperty() )
             .withOutputIdScheme( request.getOutputIdScheme() )
+            .withOutputDataElementIdScheme( request.getOutputDataElementIdScheme() )
+            .withOutputOrgUnitIdScheme( request.getOutputOrgUnitIdScheme() )
             .withOutputFormat( OutputFormat.ANALYTICS )
             .withDuplicatesOnly( request.isDuplicatesOnly() )
             .withApprovalLevel( request.getApprovalLevel() )
