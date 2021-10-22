@@ -115,4 +115,12 @@ public interface CacheProvider
     <V> Cache<V> createApiKeyCache();
 
     <V> Cache<V> createProgramCache();
+
+    <V> Cache<V> createTeiAttributesCache();
+
+    <V> Cache<V> createProgramTeiAttributesCache();
+
+    <V> Cache<V> createUserGroupUIDCache();
+
+    <V> Cache<V> createSecurityCache();
 }
