@@ -29,13 +29,16 @@ package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -54,6 +57,9 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     @Mock
     private CacheProvider cacheProvider;
 
+    @Mock
+    private Cache cache;
+
     @Parameterized.Parameters
     public static Collection<String> data()
     {
@@ -66,6 +72,8 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     @Before
     public void setUp()
     {
+        when( cacheProvider.createProgramCache() ).thenReturn( cache );
+        when( cache.get( anyString() ) ).thenReturn( Optional.empty() );
         this.subject = new ProgramSupplier( jdbcTemplate, cacheProvider );
     }
 

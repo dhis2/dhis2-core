@@ -59,13 +59,11 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.api.client.util.Maps;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.
@@ -138,7 +136,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         {
             programsCache.invalidateAll();
         }
-        Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY ).orElse( Maps.newHashMap() );
+        Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY ).orElse( null );
 
         if ( requiresCacheReload( eventList, programMap ) )
         {
@@ -397,28 +395,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         dataElement.setUid( rs.getString( "de_uid" ) );
         dataElement.setCode( rs.getString( "de_code" ) );
         return dataElement;
-    }
-
-    private Set<User> loadUserGroups( Long userGroupId )
-    {
-        final String sql = "select ug.uid, ug.usergroupid, ui.uid user_uid, ui.userinfoid user_id from usergroupmembers ugm "
-            + "join usergroup ug on ugm.usergroupid = ug.usergroupid join userinfo ui on ugm.userid = ui.userinfoid where ug.usergroupid = "
-            + userGroupId;
-
-        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
-
-            Set<User> users = new HashSet<>();
-            while ( rs.next() )
-            {
-                User user = new User();
-                user.setUid( rs.getString( "user_uid" ) );
-                user.setId( rs.getLong( "user_id" ) );
-
-                users.add( user );
-            }
-
-            return users;
-        } );
     }
 
     /**
