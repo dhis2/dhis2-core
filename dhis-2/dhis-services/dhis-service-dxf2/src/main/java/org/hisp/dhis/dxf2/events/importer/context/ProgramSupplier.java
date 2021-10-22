@@ -52,6 +52,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -124,33 +125,38 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
     // Caches the entire program hierarchy, including program stages and ACL
-    private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>()
-    {
-    }
-        .name( "eventImportProgramCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
-        .expireAfterWrite( 1, TimeUnit.MINUTES )
-        .build();
+    private final Cache<String, Map<String, Program>> programsCache;
 
     // Caches the user groups and the users belonging to each group
-    private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>()
-    {
-    }
-        .name( "eventImportUserGroupCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
-        .expireAfterWrite( 5, TimeUnit.MINUTES )
-        .permitNullValues( true )
-        .loader( new CacheLoader<Long, Set<User>>()
-        {
-            @Override
-            public Set<User> load( Long userGroupId )
-            {
-                return loadUserGroups( userGroupId );
-            }
-        } ).build();
+    private final Cache<Long, Set<User>> userGroupCache;
 
     public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment env )
     {
         super( jdbcTemplate );
         this.env = env;
+        userGroupCache = new Cache2kBuilder<Long, Set<User>>()
+        {
+        }
+            .name( "eventImportUserGroupCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
+            .expireAfterWrite( 5, TimeUnit.MINUTES )
+            .permitNullValues( true )
+            .entryCapacity( SystemUtils.isTestRun( this.env.getActiveProfiles() ) ? 0 : 10_000 )
+            .loader( new CacheLoader<Long, Set<User>>()
+            {
+                @Override
+                public Set<User> load( Long userGroupId )
+                {
+                    return loadUserGroups( userGroupId );
+                }
+            } ).build();
+
+        programsCache = new Cache2kBuilder<String, Map<String, Program>>()
+        {
+        }
+            .name( "eventImportProgramCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
+            .expireAfterWrite( 1, TimeUnit.MINUTES )
+            .entryCapacity( SystemUtils.isTestRun( this.env.getActiveProfiles() ) ? 0 : 10_000 )
+            .build();
     }
 
     @Override
