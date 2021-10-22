@@ -8,7 +8,7 @@
 
         <id name="id" column="reservedvalueid">
             <generator class="sequence">
-              <param name="sequence_name">reservedvalue_sequence</param>
+                <param name="sequence_name">reservedvalue_sequence</param>
             </generator>
         </id>
 
@@ -23,4 +23,21 @@
         </properties>
 
     </class>
+
+    <sql-query name="getRandomGeneratedAvailableValuesNamedQuery">
+        <![CDATA[ SELECT value
+        FROM
+        trackedentityattributevalue teav
+        WHERE
+        teav.trackedentityattributeid = :teaId
+        and LOWER(teav.value) in (:values)
+        UNION
+        SELECT value FROM reservedvalue rs
+        WHERE
+        rs.ownerObject = :ownerObject
+        and rs.ownerUid = :ownerUid
+        and rs.key = :key
+        and rs.value in (:values)
+        ]]>
+    </sql-query>
 </hibernate-mapping>
