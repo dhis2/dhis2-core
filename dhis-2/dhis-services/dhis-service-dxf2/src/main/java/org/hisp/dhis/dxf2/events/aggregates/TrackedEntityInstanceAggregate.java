@@ -45,12 +45,10 @@ import javax.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang.RandomStringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -65,7 +63,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -94,9 +91,6 @@ public class TrackedEntityInstanceAggregate
 
     @NonNull
     private final TrackedEntityAttributeService trackedEntityAttributeService;
-
-    @NonNull
-    private final Environment env;
 
     @NonNull
     private final CacheProvider cacheProvider;
@@ -132,7 +126,7 @@ public class TrackedEntityInstanceAggregate
     {
         final User user = currentUserService.getCurrentUser();
 
-        if ( userGroupUIDCache.get( user.getUid() ) == null && !CollectionUtils.isEmpty( user.getGroups() ) )
+        if ( !userGroupUIDCache.get( user.getUid() ).isPresent() && !CollectionUtils.isEmpty( user.getGroups() ) )
         {
             userGroupUIDCache.put( user.getUid(),
                 user.getGroups().stream().map( group -> group.getUid() ).collect( Collectors.toList() ) );
@@ -146,13 +140,13 @@ public class TrackedEntityInstanceAggregate
             .get( user.getUid(),
                 userUID -> getSecurityContext( userUID,
                     userGroupUIDCache.get( userUID ).orElse( Lists.newArrayList() ) ) )
-            .orElse( null )
-            .toBuilder()
-            .userId( user.getId() )
-            .superUser( user.isSuper() )
-            .params( params )
-            .queryParams( queryParams )
-            .build();
+            .map( c -> c.toBuilder()
+                .userId( user.getId() )
+                .superUser( user.isSuper() )
+                .params( params )
+                .queryParams( queryParams )
+                .build() )
+            .orElse( AggregateContext.builder().build() );
 
         /*
          * Async fetch Relationships for the given TrackedEntityInstance id
@@ -347,18 +341,5 @@ public class TrackedEntityInstanceAggregate
                 .build(),
             getPool() )
             .join();
-    }
-
-    /**
-     * This method is required to be able to skip the caches during the tests.
-     * Since cache2k can't really be disabled (see
-     * https://github.com/cache2k/cache2k/issues/74), this method generates a
-     * new key for every call, effectively forcing the cache to fetch the data
-     * every time
-     *
-     */
-    private String getCacheKey( String key )
-    {
-        return SystemUtils.isTestRun( env.getActiveProfiles() ) ? RandomStringUtils.randomAlphabetic( 10 ) : key;
     }
 }
