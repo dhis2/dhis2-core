@@ -42,9 +42,7 @@ public interface ReservedValueStore
 
     void reserveValues( List<ReservedValue> toAdd );
 
-    List<ReservedValue> getAvailableValues( ReservedValue reservedValue, List<String> values );
-
-    List<ReservedValue> getReservedValues( ReservedValue reservedValue, List<String> values );
+    List<ReservedValue> getAvailableValues( ReservedValue reservedValue, List<String> values, String ownerObject );
 
     List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
 

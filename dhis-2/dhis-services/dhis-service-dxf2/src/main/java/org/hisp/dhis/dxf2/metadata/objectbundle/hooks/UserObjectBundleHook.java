@@ -165,10 +165,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
             userService.encodeAndSetPassword( persistedUserCredentials, userCredentials.getPassword() );
         }
 
-        mergeService.merge(
-            new MergeParams<>( userCredentials, persistedUserCredentials ).setMergeMode( bundle.getMergeMode() ) );
-        preheatService.connectReferences( persistedUserCredentials, bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
+        if ( userCredentials != persistedUserCredentials )
+        {
+            mergeService.merge(
+                new MergeParams<>( userCredentials, persistedUserCredentials ).setMergeMode( bundle.getMergeMode() ) );
+            preheatService.connectReferences( persistedUserCredentials, bundle.getPreheat(),
+                bundle.getPreheatIdentifier() );
+        }
 
         persistedUserCredentials.setUserInfo( user );
         user.setUserCredentials( persistedUserCredentials );
