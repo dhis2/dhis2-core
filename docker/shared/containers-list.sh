@@ -28,6 +28,5 @@ DEFAULT_TOMCAT_TAG="9.0-jdk11-openjdk-slim"
 TOMCAT_DEBIAN_TAGS=(
     "8.5-jdk11-openjdk-slim"
     "9.0-jdk11-openjdk-slim"
-    "9.0-jdk13-openjdk-slim-buster"
 )
 
