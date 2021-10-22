@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @Profile( "test" )
 @RequestMapping( value = UserGroupSchemaDescriptor.API_ENDPOINT )
-public class UserGroupController
+public class UserGroupTestController
     extends AbstractCrudController<UserGroup>
 {
     @Override
