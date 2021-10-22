@@ -25,32 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.reservedvalue;
+package org.hisp.dhis.tracker.report;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.is;
+
+import java.text.DateFormat;
+import java.time.Instant;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternGenerationException;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.junit.Before;
+import org.junit.Test;
 
-/**
- * @author Stian Sandvold
- */
-public interface ReservedValueService
+public class TrackerReportUtilsTest
 {
-    List<ReservedValue> reserve( TrackedEntityAttribute trackedEntityAttribute, int numberOfReservations,
-        Map<String, String> values,
-        Date expires )
-        throws ReserveValueException,
-        TextPatternGenerationException;
 
-    boolean useReservedValue( TextPattern textPattern, String value );
+    private TrackerBundle bundle;
 
-    boolean isReserved( TextPattern textPattern, String value );
+    @Before
+    public void setUp()
+    {
+        bundle = TrackerBundle.builder().build();
+    }
 
-    void deleteReservedValueByUid( String uid );
+    @Test
+    public void buildArgumentListShouldTurnInstantIntoArgument()
+    {
+        final Instant now = Instant.now();
+        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
 
-    void removeUsedOrExpiredReservations();
+        assertThat( args.size(), is( 1 ) );
+        assertThat( args.get( 0 ), is( DateFormat.getInstance().format( Date.from( now ) ) ) );
+    }
+
+    @Test
+    public void buildArgumentListShouldTurnDateIntoArgument()
+    {
+        final Date now = Date.from( Instant.now() );
+        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
+
+        assertThat( args.size(), is( 1 ) );
+        assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
+    }
+
+    @Test
+    public void buildArgumentListShouldTurnStringsIntoArguments()
+    {
+        List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( "foo", "faa" ) );
+
+        assertThat( args, contains( "foo", "faa" ) );
+    }
 }

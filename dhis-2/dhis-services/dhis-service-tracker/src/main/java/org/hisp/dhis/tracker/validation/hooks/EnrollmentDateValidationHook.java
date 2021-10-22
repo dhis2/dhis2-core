@@ -35,7 +35,8 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1025;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ENROLLMENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
 
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Objects;
 
 import org.hisp.dhis.program.Program;
@@ -85,16 +86,17 @@ public class EnrollmentDateValidationHook
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
+        final LocalDate now = LocalDate.now();
         if ( Objects.nonNull( enrollment.getEnrolledAt() )
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
-            && enrollment.getEnrolledAt().isAfter( Instant.now() ) )
+            && enrollment.getEnrolledAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
             addError( reporter, E1020, enrollment.getEnrolledAt() );
         }
 
         if ( Objects.nonNull( enrollment.getOccurredAt() )
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
-            && enrollment.getOccurredAt().isAfter( Instant.now() ) )
+            && enrollment.getOccurredAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
             addError( reporter, E1021, enrollment.getOccurredAt() );
         }

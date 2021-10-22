@@ -112,6 +112,25 @@ public class EnrollmentDateValidationHookTest
     }
 
     @Test
+    public void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed()
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setProgram( CodeGenerator.generateUid() );
+        final Instant today = Instant.now().plus( Duration.ofMinutes( 1 ) );
+
+        enrollment.setOccurredAt( today );
+        enrollment.setEnrolledAt( today );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+
+        when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+
+        this.hookToTest.validateEnrollment( reporter, enrollment );
+
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
     public void testDatesCanBeInTheFuture()
     {
         Enrollment enrollment = new Enrollment();
