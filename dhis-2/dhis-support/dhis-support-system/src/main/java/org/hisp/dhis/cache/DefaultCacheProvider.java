@@ -118,7 +118,8 @@ public class DefaultCacheProvider
         programStageWebHookNotificationTemplateCache,
         pgmOrgUnitAssocCache,
         catOptOrgUnitAssocCache,
-        apiTokensCache
+        apiTokensCache,
+        programCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -509,6 +510,16 @@ public class DefaultCacheProvider
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createProgramCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.programCache.name() )
+            .expireAfterWrite( 1, TimeUnit.MINUTES )
+            .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 }

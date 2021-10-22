@@ -36,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.program.Program;
@@ -44,7 +45,6 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mock;
-import org.springframework.core.env.Environment;
 
 @RunWith( Parameterized.class )
 public class ProgramSupplierTest extends AbstractSupplierTest<Program>
@@ -52,7 +52,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     private ProgramSupplier subject;
 
     @Mock
-    private Environment env;
+    private CacheProvider cacheProvider;
 
     @Parameterized.Parameters
     public static Collection<String> data()
@@ -66,8 +66,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     @Before
     public void setUp()
     {
-        this.subject = new ProgramSupplier( jdbcTemplate, env );
-        when( env.getActiveProfiles() ).thenReturn( new String[] { "test" } );
+        this.subject = new ProgramSupplier( jdbcTemplate, cacheProvider );
     }
 
     @Override

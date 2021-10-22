@@ -36,23 +36,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.Data;
 
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
-import org.cache2k.integration.CacheLoader;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -65,11 +61,11 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.api.client.util.Maps;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.
@@ -114,8 +110,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 {
     private final static String PROGRAM_CACHE_KEY = "000P";
 
-    private final Environment env;
-
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
     private final static String PROGRAM_STAGE_ID = "programstageid";
@@ -125,38 +119,12 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
     // Caches the entire program hierarchy, including program stages and ACL
-    private final Cache<String, Map<String, Program>> programsCache;
+    private final Cache<Map<String, Program>> programsCache;
 
-    // Caches the user groups and the users belonging to each group
-    private final Cache<Long, Set<User>> userGroupCache;
-
-    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment env )
+    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider )
     {
         super( jdbcTemplate );
-        this.env = env;
-        userGroupCache = new Cache2kBuilder<Long, Set<User>>()
-        {
-        }
-            .name( "eventImportUserGroupCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
-            .expireAfterWrite( 5, TimeUnit.MINUTES )
-            .permitNullValues( true )
-            .entryCapacity( SystemUtils.isTestRun( this.env.getActiveProfiles() ) ? 0 : 10_000 )
-            .loader( new CacheLoader<Long, Set<User>>()
-            {
-                @Override
-                public Set<User> load( Long userGroupId )
-                {
-                    return loadUserGroups( userGroupId );
-                }
-            } ).build();
-
-        programsCache = new Cache2kBuilder<String, Map<String, Program>>()
-        {
-        }
-            .name( "eventImportProgramCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
-            .expireAfterWrite( 1, TimeUnit.MINUTES )
-            .entryCapacity( SystemUtils.isTestRun( this.env.getActiveProfiles() ) ? 0 : 10_000 )
-            .build();
+        programsCache = cacheProvider.createProgramCache();
     }
 
     @Override
@@ -168,14 +136,13 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         if ( importOptions.isSkipCache() )
         {
-            programsCache.removeAll();
-            userGroupCache.removeAll();
+            programsCache.invalidateAll();
         }
-        Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
+        Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY ).orElse( Maps.newHashMap() );
 
         if ( requiresCacheReload( eventList, programMap ) )
         {
-            programsCache.removeAll();
+            programsCache.invalidateAll();
             requiresReload = true;
         }
 
