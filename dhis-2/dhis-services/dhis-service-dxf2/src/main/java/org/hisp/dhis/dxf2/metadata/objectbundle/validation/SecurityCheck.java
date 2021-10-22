@@ -68,11 +68,14 @@ public class SecurityCheck
         {
             return runValidationCheck( bundle, klass, persistedObjects, ImportStrategy.UPDATE, context );
         }
+        else if ( importStrategy.isDelete() )
+        {
+            return runValidationCheck( bundle, klass, persistedObjects, ImportStrategy.DELETE, context );
+        }
         else
         {
             return new TypeReport( klass );
         }
-
     }
 
     private TypeReport runValidationCheck( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
