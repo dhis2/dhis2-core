@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -48,6 +49,8 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
@@ -69,13 +72,17 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 {
     protected final ReservedValueService reservedValueService;
 
-    private TrackedEntityAttributeValueService attributeValueService;
+    protected final TrackedEntityAttributeValueService attributeValueService;
+
+    protected final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
 
     protected AbstractTrackerPersister( ReservedValueService reservedValueService,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
         TrackedEntityAttributeValueService attributeValueService )
     {
         this.reservedValueService = reservedValueService;
         this.attributeValueService = attributeValueService;
+        this.trackedEntityAttributeValueAuditService = trackedEntityAttributeValueAuditService;
     }
 
     /**
@@ -349,6 +356,9 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         for ( Attribute at : payloadAttributes )
         {
             boolean isNew = false;
+            AuditType auditType = null;
+            String persistedValue = StringUtils.EMPTY;
+
             TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, at.getAttribute() );
 
             checkNotNull( attribute,
@@ -360,12 +370,17 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             if ( attributeValue == null )
             {
                 attributeValue = new TrackedEntityAttributeValue();
+                attributeValue.setAttribute( attribute );
+                attributeValue.setEntityInstance( trackedEntityInstance );
+
                 isNew = true;
+            }
+            else
+            {
+                persistedValue = attributeValue.getPlainValue();
             }
 
             attributeValue
-                .setAttribute( attribute )
-                .setEntityInstance( trackedEntityInstance )
                 .setValue( at.getValue() )
                 .setStoredBy( at.getStoredBy() );
 
@@ -378,7 +393,9 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 {
                     unassignFileResource( session, preheat, attributeValueDBMap.get( at.getAttribute() ).getValue() );
                 }
+
                 session.remove( attributeValue );
+                auditType = AuditType.DELETE;
             }
             else
             {
@@ -388,13 +405,44 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 }
 
                 saveOrUpdate( session, isNew, attributeValue );
+
+                if ( isNew )
+                {
+                    auditType = AuditType.CREATE;
+                }
+                else if ( !persistedValue.equals( at.getValue() ) )
+                {
+                    auditType = AuditType.UPDATE;
+                }
             }
 
-            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
-            {
-                reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(),
-                    attributeValue.getValue() );
-            }
+            logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
+                trackedEntityInstance, auditType );
+
+            handleReservedValue( attributeValue );
+        }
+    }
+
+    private void handleReservedValue( TrackedEntityAttributeValue attributeValue )
+    {
+        if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+        {
+            reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(),
+                attributeValue.getValue() );
+        }
+    }
+
+    private void logTrackedEntityAttributeValueHistory( String userName,
+        TrackedEntityAttributeValue attributeValue, TrackedEntityInstance trackedEntityInstance, AuditType auditType )
+    {
+        boolean allowAuditLog = trackedEntityInstance.getTrackedEntityType().isAllowAuditLog();
+
+        if ( allowAuditLog && auditType != null )
+        {
+            TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
+                attributeValue, attributeValue.getValue(), userName, auditType );
+            valueAudit.setEntityInstance( trackedEntityInstance );
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( valueAudit );
         }
     }
 
