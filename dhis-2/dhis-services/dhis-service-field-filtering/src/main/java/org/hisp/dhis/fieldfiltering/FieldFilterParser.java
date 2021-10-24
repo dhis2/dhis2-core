@@ -202,7 +202,8 @@ public class FieldFilterParser
     private static FieldPath getFieldPath( StringBuilder fieldNameBuilder, Stack<String> path,
         boolean isExclude, boolean isPreset, List<FieldPathTransformer> transformers )
     {
-        return new FieldPath( fieldNameBuilder.toString(), new ArrayList<>( path ), isExclude, isPreset, transformers );
+        return new FieldPath( fieldNameBuilder.toString(), new ArrayList<>( path ), isExclude, isPreset, transformers,
+            null );
     }
 
     private static List<FieldPath> expandField( String field )

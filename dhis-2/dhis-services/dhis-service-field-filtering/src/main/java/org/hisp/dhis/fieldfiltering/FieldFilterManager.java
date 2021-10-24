@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import static org.hisp.dhis.fieldfiltering.FieldPathHelper.applyExclusions;
-import static org.hisp.dhis.fieldfiltering.FieldPathHelper.applyPresets;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,10 +37,9 @@ import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
-import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,18 +51,18 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 /**
  * @author Morten Olav Hansen
  */
-@Component
+@Service
 public class FieldFilterManager
 {
+    private final FieldPathHelper fieldPathHelper;
+
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
-    private final SchemaService schemaService;
-
-    public FieldFilterManager( ObjectMapper jsonMapper, SchemaService schemaService )
+    public FieldFilterManager( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper )
     {
+        this.fieldPathHelper = fieldPathHelper;
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
-        this.schemaService = schemaService;
     }
 
     private ObjectMapper configureFieldFilterObjectMapper( ObjectMapper objectMapper )
@@ -91,9 +87,12 @@ public class FieldFilterManager
         }
 
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
+        fieldPathHelper.apply( fieldPaths, params.getObjects().iterator().next().getClass() );
 
-        Class<?> klass = params.getObjects().iterator().next().getClass();
-        fieldPaths = applyExclusions( applyPresets( fieldPaths, klass, schemaService ) );
+        fieldPaths.forEach( fp -> {
+            System.err.println(
+                fp.toFullPath() + ", prop: " + (fp.getProperty() != null ? fp.getProperty().getName() : null) );
+        } );
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );

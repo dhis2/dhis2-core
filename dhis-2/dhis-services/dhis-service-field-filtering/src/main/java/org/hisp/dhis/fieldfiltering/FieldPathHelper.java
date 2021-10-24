@@ -27,63 +27,133 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen
  */
+@Component
+@RequiredArgsConstructor
 public class FieldPathHelper
 {
     public static final String PRESET_ALL = "all";
 
     public static final String PRESET_OWNER = "owner";
 
-    public static List<FieldPath> applyPresets( List<FieldPath> fieldPaths, Class<?> klass,
-        SchemaService schemaService )
-    {
-        List<FieldPath> presets = fieldPaths.stream().filter( FieldPath::isPreset ).collect( Collectors.toList() );
-        presets.forEach( p -> fieldPaths.addAll( expandPreset( p, klass, schemaService ) ) );
+    private final SchemaService schemaService;
 
-        return fieldPaths;
+    public void apply( List<FieldPath> fieldPaths, Class<?> rootKlass )
+    {
+        if ( rootKlass == null || fieldPaths.isEmpty() )
+        {
+            return;
+        }
+
+        List<FieldPath> presets = fieldPaths.stream().filter( FieldPath::isPreset ).collect( Collectors.toList() );
+        List<FieldPath> exclusions = fieldPaths.stream().filter( FieldPath::isExclude ).collect( Collectors.toList() );
+
+        fieldPaths.removeIf( FieldPath::isPreset );
+        fieldPaths.removeIf( FieldPath::isExclude );
+
+        Map<String, FieldPath> fieldPathMap = getFieldPathMap( fieldPaths );
+
+        applyProperties( fieldPathMap.values(), rootKlass );
+        applyPresets( presets, fieldPathMap, rootKlass );
+        applyExclusions( exclusions, fieldPathMap );
+
+        fieldPaths.clear();
+        fieldPaths.addAll( fieldPathMap.values() );
     }
 
-    private static List<FieldPath> expandPreset( FieldPath fpPreset, Class<?> klass, SchemaService schemaService )
+    private void applyProperties( Collection<FieldPath> fieldPaths, Class<?> rootKlass )
+    {
+        fieldPaths.forEach( fp -> {
+            Schema schema = getSchemaByPath( fp, rootKlass );
+
+            if ( schema != null )
+            {
+                fp.setProperty( schema.getProperty( fp.getName() ) );
+            }
+        } );
+    }
+
+    public void applyPresets( List<FieldPath> presets, Map<String, FieldPath> fieldPathMap,
+        Class<?> rootKlass )
     {
         List<FieldPath> fieldPaths = new ArrayList<>();
-        Schema schema = getSchemaByPath( fpPreset, klass, schemaService );
 
-        if ( schema == null )
+        for ( FieldPath preset : presets )
         {
-            return fieldPaths;
+            Schema schema = getSchemaByPath( preset, rootKlass );
+
+            if ( schema == null )
+            {
+                continue;
+            }
+
+            if ( PRESET_ALL.equals( preset.getName() ) )
+            {
+                schema.getProperties()
+                    .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
+            }
+            else if ( PRESET_OWNER.equals( preset.getName() ) )
+            {
+                schema.getProperties()
+                    .stream().filter( Property::isOwner )
+                    .forEach( p -> fieldPaths.add( toFieldPath( preset.getPath(), p ) ) );
+            }
         }
 
-        if ( PRESET_ALL.equals( fpPreset.getName() ) )
-        {
-            schema.getProperties()
-                .forEach( p -> fieldPaths.add(
-                    new FieldPath( p.isCollection() ? p.getCollectionName() : p.getName(), fpPreset.getPath() ) ) );
-        }
-        else if ( PRESET_OWNER.equals( fpPreset.getName() ) )
-        {
-            schema.getProperties()
-                .stream().filter( Property::isOwner )
-                .forEach( p -> fieldPaths.add(
-                    new FieldPath( p.isCollection() ? p.getCollectionName() : p.getName(), fpPreset.getPath() ) ) );
-        }
-
-        return fieldPaths;
+        fieldPaths.forEach( fp -> fieldPathMap.put( fp.toFullPath(), fp ) );
     }
 
-    private static Schema getSchemaByPath( FieldPath fieldPath, Class<?> klass, SchemaService schemaService )
+    private void applyExclusions( List<FieldPath> exclusions, Map<String, FieldPath> fieldPathMap )
     {
+        for ( FieldPath exclusion : exclusions )
+        {
+            fieldPathMap.remove( exclusion.toFullPath() );
+        }
+    }
+
+    // ----------------------------------------------------------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------------------------------------------------------
+
+    private FieldPath toFieldPath( List<String> path, Property property )
+    {
+        String name = property.isCollection() ? property.getCollectionName() : property.getName();
+
+        FieldPath fieldPath = new FieldPath( name, path );
+        fieldPath.setProperty( property );
+
+        return fieldPath;
+    }
+
+    private Map<String, FieldPath> getFieldPathMap( List<FieldPath> fieldPaths )
+    {
+        return fieldPaths.stream().collect( Collectors.toMap( FieldPath::toFullPath, Function.identity() ) );
+    }
+
+    private Schema getSchemaByPath( FieldPath fieldPath, Class<?> klass )
+    {
+        checkNotNull( fieldPath );
+        checkNotNull( fieldPath.getPath() );
+        checkNotNull( klass );
+
         // get root schema
         Schema schema = schemaService.getDynamicSchema( klass );
         Property currentProperty;
@@ -108,17 +178,5 @@ public class FieldPathHelper
         }
 
         return schema;
-    }
-
-    public static List<FieldPath> applyExclusions( List<FieldPath> fieldPaths )
-    {
-        List<FieldPath> exclusions = fieldPaths.stream().filter( FieldPath::isExclude ).collect( Collectors.toList() );
-        Map<String, FieldPath> mappedByPath = fieldPaths.stream()
-            .filter( fp -> !(fp.isPreset() || fp.isExclude()) )
-            .collect( Collectors.toMap( FieldPath::toFullPath, Function.identity() ) );
-
-        exclusions.forEach( ex -> mappedByPath.remove( ex.toFullPath() ) );
-
-        return new ArrayList<>( mappedByPath.values() );
     }
 }

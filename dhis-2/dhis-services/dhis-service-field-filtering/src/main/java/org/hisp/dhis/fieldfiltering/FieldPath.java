@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen
@@ -42,7 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 @AllArgsConstructor
 public class FieldPath
 {
-    private static final String FIELD_PATH_SEPARATOR = ".";
+    public static final String FIELD_PATH_SEPARATOR = ".";
 
     /**
      * Name of field (excluding path).
@@ -74,6 +75,11 @@ public class FieldPath
      */
     private final List<FieldPathTransformer> transformers;
 
+    /**
+     * Schema Property if present (added by {@link FieldPathHelper}).
+     */
+    private Property property;
+
     public FieldPath( String name, List<String> path )
     {
         this.name = name;
@@ -88,7 +94,7 @@ public class FieldPath
      */
     public String toFullPath()
     {
-        return path.isEmpty() ? name : StringUtils.join( path, FIELD_PATH_SEPARATOR ) + FIELD_PATH_SEPARATOR + name;
+        return path.isEmpty() ? name : toPath() + FIELD_PATH_SEPARATOR + name;
     }
 
     public String toPath()
