@@ -50,6 +50,7 @@ import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternGenerationException;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.textpattern.TextPatternService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -102,8 +103,10 @@ public class ReservedValueServiceTest
         ReserveValueException
     {
         assertEquals( 1,
-            reservedValueService.reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, simpleText ), 1,
-                new HashMap<>(), futureDate ).size() );
+            reservedValueService
+                .reserve( createTrackedEntityAttribute( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, simpleText ), 1,
+                    new HashMap<>(), futureDate )
+                .size() );
 
         verify( reservedValueStore, times( 1 ) ).reserveValues( any() );
     }
@@ -115,7 +118,7 @@ public class ReservedValueServiceTest
 
         assertThrows( ReserveValueException.class,
             () -> reservedValueService.reserve(
-                createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, simpleText ),
+                createTrackedEntityAttribute( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, simpleText ),
                 1, new HashMap<>(), futureDate ) );
 
         assertEquals( Objects.TRACKEDENTITYATTRIBUTE.name(), reservedValue.getValue().getOwnerObject() );
@@ -138,7 +141,7 @@ public class ReservedValueServiceTest
 
         assertEquals( requestedValues,
             reservedValueService
-                .reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, sequentialText ),
+                .reserve( createTrackedEntityAttribute( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, sequentialText ),
                     requestedValues,
                     new HashMap<>(), futureDate )
                 .size() );
@@ -153,17 +156,17 @@ public class ReservedValueServiceTest
         TextPatternGenerationException,
         ReserveValueException
     {
-        when( reservedValueStore.getAvailableValues( any(), any() ) )
+        when( reservedValueStore.getAvailableValues( any(), any(), any() ) )
             .thenReturn( Arrays.asList( ReservedValue.builder().build(), ReservedValue.builder().build(),
                 ReservedValue.builder().build() ) );
 
         assertEquals( 2,
             reservedValueService
-                .reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
+                .reserve( createTrackedEntityAttribute( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
                     new HashMap<>(), futureDate )
                 .size() );
 
-        verify( reservedValueStore, times( 1 ) ).getAvailableValues( any(), any() );
+        verify( reservedValueStore, times( 1 ) ).getAvailableValues( any(), any(), any() );
         verify( reservedValueStore, times( 1 ) ).bulkInsertReservedValues( anyList() );
     }
 
@@ -173,7 +176,7 @@ public class ReservedValueServiceTest
         TextPatternGenerationException,
         ReserveValueException
     {
-        when( reservedValueStore.getAvailableValues( any(), any() ) )
+        when( reservedValueStore.getAvailableValues( any(), any(), any() ) )
             .thenReturn( Arrays.asList(
                 ReservedValue.builder().ownerUid( ownerUid ).ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() )
                     .key( "key" )
@@ -186,11 +189,11 @@ public class ReservedValueServiceTest
 
         assertEquals( 2,
             reservedValueService
-                .reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
+                .reserve( createTrackedEntityAttribute( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
                     new HashMap<>(), futureDate )
                 .size() );
 
-        verify( reservedValueStore, times( 1 ) ).getAvailableValues( any(), any() );
+        verify( reservedValueStore, times( 1 ) ).getAvailableValues( any(), any(), any() );
         verify( reservedValueStore, times( 1 ) ).bulkInsertReservedValues( argThat( list -> list.size() == 2 ) );
     }
 
@@ -210,7 +213,7 @@ public class ReservedValueServiceTest
         ExecutionException,
         InterruptedException
     {
-        when( reservedValueStore.getAvailableValues( any(), any() ) )
+        when( reservedValueStore.getAvailableValues( any(), any(), any() ) )
             .thenReturn( Arrays.asList( ReservedValue.builder().build(), ReservedValue.builder().build(),
                 ReservedValue.builder().build() ) );
 
@@ -220,7 +223,7 @@ public class ReservedValueServiceTest
 
         assertEquals( 2,
             reservedValueService
-                .reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
+                .reserve( createTrackedEntityAttribute( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
                     new HashMap<>(), futureDate )
                 .size() );
     }
@@ -238,18 +241,23 @@ public class ReservedValueServiceTest
 
         assertEquals( 0,
             reservedValueService
-                .reserve( createTextPattern( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
+                .reserve( createTrackedEntityAttribute( Objects.TRACKEDENTITYATTRIBUTE, ownerUid, randomText ), 2,
                     new HashMap<>(), futureDate )
                 .size() );
     }
 
-    private static TextPattern createTextPattern( Objects objects, String uid, String pattern )
+    private static TrackedEntityAttribute createTrackedEntityAttribute( Objects objects, String uid, String pattern )
         throws TextPatternParser.TextPatternParsingException
     {
-        TextPattern tp = TextPatternParser.parse( pattern );
-        tp.setOwnerObject( objects );
-        tp.setOwnerUid( uid );
-        return tp;
+        TextPattern textPattern = TextPatternParser.parse( pattern );
+        textPattern.setOwnerObject( objects );
+        textPattern.setOwnerUid( uid );
+
+        TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+        trackedEntityAttribute.setTextPattern( textPattern );
+        trackedEntityAttribute.setGenerated( true );
+
+        return trackedEntityAttribute;
     }
 
 }

@@ -205,7 +205,7 @@ public class RelationshipsTests
         String trackedEntity_2 = importTei();
 
         JsonObject jsonObject = new RelationshipDataBuilder().buildUniDirectionalRelationship( trackedEntity_1, trackedEntity_2 )
-            .wrapToArray();
+            .array();
 
         trackerActions.postAndGetJobReport( jsonObject )
             .validateSuccessfulImport()
@@ -221,7 +221,7 @@ public class RelationshipsTests
 
         // and is imported again when the relation is in inverse order
         jsonObject = new RelationshipDataBuilder().buildUniDirectionalRelationship( trackedEntity_2, trackedEntity_1 )
-            .wrapToArray();
+            .array();
         trackerActions.postAndGetJobReport( jsonObject )
             .validateSuccessfulImport()
             .validateRelationships()
@@ -248,9 +248,9 @@ public class RelationshipsTests
         String trackedEntity_2 = importTei();
 
         JsonObject jsonObject = new RelationshipDataBuilder().buildBidirectionalRelationship( trackedEntity_1, trackedEntity_2 )
-            .wrapToArray();
+            .array();
         JsonObject invertedRelationship = new RelationshipDataBuilder()
-            .buildBidirectionalRelationship( trackedEntity_2, trackedEntity_1 ).wrapToArray();
+            .buildBidirectionalRelationship( trackedEntity_2, trackedEntity_1 ).array();
 
         TrackerApiResponse trackerApiResponse = trackerActions.postAndGetJobReport( jsonObject )
             .validateSuccessfulImport();
