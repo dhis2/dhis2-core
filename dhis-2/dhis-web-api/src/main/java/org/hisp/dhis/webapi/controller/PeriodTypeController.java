@@ -30,11 +30,11 @@ package org.hisp.dhis.webapi.controller;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.fieldfiltering.FieldFilterManager;
@@ -51,6 +51,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -67,13 +68,14 @@ public class PeriodTypeController
 
     @GetMapping
     public @ResponseBody ResponseEntity<JsonRoot> getPeriodTypes(
-        @RequestParam( defaultValue = "*" ) Set<String> fields )
+        @RequestParam( defaultValue = "*" ) List<String> fields )
     {
         List<PeriodType> periodTypes = periodService.getAllPeriodTypes().stream()
             .map( PeriodType::new )
             .collect( Collectors.toList() );
 
-        FieldFilterParams<PeriodType> params = FieldFilterParams.of( periodTypes, fields );
+        FieldFilterParams<PeriodType> params = FieldFilterParams.of( periodTypes,
+            Sets.newHashSet( StringUtils.join( fields, "," ) ) );
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
         return ResponseEntity.ok( JsonRoot.of( "periodTypes", objectNodes ) );

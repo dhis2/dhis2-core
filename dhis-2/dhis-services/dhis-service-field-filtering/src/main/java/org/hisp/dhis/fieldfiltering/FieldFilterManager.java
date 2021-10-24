@@ -89,6 +89,9 @@ public class FieldFilterManager
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
         fieldPathHelper.apply( fieldPaths, params.getObjects().iterator().next().getClass() );
 
+        System.err.println();
+        System.err.println();
+
         fieldPaths.forEach( fp -> {
             System.err.println(
                 fp.toFullPath() + ", prop: " + (fp.getProperty() != null ? fp.getProperty().getName() : null) );

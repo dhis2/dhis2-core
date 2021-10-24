@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -38,7 +39,9 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
@@ -73,16 +76,79 @@ public class FieldPathHelper
 
         applyProperties( fieldPathMap.values(), rootKlass );
         applyPresets( presets, fieldPathMap, rootKlass );
+
+        getMapCount( fieldPathMap.values() ).forEach( ( k, v ) -> {
+            if ( v > 1L )
+            {
+                return;
+            }
+
+            applyDefaults( fieldPathMap.get( k ), fieldPathMap, rootKlass );
+        } );
+
         applyExclusions( exclusions, fieldPathMap );
 
         fieldPaths.clear();
         fieldPaths.addAll( fieldPathMap.values() );
     }
 
+    private void applyDefaults( FieldPath fieldPath, Map<String, FieldPath> fieldPathMap, Class<?> rootKlass )
+    {
+        List<String> paths = new ArrayList<>( fieldPath.getPath() );
+        paths.add( fieldPath.getName() );
+
+        Schema schema = getSchemaByPath( paths, rootKlass );
+
+        if ( schema == null )
+        {
+            return;
+        }
+
+        schema.getProperties().forEach( p -> {
+            FieldPath fp = new FieldPath( p.isCollection() ? p.getCollectionName() : p.getName(), paths );
+            fp.setProperty( p );
+
+            fieldPathMap.put( fp.toFullPath(), fp );
+        } );
+    }
+
+    private Map<String, Long> getMapCount( Collection<FieldPath> fieldPaths )
+    {
+        Map<String, Long> pathCount = new HashMap<>();
+
+        for ( FieldPath fieldPath : fieldPaths )
+        {
+            Property property = fieldPath.getProperty();
+
+            if ( property == null )
+            {
+                continue;
+            }
+
+            List<String> paths = new ArrayList<>();
+
+            for ( String path : fieldPath.getPath() )
+            {
+                paths.add( path );
+                pathCount.compute( StringUtils.join( paths, FieldPath.FIELD_PATH_SEPARATOR ),
+                    ( key, count ) -> count == null ? 1L : count + 1L );
+            }
+
+            if ( PropertyType.COMPLEX == property.getPropertyType()
+                || PropertyType.COMPLEX == property.getItemPropertyType() )
+            {
+                pathCount.compute( fieldPath.toFullPath(),
+                    ( key, count ) -> count == null ? 1L : count + 1L );
+            }
+        }
+
+        return pathCount;
+    }
+
     private void applyProperties( Collection<FieldPath> fieldPaths, Class<?> rootKlass )
     {
         fieldPaths.forEach( fp -> {
-            Schema schema = getSchemaByPath( fp, rootKlass );
+            Schema schema = getSchemaByPath( fp.getPath(), rootKlass );
 
             if ( schema != null )
             {
@@ -98,7 +164,7 @@ public class FieldPathHelper
 
         for ( FieldPath preset : presets )
         {
-            Schema schema = getSchemaByPath( preset, rootKlass );
+            Schema schema = getSchemaByPath( preset.getPath(), rootKlass );
 
             if ( schema == null )
             {
@@ -148,17 +214,16 @@ public class FieldPathHelper
         return fieldPaths.stream().collect( Collectors.toMap( FieldPath::toFullPath, Function.identity() ) );
     }
 
-    private Schema getSchemaByPath( FieldPath fieldPath, Class<?> klass )
+    private Schema getSchemaByPath( List<String> paths, Class<?> klass )
     {
-        checkNotNull( fieldPath );
-        checkNotNull( fieldPath.getPath() );
-        checkNotNull( klass );
+        requireNonNull( paths );
+        requireNonNull( klass );
 
         // get root schema
         Schema schema = schemaService.getDynamicSchema( klass );
         Property currentProperty;
 
-        for ( String path : fieldPath.getPath() )
+        for ( String path : paths )
         {
             currentProperty = schema.getProperty( path );
 

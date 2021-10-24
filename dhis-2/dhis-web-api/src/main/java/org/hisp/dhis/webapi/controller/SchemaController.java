@@ -31,13 +31,13 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -65,6 +65,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -87,13 +88,13 @@ public class SchemaController
     private final ObjectMapper objectMapper;
 
     @GetMapping
-    public @ResponseBody ResponseEntity<JsonRoot> getSchemas(
-        @RequestParam( defaultValue = "*" ) Set<String> fields )
+    public @ResponseBody ResponseEntity<JsonRoot> getSchemas( @RequestParam( defaultValue = "*" ) List<String> fields )
     {
         List<Schema> schemas = schemaService.getSortedSchemas();
         linkService.generateSchemaLinks( schemas );
 
-        FieldFilterParams<Schema> params = FieldFilterParams.of( schemas, fields );
+        FieldFilterParams<Schema> params = FieldFilterParams.of( schemas,
+            Sets.newHashSet( StringUtils.join( fields, "," ) ) );
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
         return ResponseEntity.ok( JsonRoot.of( "schemas", objectNodes ) );
@@ -101,7 +102,7 @@ public class SchemaController
 
     @GetMapping( "/{type}" )
     public @ResponseBody ResponseEntity<ObjectNode> getSchema( @PathVariable String type,
-        @RequestParam( defaultValue = "*" ) Set<String> fields )
+        @RequestParam( defaultValue = "*" ) List<String> fields )
     {
         Schema schema = getSchemaFromType( type );
 
@@ -109,7 +110,8 @@ public class SchemaController
         {
             linkService.generateSchemaLinks( schema );
 
-            FieldFilterParams<Schema> params = FieldFilterParams.of( schema, fields );
+            FieldFilterParams<Schema> params = FieldFilterParams.of( schema,
+                Sets.newHashSet( StringUtils.join( fields, "," ) ) );
             List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
             return ResponseEntity.ok( objectNodes.get( 0 ) );

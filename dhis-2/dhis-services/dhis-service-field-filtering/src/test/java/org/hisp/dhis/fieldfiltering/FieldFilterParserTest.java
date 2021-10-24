@@ -327,6 +327,21 @@ public class FieldFilterParserTest
         assertTrue( groupAsterisk.isPreset() );
     }
 
+    @Test
+    public void testMixedBlockSingleFields()
+    {
+        List<FieldPath> fieldPaths = FieldFilterParser.parse( Sets.newHashSet( "id,name,group[id,name],code" ) );
+
+        assertEquals( 6, fieldPaths.size() );
+
+        assertFieldPathContains( fieldPaths, "id" );
+        assertFieldPathContains( fieldPaths, "name" );
+        assertFieldPathContains( fieldPaths, "group" );
+        assertFieldPathContains( fieldPaths, "group.id" );
+        assertFieldPathContains( fieldPaths, "group.name" );
+        assertFieldPathContains( fieldPaths, "code" );
+    }
+
     private void assertFieldPathContains( List<FieldPath> fieldPaths, String expected, boolean isTransformer )
     {
         boolean condition = false;
