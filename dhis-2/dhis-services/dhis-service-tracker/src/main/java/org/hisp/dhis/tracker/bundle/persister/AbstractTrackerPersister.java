@@ -32,6 +32,7 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -335,86 +336,114 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
+        if ( payloadAttributes.isEmpty() )
+        {
+            return;
+        }
+
         Map<String, TrackedEntityAttributeValue> attributeValueByUid = trackedEntityInstance
             .getTrackedEntityAttributeValues()
             .stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
-        for ( Attribute at : payloadAttributes )
+        payloadAttributes
+            .forEach( attribute -> {
+
+                // We cannot get the value from attributeToStore because it uses
+                // encryption logic, so we need to use the one from payload
+                boolean isDelete = StringUtils.isEmpty( attribute.getValue() );
+
+                TrackedEntityAttributeValue trackedEntityAttributeValue = attributeValueByUid
+                    .get( attribute.getAttribute() );
+
+                boolean isNew = Objects.isNull( trackedEntityAttributeValue );
+
+                if ( isDelete && isNew )
+                {
+                    return;
+                }
+
+                if ( isDelete )
+                {
+                    delete( session, preheat, trackedEntityAttributeValue, trackedEntityInstance );
+                }
+                else
+                {
+                    trackedEntityAttributeValue = Optional.ofNullable( trackedEntityAttributeValue )
+                        .orElseGet( () -> new TrackedEntityAttributeValue()
+                            .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
+                            .setEntityInstance( trackedEntityInstance ) )
+                        .setStoredBy( attribute.getStoredBy() )
+                        .setValue( attribute.getValue() );
+
+                    saveOrUpdate( session, preheat, isNew, trackedEntityInstance, trackedEntityAttributeValue );
+                }
+
+                handleReservedValue( trackedEntityAttributeValue );
+            } );
+    }
+
+    private void delete( Session session, TrackerPreheat preheat,
+        TrackedEntityAttributeValue trackedEntityAttributeValue, TrackedEntityInstance trackedEntityInstance )
+    {
+        if ( isFileResource( trackedEntityAttributeValue ) )
         {
-            boolean isNewAttribute = false;
-            AuditType auditType;
-
-            TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, at.getAttribute() );
-
-            checkNotNull( attribute,
-                "Attribute " + at.getAttribute()
-                    + " should never be NULL here if validation is enforced before commit." );
-
-            TrackedEntityAttributeValue attributeValue = attributeValueByUid.get( at.getAttribute() );
-
-            if ( attributeValue == null )
-            {
-                attributeValue = new TrackedEntityAttributeValue();
-                attributeValue.setAttribute( attribute );
-                attributeValue.setEntityInstance( trackedEntityInstance );
-
-                isNewAttribute = true;
-
-            }
-
-            attributeValue
-                .setValue( at.getValue() )
-                .setStoredBy( at.getStoredBy() );
-
-            // We cannot use attributeValue.getValue() because it uses
-            // encryption logic
-            // So we need to use at.getValue()
-            if ( StringUtils.isEmpty( at.getValue() ) ) // if it's a DELETE
-                                                        // operation
-            {
-                // DELETE on a new attribute doesn't make sense, so in this case
-                // we don't need to do anything
-                if ( !isNewAttribute )
-                {
-                    if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
-                    {
-                        unassignFileResource( session, preheat,
-                            attributeValueByUid.get( at.getAttribute() ).getValue() );
-                    }
-
-                    session.remove( attributeValue );
-                    auditType = AuditType.DELETE;
-
-                    logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
-                        trackedEntityInstance, auditType );
-                }
-            }
-            else
-            {
-                if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
-                {
-                    assignFileResource( session, preheat, attributeValue.getValue() );
-                }
-
-                saveOrUpdate( session, isNewAttribute, attributeValue );
-
-                // let's put newly stored TEAV in the tracked entity instance
-                // that will go in the preheat
-                // but only if its a new attribute
-                if ( isNewAttribute )
-                {
-                    trackedEntityInstance.getTrackedEntityAttributeValues().add( attributeValue );
-                }
-
-                auditType = isNewAttribute ? AuditType.CREATE : AuditType.UPDATE;
-
-                logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
-                    trackedEntityInstance, auditType );
-            }
-
-            handleReservedValue( attributeValue );
+            unassignFileResource( session, preheat, trackedEntityAttributeValue.getValue() );
         }
+
+        session.remove( trackedEntityAttributeValue );
+
+        logTrackedEntityAttributeValueHistory(
+            preheat.getUsername(),
+            trackedEntityAttributeValue,
+            trackedEntityInstance,
+            AuditType.DELETE );
+    }
+
+    private void saveOrUpdate( Session session, TrackerPreheat preheat, boolean isNew,
+        TrackedEntityInstance trackedEntityInstance, TrackedEntityAttributeValue trackedEntityAttributeValue )
+    {
+        if ( isFileResource( trackedEntityAttributeValue ) )
+        {
+            assignFileResource( session, preheat, trackedEntityAttributeValue.getValue() );
+        }
+
+        AuditType auditType = AuditType.CREATE;
+        if ( isNew )
+        {
+            session.persist( trackedEntityAttributeValue );
+            // In case it's a newly created attribute we'll add it back to TEI,
+            // so it can end up in preheat
+            trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
+        }
+        else
+        {
+            auditType = AuditType.UPDATE;
+            session.merge( trackedEntityAttributeValue );
+        }
+
+        logTrackedEntityAttributeValueHistory(
+            preheat.getUsername(),
+            trackedEntityAttributeValue,
+            trackedEntityInstance,
+            auditType );
+    }
+
+    private static boolean isFileResource( TrackedEntityAttributeValue trackedEntityAttributeValue )
+    {
+        return trackedEntityAttributeValue.getAttribute().getValueType() == ValueType.FILE_RESOURCE;
+    }
+
+    private static TrackedEntityAttribute getTrackedEntityAttributeFromPreheat( TrackerPreheat preheat,
+        String attributeUid )
+    {
+        TrackedEntityAttribute trackedEntityAttribute = preheat.get( TrackedEntityAttribute.class, attributeUid );
+
+        checkNotNull( trackedEntityAttribute,
+            "Attribute " + attributeUid
+                + " should never be NULL here if validation is enforced before commit." );
+
+        return trackedEntityAttribute;
     }
 
     private void handleReservedValue( TrackedEntityAttributeValue attributeValue )
@@ -437,18 +466,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 attributeValue, attributeValue.getValue(), userName, auditType );
             valueAudit.setEntityInstance( trackedEntityInstance );
             trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( valueAudit );
-        }
-    }
-
-    private void saveOrUpdate( Session session, boolean isNew, Object persistable )
-    {
-        if ( isNew )
-        {
-            session.persist( persistable );
-        }
-        else
-        {
-            session.merge( persistable );
         }
     }
 }
