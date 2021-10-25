@@ -135,12 +135,11 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     private void validateMandatoryAttributes( ValidationErrorReporter reporter,
         Program program, Map<String, String> enrollmentNonEmptyAttributeUids, Enrollment enrollment )
     {
-        // Build a data structures of attributes eligible for mandatory
+        // Data structures of attributes eligible for mandatory
         // validations:
         // 1 - attributes from enrollments whose value is not empty or null
+        // (enrollmentNonEmptyAttributeUids)
         // 2 - attributes already existing in TEI (from preheat)
-
-        // 1 - attributes from enrollment whose value is non-empty
 
         // 2 - attributes uids from existing TEI (if any) from preheat
         Set<String> teiAttributeUids = buildTeiAttributeUids( reporter, enrollment.getTrackedEntity() );
