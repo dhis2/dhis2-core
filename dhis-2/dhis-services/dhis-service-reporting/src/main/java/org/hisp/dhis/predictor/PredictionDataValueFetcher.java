@@ -34,6 +34,7 @@ import static org.hisp.dhis.datavalue.DataValueStore.DDV_QUEUE_TIMEOUT_VALUE;
 import static org.hisp.dhis.datavalue.DataValueStore.END_OF_DDV_DATA;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -117,7 +118,7 @@ public class PredictionDataValueFetcher
 
     private CachingMap<Long, CategoryOptionCombo> cocLookup;
 
-    DataValue nextDataValue;
+    private DataValue nextDataValue;
 
     private String producerOrgUnitPath;
 
@@ -242,7 +243,7 @@ public class PredictionDataValueFetcher
 
         if ( consumerOrgUnitPath.compareTo( producerOrgUnitPath ) < 0 )
         {
-            return new ArrayList<>(); // No data fetched for this orgUnit
+            return Collections.emptyList(); // No data fetched for this orgUnit
         }
 
         if ( !consumerOrgUnitPath.equals( producerOrgUnitPath ) )
