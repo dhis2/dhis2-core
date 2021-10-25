@@ -384,7 +384,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                         .setValue( attribute.getValue() );
 
                     saveOrUpdate( session, preheat, isNew, trackedEntityInstance, trackedEntityAttributeValue,
-                        attribute, isUpdated );
+                        isUpdated );
                 }
 
                 handleReservedValue( trackedEntityAttributeValue );
@@ -410,7 +410,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
     private void saveOrUpdate( Session session, TrackerPreheat preheat, boolean isNew,
         TrackedEntityInstance trackedEntityInstance, TrackedEntityAttributeValue trackedEntityAttributeValue,
-        Attribute at, boolean isUpdated )
+        boolean isUpdated )
     {
         if ( isFileResource( trackedEntityAttributeValue ) )
         {
