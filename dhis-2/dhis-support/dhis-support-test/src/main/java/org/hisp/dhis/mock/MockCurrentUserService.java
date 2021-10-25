@@ -124,6 +124,11 @@ public class MockCurrentUserService
         return superUserFlag;
     }
 
+    public void setSuperUserFlag( boolean superUserFlag )
+    {
+        this.superUserFlag = superUserFlag;
+    }
+
     @Override
     public boolean currentUserIsAuthorized( String auth )
     {
