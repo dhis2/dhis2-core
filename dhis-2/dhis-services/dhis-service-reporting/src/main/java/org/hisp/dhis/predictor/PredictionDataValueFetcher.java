@@ -27,19 +27,24 @@
  */
 package org.hisp.dhis.predictor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
+import static org.hisp.dhis.datavalue.DataValueStore.DDV_QUEUE_TIMEOUT_UNIT;
+import static org.hisp.dhis.datavalue.DataValueStore.DDV_QUEUE_TIMEOUT_VALUE;
+import static org.hisp.dhis.datavalue.DataValueStore.END_OF_DDV_DATA;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -50,7 +55,6 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.datavalue.DeflatedDataValueConsumer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -67,19 +71,10 @@ import org.hisp.dhis.period.Period;
  * organisation unit level.
  * <p>
  * This class maintains performance while limiting memory usage by using a
- * single data request (which means a single SQL query) with a callback method
- * for each data value. It collects data values until it has all the data for an
- * organisation unit, and then it returns them to the caller.
- * <p>
- * To allow for callbacks from below, but synchronous returns to above, a second
- * thread is used and coordinated with semaphores in a producer-consumer
- * pattern. Without the two threads, the caller (such as the predictor logic)
- * would have to be written to accept callbacks, meaning that any method local
- * variables needed between the initializing of data fetching and the fetching
- * of data values would have to be converted to instance variables. It also
- * means that the caller could not be doing anything else while waiting for the
- * callback, such as processing two data streams at once which the predictor
- * service does.
+ * single data request (which means a single SQL query) on a separate thread
+ * that provides results to this class through a blocking queue. This class then
+ * collects data values until it has all the data for an organisation unit, and
+ * then it returns them to the caller.
  * <p>
  * The returned data values may optionally include deleted values, because
  * predictor processing needs to know where the former predicted values are
@@ -88,13 +83,14 @@ import org.hisp.dhis.period.Period;
  * <p>
  * For reliability, if there is an exception on the second thread, the thread is
  * terminated and the exception is re-thrown in the main thread when data is
- * next requested from the caller. This makes sure that the exception is not
- * properly handled by the main thread.
+ * next requested from the caller. This makes sure that the exception is
+ * properly reported by the main thread.
  *
  * @author Jim Grace
  */
+@RequiredArgsConstructor
 public class PredictionDataValueFetcher
-    implements Runnable, DeflatedDataValueConsumer
+    implements Runnable
 {
     private final DataValueService dataValueService;
 
@@ -120,9 +116,9 @@ public class PredictionDataValueFetcher
 
     private Map<Long, Period> periodLookup;
 
-    private CachingMap<Long, CategoryOptionCombo> cocLookup = new CachingMap<>();
+    private CachingMap<Long, CategoryOptionCombo> cocLookup;
 
-    List<DeflatedDataValue> deflatedDataValues;
+    private DataValue nextDataValue;
 
     private String producerOrgUnitPath;
 
@@ -132,29 +128,18 @@ public class PredictionDataValueFetcher
 
     ExecutorService executor;
 
-    private Semaphore producerSemaphore; // Acquired while producing data
-
-    private Semaphore consumerSemaphore; // Acquired until data is consumed
-
-    private boolean endOfData; // No more data to fetch
-
-    private long semaphoreTimeout = 10;
-
-    private TimeUnit semaphoreTimeoutUnit = TimeUnit.MINUTES;
+    private BlockingQueue<DeflatedDataValue> blockingQueue;
 
     private static final String BEFORE_PATHS = "."; // Lexically before '/'
 
     private static final String AFTER_PATHS = "0"; // Lexically after '/'
 
-    public PredictionDataValueFetcher( DataValueService dataValueService,
-        CategoryService categoryService )
-    {
-        checkNotNull( dataValueService );
-        checkNotNull( categoryService );
-
-        this.dataValueService = dataValueService;
-        this.categoryService = categoryService;
-    }
+    /**
+     * The blocking queue size was chosen after performance testing. Five
+     * performed better than 1 or 2 (more parallelism), and better than than 10
+     * or 20 (less queue management overhead).
+     */
+    private static final int DDV_BLOCKING_QUEUE_SIZE = 5;
 
     /**
      * Initializes for datavalue retrieval.
@@ -166,7 +151,8 @@ public class PredictionDataValueFetcher
      * @param dataElements data elements to fetch.
      * @param dataElementOperands data element operands to fetch.
      */
-    public void init( Set<OrganisationUnit> currentUserOrgUnits, int orgUnitLevel, List<OrganisationUnit> orgUnits,
+    public void init(
+        Set<OrganisationUnit> currentUserOrgUnits, int orgUnitLevel, List<OrganisationUnit> orgUnits,
         Set<Period> periods, Set<DataElement> dataElements, Set<DataElementOperand> dataElementOperands )
     {
         this.currentUserOrgUnits = currentUserOrgUnits;
@@ -180,29 +166,25 @@ public class PredictionDataValueFetcher
         dataElementLookup.putAll( dataElementOperands.stream().collect(
             Collectors.toMap( d -> d.getDataElement().getId(), DataElementOperand::getDataElement ) ) );
         periodLookup = periods.stream().collect( Collectors.toMap( Period::getId, p -> p ) );
+        cocLookup = new CachingMap<>();
 
-        deflatedDataValues = new ArrayList<>();
-        producerOrgUnitPath = AFTER_PATHS;
         consumerOrgUnitPath = BEFORE_PATHS;
-        endOfData = false;
         producerException = null;
 
-        producerSemaphore = new Semaphore( 1 );
-        consumerSemaphore = new Semaphore( 1 );
+        blockingQueue = new ArrayBlockingQueue<>( DDV_BLOCKING_QUEUE_SIZE );
 
         if ( isEmpty( dataElements ) && isEmpty( dataElementOperands ) )
         {
-            endOfData = true;
+            producerOrgUnitPath = AFTER_PATHS; // There will be no data
 
             return;
         }
 
-        producerSemaphore.acquireUninterruptibly();
-        consumerSemaphore.acquireUninterruptibly();
-
         executor = Executors.newSingleThreadExecutor();
         executor.execute( this ); // Invoke run() on another thread
         executor.shutdown();
+
+        getNextDataValue(); // Prime the algorithm with the first data value.
     }
 
     /**
@@ -218,7 +200,7 @@ public class PredictionDataValueFetcher
         params.setOrganisationUnits( currentUserOrgUnits );
         params.setOuMode( DESCENDANTS );
         params.setOrgUnitLevel( orgUnitLevel );
-        params.setCallback( this );
+        params.setBlockingQueue( blockingQueue );
         params.setOrderByOrgUnitPath( true );
         params.setIncludeChildren( includeChildren );
         params.setIncludeDeleted( includeDeleted );
@@ -229,42 +211,12 @@ public class PredictionDataValueFetcher
         }
         catch ( RuntimeException ex )
         {
-            producerException = ex;
+            producerException = ex; // Tell the main thread
+
+            queueEndOfDataMarker(); // Wake up main thread if needed
+
+            throw ex; // Log the exception
         }
-
-        endOfData = true; // No more data will be produced
-
-        producerSemaphore.release(); // The last orgUnit is ready to consume
-    }
-
-    /**
-     * In a separate thread, handles a callback with a fetched data value.
-     *
-     * @param ddv the deflated data value fetched.
-     */
-    @Override
-    public void consume( DeflatedDataValue ddv )
-    {
-        if ( producerOrgUnitPath.equals( AFTER_PATHS ) )
-        {
-            producerOrgUnitPath = truncatePathToLevel( ddv.getSourcePath() );
-        }
-
-        if ( !ddv.getSourcePath().startsWith( producerOrgUnitPath ) )
-        {
-            producerSemaphore.release(); // Data is ready to consume
-
-            if ( !tryAcquire( consumerSemaphore ) ) // Wait until data consumed
-            {
-                throw new IllegalStateException( "handle could not acquire consumer semaphore" );
-            }
-
-            deflatedDataValues = new ArrayList<>();
-
-            producerOrgUnitPath = truncatePathToLevel( ddv.getSourcePath() );
-        }
-
-        deflatedDataValues.add( ddv );
     }
 
     /**
@@ -279,15 +231,7 @@ public class PredictionDataValueFetcher
      */
     public List<DataValue> getDataValues( OrganisationUnit orgUnit )
     {
-        if ( !tryAcquire( producerSemaphore ) ) // Wait until data is ready
-        {
-            throw new IllegalStateException( "getDataValues could not acquire producer semaphore" );
-        }
-
-        if ( producerException != null )
-        {
-            throw producerException;
-        }
+        checkForProducerException();
 
         if ( orgUnit.getPath().compareTo( consumerOrgUnitPath ) <= 0 )
         {
@@ -299,10 +243,7 @@ public class PredictionDataValueFetcher
 
         if ( consumerOrgUnitPath.compareTo( producerOrgUnitPath ) < 0 )
         {
-            producerSemaphore.release(); // Release so we can acquire it next
-                                         // time
-
-            return new ArrayList<>(); // No data produced for this orgUnit
+            return Collections.emptyList(); // No data fetched for this orgUnit
         }
 
         if ( !consumerOrgUnitPath.equals( producerOrgUnitPath ) )
@@ -311,19 +252,7 @@ public class PredictionDataValueFetcher
                 + " but called with " + orgUnit.toString() );
         }
 
-        List<DataValue> dataValues = deflatedDataValues.stream()
-            .map( this::inflateDataValue ).collect( Collectors.toList() );
-
-        consumerSemaphore.release(); // Data now consumed (in local variable)
-
-        if ( endOfData )
-        {
-            producerOrgUnitPath = AFTER_PATHS;
-
-            producerSemaphore.release(); // No more data will be produced
-        }
-
-        return dataValues;
+        return getDataValuesForProducerOrgUnit();
     }
 
     // -------------------------------------------------------------------------
@@ -354,30 +283,74 @@ public class PredictionDataValueFetcher
         return this;
     }
 
-    /**
-     * Sets the internal semaphore timeout value. This can be used to test the
-     * timeout functionality faster than if the test had to wait for the default
-     * timeout value.
-     *
-     * @param semaphoreTimeout semaphore timeout value.
-     * @param semaphoreTimeoutUnit units of the timeout value.
-     */
-    public void setSemaphoreTimeout( long semaphoreTimeout, TimeUnit semaphoreTimeoutUnit )
-    {
-        this.semaphoreTimeout = semaphoreTimeout;
-        this.semaphoreTimeoutUnit = semaphoreTimeoutUnit;
-    }
-
     // -------------------------------------------------------------------------
     // Supportive Methods
     // -------------------------------------------------------------------------
 
     /**
+     * Called once we have a match between the requested (consumer) organisation
+     * unit and the organisation unit of the next data value (producer), this
+     * method returns a list containing the next data value and all subsequent
+     * data values having the same organisation unit.
+     */
+    private List<DataValue> getDataValuesForProducerOrgUnit()
+    {
+        List<DataValue> dataValues = new ArrayList<>();
+
+        String startingOrgUnitPath = producerOrgUnitPath;
+
+        do
+        {
+            dataValues.add( nextDataValue );
+
+            getNextDataValue();
+        }
+        while ( producerOrgUnitPath.equals( startingOrgUnitPath ) );
+
+        return dataValues;
+    }
+
+    /**
+     * Gets the next data value. Remembers it and its path
+     */
+    private void getNextDataValue()
+    {
+        DeflatedDataValue ddv = dequeueDeflatedDataValue();
+
+        checkForProducerException(); // Check for exception during dequeue
+
+        if ( ddv == END_OF_DDV_DATA )
+        {
+            producerOrgUnitPath = AFTER_PATHS; // No more data
+
+            return;
+        }
+
+        nextDataValue = inflateDataValue( ddv );
+
+        producerOrgUnitPath = truncatePathToLevel( nextDataValue.getSource().getPath() );
+    }
+
+    /**
+     * Dequeues the next {@see DeflatedDataValue} from the database feed
+     */
+    private DeflatedDataValue dequeueDeflatedDataValue()
+    {
+        try
+        {
+            return blockingQueue.poll( DDV_QUEUE_TIMEOUT_VALUE, DDV_QUEUE_TIMEOUT_UNIT );
+        }
+        catch ( InterruptedException e )
+        {
+            Thread.currentThread().interrupt();
+
+            throw new IllegalStateException( "could not fetch next DeflatedDataValue" );
+        }
+    }
+
+    /**
      * Truncates a path from a deflated data value to the level of the
      * organisation units we are looking for now.
-     *
-     * @param path the orgUnit path from the deflated data value.
-     * @return the path truncated to the level we are now processing.
      */
     private String truncatePathToLevel( String path )
     {
@@ -385,28 +358,7 @@ public class PredictionDataValueFetcher
     }
 
     /**
-     * Try to acquire a semaphore, within a certain time period.
-     *
-     * @param semaphore the semaphore to acquire.
-     * @return true if it was acquired, else false.
-     */
-    private boolean tryAcquire( Semaphore semaphore )
-    {
-        try
-        {
-            return semaphore.tryAcquire( semaphoreTimeout, semaphoreTimeoutUnit );
-        }
-        catch ( InterruptedException e )
-        {
-            return false;
-        }
-    }
-
-    /**
      * "Inflate" a deflated data value, using our caches.
-     *
-     * @param ddv the deflated data value.
-     * @return the regular ("inflated") data value.
      */
     private DataValue inflateDataValue( DeflatedDataValue ddv )
     {
@@ -424,5 +376,37 @@ public class PredictionDataValueFetcher
 
         return new DataValue( dataElement, period, orgUnit, categoryOptionCombo, attributeOptionCombo, ddv.getValue(),
             ddv.getStoredBy(), ddv.getLastUpdated(), ddv.getComment(), ddv.isFollowup(), ddv.isDeleted() );
+    }
+
+    /**
+     * Checks for an unexpected exception in the producer thread, and if found,
+     * throws it on the main thread.
+     */
+    private void checkForProducerException()
+    {
+        if ( producerException != null )
+        {
+            throw producerException;
+        }
+    }
+
+    /**
+     * Adds the end of data marker to the queue. This is used in case there is
+     * an unexpected runtime exception in the producer thread, and the consumer
+     * (main) thread is waiting for a data value. This allows the main thread to
+     * wake up and handle (rethrow) the exception.
+     */
+    private void queueEndOfDataMarker()
+    {
+        try
+        {
+            blockingQueue.offer( END_OF_DDV_DATA, DDV_QUEUE_TIMEOUT_VALUE, DDV_QUEUE_TIMEOUT_UNIT );
+        }
+        catch ( InterruptedException ex )
+        {
+            Thread.currentThread().interrupt();
+
+            throw new IllegalStateException( "could not add end of deflated data values marker" );
+        }
     }
 }
