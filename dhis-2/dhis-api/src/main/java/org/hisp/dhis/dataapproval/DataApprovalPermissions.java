@@ -92,7 +92,12 @@ public class DataApprovalPermissions
         return mayReadData;
     }
 
-    @JsonProperty
+    /**
+     * OBS! Note that this field is intentionally not serialised to JSON as the
+     * user should not know if he can or can't read.
+     *
+     * @return whether the user can read who accepted the DA
+     */
     public boolean isMayReadAcceptedBy()
     {
         return mayReadAcceptedBy;

@@ -245,7 +245,7 @@ class DataApprovalPermissionsEvaluator
         permissions.setMayUnaccept( mayUnaccept );
         permissions.setMayReadData( mayReadData );
         permissions.setMayReadAcceptedBy( acceptanceRequiredForApproval
-            && (state == DataApprovalState.APPROVED_HERE || state == DataApprovalState.ACCEPTED_HERE)
+            && (state == DataApprovalState.ACCEPTED_HERE || state == DataApprovalState.APPROVED_ABOVE)
             && (userLevelIndex < dataLevelIndex) );
     }
 
