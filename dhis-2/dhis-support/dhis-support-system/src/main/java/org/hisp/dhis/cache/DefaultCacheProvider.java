@@ -535,6 +535,7 @@ public class DefaultCacheProvider
             .forRegion( Region.teiAttributesCache.name() )
             .expireAfterWrite( 10, TimeUnit.MINUTES )
             .withInitialCapacity( (int) getActualSize( SIZE_1 ) )
+            .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1 ) ) ) );
     }
 
@@ -545,6 +546,7 @@ public class DefaultCacheProvider
             .forRegion( Region.programTeiAttributesCache.name() )
             .expireAfterWrite( 10, TimeUnit.MINUTES )
             .withInitialCapacity( (int) getActualSize( SIZE_1 ) )
+            .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1 ) ) ) );
     }
 
@@ -555,6 +557,7 @@ public class DefaultCacheProvider
             .forRegion( Region.userGroupUIDCache.name() )
             .expireAfterWrite( 10, TimeUnit.MINUTES )
             .withInitialCapacity( (int) getActualSize( SIZE_100 ) )
+            .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 
@@ -565,6 +568,7 @@ public class DefaultCacheProvider
             .forRegion( Region.securityCache.name() )
             .expireAfterWrite( 10, TimeUnit.MINUTES )
             .withInitialCapacity( (int) getActualSize( SIZE_100 ) )
+            .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 }
