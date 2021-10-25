@@ -31,6 +31,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
@@ -71,6 +72,23 @@ public class ProgramActions
     public ApiResponse createTrackerProgram( String trackedEntityTypeId, String... orgUnitIds )
     {
         return createProgram( "WITH_REGISTRATION", trackedEntityTypeId, orgUnitIds ).validateStatus( 201 );
+    }
+
+    public String createProgramWithAccessLevel( String accessLevel, String... orgUnits )
+    {
+        String programId = this.createTrackerProgram( Constants.TRACKED_ENTITY_TYPE, orgUnits ).extractUid();
+
+        JsonObject program = this.get( programId )
+            .getBodyAsJsonBuilder()
+            .addProperty( "accessLevel", accessLevel )
+            .addProperty( "publicAccess", "rwrw----" )
+            .addProperty( "onlyEnrollOnce", "false" )
+            .build();
+
+        this.update( programId, program ).validateStatus( 200 );
+        this.createProgramStage( programId, "Program stage " + DataGenerator.randomString() );
+
+        return programId;
     }
 
     public ApiResponse createEventProgram( String... orgUnitsIds )
