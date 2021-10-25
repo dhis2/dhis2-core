@@ -32,7 +32,11 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -480,14 +484,22 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
             ddv.setSourcePath( sourcePath );
 
-            if ( params.hasCallback() )
+            if ( params.hasBlockingQueue() )
             {
-                params.getCallback().consume( ddv );
+                if ( !addToBlockingQueue( params.getBlockingQueue(), ddv ) )
+                {
+                    return result; // Abort
+                }
             }
             else
             {
                 result.add( ddv );
             }
+        }
+
+        if ( params.hasBlockingQueue() )
+        {
+            addToBlockingQueue( params.getBlockingQueue(), END_OF_DDV_DATA );
         }
 
         log.debug( result.size() + " DeflatedDataValues returned from: " + sql );
@@ -567,5 +579,26 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         }
 
         return deos;
+    }
+
+    /**
+     * Adds a {@see DeflatedDataValue} to a blocking queue
+     *
+     * @param blockingQueue the queue to add to
+     * @param ddv the deflated data value
+     * @return true if it was added, false if timeout
+     */
+    private boolean addToBlockingQueue( BlockingQueue<DeflatedDataValue> blockingQueue, DeflatedDataValue ddv )
+    {
+        try
+        {
+            return blockingQueue.offer( ddv, DDV_QUEUE_TIMEOUT_VALUE, DDV_QUEUE_TIMEOUT_UNIT );
+        }
+        catch ( InterruptedException e )
+        {
+            Thread.currentThread().interrupt();
+
+            return false;
+        }
     }
 }
