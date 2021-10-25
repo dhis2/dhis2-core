@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.preheat;
 
-import java.util.ArrayList;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -59,7 +59,6 @@ public enum PreheatIdentifier
         case CODE:
             return object.getCode();
         }
-
         throw new RuntimeException( "Unhandled identifier type." );
     }
 
@@ -68,16 +67,11 @@ public enum PreheatIdentifier
         switch ( this )
         {
         case UID:
-        {
-            return Lists.newArrayList( object.getUid() );
-        }
+            return singletonList( object.getUid() );
         case CODE:
-        {
-            return Lists.newArrayList( object.getCode() );
+            return singletonList( object.getCode() );
         }
-        }
-
-        return new ArrayList<>();
+        return emptyList();
     }
 
     public <T extends IdentifiableObject> String getIdentifiersWithName( T object )
