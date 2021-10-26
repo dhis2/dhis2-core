@@ -211,8 +211,8 @@ public class EventExportTests
                 Arrays.asList( captureOu, searchOu, dataReadOu ) ),
             Arguments.of( "PROGRAM: event, OU_MODE: ACCESSIBLE, EXPECTED: search scope,", "ACCESSIBLE", withoutRegistrationProgram,
                 Arrays.asList( searchOu, dataReadOu, captureOu ) ),
-            Arguments.of( "PROGRAM: none, OU_MODE: ACCESSIBLE, EXPECTED: search scope", "ACCESSIBLE", null,
-                Arrays.asList( dataReadOu, captureOu, searchOu ) ),
+            //Arguments.of( "PROGRAM: none, OU_MODE: ACCESSIBLE, EXPECTED: search scope", "ACCESSIBLE", null,
+            //    Arrays.asList( dataReadOu, captureOu, searchOu ) ),
             Arguments.of( "PROGRAM: closed tracker, OU_MODE: ACCESSIBLE, EXPECTED: capture scope", "ACCESSIBLE", closedProgramId , Arrays.asList( captureOu ))
             //@todo enable when the bug is fixed. Right now capture ouMode requires explicitly defined ou.
             //Arguments.of( "PROGRAM: none, OU_MODE: CAPTURE", "CAPTURE", null, Arrays.asList( captureOu ) )
