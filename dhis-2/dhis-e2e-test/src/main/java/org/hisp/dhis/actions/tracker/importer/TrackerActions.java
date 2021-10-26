@@ -29,6 +29,7 @@ package org.hisp.dhis.actions.tracker.importer;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
@@ -182,7 +183,6 @@ public class TrackerActions
         this.waitUntilJobIsCompleted( jobId );
 
         return this.getJobReport( jobId, "FULL" );
-
     }
 
     public JsonObject buildEvent( String ouId, String programId, String programStageId )
@@ -306,13 +306,7 @@ public class TrackerActions
     public JsonObject buildTrackedEntityRelationship( String trackedEntity_1, String trackedEntity_2,
         String relationshipType )
     {
-        return new JsonObjectBuilder()
-            .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_1 ) )
-            .addObject( "to", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_2 ) )
-            .build();
+        return buildRelationship( "trackedEntity", trackedEntity_1, "trackedEntity", trackedEntity_2, relationshipType );
     }
 
     public JsonObject buildRelationship( String fromEntityName, String fromEntityId, String toEntityName, String toEntityId,
@@ -334,5 +328,4 @@ public class TrackerActions
             .addProperty( "orgUnit", ou )
             .wrapIntoArray( "trackedEntities" );
     }
-
 }

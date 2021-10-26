@@ -71,6 +71,10 @@ public abstract class AbstractImportValidationTest
 
     public static final String USER_6 = "VfaA5WwHLdP";
 
+    public static final String USER_7 = "E5AiPnHG3t5";
+
+    public static final String USER_8 = "xbgFeL0l3Ap";
+
     protected TrackerImportParams createBundleFromJson( String jsonFile )
         throws IOException
     {

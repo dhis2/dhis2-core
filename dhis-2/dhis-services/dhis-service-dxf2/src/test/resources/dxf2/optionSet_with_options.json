@@ -1,0 +1,35 @@
+{
+  "optionSets": [
+    {
+      "id": "YeVRiurT0QS",
+      "valueType": "TEXT",
+      "name": "TestOptionSet",
+      "options": [
+        {
+          "id": "vtuyiE5xvpH"
+
+        },
+        {
+          "id": "s0CAFNPb5Fy"
+
+        }
+      ]
+    }
+  ],
+  "options": [
+    {
+      "id": "vtuyiE5xvpH",
+      "code":"TO1",
+      "sortOrder":1,
+      "name":"testOption1",
+      "optionSet": {"id": "YeVRiurT0QS"}
+    },
+    {
+      "id": "s0CAFNPb5Fy",
+      "code":"TO2",
+      "sortOrder":1,
+      "name":"testOption2",
+      "optionSet": {"id": "YeVRiurT0QS"}
+    }
+  ]
+}

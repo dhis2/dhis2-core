@@ -82,7 +82,7 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
 
         assertEquals( Status.ERROR, importReport.getStatus() );
-        assertTrue( importReport.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1515 ) );
+        assertTrue( importReport.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1520 ) );
     }
 
     @Test
@@ -98,7 +98,7 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
 
         assertEquals( Status.ERROR, importReport.getStatus() );
-        assertTrue( importReport.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1516 ) );
+        assertTrue( importReport.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1521 ) );
     }
 
     @Test
