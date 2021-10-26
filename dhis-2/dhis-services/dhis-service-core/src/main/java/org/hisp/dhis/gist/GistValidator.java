@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.util.Arrays.stream;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 
@@ -141,6 +142,11 @@ final class GistValidator
 
     private void validateFromTransformation( RelativePropertyContext context, Property field, String transArgs )
     {
+        if ( stream( query.getElementType().getConstructors() ).noneMatch( c -> c.getParameterCount() == 0 ) )
+        {
+            throw createIllegalProperty( field,
+                "Property `%s` cannot use from transformation as bean has no default constructor." );
+        }
         if ( field.isPersisted() )
         {
             throw createIllegalProperty( field,
@@ -165,7 +171,6 @@ final class GistValidator
                     "Property `%s` must be persistent to be used as source for from transformation." );
             }
         }
-        // TODO make sure the bean has a no-args constructor
     }
 
     /**
