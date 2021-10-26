@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.dimension;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.emptyList;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
@@ -38,7 +39,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -245,15 +245,14 @@ public class DimensionController
         List<DimensionalObject> dimensions = new ArrayList<>();
         dimensions.addAll( dataSet.getCategoryCombo().getCategories().stream()
             .filter( ca -> !ca.isDefault() )
-            .collect( Collectors.toList() ) );
+            .collect( toList() ) );
         dimensions.addAll( dataSet.getCategoryOptionGroupSets() );
 
         dimensions = dimensionService.getCanReadObjects( dimensions );
 
-        for ( DimensionalObject dim : dimensions )
-        {
-            metadata.getDimensions().add( dimensionService.getDimensionalObjectCopy( dim.getUid(), true ) );
-        }
+        metadata.setDimensions( dimensions.stream()
+            .map( dim -> dimensionService.getDimensionalObjectCopy( dim.getUid(), true ) )
+            .collect( toList() ) );
 
         if ( links )
         {
