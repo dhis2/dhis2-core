@@ -34,9 +34,20 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.OutputFormat;
+import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DataQueryRequest;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.GridUtils;
@@ -635,6 +646,8 @@ public class AnalyticsController
         @RequestParam( required = false ) boolean includeMetadataDetails,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) IdScheme outputIdScheme,
+        @RequestParam( required = false ) IdScheme outputOrgUnitIdScheme,
+        @RequestParam( required = false ) IdScheme outputDataElementIdScheme,
         @RequestParam( required = false ) IdScheme inputIdScheme,
         @RequestParam( required = false ) boolean duplicatesOnly,
         @RequestParam( required = false ) String approvalLevel,
@@ -655,9 +668,10 @@ public class AnalyticsController
             .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
             .hideEmptyColumns( hideEmptyColumns ).showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).duplicatesOnly( duplicatesOnly )
-            .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .apiVersion( apiVersion ).build();
+            .outputIdScheme( outputIdScheme ).outputOrgUnitIdScheme( outputOrgUnitIdScheme )
+            .outputDataElementIdScheme( outputDataElementIdScheme ).inputIdScheme( inputIdScheme )
+            .duplicatesOnly( duplicatesOnly ).approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate )
+            .userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -688,6 +702,8 @@ public class AnalyticsController
         @RequestParam( required = false ) boolean includeMetadataDetails,
         @RequestParam( required = false ) DisplayProperty displayProperty,
         @RequestParam( required = false ) IdScheme outputIdScheme,
+        @RequestParam( required = false ) IdScheme outputOrgUnitIdScheme,
+        @RequestParam( required = false ) IdScheme outputDataElementIdScheme,
         @RequestParam( required = false ) IdScheme inputIdScheme,
         @RequestParam( required = false ) boolean duplicatesOnly,
         @RequestParam( required = false ) String approvalLevel,
@@ -708,9 +724,10 @@ public class AnalyticsController
             .hierarchyMeta( hierarchyMeta ).ignoreLimit( ignoreLimit ).hideEmptyRows( hideEmptyRows )
             .hideEmptyColumns( hideEmptyColumns ).showHierarchy( showHierarchy ).includeNumDen( includeNumDen )
             .includeMetadataDetails( includeMetadataDetails ).displayProperty( displayProperty )
-            .outputIdScheme( outputIdScheme ).inputIdScheme( inputIdScheme ).duplicatesOnly( duplicatesOnly )
-            .approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate ).userOrgUnit( userOrgUnit )
-            .apiVersion( apiVersion ).build();
+            .outputIdScheme( outputIdScheme ).outputOrgUnitIdScheme( outputOrgUnitIdScheme )
+            .outputDataElementIdScheme( outputDataElementIdScheme ).inputIdScheme( inputIdScheme )
+            .duplicatesOnly( duplicatesOnly ).approvalLevel( approvalLevel ).relativePeriodDate( relativePeriodDate )
+            .userOrgUnit( userOrgUnit ).apiVersion( apiVersion ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 

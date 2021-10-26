@@ -322,7 +322,7 @@ public class HibernateProgramInstanceStore
     @Override
     public List<ProgramInstance> getByType( ProgramType type )
     {
-        String hql = "from ProgramInstance pi where pi.program.programType = :type";
+        String hql = "select pi from ProgramInstance pi join fetch pi.program p where p.programType = :type";
 
         Query<ProgramInstance> query = getQuery( hql );
         query.setParameter( "type", type );
