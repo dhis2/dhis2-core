@@ -38,7 +38,6 @@ import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -84,8 +83,8 @@ public class OwnershipTests
         programActions = new ProgramActions();
         loginActions.loginAsSuperUser();
         username = createUserWithAccessToOu();
-        protectedProgram = createProgramWithAccessLevel( "PROTECTED" );
-        openProgram = createProgramWithAccessLevel( "OPEN" );
+        protectedProgram = programActions.createProgramWithAccessLevel( "PROTECTED", captureOu, searchOu );
+        openProgram = programActions.createProgramWithAccessLevel( "OPEN", captureOu, searchOu );
 
         String protectedProgramStageId = programActions
             .get( protectedProgram, new QueryParamsBuilder().add( "fields=programStages" ) ).validateStatus( 200 )
@@ -112,7 +111,6 @@ public class OwnershipTests
         loginActions.loginAsAdmin();
     }
 
-    @Disabled( "DHIS2-11910" )
     @Test
     public void shouldNotValidateCaptureScopeForTei()
     {
@@ -151,7 +149,7 @@ public class OwnershipTests
             .body( "enrollments", hasSize( 0 ) );
 
         trackerActions
-            .postAndGetJobReport( new EnrollmentDataBuilder().build( protectedProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
+            .postAndGetJobReport( new EnrollmentDataBuilder().array( protectedProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
             .validateErrorReport()
             .body( "errorCode", hasItems( "E1102" ) );
     }
@@ -178,29 +176,9 @@ public class OwnershipTests
             .body( "enrollments", hasSize( 0 ) );
 
         trackerActions
-            .postAndGetJobReport( new EnrollmentDataBuilder().build( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
+            .postAndGetJobReport( new EnrollmentDataBuilder().array( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
             .validateSuccessfulImport();
 
-    }
-
-    private String createProgramWithAccessLevel( String accessLevel )
-    {
-        String programId = programActions.createTrackerProgram( trackedEntityType, captureOu, searchOu ).extractUid();
-
-        JsonObject program = programActions.get( programId )
-            .getBodyAsJsonBuilder()
-            .addProperty( "accessLevel", accessLevel )
-            .addProperty( "publicAccess", "rwrw----" )
-            .addProperty( "onlyEnrollOnce", "false" )
-            .build();
-
-        programActions.update( programId, program ).validateStatus( 200 );
-
-        String programStageID = programActions.createProgramStage( "Program stage " + DataGenerator.randomString() );
-
-        programActions.addProgramStage( programId, programStageID );
-
-        return programId;
     }
 
 }

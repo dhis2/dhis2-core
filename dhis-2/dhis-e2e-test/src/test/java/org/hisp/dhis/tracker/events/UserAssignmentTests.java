@@ -28,11 +28,14 @@
 package org.hisp.dhis.tracker.events;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 
+import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
@@ -63,6 +66,8 @@ public class UserAssignmentTests
     private EventActions eventActions;
 
     private String userAssignmentProperty = "enableUserAssignment";
+
+    private String orgUnit = Constants.ORG_UNIT_IDS[0];
 
     @BeforeAll
     public void beforeAll()
@@ -130,11 +135,11 @@ public class UserAssignmentTests
 
             if ( !Boolean.parseBoolean( userAssignmentEnabled ) )
             {
-                assertNull( response.getBody().get( "assignedUser" ) );
+                response.validate().body( "assignedUser", nullValue() );
                 return;
             }
 
-            assertEquals( loggedInUser, response.getBody().get( "assignedUser" ).getAsString() );
+            response.validate().body( "assignedUser", equalTo( loggedInUser ) );
         } );
     }
 
@@ -150,24 +155,23 @@ public class UserAssignmentTests
         programActions.programStageActions.enableUserAssignment( programStageId, true );
         createEvents( programId, programStageId, loggedInUser );
 
-        JsonObject body = eventActions.get( "?program=" + programId + "&assignedUserMode=CURRENT&ouMode=ACCESSIBLE" )
+        JsonObject event = eventActions
+            .get( String.format( "?program=%s&orgUnit=%s&assignedUserMode=CURRENT", programId, orgUnit ) )
+            .validateStatus( 200 )
             .extractJsonObject( "events[0]" );
 
-        assertNotNull( body, "no events matching the query." );
+        assertNotNull( event, "no events matching the query." );
 
-        String eventId = body.get( "event" ).getAsString();
+        String eventId = event.get( "event" ).getAsString();
+        event.add( "assignedUser", null );
 
-        // act
-        body.add( "assignedUser", null );
+        eventActions.update( eventId, event )
+            .validate().statusCode( 200 );
 
-        ApiResponse eventResponse = eventActions.update( eventId, body );
-
-        // assert
-        eventResponse.validate().statusCode( 200 );
-
-        eventResponse = eventActions.get( eventId );
-
-        assertEquals( null, eventResponse.getBody().get( "assignedUser" ) );
+        eventActions.get( eventId )
+            .validate()
+            .statusCode( 200 )
+            .body( "assignedUser", Matchers.nullValue() );
     }
 
     private ApiResponse createEvents( String programId, String programStageId, String assignedUserId )
@@ -175,18 +179,13 @@ public class UserAssignmentTests
     {
         Object file = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" )
+            .replacePropertyValuesWith( "orgUnit", orgUnit )
             .replacePropertyValuesWith( "program", programId )
             .replacePropertyValuesWith( "programStage", programStageId )
             .replacePropertyValuesWith( "assignedUser", assignedUserId )
             .get();
 
-        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
-        queryParamsBuilder.add( "skipCache=true" );
-
-        ApiResponse eventResponse = eventActions.post( file, queryParamsBuilder );
-
-        eventResponse.validate().statusCode( 200 );
-
-        return eventResponse;
+        return eventActions.post( file, new QueryParamsBuilder().add( "skipCache", "true" ) )
+            .validateStatus( 200 );
     }
 }

@@ -25,19 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+
+package org.hisp.dhis.tracker.importer.databuilder;
+
+import com.google.gson.JsonObject;
 
 /**
- * A class that can consume a deflated data value.
- *
- * @author Jim Grace
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface DeflatedDataValueConsumer
+public interface TrackerImporterDataBuilder
 {
-    /**
-     * Consumes a deflated data value.
-     *
-     * @param deflatedDataValue the DeflatedDataValue to consume.
-     */
-    void consume( DeflatedDataValue deflatedDataValue );
+    public JsonObject single();
+
+    public JsonObject array();
 }

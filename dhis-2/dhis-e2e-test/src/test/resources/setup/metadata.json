@@ -449,6 +449,10 @@
         {
           "id": "YuQRtpLP10I",
           "code": "OU_539"
+        },
+        {
+          "id": "ImspTQPwCqd",
+          "code": "OU_525"
         }
       ],
       "userGroupAccesses": [
@@ -515,6 +519,10 @@
         {
           "id": "YuQRtpLP10I",
           "code": "OU_539"
+        },
+        {
+          "id": "ImspTQPwCqd",
+          "code": "OU_525"
         }
       ],
       "programTrackedEntityAttributes": [
@@ -978,8 +986,8 @@
       "id": "YuQRtpLP10I",
       "level": 3,
       "created": "2012-02-17T15:54:39.987",
-      "name": "Badjia",
-      "shortName": "Badjia",
+      "name": "Badija",
+      "shortName": "Badija",
       "path": "/ImspTQPwCqd/O6uvpzGd5pu/YuQRtpLP10I",
       "openingDate": "1970-01-01T00:00:00.000",
       "geometry": {
