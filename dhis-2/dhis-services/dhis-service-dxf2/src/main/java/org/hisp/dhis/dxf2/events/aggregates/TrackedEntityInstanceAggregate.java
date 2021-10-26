@@ -45,7 +45,7 @@ import javax.annotation.PostConstruct;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.cache2k.Cache;
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
