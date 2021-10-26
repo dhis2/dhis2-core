@@ -1011,8 +1011,7 @@ public abstract class AbstractEventService implements EventService
     private boolean getDataElement( String userUid, String dataElementUid )
     {
         String key = userUid + "-" + dataElementUid;
-        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null )
-            .orElse( false );
+        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null );
     }
 
     @Override

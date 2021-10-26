@@ -104,8 +104,7 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
     public boolean isProgramLinkedToWebHookNotification( Program program )
     {
         return programWebHookNotificationCache
-            .get( program.getUid(), uid -> store.isProgramLinkedToWebHookNotification( program.getId() ) )
-            .orElse( false );
+            .get( program.getUid(), uid -> store.isProgramLinkedToWebHookNotification( program.getId() ) );
     }
 
     @Override
@@ -114,8 +113,7 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
     {
         return programStageWebHookNotificationCache
             .get( programStage.getUid(),
-                uid -> store.isProgramStageLinkedToWebHookNotification( programStage.getId() ) )
-            .orElse( false );
+                uid -> store.isProgramStageLinkedToWebHookNotification( programStage.getId() ) );
     }
 
     @Override
