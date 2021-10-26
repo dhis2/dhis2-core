@@ -189,7 +189,7 @@ public class MetadataImportExportController
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
-    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE, produces = APPLICATION_XML_VALUE )
+    @PostMapping( value = "", consumes = APPLICATION_XML_VALUE )
     @ResponseBody
     public WebMessage postXmlMetadata( HttpServletRequest request )
         throws IOException
