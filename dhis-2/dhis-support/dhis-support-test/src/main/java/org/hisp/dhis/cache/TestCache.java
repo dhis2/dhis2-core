@@ -60,9 +60,9 @@ public class TestCache<V> implements Cache<V>
     }
 
     @Override
-    public Optional<V> get( String key, Function<String, V> mappingFunction )
+    public V get( String key, Function<String, V> mappingFunction )
     {
-        return Optional.empty();
+        return null;
     }
 
     @Override

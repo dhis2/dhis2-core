@@ -140,13 +140,12 @@ public class TrackedEntityInstanceAggregate
             .get( user.getUid(),
                 userUID -> getSecurityContext( userUID,
                     userGroupUIDCache.get( userUID ).orElse( Lists.newArrayList() ) ) )
-            .map( c -> c.toBuilder()
-                .userId( user.getId() )
-                .superUser( user.isSuper() )
-                .params( params )
-                .queryParams( queryParams )
-                .build() )
-            .orElse( AggregateContext.builder().build() );
+            .toBuilder()
+            .userId( user.getId() )
+            .superUser( user.isSuper() )
+            .params( params )
+            .queryParams( queryParams )
+            .build();
 
         /*
          * Async fetch Relationships for the given TrackedEntityInstance id
@@ -218,12 +217,10 @@ public class TrackedEntityInstanceAggregate
                     tei.setAttributes( filterAttributes( attributes.get( uid ), ownedTeis.get( uid ),
                         teiAttributesCache
                             .get( "ALL_ATTRIBUTES",
-                                s -> trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes() )
-                            .orElse( null ),
+                                s -> trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes() ),
                         programTeiAttributesCache
                             .get( "ATTRIBUTES_BY_PROGRAM",
-                                s -> trackedEntityAttributeService.getTrackedEntityAttributesByProgram() )
-                            .orElse( null ),
+                                s -> trackedEntityAttributeService.getTrackedEntityAttributesByProgram() ),
                         ctx ) );
                     tei.setRelationships( new ArrayList<>( relationships.get( uid ) ) );
                     tei.setEnrollments( filterEnrollments( enrollments.get( uid ), ownedTeis.get( uid ), ctx ) );

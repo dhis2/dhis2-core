@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import javax.servlet.http.HttpServletResponse;
@@ -79,15 +77,8 @@ public class TokenController
     {
         setNoStore( response );
 
-        Optional<GoogleAccessToken> tokenOptional = tokenCache.get( TOKEN_CACHE_KEY,
+        GoogleAccessToken token = tokenCache.get( TOKEN_CACHE_KEY,
             c -> config.getGoogleAccessToken().get() );
-
-        if ( !tokenOptional.isPresent() )
-        {
-            throw new WebMessageException( conflict( "Token not available" ) );
-        }
-
-        GoogleAccessToken token = tokenOptional.get();
 
         token.setExpiresInSeconds( ChronoUnit.SECONDS.between( LocalDateTime.now(), token.getExpiresOn() ) );
 
