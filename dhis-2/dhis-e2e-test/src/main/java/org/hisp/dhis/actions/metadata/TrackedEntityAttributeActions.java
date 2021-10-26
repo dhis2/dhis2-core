@@ -25,51 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions;
+package org.hisp.dhis.actions.metadata;
 
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.utils.DataGenerator;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SystemActions
+public class TrackedEntityAttributeActions
     extends RestApiActions
 {
-    private Logger logger = Logger.getLogger( SystemActions.class.getName() );
-
-    public SystemActions()
+    public TrackedEntityAttributeActions( )
     {
-        super( "/system" );
+        super( "/trackedEntityAttributes" );
     }
 
-    public ApiResponse waitUntilTaskCompleted( String taskType, String taskId )
-    {
-        logger.info( "Waiting until task " + taskType + " with id " + taskId + "is completed" );
-        ApiResponse response = null;
-        boolean completed = false;
-        while ( !completed )
-        {
-            response = get( "/tasks/" + taskType + "/" + taskId );
-            response.validate().statusCode( 200 );
-            completed = response.extractList( "completed" ).contains( true );
-        }
+    public String create( String valueType ) {
+        JsonObject ob = build( valueType );
 
-        logger.info( "Task completed. Message: " + response.extract( "message" ) );
-        return response;
+        return this.post( ob ).validateStatus( 201 ).extractUid();
     }
 
-    public List<ImportSummary> getTaskSummaries( String taskType, String taskId )
+    public String create( String valueType, Boolean unique )
     {
-        return getTaskSummariesResponse( taskType, taskId ).validateStatus( 200 ).getImportSummaries();
+        JsonObject ob = new JsonObjectBuilder( build( valueType ) )
+            .addProperty( "unique", String.valueOf( unique ) )
+            .build();
+
+        return this.post( ob ).validateStatus( 201 ).extractUid();
     }
 
-    public ApiResponse getTaskSummariesResponse( String taskType, String taskId )
-    {
-        return get( "/taskSummaries/" + taskType + "/" + taskId );
+    public String createOptionSetAttribute( String optionSet ) {
+        JsonObject ob = new JsonObjectBuilder( build( "TEXT" ))
+            .addObject( "optionSet", new JsonObjectBuilder()
+                .addProperty( "id", optionSet )
+                .build())
+            .build();
+
+        return this.post( ob ).validateStatus( 201 ).extractUid();
     }
 
+    private JsonObject build( String valueType ) {
+       return new JsonObjectBuilder()
+            .addProperty( "name", "TA TEA" + DataGenerator.randomString() )
+            .addProperty( "shortName", "TA TEA " + DataGenerator.randomString() )
+            .addProperty( "valueType", valueType )
+            .addProperty( "aggregationType", "NONE" )
+            .build();
+    }
 }

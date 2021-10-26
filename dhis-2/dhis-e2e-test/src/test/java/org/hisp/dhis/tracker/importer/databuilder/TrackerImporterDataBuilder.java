@@ -25,51 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions;
 
-import java.util.List;
-import java.util.logging.Logger;
+package org.hisp.dhis.tracker.importer.databuilder;
 
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SystemActions
-    extends RestApiActions
+public interface TrackerImporterDataBuilder
 {
-    private Logger logger = Logger.getLogger( SystemActions.class.getName() );
+    public JsonObject single();
 
-    public SystemActions()
-    {
-        super( "/system" );
-    }
-
-    public ApiResponse waitUntilTaskCompleted( String taskType, String taskId )
-    {
-        logger.info( "Waiting until task " + taskType + " with id " + taskId + "is completed" );
-        ApiResponse response = null;
-        boolean completed = false;
-        while ( !completed )
-        {
-            response = get( "/tasks/" + taskType + "/" + taskId );
-            response.validate().statusCode( 200 );
-            completed = response.extractList( "completed" ).contains( true );
-        }
-
-        logger.info( "Task completed. Message: " + response.extract( "message" ) );
-        return response;
-    }
-
-    public List<ImportSummary> getTaskSummaries( String taskType, String taskId )
-    {
-        return getTaskSummariesResponse( taskType, taskId ).validateStatus( 200 ).getImportSummaries();
-    }
-
-    public ApiResponse getTaskSummariesResponse( String taskType, String taskId )
-    {
-        return get( "/taskSummaries/" + taskType + "/" + taskId );
-    }
-
+    public JsonObject array();
 }

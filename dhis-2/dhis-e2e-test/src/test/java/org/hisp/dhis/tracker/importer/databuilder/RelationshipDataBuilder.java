@@ -34,7 +34,7 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipDataBuilder
+public class RelationshipDataBuilder implements TrackerImporterDataBuilder
 {
     private JsonObjectBuilder jsonBuilder;
 
@@ -49,20 +49,30 @@ public class RelationshipDataBuilder
         return this;
     }
 
-    public RelationshipDataBuilder setFromTrackedEntity( String trackedEntityId )
+    public RelationshipDataBuilder setFromEntity( String entityName, String entityId )
     {
         this.jsonBuilder.addObject( "from", new JsonObjectBuilder()
-            .addProperty( "trackedEntity", trackedEntityId ) );
+            .addProperty( entityName, entityId ) );
+
+        return this;
+    }
+
+    public RelationshipDataBuilder setFromTrackedEntity( String trackedEntityId )
+    {
+        return setFromEntity( "trackedEntity", trackedEntityId );
+    }
+
+    public RelationshipDataBuilder setToEntity( String entityName, String entityId )
+    {
+        this.jsonBuilder.addObject( "to", new JsonObjectBuilder()
+            .addProperty( entityName, entityId ) );
 
         return this;
     }
 
     public RelationshipDataBuilder setToTrackedEntity( String trackedEntityId )
     {
-        this.jsonBuilder.addObject( "to", new JsonObjectBuilder()
-            .addProperty( "trackedEntity", trackedEntityId ) );
-
-        return this;
+        return setToEntity( "trackedEntity", trackedEntityId );
     }
 
     public RelationshipDataBuilder buildUniDirectionalRelationship( String teiA, String teiB )
@@ -96,8 +106,15 @@ public class RelationshipDataBuilder
         return jsonBuilder.build();
     }
 
-    public JsonObject wrapToArray()
+    @Override
+    public JsonObject array()
     {
         return jsonBuilder.wrapIntoArray( "relationships" );
+    }
+
+    @Override
+    public JsonObject single()
+    {
+        return jsonBuilder.build();
     }
 }

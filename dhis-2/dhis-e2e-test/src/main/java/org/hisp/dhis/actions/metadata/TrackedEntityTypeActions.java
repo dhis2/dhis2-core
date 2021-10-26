@@ -25,51 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions;
+package org.hisp.dhis.actions.metadata;
 
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.dto.ImportSummary;
+import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.utils.DataGenerator;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class SystemActions
+public class TrackedEntityTypeActions
     extends RestApiActions
 {
-    private Logger logger = Logger.getLogger( SystemActions.class.getName() );
-
-    public SystemActions()
+    public TrackedEntityTypeActions()
     {
-        super( "/system" );
+        super( "/trackedEntityTypes" );
     }
 
-    public ApiResponse waitUntilTaskCompleted( String taskType, String taskId )
+    public String create()
     {
-        logger.info( "Waiting until task " + taskType + " with id " + taskId + "is completed" );
-        ApiResponse response = null;
-        boolean completed = false;
-        while ( !completed )
-        {
-            response = get( "/tasks/" + taskType + "/" + taskId );
-            response.validate().statusCode( 200 );
-            completed = response.extractList( "completed" ).contains( true );
-        }
+        JsonObject payload = JsonObjectBuilder.jsonObject()
+            .addProperty( "name", DataGenerator.randomEntityName() )
+            .addProperty( "shortName", DataGenerator.randomEntityName() )
+            .addUserGroupAccess()
+            .build();
 
-        logger.info( "Task completed. Message: " + response.extract( "message" ) );
-        return response;
+        return this.create( payload );
     }
 
-    public List<ImportSummary> getTaskSummaries( String taskType, String taskId )
+    public void addAttribute( String tet, String attribute, boolean mandatory )
     {
-        return getTaskSummariesResponse( taskType, taskId ).validateStatus( 200 ).getImportSummaries();
-    }
+        JsonObject object = this.get( tet ).getBodyAsJsonBuilder()
+            .addOrAppendToArray( "trackedEntityTypeAttributes",
+                new JsonObjectBuilder()
+                    .addProperty( "mandatory", String.valueOf( mandatory ) )
+                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
+                        .addProperty( "id", attribute ) )
+                    .build() )
+            .build();
 
-    public ApiResponse getTaskSummariesResponse( String taskType, String taskId )
-    {
-        return get( "/taskSummaries/" + taskType + "/" + taskId );
+        this.update( tet, object ).validateStatus( 200 );
     }
-
 }
