@@ -37,20 +37,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang.RandomStringUtils;
-import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
-import org.cache2k.integration.CacheLoader;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -65,9 +63,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
@@ -95,58 +93,24 @@ public class TrackedEntityInstanceAggregate
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     @NonNull
-    private final Environment env;
+    private final CacheProvider cacheProvider;
 
-    private final Cache<String, Set<TrackedEntityAttribute>> teiAttributesCache = new Cache2kBuilder<String, Set<TrackedEntityAttribute>>()
-    {
-    }
-        .name( "trackedEntityAttributeCache" + RandomStringUtils.randomAlphabetic( 5 ) )
-        .expireAfterWrite( 10, TimeUnit.MINUTES )
-        .loader( new CacheLoader<String, Set<TrackedEntityAttribute>>()
-        {
-            @Override
-            public Set<TrackedEntityAttribute> load( String s )
-            {
-                return trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes();
-            }
-        } )
-        .build();
+    private Cache<Set<TrackedEntityAttribute>> teiAttributesCache;
 
-    private final Cache<String, Map<Program, Set<TrackedEntityAttribute>>> programTeiAttributesCache = new Cache2kBuilder<String, Map<Program, Set<TrackedEntityAttribute>>>()
-    {
-    }
-        .name( "programTeiAttributesCache" + RandomStringUtils.randomAlphabetic( 5 ) )
-        .expireAfterWrite( 10, TimeUnit.MINUTES )
-        .loader( new CacheLoader<String, Map<Program, Set<TrackedEntityAttribute>>>()
-        {
-            @Override
-            public Map<Program, Set<TrackedEntityAttribute>> load( String s )
-            {
-                return trackedEntityAttributeService.getTrackedEntityAttributesByProgram();
-            }
-        } )
-        .build();
+    private Cache<Map<Program, Set<TrackedEntityAttribute>>> programTeiAttributesCache;
 
-    private final Cache<String, List<String>> userGroupUIDCache = new Cache2kBuilder<String, List<String>>()
-    {
-    }
-        .name( "userGroupUIDCache" + RandomStringUtils.randomAlphabetic( 5 ) )
-        .expireAfterWrite( 10, TimeUnit.MINUTES ).build();
+    private Cache<List<String>> userGroupUIDCache;
 
-    private final Cache<String, AggregateContext> securityCache = new Cache2kBuilder<String, AggregateContext>()
+    private Cache<AggregateContext> securityCache;
+
+    @PostConstruct
+    protected void init()
     {
+        teiAttributesCache = cacheProvider.createTeiAttributesCache();
+        programTeiAttributesCache = cacheProvider.createProgramTeiAttributesCache();
+        userGroupUIDCache = cacheProvider.createUserGroupUIDCache();
+        securityCache = cacheProvider.createSecurityCache();
     }
-        .name( "aggregateContextSecurityCache" + RandomStringUtils.randomAlphabetic( 5 ) )
-        .expireAfterWrite( 10, TimeUnit.MINUTES )
-        .loader( new CacheLoader<String, AggregateContext>()
-        {
-            @Override
-            public AggregateContext load( String userUID )
-            {
-                return getSecurityContext( userUID, userGroupUIDCache.get( userUID ) );
-            }
-        } )
-        .build();
 
     /**
      * Fetches a List of {@see TrackedEntityInstance} based on the list of
@@ -162,7 +126,7 @@ public class TrackedEntityInstanceAggregate
     {
         final User user = currentUserService.getCurrentUser();
 
-        if ( userGroupUIDCache.get( user.getUid() ) == null && !CollectionUtils.isEmpty( user.getGroups() ) )
+        if ( !userGroupUIDCache.get( user.getUid() ).isPresent() && !CollectionUtils.isEmpty( user.getGroups() ) )
         {
             userGroupUIDCache.put( user.getUid(),
                 user.getGroups().stream().map( group -> group.getUid() ).collect( Collectors.toList() ) );
@@ -172,13 +136,17 @@ public class TrackedEntityInstanceAggregate
          * Create a context with information which will be used to fetch the
          * entities
          */
-        AggregateContext ctx = securityCache.get( user.getUid() )
-            .toBuilder()
-            .userId( user.getId() )
-            .superUser( user.isSuper() )
-            .params( params )
-            .queryParams( queryParams )
-            .build();
+        AggregateContext ctx = securityCache
+            .get( user.getUid(),
+                userUID -> getSecurityContext( userUID,
+                    userGroupUIDCache.get( userUID ).orElse( Lists.newArrayList() ) ) )
+            .map( c -> c.toBuilder()
+                .userId( user.getId() )
+                .superUser( user.isSuper() )
+                .params( params )
+                .queryParams( queryParams )
+                .build() )
+            .orElse( AggregateContext.builder().build() );
 
         /*
          * Async fetch Relationships for the given TrackedEntityInstance id
@@ -248,8 +216,15 @@ public class TrackedEntityInstanceAggregate
 
                     TrackedEntityInstance tei = teis.get( uid );
                     tei.setAttributes( filterAttributes( attributes.get( uid ), ownedTeis.get( uid ),
-                        teiAttributesCache.get( getCacheKey( "ALL_ATTRIBUTES" ) ),
-                        programTeiAttributesCache.get( getCacheKey( "ATTRIBUTES_BY_PROGRAM" ) ), ctx ) );
+                        teiAttributesCache
+                            .get( "ALL_ATTRIBUTES",
+                                s -> trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes() )
+                            .orElse( null ),
+                        programTeiAttributesCache
+                            .get( "ATTRIBUTES_BY_PROGRAM",
+                                s -> trackedEntityAttributeService.getTrackedEntityAttributesByProgram() )
+                            .orElse( null ),
+                        ctx ) );
                     tei.setRelationships( new ArrayList<>( relationships.get( uid ) ) );
                     tei.setEnrollments( filterEnrollments( enrollments.get( uid ), ownedTeis.get( uid ), ctx ) );
                     tei.setProgramOwners( new ArrayList<>( programOwners.get( uid ) ) );
@@ -366,18 +341,5 @@ public class TrackedEntityInstanceAggregate
                 .build(),
             getPool() )
             .join();
-    }
-
-    /**
-     * This method is required to be able to skip the caches during the tests.
-     * Since cache2k can't really be disabled (see
-     * https://github.com/cache2k/cache2k/issues/74), this method generates a
-     * new key for every call, effectively forcing the cache to fetch the data
-     * every time
-     *
-     */
-    private String getCacheKey( String key )
-    {
-        return SystemUtils.isTestRun( env.getActiveProfiles() ) ? RandomStringUtils.randomAlphabetic( 10 ) : key;
     }
 }
