@@ -72,7 +72,7 @@ public interface Cache<V>
      *         Optional.empty() if the computed value is null
      * @throws IllegalArgumentException if the specified mappingFunction is null
      */
-    Optional<V> get( String key, Function<String, V> mappingFunction );
+    V get( String key, Function<String, V> mappingFunction );
 
     /**
      * Returns a collection of all the values in the cache

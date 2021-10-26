@@ -25,19 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.dxf2.events.event;
 
-/**
- * A class that can consume a deflated data value.
- *
- * @author Jim Grace
- */
-public interface DeflatedDataValueConsumer
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+
+@Service
+@Profile( "test" )
+public class TestSkipLockedProvider implements SkipLockedProvider
 {
-    /**
-     * Consumes a deflated data value.
-     *
-     * @param deflatedDataValue the DeflatedDataValue to consume.
-     */
-    void consume( DeflatedDataValue deflatedDataValue );
+    @Override
+    public String getSkipLocked()
+    {
+        return "";
+    }
 }

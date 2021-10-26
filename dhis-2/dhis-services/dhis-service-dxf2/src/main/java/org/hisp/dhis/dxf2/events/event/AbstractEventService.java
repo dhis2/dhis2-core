@@ -1011,8 +1011,7 @@ public abstract class AbstractEventService implements EventService
     private boolean getDataElement( String userUid, String dataElementUid )
     {
         String key = userUid + "-" + dataElementUid;
-        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null )
-            .orElse( false );
+        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null );
     }
 
     @Override
@@ -1056,14 +1055,19 @@ public abstract class AbstractEventService implements EventService
             violation = userCanSearchOuModeALL( user ) ? null
                 : "Current user is not authorized to query across all organisation units";
             break;
+        case ACCESSIBLE:
         case CAPTURE:
+            violation = user == null ? "User is required for ouMode: " + params.getOrgUnitSelectionMode() : null;
+            break;
+        case CHILDREN:
+        case SELECTED:
         case DESCENDANTS:
             violation = params.getOrgUnit() == null
                 ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
                 : null;
             break;
         default:
-            violation = null;
+            violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
             break;
         }
 

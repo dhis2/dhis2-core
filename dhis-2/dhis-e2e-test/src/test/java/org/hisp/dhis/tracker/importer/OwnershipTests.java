@@ -83,8 +83,8 @@ public class OwnershipTests
         programActions = new ProgramActions();
         loginActions.loginAsSuperUser();
         username = createUserWithAccessToOu();
-        protectedProgram = createProgramWithAccessLevel( "PROTECTED" );
-        openProgram = createProgramWithAccessLevel( "OPEN" );
+        protectedProgram = programActions.createProgramWithAccessLevel( "PROTECTED", captureOu, searchOu );
+        openProgram = programActions.createProgramWithAccessLevel( "OPEN", captureOu, searchOu );
 
         String protectedProgramStageId = programActions
             .get( protectedProgram, new QueryParamsBuilder().add( "fields=programStages" ) ).validateStatus( 200 )
@@ -179,23 +179,6 @@ public class OwnershipTests
             .postAndGetJobReport( new EnrollmentDataBuilder().array( openProgram, captureOu, teiInCaptureScope, "ACTIVE" ) )
             .validateSuccessfulImport();
 
-    }
-
-    private String createProgramWithAccessLevel( String accessLevel )
-    {
-        String programId = programActions.createTrackerProgram( trackedEntityType, captureOu, searchOu ).extractUid();
-
-        JsonObject program = programActions.get( programId )
-            .getBodyAsJsonBuilder()
-            .addProperty( "accessLevel", accessLevel )
-            .addProperty( "publicAccess", "rwrw----" )
-            .addProperty( "onlyEnrollOnce", "false" )
-            .build();
-
-        programActions.update( programId, program ).validateStatus( 200 );
-        programActions.createProgramStage( programId, "Program stage " + DataGenerator.randomString() );
-
-        return programId;
     }
 
 }

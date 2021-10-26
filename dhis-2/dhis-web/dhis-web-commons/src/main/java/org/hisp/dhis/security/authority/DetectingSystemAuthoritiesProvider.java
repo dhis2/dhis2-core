@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security.authority;
 
+import static java.util.Collections.emptyList;
+
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -63,9 +65,14 @@ public class DetectingSystemAuthoritiesProvider
     @Override
     public Collection<String> getSystemAuthorities()
     {
-        HashSet<String> authorities = new HashSet<>();
+        Dispatcher instance = Dispatcher.getInstance();
+        if ( instance == null )
+        {
+            return emptyList();
+        }
 
-        Configuration configuration = Dispatcher.getInstance().getConfigurationManager().getConfiguration();
+        HashSet<String> authorities = new HashSet<>();
+        Configuration configuration = instance.getConfigurationManager().getConfiguration();
 
         for ( PackageConfig packageConfig : configuration.getPackageConfigs().values() )
         {

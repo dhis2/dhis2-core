@@ -79,6 +79,9 @@ public class JdbcEventStoreTest
     @Mock
     private EventStore eventStore;
 
+    @Mock
+    private SkipLockedProvider skipLockedProvider;
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
@@ -91,7 +94,7 @@ public class JdbcEventStoreTest
 
         ObjectMapper objectMapper = new ObjectMapper();
         subject = new JdbcEventStore( new PostgreSQLStatementBuilder(), jdbcTemplate, objectMapper, currentUserService,
-            manager, env, eventStore );
+            manager, env, eventStore, skipLockedProvider );
     }
 
     @Test

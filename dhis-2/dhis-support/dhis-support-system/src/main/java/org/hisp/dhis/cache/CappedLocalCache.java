@@ -181,7 +181,7 @@ public class CappedLocalCache
         }
 
         @Override
-        public Optional<V> get( String key, Function<String, V> fetcher )
+        public V get( String key, Function<String, V> fetcher )
         {
             if ( null == fetcher )
             {
@@ -193,18 +193,18 @@ public class CappedLocalCache
             if ( value != null )
             {
                 hits.incrementAndGet();
-                return Optional.of( value );
+                return value;
             }
             misses.incrementAndGet();
             value = fetcher.apply( key );
             if ( value == null && entry != null && !entry.isExpired( now ) )
             {
                 // still null, no entry update needed
-                return Optional.ofNullable( defaultValue );
+                return defaultValue;
             }
             // need new entry...
             put( key, value );
-            return Optional.ofNullable( value == null ? defaultValue : value );
+            return value == null ? defaultValue : value;
         }
 
         @Override

@@ -100,7 +100,7 @@ public class LocalCache<V> implements Cache<V>
     }
 
     @Override
-    public Optional<V> get( String key, Function<String, V> mappingFunction )
+    public V get( String key, Function<String, V> mappingFunction )
     {
         if ( null == mappingFunction )
         {
@@ -119,7 +119,7 @@ public class LocalCache<V> implements Cache<V>
             }
         }
 
-        return Optional.ofNullable( Optional.ofNullable( value ).orElse( defaultValue ) );
+        return Optional.ofNullable( value ).orElse( defaultValue );
     }
 
     @Override
