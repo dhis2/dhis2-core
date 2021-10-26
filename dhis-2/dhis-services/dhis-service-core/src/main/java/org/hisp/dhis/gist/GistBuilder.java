@@ -41,6 +41,7 @@ import static org.hisp.dhis.gist.GistLogic.isStringLengthFilter;
 import static org.hisp.dhis.gist.GistLogic.parentPath;
 import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -57,6 +58,7 @@ import java.util.function.Function;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -97,6 +99,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Jan Bernitt
  */
+@Slf4j
 @RequiredArgsConstructor
 final class GistBuilder
 {
@@ -194,6 +197,22 @@ final class GistBuilder
         if ( isAccessProperty( p ) && !existsSameParentField( query, f, SHARING_PROPERTY ) )
         {
             return query.withField( pathOnSameParent( f.getPropertyPath(), SHARING_PROPERTY ) );
+        }
+
+        return addFromTransformationSupportFields( query, f );
+    }
+
+    private static GistQuery addFromTransformationSupportFields( GistQuery query, Field f )
+    {
+        if ( f.getTransformation() == Transform.FROM )
+        {
+            for ( String propertyName : f.getTransformationArgument().split( "," ) )
+            {
+                if ( !existsSameParentField( query, f, propertyName ) )
+                {
+                    query = query.withField( pathOnSameParent( f.getPropertyPath(), propertyName ) );
+                }
+            }
         }
         return query;
     }
@@ -407,6 +426,10 @@ final class GistBuilder
             addTransformer( row -> row[index] = access.asAccess( objType, (Sharing) row[sharingFieldIndex] ) );
             return HQL_NULL;
         }
+        if ( field.getTransformation() == Transform.FROM )
+        {
+            return createFromTransformedFieldHQL( index, field, path, property );
+        }
         if ( isPersistentReferenceField( property ) )
         {
             return createReferenceFieldHQL( index, field );
@@ -421,6 +444,36 @@ final class GistBuilder
         }
         String memberPath = getMemberPath( path );
         return "e." + memberPath;
+    }
+
+    private String createFromTransformedFieldHQL( int index, Field field, String path, Property property )
+    {
+        Object bean = newQueryElementInstance();
+        if ( bean == null )
+        {
+            return HQL_NULL;
+        }
+        String[] sources = field.getTransformationArgument().split( "," );
+        List<Method> setters = stream( sources ).map( context::resolveMandatory ).map( Property::getSetterMethod )
+            .collect( toList() );
+        int[] indexes = stream( sources ).mapToInt( srcProperty -> getSameParentFieldIndex( path, srcProperty ) )
+            .toArray();
+        Method getter = property.getGetterMethod();
+        addTransformer( row -> {
+            try
+            {
+                for ( int i = 0; i < indexes.length; i++ )
+                {
+                    setters.get( i ).invoke( bean, row[indexes[i]] );
+                }
+                row[index] = getter.invoke( bean );
+            }
+            catch ( Exception ex )
+            {
+                log.debug( "Failed to perform from transformation", ex );
+            }
+        } );
+        return HQL_NULL;
     }
 
     private String createReferenceFieldHQL( int index, Field field )
@@ -887,7 +940,9 @@ final class GistBuilder
     {
         for ( Field field : query.getFields() )
         {
-            if ( field.getTransformationArgument() != null && field.getTransformation() != Transform.PLUCK )
+            Transform transformation = field.getTransformation();
+            if ( field.getTransformationArgument() != null && transformation != Transform.PLUCK
+                && transformation != Transform.FROM )
             {
                 dest.accept( "p_" + field.getPropertyPath(), field.getTransformationArgument() );
             }
@@ -993,5 +1048,18 @@ final class GistBuilder
         return value != null && (value.contains( "*" ) || value.contains( "?" ))
             ? value.replace( "*", "%" ).replace( "?", "_" )
             : "%" + value + "%";
+    }
+
+    private Object newQueryElementInstance()
+    {
+        try
+        {
+            return context.getHome().getKlass().getConstructor().newInstance();
+        }
+        catch ( Exception ex )
+        {
+            log.warn( "Failed to construct from transformation transfer bean instance" );
+            return null;
+        }
     }
 }

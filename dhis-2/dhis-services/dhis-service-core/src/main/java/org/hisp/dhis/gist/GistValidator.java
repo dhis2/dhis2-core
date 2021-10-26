@@ -117,21 +117,55 @@ final class GistValidator
                     "Property `%s` computes to many values and therefore cannot be used as a field." );
             }
         }
-        if ( f.getTransformation() == Transform.PLUCK && f.getTransformationArgument() != null )
+        Transform transformation = f.getTransformation();
+        String transArgs = f.getTransformationArgument();
+        if ( transformation == Transform.PLUCK && transArgs != null )
         {
-            String pluckedField = f.getTransformationArgument();
-            Property plucked = context.switchedTo( getBaseType( field ) ).resolveMandatory( pluckedField );
+            Property plucked = context.switchedTo( getBaseType( field ) ).resolveMandatory( transArgs );
             if ( !plucked.isPersisted() )
             {
                 throw createIllegalProperty( plucked,
                     "Property `%s` cannot be plucked as it is not a persistent field." );
             }
         }
+        if ( transformation == Transform.FROM )
+        {
+            validateFromTransformation( context, field, transArgs );
+        }
         if ( !field.isReadable() )
         {
             throw createNoReadAccess( f, null );
         }
         validateFieldAccess( f, context );
+    }
+
+    private void validateFromTransformation( RelativePropertyContext context, Property field, String transArgs )
+    {
+        if ( field.isPersisted() )
+        {
+            throw createIllegalProperty( field,
+                "Property `%s` is persistent an cannot be computed using transformation from." );
+        }
+        if ( transArgs == null || transArgs.isEmpty() )
+        {
+            throw createIllegalProperty( field,
+                "Property `%s` requires one or more source fields when used with transformation from." );
+        }
+        for ( String fromPropertyName : transArgs.split( "," ) )
+        {
+            Property fromField = context.resolve( fromPropertyName );
+            if ( fromField == null )
+            {
+                throw createIllegalProperty( fromPropertyName,
+                    "Property `%s` used in from transformation does not exist." );
+            }
+            if ( !fromField.isPersisted() )
+            {
+                throw createIllegalProperty( fromField,
+                    "Property `%s` must be persistent to be used as source for from transformation." );
+            }
+        }
+        // TODO make sure the bean has a no-args constructor
     }
 
     /**
@@ -239,7 +273,12 @@ final class GistValidator
 
     private IllegalArgumentException createIllegalProperty( Property property, String message )
     {
-        return new IllegalArgumentException( String.format( message, property.getName() ) );
+        return createIllegalProperty( property.getName(), message );
+    }
+
+    private IllegalArgumentException createIllegalProperty( String propertyName, String message )
+    {
+        return new IllegalArgumentException( String.format( message, propertyName ) );
     }
 
     private IllegalArgumentException createIllegalFilter( Filter filter, String message )
