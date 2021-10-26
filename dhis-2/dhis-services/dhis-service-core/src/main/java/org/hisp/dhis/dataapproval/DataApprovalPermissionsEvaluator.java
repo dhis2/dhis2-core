@@ -260,8 +260,7 @@ class DataApprovalPermissionsEvaluator
         userApprovalLevel = USER_APPROVAL_LEVEL_CACHE.get( user.getId() + "-" + organisationUnitUid,
             c -> dataApprovalLevelService.getUserApprovalLevel( user,
                 organisationUnitService.getOrganisationUnit( organisationUnitUid ),
-                dataApprovalWorkflow.getSortedLevels() ) )
-            .orElse( null );
+                dataApprovalWorkflow.getSortedLevels() ) );
 
         return userApprovalLevel;
     }

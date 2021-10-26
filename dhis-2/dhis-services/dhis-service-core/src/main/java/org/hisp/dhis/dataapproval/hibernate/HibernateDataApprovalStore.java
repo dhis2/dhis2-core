@@ -230,8 +230,7 @@ public class HibernateDataApprovalStore
     @Override
     public boolean dataApprovalExists( DataApproval dataApproval )
     {
-        return isApprovedCache.get( dataApproval.getCacheKey(), key -> dataApprovalExistsInternal( dataApproval ) )
-            .orElse( false );
+        return isApprovedCache.get( dataApproval.getCacheKey(), key -> dataApprovalExistsInternal( dataApproval ) );
     }
 
     private boolean dataApprovalExistsInternal( DataApproval dataApproval )

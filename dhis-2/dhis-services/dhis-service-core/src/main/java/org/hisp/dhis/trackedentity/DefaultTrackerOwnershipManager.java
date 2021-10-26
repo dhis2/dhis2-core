@@ -364,7 +364,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
                 ou = trackedEntityProgramOwner.getOrganisationUnit();
             }
             return ou;
-        } ).get();
+        } );
     }
 
     /**
@@ -390,7 +390,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
                 } )
                 .orElseGet( orgUnitIfMissingSupplier );
 
-        } ).get();
+        } );
     }
 
     /**
@@ -439,7 +439,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
         return tempOwnerCache
             .get( getTempOwnershipCacheKey( entityInstance.getUid(), program.getUid(), user.getUid() ), s -> {
                 return (programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0);
-            } ).orElse( false );
+            } );
     }
 
     private boolean hasTemporaryAccessWithUid( String entityInstanceUid, Program program, User user )
@@ -458,7 +458,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
                     return true;
                 }
                 return (programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0);
-            } ).orElse( false );
+            } );
     }
 
     /**
