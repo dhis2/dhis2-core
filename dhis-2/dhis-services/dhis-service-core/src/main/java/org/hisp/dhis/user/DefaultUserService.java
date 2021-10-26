@@ -835,4 +835,10 @@ public class DefaultUserService
     {
         return userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) ).orElse( null );
     }
+
+    @Override
+    public List<UserCredentials> getUsersWithAuthority( String authority )
+    {
+        return userCredentialsStore.getUsersWithAuthority( authority );
+    }
 }

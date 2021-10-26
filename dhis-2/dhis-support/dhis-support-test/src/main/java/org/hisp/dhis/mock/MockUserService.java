@@ -416,4 +416,10 @@ public class MockUserService
     {
         return null;
     }
+
+    @Override
+    public List<UserCredentials> getUsersWithAuthority( String authority )
+    {
+        return null;
+    }
 }
