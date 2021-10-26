@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singleton;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -53,7 +54,6 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalPermissions;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataapproval.DataApprovalStateResponse;
-import org.hisp.dhis.dataapproval.DataApprovalStateResponses;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
@@ -72,6 +72,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -258,43 +259,22 @@ public class DataApprovalController
             }
         }
 
-        Map<DataApproval, DataApprovalStatus> statusMap = dataApprovalService.getDataApprovalStatuses( dataApprovals );
-
-        List<ApprovalStatusDto> approvalStatuses = new ArrayList<>();
-
-        for ( Map.Entry<DataApproval, DataApprovalStatus> entry : statusMap.entrySet() )
-        {
-            DataApproval da = entry.getKey();
-
-            DataApprovalStatus status = entry.getValue();
-
-            ApprovalStatusDto approvalStatus = new ApprovalStatusDto();
-
-            approvalStatus.setWf( da.getWorkflow().getUid() );
-            approvalStatus.setPe( da.getPeriod().getIsoDate() );
-            approvalStatus.setOu( da.getOrganisationUnit().getUid() );
-            approvalStatus.setAoc( da.getAttributeOptionCombo().getUid() );
-            approvalStatus.setState( status != null ? status.getState() : null );
-            approvalStatus.setLevel(
-                status != null && status.getApprovedLevel() != null ? status.getApprovedLevel().getUid() : null );
-            approvalStatus.setPermissions( status != null ? status.getPermissions() : null );
-
-            approvalStatuses.add( approvalStatus );
-        }
-
-        return approvalStatuses;
+        return dataApprovalService.getDataApprovalStatuses( dataApprovals ).entrySet().stream()
+            .map( ApprovalStatusDto::from )
+            .collect( toList() );
     }
 
     @GetMapping( value = STATUS_PATH, produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody RootNode getApproval(
         @RequestParam Set<String> ds,
         @RequestParam( required = false ) String pe,
-        @RequestParam Date startDate,
-        @RequestParam Date endDate,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
         @RequestParam Set<String> ou,
         @RequestParam( required = false ) boolean children,
         HttpServletResponse response )
-        throws WebMessageException
+        throws WebMessageException,
+        BadRequestException
     {
         List<String> fields = new ArrayList<>( contextService.getParameterValues( "fields" ) );
 
@@ -309,18 +289,7 @@ public class DataApprovalController
 
         Set<DataSet> dataSets = parseDataSetsWithWorkflow( ds );
 
-        Set<Period> periods = new HashSet<>();
-
-        PeriodType periodType = periodService.getPeriodTypeByName( pe );
-
-        if ( periodType != null )
-        {
-            periods.addAll( periodService.getPeriodsBetweenDates( periodType, startDate, endDate ) );
-        }
-        else
-        {
-            periods.addAll( periodService.getPeriodsBetweenDates( startDate, endDate ) );
-        }
+        Set<Period> periods = parsePeriods( pe, startDate, endDate );
 
         Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -333,7 +302,7 @@ public class DataApprovalController
             organisationUnits.addAll( organisationUnitService.getOrganisationUnitsByUid( ou ) );
         }
 
-        DataApprovalStateResponses dataApprovalStateResponses = new DataApprovalStateResponses();
+        List<DataApprovalStateResponse> responses = new ArrayList<>();
 
         for ( DataSet dataSet : dataSets )
         {
@@ -341,8 +310,7 @@ public class DataApprovalController
             {
                 for ( Period period : periods )
                 {
-                    dataApprovalStateResponses.add(
-                        getDataApprovalStateResponse( dataSet, organisationUnit, period ) );
+                    responses.add( getDataApprovalStateResponse( dataSet, organisationUnit, period ) );
                 }
             }
         }
@@ -352,26 +320,50 @@ public class DataApprovalController
         RootNode rootNode = NodeUtils.createMetadata();
 
         rootNode.addChild( fieldFilterService.toCollectionNode( DataApprovalStateResponse.class,
-            new FieldFilterParams( dataApprovalStateResponses.getDataApprovalStateResponses(), fields ) ) );
+            new FieldFilterParams( responses, fields ) ) );
 
         return rootNode;
     }
 
-    private DataApprovalStateResponse getDataApprovalStateResponse( DataSet dataSet,
-        OrganisationUnit organisationUnit, Period period )
+    private Set<Period> parsePeriods( String pe, Date startDate, Date endDate )
+        throws BadRequestException
+    {
+        if ( startDate == null || endDate == null )
+        {
+            Period period = periodService.getPeriod( pe );
+            if ( period == null )
+            {
+                throw new BadRequestException( "Either provide startDate and endDate or a valid ISO period for pe" );
+            }
+            return singleton( period );
+        }
+
+        PeriodType periodType = periodService.getPeriodTypeByName( pe );
+        if ( periodType != null )
+        {
+            return new HashSet<>( periodService.getPeriodsBetweenDates( periodType, startDate, endDate ) );
+        }
+        return new HashSet<>( periodService.getPeriodsBetweenDates( startDate, endDate ) );
+    }
+
+    private DataApprovalStateResponse getDataApprovalStateResponse( DataSet dataSet, OrganisationUnit organisationUnit,
+        Period period )
     {
         CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
 
         DataApprovalStatus status = dataApprovalService.getDataApprovalStatus( dataSet.getWorkflow(), period,
             organisationUnit, optionCombo );
 
-        Date createdDate = status.getCreated();
-        String createdByUsername = status.getCreator() == null ? null : status.getCreator().getUsername();
-
-        String state = status.getState().toString();
-
-        return new DataApprovalStateResponse( dataSet, period, organisationUnit, state,
-            createdDate, createdByUsername, status.getPermissions() );
+        DataApprovalPermissions permissions = status.getPermissions();
+        return DataApprovalStateResponse.builder()
+            .dataSet( dataSet )
+            .organisationUnit( organisationUnit )
+            .period( period )
+            .state( status.getState().toString() )
+            .createdDate( status.getCreated() )
+            .createdByUsername( status.getCreator() == null ? null : status.getCreator().getUsername() )
+            .permissions( permissions )
+            .build();
     }
 
     @GetMapping( value = APPROVALS_PATH
@@ -383,8 +375,7 @@ public class DataApprovalController
         @RequestParam( required = false ) Set<String> wf,
         @RequestParam String pe,
         @RequestParam( required = false ) String ou )
-        throws IOException,
-        WebMessageException
+        throws WebMessageException
     {
         Set<DataApprovalWorkflow> workflows = getAndValidateWorkflows( ds, wf );
         Period period = getAndValidatePeriod( pe );

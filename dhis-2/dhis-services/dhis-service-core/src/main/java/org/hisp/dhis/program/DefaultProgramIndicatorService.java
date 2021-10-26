@@ -366,8 +366,7 @@ public class DefaultProgramIndicatorService
         String cacheKey = getAnalyticsSqlCacheKey( expression, programIndicator, startDate, endDate, tableAlias );
 
         return analyticsSqlCache
-            .get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) )
-            .orElse( null );
+            .get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) );
     }
 
     private String getAnalyticsSqlCacheKey( String expression, ProgramIndicator programIndicator, Date startDate,

@@ -37,7 +37,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -426,7 +425,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
             if ( property.hasPropertyTransformer() )
             {
-                Optional<PropertyTransformer> propertyTransformer = transformerCache
+                PropertyTransformer propertyTransformer = transformerCache
                     .get( property.getPropertyTransformer().getName(), s -> {
                         try
                         {
@@ -438,12 +437,12 @@ public class DefaultFieldFilterService implements FieldFilterService
                         }
                     } );
 
-                if ( propertyTransformer.isPresent() && returnValue != null )
+                if ( returnValue != null )
                 {
-                    returnValue = propertyTransformer.get().transform( returnValue );
+                    returnValue = propertyTransformer.transform( returnValue );
                     propertyClass = returnValue.getClass();
                     propertySchema = schemaService.getDynamicSchema( propertyClass );
-                    updateFields( fieldValue, propertyTransformer.get().getKlass() );
+                    updateFields( fieldValue, propertyTransformer.getKlass() );
                 }
             }
 

@@ -182,7 +182,7 @@ public class DefaultSystemSettingManager
     public <T extends Serializable> T getSystemSetting( SettingKey key, T defaultValue )
     {
         SerializableOptional value = settingCache.get( key.getName(),
-            k -> getSystemSettingOptional( k, defaultValue ) ).get();
+            k -> getSystemSettingOptional( k, defaultValue ) );
 
         return (T) value.get();
     }

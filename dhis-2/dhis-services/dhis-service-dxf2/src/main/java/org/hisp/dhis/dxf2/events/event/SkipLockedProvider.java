@@ -25,80 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
+package org.hisp.dhis.dxf2.events.event;
 
 /**
- * @author Luciano Fiandesio
+ * Provide the SQL for SKIP LOCKED option. H2 does not support this option so we
+ * need a different implementation for the integration tests
  */
-public class TestCache<V> implements Cache<V>
+public interface SkipLockedProvider
 {
-    private Map<String, V> mapCache = new HashMap<>();
-
-    @Override
-    public Optional<V> getIfPresent( String key )
-    {
-        if ( mapCache.containsKey( key ) )
-        {
-            return get( key );
-        }
-        else
-        {
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public Optional<V> get( String key )
-    {
-        return Optional.ofNullable( mapCache.get( key ) );
-    }
-
-    @Override
-    public V get( String key, Function<String, V> mappingFunction )
-    {
-        return null;
-    }
-
-    @Override
-    public Stream<V> getAll()
-    {
-        return mapCache.values().stream();
-    }
-
-    @Override
-    public void put( String key, V value )
-    {
-        mapCache.put( key, value );
-    }
-
-    @Override
-    public void put( String key, V value, long ttlInSeconds )
-    {
-        // Ignoring ttl for this testing cache
-        mapCache.put( key, value );
-    }
-
-    @Override
-    public void invalidate( String key )
-    {
-        mapCache.remove( key );
-    }
-
-    @Override
-    public void invalidateAll()
-    {
-        mapCache = new HashMap<>();
-    }
-
-    @Override
-    public CacheType getCacheType()
-    {
-        return null;
-    }
+    String getSkipLocked();
 }

@@ -230,8 +230,7 @@ public class HibernateDataApprovalStore
     @Override
     public boolean dataApprovalExists( DataApproval dataApproval )
     {
-        return isApprovedCache.get( dataApproval.getCacheKey(), key -> dataApprovalExistsInternal( dataApproval ) )
-            .orElse( false );
+        return isApprovedCache.get( dataApproval.getCacheKey(), key -> dataApprovalExistsInternal( dataApproval ) );
     }
 
     private boolean dataApprovalExistsInternal( DataApproval dataApproval )
@@ -637,10 +636,8 @@ public class HibernateDataApprovalStore
             final boolean accepted = approved == null ? false : approved[1].substring( 0, 1 ).equalsIgnoreCase( "t" );
             final int approvedOrgUnitId = approved == null ? 0 : Integer.parseInt( approved[2] );
 
-            DataApprovalLevel approvedLevel = (level == 0 ? null : levelMap.get( level )); // null
-                                                                                           // if
-                                                                                           // not
-                                                                                           // approved
+            // null if not approved
+            DataApprovalLevel approvedLevel = (level == 0 ? null : levelMap.get( level ));
             DataApprovalLevel actionLevel = (approvedLevel == null ? lowestApprovalLevelForOrgUnit : approvedLevel);
 
             if ( approvedAbove && accepted && acceptanceRequiredForApproval
@@ -658,8 +655,16 @@ public class HibernateDataApprovalStore
                             : readyBelow ? UNAPPROVED_READY : UNAPPROVED_WAITING
                         : accepted ? ACCEPTED_HERE : APPROVED_HERE);
 
-                statusList.add( new DataApprovalStatus( state, approvedLevel, approvedOrgUnitId, actionLevel, ouUid,
-                    ouName, aocUid, accepted, null ) );
+                statusList.add( DataApprovalStatus.builder()
+                    .state( state )
+                    .approvedLevel( approvedLevel )
+                    .approvedOrgUnitId( approvedOrgUnitId )
+                    .actionLevel( actionLevel )
+                    .organisationUnitUid( ouUid )
+                    .organisationUnitName( ouName )
+                    .attributeOptionComboUid( aocUid )
+                    .accepted( accepted )
+                    .build() );
             }
         }
 
