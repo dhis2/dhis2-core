@@ -38,11 +38,10 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.annotation.PostConstruct;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.annotation.PostConstruct;
-
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,14 +60,15 @@ public class DefaultLocationManager extends LogOnceLogger
     private static final String DEFAULT_ENV_VAR = "DHIS2_HOME";
 
     private static final String DEFAULT_SYS_PROP = "dhis2.home";
+
     private static final String DEFAULT_CTX_VAR = "dhis2-home";
-    
+
     private String externalDir;
 
     private String environmentVariable;
 
     private String systemProperty;
-    
+
     private String contextVariable;
 
     public DefaultLocationManager( String environmentVariable, String systemProperty, String contextVariable )
@@ -90,28 +90,37 @@ public class DefaultLocationManager extends LogOnceLogger
     @PostConstruct
     public void init()
     {
-        // check the most specific to the least specific  
-        // 1- context variable   
-        externalDir = getPathFromContext();        
-        //2- system property
-        if ( externalDir == null ) externalDir = getPathFromSysProperty();
-        //3- env variable
-        if ( externalDir == null ) externalDir = getPathFromEnvVariable();
-        //4- default value
-        if ( externalDir == null ) externalDir = getPathDefault();
+        // check the most specific to the least specific
+
+        // 1- context variable
+        externalDir = getPathFromContext();
+
+        // 2- system property
+        if ( externalDir == null )
+            externalDir = getPathFromSysProperty();
+
+        // 3- env variable
+        if ( externalDir == null )
+            externalDir = getPathFromEnvVariable();
+
+        // 4- default value
+        if ( externalDir == null )
+            externalDir = getPathDefault();
     }
+
     // -------------------------------------------------------------------------
     // LocationManager implementation
     // -------------------------------------------------------------------------
-    private String getPathFromContext(){
+    private String getPathFromContext()
+    {
         String path = null;
-        try 
+        try
         {
             Context initCtx = new InitialContext();
-            Context envCtx = ( Context ) initCtx.lookup( "java:comp/env" );
-            path = ( String ) envCtx.lookup( this.contextVariable );
+            Context envCtx = (Context) initCtx.lookup( "java:comp/env" );
+            path = (String) envCtx.lookup( this.contextVariable );
         }
-        catch ( NamingException e ) 
+        catch ( NamingException e )
         {
             log( log, Level.INFO, "Context variable " + contextVariable + " not set" );
         }
@@ -127,7 +136,8 @@ public class DefaultLocationManager extends LogOnceLogger
         return null;
     }
 
-    private String getPathFromSysProperty(){
+    private String getPathFromSysProperty()
+    {
         String path = System.getProperty( systemProperty );
         if ( path != null )
         {
@@ -145,7 +155,8 @@ public class DefaultLocationManager extends LogOnceLogger
         return null;
     }
 
-    private String getPathFromEnvVariable(){
+    private String getPathFromEnvVariable()
+    {
         String path = System.getenv( environmentVariable );
         if ( path != null )
         {
@@ -163,7 +174,8 @@ public class DefaultLocationManager extends LogOnceLogger
         return null;
     }
 
-    private String getPathDefault(){
+    private String getPathDefault()
+    {
         String path = DEFAULT_DHIS2_HOME;
         if ( directoryIsValid( new File( path ) ) )
         {

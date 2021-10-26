@@ -338,7 +338,9 @@ public class JsonDocumentTest
         JsonDocument doc = new JsonDocument( "{\"a\": hello }" );
 
         JsonFormatException ex = assertThrows( JsonFormatException.class, () -> doc.get( ".a" ) );
-        assertEquals( "Unexpected character at position 6," + System.getProperty("line.separator") + "{\"a\": hello }" + System.getProperty("line.separator") + "      ^ expected start of value",
+        assertEquals(
+            "Unexpected character at position 6," + System.getProperty( "line.separator" ) + "{\"a\": hello }"
+                + System.getProperty( "line.separator" ) + "      ^ expected start of value",
             ex.getMessage() );
     }
 
