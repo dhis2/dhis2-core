@@ -40,6 +40,7 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +88,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.hisp.dhis.webapi.webdomain.sharing.IdJsonPatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -100,6 +102,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
@@ -255,18 +258,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         postPatchEntity( persistedObject );
     }
 
-    private Patch diff( HttpServletRequest request )
-        throws IOException,
-        WebMessageException
-    {
-        ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
-        if ( mapper == null )
-        {
-            throw new WebMessageException( badRequest( "Unknown payload format." ) );
-        }
-        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
-    }
-
     @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
@@ -378,10 +369,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
-        prePatchEntity( persistedObject, patchedObject );
-
         // Only supports new Sharing format
         ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
+
+        prePatchEntity( persistedObject, patchedObject );
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 
@@ -408,6 +399,56 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         {
             webMessage.setStatus( Status.ERROR );
         }
+
+        return webMessage;
+    }
+
+    @ResponseBody
+    @PatchMapping( path = "/sharings", consumes = "application/json-patch" )
+    public WebMessage batchSharing( @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request )
+        throws Exception
+    {
+        WebOptions options = new WebOptions( rpParameters );
+
+        final List<IdJsonPatch> idJsonPatches = jsonMapper.readValue( request.getInputStream(),
+            new TypeReference<List<IdJsonPatch>>()
+            {
+            } );
+
+        List<T> patchedObjects = new ArrayList<>();
+
+        for ( IdJsonPatch idJsonPatch : idJsonPatches )
+        {
+            T entity = manager.get( idJsonPatch.getId() );
+
+            if ( entity == null )
+            {
+                continue;
+            }
+
+            final T patchedObject = jsonPatchManager.apply( idJsonPatch.getJsonPatch(), entity );
+            // we don't allow changing UIDs
+            ((BaseIdentifiableObject) patchedObject).setUid( entity.getUid() );
+
+            // Only supports new Sharing format
+            ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
+
+            prePatchEntity( entity, patchedObject );
+
+            patchedObjects.add( patchedObject );
+        }
+
+        Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
+
+        MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
+
+        params.setUser( currentUserService.getCurrentUser() )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObjects( patchedObjects );
+
+        ImportReport importReport = importService.importMetadata( params );
+        WebMessage webMessage = objectReport( importReport );
 
         return webMessage;
     }
@@ -1053,6 +1094,18 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         return false;
+    }
+
+    private Patch diff( HttpServletRequest request )
+        throws IOException,
+        WebMessageException
+    {
+        ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
+        if ( mapper == null )
+        {
+            throw new WebMessageException( badRequest( "Unknown payload format." ) );
+        }
+        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
 
 }
