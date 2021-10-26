@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.tracker.importer;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.emptyIterable;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +44,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -131,5 +138,27 @@ public class TrackerExportTests
         } );
 
         return split;
+    }
+
+    @Test
+    public void shouldReturnSingleTeiGivenFilter()
+    {
+
+        trackerActions.get("trackedEntities?orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
+                .validate()
+                .statusCode(200)
+                .body("instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
+                .body("instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem(is("Bravo")));
+    }
+
+    @Test
+    public void shouldReturnSingleTeiGivenFilterWhileSkippingPaging()
+    {
+
+        trackerActions.get("trackedEntities?skipPaging=true&orgUnit=O6uvpzGd5pu&program=f1AyMswryyQ&filter=kZeSYCgaHTk:in:Bravo")
+                .validate()
+                .statusCode(200)
+                .body("instances.findAll { it.trackedEntity == 'Kj6vYde4LHh' }.size()", is(1))
+                .body("instances.attributes.flatten().findAll { it.attribute == 'kZeSYCgaHTk' }.value", everyItem(is("Bravo")));
     }
 }

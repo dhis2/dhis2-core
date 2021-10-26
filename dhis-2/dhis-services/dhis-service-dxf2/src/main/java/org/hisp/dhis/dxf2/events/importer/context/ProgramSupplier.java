@@ -36,23 +36,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.Data;
 
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cache2k.Cache;
-import org.cache2k.Cache2kBuilder;
-import org.cache2k.integration.CacheLoader;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -63,9 +59,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -114,8 +108,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 {
     private final static String PROGRAM_CACHE_KEY = "000P";
 
-    private final Environment env;
-
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
     private final static String PROGRAM_STAGE_ID = "programstageid";
@@ -125,33 +117,12 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
     // Caches the entire program hierarchy, including program stages and ACL
-    private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>()
-    {
-    }
-        .name( "eventImportProgramCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
-        .expireAfterWrite( 1, TimeUnit.MINUTES )
-        .build();
+    private final Cache<Map<String, Program>> programsCache;
 
-    // Caches the user groups and the users belonging to each group
-    private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>()
-    {
-    }
-        .name( "eventImportUserGroupCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
-        .expireAfterWrite( 5, TimeUnit.MINUTES )
-        .permitNullValues( true )
-        .loader( new CacheLoader<Long, Set<User>>()
-        {
-            @Override
-            public Set<User> load( Long userGroupId )
-            {
-                return loadUserGroups( userGroupId );
-            }
-        } ).build();
-
-    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment env )
+    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider )
     {
         super( jdbcTemplate );
-        this.env = env;
+        programsCache = cacheProvider.createProgramCache();
     }
 
     @Override
@@ -161,16 +132,15 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         // Do not use cache if {@code skipCache} is true or if running as test
 
-        if ( importOptions.isSkipCache() || SystemUtils.isTestRun( env.getActiveProfiles() ) )
+        if ( importOptions.isSkipCache() )
         {
-            programsCache.removeAll();
-            userGroupCache.removeAll();
+            programsCache.invalidateAll();
         }
-        Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY );
+        Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY ).orElse( null );
 
         if ( requiresCacheReload( eventList, programMap ) )
         {
-            programsCache.removeAll();
+            programsCache.invalidateAll();
             requiresReload = true;
         }
 
@@ -425,28 +395,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         dataElement.setUid( rs.getString( "de_uid" ) );
         dataElement.setCode( rs.getString( "de_code" ) );
         return dataElement;
-    }
-
-    private Set<User> loadUserGroups( Long userGroupId )
-    {
-        final String sql = "select ug.uid, ug.usergroupid, ui.uid user_uid, ui.userinfoid user_id from usergroupmembers ugm "
-            + "join usergroup ug on ugm.usergroupid = ug.usergroupid join userinfo ui on ugm.userid = ui.userinfoid where ug.usergroupid = "
-            + userGroupId;
-
-        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
-
-            Set<User> users = new HashSet<>();
-            while ( rs.next() )
-            {
-                User user = new User();
-                user.setUid( rs.getString( "user_uid" ) );
-                user.setId( rs.getLong( "user_id" ) );
-
-                users.add( user );
-            }
-
-            return users;
-        } );
     }
 
     /**

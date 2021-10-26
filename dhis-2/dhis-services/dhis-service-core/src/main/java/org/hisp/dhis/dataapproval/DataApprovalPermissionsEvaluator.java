@@ -150,7 +150,7 @@ class DataApprovalPermissionsEvaluator
      */
     public void evaluatePermissions( DataApprovalStatus status, DataApprovalWorkflow workflow )
     {
-        DataApprovalState s = status.getState();
+        DataApprovalState state = status.getState();
 
         DataApprovalPermissions permissions = new DataApprovalPermissions();
 
@@ -185,19 +185,10 @@ class DataApprovalPermissionsEvaluator
         DataApprovalLevel dal = status.getActionLevel();
         int dataLevelIndex = (dal != null ? getWorkflowLevelIndex( dal, workflow ) : workflow.getLevels().size() - 1);
 
-        boolean approvableAtNextHigherLevel = s.isApproved() && dal != null && dataLevelIndex > 0;
+        boolean approvableAtNextHigherLevel = state.isApproved() && dal != null && dataLevelIndex > 0;
 
-        int approveLevelIndex = approvableAtNextHigherLevel ? dataLevelIndex - 1 : dataLevelIndex; // Level
-                                                                                                   // index
-                                                                                                   // (if
-                                                                                                   // any)
-                                                                                                   // at
-                                                                                                   // which
-                                                                                                   // data
-                                                                                                   // could
-                                                                                                   // next
-                                                                                                   // be
-                                                                                                   // approved.
+        // Level index (if any) at which data could next be approved.
+        int approveLevelIndex = approvableAtNextHigherLevel ? dataLevelIndex - 1 : dataLevelIndex;
 
         boolean mayApprove = false;
         boolean mayUnapprove = false;
@@ -206,37 +197,28 @@ class DataApprovalPermissionsEvaluator
 
         if ( ((authorizedToApprove && userLevelIndex == approveLevelIndex)
             || (authorizedToApproveAtLowerLevels && userLevelIndex < approveLevelIndex))
-            && (!s.isApproved()
-                || (approvableAtNextHigherLevel && (s.isAccepted() || !acceptanceRequiredForApproval))) )
+            && (!state.isApproved()
+                || (approvableAtNextHigherLevel && (state.isAccepted() || !acceptanceRequiredForApproval))) )
         {
-            mayApprove = s.isApprovable() || approvableAtNextHigherLevel; // (If
-                                                                          // approved
-                                                                          // at
-                                                                          // one
-                                                                          // level,
-                                                                          // may
-                                                                          // approve
-                                                                          // for
-                                                                          // the
-                                                                          // next
-                                                                          // higher
-                                                                          // level.)
+            // (If approved at one level, may approve for the next higher
+            // level.)
+            mayApprove = state.isApprovable() || approvableAtNextHigherLevel;
         }
 
         if ( (authorizedToApprove && userLevelIndex == dataLevelIndex
-            && (!s.isAccepted() || !acceptanceRequiredForApproval))
+            && (!state.isAccepted() || !acceptanceRequiredForApproval))
             || (authorizedToApproveAtLowerLevels && userLevelIndex < dataLevelIndex) )
         {
-            mayUnapprove = s.isUnapprovable();
+            mayUnapprove = state.isUnapprovable();
         }
 
         if ( authorizedToAcceptAtLowerLevels && (userLevelIndex == dataLevelIndex - 1
             || (authorizedToApproveAtLowerLevels && userLevelIndex < dataLevelIndex)) )
         {
-            mayAccept = s.isAcceptable();
-            mayUnaccept = s.isUnacceptable();
+            mayAccept = state.isAcceptable();
+            mayUnaccept = state.isUnacceptable();
 
-            if ( s.isUnapprovable() )
+            if ( state.isUnapprovable() )
             {
                 mayUnapprove = true;
             }
@@ -250,9 +232,10 @@ class DataApprovalPermissionsEvaluator
             mayAccept = false;
             mayUnaccept = false;
 
-            if ( s == DataApprovalState.ACCEPTED_HERE )
+            if ( state == DataApprovalState.ACCEPTED_HERE )
             {
-                status.setState( DataApprovalState.APPROVED_HERE );
+                state = DataApprovalState.APPROVED_HERE;
+                status.setState( state );
             }
         }
 
@@ -261,14 +244,9 @@ class DataApprovalPermissionsEvaluator
         permissions.setMayAccept( mayAccept );
         permissions.setMayUnaccept( mayUnaccept );
         permissions.setMayReadData( mayReadData );
-        permissions.setApprovedAt( status.getCreated() );
-
-        if ( status.getState() == DataApprovalState.APPROVED_HERE
-            || (status.getState() == DataApprovalState.APPROVED_ABOVE && userLevelIndex < dataLevelIndex)
-            || status.getState() == DataApprovalState.ACCEPTED_HERE )
-        {
-            permissions.setApprovedBy( status.getCreator() != null ? status.getCreator().getName() : null );
-        }
+        permissions.setMayReadAcceptedBy( acceptanceRequiredForApproval
+            && (state == DataApprovalState.ACCEPTED_HERE || state == DataApprovalState.APPROVED_ABOVE)
+            && (userLevelIndex < dataLevelIndex) );
     }
 
     private DataApprovalLevel getUserApprovalLevelWithCache( String orgUnitUid, DataApprovalWorkflow workflow )
