@@ -401,10 +401,21 @@ public class DhisWebApiWebSecurityConfig
 
         public WebExpressionVoter apiWebExpressionVoter()
         {
-            DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
-            handler.setDefaultRolePrefix( "" );
             WebExpressionVoter voter = new WebExpressionVoter();
+
+            DefaultWebSecurityExpressionHandler handler;
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            {
+                handler = new OAuth2WebSecurityExpressionHandler();
+            }
+            else
+            {
+                handler = new DefaultWebSecurityExpressionHandler();
+            }
+            handler.setDefaultRolePrefix( "" );
+
             voter.setExpressionHandler( handler );
+
             return voter;
         }
 
@@ -422,7 +433,7 @@ public class DhisWebApiWebSecurityConfig
         private void configureAccessRestrictions(
             ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorize )
         {
-            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {
                 authorize.expressionHandler( new OAuth2WebSecurityExpressionHandler() );
             }
@@ -507,7 +518,7 @@ public class DhisWebApiWebSecurityConfig
         private void configureOAuthAuthorizationServer( HttpSecurity http )
             throws Exception
         {
-            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {
                 http.exceptionHandling().accessDeniedHandler( new OAuth2AccessDeniedHandler() );
             }

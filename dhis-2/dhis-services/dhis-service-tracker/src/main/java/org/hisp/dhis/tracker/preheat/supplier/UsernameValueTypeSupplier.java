@@ -29,6 +29,9 @@ package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
@@ -40,7 +43,11 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.preheat.mappers.UserMapper;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
@@ -73,13 +80,21 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
             .forEach( te -> collectResourceIds( usernameAttributes, usernames, te.getAttributes() ) );
         params.getEnrollments()
             .forEach( en -> collectResourceIds( usernameAttributes, usernames, en.getAttributes() ) );
+        List<String> usernamesFromEvents = params.getEvents().stream()
+            .map( Event::getCreatedBy )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toList() );
+        usernames.addAll( usernamesFromEvents );
 
-        List<UserCredentials> users = userService.getUserCredentialsByUsernames( usernames );
+        List<User> users = userService.getUserCredentialsByUsernames( usernames )
+            .stream()
+            .map( UserCredentials::getUser )
+            .collect( Collectors.toList() );
 
-        List<String> validUsernames = users
-            .stream().map( UserCredentials::getUsername ).collect( Collectors.toList() );
+        Map<String, User> validUsers = DetachUtils.detach( UserMapper.INSTANCE, users ).stream()
+            .collect( Collectors.toMap( User::getUsername, Function.identity() ) );
 
-        preheat.setUsernames( validUsernames );
+        preheat.setUsers( validUsers );
     }
 
     private void collectResourceIds( List<String> usernameAttributes, List<String> usernames,

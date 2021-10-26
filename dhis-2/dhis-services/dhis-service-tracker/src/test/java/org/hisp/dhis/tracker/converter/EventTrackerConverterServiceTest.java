@@ -29,10 +29,10 @@ package org.hisp.dhis.tracker.converter;
 
 import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
 
@@ -51,7 +51,6 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -82,9 +81,6 @@ public class EventTrackerConverterServiceTest
 
     private NotesConverterService notesConverterService = new NotesConverterService();
 
-    @Mock
-    private UserService userService;
-
     private TrackerConverterService<Event, ProgramStageInstance> trackerConverterService;
 
     @Mock
@@ -105,8 +101,7 @@ public class EventTrackerConverterServiceTest
     @Before
     public void setUpTest()
     {
-        trackerConverterService = new EventTrackerConverterService(
-            notesConverterService, userService );
+        trackerConverterService = new EventTrackerConverterService( notesConverterService );
 
         dataElement = createDataElement( 'D' );
 
@@ -142,11 +137,11 @@ public class EventTrackerConverterServiceTest
         psi.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
         psi.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
 
+        when( preheat.getUsers() ).thenReturn( Collections.singletonMap( USERNAME, user ) );
         when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
         when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
         when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
         when( preheat.getUser() ).thenReturn( user );
-        when( userService.getUserByUsername( anyString() ) ).thenReturn( user );
     }
 
     @Test

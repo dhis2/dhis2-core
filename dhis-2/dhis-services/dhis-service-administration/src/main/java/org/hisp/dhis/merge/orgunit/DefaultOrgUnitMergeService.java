@@ -29,21 +29,25 @@ package org.hisp.dhis.merge.orgunit;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.merge.orgunit.handler.AnalyticalObjectOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.DataOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.MetadataOrgUnitMergeHandler;
 import org.hisp.dhis.merge.orgunit.handler.TrackerOrgUnitMergeHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 
 /**
  * Main class for org unit merge.
@@ -96,8 +100,9 @@ public class DefaultOrgUnitMergeService
     @Override
     public OrgUnitMergeRequest getFromQuery( OrgUnitMergeQuery query )
     {
-        Set<OrganisationUnit> sources = Sets.newHashSet(
-            idObjectManager.getByUid( OrganisationUnit.class, query.getSources() ) );
+        Set<OrganisationUnit> sources = query.getSources().stream()
+            .map( this::getAndVerifyOrgUnit )
+            .collect( Collectors.toSet() );
 
         OrganisationUnit target = idObjectManager.get( OrganisationUnit.class, query.getTarget() );
 
@@ -159,5 +164,19 @@ public class DefaultOrgUnitMergeService
                 idObjectManager.delete( sources.next() );
             }
         }
+    }
+
+    /**
+     * Retrieves the org unit with the given identifier. Throws an
+     * {@link IllegalQueryException} if it does not exist.
+     *
+     * @param uid the org unit identifier.
+     * @throws IllegalQueryException if the object is null.
+     */
+    private OrganisationUnit getAndVerifyOrgUnit( String uid )
+        throws IllegalQueryException
+    {
+        return ObjectUtils.throwIfNull( idObjectManager.get( OrganisationUnit.class, uid ),
+            () -> new IllegalQueryException( new ErrorMessage( ErrorCode.E1503, uid ) ) );
     }
 }
