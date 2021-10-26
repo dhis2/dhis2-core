@@ -72,9 +72,9 @@ public class HibernateReservedValueStore
 
     @Override
     public List<ReservedValue> getAvailableValues( ReservedValue reservedValue,
-        List<String> values )
+        List<String> values, String ownerObject )
     {
-        List<String> availableValues = getIfAvailable( reservedValue, values );
+        List<String> availableValues = getIfAvailable( reservedValue, values, ownerObject );
 
         return availableValues.stream()
             .map( value -> reservedValue.toBuilder().value( value ).build() ).collect( Collectors.toList() );
@@ -90,39 +90,21 @@ public class HibernateReservedValueStore
         batchHandler.flush();
     }
 
-    private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values )
+    private List<String> getIfAvailable( ReservedValue reservedValue, List<String> values, String ownerObject )
     {
-        List<String> reservedValues = getReservedValues( reservedValue, values ).stream()
-            .map( ReservedValue::getValue )
-            .collect( Collectors.toList() );
-
-        values.removeAll( reservedValues );
-
         Optional.of( values ).filter(
-            v -> !v.isEmpty() && Objects.valueOf( reservedValue.getOwnerObject() ).equals( TRACKEDENTITYATTRIBUTE ) )
+            v -> !v.isEmpty() && reservedValue.getOwnerObject().equals( ownerObject ) )
             .ifPresent(
-                v -> values.removeAll( getUntypedSqlQuery(
-                    "SELECT value FROM trackedentityattributevalue WHERE trackedentityattributeid = (SELECT trackedentityattributeid FROM trackedentityattribute WHERE uid = :uid) AND value IN :values" )
-                        .setParameter( "uid", reservedValue.getOwnerUid() )
-                        .setParameter( "values", v )
-                        .list() ) );
+                v -> values.removeAll( getSession().createNamedQuery( "getRandomGeneratedAvailableValuesNamedQuery" )
+                    .setParameter( "teaId", reservedValue.getTrackedEntityAttributeId() )
+                    .setParameter( "ownerObject", reservedValue.getOwnerObject() )
+                    .setParameter( "ownerUid", reservedValue.getOwnerUid() )
+                    .setParameter( "key", reservedValue.getKey() )
+                    .setParameter( "values",
+                        v.parallelStream().map( String::toLowerCase ).collect( Collectors.toList() ) )
+                    .list() ) );
 
         return values;
-    }
-
-    @Override
-    public List<ReservedValue> getReservedValues( ReservedValue reservedValue,
-        List<String> values )
-    {
-        String hql = "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid " +
-            "and rv.key =:key and rv.value in :values";
-
-        return getQuery( hql )
-            .setParameter( "ownerObject", reservedValue.getOwnerObject() )
-            .setParameter( "ownerUid", reservedValue.getOwnerUid() )
-            .setParameter( "key", reservedValue.getKey() )
-            .setParameter( "values", values )
-            .getResultList();
     }
 
     @Override

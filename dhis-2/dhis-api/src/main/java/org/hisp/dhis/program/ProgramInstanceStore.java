@@ -137,6 +137,14 @@ public interface ProgramInstanceStore
     List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 
     /**
+     * Return all program instance linked to programs.
+     *
+     * @param programs Programs to fetch by
+     * @return List of all PIs that that are linked to programs
+     */
+    List<ProgramInstance> getByPrograms( List<Program> programs );
+
+    /**
      * Return all program instance by type.
      * <p>
      * Warning: this is meant to be used for WITHOUT_REGISTRATION programs only,
