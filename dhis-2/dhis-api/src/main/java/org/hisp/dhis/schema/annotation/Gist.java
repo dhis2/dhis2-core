@@ -157,7 +157,7 @@ public @interface Gist
 
         /**
          * Provides a non-persistent property based on one or more persisted
-         * ones. For example {@code name~from[firstName,surname]}.
+         * ones. For example {@code name~from(firstName,surname)}.
          */
         FROM;
 
