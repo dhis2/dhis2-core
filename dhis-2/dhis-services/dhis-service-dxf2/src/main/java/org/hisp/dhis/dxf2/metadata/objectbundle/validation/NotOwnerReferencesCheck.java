@@ -100,7 +100,7 @@ public class NotOwnerReferencesCheck implements ValidationCheck
 
         Schema schema = ctx.getSchemaService().getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
-        schema.getProperties().stream().filter( p -> !p.isOwner()
+        schema.getProperties().stream().filter( p -> !p.isOwner() && p.isWritable()
             && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
             .forEach( p -> {
                 if ( !p.isCollection() )

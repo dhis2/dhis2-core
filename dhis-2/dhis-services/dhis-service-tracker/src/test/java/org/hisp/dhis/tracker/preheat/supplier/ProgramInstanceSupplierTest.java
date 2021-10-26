@@ -28,17 +28,23 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
+import static org.hisp.dhis.program.ProgramType.WITH_REGISTRATION;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -46,10 +52,12 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import com.google.common.collect.Lists;
+
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramInstanceSupplierTest
+public class ProgramInstanceSupplierTest extends DhisConvenienceTest
 {
     @InjectMocks
     private ProgramInstanceSupplier supplier;
@@ -62,25 +70,68 @@ public class ProgramInstanceSupplierTest
 
     private BeanRandomizer rnd = new BeanRandomizer();
 
-    @Test
-    public void verifySupplier()
+    private List<ProgramInstance> programInstances;
+
+    private Program programWithRegistration;
+
+    private Program programWithoutRegistration;
+
+    private TrackerImportParams params;
+
+    @Before
+    public void setUp()
     {
-        final List<ProgramInstance> programInstances = rnd.randomObjects( ProgramInstance.class, 5 );
+        programWithRegistration = createProgram( 'A' );
+        programWithRegistration.setProgramType( WITH_REGISTRATION );
+
+        programWithoutRegistration = createProgram( 'B' );
+        programWithoutRegistration.setProgramType( WITHOUT_REGISTRATION );
+
+        params = TrackerImportParams.builder().build();
+
+        programInstances = rnd.randomObjects( ProgramInstance.class, 2 );
         // set the OrgUnit parent to null to avoid recursive errors when mapping
         programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
-        when( store.getByType( WITHOUT_REGISTRATION ) ).thenReturn( programInstances );
+        programInstances.get( 0 ).setProgram( programWithRegistration );
+        programInstances.get( 1 ).setProgram( programWithoutRegistration );
 
-        final TrackerImportParams params = TrackerImportParams.builder().build();
+        when( store.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) ).thenReturn( programInstances );
 
+    }
+
+    @Test
+    public void verifySupplierWhenNoEventProgramArePresent()
+    {
+        // given
         TrackerPreheat preheat = new TrackerPreheat();
+        preheat.put( TrackerIdentifier.UID, programWithRegistration );
+
+        // when
         this.supplier.preheatAdd( params, preheat );
 
-        final List<String> programUids = programInstances.stream().map( pi -> pi.getProgram().getUid() )
+        // then
+        final List<String> programUids = programInstances
+            .stream()
+            .map( pi -> pi.getProgram().getUid() )
             .collect( Collectors.toList() );
         for ( String programUid : programUids )
         {
-            assertNotNull( preheat.getProgramInstancesWithoutRegistration( programUid ) );
+            assertNull( preheat.getProgramInstancesWithoutRegistration( programUid ) );
         }
+    }
+
+    @Test
+    public void verifySupplier()
+    {
+        // given
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( programWithRegistration, programWithoutRegistration ) );
+
+        // when
+        this.supplier.preheatAdd( params, preheat );
+
+        // then
+        assertNotNull( preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
 }
