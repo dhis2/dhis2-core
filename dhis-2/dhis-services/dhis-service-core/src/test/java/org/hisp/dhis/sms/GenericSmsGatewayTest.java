@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.hisp.dhis.sms.config.ContentType;
 import org.hisp.dhis.sms.config.GenericGatewayParameter;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
@@ -66,8 +68,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import org.testcontainers.shaded.org.apache.commons.lang.StringUtils;
-import org.testcontainers.shaded.org.apache.commons.lang.text.StrSubstitutor;
 
 import com.google.common.collect.Sets;
 
