@@ -886,11 +886,28 @@ public class Property implements Ordered, Klass
         return propertyType != null && propertyType.equals( this.propertyType );
     }
 
+    public boolean itemIs( PropertyType propertyType )
+    {
+        return propertyType != null && propertyType.equals( this.itemPropertyType );
+    }
+
     public boolean is( PropertyType... anyOf )
     {
         for ( PropertyType type : anyOf )
         {
             if ( is( type ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean itemIs( PropertyType... anyOf )
+    {
+        for ( PropertyType type : anyOf )
+        {
+            if ( itemIs( type ) )
             {
                 return true;
             }

@@ -77,13 +77,13 @@ public class FieldPathHelper
         applyProperties( fieldPathMap.values(), rootKlass );
         applyPresets( presets, fieldPathMap, rootKlass );
 
-        getMapCount( fieldPathMap.values() ).forEach( ( k, v ) -> {
+        calculatePathCount( fieldPathMap.values() ).forEach( ( k, v ) -> {
             if ( v > 1L )
             {
                 return;
             }
 
-            applyDefaults( fieldPathMap.get( k ), fieldPathMap, rootKlass );
+            applyDefaults( fieldPathMap.get( k ), rootKlass, fieldPathMap );
         } );
 
         applyExclusions( exclusions, fieldPathMap );
@@ -92,57 +92,66 @@ public class FieldPathHelper
         fieldPaths.addAll( fieldPathMap.values() );
     }
 
-    private void applyDefaults( FieldPath fieldPath, Map<String, FieldPath> fieldPathMap, Class<?> rootKlass )
+    /**
+     * Applies (recursively) default expansion on the remaining field paths, for
+     * example the path 'dataElements.dataElementGroups' would get expanded to
+     * 'dataElements.dataElementGroups.id' so that we expose the reference
+     * identifier.
+     */
+    private void applyDefaults( FieldPath fieldPath, Class<?> klass, Map<String, FieldPath> fieldPathMap )
     {
         List<String> paths = new ArrayList<>( fieldPath.getPath() );
         paths.add( fieldPath.getName() );
 
-        Schema schema = getSchemaByPath( paths, rootKlass );
+        Schema schema = getSchemaByPath( paths, klass );
 
         if ( schema == null )
         {
             return;
         }
 
-        schema.getProperties().forEach( p -> {
-            FieldPath fp = new FieldPath( p.isCollection() ? p.getCollectionName() : p.getName(), paths );
-            fp.setProperty( p );
+        Property property = fieldPath.getProperty();
+
+        if ( property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX ) )
+        {
+            schema.getProperties().forEach( p -> {
+                FieldPath fp = new FieldPath( p.isCollection() ? p.getCollectionName() : p.getName(), paths );
+                fp.setProperty( p );
+
+                fieldPathMap.put( fp.toFullPath(), fp );
+
+                // check if anything else needs to be expanded
+                applyDefault( fp, fieldPathMap );
+            } );
+        }
+        else if ( property.is( PropertyType.REFERENCE ) || property.itemIs( PropertyType.REFERENCE ) )
+        {
+            Property idProperty = schema.getProperty( "id" );
+
+            FieldPath fp = new FieldPath(
+                idProperty.isCollection() ? idProperty.getCollectionName() : idProperty.getName(), paths );
+            fp.setProperty( idProperty );
 
             fieldPathMap.put( fp.toFullPath(), fp );
-        } );
+        }
     }
 
-    private Map<String, Long> getMapCount( Collection<FieldPath> fieldPaths )
+    private void applyDefault( FieldPath fieldPath, Map<String, FieldPath> fieldPathMap )
     {
-        Map<String, Long> pathCount = new HashMap<>();
+        Property property = fieldPath.getProperty();
 
-        for ( FieldPath fieldPath : fieldPaths )
+        if ( property.isSimple() )
         {
-            Property property = fieldPath.getProperty();
-
-            if ( property == null )
-            {
-                continue;
-            }
-
-            List<String> paths = new ArrayList<>();
-
-            for ( String path : fieldPath.getPath() )
-            {
-                paths.add( path );
-                pathCount.compute( StringUtils.join( paths, FieldPath.FIELD_PATH_SEPARATOR ),
-                    ( key, count ) -> count == null ? 1L : count + 1L );
-            }
-
-            if ( PropertyType.COMPLEX == property.getPropertyType()
-                || PropertyType.COMPLEX == property.getItemPropertyType() )
-            {
-                pathCount.compute( fieldPath.toFullPath(),
-                    ( key, count ) -> count == null ? 1L : count + 1L );
-            }
+            return;
         }
 
-        return pathCount;
+        Schema schema = schemaService
+            .getDynamicSchema( property.isCollection() ? property.getItemKlass() : property.getKlass() );
+
+        if ( schema == null )
+        {
+            return;
+        }
     }
 
     private void applyProperties( Collection<FieldPath> fieldPaths, Class<?> rootKlass )
@@ -198,6 +207,43 @@ public class FieldPathHelper
     // ----------------------------------------------------------------------------------------------------------------
     // Helpers
     // ----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Calculates a weighted map of paths to find candidates for default
+     * expansion.
+     */
+    private Map<String, Long> calculatePathCount( Collection<FieldPath> fieldPaths )
+    {
+        Map<String, Long> pathCount = new HashMap<>();
+
+        for ( FieldPath fieldPath : fieldPaths )
+        {
+            Property property = fieldPath.getProperty();
+
+            if ( property == null )
+            {
+                continue;
+            }
+
+            List<String> paths = new ArrayList<>();
+
+            for ( String path : fieldPath.getPath() )
+            {
+                paths.add( path );
+                pathCount.compute( StringUtils.join( paths, FieldPath.FIELD_PATH_SEPARATOR ),
+                    ( key, count ) -> count == null ? 1L : count + 1L );
+            }
+
+            if ( property.is( PropertyType.COMPLEX, PropertyType.REFERENCE )
+                || property.itemIs( PropertyType.COMPLEX, PropertyType.REFERENCE ) )
+            {
+                pathCount.compute( fieldPath.toFullPath(),
+                    ( key, count ) -> count == null ? 1L : count + 1L );
+            }
+        }
+
+        return pathCount;
+    }
 
     private FieldPath toFieldPath( List<String> path, Property property )
     {

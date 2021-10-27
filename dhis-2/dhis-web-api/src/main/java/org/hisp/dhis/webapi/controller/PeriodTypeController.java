@@ -39,6 +39,8 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.fieldfiltering.FieldFilterManager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -66,6 +68,8 @@ public class PeriodTypeController
 
     private final FieldFilterManager fieldFilterManager;
 
+    private final OrganisationUnitService organisationUnitService;
+
     @GetMapping
     public @ResponseBody ResponseEntity<JsonRoot> getPeriodTypes(
         @RequestParam( defaultValue = "*" ) List<String> fields )
@@ -79,6 +83,20 @@ public class PeriodTypeController
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
 
         return ResponseEntity.ok( JsonRoot.of( "periodTypes", objectNodes ) );
+    }
+
+    @GetMapping( "/orgUnits" )
+    public @ResponseBody ResponseEntity<JsonRoot> getOrgUnits(
+        @RequestParam( defaultValue = "*" ) List<String> fields )
+    {
+        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevel( 4 ).subList( 0,
+            10 );
+
+        FieldFilterParams<OrganisationUnit> params = FieldFilterParams.of( organisationUnits,
+            Sets.newHashSet( StringUtils.join( fields, "," ) ) );
+        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
+
+        return ResponseEntity.ok( JsonRoot.of( "organisationUnits", objectNodes ) );
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )

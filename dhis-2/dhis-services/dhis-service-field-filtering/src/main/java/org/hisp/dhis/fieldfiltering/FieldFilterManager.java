@@ -32,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
@@ -70,7 +71,7 @@ public class FieldFilterManager
         objectMapper = objectMapper.copy();
 
         SimpleModule module = new SimpleModule();
-        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
+        module.setMixInAnnotation( IdentifiableObject.class, FieldFilterMixin.class );
 
         objectMapper.registerModule( module );
 
@@ -88,14 +89,6 @@ public class FieldFilterManager
 
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
         fieldPathHelper.apply( fieldPaths, params.getObjects().iterator().next().getClass() );
-
-        System.err.println();
-        System.err.println();
-
-        fieldPaths.forEach( fp -> {
-            System.err.println(
-                fp.toFullPath() + ", prop: " + (fp.getProperty() != null ? fp.getProperty().getName() : null) );
-        } );
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
