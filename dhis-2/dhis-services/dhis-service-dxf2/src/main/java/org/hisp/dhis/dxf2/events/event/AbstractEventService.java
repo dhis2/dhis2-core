@@ -973,11 +973,11 @@ public abstract class AbstractEventService
         }
 
         if ( params.getProgram() == null && params.getOrgUnit() == null && params.getTrackedEntityInstance() == null
-            && params.getEvents().isEmpty() && params.getOrgUnitSelectionMode() != null &&
-            !params.getOrgUnitSelectionMode().equals( OrganisationUnitSelectionMode.ACCESSIBLE ) &&
-            !params.getOrgUnitSelectionMode().equals( OrganisationUnitSelectionMode.ALL ) )
+            && params.getEvents().isEmpty()
+            && !OrganisationUnitSelectionMode.ACCESSIBLE.equals( params.getOrgUnitSelectionMode() )
+            && !OrganisationUnitSelectionMode.ALL.equals( params.getOrgUnitSelectionMode() ) )
         {
-            violation = "At least one of the following query parameters are required: orgUnit, program, trackedEntityInstance or event";
+            violation = "At least one of the following query parameters are required when ouMode is not ACCESSIBLE or ALL: orgUnit, program, trackedEntityInstance or event";
         }
 
         if ( params.hasLastUpdatedDuration() && (params.hasLastUpdatedStartDate() || params.hasLastUpdatedEndDate()) )
