@@ -1035,7 +1035,7 @@ public abstract class AbstractEventService implements EventService
             violation = getOuModeViolation( params, user );
         }
 
-        if ( params.getOrgUnit() != null && isOrgUnitAccessible( params.getOrgUnit(), params.getProgram(), user ) )
+        if ( params.getOrgUnit() != null && !isOrgUnitAccessible( params.getOrgUnit(), params.getProgram(), user ) )
         {
             violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
         }
