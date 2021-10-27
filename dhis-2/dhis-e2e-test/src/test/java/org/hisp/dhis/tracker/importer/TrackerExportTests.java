@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.importer;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,8 +37,10 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -103,6 +106,24 @@ public class TrackerExportTests
                 response.validate()
                     .body( p, allOf( not( nullValue() ), not( contains( nullValue() ) ), not( emptyIterable() ) ) );
             } );
+    }
+
+    @Test
+    public void singleTeiAndCollectionTeiShouldReturnSameResult()
+    {
+
+        TrackerApiResponse trackedEntity = trackerActions.getTrackedEntity( "Kj6vYde4LHh",
+            new QueryParamsBuilder()
+                .add( "fields", "*" )
+                .add( "includeAllAttributes", "true" ) );
+
+        TrackerApiResponse trackedEntities = trackerActions.getTrackedEntities( new QueryParamsBuilder()
+            .add( "fields", "*" )
+            .add( "includeAllAttributes", "true" )
+            .add( "trackedEntity", "Kj6vYde4LHh" )
+            .add( "orgUnit", "O6uvpzGd5pu" ) );
+
+        assertEquals( trackedEntities.extractJsonObject( "instances[0]" ), trackedEntity.getBody() );
     }
 
     private List<String> splitFields( String fields )

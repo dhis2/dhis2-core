@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
+import static org.hisp.dhis.dxf2.events.trackedentity.store.mapper.JsonbToObjectHelper.setUserInfoSnapshot;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.CREATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.CREATEDCLIENT;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.CREATED_BY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.DELETED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.GEOMETRY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.INACTIVE;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.LAST_UPDATED_BY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.ORGUNIT_UID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.TYPE_UID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TrackedEntityInstanceQuery.COLUMNS.UID;
@@ -77,8 +80,10 @@ public class TrackedEntityInstanceRowCallbackHandler
         tei.setTrackedEntityType( rs.getString( getColumnName( TYPE_UID ) ) );
         tei.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATED ) ) ) );
         tei.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATEDCLIENT ) ) ) );
+        setUserInfoSnapshot( rs, getColumnName( CREATED_BY ), tei::setCreatedByUserInfo );
         tei.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATED ) ) ) );
         tei.setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATEDCLIENT ) ) ) );
+        setUserInfoSnapshot( rs, getColumnName( LAST_UPDATED_BY ), tei::setLastUpdatedByUserInfo );
         tei.setInactive( rs.getBoolean( getColumnName( INACTIVE ) ) );
         tei.setDeleted( rs.getBoolean( getColumnName( DELETED ) ) );
 
