@@ -1,6 +1,6 @@
 -- This script relates to the issue https://jira.dhis2.org/browse/TECH-703
--- It creates all tables needed to support Event Visualizations and migrate
--- data from Event Chart and Event Report tables.
+-- It creates all tables needed to support Event Visualizations and update
+-- all necessary existing tables.
 
 -- eventvisualization table
 CREATE TABLE IF NOT EXISTS eventvisualization
@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS eventvisualization
     -- merged
     eventvisualizationid              int8         NOT NULL,
 
+    -- common
     uid                               varchar(11)  NULL,
     code                              varchar(50)  NULL,
     created                           timestamp    NULL,
@@ -54,7 +55,6 @@ CREATE TABLE IF NOT EXISTS eventvisualization
     type                              varchar(255) NOT NULL,
 
     -- eventchart specifics
-
     showdata                          bool         NULL,
     rewindrelativeperiods             bool         NULL,
     rangeaxismaxvalue                 float8       NULL,
@@ -68,14 +68,14 @@ CREATE TABLE IF NOT EXISTS eventvisualization
     targetlinelabel                   varchar(255) NULL,
     baselinevalue                     float8       NULL,
     baselinelabel                     varchar(255) NULL,
-    regressiontype                    varchar(40)  NOT NULL,
-    hideemptyrowitems                 varchar(40)  NOT NULL,
+    regressiontype                    varchar(40)  NULL, -- can be null now
+    hideemptyrowitems                 varchar(40)  NULL, -- can be null now
     percentstackedvalues              bool         NULL,
     cumulativevalues                  bool         NULL,
     nospacebetweencolumns             bool         NULL,
 
     -- eventreport specifics
-
+    datatype                          varchar(230) NULL,
     subtotals                         bool         NULL,
     hideemptyrows                     bool         NULL,
     digitgroupseparator               varchar(255) NULL,
@@ -100,8 +100,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization
     CONSTRAINT fk_evisualization_report_relativeperiodsid FOREIGN KEY (relativeperiodsid) REFERENCES relativeperiods (relativeperiodsid)
 );
 
--- eventvisualization_attributedimensions table
 
+-- eventvisualization_attributedimensions table
 CREATE TABLE IF NOT EXISTS eventvisualization_attributedimensions
 (
     eventvisualizationid              int8 NOT NULL,
@@ -114,8 +114,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_attributedimensions
     CONSTRAINT fk_evisualization_attributedimensions_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid)
 );
 
--- eventvisualization_categorydimensions table
 
+-- eventvisualization_categorydimensions table
 CREATE TABLE IF NOT EXISTS eventvisualization_categorydimensions
 (
     eventvisualizationid int8 NOT NULL,
@@ -128,8 +128,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_categorydimensions
     CONSTRAINT fk_evisualization_categorydimensions_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid)
 );
 
--- eventvisualization_categoryoptiongroupsetdimensions table
 
+-- eventvisualization_categoryoptiongroupsetdimensions table
 CREATE TABLE IF NOT EXISTS eventvisualization_categoryoptiongroupsetdimensions
 (
     eventvisualizationid              int8 NOT NULL,
@@ -142,8 +142,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_categoryoptiongroupsetdimensions
     CONSTRAINT fk_evisualization_dimensions_catoptiongroupsetdimensionid FOREIGN KEY (categoryoptiongroupsetdimensionid) REFERENCES categoryoptiongroupsetdimension (categoryoptiongroupsetdimensionid)
 );
 
--- eventvisualization_columns table
 
+-- eventvisualization_columns table
 CREATE TABLE IF NOT EXISTS eventvisualization_columns
 (
     eventvisualizationid int8         NOT NULL,
@@ -153,8 +153,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_columns
     CONSTRAINT fk_evisualization_columns_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid)
 );
 
--- eventvisualization_dataelementdimensions table
 
+-- eventvisualization_dataelementdimensions table
 CREATE TABLE IF NOT EXISTS eventvisualization_dataelementdimensions
 (
     eventvisualizationid                int8 NOT NULL,
@@ -165,8 +165,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_dataelementdimensions
     CONSTRAINT fk_evisualization_dataelementdimensions_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid)
 );
 
--- eventvisualization_filters table
 
+-- eventvisualization_filters table
 CREATE TABLE IF NOT EXISTS eventvisualization_filters
 (
     eventvisualizationid int8         NOT NULL,
@@ -176,8 +176,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_filters
     CONSTRAINT fk_evisualization_filters_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid)
 );
 
--- eventvisualization_itemorgunitgroups table
 
+-- eventvisualization_itemorgunitgroups table
 CREATE TABLE IF NOT EXISTS eventvisualization_itemorgunitgroups
 (
     eventvisualizationid int8 NOT NULL,
@@ -188,8 +188,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_itemorgunitgroups
     CONSTRAINT fk_evisualization_itemorgunitunitgroups_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid)
 );
 
--- eventvisualization_organisationunits table
 
+-- eventvisualization_organisationunits table
 CREATE TABLE IF NOT EXISTS eventvisualization_organisationunits
 (
     eventvisualizationid int8 NOT NULL,
@@ -200,8 +200,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_organisationunits
     CONSTRAINT fk_evisualization_organisationunits_organisationunitid FOREIGN KEY (organisationunitid) REFERENCES organisationunit (organisationunitid)
 );
 
--- eventvisualization_orgunitgroupsetdimensions table
 
+-- eventvisualization_orgunitgroupsetdimensions table
 CREATE TABLE IF NOT EXISTS eventvisualization_orgunitgroupsetdimensions
 (
     eventvisualizationid       int8 NOT NULL,
@@ -212,8 +212,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_orgunitgroupsetdimensions
     CONSTRAINT fk_evisualization_orgunitgroupsetdimensions_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid)
 );
 
--- eventvisualization_orgunitlevels table
 
+-- eventvisualization_orgunitlevels table
 CREATE TABLE IF NOT EXISTS eventvisualization_orgunitlevels
 (
     eventvisualizationid int8 NOT NULL,
@@ -223,8 +223,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_orgunitlevels
     CONSTRAINT fk_evisualization_orgunitlevels_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid)
 );
 
--- eventvisualization_periods table
 
+-- eventvisualization_periods table
 CREATE TABLE IF NOT EXISTS eventvisualization_periods
 (
     eventvisualizationid int8 NOT NULL,
@@ -235,8 +235,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_periods
     CONSTRAINT fk_evisualization_periods_periodid FOREIGN KEY (periodid) REFERENCES "period" (periodid)
 );
 
--- eventvisualization_programindicatordimensions table
 
+-- eventvisualization_programindicatordimensions table
 CREATE TABLE IF NOT EXISTS eventvisualization_programindicatordimensions
 (
     eventvisualizationid                     int8 NOT NULL,
@@ -248,8 +248,8 @@ CREATE TABLE IF NOT EXISTS eventvisualization_programindicatordimensions
     CONSTRAINT fk_evisualization_programindicatordim_programindicatordimid FOREIGN KEY (trackedentityprogramindicatordimensionid) REFERENCES trackedentityprogramindicatordimension (trackedentityprogramindicatordimensionid)
 );
 
--- eventvisualization_rows table
 
+-- eventvisualization_rows table
 CREATE TABLE IF NOT EXISTS eventvisualization_rows
 (
     eventvisualizationid int8         NOT NULL,
@@ -259,3 +259,26 @@ CREATE TABLE IF NOT EXISTS eventvisualization_rows
     CONSTRAINT fk_evisualization_rows_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid)
 );
 
+
+-- interpretation table
+ALTER TABLE interpretation
+    ADD COLUMN IF NOT EXISTS eventvisualizationid bigint;
+
+ALTER TABLE interpretation
+    ADD CONSTRAINT fk_interpretation_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid);
+
+
+-- dashboarditem table
+ALTER TABLE dashboarditem
+    ADD COLUMN IF NOT EXISTS eventvisualizationid bigint;
+
+ALTER TABLE dashboarditem
+    ADD CONSTRAINT fk_dashboarditem_evisualizationid FOREIGN KEY (eventvisualizationid) REFERENCES eventvisualization (eventvisualizationid);
+
+
+-- statistics table
+ALTER TABLE datastatistics
+    ADD COLUMN IF NOT EXISTS eventvisualizationviews double precision;
+
+ALTER TABLE datastatistics
+    ADD COLUMN IF NOT EXISTS eventvisualizations double precision;
