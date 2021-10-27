@@ -43,7 +43,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class MetadataAdjustParams
 {
     @JsonProperty
-    private String targetUid;
+    private String targetId;
 
     @JsonProperty
     private JsonNode change;
