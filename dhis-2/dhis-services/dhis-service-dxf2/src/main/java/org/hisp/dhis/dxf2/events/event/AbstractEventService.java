@@ -1035,6 +1035,11 @@ public abstract class AbstractEventService implements EventService
             violation = getOuModeViolation( params, user );
         }
 
+        if ( params.getOrgUnit() != null && isOrgUnitAccessible( params.getOrgUnit(), params.getProgram(), user ) )
+        {
+            violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
+        }
+
         if ( violation != null )
         {
             log.warn( "Validation failed: " + violation );
@@ -1072,6 +1077,22 @@ public abstract class AbstractEventService implements EventService
         }
 
         return violation;
+    }
+
+    private boolean isOrgUnitAccessible( OrganisationUnit orgUnit, Program program, User user )
+    {
+        // always allow if these are null. Internal process?
+        if ( user == null || user.isSuper() || orgUnit == null || program == null )
+        {
+            return true;
+        }
+
+        if ( program.isClosed() )
+        {
+            return organisationUnitService.isInUserDataViewHierarchyCached( user, orgUnit );
+        }
+
+        return organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit );
     }
 
     /**
