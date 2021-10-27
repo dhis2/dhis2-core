@@ -404,13 +404,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @ResponseBody
-    @PatchMapping( path = "/sharings", consumes = "application/json-patch" )
-    public WebMessage batchSharing( @RequestParam Map<String, String> rpParameters,
+    @PatchMapping( path = "/sharing", consumes = "application/json-patch" )
+    public WebMessage bulkSharing( @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request )
         throws Exception
     {
-        WebOptions options = new WebOptions( rpParameters );
-
         final List<IdJsonPatch> idJsonPatches = jsonMapper.readValue( request.getInputStream(),
             new TypeReference<List<IdJsonPatch>>()
             {
@@ -420,14 +418,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         for ( IdJsonPatch idJsonPatch : idJsonPatches )
         {
-            T entity = manager.get( idJsonPatch.getId() );
+            T entity = manager.get( idJsonPatch.getUid() );
 
             if ( entity == null )
             {
                 continue;
             }
 
-            final T patchedObject = jsonPatchManager.apply( idJsonPatch.getJsonPatch(), entity );
+            T patchedObject = entity;
+
+            patchedObject = jsonPatchManager.apply( idJsonPatch.getPatches(), patchedObject );
+
             // we don't allow changing UIDs
             ((BaseIdentifiableObject) patchedObject).setUid( entity.getUid() );
 

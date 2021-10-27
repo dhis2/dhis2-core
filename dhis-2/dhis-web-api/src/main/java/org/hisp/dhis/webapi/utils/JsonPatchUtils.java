@@ -25,30 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.sharing;
+package org.hisp.dhis.webapi.utils;
 
-import java.util.LinkedHashMap;
+import java.util.List;
 
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import javax.servlet.ServletInputStream;
 
-/**
- * This object represent the payload format of JsonPatch function with multiple
- * objects.
- * <p>
- * This payload is consumed by AbstractCrudController#bulkSharing().
- * <p>
- * The format looks like this: {@code [ { "objectUid" : [ { JsonPatch }, {
- * JsonPatch } ] }, { "objectUid" : [ { JsonPatch } ] } ] }
- */
-public class IdJsonPatch extends LinkedHashMap<String, JsonPatch>
+import org.hisp.dhis.webapi.webdomain.sharing.IdJsonPatch;
+
+public class JsonPatchUtils
 {
-    public String getUid()
+    public List<IdJsonPatch> readIdJsonPatch( ServletInputStream inputStream )
     {
-        return keySet().iterator().next();
-    }
-
-    public JsonPatch getPatches()
-    {
-        return values().iterator().next();
+        return null;
     }
 }
