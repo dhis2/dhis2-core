@@ -147,19 +147,8 @@ public interface DataValueStore
 
     /**
      * Gets the number of DataValues which have been updated between the given
-     * start and end date. The
-     *
-     * <pre>
-     * startDate
-     * </pre>
-     *
-     * and
-     *
-     * <pre>
-     * endDate
-     * </pre>
-     *
-     * parameters can both be null but one must be defined.
+     * start and end date. Either the start or end date can be null, but they
+     * cannot both be null.
      *
      * @param startDate the start date to compare against data value last
      *        updated.
