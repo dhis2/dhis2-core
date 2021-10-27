@@ -110,12 +110,12 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService
     @Transactional
     public MetadataProposal propose( MetadataProposeParams params )
     {
-        validateConsistency( params.getType(), params.getTargetUid(), params.getChange() );
+        validateConsistency( params.getType(), params.getTargetId(), params.getChange() );
         MetadataProposal proposal = MetadataProposal.builder()
             .createdBy( currentUserService.getCurrentUser() )
             .type( params.getType() )
             .target( params.getTarget() )
-            .targetUid( params.getTargetUid() )
+            .targetId( params.getTargetId() )
             .comment( params.getComment() )
             .change( params.getChange() )
             .build();
@@ -130,14 +130,14 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService
     {
         MetadataProposal proposal = getByUid( uid );
         checkHasStatus( proposal, MetadataProposalStatus.NEEDS_UPDATE );
-        if ( params != null && (params.getTargetUid() != null || params.getChange() != null) )
+        if ( params != null && (params.getTargetId() != null || params.getChange() != null) )
         {
             validateSameUser( proposal );
-            proposal.setTargetUid( params.getTargetUid() );
+            proposal.setTargetId( params.getTargetId() );
             proposal.setChange( params.getChange() );
             proposal.setAutoFields();
         }
-        validateConsistency( proposal.getType(), proposal.getTargetUid(), proposal.getChange() );
+        validateConsistency( proposal.getType(), proposal.getTargetId(), proposal.getChange() );
         proposal.setStatus( MetadataProposalStatus.PROPOSED );
         validationDryRun( proposal );
         store.update( proposal );
@@ -168,10 +168,10 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService
     {
         MetadataProposalType type = proposal.getType();
         if ( type != MetadataProposalType.ADD
-            && objectManager.get( proposal.getTarget().getType(), proposal.getTargetUid() ) == null )
+            && objectManager.get( proposal.getTarget().getType(), proposal.getTargetId() ) == null )
         {
-            return createImportReportWithError( proposal, ErrorCode.E4015, "targetUid", "targetUid",
-                proposal.getTargetUid() );
+            return createImportReportWithError( proposal, ErrorCode.E4015, "targetId", "targetId",
+                proposal.getTargetId() );
         }
         switch ( type )
         {
@@ -238,7 +238,7 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService
         try
         {
             patched = patchManager.apply( patch,
-                objectManager.get( objType, proposal.getTargetUid() ) );
+                objectManager.get( objType, proposal.getTargetId() ) );
         }
         catch ( JsonPatchException ex )
         {
@@ -251,7 +251,7 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService
     private ImportReport acceptRemove( MetadataProposal proposal, ObjectBundleMode mode )
     {
         return importService.importMetadata(
-            createImportParams( mode, ImportStrategy.DELETE, objectManager.get( proposal.getTargetUid() ) ) );
+            createImportParams( mode, ImportStrategy.DELETE, objectManager.get( proposal.getTargetId() ) ) );
     }
 
     private MetadataImportParams createImportParams( ObjectBundleMode mode, ImportStrategy strategy,
@@ -315,11 +315,11 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService
         return reason.toString();
     }
 
-    private void validateConsistency( MetadataProposalType type, String targetUid, JsonNode change )
+    private void validateConsistency( MetadataProposalType type, String targetId, JsonNode change )
     {
-        if ( type != MetadataProposalType.ADD && targetUid == null )
+        if ( type != MetadataProposalType.ADD && targetId == null )
         {
-            throw new IllegalStateException( "`targetUid` is required for type " + type );
+            throw new IllegalStateException( "`targetId` is required for type " + type );
         }
         if ( type != MetadataProposalType.REMOVE && (change == null || change.isNull()) )
         {

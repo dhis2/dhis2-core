@@ -48,7 +48,7 @@ public class MetadataProposeParams
     private final MetadataProposalTarget target;
 
     @JsonProperty
-    private String targetUid;
+    private String targetId;
 
     @JsonProperty
     private JsonNode change;
