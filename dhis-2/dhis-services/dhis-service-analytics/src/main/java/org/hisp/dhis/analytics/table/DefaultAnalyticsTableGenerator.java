@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -48,11 +46,14 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.springframework.stereotype.Service;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -179,11 +180,11 @@ public class DefaultAnalyticsTableGenerator
     }
 
     @Override
-    public void generateResourceTables( JobConfiguration jobId )
+    public void generateResourceTables( JobProgress progress )
     {
         final Clock clock = new Clock().startClock();
 
-        notifier.notify( jobId, "Generating resource tables" );
+        progress.startingStage( "Generating resource tables", 0 );
 
         try
         {

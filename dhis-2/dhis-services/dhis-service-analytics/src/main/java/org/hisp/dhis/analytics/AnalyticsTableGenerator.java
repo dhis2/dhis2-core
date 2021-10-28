@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.analytics;
 
-import javax.annotation.Nullable;
-
-import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 
 /**
  * Interface responsible for generating analytics tables. Will look for and
@@ -54,7 +52,7 @@ public interface AnalyticsTableGenerator
     /**
      * Generates all resource tables.
      *
-     * @param jobId the job identifier, can be null.
+     * @param progress
      */
-    void generateResourceTables( @Nullable JobConfiguration jobId );
+    void generateResourceTables( JobProgress progress );
 }

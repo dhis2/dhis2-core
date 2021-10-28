@@ -42,10 +42,18 @@ public interface Job
 {
     JobType getJobType();
 
-    void execute( JobConfiguration jobConfiguration );
+    default void execute( JobConfiguration jobConfiguration )
+    {
+        // TODO remove when all jobs use progress
+    }
 
     default ErrorReport validate()
     {
         return null;
+    }
+
+    default void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    {
+        execute( jobConfiguration );
     }
 }
