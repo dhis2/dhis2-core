@@ -27,16 +27,19 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
+import static org.hisp.dhis.dxf2.events.trackedentity.store.mapper.JsonbToObjectHelper.setUserInfoSnapshot;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.COMPLETED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.COMPLETEDBY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.CREATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.CREATEDCLIENT;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.CREATED_BY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.DELETED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ENROLLMENTDATE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.FOLLOWUP;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.GEOMETRY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.INCIDENTDATE;
+import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.LAST_UPDATED_BY;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ORGUNIT_NAME;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.ORGUNIT_UID;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EnrollmentQuery.COLUMNS.PROGRAM_UID;
@@ -89,9 +92,11 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
         enrollment.setOrgUnitName( rs.getString( getColumnName( ORGUNIT_NAME ) ) );
         enrollment.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATED ) ) ) );
         enrollment.setCreatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATEDCLIENT ) ) ) );
+        setUserInfoSnapshot( rs, getColumnName( CREATED_BY ), enrollment::setCreatedByUserInfo );
         enrollment.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATED ) ) ) );
         enrollment
             .setLastUpdatedAtClient( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATEDCLIENT ) ) ) );
+        setUserInfoSnapshot( rs, getColumnName( LAST_UPDATED_BY ), enrollment::setLastUpdatedByUserInfo );
         enrollment.setProgram( rs.getString( getColumnName( PROGRAM_UID ) ) );
         enrollment.setStatus( EnrollmentStatus.fromStatusString( rs.getString( getColumnName( STATUS ) ) ) );
         enrollment.setEnrollmentDate( rs.getTimestamp( getColumnName( ENROLLMENTDATE ) ) );
