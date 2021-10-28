@@ -29,6 +29,12 @@ package org.hisp.dhis.dataapproval;
 
 import java.util.Date;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.user.User;
 
 /**
@@ -38,11 +44,15 @@ import org.hisp.dhis.user.User;
  *
  * @author Jim Grace
  */
+@Getter
+@Builder
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class DataApprovalStatus
 {
     /**
      * State of data approval for a given selection of data from a data set.
      */
+    @Setter
     private DataApprovalState state;
 
     /**
@@ -50,199 +60,73 @@ public class DataApprovalStatus
      * which it is approved. If the selection is approved at more than one
      * level, this is for the highest level of approval.
      */
-    private DataApprovalLevel approvedLevel;
+    private final DataApprovalLevel approvedLevel;
 
     /**
      * If the selection of data is approved, the ID of the highest organisation
      * unit at which there is approval.
      */
-    private int approvedOrgUnitId;
+    private final int approvedOrgUnitId;
 
     /**
      * If the selection of data is approved, the approval level (same as above)
      * but if the selection is not approved, the level for this orgUnit at which
      * it could be approved (if any).
      */
-    private DataApprovalLevel actionLevel;
+    private final DataApprovalLevel actionLevel;
 
     /**
      * If the selection is approved, the OrganisationUnit UID.
      */
-    private String organisationUnitUid;
+    private final String organisationUnitUid;
 
     /**
      * If the selection is approved, the OrganisationUnit name.
      */
-    private String organisationUnitName;
+    private final String organisationUnitName;
 
     /**
      * If the selection is approved, the attribute category option combo UID.
      */
-    private String attributeOptionComboUid;
+    private final String attributeOptionComboUid;
 
     /**
      * If the selection is approved, whether or not it is accepted at the
      * highest level approved.
      */
-    private boolean accepted;
+    private final boolean accepted;
 
     /**
      * Permissions granted for current user for the this approval state.
      */
+    @Setter
     private DataApprovalPermissions permissions;
 
     /**
      * If the selection is approved, and if present (not always needed), the
      * date at which the highest level of approval was created.
      */
+    @Setter
     private Date created;
 
     /**
      * If the selection is approved, and if present (not always needed), The
      * user who made this approval.
      */
+    @Setter
     private User creator;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+    /**
+     * If the selection is approved, and if present (not always needed), the
+     * date at which the highest level of approval was last updated.
+     */
+    @Setter
+    private Date lastUpdated;
 
-    public DataApprovalStatus()
-    {
-    }
-
-    public DataApprovalStatus( DataApprovalState state )
-    {
-        this.state = state;
-    }
-
-    public DataApprovalStatus( DataApprovalState state,
-        DataApprovalLevel approvedLevel, int approvedOrgUnitId, DataApprovalLevel actionLevel,
-        String organisationUnitUid, String organisationUnitName, String attributeOptionComboUid,
-        boolean accepted, DataApprovalPermissions permissions )
-    {
-        this.state = state;
-        this.approvedLevel = approvedLevel;
-        this.approvedOrgUnitId = approvedOrgUnitId;
-        this.actionLevel = actionLevel;
-        this.organisationUnitUid = organisationUnitUid;
-        this.organisationUnitName = organisationUnitName;
-        this.attributeOptionComboUid = attributeOptionComboUid;
-        this.accepted = accepted;
-        this.permissions = permissions;
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public DataApprovalState getState()
-    {
-        return state;
-    }
-
-    public void setState( DataApprovalState state )
-    {
-        this.state = state;
-    }
-
-    public DataApprovalLevel getApprovedLevel()
-    {
-        return approvedLevel;
-    }
-
-    public void setApprovedLevel( DataApprovalLevel approvedLevel )
-    {
-        this.approvedLevel = approvedLevel;
-    }
-
-    public int getApprovedOrgUnitId()
-    {
-        return approvedOrgUnitId;
-    }
-
-    public void setApprovedOrgUnitId( int approvedOrgUnitId )
-    {
-        this.approvedOrgUnitId = approvedOrgUnitId;
-    }
-
-    public DataApprovalLevel getActionLevel()
-    {
-        return actionLevel;
-    }
-
-    public void setActionLevel( DataApprovalLevel actionLevel )
-    {
-        this.actionLevel = actionLevel;
-    }
-
-    public String getOrganisationUnitUid()
-    {
-        return organisationUnitUid;
-    }
-
-    public void setOrganisationUnitUid( String organisationUnitUid )
-    {
-        this.organisationUnitUid = organisationUnitUid;
-    }
-
-    public String getOrganisationUnitName()
-    {
-        return organisationUnitName;
-    }
-
-    public void setOrganisationUnitName( String organisationUnitName )
-    {
-        this.organisationUnitName = organisationUnitName;
-    }
-
-    public String getAttributeOptionComboUid()
-    {
-        return attributeOptionComboUid;
-    }
-
-    public void setAttributeOptionComboUid( String attributeOptionComboUid )
-    {
-        this.attributeOptionComboUid = attributeOptionComboUid;
-    }
-
-    public boolean isAccepted()
-    {
-        return accepted;
-    }
-
-    public void setAccepted( boolean accepted )
-    {
-        this.accepted = accepted;
-    }
-
-    public DataApprovalPermissions getPermissions()
-    {
-        return permissions;
-    }
-
-    public void setPermissions( DataApprovalPermissions permissions )
-    {
-        this.permissions = permissions;
-    }
-
-    public Date getCreated()
-    {
-        return created;
-    }
-
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
-
-    public User getCreator()
-    {
-        return creator;
-    }
-
-    public void setCreator( User creator )
-    {
-        this.creator = creator;
-    }
+    /**
+     * If the selection is approved, and if present (not always needed), The
+     * user who made the last update.
+     */
+    @Setter
+    private User lastUpdatedBy;
 }

@@ -97,7 +97,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = usernameIdCache.get( username, this::getUserId ).orElse( null );
+        Long userId = usernameIdCache.get( username, this::getUserId );
 
         if ( userId == null )
         {
@@ -141,7 +141,7 @@ public class DefaultCurrentUserService
 
         User user = null;
 
-        Long userId = usernameIdCache.get( username, this::getUserId ).orElse( null );
+        Long userId = usernameIdCache.get( username, this::getUserId );
 
         if ( userId != null )
         {
@@ -187,7 +187,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = usernameIdCache.get( currentUsername, this::getUserId ).orElse( null );
+        Long userId = usernameIdCache.get( currentUsername, this::getUserId );
 
         if ( userId == null )
         {
@@ -251,7 +251,7 @@ public class DefaultCurrentUserService
         }
 
         return currentUserGroupInfoCache
-            .get( currentUserInfo.getUsername(), this::getCurrentUserGroupsInfo ).orElse( null );
+            .get( currentUserInfo.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
     @Override
@@ -264,7 +264,7 @@ public class DefaultCurrentUserService
         }
 
         return currentUserGroupInfoCache
-            .get( userInfo.getUsername(), this::getCurrentUserGroupsInfo ).orElse( null );
+            .get( userInfo.getUsername(), this::getCurrentUserGroupsInfo );
     }
 
     @Override
@@ -287,7 +287,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = usernameIdCache.get( username, this::getUserId ).orElse( null );
+        Long userId = usernameIdCache.get( username, this::getUserId );
 
         if ( userId == null )
         {

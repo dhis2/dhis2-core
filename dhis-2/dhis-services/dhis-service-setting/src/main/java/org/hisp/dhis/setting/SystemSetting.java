@@ -35,7 +35,7 @@ import java.util.StringJoiner;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 
 import com.fasterxml.jackson.core.JsonProcessingException;

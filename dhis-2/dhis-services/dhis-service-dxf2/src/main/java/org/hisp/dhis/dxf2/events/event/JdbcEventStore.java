@@ -108,7 +108,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -353,6 +352,8 @@ public class JdbcEventStore implements EventStore
     private final Environment env;
 
     private final org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore;
+
+    private final SkipLockedProvider skipLockedProvider;
 
     // -------------------------------------------------------------------------
     // EventStore implementation
@@ -1707,7 +1708,8 @@ public class JdbcEventStore implements EventStore
         {
             Timestamp timestamp = new Timestamp( System.currentTimeMillis() );
 
-            String sql = String.format( UPDATE_TEI_SQL, teisInCondition, getSkipLocked(), "'" + timestamp + "'",
+            String sql = String.format( UPDATE_TEI_SQL, teisInCondition, skipLockedProvider.getSkipLocked(),
+                "'" + timestamp + "'",
                 user != null ? user.getId() : NULL, teisInCondition );
 
             jdbcTemplate.execute( sql );
@@ -1717,18 +1719,6 @@ public class JdbcEventStore implements EventStore
             log.error( "An error occurred updating one or more Tracked Entity Instances", e );
             throw e;
         }
-    }
-
-    /**
-     * Awful hack required for the H2-based tests to pass. H2 does not support
-     * the "SKIP LOCKED" clause, therefore we need to remove it from the SQL
-     * statement when executing the H2 tests.
-     *
-     * @return a SQL String containing Skip Locked statement
-     */
-    private String getSkipLocked()
-    {
-        return SystemUtils.isTestRun( env.getActiveProfiles() ) ? "" : "SKIP LOCKED";
     }
 
     private void bindEventParamsForInsert( PreparedStatement ps, ProgramStageInstance event )
