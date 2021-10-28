@@ -231,8 +231,7 @@ public class SystemUpdateService
     {
         List<User> recipients = new ArrayList<>();
 
-        List<UserCredentials> usersWithAllAuthority =
-            hibernateUserCredentialsStore.getUsersWithAuthority( "ALL" );
+        List<UserCredentials> usersWithAllAuthority = hibernateUserCredentialsStore.getUsersWithAuthority( "ALL" );
 
         for ( UserCredentials userCredentials : usersWithAllAuthority )
         {
