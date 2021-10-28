@@ -110,14 +110,15 @@ public class SystemUpdateService
     {
         try
         {
-            DhisHttpResponse httpResponse = HttpUtils.httpGET( DHIS_2_ORG_VERSIONS_JSON, false, null, null, null, 0,
-                true );
+            DhisHttpResponse httpResponse = HttpUtils.httpGET( DHIS_2_ORG_VERSIONS_JSON,
+                false, null, null, null, 0, true );
 
             int statusCode = httpResponse.getStatusCode();
             if ( statusCode != HttpStatusCodes.STATUS_CODE_OK )
             {
                 throw new IllegalStateException(
-                    "Failed to fetch the version file, non OK(200) response code. Code was: " + statusCode );
+                    "Failed to fetch the version file, "
+                        + "non OK(200) response code. Code was: " + statusCode );
             }
 
             return new JsonParser().parse( httpResponse.getResponse() ).getAsJsonObject();
@@ -135,15 +136,11 @@ public class SystemUpdateService
 
         for ( JsonElement versionElement : allVersions.getAsJsonArray( "versions" ) )
         {
-            // This presumes that the name variable is always in the format e.g.
-            // "2.36",
-            // we need to at patch version to the string, so we can parse it as
-            // a valid SemVer
-            Semver semver = new Semver(
-                versionElement.getAsJsonObject().getAsJsonPrimitive( FIELD_NAME_NAME ).getAsString() + ".0" );
+            String majorDotMinor = versionElement.getAsJsonObject().getAsJsonPrimitive( FIELD_NAME_NAME ).getAsString();
+            Semver semver = new Semver( String.format( "%s.0", majorDotMinor ) );
 
             // Skip other major/minor versions, we are only interested in the
-            // patch versions on the current installed.
+            // patch versions higher than the currentVersion's patch version
             if ( Objects.equals( currentVersion.getMajor(), semver.getMajor() ) && Objects.equals(
                 currentVersion.getMinor(), semver.getMinor() ) )
             {
@@ -158,13 +155,11 @@ public class SystemUpdateService
                         int patchVersion = patchElement.getAsJsonObject().getAsJsonPrimitive( FIELD_NAME_VERSION )
                             .getAsInt();
 
-                        // If new patch version is greater than current patch
-                        // version,
-                        // add it to the list of alerts we want to send
                         if ( currentVersion.getPatch() < patchVersion )
                         {
-                            log.debug(
-                                "Found a new patch version, adding it the result list; version=" + patchVersion );
+                            log.debug( "Found a newer patch version, "
+                                + "adding it the result list; version={}", patchVersion );
+
                             newerPatchVersions.add( patchElement );
                         }
                     }
@@ -175,29 +170,31 @@ public class SystemUpdateService
         return newerPatchVersions;
     }
 
-    protected static Map<Semver, Map<String, String>> convertJsonToMap( List<JsonElement> newerPatchVersions )
+    /**
+     * Converts a list of json elements representing patch versions, into a map
+     * of: SemVer (parsed version) and a map of strings representing the message
+     * to send to the admin user(s).
+     */
+    protected static Map<Semver, Map<String, String>> convertJsonToMap( List<JsonElement> patchVersions )
     {
-        Map<Semver, Map<String, String>> versionsAndMetadata = new TreeMap<>();
+        Map<Semver, Map<String, String>> versionsAndMessage = new TreeMap<>();
 
-        // Parse the new versions we "found" in the release json into a sorted
-        // map.
-        for ( JsonElement newerPatchVersion : newerPatchVersions )
+        for ( JsonElement patchVersion : patchVersions )
         {
-            JsonObject patchJsonObject = newerPatchVersion.getAsJsonObject();
+            JsonObject patchJsonObject = patchVersion.getAsJsonObject();
 
-            String versionName = patchJsonObject.getAsJsonPrimitive( FIELD_NAME_NAME ).getAsString();
-            log.info( "Found a newer patch version; version=" + versionName );
+            String version = patchJsonObject.getAsJsonPrimitive( FIELD_NAME_NAME ).getAsString();
 
-            Map<String, String> metadata = new HashMap<>();
-            metadata.put( FIELD_NAME_VERSION, patchJsonObject.getAsJsonPrimitive( FIELD_NAME_NAME ).getAsString() );
-            metadata.put( FIELD_NAME_RELEASE_DATE,
+            Map<String, String> message = new HashMap<>();
+            message.put( FIELD_NAME_VERSION, patchJsonObject.getAsJsonPrimitive( FIELD_NAME_NAME ).getAsString() );
+            message.put( FIELD_NAME_RELEASE_DATE,
                 patchJsonObject.getAsJsonPrimitive( FIELD_NAME_RELEASE_DATE ).getAsString() );
-            metadata.put( FIELD_NAME_DOWNLOAD_URL, patchJsonObject.getAsJsonPrimitive( FIELD_NAME_URL ).getAsString() );
+            message.put( FIELD_NAME_DOWNLOAD_URL, patchJsonObject.getAsJsonPrimitive( FIELD_NAME_URL ).getAsString() );
 
-            versionsAndMetadata.put( new Semver( versionName ), metadata );
+            versionsAndMessage.put( new Semver( version ), message );
         }
 
-        return versionsAndMetadata;
+        return versionsAndMessage;
     }
 
     public void sendMessageForEachVersion( Map<Semver, Map<String, String>> patchVersions )
@@ -211,8 +208,6 @@ public class SystemUpdateService
             for ( User recipient : recipients )
             {
                 // Check to see if message has already been sent before.
-                // NOTE: Messages are always soft deleted, so we also search the
-                // "deleted" messages.
                 List<MessageConversation> messagesConv = messageService
                     .getMessagesConversationsMatchingText( recipient, messageText );
 
@@ -234,19 +229,22 @@ public class SystemUpdateService
 
     private List<User> getRecipients()
     {
-        List<UserCredentials> usersWithAllAuthority = hibernateUserCredentialsStore.getUsersWithAuthority( "ALL" );
-
         List<User> recipients = new ArrayList<>();
+
+        List<UserCredentials> usersWithAllAuthority =
+            hibernateUserCredentialsStore.getUsersWithAuthority( "ALL" );
+
         for ( UserCredentials userCredentials : usersWithAllAuthority )
         {
-            User userByUsername = userService.getUserByUsername( userCredentials.getUsername() );
-            recipients.add( userByUsername );
+            recipients.add( userService.getUserByUsername( userCredentials.getUsername() ) );
         }
 
         if ( recipients.size() > MAX_NOTIFING_RECIPIENTS )
         {
-            log.warn( "There is more recipients than the max allowed, limiting recipients list to max allowed size: "
-                + MAX_NOTIFING_RECIPIENTS );
+            log.warn( "There is more recipients than the max allowed, "
+                + "limiting recipients list to max allowed size: {}",
+                MAX_NOTIFING_RECIPIENTS );
+
             recipients = recipients.subList( 0, MAX_NOTIFING_RECIPIENTS - 1 );
         }
 
@@ -278,8 +276,12 @@ public class SystemUpdateService
         // '.Int.MAX_VALUE', so we can sort it on top of the list
         if ( buildVersion.contains( "SNAPSHOT" ) )
         {
-            log.info( "We are running a SNAPSHOT version, handle current patch version as Integer.MAX_VALUE." );
-            buildVersion = buildVersion.replace( "-SNAPSHOT", "." + Integer.MAX_VALUE );
+            log.info( "We are running a SNAPSHOT version, "
+                + "handle current patch version as higher than max. "
+                + "This effectively disables system update notifications." );
+
+            buildVersion = buildVersion.replace( "-SNAPSHOT",
+                "." + Integer.MAX_VALUE );
         }
 
         return new Semver( buildVersion );
