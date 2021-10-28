@@ -25,43 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata;
-
-import lombok.Getter;
-import lombok.Setter;
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+package org.hisp.dhis.dxf2.events.event;
 
 /**
- * Input when making a {@link org.hisp.dhis.metadata.MetadataProposal}.
- *
- * @author Jan Bernitt
+ * Provide the SQL for SKIP LOCKED option. H2 does not support this option so we
+ * need a different implementation for the integration tests
  */
-@Getter
-@Setter
-public class MetadataProposeParams
+public interface SkipLockedProvider
 {
-    private final MetadataProposalType type;
-
-    private final MetadataProposalTarget target;
-
-    @JsonProperty
-    private String targetId;
-
-    @JsonProperty
-    private JsonNode change;
-
-    @JsonProperty
-    private String comment;
-
-    @JsonCreator
-    public MetadataProposeParams(
-        @JsonProperty( value = "type", required = true ) MetadataProposalType type,
-        @JsonProperty( value = "target", required = true ) MetadataProposalTarget target )
-    {
-        this.type = type;
-        this.target = target;
-    }
+    String getSkipLocked();
 }

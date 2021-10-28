@@ -25,43 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata;
+package org.hisp.dhis.dxf2.events.event;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
-
-/**
- * Input when making a {@link org.hisp.dhis.metadata.MetadataProposal}.
- *
- * @author Jan Bernitt
- */
-@Getter
-@Setter
-public class MetadataProposeParams
+@Service
+@Profile( "!test" )
+public class DefaultSkipLockedProvider implements SkipLockedProvider
 {
-    private final MetadataProposalType type;
-
-    private final MetadataProposalTarget target;
-
-    @JsonProperty
-    private String targetId;
-
-    @JsonProperty
-    private JsonNode change;
-
-    @JsonProperty
-    private String comment;
-
-    @JsonCreator
-    public MetadataProposeParams(
-        @JsonProperty( value = "type", required = true ) MetadataProposalType type,
-        @JsonProperty( value = "target", required = true ) MetadataProposalTarget target )
+    @Override
+    public String getSkipLocked()
     {
-        this.type = type;
-        this.target = target;
+        return "SKIP LOCKED";
     }
 }

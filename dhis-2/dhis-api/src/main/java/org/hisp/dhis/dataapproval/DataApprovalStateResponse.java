@@ -29,6 +29,10 @@ package org.hisp.dhis.dataapproval;
 
 import java.util.Date;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataset.DataSet;
@@ -40,35 +44,30 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+@Builder
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
 @JacksonXmlRootElement( localName = "dataApprovalStateResponse", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalStateResponse
 {
-    private DataSet dataSet;
 
-    private Period period;
+    private final DataSet dataSet;
 
-    private OrganisationUnit organisationUnit;
+    private final Period period;
 
-    private String state;
+    private final OrganisationUnit organisationUnit;
 
-    private String createdByUsername;
+    private final String state;
 
-    private Date createdDate;
+    private final String createdByUsername;
 
-    private DataApprovalPermissions permissions;
+    private final Date createdDate;
 
-    public DataApprovalStateResponse( DataSet dataSet, Period period, OrganisationUnit organisationUnit, String state,
-        Date createdDate, String createdByUsername,
-        DataApprovalPermissions permissions )
-    {
-        this.dataSet = dataSet;
-        this.period = period;
-        this.organisationUnit = organisationUnit;
-        this.state = state;
-        this.createdDate = createdDate;
-        this.createdByUsername = createdByUsername;
-        this.permissions = permissions;
-    }
+    private final DataApprovalPermissions permissions;
+
+    /*
+     * OBS! Getter annotations are needed because of field filtering based on
+     * schema
+     */
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -76,11 +75,6 @@ public class DataApprovalStateResponse
     public DataSet getDataSet()
     {
         return dataSet;
-    }
-
-    public void setDataSet( DataSet dataSet )
-    {
-        this.dataSet = dataSet;
     }
 
     @JsonProperty
@@ -91,22 +85,12 @@ public class DataApprovalStateResponse
         return period;
     }
 
-    public void setPeriod( Period period )
-    {
-        this.period = period;
-    }
-
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OrganisationUnit getOrganisationUnit()
     {
         return organisationUnit;
-    }
-
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
     }
 
     @JsonProperty
@@ -116,33 +100,11 @@ public class DataApprovalStateResponse
         return state;
     }
 
-    public void setState( String state )
-    {
-        this.state = state;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public DataApprovalPermissions getPermissions()
-    {
-        return permissions;
-    }
-
-    public void setPermissions( DataApprovalPermissions permissions )
-    {
-        this.permissions = permissions;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCreatedByUsername()
     {
         return createdByUsername;
-    }
-
-    public void setCreatedByUsername( String createdByUsername )
-    {
-        this.createdByUsername = createdByUsername;
     }
 
     @JsonProperty
@@ -152,8 +114,10 @@ public class DataApprovalStateResponse
         return createdDate;
     }
 
-    public void setCreatedDate( Date createdDate )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public DataApprovalPermissions getPermissions()
     {
-        this.createdDate = createdDate;
+        return permissions;
     }
 }

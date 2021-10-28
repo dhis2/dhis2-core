@@ -70,7 +70,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
@@ -366,8 +366,7 @@ public class DefaultProgramIndicatorService
         String cacheKey = getAnalyticsSqlCacheKey( expression, programIndicator, startDate, endDate, tableAlias );
 
         return analyticsSqlCache
-            .get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) )
-            .orElse( null );
+            .get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) );
     }
 
     private String getAnalyticsSqlCacheKey( String expression, ProgramIndicator programIndicator, Date startDate,

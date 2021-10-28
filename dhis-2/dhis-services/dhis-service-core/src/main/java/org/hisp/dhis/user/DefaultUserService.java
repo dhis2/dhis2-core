@@ -833,7 +833,7 @@ public class DefaultUserService
     @Override
     public String getDisplayName( String userUid )
     {
-        return userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) ).orElse( null );
+        return userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) );
     }
 
     @Override

@@ -159,4 +159,12 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
         assertEquals( HttpStatus.OK, response.status() );
         assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<importReport" ) );
     }
+
+    @Test
+    public void testPostXmlMetadata_JsonResponse()
+    {
+        assertWebMessage( "OK", 200, "OK", null,
+            POST( "/38/metadata", Body( "<metadata></metadata>" ),
+                ContentType( "application/xml" ), Accept( "application/json" ) ).content( HttpStatus.OK ) );
+    }
 }

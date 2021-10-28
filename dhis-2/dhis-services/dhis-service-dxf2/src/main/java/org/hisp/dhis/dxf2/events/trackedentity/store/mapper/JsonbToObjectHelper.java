@@ -25,43 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.metadata;
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 
-/**
- * Input when making a {@link org.hisp.dhis.metadata.MetadataProposal}.
- *
- * @author Jan Bernitt
- */
-@Getter
-@Setter
-public class MetadataProposeParams
+import org.hisp.dhis.program.UserInfoSnapshot;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+public class JsonbToObjectHelper
 {
-    private final MetadataProposalType type;
 
-    private final MetadataProposalTarget target;
+    private final static ObjectMapper MAPPER;
 
-    @JsonProperty
-    private String targetId;
-
-    @JsonProperty
-    private JsonNode change;
-
-    @JsonProperty
-    private String comment;
-
-    @JsonCreator
-    public MetadataProposeParams(
-        @JsonProperty( value = "type", required = true ) MetadataProposalType type,
-        @JsonProperty( value = "target", required = true ) MetadataProposalTarget target )
+    static
     {
-        this.type = type;
-        this.target = target;
+        MAPPER = new ObjectMapper();
+        MAPPER.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false );
+    }
+
+    static void setUserInfoSnapshot( ResultSet rs, String columnName,
+        Consumer<UserInfoSnapshot> applier )
+        throws SQLException
+    {
+        Optional.ofNullable( rs.getObject( columnName ) )
+            .map( Object::toString )
+            .map( JsonbToObjectHelper::safelyConvert )
+            .ifPresent( applier );
+    }
+
+    @SneakyThrows
+    static UserInfoSnapshot safelyConvert( String userInfoSnapshotAsString )
+    {
+        return MAPPER.readValue( userInfoSnapshotAsString, UserInfoSnapshot.class );
     }
 }

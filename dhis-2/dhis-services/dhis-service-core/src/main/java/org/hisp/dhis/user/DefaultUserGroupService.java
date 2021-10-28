@@ -264,6 +264,6 @@ public class DefaultUserGroupService
     public String getDisplayName( String uid )
     {
         return userGroupNameCache.get( uid,
-            n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() ).orElse( null );
+            n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() );
     }
 }

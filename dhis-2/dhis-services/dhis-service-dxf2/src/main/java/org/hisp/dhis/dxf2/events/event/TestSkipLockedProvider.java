@@ -25,34 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
+package org.hisp.dhis.dxf2.events.event;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public class DataApprovalStateResponses
+@Service
+@Profile( "test" )
+public class TestSkipLockedProvider implements SkipLockedProvider
 {
-    List<DataApprovalStateResponse> dataApprovalStateResponses = new ArrayList<>();
-
-    public DataApprovalStateResponses()
+    @Override
+    public String getSkipLocked()
     {
-    }
-
-    @JsonProperty
-    public List<DataApprovalStateResponse> getDataApprovalStateResponses()
-    {
-        return dataApprovalStateResponses;
-    }
-
-    public void setDataApprovalStateResponses( List<DataApprovalStateResponse> dataApprovalStateResponses )
-    {
-        this.dataApprovalStateResponses = dataApprovalStateResponses;
-    }
-
-    public void add( DataApprovalStateResponse dataApprovalStateResponse )
-    {
-        dataApprovalStateResponses.add( dataApprovalStateResponse );
+        return "";
     }
 }
