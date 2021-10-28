@@ -53,6 +53,7 @@ INSERT INTO eventvisualization
     orgunitfield,
     userorgunittype,
     sharing,
+    attributevalues,
     datatype,
 
     -- merged
@@ -120,6 +121,7 @@ SELECT eventchartid,
        orgunitfield,
        userorgunittype,
        sharing,
+       attributevalues,
        NULL,
 
        -- merged
@@ -194,6 +196,7 @@ INSERT INTO eventvisualization
     orgunitfield,
     userorgunittype,
     sharing,
+    attributevalues,
     datatype,
 
     -- merged
@@ -254,6 +257,7 @@ SELECT eventreportid,
        orgunitfield,
        userorgunittype,
        sharing,
+       attributevalues,
        datatype,
 
        -- merged
