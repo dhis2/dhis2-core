@@ -679,7 +679,12 @@ public enum ConfigurationKey
     /**
      * API authentication feature. Enable or disable personal access tokens.
      */
-    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false );
+    ENABLE_API_TOKEN_AUTHENTICATION( "enable.api_token.authentication", Constants.OFF, false ),
+    
+    /**
+     * Tracked Entity feature. Hard limit of number of records that may be returned.
+     */
+    TRACKER_TRACKED_ENTITY_QUERY_LIMIT("tracker.trackedentity.hardlimit", "50000", false);
 
     private final String key;
 

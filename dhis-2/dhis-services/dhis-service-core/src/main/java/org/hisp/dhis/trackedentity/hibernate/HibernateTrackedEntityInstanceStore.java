@@ -95,6 +95,8 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -134,7 +136,7 @@ public class HibernateTrackedEntityInstanceStore
     private static final String TEI_LASTUPDATED = " tei.lastUpdated";
 
     private static final String GT_EQUAL = " >= ";
-
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -142,21 +144,25 @@ public class HibernateTrackedEntityInstanceStore
     private final OrganisationUnitStore organisationUnitStore;
 
     private final StatementBuilder statementBuilder;
+    
+    private final Integer trackedEntityHardLimit;
 
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
+        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder, DhisConfigurationProvider dhisConfigurationProvider )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService,
             false );
 
         checkNotNull( statementBuilder );
         checkNotNull( organisationUnitStore );
+        checkNotNull( dhisConfigurationProvider );
 
         this.statementBuilder = statementBuilder;
         this.organisationUnitStore = organisationUnitStore;
+        this.trackedEntityHardLimit = Integer.valueOf(dhisConfigurationProvider.getProperty(ConfigurationKey.TRACKER_TRACKED_ENTITY_QUERY_LIMIT));
     }
-
+    
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -1344,7 +1350,7 @@ public class HibernateTrackedEntityInstanceStore
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( params.getPageSizeWithDefault() )
+                .append( Math.min( trackedEntityHardLimit, params.getPageSizeWithDefault() ) )
                 .append( SPACE )
                 .append( OFFSET )
                 .append( SPACE )
@@ -1357,7 +1363,7 @@ public class HibernateTrackedEntityInstanceStore
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( Math.min( limit + 1, params.getPageSizeWithDefault() ) )
+                .append( Math.min( limit + 1, Math.min( trackedEntityHardLimit, params.getPageSizeWithDefault() ) ) )
                 .append( SPACE )
                 .append( OFFSET )
                 .append( SPACE )
@@ -1370,7 +1376,7 @@ public class HibernateTrackedEntityInstanceStore
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( limit + 1 ) // We add +1, since we use this limit to
+                .append( Math.min( trackedEntityHardLimit, limit + 1 ) ) // We add +1, since we use this limit to
                                      // restrict a user to search to wide.
                 .append( SPACE )
                 .toString();
