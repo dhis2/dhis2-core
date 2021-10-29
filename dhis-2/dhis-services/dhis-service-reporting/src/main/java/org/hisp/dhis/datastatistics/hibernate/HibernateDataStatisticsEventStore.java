@@ -29,8 +29,8 @@ package org.hisp.dhis.datastatistics.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
-import static org.hisp.dhis.util.DateUtils.asSqlDate;
 import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
+import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
 import java.util.Date;
 import java.util.HashMap;

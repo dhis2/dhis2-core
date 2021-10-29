@@ -29,10 +29,10 @@ package org.hisp.dhis.jdbc.statementbuilder;
 
 import static org.junit.Assert.*;
 
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.junit.Test;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
+import org.hisp.dhis.jdbc.StatementBuilder;
+import org.junit.Test;
 
 /**
  * @author Lars Helge Overland
@@ -48,7 +48,7 @@ public class StatementBuilderTest
 
         assertEquals( "nextval('hibernate_sequence')", autoIncrement );
     }
-  
+
     @Test
     public void encodeTest()
     {
@@ -58,5 +58,5 @@ public class StatementBuilderTest
 
         MatcherAssert.assertThat( encoded, CoreMatchers.containsString( "''" ) );
     }
-    
+
 }

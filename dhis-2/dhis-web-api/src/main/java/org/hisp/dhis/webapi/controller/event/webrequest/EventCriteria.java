@@ -32,6 +32,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
@@ -39,9 +42,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Class to hold EventController request parameters into a handy place
@@ -107,7 +107,7 @@ public class EventCriteria extends PagingAndSortingCriteriaAdapter
     private Set<String> programInstances;
 
     private IdSchemes idSchemes = new IdSchemes();
-    
+
     public Set<String> getAssignedUsers()
     {
         Set<String> assignedUsers = new HashSet<>();

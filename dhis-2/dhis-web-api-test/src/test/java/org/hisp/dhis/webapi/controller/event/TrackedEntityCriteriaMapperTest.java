@@ -110,11 +110,13 @@ public class TrackedEntityCriteriaMapperTest
     private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
 
     private String userId1;
+
     private String userId2;
+
     private String userId3;
 
     private String userIds;
-    
+
     @Override
     public void setUpTest()
     {
@@ -139,7 +141,7 @@ public class TrackedEntityCriteriaMapperTest
         userId2 = CodeGenerator.generateUid();
         userId3 = "user-3";
         userIds = userId1 + ";" + userId2 + ";" + userId3;
-        
+
         // mock user
         super.userService = this.userService;
         User user = createUser( "testUser" );
@@ -225,9 +227,9 @@ public class TrackedEntityCriteriaMapperTest
         assertThat( queryParams.getEventEndDate(), is( criteria.getEventEndDate() ) );
         assertThat( queryParams.getAssignedUserSelectionMode(), is( AssignedUserSelectionMode.PROVIDED ) );
         assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId1 ) ) );
-        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( "user-2" ) ) );            assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId2 ) ) );
+        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId2 ) ) );
         assertThat( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId3 ) ), is( false ) );
-        
+
         assertThat( queryParams.isIncludeDeleted(), is( true ) );
         assertThat( queryParams.isIncludeAllAttributes(), is( true ) );
 
