@@ -724,6 +724,13 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "Assigned User uid(s) cannot be specified if selectionMode is not PROVIDED" );
         }
 
+        if ( assignedUsers != null )
+        {
+            assignedUsers = assignedUsers.stream()
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
+        }
+
         params.setQuery( queryFilter )
             .setProgram( pr )
             .setProgramStatus( programStatus )
