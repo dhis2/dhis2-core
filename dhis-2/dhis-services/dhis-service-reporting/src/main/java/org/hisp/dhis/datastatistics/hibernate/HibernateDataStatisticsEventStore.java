@@ -30,6 +30,7 @@ package org.hisp.dhis.datastatistics.hibernate;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
+import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -123,8 +124,8 @@ public class HibernateDataStatisticsEventStore
         }
 
         sql += "group by uid) as events " +
-            "inner join " + eventType.getTable() + " c on c.uid = events.uid " +
-            "order by events.views " + sortOrder.getValue() + " " +
+            "inner join " + escapeSql( eventType.getTable() ) + " c on c.uid = events.uid " +
+            "order by events.views " + escapeSql( sortOrder.getValue() ) + " " +
             "limit ?;";
 
         PreparedStatementSetter pss = ( ps ) -> {

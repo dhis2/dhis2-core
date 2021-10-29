@@ -76,6 +76,7 @@ import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
@@ -1870,9 +1871,9 @@ public class JdbcEventStore implements EventStore
             {
                 String dataElementsUidsSqlString = getQuotedCommaDelimitedString( deUids );
 
-                String deSql = "select de.uid, de.attributevalues #>> '{" + idScheme.getAttribute()
+                String deSql = "select de.uid, de.attributevalues #>> '{" + escapeSql( idScheme.getAttribute() )
                     + ", value}' as value from dataelement de where de.uid in (" + dataElementsUidsSqlString + ") "
-                    + "and de.attributevalues ? '" + idScheme.getAttribute() + "'";
+                    + "and de.attributevalues ? '" + escapeSql( idScheme.getAttribute() ) + "'";
 
                 SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );
 

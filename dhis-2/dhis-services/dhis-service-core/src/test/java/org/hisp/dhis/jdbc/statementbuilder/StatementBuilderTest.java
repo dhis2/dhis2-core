@@ -31,6 +31,8 @@ import static org.junit.Assert.*;
 
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.junit.Test;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.MatcherAssert;
 
 /**
  * @author Lars Helge Overland
@@ -46,4 +48,15 @@ public class StatementBuilderTest
 
         assertEquals( "nextval('hibernate_sequence')", autoIncrement );
     }
+  
+    @Test
+    public void encodeTest()
+    {
+        StatementBuilder builder = new PostgreSQLStatementBuilder();
+
+        String encoded = builder.encode( "contains'character" );
+
+        MatcherAssert.assertThat( encoded, CoreMatchers.containsString( "''" ) );
+    }
+    
 }
