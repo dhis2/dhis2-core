@@ -126,10 +126,10 @@ public class SqlUtils
     }
 
     public static String lower( String value )
-    {   
+    {
         return "lower(" + value + ")";
     }
-    
+
     public static String escapeSql( String str )
     {
         if ( str == null )
