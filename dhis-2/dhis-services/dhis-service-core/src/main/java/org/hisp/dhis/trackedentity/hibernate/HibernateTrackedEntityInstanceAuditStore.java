@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import org.hisp.dhis.jdbc.StatementBuilder;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
@@ -59,10 +60,14 @@ public class HibernateTrackedEntityInstanceAuditStore
     extends HibernateGenericStore<TrackedEntityInstanceAudit>
     implements TrackedEntityInstanceAuditStore
 {
+
+    private final StatementBuilder statementBuilder;
+
     public HibernateTrackedEntityInstanceAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
+        ApplicationEventPublisher publisher, StatementBuilder statementBuilder )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstanceAudit.class, false );
+        this.statementBuilder = statementBuilder;
     }
 
     // -------------------------------------------------------------------------
@@ -94,7 +99,8 @@ public class HibernateTrackedEntityInstanceAuditStore
             sb.append( "now()" ).append( "," );
             sb.append( singleQuote( audit.getAccessedBy() ) ).append( "," );
             sb.append( singleQuote( audit.getAuditType().getValue() ) ).append( "," );
-            sb.append( StringUtils.isNotEmpty( audit.getComment() ) ? singleQuote( audit.getComment() ) : "''" );
+            sb.append(
+                StringUtils.isNotEmpty( audit.getComment() ) ? statementBuilder.encode( audit.getComment() ) : "''" );
             sb.append( ")" );
             return sb.toString();
         };

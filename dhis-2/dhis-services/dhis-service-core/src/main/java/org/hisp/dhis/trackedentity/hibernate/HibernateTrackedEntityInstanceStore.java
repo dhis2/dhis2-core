@@ -45,8 +45,10 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACK
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -196,6 +198,13 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return ids;
+    }
+
+    private String encodeAndQuote( Collection<String> elements )
+    {
+        return getQuotedCommaDelimitedString( elements.stream()
+            .map( element -> statementBuilder.encode( element, false ) )
+            .collect( Collectors.toList() ) );
     }
 
     @Override
@@ -567,7 +576,7 @@ public class HibernateTrackedEntityInstanceStore
             trackedEntity
                 .append( whereAnd.whereAnd() )
                 .append( "TEI.uid IN (" )
-                .append( getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) )
+                .append( encodeAndQuote( params.getTrackedEntityInstanceUids() ) )
                 .append( ") " );
         }
 
@@ -964,7 +973,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( "SELECT userinfoid AS userid " )
                 .append( "FROM userinfo " )
                 .append( "WHERE uid IN (" )
-                .append( getQuotedCommaDelimitedString( params.getAssignedUsers() ) )
+                .append( encodeAndQuote( params.getAssignedUsers() ) )
                 .append( ") " )
                 .append( ") AU ON AU.userid = PSI.assigneduserid" );
         }
