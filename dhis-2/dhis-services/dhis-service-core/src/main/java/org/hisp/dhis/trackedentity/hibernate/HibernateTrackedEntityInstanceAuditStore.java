@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import static org.hisp.dhis.system.util.SqlUtils.singleQuote;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import org.hisp.dhis.jdbc.StatementBuilder;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
@@ -59,10 +60,14 @@ public class HibernateTrackedEntityInstanceAuditStore
     extends HibernateGenericStore<TrackedEntityInstanceAudit>
     implements TrackedEntityInstanceAuditStore
 {
+
+    private final StatementBuilder statementBuilder;
+
     public HibernateTrackedEntityInstanceAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
+        ApplicationEventPublisher publisher, StatementBuilder statementBuilder )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstanceAudit.class, false );
+        this.statementBuilder = statementBuilder;
     }
 
     // -------------------------------------------------------------------------
@@ -90,11 +95,12 @@ public class HibernateTrackedEntityInstanceAuditStore
             StringBuilder sb = new StringBuilder();
             sb.append( "(" );
             sb.append( "nextval('trackedentityinstanceaudit_sequence'), " );
-            sb.append( quote( audit.getTrackedEntityInstance() ) ).append( "," );
+            sb.append( singleQuote( audit.getTrackedEntityInstance() ) ).append( "," );
             sb.append( "now()" ).append( "," );
-            sb.append( quote( audit.getAccessedBy() ) ).append( "," );
-            sb.append( quote( audit.getAuditType().getValue() ) ).append( "," );
-            sb.append( StringUtils.isNotEmpty( audit.getComment() ) ? quote( audit.getComment() ) : "''" );
+            sb.append( singleQuote( audit.getAccessedBy() ) ).append( "," );
+            sb.append( singleQuote( audit.getAuditType().getValue() ) ).append( "," );
+            sb.append(
+                StringUtils.isNotEmpty( audit.getComment() ) ? statementBuilder.encode( audit.getComment() ) : "''" );
             sb.append( ")" );
             return sb.toString();
         };
