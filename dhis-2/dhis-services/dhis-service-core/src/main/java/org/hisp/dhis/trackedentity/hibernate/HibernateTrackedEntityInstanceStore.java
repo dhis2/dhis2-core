@@ -47,6 +47,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -347,7 +348,7 @@ public class HibernateTrackedEntityInstanceStore
             () -> " tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'" );
 
         hql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
-            () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
+            () -> " tei.uid in (" + encodeAndQuote( params.getTrackedEntityInstanceUids() ) + ")" );
 
         if ( params.hasLastUpdatedDuration() )
         {
@@ -399,6 +400,13 @@ public class HibernateTrackedEntityInstanceStore
             "order by tei.lastUpdated desc" );
 
         return hql;
+    }
+
+    private String encodeAndQuote( Collection<String> elements )
+    {
+        return getQuotedCommaDelimitedString( elements.stream()
+            .map( teiUid -> statementBuilder.encode( teiUid, false ) )
+            .collect( Collectors.toList() ) );
     }
 
     @Override
@@ -1182,7 +1190,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( "SELECT userinfoid AS userid " )
                 .append( "FROM userinfo " )
                 .append( "WHERE uid IN (" )
-                .append( getQuotedCommaDelimitedString( params.getAssignedUsers() ) )
+                .append( encodeAndQuote( params.getAssignedUsers() ) )
                 .append( ") " )
                 .append( ") AU ON AU.userid = PSI.assigneduserid" );
         }
@@ -1584,7 +1592,6 @@ public class HibernateTrackedEntityInstanceStore
 
     private List<String> getStaticGridColumns()
     {
-
         return Arrays.asList( TRACKED_ENTITY_INSTANCE_ID, CREATED_ID, LAST_UPDATED_ID, ORG_UNIT_ID, ORG_UNIT_NAME,
             TRACKED_ENTITY_ID, INACTIVE_ID );
     }
