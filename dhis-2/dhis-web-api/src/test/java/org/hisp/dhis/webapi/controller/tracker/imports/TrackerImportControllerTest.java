@@ -47,12 +47,14 @@ import java.util.LinkedList;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -90,6 +92,9 @@ public class TrackerImportControllerTest
     private TrackerImportStrategyHandler importStrategy;
 
     @Mock
+    private CsvEventService<Event> csvEventService;
+
+    @Mock
     private Notifier notifier;
 
     @Rule
@@ -106,7 +111,7 @@ public class TrackerImportControllerTest
 
         // Controller under test
         final TrackerImportController controller = new TrackerImportController( importStrategy, trackerImportService,
-            new DefaultContextService(), notifier );
+            csvEventService, new DefaultContextService(), notifier );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
     }

@@ -30,18 +30,17 @@ package org.hisp.dhis.dxf2.events.event.csv;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
-import org.hisp.dhis.dxf2.events.event.Events;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface CsvEventService
+public interface CsvEventService<T>
 {
-    void writeEvents( OutputStream outputStream, Events events, boolean withHeader )
+    void writeEvents( OutputStream outputStream, List<T> events, boolean withHeader )
         throws IOException;
 
-    Events readEvents( InputStream inputStream, boolean skipFirst )
+    List<T> readEvents( InputStream inputStream, boolean skipFirst )
         throws IOException,
         org.locationtech.jts.io.ParseException;
 }
