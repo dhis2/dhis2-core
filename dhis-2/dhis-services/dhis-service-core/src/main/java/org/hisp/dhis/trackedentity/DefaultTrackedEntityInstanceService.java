@@ -807,7 +807,13 @@ public class DefaultTrackedEntityInstanceService
                 .filter( CodeGenerator::isValidUid )
                 .collect( Collectors.toSet() );
         }
-
+        
+        if ( assignedUsers != null )
+        {
+            assignedUsers = assignedUsers.stream()
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
+        }
 
         params.setQuery( queryFilter )
             .setProgram( pr )
