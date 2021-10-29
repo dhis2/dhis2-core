@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getTokens;
@@ -38,6 +39,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACT
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.getColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
@@ -46,6 +48,7 @@ import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +56,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -181,6 +186,7 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params )
     {
         String sql = getQuery( params, false );
@@ -197,6 +203,13 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return ids;
+    }
+
+    private String encodeAndQuote( Collection<String> elements )
+    {
+        return getQuotedCommaDelimitedString( elements.stream()
+            .map( element -> statementBuilder.encode( element, false ) )
+            .collect( Collectors.toList() ) );
     }
 
     @Override
@@ -565,7 +578,7 @@ public class HibernateTrackedEntityInstanceStore
             trackedEntity
                 .append( whereAnd.whereAnd() )
                 .append( "TEI.uid IN (" )
-                .append( getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) )
+                .append( encodeAndQuote( params.getTrackedEntityInstanceUids() ) )
                 .append( ") " );
         }
 
@@ -961,7 +974,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( "SELECT userinfoid AS userid " )
                 .append( "FROM userinfo " )
                 .append( "WHERE uid IN (" )
-                .append( getQuotedCommaDelimitedString( params.getAssignedUsers() ) )
+                .append( encodeAndQuote( params.getAssignedUsers() ) )
                 .append( ") " )
                 .append( ") AU ON AU.userid = PSI.assigneduserid" );
         }
