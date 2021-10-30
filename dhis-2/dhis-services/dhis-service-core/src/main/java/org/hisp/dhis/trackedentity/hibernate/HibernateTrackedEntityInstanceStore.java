@@ -45,7 +45,6 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACK
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
-import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 
 import java.util.ArrayList;
 import java.util.Collection;

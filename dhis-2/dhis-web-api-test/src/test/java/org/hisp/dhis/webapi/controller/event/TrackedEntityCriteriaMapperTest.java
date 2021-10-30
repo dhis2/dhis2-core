@@ -110,7 +110,9 @@ public class TrackedEntityCriteriaMapperTest
     private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
 
     private String userId1;
+
     private String userId2;
+
     private String userId3;
 
     private String userIds;
