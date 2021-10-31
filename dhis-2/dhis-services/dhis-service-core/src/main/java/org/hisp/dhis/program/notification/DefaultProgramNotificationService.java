@@ -46,8 +46,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -288,10 +288,28 @@ public class DefaultProgramNotificationService
 
     @Override
     @Transactional
+    public void sendProgramRuleTriggeredNotifications( long pnt, ProgramInstance programInstance )
+    {
+        MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateService.get( pnt ),
+            Collections.singletonList( programInstance ) );
+        sendAll( messageBatch );
+    }
+
+    @Override
+    @Transactional
     public void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance )
     {
         MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
             Collections.singletonList( programStageInstanceStore.get( programStageInstance ) ) );
+        sendAll( messageBatch );
+    }
+
+    @Override
+    @Transactional
+    public void sendProgramRuleTriggeredEventNotifications( long pnt, ProgramStageInstance programStageInstance )
+    {
+        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
+            Collections.singletonList( programStageInstance ) );
         sendAll( messageBatch );
     }
 

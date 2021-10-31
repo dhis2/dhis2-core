@@ -51,8 +51,8 @@ import javax.persistence.criteria.Root;
 import lombok.Builder;
 import lombok.Getter;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -376,6 +376,15 @@ public class HibernateProgramInstanceStore
             .setParameter( "notificationTemplate", template )
             .setParameter( "activeEnrollmentStatus", ProgramStatus.ACTIVE )
             .setParameter( "targetDate", targetDate ).list();
+    }
+
+    @Override
+    public List<ProgramInstance> getByPrograms( List<Program> programs )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder,
+            newJpaParameters().addPredicate( root -> builder.in( root.get( "program" ) ).value( programs ) ) );
     }
 
     @Override

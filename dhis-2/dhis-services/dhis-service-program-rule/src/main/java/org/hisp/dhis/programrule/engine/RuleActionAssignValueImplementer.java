@@ -98,18 +98,6 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
         assignValue( ruleEffect, programInstance );
     }
 
-    @Override
-    public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
-    {
-        implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
-    }
-
-    @Override
-    public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
-    {
-        implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
-    }
-
     private void assignValue( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( programInstance == null )

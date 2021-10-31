@@ -135,6 +135,11 @@
       <artifactId>bcprov-jdk15on</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

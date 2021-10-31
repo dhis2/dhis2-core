@@ -148,7 +148,7 @@ public class EventsTests
         JsonObject event = new EventDataBuilder()
             .setEnrollment( enrollmentId )
             .setTei( teiId )
-            .build( Constants.ORG_UNIT_IDS[0], program, programStage ).getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
+            .array( Constants.ORG_UNIT_IDS[0], program, programStage ).getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
 
         JsonObject payload = new JsonObjectBuilder().addArray( "events", event, event ).build();
 
@@ -183,7 +183,7 @@ public class EventsTests
 
         JsonObject event = new EventDataBuilder()
             .setEnrollment( enrollmentId )
-            .build( Constants.ORG_UNIT_IDS[1], programId, programStageId );
+            .array( Constants.ORG_UNIT_IDS[1], programId, programStageId );
 
         response = trackerActions.postAndGetJobReport( event )
             .validateSuccessfulImport();

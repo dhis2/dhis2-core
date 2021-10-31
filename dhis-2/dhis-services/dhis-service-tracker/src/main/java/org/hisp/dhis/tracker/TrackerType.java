@@ -27,25 +27,34 @@
  */
 package org.hisp.dhis.tracker;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Getter
+@RequiredArgsConstructor
 public enum TrackerType
 {
-    TRACKED_ENTITY( "trackedEntity" ),
-    ENROLLMENT( "enrollment" ),
-    EVENT( "event" ),
-    RELATIONSHIP( "relationship" );
+    TRACKED_ENTITY( "trackedEntity", 1 ),
+    ENROLLMENT( "enrollment", 2 ),
+    EVENT( "event", 3 ),
+    RELATIONSHIP( "relationship", 4 );
 
-    private String name;
+    private final String name;
 
-    TrackerType( String name )
+    private final Integer priority;
+
+    public static List<TrackerType> getOrderedByPriority()
     {
-        this.name = name;
-    }
-
-    public String getName()
-    {
-        return name;
+        return Arrays.stream( values() )
+            .sorted( Comparator.comparing( TrackerType::getPriority ) )
+            .collect( Collectors.toList() );
     }
 }

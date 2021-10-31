@@ -29,6 +29,7 @@ package org.hisp.dhis.datavalue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -44,6 +45,23 @@ import org.hisp.dhis.period.Period;
 public interface DataValueStore
 {
     String ID = DataValueStore.class.getName();
+
+    /**
+     * Special {@see DeflatedDataValue} to signal "End of file" for queued DDVs.
+     */
+    public static final DeflatedDataValue END_OF_DDV_DATA = new DeflatedDataValue();
+
+    /**
+     * Timeout value for {@see DeflatedDataValue} queue, to prevent waiting
+     * forever if the other thread has aborted.
+     */
+    public static final int DDV_QUEUE_TIMEOUT_VALUE = 10;
+
+    /**
+     * Timeout unit for {@see DeflatedDataValue} queue, to prevent waiting
+     * forever if the other thread has aborted.
+     */
+    public static final TimeUnit DDV_QUEUE_TIMEOUT_UNIT = TimeUnit.MINUTES;
 
     // -------------------------------------------------------------------------
     // Basic DataValue
@@ -129,19 +147,8 @@ public interface DataValueStore
 
     /**
      * Gets the number of DataValues which have been updated between the given
-     * start and end date. The
-     *
-     * <pre>
-     * startDate
-     * </pre>
-     *
-     * and
-     *
-     * <pre>
-     * endDate
-     * </pre>
-     *
-     * parameters can both be null but one must be defined.
+     * start and end date. Either the start or end date can be null, but they
+     * cannot both be null.
      *
      * @param startDate the start date to compare against data value last
      *        updated.

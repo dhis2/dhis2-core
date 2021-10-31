@@ -30,10 +30,9 @@ package org.hisp.dhis.tracker.deduplication.merge;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
-import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -100,8 +99,7 @@ public class PotentialDuplicatesMergeTests
     @Test
     public void shouldNotMergeDifferentTypeTeis()
     {
-        String trackedEntityType = new RestApiActions( "/trackedEntityTypes" )
-            .post( DataGenerator.generateObjectForEndpoint( "trackedEntityType" ) ).extractUid();
+        String trackedEntityType = new TrackedEntityTypeActions().create();
 
         String teiA = createTei( Constants.TRACKED_ENTITY_TYPE );
         String teiB = createTei( trackedEntityType );

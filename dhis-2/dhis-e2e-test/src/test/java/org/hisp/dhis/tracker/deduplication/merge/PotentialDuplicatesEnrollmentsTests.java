@@ -184,7 +184,7 @@ public class PotentialDuplicatesEnrollmentsTests
 
     private String createTeiWithoutEnrollment( String ouId )
     {
-        JsonObject object = new TeiDataBuilder().build( Constants.TRACKED_ENTITY_TYPE, ouId );
+        JsonObject object = new TeiDataBuilder().array( Constants.TRACKED_ENTITY_TYPE, ouId );
 
         return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
     }

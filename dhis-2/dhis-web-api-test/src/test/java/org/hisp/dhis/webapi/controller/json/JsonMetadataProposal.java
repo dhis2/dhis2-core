@@ -68,9 +68,9 @@ public interface JsonMetadataProposal extends JsonObject
         return getString( "target" ).parsed( MetadataProposalTarget::valueOf );
     }
 
-    default String getTargetUid()
+    default String getTargetId()
     {
-        return getString( "targetUid" ).string();
+        return getString( "targetId" ).string();
     }
 
     default JsonObject getChange()

@@ -72,6 +72,7 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COL
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATEDCLIENT;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
+import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
@@ -108,7 +109,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -270,14 +270,7 @@ public class JdbcEventStore implements EventStore
         "eventdatavalues" );            // 22
     // @formatter:on
 
-    private final static String INSERT_EVENT_SQL = "insert into programstageinstance (" +
-        String.join( ",", INSERT_COLUMNS ) + ") " +
-        "values ( nextval('programstageinstance_sequence'), " +
-        INSERT_COLUMNS.stream()
-            .skip( 1L )
-            .map( column -> "?" )
-            .collect( Collectors.joining( "," ) )
-        + ")";
+    private final static String INSERT_EVENT_SQL;
 
     private final static List<String> UPDATE_COLUMNS = ImmutableList.of(
     // @formatter:off
@@ -303,12 +296,7 @@ public class JdbcEventStore implements EventStore
         UID.getColumnName() );          // 20
     // @formatter:on
 
-    private final static String UPDATE_EVENT_SQL = "update programstageinstance set " +
-        UPDATE_COLUMNS.stream()
-            .map( column -> column + " = ?" )
-            .limit( UPDATE_COLUMNS.size() - 1 )
-            .collect( Collectors.joining( "," ) )
-        + " where uid = ?;";
+    private final static String UPDATE_EVENT_SQL;
 
     /**
      * Updates Tracked Entity Instance after an event update. In order to
@@ -320,6 +308,25 @@ public class JdbcEventStore implements EventStore
         + "update trackedentityinstance set lastupdated = %s, lastupdatedby = %s where uid in (%s)";
 
     private static final String NULL = "null";
+
+    static
+    {
+        INSERT_EVENT_SQL = "insert into programstageinstance (" +
+            String.join( ",", INSERT_COLUMNS ) + ") " +
+            "values ( nextval('programstageinstance_sequence'), " +
+            INSERT_COLUMNS.stream()
+                .skip( 1L )
+                .map( column -> "?" )
+                .collect( Collectors.joining( "," ) )
+            + ")";
+
+        UPDATE_EVENT_SQL = "update programstageinstance set " +
+            UPDATE_COLUMNS.stream()
+                .map( column -> column + " = ?" )
+                .limit( UPDATE_COLUMNS.size() - 1 )
+                .collect( Collectors.joining( "," ) )
+            + " where uid = ?;";
+    }
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -346,6 +353,8 @@ public class JdbcEventStore implements EventStore
     private final Environment env;
 
     private final org.hisp.dhis.dxf2.events.trackedentity.store.EventStore eventStore;
+
+    private final SkipLockedProvider skipLockedProvider;
 
     // -------------------------------------------------------------------------
     // EventStore implementation
@@ -1605,7 +1614,7 @@ public class JdbcEventStore implements EventStore
 
     /**
      * Saves a list of {@see ProgramStageInstance} using JDBC batch update.
-     *
+     * <p>
      * Note that this method is using JdbcTemplate to execute the batch
      * operation, therefore it's able to participate in any Spring-initiated
      * transaction
@@ -1613,7 +1622,6 @@ public class JdbcEventStore implements EventStore
      * @param batch the list of {@see ProgramStageInstance}
      * @return the list of created {@see ProgramStageInstance} with primary keys
      *         assigned
-     *
      */
     private List<ProgramStageInstance> saveAllEvents( List<ProgramStageInstance> batch )
     {
@@ -1689,7 +1697,7 @@ public class JdbcEventStore implements EventStore
         Optional.ofNullable( teiUids ).filter( s -> !s.isEmpty() )
             .ifPresent( teis -> updateTrackedEntityInstances( teis.stream()
                 .sorted() // make sure the list is sorted, to prevent
-                          // deadlocks
+                // deadlocks
                 .map( s -> "'" + s + "'" )
                 .collect( Collectors.joining( ", " ) ), user ) );
     }
@@ -1700,7 +1708,8 @@ public class JdbcEventStore implements EventStore
         {
             Timestamp timestamp = new Timestamp( System.currentTimeMillis() );
 
-            String sql = String.format( UPDATE_TEI_SQL, teisInCondition, getSkipLocked(), "'" + timestamp + "'",
+            String sql = String.format( UPDATE_TEI_SQL, teisInCondition, skipLockedProvider.getSkipLocked(),
+                "'" + timestamp + "'",
                 user != null ? user.getId() : NULL, teisInCondition );
 
             jdbcTemplate.execute( sql );
@@ -1710,18 +1719,6 @@ public class JdbcEventStore implements EventStore
             log.error( "An error occurred updating one or more Tracked Entity Instances", e );
             throw e;
         }
-    }
-
-    /**
-     * Awful hack required for the H2-based tests to pass. H2 does not support
-     * the "SKIP LOCKED" clause, therefore we need to remove it from the SQL
-     * statement when executing the H2 tests.
-     *
-     * @return a SQL String containing Skip Locked statement
-     */
-    private String getSkipLocked()
-    {
-        return SystemUtils.isTestRun( env.getActiveProfiles() ) ? "" : "SKIP LOCKED";
     }
 
     private void bindEventParamsForInsert( PreparedStatement ps, ProgramStageInstance event )
@@ -1873,9 +1870,9 @@ public class JdbcEventStore implements EventStore
             {
                 String dataElementsUidsSqlString = getQuotedCommaDelimitedString( deUids );
 
-                String deSql = "select de.uid, de.attributevalues #>> '{" + idScheme.getAttribute()
+                String deSql = "select de.uid, de.attributevalues #>> '{" + escapeSql( idScheme.getAttribute() )
                     + ", value}' as value from dataelement de where de.uid in (" + dataElementsUidsSqlString + ") "
-                    + "and de.attributevalues ? '" + idScheme.getAttribute() + "'";
+                    + "and de.attributevalues ? '" + escapeSql( idScheme.getAttribute() ) + "'";
 
                 SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );
 

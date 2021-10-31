@@ -37,7 +37,7 @@
             </type>
         </property>
 
-        <property name="targetUid" column="targetuid" length="11"
+        <property name="targetId" column="targetuid" length="11"
                   not-null="false"/>
 
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User"

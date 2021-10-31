@@ -84,7 +84,7 @@ public class MetadataProposal implements PrimaryKeyObject
     private MetadataProposalTarget target;
 
     @Immutable
-    private String targetUid;
+    private String targetId;
 
     @Immutable
     private User createdBy;
@@ -144,9 +144,9 @@ public class MetadataProposal implements PrimaryKeyObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getTargetUid()
+    public String getTargetId()
     {
-        return targetUid;
+        return targetId;
     }
 
     @JsonProperty

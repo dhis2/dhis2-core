@@ -90,7 +90,6 @@ final class GistLogic
     static boolean isAttributePath( String path )
     {
         return path.length() == 11
-            && !path.matches( "[-_a-zA-Z]+" )
             && CodeGenerator.isValidUid( path );
     }
 

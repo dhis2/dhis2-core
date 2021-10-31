@@ -198,7 +198,7 @@ public class EventsDataValueValidationTests
     {
         JsonObject events = new EventDataBuilder()
             .addDataValue( mandatoryDataElementId, "TEXT value" )
-            .build( OU_ID, programId, programStageId );
+            .array( OU_ID, programId, programStageId );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( events );
 
@@ -226,7 +226,7 @@ public class EventsDataValueValidationTests
             builder.setScheduledDate( Instant.now().plus( 1, ChronoUnit.DAYS ).toString() );
         }
 
-        return builder.build( OU_ID, programId, programStageId );
+        return builder.array( OU_ID, programId, programStageId );
     }
 
     private void setupData()

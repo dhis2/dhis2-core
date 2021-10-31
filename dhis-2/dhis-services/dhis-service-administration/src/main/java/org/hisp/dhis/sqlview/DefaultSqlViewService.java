@@ -38,7 +38,6 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -199,7 +198,7 @@ public class DefaultSqlViewService
     private String parseFilters( List<String> filters, SqlHelper sqlHelper )
         throws QueryParserException
     {
-        String query = StringUtils.EMPTY;
+        String query = "";
 
         for ( String filter : filters )
         {
@@ -221,7 +220,7 @@ public class DefaultSqlViewService
 
     private String getFilterQuery( SqlHelper sqlHelper, String columnName, String operator, String value )
     {
-        String query = StringUtils.EMPTY;
+        String query = "";
 
         query += sqlHelper.whereAnd() + " " + columnName + " " + QueryUtils.parseFilterOperator( operator, value );
 
@@ -307,7 +306,7 @@ public class DefaultSqlViewService
 
     private String getCriteriaSqlClause( Map<String, String> criteria, SqlHelper sqlHelper )
     {
-        String sql = StringUtils.EMPTY;
+        String sql = "";
 
         if ( criteria != null && !criteria.isEmpty() )
         {

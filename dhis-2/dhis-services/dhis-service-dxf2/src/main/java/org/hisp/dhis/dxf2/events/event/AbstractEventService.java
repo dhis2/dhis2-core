@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -858,6 +858,9 @@ public abstract class AbstractEventService implements EventService
         case CAPTURE:
             organisationUnits = getCaptureOrgUnits( user );
             break;
+        case SELECTED:
+            organisationUnits = getSelectedOrgUnits( params );
+            break;
         default:
             organisationUnits = getAccessibleOrgUnits( params, user );
             break;
@@ -889,6 +892,16 @@ public abstract class AbstractEventService implements EventService
             .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
     }
 
+    private List<OrganisationUnit> getSelectedOrgUnits( EventSearchParams params )
+    {
+        if ( params.getOrgUnit() == null )
+        {
+            throw new IllegalQueryException( "Organisation unit is required to use SELECTED scope. " );
+        }
+
+        return Collections.singletonList( params.getOrgUnit() );
+    }
+
     private List<OrganisationUnit> getDescendantOrgUnits( EventSearchParams params )
     {
         if ( params.getOrgUnit() == null )
@@ -917,11 +930,16 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
         }
 
-        Set<OrganisationUnit> orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+        Set<OrganisationUnit> orgUnits = user.getOrganisationUnits();
 
-        if ( params.getProgram() != null && params.getProgram().isWithoutRegistration() )
+        if ( params.getProgram() != null )
         {
-            orgUnits = user.getDataViewOrganisationUnitsWithFallback();
+            orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+
+            if ( params.getProgram().isClosed() )
+            {
+                orgUnits = user.getOrganisationUnits();
+            }
         }
 
         return organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
@@ -993,8 +1011,7 @@ public abstract class AbstractEventService implements EventService
     private boolean getDataElement( String userUid, String dataElementUid )
     {
         String key = userUid + "-" + dataElementUid;
-        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null )
-            .orElse( false );
+        return dataElementCache.get( key, k -> manager.get( DataElement.class, dataElementUid ) != null );
     }
 
     @Override
@@ -1038,14 +1055,19 @@ public abstract class AbstractEventService implements EventService
             violation = userCanSearchOuModeALL( user ) ? null
                 : "Current user is not authorized to query across all organisation units";
             break;
+        case ACCESSIBLE:
         case CAPTURE:
+            violation = user == null ? "User is required for ouMode: " + params.getOrgUnitSelectionMode() : null;
+            break;
+        case CHILDREN:
+        case SELECTED:
         case DESCENDANTS:
             violation = params.getOrgUnit() == null
                 ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
                 : null;
             break;
         default:
-            violation = null;
+            violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
             break;
         }
 

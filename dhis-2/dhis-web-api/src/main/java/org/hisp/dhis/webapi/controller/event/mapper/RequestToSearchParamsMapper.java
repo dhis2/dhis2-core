@@ -330,7 +330,7 @@ public class RequestToSearchParamsMapper
             true );
 
         Set<String> eventIds = TextUtils.splitToArray( eventCriteria.getEvent(), TextUtils.SEMICOLON );
-        Set<String> assignedUserIds = TextUtils.splitToArray( eventCriteria.getAssignedUser(), TextUtils.SEMICOLON );
+        Set<String> assignedUserIds = eventCriteria.getAssignedUsers();
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
 
         return map( eventCriteria.getProgram(),

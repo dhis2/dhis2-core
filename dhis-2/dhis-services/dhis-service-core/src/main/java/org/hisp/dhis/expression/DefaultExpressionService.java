@@ -70,7 +70,6 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -677,8 +676,7 @@ public class DefaultExpressionService
      */
     private Map<String, Constant> getConstantMap()
     {
-        return constantMapCache.get( "x", key -> constantService.getConstantMap() )
-            .orElse( Collections.emptyMap() );
+        return constantMapCache.get( "x", key -> constantService.getConstantMap() );
     }
 
     /**

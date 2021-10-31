@@ -27,24 +27,22 @@
  */
 package org.hisp.dhis.tracker.importer.tei;
 
-import static org.hamcrest.CoreMatchers.*;
-
-import java.io.File;
-
+import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
-import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
-import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
+import java.io.File;
+
+import static org.hamcrest.CoreMatchers.*;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -65,12 +63,8 @@ public class TeiUpdateTests
     {
         // arrange
         String tei = importTei();
-        String trackedEntityType = new RestApiActions( "/trackedEntityTypes" )
-            .post( DataGenerator.generateObjectForEndpoint( "trackedEntityType" ) ).extractUid();
-        JsonObject body = trackerActions.getTrackedEntity( tei ).getBody();
-
-        // act
-        body = JsonObjectBuilder.jsonObject( body )
+        String trackedEntityType = new TrackedEntityTypeActions().create();
+        JsonObject body = trackerActions.getTrackedEntity( tei ).getBodyAsJsonBuilder()
             .addProperty( "trackedEntity", tei )
             .addProperty( "trackedEntityType", trackedEntityType )
             .wrapIntoArray( "trackedEntities" );
