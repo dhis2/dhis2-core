@@ -37,13 +37,13 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.hisp.dhis.jdbc.StatementBuilder;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
@@ -53,7 +53,6 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
  */
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore" )
 public class HibernateTrackedEntityInstanceAuditStore
