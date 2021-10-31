@@ -29,7 +29,7 @@ package org.hisp.dhis.sqlview;
 
 import java.util.Set;
 
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 

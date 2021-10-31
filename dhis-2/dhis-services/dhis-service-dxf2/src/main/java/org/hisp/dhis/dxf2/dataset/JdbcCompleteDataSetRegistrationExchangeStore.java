@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IdSchemes;

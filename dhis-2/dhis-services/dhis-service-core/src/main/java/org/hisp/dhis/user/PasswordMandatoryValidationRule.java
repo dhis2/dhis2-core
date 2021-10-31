@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.user;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_IS_MANDATORY;
 
 /**

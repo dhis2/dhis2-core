@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;

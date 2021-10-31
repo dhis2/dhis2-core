@@ -94,10 +94,10 @@ public class RuleEngineTests
         String enrollment = trackerActions.postAndGetJobReport( new EnrollmentDataBuilder()
             .setTei( tei )
             .setEnrollmentDate( Instant.now().plus( 1, ChronoUnit.DAYS ).toString() )
-            .build( trackerProgramId, Constants.ORG_UNIT_IDS[0] ) ).extractImportedEnrollments().get( 0 );
+            .array( trackerProgramId, Constants.ORG_UNIT_IDS[0] ) ).extractImportedEnrollments().get( 0 );
 
         JsonObject payload = new EventDataBuilder().setEnrollment( enrollment )
-            .build( Constants.ORG_UNIT_IDS[0], trackerProgramId, programStage );
+            .array( Constants.ORG_UNIT_IDS[0], trackerProgramId, programStage );
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
@@ -121,7 +121,7 @@ public class RuleEngineTests
     {
         JsonObject payload = new EventDataBuilder()
             .setStatus( "COMPLETED" )
-            .build( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
+            .array( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
@@ -138,14 +138,14 @@ public class RuleEngineTests
         JsonObject enrollment = new EnrollmentDataBuilder().setTei( tei )
             .setEnrollmentDate( Instant.now().plus(
                 1, ChronoUnit.DAYS ).toString() )
-            .build( trackerProgramId, Constants.ORG_UNIT_IDS[0] );
+            .array( trackerProgramId, Constants.ORG_UNIT_IDS[0] );
 
         String enrollmentId = trackerActions.postAndGetJobReport( enrollment ).validateSuccessfulImport()
             .extractImportedEnrollments().get( 0 );
 
         JsonObject payload = new EventDataBuilder().setEnrollment( enrollmentId )
             .setStatus( "COMPLETED" )
-            .build( Constants.ORG_UNIT_IDS[0], trackerProgramId, "nH8zfPSUSN1" );
+            .array( Constants.ORG_UNIT_IDS[0], trackerProgramId, "nH8zfPSUSN1" );
 
         trackerActions.postAndGetJobReport( payload, new QueryParamsBuilder().add( "async=false" ) )
             .validateErrorReport()
@@ -158,7 +158,7 @@ public class RuleEngineTests
     {
         JsonObject payload = new EventDataBuilder()
             .addDataValue( "ILRgzHhzFkg", "true" )
-            .build( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
+            .array( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
@@ -170,7 +170,7 @@ public class RuleEngineTests
     @Test
     public void shouldAssignValue()
     {
-        JsonObject payload = new EventDataBuilder().build( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
+        JsonObject payload = new EventDataBuilder().array( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
 
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( payload, new QueryParamsBuilder().addAll( "skipSideEffects=true" ) );
@@ -196,7 +196,7 @@ public class RuleEngineTests
             .addDataValue( "ILRgzHhzFkg", "true" )
             .addDataValue( "z3Z4TD3oBCP", "true" )
             .addDataValue( "BuZ5LGNfGEU", "40" )
-            .build( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
+            .array( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
 
         loginActions.loginAsAdmin();
         ApiResponse response = new RestApiActions( "/messageConversations" ).get( "",
@@ -277,7 +277,7 @@ public class RuleEngineTests
     {
         JsonObject payload = new EventDataBuilder()
             .setStatus( "COMPLETED" )
-            .build( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
+            .array( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
 
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( payload, new QueryParamsBuilder().add( "skipRuleEngine=true" ) );

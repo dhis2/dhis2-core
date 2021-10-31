@@ -7,11 +7,9 @@ FROM maven:3.8.1-jdk-11-slim as build
 ARG IDENTIFIER=unknown
 LABEL identifier=${IDENTIFIER}
 
+# needed to clone DHIS2 apps
 RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install --no-install-recommends -y \
-        git && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install --no-install-recommends -y git
 
 WORKDIR /src
 

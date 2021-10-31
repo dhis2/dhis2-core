@@ -28,10 +28,12 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramType;
@@ -54,10 +56,18 @@ public class ProgramInstanceSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<ProgramInstance> programInstances = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
-            programInstanceStore.getByType( ProgramType.WITHOUT_REGISTRATION ) );
+        List<Program> programsWithoutRegistration = preheat.getAll( Program.class )
+            .stream()
+            .filter( program -> program.getProgramType().equals( ProgramType.WITHOUT_REGISTRATION ) )
+            .collect( Collectors.toList() );
 
-        programInstances
-            .forEach( pi -> preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi ) );
+        if ( !programsWithoutRegistration.isEmpty() )
+        {
+            List<ProgramInstance> programInstances = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
+                programInstanceStore.getByPrograms( programsWithoutRegistration ) );
+
+            programInstances
+                .forEach( pi -> preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi ) );
+        }
     }
 }

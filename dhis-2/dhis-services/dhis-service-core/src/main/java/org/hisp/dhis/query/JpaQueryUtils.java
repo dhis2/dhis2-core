@@ -43,7 +43,7 @@ import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;

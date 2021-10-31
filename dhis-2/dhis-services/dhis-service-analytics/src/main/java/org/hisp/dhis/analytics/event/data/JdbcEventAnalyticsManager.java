@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.apache.commons.lang.time.DateUtils.addYears;
+import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
@@ -40,7 +40,6 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
@@ -49,6 +48,7 @@ import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -108,6 +108,8 @@ public class JdbcEventAnalyticsManager
     implements EventAnalyticsManager
 {
     protected static final String OPEN_IN = " in (";
+
+    private static final String ORG_UNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
 
     private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
@@ -421,18 +423,13 @@ public class JdbcEventAnalyticsManager
         {
             String orgUnitAlias = getOrgUnitAlias( params );
 
-            sql += hlp.whereAnd() + " (";
+            String sqlSnippet = getOrgDescendantsSqlSnippet( orgUnitAlias,
+                params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
 
-            for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
+            if ( sqlSnippet != null && !sqlSnippet.trim().isEmpty() )
             {
-                OrganisationUnit unit = (OrganisationUnit) object;
-
-                String orgUnitCol = quote( orgUnitAlias, "uidlevel" + unit.getLevel() );
-
-                sql += orgUnitCol + " = '" + unit.getUid() + "' or ";
+                sql += hlp.whereAnd() + " " + sqlSnippet;
             }
-
-            sql = removeLastOr( sql ) + ") ";
         }
 
         // ---------------------------------------------------------------------
@@ -587,6 +584,32 @@ public class JdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    /**
+     * Generates a sub query which provides a filter by organisation -
+     * descendant level
+     */
+    private String getOrgDescendantsSqlSnippet( String orgUnitAlias,
+        List<DimensionalItemObject> dimensionOrFilterItems )
+    {
+        Map<String, List<OrganisationUnit>> collect = dimensionOrFilterItems.stream()
+            .map( object -> (OrganisationUnit) object )
+            .collect( Collectors.groupingBy(
+                unit -> quote( orgUnitAlias, ORG_UNIT_UID_LEVEL_COLUMN_PREFIX + unit.getLevel() ) ) );
+
+        return collect.keySet()
+            .stream()
+            .map( org -> toInCondition( org, collect.get( org ) ) )
+            .collect( Collectors.joining( " and " ) );
+    }
+
+    private String toInCondition( String org, List<OrganisationUnit> organisationUnits )
+    {
+        return organisationUnits.stream()
+            .filter( unit -> unit.getUid() != null && !unit.getUid().trim().isEmpty() )
+            .map( unit -> "'" + unit.getUid() + "'" )
+            .collect( Collectors.joining( ",", org + OPEN_IN, ") " ) );
     }
 
     /**

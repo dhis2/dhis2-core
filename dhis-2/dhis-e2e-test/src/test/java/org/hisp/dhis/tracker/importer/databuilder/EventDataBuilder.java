@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.importer.databuilder;
 
 import com.google.gson.JsonObject;
@@ -36,7 +35,7 @@ import java.time.Instant;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventDataBuilder
+public class EventDataBuilder implements TrackerImporterDataBuilder
 {
     private JsonObjectBuilder builder;
 
@@ -132,23 +131,29 @@ public class EventDataBuilder
         return this;
     }
 
-    public JsonObject build()
-    {
-        return this.builder.wrapIntoArray( "events" );
-    }
-
-    public JsonObject build( String ou, String program, String programStage )
+    public JsonObject array( String ou, String program, String programStage )
     {
         setOu( ou ).setProgram( program ).setProgramStage( programStage );
 
-        return build();
+        return array();
     }
 
-    public JsonObject build( String ou, String program, String programStage, String status )
+    public JsonObject array( String ou, String program, String programStage, String status )
     {
         setOu( ou ).setProgram( program ).setProgramStage( programStage ).setStatus( status );
 
-        return build();
+        return array();
     }
 
+    @Override
+    public JsonObject single()
+    {
+        return this.builder.build();
+    }
+
+    @Override
+    public JsonObject array()
+    {
+        return this.builder.wrapIntoArray( "events" );
+    }
 }

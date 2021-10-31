@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;

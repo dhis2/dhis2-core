@@ -118,8 +118,7 @@ public class DefaultProgramRuleVariableService
             List<ProgramRuleVariable> ruleVariables = programRuleVariableStore
                 .getProgramVariables( program, dataElement );
             return !ruleVariables.isEmpty();
-        } )
-            .orElse( false );
+        } );
     }
 
     @Override

@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;

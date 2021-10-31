@@ -480,8 +480,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return inUserOrgUnitHierarchyCache.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) )
-            .orElse( false );
+        return inUserOrgUnitHierarchyCache.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) );
     }
 
     @Override
@@ -530,8 +529,7 @@ public class DefaultOrganisationUnitService
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
         return inUserOrgUnitViewHierarchyCache
-            .get( cacheKey, ou -> isInUserDataViewHierarchy( user, organisationUnit ) )
-            .orElse( false );
+            .get( cacheKey, ou -> isInUserDataViewHierarchy( user, organisationUnit ) );
     }
 
     @Override
@@ -555,7 +553,7 @@ public class DefaultOrganisationUnitService
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
         return inUserOrgUnitSearchHierarchyCache
-            .get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).orElse( false );
+            .get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) );
     }
 
     @Override
@@ -610,8 +608,7 @@ public class DefaultOrganisationUnitService
             params.setParents( user.getOrganisationUnits() );
             params.setFetchChildren( true );
             return organisationUnitStore.isOrgUnitCountAboveThreshold( params, threshold );
-        } )
-            .orElse( false );
+        } );
     }
 
     // -------------------------------------------------------------------------

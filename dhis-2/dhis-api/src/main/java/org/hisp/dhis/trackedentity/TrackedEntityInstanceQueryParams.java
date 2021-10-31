@@ -43,7 +43,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
