@@ -128,7 +128,17 @@ public class TrackerActions
 
     public TrackerApiResponse getTrackedEntity( String entityId )
     {
-        return new TrackerApiResponse( this.get( "/trackedEntities/" + entityId ) );
+        return getTrackedEntity( entityId, new QueryParamsBuilder());
+    }
+
+    public TrackerApiResponse getTrackedEntity( String entityId, QueryParamsBuilder queryParamsBuilder )
+    {
+        return new TrackerApiResponse( this.get( "/trackedEntities/" + entityId , queryParamsBuilder ));
+    }
+
+    public TrackerApiResponse getTrackedEntities( QueryParamsBuilder queryParamsBuilder )
+    {
+        return new TrackerApiResponse( this.get( "/trackedEntities/", queryParamsBuilder ) );
     }
 
     public TrackerApiResponse getEnrollment( String enrollmentId )

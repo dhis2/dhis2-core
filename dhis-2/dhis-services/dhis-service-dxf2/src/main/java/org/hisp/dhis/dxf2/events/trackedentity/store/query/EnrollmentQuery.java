@@ -47,8 +47,10 @@ public class EnrollmentQuery
         UID,
         CREATED,
         CREATEDCLIENT,
+        CREATED_BY,
         UPDATED,
         UPDATEDCLIENT,
+        LAST_UPDATED_BY,
         STATUS,
         GEOMETRY,
         ENROLLMENTDATE,
@@ -72,8 +74,10 @@ public class EnrollmentQuery
         .put( COLUMNS.UID, new TableColumn( "pi", "uid" ) )
         .put( COLUMNS.CREATED, new TableColumn( "pi", "created" ) )
         .put( COLUMNS.CREATEDCLIENT, new TableColumn( "pi", "createdatclient" ) )
+        .put( COLUMNS.CREATED_BY, new TableColumn( "pi", "createdbyuserinfo" ) )
         .put( COLUMNS.UPDATED, new TableColumn( "pi", "lastupdated" ) )
         .put( COLUMNS.UPDATEDCLIENT, new TableColumn( "pi", "lastupdatedatclient" ) )
+        .put( COLUMNS.LAST_UPDATED_BY, new TableColumn( "pi", "lastupdatedbyuserinfo" ) )
         .put( COLUMNS.STATUS, new TableColumn( "pi", "status" ) )
         .put( COLUMNS.ENROLLMENTDATE, new TableColumn( "pi", "enrollmentdate" ) )
         .put( COLUMNS.INCIDENTDATE, new TableColumn( "pi", "incidentdate" ) )
