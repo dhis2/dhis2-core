@@ -1038,6 +1038,12 @@ public abstract class AbstractEventService
         {
             events = new HashSet<>();
         }
+        else
+        {
+            events = events.stream()
+                    .filter( CodeGenerator::isValidUid )
+                    .collect( Collectors.toSet() );
+        }
 
         if ( filters != null )
         {
