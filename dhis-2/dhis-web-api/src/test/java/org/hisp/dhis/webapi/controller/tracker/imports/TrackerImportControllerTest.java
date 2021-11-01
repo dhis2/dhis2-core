@@ -33,6 +33,7 @@ import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportContr
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -132,6 +133,23 @@ public class TrackerImportControllerTest
     }
 
     @Test
+    public void verifyAsyncForCsv()
+        throws Exception
+    {
+
+        // Then
+        mockMvc.perform( post( ENDPOINT )
+            .content( "{}" )
+            .contentType( "text/csv" ) )
+            .andExpect( status().isOk() )
+            .andExpect( jsonPath( "$.message" ).value( TRACKER_JOB_ADDED ) )
+            .andExpect( content().contentType( "application/json" ) );
+
+        verify( csvEventService ).readEvents( any(), eq( false ) );
+        verify( importStrategy ).importReport( any() );
+    }
+
+    @Test
     public void verifySyncResponseShouldBeOkWhenImportReportStatusIsOk()
         throws Exception
     {
@@ -171,6 +189,45 @@ public class TrackerImportControllerTest
     }
 
     @Test
+    public void verifySyncResponseForCsvShouldBeOkWhenImportReportStatusIsOk()
+        throws Exception
+    {
+        // When
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withImportCompleted(
+            TrackerStatus.OK,
+            TrackerBundleReport.builder()
+                .status( TrackerStatus.OK )
+                .build(),
+            TrackerValidationReport.builder()
+                .build(),
+            new TrackerTimingsStats(),
+            new HashMap<>() ) );
+
+        // Then
+        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false&skipFirst=true" )
+            .content( "{}" )
+            .contentType( "text/csv" ) )
+            .andExpect( status().isOk() )
+            .andExpect( jsonPath( "$.message" ).doesNotExist() )
+            .andExpect( content().contentType( "application/json" ) )
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        verify( csvEventService ).readEvents( any(), eq( true ) );
+        verify( importStrategy ).importReport( any() );
+
+        try
+        {
+            renderService.fromJson( contentAsString, TrackerImportReport.class );
+        }
+        catch ( Exception e )
+        {
+            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
+        }
+    }
+
+    @Test
     public void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError()
         throws Exception
     {
@@ -193,6 +250,41 @@ public class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
+        verify( importStrategy ).importReport( any() );
+
+        try
+        {
+            renderService.fromJson( contentAsString, TrackerImportReport.class );
+        }
+        catch ( Exception e )
+        {
+            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
+        }
+    }
+
+    @Test
+    public void verifySyncResponseForCsvShouldBeConflictWhenImportReportStatusIsError()
+        throws Exception
+    {
+        String errorMessage = "errorMessage";
+        // When
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withError( "errorMessage",
+            TrackerValidationReport.builder()
+                .build(),
+            new TrackerTimingsStats() ) );
+
+        // Then
+        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false&skipFirst=true" )
+            .content( "{}" )
+            .contentType( "text/csv" ) )
+            .andExpect( status().isConflict() )
+            .andExpect( jsonPath( "$.message" ).value( errorMessage ) )
+            .andExpect( content().contentType( "application/json" ) )
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        verify( csvEventService ).readEvents( any(), eq( true ) );
         verify( importStrategy ).importReport( any() );
 
         try
