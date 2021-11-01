@@ -560,7 +560,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             OrganisationUnit ou = programStageInstance.getOrganisationUnit();
             if ( ou != null )
             {
-                if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
+                if ( !organisationUnitService.isInUserSearchHierarchy( user, ou ) )
                 {
                     errors.add( "User has no update access to organisation unit: " + ou.getUid() );
                 }
@@ -813,10 +813,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         if ( program.isClosed() )
         {
-            return organisationUnitService.isInUserDataViewHierarchyCached( user, orgUnit );
+            return organisationUnitService.isInUserHierarchy( user, orgUnit );
         }
 
-        return organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit );
+        return organisationUnitService.isInUserSearchHierarchy( user, orgUnit );
     }
 
 }

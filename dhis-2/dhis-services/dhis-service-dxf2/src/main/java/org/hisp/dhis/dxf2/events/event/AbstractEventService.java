@@ -1089,10 +1089,10 @@ public abstract class AbstractEventService implements EventService
 
         if ( program.isClosed() )
         {
-            return organisationUnitService.isInUserDataViewHierarchyCached( user, orgUnit );
+            return organisationUnitService.isInUserHierarchy( user, orgUnit );
         }
 
-        return organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit );
+        return organisationUnitService.isInUserSearchHierarchy( user, orgUnit );
     }
 
     /**
