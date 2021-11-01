@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.audit;
 
+import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -199,7 +201,7 @@ public class JdbcAuditRepository
     private String buildQuotedSet( Set<?> items )
     {
         return items.stream()
-            .map( s -> "'" + s.toString() + "'" )
+            .map( s -> "'" + escapeSql( s.toString() ) + "'" )
             .collect( Collectors.joining( ", " ) );
     }
 
