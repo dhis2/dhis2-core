@@ -98,10 +98,6 @@ public class DefaultResourceTableService
 
     private final StatementBuilder statementBuilder;
 
-    // -------------------------------------------------------------------------
-    // ResourceTableService implementation
-    // -------------------------------------------------------------------------
-
     @Override
     @Transactional
     public void generateOrganisationUnitStructures()
@@ -216,9 +212,10 @@ public class DefaultResourceTableService
     {
         List<SqlView> nonQueryViews = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() ).stream()
             .sorted()
-            .filter( view -> !view.isQuery() ).collect( toList() );
+            .filter( view -> !view.isQuery() )
+            .collect( toList() );
 
-        progress.nextStage( "Create SQL views", nonQueryViews.size() );
+        progress.startingStage( "Create SQL views", nonQueryViews.size() );
         progress.runStage( nonQueryViews, view -> {
             try
             {
@@ -239,7 +236,7 @@ public class DefaultResourceTableService
             .filter( view -> !view.isQuery() )
             .sorted( reverseOrder() )
             .collect( toList() );
-        progress.nextStage( "Drop SQL views", nonQueryViews.size() );
+        progress.startingStage( "Drop SQL views", nonQueryViews.size() );
         progress.runStage( nonQueryViews, sqlViewService::deleteSqlView );
     }
 }

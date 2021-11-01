@@ -41,6 +41,7 @@ import java.util.Set;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -88,6 +89,9 @@ public class EventAnalyticsServiceTest
     private OrganisationUnit ouC;
 
     private Program programA;
+
+    @Autowired
+    private List<AnalyticsTableService> analyticsTableServices;
 
     @Autowired
     private EventAnalyticsService eventAnalyticsService;
@@ -140,7 +144,10 @@ public class EventAnalyticsServiceTest
     @Override
     public void tearDownTest()
     {
-        analyticsTableGenerator.dropTables();
+        for ( AnalyticsTableService service : analyticsTableServices )
+        {
+            service.dropTables();
+        }
     }
 
     /**

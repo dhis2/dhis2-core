@@ -46,11 +46,6 @@ public interface AnalyticsTableGenerator
     void generateTables( AnalyticsTableUpdateParams params, JobProgress progress );
 
     /**
-     * Drops all existing analytics tables.
-     */
-    void dropTables();
-
-    /**
      * Generates all resource tables.
      *
      * @param progress job progress tracking and control flow

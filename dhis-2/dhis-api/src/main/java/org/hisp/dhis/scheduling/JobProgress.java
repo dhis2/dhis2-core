@@ -31,6 +31,9 @@ import static java.util.stream.StreamSupport.stream;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -38,6 +41,7 @@ public interface JobProgress
 {
     JobProgress IGNORANT = new JobProgress()
     {
+
         @Override
         public boolean isCancellationRequested()
         {
@@ -45,7 +49,25 @@ public interface JobProgress
         }
 
         @Override
-        public void nextStage( String name, int workItems )
+        public void startingProcess( String description )
+        {
+
+        }
+
+        @Override
+        public void completedProcess( String summary )
+        {
+
+        }
+
+        @Override
+        public void failedProcess( String error )
+        {
+
+        }
+
+        @Override
+        public void startingStage( String description, int workItems )
         {
 
         }
@@ -63,7 +85,7 @@ public interface JobProgress
         }
 
         @Override
-        public void nextWorkItem( String name )
+        public void startingWorkItem( String description )
         {
 
         }
@@ -81,33 +103,62 @@ public interface JobProgress
         }
     };
 
+    /*
+     * Flow Control API:
+     */
+
     /**
      * @return true, if the job got cancelled and requests the processing thread
      *         to terminate, else false to continue processing the job
      */
     boolean isCancellationRequested();
 
+    /*
+     * Tracking API:
+     */
+
+    void startingProcess( String description );
+
+    void completedProcess( String summary );
+
+    void failedProcess( String error );
+
+    default void failedProcess( Exception cause )
+    {
+        failedProcess( "Process failed: " + cause.getMessage() );
+    }
+
     /**
      *
-     * @param name descriptive name for the stage that starts now
+     * @param description describes the work done
      * @param workItems number of work items in the stage, -1 if unknown
      */
-    void nextStage( String name, int workItems );
+    void startingStage( String description, int workItems );
+
+    default void startingStage( String description )
+    {
+        startingStage( description, 0 );
+    }
 
     void completedStage( String summary );
 
     void failedStage( String error );
 
-    void nextWorkItem( String name );
+    default void failedStage( Exception cause )
+    {
+        failedStage( cause.getMessage() );
+    }
+
+    void startingWorkItem( String description );
+
+    default void startingWorkItem( int i )
+    {
+        startingWorkItem( "#" + (i + 1) );
+    }
 
     void completedWorkItem( String summary );
 
     void failedWorkItem( String error );
-
-    default void nextWorkItem( int i )
-    {
-        nextWorkItem( "#" + (i + 1) );
-    }
 
     default void failedWorkItem( Exception cause )
     {
@@ -146,10 +197,9 @@ public interface JobProgress
             Runnable item = it.next();
             if ( isCancellationRequested() )
             {
-                failedStage( null );
                 return false; // ends the stage immediately
             }
-            nextWorkItem( i++ );
+            startingWorkItem( i++ );
             try
             {
                 item.run();
@@ -157,10 +207,63 @@ public interface JobProgress
             }
             catch ( RuntimeException ex )
             {
+                boolean cancellationRequestedBefore = isCancellationRequested();
                 failedWorkItem( ex );
+                if ( !cancellationRequestedBefore && isCancellationRequested() )
+                {
+                    failedStage( ex );
+                    return false;
+                }
             }
         }
         completedStage( null );
         return true;
+    }
+
+    default <T> boolean runStageInParallel( int parallelism, Collection<T> items, Consumer<T> work )
+    {
+        Callable<Boolean> task = () -> items.parallelStream().map( item -> {
+            if ( isCancellationRequested() )
+            {
+                return false;
+            }
+            startingWorkItem( null );
+            try
+            {
+                work.accept( item );
+                completedWorkItem( null );
+            }
+            catch ( Exception ex )
+            {
+                failedWorkItem( ex );
+            }
+            return true;
+        } ).reduce( Boolean::logicalAnd ).orElse( false );
+
+        ForkJoinPool fjp2 = new ForkJoinPool( parallelism );
+        try
+        {
+            boolean allDone = fjp2.submit( task ).get();
+            if ( allDone )
+            {
+                completedStage( null );
+            }
+            else
+            {
+                failedStage( (String) null );
+            }
+            return allDone;
+        }
+        catch ( InterruptedException e )
+        {
+            fjp2.shutdown();
+            Thread.currentThread().interrupt();
+            return false;
+        }
+        catch ( ExecutionException ex )
+        {
+            fjp2.shutdown();
+            return false;
+        }
     }
 }

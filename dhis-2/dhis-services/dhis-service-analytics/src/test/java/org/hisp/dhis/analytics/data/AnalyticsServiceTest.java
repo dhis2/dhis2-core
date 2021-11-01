@@ -42,6 +42,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
+import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
@@ -119,6 +120,9 @@ public class AnalyticsServiceTest
     private Map<String, AnalyticalObject> analyticalObjectHashMap = new HashMap<>();
 
     private Map<String, Map<String, Double>> results = new HashMap<>();
+
+    @Autowired
+    private List<AnalyticsTableService> analyticsTableServices;
 
     @Autowired
     private DataElementService dataElementService;
@@ -758,7 +762,10 @@ public class AnalyticsServiceTest
     @Override
     public void tearDownTest()
     {
-        analyticsTableGenerator.dropTables();
+        for ( AnalyticsTableService service : analyticsTableServices )
+        {
+            service.dropTables();
+        }
     }
 
     @Test

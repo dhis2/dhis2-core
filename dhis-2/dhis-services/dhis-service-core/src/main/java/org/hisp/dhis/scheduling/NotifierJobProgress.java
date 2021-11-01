@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.scheduling;
 
-import lombok.AllArgsConstructor;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class NotifierJobProgress implements JobProgress
 {
     private final Notifier notifier;
@@ -46,39 +48,65 @@ public class NotifierJobProgress implements JobProgress
     }
 
     @Override
-    public void nextStage( String name, int workItems )
+    public void startingProcess( String description )
     {
-        notifier.notify( jobId, name );
+        String message = jobId.getJobType() + " process started"
+            + (isNotEmpty( description ) ? ": " + description : "");
+        notifier.clear( jobId ).notify( jobId, message );
+    }
+
+    @Override
+    public void completedProcess( String summary )
+    {
+        notifier.notify( jobId, NotificationLevel.INFO, summary, true );
+    }
+
+    @Override
+    public void failedProcess( String error )
+    {
+        notifier.notify( jobId, NotificationLevel.ERROR, error, true );
+    }
+
+    @Override
+    public void startingStage( String description, int workItems )
+    {
+        if ( isNotEmpty( description ) )
+        {
+            notifier.notify( jobId, description );
+        }
     }
 
     @Override
     public void completedStage( String summary )
     {
-        if ( summary != null )
+        if ( isNotEmpty( summary ) )
         {
-            notifier.notify( jobId, NotificationLevel.INFO, summary, true );
+            notifier.notify( jobId, NotificationLevel.INFO, summary, isCancellationRequested() );
         }
     }
 
     @Override
     public void failedStage( String error )
     {
-        if ( error != null )
+        if ( isNotEmpty( error ) )
         {
-            notifier.notify( jobId, NotificationLevel.ERROR, error, true );
+            notifier.notify( jobId, NotificationLevel.ERROR, error, isCancellationRequested() );
         }
     }
 
     @Override
-    public void nextWorkItem( String name )
+    public void startingWorkItem( String description )
     {
-        notifier.notify( jobId, NotificationLevel.INFO, name );
+        if ( isNotEmpty( description ) )
+        {
+            notifier.notify( jobId, NotificationLevel.INFO, description );
+        }
     }
 
     @Override
     public void completedWorkItem( String summary )
     {
-        if ( summary != null )
+        if ( isNotEmpty( summary ) )
         {
             notifier.notify( jobId, NotificationLevel.INFO, summary, false );
         }
@@ -87,10 +115,9 @@ public class NotifierJobProgress implements JobProgress
     @Override
     public void failedWorkItem( String error )
     {
-        if ( error != null )
+        if ( isNotEmpty( error ) )
         {
             notifier.notify( jobId, NotificationLevel.ERROR, error, false );
         }
     }
-
 }
