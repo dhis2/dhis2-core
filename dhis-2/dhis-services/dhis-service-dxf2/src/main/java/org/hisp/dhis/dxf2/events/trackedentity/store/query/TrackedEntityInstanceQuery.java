@@ -45,8 +45,10 @@ public class TrackedEntityInstanceQuery
         UID,
         CREATED,
         CREATEDCLIENT,
+        CREATED_BY,
         UPDATED,
         UPDATEDCLIENT,
+        LAST_UPDATED_BY,
         INACTIVE,
         DELETED,
         GEOMETRY,
@@ -59,8 +61,10 @@ public class TrackedEntityInstanceQuery
         .put( COLUMNS.UID, new TableColumn( "tei", "uid", "tei_uid" ) )
         .put( COLUMNS.CREATED, new TableColumn( "tei", "created" ) )
         .put( COLUMNS.CREATEDCLIENT, new TableColumn( "tei", "createdatclient" ) )
+        .put( COLUMNS.CREATED_BY, new TableColumn( "tei", "createdbyuserinfo" ) )
         .put( COLUMNS.UPDATED, new TableColumn( "tei", "lastupdated" ) )
         .put( COLUMNS.UPDATEDCLIENT, new TableColumn( "tei", "lastupdatedatclient" ) )
+        .put( COLUMNS.LAST_UPDATED_BY, new TableColumn( "tei", "lastupdatedbyuserinfo" ) )
         .put( COLUMNS.INACTIVE, new TableColumn( "tei", "inactive" ) )
         .put( COLUMNS.DELETED, new TableColumn( "tei", "deleted" ) )
         .put( COLUMNS.GEOMETRY, new Function( "ST_AsBinary", "tei", "geometry", "geometry" ) )
