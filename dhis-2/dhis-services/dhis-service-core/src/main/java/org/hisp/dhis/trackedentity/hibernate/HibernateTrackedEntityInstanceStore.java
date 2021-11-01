@@ -48,6 +48,7 @@ import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -356,7 +357,7 @@ public class HibernateTrackedEntityInstanceStore
             () -> " tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'" );
 
         hql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
-            () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
+            () -> " tei.uid in (" + encodeAndQuote( params.getTrackedEntityInstanceUids() ) + ")" );
 
         if ( params.hasLastUpdatedDuration() )
         {
@@ -406,6 +407,13 @@ public class HibernateTrackedEntityInstanceStore
         hql += getOrderClauseHql( params );
 
         return hql;
+    }
+
+    private String encodeAndQuote( Collection<String> elements )
+    {
+        return getQuotedCommaDelimitedString( elements.stream()
+                .map( element -> statementBuilder.encode( element, false ) )
+                .collect( Collectors.toList() ) );
     }
 
     @Override
@@ -774,7 +782,7 @@ public class HibernateTrackedEntityInstanceStore
             trackedEntity
                 .append( whereAnd.whereAnd() )
                 .append( "TEI.uid IN (" )
-                .append( getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) )
+                .append( encodeAndQuote( params.getTrackedEntityInstanceUids() ) )
                 .append( ") " );
         }
 
@@ -1170,7 +1178,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( "SELECT userinfoid AS userid " )
                 .append( "FROM userinfo " )
                 .append( "WHERE uid IN (" )
-                .append( getQuotedCommaDelimitedString( params.getAssignedUsers() ) )
+                .append( encodeAndQuote( params.getAssignedUsers() ) )
                 .append( ") " )
                 .append( ") AU ON AU.userid = PSI.assigneduserid" );
         }

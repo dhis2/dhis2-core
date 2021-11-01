@@ -29,6 +29,7 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -394,7 +395,7 @@ public class HibernateOrganisationUnitStore
 
             for ( OrganisationUnit parent : params.getParents() )
             {
-                sql += "o.path like '" + parent.getPath() + "%'" + " or ";
+                sql += "o.path like '" + escapeSql( parent.getPath() ) + "%'" + " or ";
             }
 
             sql = TextUtils.removeLastOr( sql ) + ") ";
