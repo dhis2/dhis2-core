@@ -189,7 +189,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void createSqlViews()
     {
-        resourceTableService.createAllSqlViews();
+        resourceTableService.createAllSqlViews( JobProgress.IGNORANT );
     }
 
     @RequestMapping( value = "/sqlViewsDrop", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -197,7 +197,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void dropSqlViews()
     {
-        resourceTableService.dropAllSqlViews();
+        resourceTableService.dropAllSqlViews( JobProgress.IGNORANT );
     }
 
     @RequestMapping( value = "/categoryOptionComboUpdate", method = { RequestMethod.PUT, RequestMethod.POST } )

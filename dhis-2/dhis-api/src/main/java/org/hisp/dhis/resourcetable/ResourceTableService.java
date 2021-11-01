@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import org.hisp.dhis.scheduling.JobProgress;
+
 /**
  * @author Lars Helge Overland
  */
@@ -38,62 +40,62 @@ public interface ResourceTableService
      * Generates a resource table containing the hierarchy graph for each
      * OrganisationUnit.
      */
-    void generateOrganisationUnitStructures();
+    void generateOrganisationUnitStructures( JobProgress progress );
 
     /**
      * Generates a resource table containing data sets and organisation units
      * with their associated attribute option combinations.
      */
-    void generateDataSetOrganisationUnitCategoryTable();
+    void generateDataSetOrganisationUnitCategoryTable( JobProgress progress );
 
     /**
      * Generates a resource table containing id and a derived name for all
      * CategoryOptionCombos.
      */
-    void generateCategoryOptionComboNames();
+    void generateCategoryOptionComboNames( JobProgress progress );
 
     /**
      * Generates a resource table for all data elements.
      */
-    void generateDataElementGroupSetTable();
+    void generateDataElementGroupSetTable( JobProgress progress );
 
     /**
      * Generates a resource table for all indicators.
      */
-    void generateIndicatorGroupSetTable();
+    void generateIndicatorGroupSetTable( JobProgress progress );
 
     /**
      * Generates a resource table for all organisation units
      */
-    void generateOrganisationUnitGroupSetTable();
+    void generateOrganisationUnitGroupSetTable( JobProgress progress );
 
     /**
      * Generates a resource table for all category option combos.
      *
      * Depends on the category option combo names table.
      */
-    void generateCategoryTable();
+    void generateCategoryTable( JobProgress progress );
 
     /**
      * Generates a resource table for all data elements.
      */
-    void generateDataElementTable();
+    void generateDataElementTable( JobProgress progress );
 
     /**
      * Generates a resource table for dates and associated periods.
      */
-    void generateDatePeriodTable();
+    void generateDatePeriodTable( JobProgress progress );
 
     /**
      * Generates a resource table for all periods.
      */
-    void generatePeriodTable();
+    void generatePeriodTable( JobProgress progress );
 
     /**
      * Generates a resource table for all data elements and relevant category
      * option combinations.
      */
-    void generateCategoryOptionComboTable();
+    void generateCategoryOptionComboTable( JobProgress progress );
 
     /**
      * Generates a resource table for remapping any skipped approval levels.
@@ -108,10 +110,10 @@ public interface ResourceTableService
     /**
      * Create all SQL views.
      */
-    void createAllSqlViews();
+    void createAllSqlViews( JobProgress progress );
 
     /**
      * Drop all SQL views.
      */
-    void dropAllSqlViews();
+    void dropAllSqlViews( JobProgress progress );
 }

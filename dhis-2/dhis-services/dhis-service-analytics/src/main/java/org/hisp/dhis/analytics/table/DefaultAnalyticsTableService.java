@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
@@ -37,6 +36,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsIndex;
@@ -54,6 +54,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
@@ -65,43 +66,21 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @Slf4j
+@AllArgsConstructor
 public class DefaultAnalyticsTableService
     implements AnalyticsTableService
 {
-    private AnalyticsTableManager tableManager;
+    private final AnalyticsTableManager tableManager;
 
-    private OrganisationUnitService organisationUnitService;
+    private final OrganisationUnitService organisationUnitService;
 
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    private ResourceTableService resourceTableService;
+    private final ResourceTableService resourceTableService;
 
-    private Notifier notifier;
+    private final Notifier notifier;
 
-    private SystemSettingManager systemSettingManager;
-
-    public DefaultAnalyticsTableService( AnalyticsTableManager tableManager,
-        OrganisationUnitService organisationUnitService, DataElementService dataElementService,
-        ResourceTableService resourceTableService, Notifier notifier, SystemSettingManager systemSettingManager )
-    {
-        checkNotNull( tableManager );
-        checkNotNull( organisationUnitService );
-        checkNotNull( dataElementService );
-        checkNotNull( resourceTableService );
-        checkNotNull( notifier );
-        checkNotNull( systemSettingManager );
-
-        this.tableManager = tableManager;
-        this.organisationUnitService = organisationUnitService;
-        this.dataElementService = dataElementService;
-        this.resourceTableService = resourceTableService;
-        this.notifier = notifier;
-        this.systemSettingManager = systemSettingManager;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    private final SystemSettingManager systemSettingManager;
 
     @Override
     public AnalyticsTableType getAnalyticsTableType()
@@ -110,7 +89,7 @@ public class DefaultAnalyticsTableService
     }
 
     @Override
-    public void update( AnalyticsTableUpdateParams params )
+    public void update( AnalyticsTableUpdateParams params, JobProgress progress )
     {
         JobConfiguration jobId = params.getJobId();
 
@@ -202,7 +181,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Removed updated and deleted data" );
         notifier.notify( jobId, "Swapping analytics tables" );
 
-        swapTables( params, tables );
+        swapTables( params, tables, progress );
 
         clock.logTime( "Table update done: " + tableType.getTableName() );
         notifier.notify( jobId, "Table update done" );
@@ -411,13 +390,13 @@ public class DefaultAnalyticsTableService
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param tables the list of {@link AnalyticsTable}.
      */
-    private void swapTables( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
+    private void swapTables( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables, JobProgress progress )
     {
-        resourceTableService.dropAllSqlViews();
+        resourceTableService.dropAllSqlViews( progress );
 
         tables.forEach( table -> tableManager.swapTable( params, table ) );
 
-        resourceTableService.createAllSqlViews();
+        resourceTableService.createAllSqlViews( progress );
     }
 
     /**

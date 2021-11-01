@@ -37,6 +37,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -119,16 +120,17 @@ public class ResourceTableServiceTest
     @Test
     public void testGenerateAllResourceTables()
     {
-        resourceTableService.generateOrganisationUnitStructures();
-        resourceTableService.generateDataSetOrganisationUnitCategoryTable();
-        resourceTableService.generateCategoryOptionComboNames();
-        resourceTableService.generateDataElementGroupSetTable();
-        resourceTableService.generateIndicatorGroupSetTable();
-        resourceTableService.generateOrganisationUnitGroupSetTable();
-        resourceTableService.generateCategoryTable();
-        resourceTableService.generateDataElementTable();
-        resourceTableService.generatePeriodTable();
-        resourceTableService.generateDatePeriodTable();
-        resourceTableService.generateCategoryOptionComboTable();
+        JobProgress progress = JobProgress.IGNORANT;
+        resourceTableService.generateOrganisationUnitStructures( progress );
+        resourceTableService.generateDataSetOrganisationUnitCategoryTable( progress );
+        resourceTableService.generateCategoryOptionComboNames( progress );
+        resourceTableService.generateDataElementGroupSetTable( progress );
+        resourceTableService.generateIndicatorGroupSetTable( progress );
+        resourceTableService.generateOrganisationUnitGroupSetTable( progress );
+        resourceTableService.generateCategoryTable( progress );
+        resourceTableService.generateDataElementTable( progress );
+        resourceTableService.generatePeriodTable( progress );
+        resourceTableService.generateDatePeriodTable( progress );
+        resourceTableService.generateCategoryOptionComboTable( progress );
     }
 }

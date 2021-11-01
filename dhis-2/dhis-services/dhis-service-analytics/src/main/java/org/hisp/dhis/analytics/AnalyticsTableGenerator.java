@@ -42,7 +42,7 @@ public interface AnalyticsTableGenerator
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      */
-    void generateTables( AnalyticsTableUpdateParams params );
+    void generateTables( AnalyticsTableUpdateParams params, JobProgress progress );
 
     /**
      * Drops all existing analytics tables.

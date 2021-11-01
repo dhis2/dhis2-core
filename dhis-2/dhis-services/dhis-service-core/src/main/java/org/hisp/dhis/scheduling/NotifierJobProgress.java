@@ -25,39 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.scheduling;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import lombok.AllArgsConstructor;
 
-/**
- * Service for analytics table generation and analysis.
- *
- * @author Lars Helge Overland
- */
-public interface AnalyticsTableService
+import org.hisp.dhis.system.notification.NotificationLevel;
+import org.hisp.dhis.system.notification.Notifier;
+
+@AllArgsConstructor
+public class NotifierJobProgress implements JobProgress
 {
-    /**
-     * Returns the {@link AnalyticsTableType} of analytics table which this
-     * manager handles.
-     *
-     * @return the type of analytics table.
-     */
-    AnalyticsTableType getAnalyticsTableType();
+    private final Notifier notifier;
 
-    /**
-     * Rebuilds the analytics tables.
-     *
-     * @param params the {@link AnalyticsTableUpdateParams}.
-     */
-    void update( AnalyticsTableUpdateParams params, JobProgress progress );
+    private final JobConfiguration jobId;
 
-    /**
-     * Drops main and temporary analytics tables.
-     */
-    void dropTables();
+    @Override
+    public boolean isCancellationRequested()
+    {
+        return false;
+    }
 
-    /**
-     * Performs an SQL analyze operation on all analytics tables.
-     */
-    void analyzeAnalyticsTables();
+    @Override
+    public void nextStage( String name, int workItems )
+    {
+        notifier.notify( jobId, name );
+    }
+
+    @Override
+    public void completedStage( String summary )
+    {
+        notifier.notify( jobId, NotificationLevel.INFO, summary, true );
+    }
+
+    @Override
+    public void failedStage( String error )
+    {
+        notifier.notify( jobId, NotificationLevel.ERROR, error, true );
+    }
+
+    @Override
+    public void nextWorkItem( String name )
+    {
+        notifier.notify( jobId, NotificationLevel.INFO, name );
+    }
+
+    @Override
+    public void completedWorkItem( String summary )
+    {
+
+    }
+
+    @Override
+    public void failedWorkItem( String error )
+    {
+
+    }
+
 }

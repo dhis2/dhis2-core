@@ -61,6 +61,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -166,7 +167,7 @@ public class EventAnalyticsServiceTest
         parseEventData( eventDataLines );
 
         // The generated analytics tables
-        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build() );
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(), JobProgress.IGNORANT );
 
         // The user
         createAndInjectAdminUser();
