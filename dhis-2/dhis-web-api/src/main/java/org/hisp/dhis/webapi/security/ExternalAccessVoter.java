@@ -72,6 +72,7 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
         externalClasses.put( "sqlViews", SqlView.class );
         externalClasses.put( "eventReports", EventReport.class );
         externalClasses.put( "eventCharts", EventChart.class );
+        externalClasses.put( "eventVisualizations", Visualization.class );
     }
 
     // -------------------------------------------------------------------------

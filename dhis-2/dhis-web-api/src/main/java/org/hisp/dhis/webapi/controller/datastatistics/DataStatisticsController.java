@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.controller.datastatistics;
 
 import static java.util.Calendar.DATE;
 import static java.util.Calendar.MILLISECOND;
+import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_CHART_VIEW;
+import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_REPORT_VIEW;
+import static org.hisp.dhis.datastatistics.DataStatisticsEventType.EVENT_VISUALIZATION_VIEW;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -88,6 +91,16 @@ public class DataStatisticsController
 
         DataStatisticsEvent event = new DataStatisticsEvent( eventType, timestamp, username, favorite );
         dataStatisticsService.addEvent( event );
+
+        // Logic needed to assist the deprecation process of event chart and
+        // event report.
+        if ( eventType == EVENT_CHART_VIEW || eventType == EVENT_REPORT_VIEW )
+        {
+            // For each EVENT_CHART_VIEW or EVENT_REPORT_VIEW we also add a
+            // EVENT_VISUALIZATION_VIEW event.
+            dataStatisticsService
+                .addEvent( new DataStatisticsEvent( EVENT_VISUALIZATION_VIEW, timestamp, username, favorite ) );
+        }
     }
 
     @GetMapping

@@ -53,6 +53,8 @@ public class AggregatedStatistics
 
     private Integer eventChartViews;
 
+    private Integer eventVisualizationViews;
+
     private Integer dashboardViews;
 
     private Integer passiveDashboardViews;
@@ -71,6 +73,8 @@ public class AggregatedStatistics
 
     private Integer averageEventChartViews;
 
+    private Integer averageEventVisualizationViews;
+
     private Integer averageDashboardViews;
 
     private Integer averagePassiveDashboardViews;
@@ -82,6 +86,8 @@ public class AggregatedStatistics
     private Integer savedEventReports;
 
     private Integer savedEventCharts;
+
+    private Integer savedEventVisualizations;
 
     private Integer savedDashboards;
 
@@ -194,6 +200,17 @@ public class AggregatedStatistics
     public void setEventChartViews( Integer eventChartViews )
     {
         this.eventChartViews = eventChartViews;
+    }
+
+    @JsonProperty
+    public Integer getEventVisualizationViews()
+    {
+        return eventVisualizationViews;
+    }
+
+    public void setEventVisualizationViews( Integer eventVisualizationViews )
+    {
+        this.eventVisualizationViews = eventVisualizationViews;
     }
 
     @JsonProperty
@@ -318,6 +335,17 @@ public class AggregatedStatistics
     }
 
     @JsonProperty
+    public Integer getAverageEventVisualizationViews()
+    {
+        return averageEventVisualizationViews;
+    }
+
+    public void setAverageEventVisualizationViews( Integer averageEventVisualizationViews )
+    {
+        this.averageEventVisualizationViews = averageEventVisualizationViews;
+    }
+
+    @JsonProperty
     public Integer getSavedMaps()
     {
         return savedMaps;
@@ -359,6 +387,17 @@ public class AggregatedStatistics
     public void setSavedEventCharts( Integer savedEventCharts )
     {
         this.savedEventCharts = savedEventCharts;
+    }
+
+    @JsonProperty
+    public Integer getSavedEventVisualizations()
+    {
+        return savedEventVisualizations;
+    }
+
+    public void setSavedEventVisualizations( Integer savedEventVisualizations )
+    {
+        this.savedEventVisualizations = savedEventVisualizations;
     }
 
     @JsonProperty
@@ -417,6 +456,7 @@ public class AggregatedStatistics
             ", visualizationViews=" + visualizationViews +
             ", eventReportViews=" + eventReportViews +
             ", eventChartViews=" + eventChartViews +
+            ", eventVisualizationViews=" + eventVisualizationViews +
             ", dashboardViews=" + dashboardViews +
             ", passiveDashboardViews=" + passiveDashboardViews +
             ", dataSetReportViews=" + dataSetReportViews +
@@ -426,12 +466,14 @@ public class AggregatedStatistics
             ", averageVisualizationViews=" + averageVisualizationViews +
             ", averageEventReportViews=" + averageEventReportViews +
             ", averageEventChartViews=" + averageEventChartViews +
+            ", averageEventVisualizationViews=" + averageEventVisualizationViews +
             ", averageDashboardViews=" + averageDashboardViews +
             ", averagePassiveDashboardViews=" + averagePassiveDashboardViews +
             ", savedMaps=" + savedMaps +
             ", savedVisualizations=" + savedVisualizations +
             ", savedEventReports=" + savedEventReports +
             ", savedEventCharts=" + savedEventCharts +
+            ", savedEventVisualizations=" + savedEventVisualizations +
             ", savedDashboards=" + savedDashboards +
             ", savedIndicators=" + savedIndicators +
             ", savedDataValues=" + savedDataValues +

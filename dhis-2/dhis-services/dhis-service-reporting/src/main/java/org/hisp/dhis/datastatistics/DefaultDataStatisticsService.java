@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.datastatistics;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.analytics.SortOrder;
@@ -37,6 +41,7 @@ import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.statistics.StatisticsProvider;
@@ -113,6 +118,7 @@ public class DefaultDataStatisticsService
         double savedVisualizations = idObjectManager.getCountByCreated( Visualization.class, startDate );
         double savedEventReports = idObjectManager.getCountByCreated( EventReport.class, startDate );
         double savedEventCharts = idObjectManager.getCountByCreated( EventChart.class, startDate );
+        double savedEventVisualizations = idObjectManager.getCountByCreated( EventVisualization.class, startDate );
         double savedDashboards = idObjectManager.getCountByCreated( Dashboard.class, startDate );
         double savedIndicators = idObjectManager.getCountByCreated( Indicator.class, startDate );
         double savedDataValues = dataValueService.getDataValueCount( days );
@@ -127,12 +133,13 @@ public class DefaultDataStatisticsService
             eventCountMap.get( DataStatisticsEventType.VISUALIZATION_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_CHART_VIEW ),
+            eventCountMap.get( DataStatisticsEventType.EVENT_VISUALIZATION_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DASHBOARD_VIEW ),
             eventCountMap.get( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DATA_SET_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
-            savedMaps, savedVisualizations, savedEventReports,
-            savedEventCharts, savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
+            savedMaps, savedVisualizations, savedEventReports, savedEventCharts, savedEventVisualizations,
+            savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
 
         return dataStatistics;
     }

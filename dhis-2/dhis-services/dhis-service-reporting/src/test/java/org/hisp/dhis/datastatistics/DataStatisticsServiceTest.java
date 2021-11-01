@@ -72,8 +72,8 @@ public class DataStatisticsServiceTest
 
         dse1 = new DataStatisticsEvent();
         dse2 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, now, "TestUser" );
-        DataStatistics ds = new DataStatistics( 1.0, 1.5, 4.0, 5.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0,
-            13.0, 14.0, 17.0, 11.0, 10, 18 );
+        DataStatistics ds = new DataStatistics( 1.0, 1.5, 4.0, 5.0, 3.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0,
+            13.0, 20.0, 14.0, 17.0, 11.0, 10, 18 );
 
         hibernateDataStatisticsStore.save( ds );
         snapId1 = ds.getId();
