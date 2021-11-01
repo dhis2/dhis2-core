@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -43,6 +44,7 @@ import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.datavalue.AggregateAccessManager;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueStore;
+import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -231,5 +233,67 @@ public class HibernateIdentifiableObjectStoreTest extends TransactionalIntegrati
         // User4 doesn't have access and it belong to UserGroup2 which also
         // doesn't have access
         assertEquals( 1, accessManager.canRead( user4, dataValue ).size() );
+    }
+
+    @Test
+    public void testSuperUserReadPrivateObject()
+    {
+        User user1 = createUser( "A", "F_DATAELEMENT_PRIVATE_ADD" );
+        saveAndInjectUserSecurityContext( user1 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setSharing( Sharing.builder()
+            .external( false )
+            .publicAccess( AccessStringHelper.DEFAULT )
+            .owner( user1.getUid() )
+            .build() );
+
+        dataElementStore.save( dataElement, false );
+        // Owner can read
+        assertNotNull( dataElementStore.getByUid( dataElement.getUid() ) );
+
+        clearSecurityContext();
+        createAndInjectAdminUser( "ALL" );
+        // SuperUser can read
+        assertNotNull( dataElementStore.getByUid( dataElement.getUid() ) );
+
+        clearSecurityContext();
+        saveAndInjectUserSecurityContext( createUser( 'B' ) );
+        // Other normal user can't read
+        assertNull( dataElementStore.getByUid( dataElement.getUid() ) );
+    }
+
+    @Test
+    public void testSuperUserWritePrivateObject()
+    {
+        User user1 = createUser( "A", "F_DATAELEMENT_PRIVATE_ADD" );
+        saveAndInjectUserSecurityContext( user1 );
+
+        DataElement dataElement = createDataElement( 'A' );
+        dataElement.setSharing( Sharing.builder()
+            .external( false )
+            .publicAccess( AccessStringHelper.DEFAULT )
+            .owner( user1.getUid() )
+            .build() );
+
+        dataElementStore.save( dataElement, false );
+        assertNotNull( dataElementStore.getByUid( dataElement.getUid() ) );
+
+        // SuperUser can read and update
+        clearSecurityContext();
+        createAndInjectAdminUser( "ALL" );
+        dataElement = dataElementStore.getByUid( dataElement.getUid() );
+        dataElement.setDescription( "superUser updated" );
+        dataElementStore.update( dataElement );
+        assertEquals( "superUser updated", dataElementStore.getByUid( dataElement.getUid() ).getDescription() );
+
+        // Other normal users can't read or update
+        clearSecurityContext();
+        saveAndInjectUserSecurityContext( createUser( 'B' ) );
+        assertNull( dataElementStore.getByUid( dataElement.getUid() ) );
+
+        final DataElement updatedDataElement = dataElement;
+        assertThrows( UpdateAccessDeniedException.class, () -> dataElementStore.update( updatedDataElement ) );
+
     }
 }

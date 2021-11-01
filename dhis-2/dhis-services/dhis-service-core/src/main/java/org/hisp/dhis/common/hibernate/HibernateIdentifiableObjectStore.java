@@ -1039,7 +1039,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo userInfo,
         CurrentUserGroupInfo groupInfo, String access )
     {
-        if ( !sharingEnabled( userInfo ) || userInfo == null || groupInfo == null )
+        if ( !sharingEnabled( userInfo ) || userInfo == null || groupInfo == null || userInfo.isSuper() )
         {
             return new ArrayList<>();
         }
@@ -1050,7 +1050,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     @Override
     public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, User user, String access )
     {
-        if ( !sharingEnabled( user ) || user == null )
+        if ( !sharingEnabled( user ) || user == null || user.isSuper() )
         {
             return new ArrayList<>();
         }
@@ -1066,7 +1066,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        if ( !dataSharingEnabled( userInfo ) || userInfo == null || groupInfo == null )
+        if ( !dataSharingEnabled( userInfo ) || userInfo == null || groupInfo == null || userInfo.isSuper() )
         {
             return predicates;
         }
@@ -1080,7 +1080,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
-        if ( !dataSharingEnabled( user ) || user == null )
+        if ( !dataSharingEnabled( user ) || user == null || user.isSuper() )
         {
             return predicates;
         }
