@@ -54,13 +54,19 @@ public class NotifierJobProgress implements JobProgress
     @Override
     public void completedStage( String summary )
     {
-        notifier.notify( jobId, NotificationLevel.INFO, summary, true );
+        if ( summary != null )
+        {
+            notifier.notify( jobId, NotificationLevel.INFO, summary, true );
+        }
     }
 
     @Override
     public void failedStage( String error )
     {
-        notifier.notify( jobId, NotificationLevel.ERROR, error, true );
+        if ( error != null )
+        {
+            notifier.notify( jobId, NotificationLevel.ERROR, error, true );
+        }
     }
 
     @Override
@@ -72,13 +78,19 @@ public class NotifierJobProgress implements JobProgress
     @Override
     public void completedWorkItem( String summary )
     {
-
+        if ( summary != null )
+        {
+            notifier.notify( jobId, NotificationLevel.INFO, summary, false );
+        }
     }
 
     @Override
     public void failedWorkItem( String error )
     {
-
+        if ( error != null )
+        {
+            notifier.notify( jobId, NotificationLevel.ERROR, error, false );
+        }
     }
 
 }

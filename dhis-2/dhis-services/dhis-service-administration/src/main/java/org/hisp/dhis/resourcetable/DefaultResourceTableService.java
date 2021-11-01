@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import static java.util.Comparator.reverseOrder;
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -102,7 +104,7 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateOrganisationUnitStructures( JobProgress progress )
+    public void generateOrganisationUnitStructures()
     {
         resourceTableStore.generateResourceTable( new OrganisationUnitStructureResourceTable(
             null, organisationUnitService, organisationUnitService.getNumberOfOrganisationalLevels() ) );
@@ -110,7 +112,7 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateDataSetOrganisationUnitCategoryTable( JobProgress progress )
+    public void generateDataSetOrganisationUnitCategoryTable()
     {
         resourceTableStore.generateResourceTable( new DataSetOrganisationUnitCategoryResourceTable(
             idObjectManager.getAllNoAcl( DataSet.class ), categoryService.getDefaultCategoryOptionCombo() ) );
@@ -118,7 +120,7 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateCategoryOptionComboNames( JobProgress progress )
+    public void generateCategoryOptionComboNames()
     {
         resourceTableStore.generateResourceTable( new CategoryOptionComboNameResourceTable(
             idObjectManager.getAllNoAcl( CategoryCombo.class ) ) );
@@ -126,7 +128,7 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateDataElementGroupSetTable( JobProgress progress )
+    public void generateDataElementGroupSetTable()
     {
         resourceTableStore.generateResourceTable( new DataElementGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl( DataElementGroupSet.class ) ) );
@@ -134,7 +136,7 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateIndicatorGroupSetTable( JobProgress progress )
+    public void generateIndicatorGroupSetTable()
     {
         resourceTableStore.generateResourceTable( new IndicatorGroupSetResourceTable(
             idObjectManager.getAllNoAcl( IndicatorGroupSet.class ) ) );
@@ -142,7 +144,7 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateOrganisationUnitGroupSetTable( JobProgress progress )
+    public void generateOrganisationUnitGroupSetTable()
     {
         resourceTableStore.generateResourceTable( new OrganisationUnitGroupSetResourceTable(
             idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class ),
@@ -151,7 +153,7 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateCategoryTable( JobProgress progress )
+    public void generateCategoryTable()
     {
         resourceTableStore.generateResourceTable( new CategoryResourceTable(
             idObjectManager.getDataDimensionsNoAcl( Category.class ),
@@ -160,28 +162,28 @@ public class DefaultResourceTableService
 
     @Override
     @Transactional
-    public void generateDataElementTable( JobProgress progress )
+    public void generateDataElementTable()
     {
         resourceTableStore.generateResourceTable( new DataElementResourceTable(
             idObjectManager.getAllNoAcl( DataElement.class ) ) );
     }
 
     @Override
-    public void generateDatePeriodTable( JobProgress progress )
+    public void generateDatePeriodTable()
     {
         resourceTableStore.generateResourceTable( new DatePeriodResourceTable( null ) );
     }
 
     @Override
     @Transactional
-    public void generatePeriodTable( JobProgress progress )
+    public void generatePeriodTable()
     {
         resourceTableStore.generateResourceTable( new PeriodResourceTable( periodService.getAllPeriods() ) );
     }
 
     @Override
     @Transactional
-    public void generateCategoryOptionComboTable( JobProgress progress )
+    public void generateCategoryOptionComboTable()
     {
         resourceTableStore.generateResourceTable( new CategoryOptionComboResourceTable( null ) );
     }
@@ -212,39 +214,32 @@ public class DefaultResourceTableService
     @Override
     public void createAllSqlViews( JobProgress progress )
     {
-        List<SqlView> views = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() );
-        Collections.sort( views );
+        List<SqlView> nonQueryViews = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() ).stream()
+            .sorted()
+            .filter( view -> !view.isQuery() ).collect( toList() );
 
-        for ( SqlView view : views )
-        {
-            if ( !view.isQuery() )
+        progress.nextStage( "Create SQL views", nonQueryViews.size() );
+        progress.runStage( nonQueryViews, view -> {
+            try
             {
-                try
-                {
-                    sqlViewService.createViewTable( view );
-                }
-                catch ( IllegalQueryException ex )
-                {
-                    log.warn( String.format( "Ignoring SQL view which failed validation: %s, %s, message: %s",
-                        view.getUid(), view.getName(), ex.getMessage() ) );
-                }
+                sqlViewService.createViewTable( view );
             }
-        }
+            catch ( IllegalQueryException ex )
+            {
+                log.warn( String.format( "Ignoring SQL view which failed validation: %s, %s, message: %s",
+                    view.getUid(), view.getName(), ex.getMessage() ) );
+            }
+        } );
     }
 
     @Override
     public void dropAllSqlViews( JobProgress progress )
     {
-        List<SqlView> views = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() );
-        Collections.sort( views );
-        Collections.reverse( views );
-
-        for ( SqlView view : views )
-        {
-            if ( !view.isQuery() )
-            {
-                sqlViewService.dropViewTable( view );
-            }
-        }
+        List<SqlView> nonQueryViews = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() ).stream()
+            .filter( view -> !view.isQuery() )
+            .sorted( reverseOrder() )
+            .collect( toList() );
+        progress.nextStage( "Drop SQL views", nonQueryViews.size() );
+        progress.runStage( nonQueryViews, sqlViewService::deleteSqlView );
     }
 }

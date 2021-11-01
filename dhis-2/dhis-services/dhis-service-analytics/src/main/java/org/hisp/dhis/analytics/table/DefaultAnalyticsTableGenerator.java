@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static java.util.Arrays.asList;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
@@ -177,7 +176,7 @@ public class DefaultAnalyticsTableGenerator
         }
         catch ( RuntimeException ex )
         {
-            progress.failedStage( "Process failed: " + ex.getMessage() );
+            progress.failedStage( "Resource tables generation: " + ex.getMessage() );
 
             messageService.sendSystemErrorNotification( "Resource table process failed", ex );
 
@@ -191,8 +190,8 @@ public class DefaultAnalyticsTableGenerator
 
     private void generateResourceTablesInternal( JobProgress progress )
     {
-        List<Consumer<JobProgress>> generators = Arrays.asList(
-            resourceTableService::dropAllSqlViews,
+        resourceTableService.dropAllSqlViews( progress );
+        List<Runnable> generators = asList(
             resourceTableService::generateOrganisationUnitStructures,
             resourceTableService::generateDataSetOrganisationUnitCategoryTable,
             resourceTableService::generateCategoryOptionComboNames,
@@ -203,10 +202,9 @@ public class DefaultAnalyticsTableGenerator
             resourceTableService::generateDataElementTable,
             resourceTableService::generatePeriodTable,
             resourceTableService::generateDatePeriodTable,
-            resourceTableService::generateCategoryOptionComboTable,
-            resourceTableService::createAllSqlViews );
-
+            resourceTableService::generateCategoryOptionComboTable );
         progress.nextStage( "Generating resource tables", generators.size() );
-        progress.run( generators );
+        progress.runStage( generators );
+        resourceTableService.createAllSqlViews( progress );
     }
 }

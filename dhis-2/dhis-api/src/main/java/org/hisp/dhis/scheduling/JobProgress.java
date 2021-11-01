@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.scheduling;
 
-import java.util.List;
+import static java.util.stream.StreamSupport.stream;
+
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public interface JobProgress
 {
@@ -119,22 +123,44 @@ public interface JobProgress
     // instance is created for a particular job and job config so it can already
     // know the ID internally
 
-    default void run( List<Consumer<JobProgress>> items )
+    default boolean runStage( Iterable<Runnable> items )
     {
-        for ( Consumer<JobProgress> item : items )
+        return runStage( stream( items.spliterator(), false ) );
+    }
+
+    default <T> boolean runStage( Collection<T> items, Consumer<T> work )
+    {
+        return runStage( items.stream(), work );
+    }
+
+    default <T> boolean runStage( Stream<T> items, Consumer<T> work )
+    {
+        return runStage( items.map( item -> () -> work.accept( item ) ) );
+    }
+
+    default boolean runStage( Stream<Runnable> items )
+    {
+        int i = 0;
+        for ( Iterator<Runnable> it = items.iterator(); it.hasNext(); )
         {
+            Runnable item = it.next();
             if ( isCancellationRequested() )
             {
-                return; // ends the stage immediately
+                failedStage( null );
+                return false; // ends the stage immediately
             }
+            nextWorkItem( i++ );
             try
             {
-                item.accept( this );
+                item.run();
+                completedWorkItem( null );
             }
             catch ( RuntimeException ex )
             {
                 failedWorkItem( ex );
             }
         }
+        completedStage( null );
+        return true;
     }
 }

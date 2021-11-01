@@ -48,6 +48,7 @@ public interface AnalyticsTableService
      * Rebuilds the analytics tables.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
+     * @param progress job progress tracking and control flow
      */
     void update( AnalyticsTableUpdateParams params, JobProgress progress );
 

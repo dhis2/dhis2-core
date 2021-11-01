@@ -77,7 +77,7 @@ public interface AnalyticsTableManager
     /**
      * Performs work before tables are being created.
      *
-     * @param the {@link AnalyticsTableUpdateParams}.
+     * @param params {@link AnalyticsTableUpdateParams}.
      */
     void preCreateTables( AnalyticsTableUpdateParams params );
 

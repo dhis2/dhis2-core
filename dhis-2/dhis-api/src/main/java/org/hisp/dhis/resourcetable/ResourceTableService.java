@@ -40,62 +40,62 @@ public interface ResourceTableService
      * Generates a resource table containing the hierarchy graph for each
      * OrganisationUnit.
      */
-    void generateOrganisationUnitStructures( JobProgress progress );
+    void generateOrganisationUnitStructures();
 
     /**
      * Generates a resource table containing data sets and organisation units
      * with their associated attribute option combinations.
      */
-    void generateDataSetOrganisationUnitCategoryTable( JobProgress progress );
+    void generateDataSetOrganisationUnitCategoryTable();
 
     /**
      * Generates a resource table containing id and a derived name for all
      * CategoryOptionCombos.
      */
-    void generateCategoryOptionComboNames( JobProgress progress );
+    void generateCategoryOptionComboNames();
 
     /**
      * Generates a resource table for all data elements.
      */
-    void generateDataElementGroupSetTable( JobProgress progress );
+    void generateDataElementGroupSetTable();
 
     /**
      * Generates a resource table for all indicators.
      */
-    void generateIndicatorGroupSetTable( JobProgress progress );
+    void generateIndicatorGroupSetTable();
 
     /**
      * Generates a resource table for all organisation units
      */
-    void generateOrganisationUnitGroupSetTable( JobProgress progress );
+    void generateOrganisationUnitGroupSetTable();
 
     /**
      * Generates a resource table for all category option combos.
      *
      * Depends on the category option combo names table.
      */
-    void generateCategoryTable( JobProgress progress );
+    void generateCategoryTable();
 
     /**
      * Generates a resource table for all data elements.
      */
-    void generateDataElementTable( JobProgress progress );
+    void generateDataElementTable();
 
     /**
      * Generates a resource table for dates and associated periods.
      */
-    void generateDatePeriodTable( JobProgress progress );
+    void generateDatePeriodTable();
 
     /**
      * Generates a resource table for all periods.
      */
-    void generatePeriodTable( JobProgress progress );
+    void generatePeriodTable();
 
     /**
      * Generates a resource table for all data elements and relevant category
      * option combinations.
      */
-    void generateCategoryOptionComboTable( JobProgress progress );
+    void generateCategoryOptionComboTable();
 
     /**
      * Generates a resource table for remapping any skipped approval levels.
