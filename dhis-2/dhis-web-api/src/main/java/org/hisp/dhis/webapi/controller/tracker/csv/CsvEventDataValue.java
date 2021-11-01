@@ -50,10 +50,15 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "followup",
     "deleted",
     "createdAt",
+    "createdAtClient",
     "updatedAt",
+    "updatedAtClient",
     "completedBy",
     "completedAt",
     "updatedBy",
+    "attributeOptionCombo",
+    "attributeCategoryOptions",
+    "assignedUser",
     "dataElement",
     "value",
     "storedBy",
@@ -88,7 +93,11 @@ public class CsvEventDataValue
 
     private String createdAt;
 
+    private String createdAtClient;
+
     private String updatedAt;
+
+    private String updatedAtClient;
 
     private String completedBy;
 
@@ -99,6 +108,12 @@ public class CsvEventDataValue
     private Double latitude;
 
     private Double longitude;
+
+    private String attributeOptionCombo;
+
+    private String attributeCategoryOptions;
+
+    private String assignedUser;
 
     private String dataElement;
 
@@ -283,6 +298,17 @@ public class CsvEventDataValue
     }
 
     @JsonProperty
+    public String getCreatedAtClient()
+    {
+        return createdAtClient;
+    }
+
+    public void setCreatedAtClient( String createdAtClient )
+    {
+        this.createdAtClient = createdAtClient;
+    }
+
+    @JsonProperty
     public String getUpdatedAt()
     {
         return updatedAt;
@@ -291,6 +317,17 @@ public class CsvEventDataValue
     public void setUpdatedAt( String updatedAt )
     {
         this.updatedAt = updatedAt;
+    }
+
+    @JsonProperty
+    public String getUpdatedAtClient()
+    {
+        return updatedAtClient;
+    }
+
+    public void setUpdatedAtClient( String updatedAtClient )
+    {
+        this.updatedAtClient = updatedAtClient;
     }
 
     @JsonProperty
@@ -324,6 +361,39 @@ public class CsvEventDataValue
     public void setLongitude( Double longitude )
     {
         this.longitude = longitude;
+    }
+
+    @JsonProperty
+    public String getAttributeOptionCombo()
+    {
+        return attributeOptionCombo;
+    }
+
+    public void setAttributeOptionCombo( String attributeOptionCombo )
+    {
+        this.attributeOptionCombo = attributeOptionCombo;
+    }
+
+    @JsonProperty
+    public String getAttributeCategoryOptions()
+    {
+        return attributeCategoryOptions;
+    }
+
+    public void setAttributeCategoryOptions( String attributeCategoryOptions )
+    {
+        this.attributeCategoryOptions = attributeCategoryOptions;
+    }
+
+    @JsonProperty
+    public String getAssignedUser()
+    {
+        return assignedUser;
+    }
+
+    public void setAssignedUser( String assignedUser )
+    {
+        this.assignedUser = assignedUser;
     }
 
     @JsonProperty

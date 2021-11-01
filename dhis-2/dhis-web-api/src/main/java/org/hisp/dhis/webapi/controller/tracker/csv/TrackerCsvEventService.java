@@ -89,7 +89,11 @@ public class TrackerCsvEventService
             templateDataValue.setFollowup( event.isFollowup() );
             templateDataValue.setDeleted( event.isDeleted() );
             templateDataValue.setCreatedAt( event.getCreatedAt() == null ? null : event.getCreatedAt().toString() );
+            templateDataValue.setCreatedAtClient(
+                event.getCreatedAtClient() == null ? null : event.getCreatedAtClient().toString() );
             templateDataValue.setUpdatedAt( event.getUpdatedAt() == null ? null : event.getUpdatedAt().toString() );
+            templateDataValue.setUpdatedAtClient(
+                event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString() );
             templateDataValue.setCompletedBy( event.getCompletedBy() );
             templateDataValue
                 .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
@@ -98,6 +102,9 @@ public class TrackerCsvEventService
             templateDataValue
                 .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
             templateDataValue.setCompletedBy( event.getCompletedBy() );
+            templateDataValue.setAttributeOptionCombo( event.getAttributeOptionCombo() );
+            templateDataValue.setAttributeCategoryOptions( event.getAttributeCategoryOptions() );
+            templateDataValue.setAssignedUser( event.getAssignedUser() );
 
             if ( event.getGeometry() != null )
             {
@@ -165,11 +172,18 @@ public class TrackerCsvEventService
                 event.setProgramStage( dataValue.getProgramStage() );
                 event.setEnrollment( dataValue.getEnrollment() );
                 event.setOrgUnit( dataValue.getOrgUnit() );
+                event.setCreatedAt( DateUtils.instantFromDateAsString( dataValue.getCreatedAt() ) );
+                event.setCreatedAtClient( DateUtils.instantFromDateAsString( dataValue.getCreatedAtClient() ) );
+                event.setUpdatedAt( DateUtils.instantFromDateAsString( dataValue.getUpdatedAt() ) );
+                event.setUpdatedAtClient( DateUtils.instantFromDateAsString( dataValue.getUpdatedAtClient() ) );
                 event.setOccurredAt( DateUtils.instantFromDateAsString( dataValue.getOccurredAt() ) );
                 event.setScheduledAt( DateUtils.instantFromDateAsString( dataValue.getScheduledAt() ) );
                 event.setCompletedAt( DateUtils.instantFromDateAsString( dataValue.getCompletedAt() ) );
                 event.setCompletedBy( dataValue.getCompletedBy() );
                 event.setStoredBy( dataValue.getStoredBy() );
+                event.setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
+                event.setAttributeCategoryOptions( dataValue.getAttributeCategoryOptions() );
+                event.setAssignedUser( dataValue.getAssignedUser() );
 
                 if ( dataValue.getGeometry() != null )
                 {
@@ -190,6 +204,7 @@ public class TrackerCsvEventService
             value.setDataElement( dataValue.getDataElement() );
             value.setValue( dataValue.getValue() );
             value.setCreatedAt( DateUtils.instantFromDateAsString( dataValue.getCreatedAtDataValue() ) );
+            value.setUpdatedAt( DateUtils.instantFromDateAsString( dataValue.getUpdatedAtDataValue() ) );
 
             event.getDataValues().add( value );
         }
