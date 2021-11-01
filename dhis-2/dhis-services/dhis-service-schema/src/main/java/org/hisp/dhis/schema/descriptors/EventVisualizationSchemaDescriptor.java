@@ -25,32 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventreport;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.List;
+import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.security.AuthorityType.CREATE_PUBLIC;
+import static org.hisp.dhis.security.AuthorityType.EXTERNALIZE;
 
-import org.hisp.dhis.common.AnalyticalObjectService;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
 
-/**
- * @author Lars Helge Overland
- *
- *         THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL.
- *         WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
- *         FEATURES SHOULD BE ADDED ON TOP OF EventVisualizationService.
- */
-@Deprecated
-public interface EventReportService
-    extends AnalyticalObjectService<EventReport>
+public class EventVisualizationSchemaDescriptor
+    implements
+    SchemaDescriptor
 {
-    long saveEventReport( EventReport report );
+    public static final String SINGULAR = "eventVisualization";
 
-    void updateEventReport( EventReport report );
+    public static final String PLURAL = "eventVisualizations";
 
-    EventReport getEventReport( long id );
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
-    EventReport getEventReport( String uid );
+    @Override
+    public Schema getSchema()
+    {
+        Schema schema = new Schema( EventVisualization.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setImplicitPrivateAuthority( true );
+        schema.setOrder( 2000 );
+        schema.setShareable( true );
 
-    void deleteEventReport( EventReport report );
+        schema.add( new Authority( CREATE_PUBLIC, newArrayList( "F_EVENTVISUALIZATION_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( EXTERNALIZE, newArrayList( "F_EVENTVISUALIZATION_EXTERNAL" ) ) );
 
-    List<EventReport> getAllEventReports();
+        return schema;
+    }
 }

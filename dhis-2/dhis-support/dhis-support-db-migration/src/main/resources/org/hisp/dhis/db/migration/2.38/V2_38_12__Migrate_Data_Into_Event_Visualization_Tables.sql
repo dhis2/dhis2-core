@@ -621,3 +621,101 @@ WHERE eventvisualizationviews IS NULL;
 UPDATE datastatistics
 SET eventvisualizations = eventreports + eventcharts
 WHERE eventvisualizations IS NULL;
+
+-- Set all NULL boolean columns to false. Hibernate are primitive booleans.
+UPDATE eventvisualization
+SET userorganisationunit = false
+WHERE userorganisationunit IS NULL;
+
+UPDATE eventvisualization
+SET userorganisationunitchildren = false
+WHERE userorganisationunitchildren IS NULL;
+
+UPDATE eventvisualization
+SET userorganisationunitgrandchildren = false
+WHERE userorganisationunitgrandchildren IS NULL;
+
+UPDATE eventvisualization
+SET externalaccess = false
+WHERE externalaccess IS NULL;
+
+UPDATE eventvisualization
+SET collapsedatadimensions = false
+WHERE collapsedatadimensions IS NULL;
+
+UPDATE eventvisualization
+SET hidenadata = false
+WHERE hidenadata IS NULL;
+
+UPDATE eventvisualization
+SET completedonly = false
+WHERE completedonly IS NULL;
+
+UPDATE eventvisualization
+SET hidetitle = false
+WHERE hidetitle IS NULL;
+
+UPDATE eventvisualization
+SET hidesubtitle = false
+WHERE hidesubtitle IS NULL;
+
+UPDATE eventvisualization
+SET showdata = false
+WHERE showdata IS NULL;
+
+UPDATE eventvisualization
+SET rewindrelativeperiods = false
+WHERE rewindrelativeperiods IS NULL;
+
+UPDATE eventvisualization
+SET hidelegend = false
+WHERE hidelegend IS NULL;
+
+UPDATE eventvisualization
+SET percentstackedvalues = false
+WHERE percentstackedvalues IS NULL;
+
+UPDATE eventvisualization
+SET cumulativevalues = false
+WHERE cumulativevalues IS NULL;
+
+UPDATE eventvisualization
+SET nospacebetweencolumns = false
+WHERE nospacebetweencolumns IS NULL;
+
+UPDATE eventvisualization
+SET subtotals = false
+WHERE subtotals IS NULL;
+
+UPDATE eventvisualization
+SET hideemptyrows = false
+WHERE hideemptyrows IS NULL;
+
+UPDATE eventvisualization
+SET showhierarchy = false
+WHERE showhierarchy IS NULL;
+
+UPDATE eventvisualization
+SET rowtotals = false
+WHERE rowtotals IS NULL;
+
+UPDATE eventvisualization
+SET coltotals = false
+WHERE coltotals IS NULL;
+
+UPDATE eventvisualization
+SET showdimensionlabels = false
+WHERE showdimensionlabels IS NULL;
+
+UPDATE eventvisualization
+SET rowsubtotals = false
+WHERE rowsubtotals IS NULL;
+
+UPDATE eventvisualization
+SET colsubtotals = false
+WHERE colsubtotals IS NULL;
+
+-- Set all NULL boolean columns to 0. Hibernate are primitive int's.
+UPDATE eventvisualization
+SET toplimit = 0
+WHERE toplimit IS NULL;

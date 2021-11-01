@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 
 import java.io.IOException;
 import java.util.Date;
@@ -67,7 +69,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author Jan Henrik Overland
+ *
+ *         THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL.
+ *         WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
+ *         FEATURES SHOULD BE ADDED ON TOP OF EventVisualizationController.
  */
+@Deprecated
 @Controller
 @RequestMapping( value = EventChartSchemaDescriptor.API_ENDPOINT )
 public class EventChartController
@@ -95,12 +102,28 @@ public class EventChartController
     // CRUD
     // --------------------------------------------------------------------------
 
+    // TODO: Block querying LINE_LIST and PIVOT_TABLE type.
+
     @Override
     protected EventChart deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
         EventChart eventChart = super.deserializeJsonEntity( request );
         mergeEventChart( eventChart );
+
+        applyCompatibilityConversions( eventChart );
+
+        return eventChart;
+    }
+
+    @Override
+    protected EventChart deserializeXmlEntity( HttpServletRequest request )
+        throws IOException
+    {
+        EventChart eventChart = super.deserializeJsonEntity( request );
+        mergeEventChart( eventChart );
+
+        applyCompatibilityConversions( eventChart );
 
         return eventChart;
     }
@@ -192,5 +215,22 @@ public class EventChartController
         chart.getColumnDimensions().addAll( getDimensions( chart.getColumns() ) );
         chart.getRowDimensions().addAll( getDimensions( chart.getRows() ) );
         chart.getFilterDimensions().addAll( getDimensions( chart.getFilters() ) );
+    }
+
+    /**
+     * This method encapsulated the necessary conversions to keep this object
+     * compatible with EventVisualization. This is need to enable backward
+     * compatibility during the deprecation process of the EventChart.
+     *
+     * @param eventChart
+     */
+    private void applyCompatibilityConversions( EventChart eventChart )
+        throws IOException
+    {
+        // Block persisting of LINE_LIST and PIVOT_TABLE types.
+        if ( eventChart.getType() == LINE_LIST || eventChart.getType() == PIVOT_TABLE )
+        {
+            throw new IOException( "Cannot convert type: " + eventChart.getType() );
+        }
     }
 }

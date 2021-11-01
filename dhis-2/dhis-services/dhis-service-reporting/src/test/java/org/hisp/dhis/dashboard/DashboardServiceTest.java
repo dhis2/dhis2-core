@@ -43,10 +43,10 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -295,7 +295,7 @@ public class DashboardServiceTest
     {
         EventChart eventChart = new EventChart( RandomStringUtils.randomAlphabetic( 5 ) );
         eventChart.setProgram( program );
-        eventChart.setType( VisualizationType.COLUMN );
+        eventChart.setType( EventVisualizationType.COLUMN );
         return eventChart;
     }
 }

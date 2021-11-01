@@ -25,32 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventreport;
+package org.hisp.dhis.eventvisualization;
 
 import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
- * @author Lars Helge Overland
- *
- *         THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL.
- *         WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
- *         FEATURES SHOULD BE ADDED ON TOP OF EventVisualizationService.
+ * @author maikel arabori
  */
-@Deprecated
-public interface EventReportService
-    extends AnalyticalObjectService<EventReport>
+public interface EventVisualizationService
+    extends AnalyticalObjectService<EventVisualization>
 {
-    long saveEventReport( EventReport report );
+    long saveEventVisualization( EventVisualization eventVisualization );
 
-    void updateEventReport( EventReport report );
+    void updateEventVisualization( EventVisualization eventVisualization );
 
-    EventReport getEventReport( long id );
+    EventVisualization getEventVisualization( long id );
 
-    EventReport getEventReport( String uid );
+    EventVisualization getEventVisualization( String uid );
 
-    void deleteEventReport( EventReport report );
+    void deleteEventVisualization( EventVisualization eventVisualization );
 
-    List<EventReport> getAllEventReports();
+    List<EventVisualization> getAllEventVisualizations();
 }

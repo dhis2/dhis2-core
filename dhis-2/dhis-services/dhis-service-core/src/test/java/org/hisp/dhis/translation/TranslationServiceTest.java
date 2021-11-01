@@ -44,6 +44,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.ImageFormat;
@@ -71,7 +72,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -275,7 +275,7 @@ public class TranslationServiceTest
 
         EventChart ecA = new EventChart( "ecA" );
         ecA.setProgram( prA );
-        ecA.setType( VisualizationType.COLUMN );
+        ecA.setType( EventVisualizationType.COLUMN );
         ecA.setBaseLineLabel( "BaseLineLabel" );
         ecA.setDomainAxisLabel( "DomainAxisLabel" );
         ecA.setRangeAxisLabel( "RangeAxisLabel" );

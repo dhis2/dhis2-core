@@ -37,6 +37,7 @@ import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -48,6 +49,8 @@ public class PlotData
 
     private Visualization visualization;
 
+    private EventVisualization eventVisualization;
+
     public PlotData( final EventChart eventChart )
     {
         this.eventChart = eventChart;
@@ -56,6 +59,11 @@ public class PlotData
     public PlotData( final Visualization visualization )
     {
         this.visualization = visualization;
+    }
+
+    public PlotData( final EventVisualization eventVisualization )
+    {
+        this.eventVisualization = eventVisualization;
     }
 
     public EventChart getEventChart()
@@ -68,6 +76,11 @@ public class PlotData
         return visualization;
     }
 
+    public EventVisualization getEventVisualization()
+    {
+        return eventVisualization;
+    }
+
     public boolean hasOrganisationUnitLevels()
     {
         if ( eventChart != null )
@@ -77,6 +90,10 @@ public class PlotData
         else if ( visualization != null )
         {
             return visualization.hasOrganisationUnitLevels();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.hasOrganisationUnitLevels();
         }
 
         return false;
@@ -91,6 +108,10 @@ public class PlotData
         else if ( visualization != null )
         {
             return visualization.hasItemOrganisationUnitGroups();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.hasItemOrganisationUnitGroups();
         }
 
         return false;
@@ -107,6 +128,10 @@ public class PlotData
         {
             visualization.init( user, date, organisationUnit, atLevels, inGroups, format );
         }
+        else if ( eventVisualization != null )
+        {
+            eventVisualization.init( user, date, organisationUnit, atLevels, inGroups, format );
+        }
     }
 
     public void clearTransientState()
@@ -119,6 +144,10 @@ public class PlotData
         {
             visualization.clearTransientState();
         }
+        else if ( eventVisualization != null )
+        {
+            eventVisualization.clearTransientState();
+        }
     }
 
     public List<Integer> getOrganisationUnitLevels()
@@ -130,6 +159,10 @@ public class PlotData
         else if ( visualization != null )
         {
             return visualization.getOrganisationUnitLevels();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getOrganisationUnitLevels();
         }
 
         return emptyList();
@@ -145,6 +178,10 @@ public class PlotData
         {
             return visualization.getOrganisationUnits();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getOrganisationUnits();
+        }
 
         return emptyList();
     }
@@ -158,6 +195,10 @@ public class PlotData
         else if ( visualization != null )
         {
             return visualization.getItemOrganisationUnitGroups();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getItemOrganisationUnitGroups();
         }
 
         return emptyList();
@@ -178,6 +219,10 @@ public class PlotData
         if ( eventChart != null )
         {
             eventChart.setDataItemGrid( grid );
+        }
+        else if ( eventVisualization != null )
+        {
+            eventVisualization.setDataItemGrid( grid );
         }
     }
 
@@ -201,6 +246,10 @@ public class PlotData
         {
             return eventChart.isRegression();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.isRegression();
+        }
 
         return false;
     }
@@ -214,6 +263,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.hasSortOrder();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.hasSortOrder();
         }
 
         return false;
@@ -229,6 +282,10 @@ public class PlotData
         {
             return eventChart.category();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.category();
+        }
 
         return emptyList();
     }
@@ -242,6 +299,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.series();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.series();
         }
 
         return emptyList();
@@ -257,6 +318,10 @@ public class PlotData
         {
             return StringUtils.trimToEmpty( type ).equals( eventChart.getType().name() );
         }
+        else if ( eventVisualization != null )
+        {
+            return StringUtils.trimToEmpty( type ).equals( eventVisualization.getType().name() );
+        }
 
         return false;
     }
@@ -270,6 +335,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.getType().name();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getType().name();
         }
 
         return StringUtils.EMPTY;
@@ -285,6 +354,10 @@ public class PlotData
         {
             return eventChart.hasTitle();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.hasTitle();
+        }
 
         return false;
     }
@@ -298,6 +371,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.getDisplayTitle();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getDisplayTitle();
         }
 
         return StringUtils.EMPTY;
@@ -313,6 +390,10 @@ public class PlotData
         {
             return eventChart.generateTitle();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.generateTitle();
+        }
 
         return StringUtils.EMPTY;
     }
@@ -326,6 +407,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.isHideTitle();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.isHideTitle();
         }
 
         return false;
@@ -341,6 +426,10 @@ public class PlotData
         {
             return eventChart.getName();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getName();
+        }
 
         return StringUtils.EMPTY;
     }
@@ -354,6 +443,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.isHideLegend();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.isHideLegend();
         }
 
         return false;
@@ -369,6 +462,10 @@ public class PlotData
         {
             return eventChart.getDomainAxisLabel();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getDomainAxisLabel();
+        }
 
         return StringUtils.EMPTY;
     }
@@ -382,6 +479,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.getRangeAxisLabel();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getRangeAxisLabel();
         }
 
         return StringUtils.EMPTY;
@@ -397,6 +498,10 @@ public class PlotData
         {
             return eventChart.isTargetLine();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.isTargetLine();
+        }
 
         return false;
     }
@@ -410,6 +515,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.isBaseLine();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.isBaseLine();
         }
 
         return false;
@@ -425,6 +534,10 @@ public class PlotData
         {
             return eventChart.isHideSubtitle();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.isHideSubtitle();
+        }
 
         return false;
     }
@@ -438,6 +551,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.getSortOrder();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getSortOrder();
         }
 
         return 0;
@@ -453,6 +570,10 @@ public class PlotData
         {
             return eventChart.getTargetLineValue();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getTargetLineValue();
+        }
 
         return 0d;
     }
@@ -466,6 +587,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.getBaseLineValue();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getBaseLineValue();
         }
 
         return 0d;
@@ -481,6 +606,10 @@ public class PlotData
         {
             return eventChart.getTargetLineLabel();
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getTargetLineLabel();
+        }
 
         return StringUtils.EMPTY;
     }
@@ -494,6 +623,10 @@ public class PlotData
         else if ( eventChart != null )
         {
             return eventChart.getBaseLineLabel();
+        }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization.getBaseLineLabel();
         }
 
         return StringUtils.EMPTY;

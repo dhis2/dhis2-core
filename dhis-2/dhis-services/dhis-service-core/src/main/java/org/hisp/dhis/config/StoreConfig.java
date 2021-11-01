@@ -34,6 +34,7 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -199,6 +200,7 @@ public class StoreConfig
             ProgramExpression.class, true );
     }
 
+    @Deprecated
     @Bean( "org.hisp.dhis.eventreport.EventReportStore" )
     public HibernateAnalyticalObjectStore<EventReport> eventReportStore()
     {
@@ -206,11 +208,19 @@ public class StoreConfig
             jdbcTemplate, publisher, EventReport.class, currentUserService, aclService, true );
     }
 
+    @Deprecated
     @Bean( "org.hisp.dhis.eventchart.EventChartStore" )
     public HibernateAnalyticalObjectStore<EventChart> eventChartStore()
     {
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
             jdbcTemplate, publisher, EventChart.class, currentUserService, aclService, true );
+    }
+
+    @Bean( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
+    public HibernateAnalyticalObjectStore<EventVisualization> eventEventVisualizationStore()
+    {
+        return new HibernateAnalyticalObjectStore<>( sessionFactory,
+            jdbcTemplate, publisher, EventVisualization.class, currentUserService, aclService, true );
     }
 
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationStore" )

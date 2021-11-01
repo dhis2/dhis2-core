@@ -36,12 +36,12 @@ import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.visualization.VisualizationType;
 
 import com.google.common.collect.Lists;
 
@@ -99,7 +99,7 @@ public abstract class CascadeSharingTest
         eventChart.setAutoFields();
         eventChart.setName( "eventChart" + name );
         eventChart.setProgram( program );
-        eventChart.setType( VisualizationType.COLUMN );
+        eventChart.setType( EventVisualizationType.COLUMN );
         return eventChart;
     }
 

@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.analytics.EventDataType.AGGREGATED_VALUES;
+import static org.hisp.dhis.analytics.EventDataType.EVENTS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 
 import java.io.IOException;
 import java.util.Map;
@@ -51,7 +55,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @author Lars Helge Overland
+ *
+ *         THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL.
+ *         WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
+ *         FEATURES SHOULD BE ADDED ON TOP OF EventVisualizationController.
  */
+@Deprecated
 @Controller
 @RequestMapping( value = EventReportSchemaDescriptor.API_ENDPOINT )
 public class EventReportController
@@ -67,12 +76,28 @@ public class EventReportController
     // CRUD
     // --------------------------------------------------------------------------
 
+    // TODO: ONLY allow querying LINE_LIST and PIVOT_TABLE type.
+
     @Override
     protected EventReport deserializeJsonEntity( HttpServletRequest request )
         throws IOException
     {
         EventReport eventReport = super.deserializeJsonEntity( request );
         mergeEventReport( eventReport );
+
+        applyCompatibilityConversions( eventReport );
+
+        return eventReport;
+    }
+
+    @Override
+    protected EventReport deserializeXmlEntity( HttpServletRequest request )
+        throws IOException
+    {
+        EventReport eventReport = super.deserializeXmlEntity( request );
+        mergeEventReport( eventReport );
+
+        applyCompatibilityConversions( eventReport );
 
         return eventReport;
     }
@@ -126,5 +151,29 @@ public class EventReportController
         report.getColumnDimensions().addAll( getDimensions( report.getColumns() ) );
         report.getRowDimensions().addAll( getDimensions( report.getRows() ) );
         report.getFilterDimensions().addAll( getDimensions( report.getFilters() ) );
+    }
+
+    /**
+     * This method encapsulated the necessary conversions to keep this object
+     * compatible with EventVisualization. This is need to enable backward
+     * compatibility during the deprecation process of the EventReport.
+     *
+     * @param report
+     */
+    private void applyCompatibilityConversions( EventReport report )
+    {
+        if ( report.getDataType() == AGGREGATED_VALUES )
+        {
+            report.setType( PIVOT_TABLE );
+        }
+        else if ( report.getDataType() == EVENTS )
+        {
+            report.setType( LINE_LIST );
+        }
+        else
+        {
+            // This entity only accepts the types above.
+            report.setType( null );
+        }
     }
 }

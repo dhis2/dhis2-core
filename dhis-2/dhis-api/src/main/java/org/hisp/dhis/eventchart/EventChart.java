@@ -61,7 +61,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Jan Henrik Overland
+ *
+ *         THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL.
+ *         WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
+ *         FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
  */
+@Deprecated
 @JacksonXmlRootElement( localName = "eventChart", namespace = DxfNamespaces.DXF_2_0 )
 public class EventChart
     extends BaseChart
@@ -131,6 +136,27 @@ public class EventChart
      * Value dimension.
      */
     private transient DimensionalItemObject value;
+
+    // -------------------------------------------------------------------------
+    // BACKWARD compatible attributes.
+    // They are not exposed and should be always false for EventChart.
+    // Needed to enable backward compatibility with EventVisualization.
+    // Cannot be removed until EventChart if fully deprecated.
+    // -------------------------------------------------------------------------
+
+    private boolean rowTotals;
+
+    private boolean colTotals;
+
+    private boolean rowSubTotals;
+
+    private boolean colSubTotals;
+
+    private boolean hideEmptyRows;
+
+    private boolean showHierarchy;
+
+    private boolean showDimensionLabels;
 
     // -------------------------------------------------------------------------
     // Constructors

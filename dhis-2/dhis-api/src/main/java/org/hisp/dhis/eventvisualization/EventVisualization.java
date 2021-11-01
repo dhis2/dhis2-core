@@ -27,9 +27,17 @@
  */
 package org.hisp.dhis.eventvisualization;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.join;
+import static org.hisp.dhis.common.AnalyticsType.EVENT;
+import static org.hisp.dhis.common.DimensionalObjectUtils.TITLE_ITEM_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getPrettyFilter;
+import static org.hisp.dhis.common.DimensionalObjectUtils.setDimensionItemsForFilters;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.join;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,14 +51,11 @@ import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayDensity;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.HideEmptyItemStrategy;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -69,7 +74,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.visualization.VisualizationType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -274,43 +278,12 @@ public class EventVisualization extends BaseAnalyticalObject
         List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
         I18nFormat format )
     {
-
+        this.relativeUser = user;
+        this.format = format;
     }
-
-    /*
-     * @Override public void populateAnalyticalProperties() {
-     *
-     * }
-     */
-
-    /*
-     * @Override protected void clearTransientStateProperties() {
-     *
-     * }
-     */
-
-    /*
-     * @Override public Program getProgram() { return null; }
-     *
-     * @Override public ProgramStage getProgramStage() { return null; }
-     *
-     * @Override public EventOutputType getOutputType() { return null; }
-     *
-     * @Override public DimensionalItemObject getValue() { return null; }
-     */
 
     // ####### BaseChart methods ########
     // ###########################
-
-    // abstract
-    /*
-     * public AnalyticsType getAnalyticsType() { return null; }
-     */
-
-    // abstract
-    /*
-     * protected void clearTransientChartStateProperties() { }
-     */
 
     public boolean isType( VisualizationType type )
     {
@@ -329,31 +302,31 @@ public class EventVisualization extends BaseAnalyticalObject
 
     public String generateTitle()
     {
-        List<String> titleItems = new ArrayList<>();
+        final List<String> titleItems = new ArrayList<>();
 
-        for ( String filter : filterDimensions )
+        for ( final String filter : filterDimensions )
         {
-            DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, relativeUser, true,
+            final DimensionalObject object = getDimensionalObject( filter, relativePeriodDate, relativeUser, true,
                 organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
             if ( object != null )
             {
-                String item = IdentifiableObjectUtils.join( object.getItems() );
-                String filt = DimensionalObjectUtils.getPrettyFilter( object.getFilter() );
+                final String item = join( object.getItems() );
+                final String prettyFilter = getPrettyFilter( object.getFilter() );
 
                 if ( item != null )
                 {
                     titleItems.add( item );
                 }
 
-                if ( filt != null )
+                if ( prettyFilter != null )
                 {
-                    titleItems.add( filt );
+                    titleItems.add( prettyFilter );
                 }
             }
         }
 
-        return join( titleItems, DimensionalObjectUtils.TITLE_ITEM_SEP );
+        return join( titleItems, TITLE_ITEM_SEP );
     }
 
     public boolean isAnalyticsType( AnalyticsType type )
@@ -370,8 +343,7 @@ public class EventVisualization extends BaseAnalyticalObject
         organisationUnitsAtLevel = new ArrayList<>();
         organisationUnitsInGroups = new ArrayList<>();
         dataItemGrid = null;
-
-        clearTransientChartStateProperties();
+        value = null;
     }
 
     public boolean isRegression()
@@ -424,7 +396,7 @@ public class EventVisualization extends BaseAnalyticalObject
     // -------------------------------------------------------------------------
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getDomainAxisLabel()
     {
         return domainAxisLabel;
@@ -436,7 +408,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     @Translatable( propertyName = "domainAxisLabel" )
     public String getDisplayDomainAxisLabel()
     {
@@ -444,14 +416,14 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getRangeAxisLabel()
     {
         return rangeAxisLabel;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     @Translatable( propertyName = "rangeAxisLabel" )
     public String getDisplayRangeAxisLabel()
     {
@@ -464,7 +436,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     @Property( value = PropertyType.CONSTANT, required = TRUE )
     @PropertyRange( min = 1, max = 40 )
     public EventVisualizationType getType()
@@ -478,7 +450,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isHideLegend()
     {
         return hideLegend;
@@ -490,7 +462,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isNoSpaceBetweenColumns()
     {
         return noSpaceBetweenColumns;
@@ -502,7 +474,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public RegressionType getRegressionType()
     {
         return regressionType;
@@ -514,7 +486,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Double getTargetLineValue()
     {
         return targetLineValue;
@@ -526,14 +498,14 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getTargetLineLabel()
     {
         return targetLineLabel;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     @Translatable( propertyName = "targetLineLabel" )
     public String getDisplayTargetLineLabel()
     {
@@ -546,7 +518,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Double getBaseLineValue()
     {
         return baseLineValue;
@@ -558,14 +530,14 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public String getBaseLineLabel()
     {
         return baseLineLabel;
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     @Translatable( propertyName = "baseLineLabel" )
     public String getDisplayBaseLineLabel()
     {
@@ -578,7 +550,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isShowData()
     {
         return showData;
@@ -590,7 +562,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public HideEmptyItemStrategy getHideEmptyRowItems()
     {
         return hideEmptyRowItems;
@@ -602,7 +574,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isPercentStackedValues()
     {
         return percentStackedValues;
@@ -614,7 +586,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isCumulativeValues()
     {
         return cumulativeValues;
@@ -626,7 +598,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Double getRangeAxisMaxValue()
     {
         return rangeAxisMaxValue;
@@ -638,7 +610,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     @PropertyRange( min = Integer.MIN_VALUE )
     public Double getRangeAxisMinValue()
     {
@@ -651,7 +623,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Integer getRangeAxisSteps()
     {
         return rangeAxisSteps;
@@ -663,7 +635,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Integer getRangeAxisDecimals()
     {
         return rangeAxisDecimals;
@@ -676,7 +648,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public LegendSet getLegendSet()
     {
         return legendSet;
@@ -688,7 +660,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public LegendDisplayStrategy getLegendDisplayStrategy()
     {
         return legendDisplayStrategy;
@@ -700,8 +672,8 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "filterDimensions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "filterDimension", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "filterDimensions", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "filterDimension", namespace = DXF_2_0 )
     public List<String> getFilterDimensions()
     {
         return filterDimensions;
@@ -719,70 +691,71 @@ public class EventVisualization extends BaseAnalyticalObject
     // AnalyticalObject
     // -------------------------------------------------------------------------
 
-    /*
-     * @Override public void init( User user, Date date, OrganisationUnit
-     * organisationUnit, List<OrganisationUnit> organisationUnitsAtLevel,
-     * List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format ) {
-     * this.relativeUser = user; this.format = format; }
-     */
-
     @Override
     public void populateAnalyticalProperties()
     {
-        for ( String column : columnDimensions )
+        // Some EventVisualization's may not have columnDimensions.
+        if ( isNotEmpty( columnDimensions ) )
         {
-            columns.add( getDimensionalObject( column ) );
+            for ( final String column : columnDimensions )
+            {
+                if ( isNotBlank( column ) )
+                {
+                    columns.add( getDimensionalObject( column ) );
+                }
+            }
         }
 
-        for ( String row : rowDimensions )
+        // PIE, GAUGE and others don't not have rowDimensions.
+        if ( isNotEmpty( rowDimensions ) )
         {
-            rows.add( getDimensionalObject( row ) );
+            for ( final String row : rowDimensions )
+            {
+                if ( isNotBlank( row ) )
+                {
+                    rows.add( getDimensionalObject( row ) );
+                }
+            }
         }
 
-        for ( String filter : filterDimensions )
+        for ( final String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( filter ) );
+            if ( isNotBlank( filter ) )
+            {
+                filters.add( getDimensionalObject( filter ) );
+            }
         }
 
-        value = ObjectUtils.firstNonNull( dataElementValueDimension, attributeValueDimension );
+        value = firstNonNull( dataElementValueDimension, attributeValueDimension );
     }
 
-    /* @Override */
-    protected void clearTransientChartStateProperties()
-    {
-        value = null;
-    }
-
-    /* @Override */
     public List<DimensionalItemObject> series()
     {
-        String series = columnDimensions.get( 0 );
+        final String series = columnDimensions.get( 0 );
 
-        DimensionalObject object = getDimensionalObject( series, relativePeriodDate, relativeUser, true,
+        final DimensionalObject object = getDimensionalObject( series, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
-        DimensionalObjectUtils.setDimensionItemsForFilters( object, dataItemGrid, true );
+        setDimensionItemsForFilters( object, dataItemGrid, true );
 
         return object != null ? object.getItems() : null;
     }
 
-    /* @Override */
     public List<DimensionalItemObject> category()
     {
-        String category = rowDimensions.get( 0 );
+        final String category = rowDimensions.get( 0 );
 
-        DimensionalObject object = getDimensionalObject( category, relativePeriodDate, relativeUser, true,
+        final DimensionalObject object = getDimensionalObject( category, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
-        DimensionalObjectUtils.setDimensionItemsForFilters( object, dataItemGrid, true );
+        setDimensionItemsForFilters( object, dataItemGrid, true );
 
         return object != null ? object.getItems() : null;
     }
 
-    /* @Override */
     public AnalyticsType getAnalyticsType()
     {
-        return AnalyticsType.EVENT;
+        return EVENT;
     }
 
     // -------------------------------------------------------------------------
@@ -792,7 +765,7 @@ public class EventVisualization extends BaseAnalyticalObject
     @Override
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public Program getProgram()
     {
         return program;
@@ -806,7 +779,7 @@ public class EventVisualization extends BaseAnalyticalObject
     @Override
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public ProgramStage getProgramStage()
     {
         return programStage;
@@ -819,7 +792,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public DataElement getDataElementValueDimension()
     {
         return dataElementValueDimension;
@@ -833,7 +806,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public TrackedEntityAttribute getAttributeValueDimension()
     {
         return attributeValueDimension;
@@ -846,8 +819,8 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "columnDimensions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "columnDimension", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "columnDimensions", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "columnDimension", namespace = DXF_2_0 )
     public List<String> getColumnDimensions()
     {
         return columnDimensions;
@@ -859,8 +832,8 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "rowDimensions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "rowDimension", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlElementWrapper( localName = "rowDimensions", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "rowDimension", namespace = DXF_2_0 )
     public List<String> getRowDimensions()
     {
         return rowDimensions;
@@ -873,7 +846,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
     @Override
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public EventOutputType getOutputType()
     {
         return outputType;
@@ -885,7 +858,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isCollapseDataDimensions()
     {
         return collapseDataDimensions;
@@ -897,7 +870,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public ProgramStatus getProgramStatus()
     {
         return programStatus;
@@ -909,7 +882,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public EventStatus getEventStatus()
     {
         return eventStatus;
@@ -921,7 +894,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isHideNaData()
     {
         return hideNaData;
@@ -939,7 +912,7 @@ public class EventVisualization extends BaseAnalyticalObject
     @Override
     @JsonProperty
     @JsonDeserialize( as = BaseDimensionalItemObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public DimensionalItemObject getValue()
     {
         return value;
@@ -955,43 +928,13 @@ public class EventVisualization extends BaseAnalyticalObject
     // (excluding EventChart common methods)
 
     // -------------------------------------------------------------------------
-    // AnalyticalObject
-    // -------------------------------------------------------------------------
-
-    /*
-     * @Override public void init( User user, Date date, OrganisationUnit
-     * organisationUnit, List<OrganisationUnit> organisationUnitsAtLevel,
-     * List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format ) { }
-     */
-
-    /*
-     * @Override public void populateAnalyticalProperties() { for ( String
-     * column : columnDimensions ) { columns.add( getDimensionalObject( column )
-     * ); }
-     *
-     * for ( String row : rowDimensions ) { rows.add( getDimensionalObject( row
-     * ) ); }
-     *
-     * for ( String filter : filterDimensions ) { filters.add(
-     * getDimensionalObject( filter ) ); }
-     *
-     * value = ObjectUtils.firstNonNull( dataElementValueDimension,
-     * attributeValueDimension ); }
-     */
-
-    /*
-     * @Override protected void clearTransientStateProperties() { value = null;
-     * }
-     */
-
-    // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
 
     // This attribute and methods were replaced by "type", but will remain for
     // compatibility
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public EventDataType getDataType()
     {
         return dataType;
@@ -1003,7 +946,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isRowTotals()
     {
         return rowTotals;
@@ -1015,7 +958,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isColTotals()
     {
         return colTotals;
@@ -1027,7 +970,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isRowSubTotals()
     {
         return rowSubTotals;
@@ -1039,7 +982,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isColSubTotals()
     {
         return colSubTotals;
@@ -1051,7 +994,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isHideEmptyRows()
     {
         return hideEmptyRows;
@@ -1063,7 +1006,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isShowHierarchy()
     {
         return showHierarchy;
@@ -1075,7 +1018,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public DisplayDensity getDisplayDensity()
     {
         return displayDensity;
@@ -1087,7 +1030,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public FontSize getFontSize()
     {
         return fontSize;
@@ -1099,7 +1042,7 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     public boolean isShowDimensionLabels()
     {
         return showDimensionLabels;

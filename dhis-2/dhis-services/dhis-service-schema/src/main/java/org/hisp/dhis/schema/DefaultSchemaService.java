@@ -120,6 +120,7 @@ public class DefaultSchemaService
         register( new DocumentSchemaDescriptor() );
         register( new EventChartSchemaDescriptor() );
         register( new EventReportSchemaDescriptor() );
+        register( new EventVisualizationSchemaDescriptor() );
         register( new ExpressionSchemaDescriptor() );
         register( new FileResourceSchemaDescriptor() );
         register( new IconSchemaDescriptor() );

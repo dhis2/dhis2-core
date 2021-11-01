@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dashboard;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.document.Document;
@@ -36,6 +36,7 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventreport.EventReportService;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MappingService;
 import org.hisp.dhis.program.Program;
@@ -46,7 +47,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -127,7 +127,7 @@ public class DashboardItemDeletionHandlerTest
 
         EventChart eventChart = new EventChart( "A" );
         eventChart.setProgram( program );
-        eventChart.setType( VisualizationType.COLUMN );
+        eventChart.setType( EventVisualizationType.COLUMN );
         eventChartService.saveEventChart( eventChart );
 
         dashboardItem.setEventChart( eventChart );
