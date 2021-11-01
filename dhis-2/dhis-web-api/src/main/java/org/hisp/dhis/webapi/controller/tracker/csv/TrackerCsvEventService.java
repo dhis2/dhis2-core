@@ -61,13 +61,14 @@ public class TrackerCsvEventService
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
 
-    private static final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
-        .withLineSeparator( "\n" );
-
     @Override
     public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
         throws IOException
     {
+        final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
+            .withLineSeparator( "\n" )
+            .withUseHeader( withHeader );
+
         ObjectWriter writer = CSV_MAPPER.writer( CSV_SCHEMA.withUseHeader( withHeader ) );
 
         List<CsvEventDataValue> dataValues = new ArrayList<>();
@@ -137,6 +138,10 @@ public class TrackerCsvEventService
         throws IOException,
         ParseException
     {
+        final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
+            .withLineSeparator( "\n" )
+            .withUseHeader( skipFirst );
+
         List<Event> events = Lists.newArrayList();
 
         ObjectReader reader = CSV_MAPPER.readerFor( CsvEventDataValue.class )

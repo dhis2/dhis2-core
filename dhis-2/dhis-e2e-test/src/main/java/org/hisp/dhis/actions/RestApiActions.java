@@ -29,6 +29,7 @@ package org.hisp.dhis.actions;
 
 import com.google.gson.JsonArray;
 import io.restassured.RestAssured;
+import io.restassured.config.EncoderConfig;
 import io.restassured.config.ObjectMapperConfig;
 import io.restassured.http.ContentType;
 import io.restassured.mapper.ObjectMapperType;
