@@ -25,38 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jdbc.statementbuilder;
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import static org.junit.Assert.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.junit.Test;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 
-/**
- * @author Lars Helge Overland
- */
-public class StatementBuilderTest
+import org.hisp.dhis.program.UserInfoSnapshot;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+public class JsonbToObjectHelper
 {
-    @Test
-    public void testStatementBuilder()
+
+    private final static ObjectMapper MAPPER;
+
+    static
     {
-        StatementBuilder builder = new PostgreSQLStatementBuilder();
-
-        String autoIncrement = builder.getAutoIncrementValue();
-
-        assertEquals( "nextval('hibernate_sequence')", autoIncrement );
+        MAPPER = new ObjectMapper();
+        MAPPER.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false );
     }
 
-    @Test
-    public void encodeTest()
+    static void setUserInfoSnapshot( ResultSet rs, String columnName,
+        Consumer<UserInfoSnapshot> applier )
+        throws SQLException
     {
-        StatementBuilder builder = new PostgreSQLStatementBuilder();
-
-        String encoded = builder.encode( "contains'character" );
-
-        MatcherAssert.assertThat( encoded, CoreMatchers.containsString( "''" ) );
+        Optional.ofNullable( rs.getObject( columnName ) )
+            .map( Object::toString )
+            .map( JsonbToObjectHelper::safelyConvert )
+            .ifPresent( applier );
     }
 
+    @SneakyThrows
+    static UserInfoSnapshot safelyConvert( String userInfoSnapshotAsString )
+    {
+        return MAPPER.readValue( userInfoSnapshotAsString, UserInfoSnapshot.class );
+    }
 }
