@@ -65,11 +65,11 @@ public class TrackerCsvEventService
     public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
         throws IOException
     {
-        final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
+        final CsvSchema csvSchema = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
             .withLineSeparator( "\n" )
             .withUseHeader( withHeader );
 
-        ObjectWriter writer = CSV_MAPPER.writer( CSV_SCHEMA.withUseHeader( withHeader ) );
+        ObjectWriter writer = CSV_MAPPER.writer( csvSchema.withUseHeader( withHeader ) );
 
         List<CsvEventDataValue> dataValues = new ArrayList<>();
 
@@ -138,14 +138,14 @@ public class TrackerCsvEventService
         throws IOException,
         ParseException
     {
-        final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
+        final CsvSchema csvSchema = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
             .withLineSeparator( "\n" )
             .withUseHeader( skipFirst );
 
         List<Event> events = Lists.newArrayList();
 
         ObjectReader reader = CSV_MAPPER.readerFor( CsvEventDataValue.class )
-            .with( CSV_SCHEMA.withSkipFirstDataRow( skipFirst ) );
+            .with( csvSchema.withSkipFirstDataRow( skipFirst ) );
 
         MappingIterator<CsvEventDataValue> iterator = reader.readValues( inputStream );
         Event event = new Event();
