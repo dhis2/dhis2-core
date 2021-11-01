@@ -173,7 +173,7 @@ public class DefaultAnalyticsTableGenerator
             progress.completedStage( "Resource tables generated: " + clock.time() );
 
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_RESOURCE_TABLES_UPDATE,
-                clock.getStartTime() );
+                new Date( clock.getStartTime() ) );
         }
         catch ( RuntimeException ex )
         {

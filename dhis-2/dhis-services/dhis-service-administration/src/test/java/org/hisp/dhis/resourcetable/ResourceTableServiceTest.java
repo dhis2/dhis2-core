@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import static org.mockito.Mockito.mock;
+
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -120,7 +122,7 @@ public class ResourceTableServiceTest
     @Test
     public void testGenerateAllResourceTables()
     {
-        JobProgress progress = JobProgress.IGNORANT;
+        JobProgress progress = mock( JobProgress.class );
         resourceTableService.generateOrganisationUnitStructures( progress );
         resourceTableService.generateDataSetOrganisationUnitCategoryTable( progress );
         resourceTableService.generateCategoryOptionComboNames( progress );
