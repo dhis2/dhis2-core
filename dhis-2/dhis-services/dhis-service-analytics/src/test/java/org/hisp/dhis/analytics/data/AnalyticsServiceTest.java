@@ -81,7 +81,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.dhis.validation.ValidationResultService;
@@ -480,7 +480,8 @@ public class AnalyticsServiceTest
 
         // Generate analytics tables
 
-        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(), JobProgress.IGNORANT );
+        analyticsTableGenerator.generateTables( AnalyticsTableUpdateParams.newBuilder().build(),
+            NoopJobProgress.INSTANCE );
 
         // Set parameters
 

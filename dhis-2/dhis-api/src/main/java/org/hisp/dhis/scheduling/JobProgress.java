@@ -30,79 +30,24 @@ package org.hisp.dhis.scheduling;
 import static java.util.stream.StreamSupport.stream;
 
 import java.util.Collection;
+import java.util.Date;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public interface JobProgress
 {
-    JobProgress IGNORANT = new JobProgress()
-    {
-
-        @Override
-        public boolean isCancellationRequested()
-        {
-            return false;
-        }
-
-        @Override
-        public void startingProcess( String description )
-        {
-
-        }
-
-        @Override
-        public void completedProcess( String summary )
-        {
-
-        }
-
-        @Override
-        public void failedProcess( String error )
-        {
-
-        }
-
-        @Override
-        public void startingStage( String description, int workItems )
-        {
-
-        }
-
-        @Override
-        public void completedStage( String summary )
-        {
-
-        }
-
-        @Override
-        public void failedStage( String error )
-        {
-
-        }
-
-        @Override
-        public void startingWorkItem( String description )
-        {
-
-        }
-
-        @Override
-        public void completedWorkItem( String summary )
-        {
-
-        }
-
-        @Override
-        public void failedWorkItem( String error )
-        {
-
-        }
-    };
-
     /*
      * Flow Control API:
      */
@@ -165,14 +110,9 @@ public interface JobProgress
         failedWorkItem( cause.getMessage() );
     }
 
-    // it could be part of the job config to select if the progress should also
-    // be forwarded to the notifier - this allows to keep updating the notifier
-    // but also to replace notifier updates with pure in-memory progress
-    // tracking state
-
-    // the job config ID does not need to be passed around as the progress
-    // instance is created for a particular job and job config so it can already
-    // know the ID internally
+    /*
+     * Running work items within a stage
+     */
 
     default boolean runStage( Iterable<Runnable> items )
     {
@@ -232,19 +172,22 @@ public interface JobProgress
             {
                 work.accept( item );
                 completedWorkItem( null );
+                return true;
             }
             catch ( Exception ex )
             {
                 failedWorkItem( ex );
+                return false;
             }
-            return true;
         } ).reduce( Boolean::logicalAnd ).orElse( false );
 
-        ForkJoinPool fjp2 = new ForkJoinPool( parallelism );
+        ForkJoinPool pool = new ForkJoinPool( parallelism );
         try
         {
-            boolean allDone = fjp2.submit( task ).get();
-            if ( allDone )
+            // this might not be obvious but running a parallel stream
+            // as task in a FJP makes the stream use the pool
+            boolean allSuccessful = pool.submit( task ).get();
+            if ( allSuccessful )
             {
                 completedStage( null );
             }
@@ -252,18 +195,123 @@ public interface JobProgress
             {
                 failedStage( (String) null );
             }
-            return allDone;
+            return allSuccessful;
         }
-        catch ( InterruptedException e )
+        catch ( InterruptedException ex )
         {
-            fjp2.shutdown();
             Thread.currentThread().interrupt();
-            return false;
         }
         catch ( ExecutionException ex )
         {
-            fjp2.shutdown();
-            return false;
+            failedStage( ex );
         }
+        finally
+        {
+            pool.shutdown();
+        }
+        return false;
+    }
+
+    /*
+     * Model (for representing progress as data)
+     */
+
+    enum Status
+    {
+        RUNNING,
+        SUCCESS,
+        ERROR
+    }
+
+    @Getter
+    abstract class Node
+    {
+        @JsonProperty
+        private String error;
+
+        @JsonProperty
+        private String summary;
+
+        @JsonProperty
+        private Exception cause;
+
+        @JsonProperty
+        private Status status = Status.RUNNING;
+
+        @JsonProperty
+        private Date completedTime;
+
+        @JsonProperty
+        public abstract Date getStartedTime();
+
+        @JsonProperty
+        public long getDurationMillis()
+        {
+            return completedTime == null
+                ? getStartedTime().getTime() - System.currentTimeMillis()
+                : getStartedTime().getTime() - completedTime.getTime();
+        }
+
+        @JsonProperty
+        public boolean isComplete()
+        {
+            return status != Status.RUNNING;
+        }
+
+        public void complete( String summary )
+        {
+            this.summary = summary;
+            this.status = Status.SUCCESS;
+        }
+
+        public void completeExceptionally( String error, Exception cause )
+        {
+            this.error = error;
+            this.cause = cause;
+            this.status = Status.ERROR;
+        }
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    final class Process extends Node
+    {
+        private final Date startedTime = new Date();
+
+        @JsonProperty
+        private final String description;
+
+        @JsonProperty
+        private final Deque<Stage> stages = new ConcurrentLinkedDeque<>();
+    }
+
+    @Getter
+    @RequiredArgsConstructor
+    final class Stage extends Node
+    {
+        private final Date startedTime = new Date();
+
+        @JsonProperty
+        private final String description;
+
+        /**
+         * This is the number of expected items, negative when unknown, zero
+         * when the stage has no items granularity
+         */
+        @JsonProperty
+        private final int totalItems;
+
+        @JsonProperty
+        private final Deque<Item> items = new ConcurrentLinkedDeque<>();
+    }
+
+    @Getter
+    @AllArgsConstructor
+    final class Item extends Node
+    {
+        private final Date startedTime = new Date();
+
+        @JsonProperty
+        private final String description;
     }
 }

@@ -27,26 +27,22 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
-
 /**
- * A {@link JobProgress} implementation that forwards the tracking to a
- * {@link Notifier}. It has no flow control and should be wrapped in a
- * {@link ControlledJobProgress} for that purpose.
+ * The {@link NoopJobProgress} can be used as a {@link JobProgress} instance
+ * when no actual flow control and tracking is wanted. For example in test
+ * context or in manual runs of operations that would generally support the
+ * tracking though the {@link JobProgress} abstraction.
  *
- * @see ControlledJobProgress
+ * @author Jan Bernitt
  */
-@RequiredArgsConstructor
-public class NotifierJobProgress implements JobProgress
+public class NoopJobProgress implements JobProgress
 {
-    private final Notifier notifier;
+    public static final JobProgress INSTANCE = new NoopJobProgress();
 
-    private final JobConfiguration jobId;
+    private NoopJobProgress()
+    {
+        // hide
+    }
 
     @Override
     public boolean isCancellationRequested()
@@ -57,75 +53,54 @@ public class NotifierJobProgress implements JobProgress
     @Override
     public void startingProcess( String description )
     {
-        String message = isNotEmpty( description )
-            ? description
-            : jobId.getJobType() + " process started";
-        notifier.clear( jobId ).notify( jobId, message );
+
     }
 
     @Override
     public void completedProcess( String summary )
     {
-        notifier.notify( jobId, NotificationLevel.INFO, summary, true );
+
     }
 
     @Override
     public void failedProcess( String error )
     {
-        notifier.notify( jobId, NotificationLevel.ERROR, error, true );
+
     }
 
     @Override
     public void startingStage( String description, int workItems )
     {
-        if ( isNotEmpty( description ) )
-        {
-            notifier.notify( jobId, description );
-        }
+
     }
 
     @Override
     public void completedStage( String summary )
     {
-        if ( isNotEmpty( summary ) )
-        {
-            notifier.notify( jobId, NotificationLevel.INFO, summary, isCancellationRequested() );
-        }
+
     }
 
     @Override
     public void failedStage( String error )
     {
-        if ( isNotEmpty( error ) )
-        {
-            notifier.notify( jobId, NotificationLevel.ERROR, error, isCancellationRequested() );
-        }
+
     }
 
     @Override
     public void startingWorkItem( String description )
     {
-        if ( isNotEmpty( description ) )
-        {
-            notifier.notify( jobId, NotificationLevel.INFO, description );
-        }
+
     }
 
     @Override
     public void completedWorkItem( String summary )
     {
-        if ( isNotEmpty( summary ) )
-        {
-            notifier.notify( jobId, NotificationLevel.INFO, summary, false );
-        }
+
     }
 
     @Override
     public void failedWorkItem( String error )
     {
-        if ( isNotEmpty( error ) )
-        {
-            notifier.notify( jobId, NotificationLevel.ERROR, error, false );
-        }
+
     }
 }

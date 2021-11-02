@@ -91,7 +91,7 @@ public class DefaultAnalyticsTableGenerator
         log.info( "Last successful analytics table update: '{}'",
             getLongDateString( lastSuccessfulUpdate ) );
 
-        progress.startingProcess( "Analytics tables update" );
+        progress.startingProcess( "Analytics table update process started" );
         try
         {
             if ( !params.isSkipResourceTables() && !params.isLatestUpdate() )
@@ -145,7 +145,7 @@ public class DefaultAnalyticsTableGenerator
     {
         final Clock clock = new Clock().startClock();
 
-        progress.startingProcess( "Resource tables generation" );
+        progress.startingProcess( "Generating resource tables" );
         try
         {
             generateResourceTablesInternal( progress );
