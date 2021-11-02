@@ -28,6 +28,7 @@
 package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
@@ -674,7 +675,33 @@ final class GistBuilder
     private String createFiltersHQL()
     {
         String rootJunction = query.isAnyFilter() ? " or " : " and ";
-        return join( query.getFilters(), rootJunction, "1=1", this::createFilterHQL );
+        List<Filter> filters = query.getFilters();
+        if ( !query.hasFilterGroups() )
+        {
+            return join( filters, rootJunction, "1=1", this::createFilterHQL );
+        }
+        String groupJunction = query.isAnyFilter() ? " and " : " or ";
+        Map<Integer, List<Filter>> grouped = filters.stream()
+            .collect( groupingBy( Filter::getGroup, toList() ) );
+        StringBuilder hql = new StringBuilder();
+        for ( List<Filter> group : grouped.values() )
+        {
+            if ( !group.isEmpty() )
+            {
+                hql.append( '(' );
+                for ( Filter f : group )
+                {
+                    int index = filters.indexOf( f );
+                    hql.append( createFilterHQL( index, f ) );
+                    hql.append( groupJunction );
+                }
+                hql.append( "1=1" );
+                hql.append( ')' );
+            }
+            hql.append( rootJunction );
+        }
+        hql.append( "1=1" );
+        return hql.toString().replaceAll( "(?: and | or )1=1", "" );
     }
 
     private String createFilterHQL( int index, Filter filter )
