@@ -34,6 +34,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.Test;
 
@@ -313,5 +314,37 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
 
         assertTrue( users.has( "id", "userCredentials" ) );
         assertTrue( users.getObject( "userCredentials" ).has( "username", "twoFA" ) );
+    }
+
+    @Test
+    public void testFilter_GroupsOR()
+    {
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "alpha" );
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "beta" );
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "gamma" );
+
+        // both filters in group 2 are combined OR because root junction is
+        // implicitly AND
+        String url = "/dataSets/gist?filter=1:name:endsWith:3&filter=2:name:like:alpha&filter=2:name:like:beta&headless=true&order=name";
+        JsonArray matches = GET( url ).content();
+        assertEquals( 2, matches.size() );
+        assertEquals( "alpha3", matches.getObject( 0 ).getString( "name" ).string() );
+        assertEquals( "beta3", matches.getObject( 1 ).getString( "name" ).string() );
+    }
+
+    @Test
+    public void testFilter_GroupAND()
+    {
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "alpha" );
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "beta" );
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "gamma" );
+
+        // both filters in group 2 are combined AND because the root junction is
+        // set to OR
+        String url = "/dataSets/gist?filter=1:name:eq:beta1&filter=2:name:like:alpha&filter=2:name:endsWith:4&headless=true&rootJunction=OR&order=name";
+        JsonArray matches = GET( url ).content();
+        assertEquals( 2, matches.size() );
+        assertEquals( "alpha4", matches.getObject( 0 ).getString( "name" ).string() );
+        assertEquals( "beta1", matches.getObject( 1 ).getString( "name" ).string() );
     }
 }
