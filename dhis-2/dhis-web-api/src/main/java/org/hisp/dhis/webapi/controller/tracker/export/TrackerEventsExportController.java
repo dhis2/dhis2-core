@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
+import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -125,7 +128,7 @@ public class TrackerEventsExportController
 
     }
 
-    @GetMapping( produces = { "application/csv", "application/csv+gzip", "text/csv" } )
+    @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
     public void getCsvEvents(
         TrackerEventCriteria eventCriteria,
         HttpServletResponse response,
