@@ -66,7 +66,10 @@ public class ControlledJobProgress implements JobProgress
 
     public void requestCancellation()
     {
-        cancellationRequested.set( true );
+        if ( cancellationRequested.compareAndSet( false, true ) )
+        {
+            processes.forEach( Process::cancel );
+        }
     }
 
     public Deque<Process> getProcesses()

@@ -134,7 +134,14 @@ public interface JobProgress
                 return false; // ends the stage immediately
             }
             String desc = description.apply( item );
-            startingWorkItem( desc != null ? desc : String.valueOf( i ) );
+            if ( desc == null )
+            {
+                startingWorkItem( i );
+            }
+            else
+            {
+                startingWorkItem( desc );
+            }
             i++;
             try
             {
@@ -253,7 +260,8 @@ public interface JobProgress
     {
         RUNNING,
         SUCCESS,
-        ERROR
+        ERROR,
+        CANCELLED
     }
 
     @Getter
@@ -268,7 +276,7 @@ public interface JobProgress
         private Exception cause;
 
         @JsonProperty
-        private Status status = Status.RUNNING;
+        protected Status status = Status.RUNNING;
 
         @JsonProperty
         private Date completedTime;
@@ -321,6 +329,16 @@ public interface JobProgress
         @Setter
         @JsonProperty
         private String jobId;
+
+        @Setter
+        @JsonProperty
+        private Date cancelledTime;
+
+        public void cancel()
+        {
+            this.cancelledTime = new Date();
+            this.status = Status.CANCELLED;
+        }
     }
 
     @Getter

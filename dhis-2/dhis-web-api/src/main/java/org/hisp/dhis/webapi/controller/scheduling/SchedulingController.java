@@ -41,6 +41,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.scheduling.JobProgress.Process;
+import org.hisp.dhis.scheduling.JobProgress.Stage;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.http.HttpStatus;
@@ -127,6 +128,9 @@ public class SchedulingController
         private final Date completedTime;
 
         @JsonProperty
+        private final Date cancelledTime;
+
+        @JsonProperty
         private final String summary;
 
         @JsonProperty
@@ -140,17 +144,18 @@ public class SchedulingController
             this.jobId = process.getJobId();
             this.startedTime = process.getStartedTime();
             this.completedTime = process.getCompletedTime();
+            this.cancelledTime = process.getCancelledTime();
             this.description = process.getDescription();
             this.summary = process.getSummary();
             this.error = process.getError();
-            this.stages = process.getStages().stream().map( stage -> {
-                String summary = stage.getDescription();
-                if ( stage.getTotalItems() > 1 )
-                {
-                    summary += " [" + stage.getItems().size() + "/" + stage.getTotalItems() + "]";
-                }
-                return summary;
-            } ).collect( toList() );
+            this.stages = process.getStages().stream().map( ProcessInfo::getDescription ).collect( toList() );
+        }
+
+        private static String getDescription( Stage stage )
+        {
+            return stage.getTotalItems() > 1
+                ? stage.getDescription() + " [" + stage.getItems().size() + "/" + stage.getTotalItems() + "]"
+                : stage.getDescription();
         }
     }
 }
