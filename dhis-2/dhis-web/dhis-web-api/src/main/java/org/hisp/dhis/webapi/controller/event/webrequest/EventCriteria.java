@@ -39,8 +39,8 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 
@@ -123,8 +123,8 @@ public class EventCriteria extends PagingAndSortingCriteriaAdapter
     public Set<String> getEvents()
     {
         return CollectionUtils.emptyIfNull( TextUtils.splitToArray( event, TextUtils.SEMICOLON ) )
-                .stream()
-                .filter( CodeGenerator::isValidUid )
-                .collect( Collectors.toSet() );
+            .stream()
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toSet() );
     }
 }
