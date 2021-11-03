@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.scheduling;
 
+import java.util.Collection;
 import java.util.Date;
+
+import org.hisp.dhis.scheduling.JobProgress.Process;
 
 /**
  * {@link Job}s are tasks that are supposed to run asynchronously.
@@ -57,11 +60,11 @@ import java.util.Date;
  * a specific point in time.</dd>
  * </dl>
  *
- * @author Henning Håkonsen
+ * @author Henning Håkonsen (initial)
+ * @author Jan Bernitt (overhaul and extension)
  */
 public interface SchedulingManager
 {
-
     /**
      * Schedules a job with the given job configuration.
      *
@@ -104,4 +107,7 @@ public interface SchedulingManager
      */
     boolean executeNow( JobConfiguration configuration );
 
+    Collection<Process> getRunningProgress( JobType type );
+
+    Collection<Process> getLastRunProgress( JobType type );
 }

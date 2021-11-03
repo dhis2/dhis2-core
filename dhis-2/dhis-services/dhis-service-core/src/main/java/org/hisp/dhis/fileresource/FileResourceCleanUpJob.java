@@ -38,6 +38,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -71,7 +72,7 @@ public class FileResourceCleanUpJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         FileResourceRetentionStrategy retentionStrategy = systemSettingManager
             .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.class );

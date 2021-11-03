@@ -51,6 +51,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
@@ -147,7 +148,7 @@ public class FileResourceCleanUpJobTest
 
         dataValueService.deleteDataValue( dataValueA );
 
-        cleanUpJob.execute( null );
+        cleanUpJob.execute( null, NoopJobProgress.INSTANCE );
 
         assertNull( fileResourceService.getFileResource( dataValueA.getValue() ) );
     }
@@ -178,7 +179,7 @@ public class FileResourceCleanUpJobTest
         audit.setCreated( getDate( 2000, 1, 1 ) );
         dataValueAuditStore.updateDataValueAudit( audit );
 
-        cleanUpJob.execute( null );
+        cleanUpJob.execute( null, NoopJobProgress.INSTANCE );
 
         assertNotNull( fileResourceService.getFileResource( dataValueA.getValue() ) );
         assertTrue( fileResourceService.getFileResource( dataValueA.getValue() ).isAssigned() );
@@ -212,7 +213,7 @@ public class FileResourceCleanUpJobTest
         assertNotNull( fileResourceService.getFileResource( uidA ) );
         assertNotNull( fileResourceService.getFileResource( uidB ) );
 
-        cleanUpJob.execute( null );
+        cleanUpJob.execute( null, NoopJobProgress.INSTANCE );
 
         assertNull( fileResourceService.getFileResource( uidA ) );
         assertNotNull( fileResourceService.getFileResource( uidB ) );
@@ -239,7 +240,7 @@ public class FileResourceCleanUpJobTest
         ex.getFileResource().setAssigned( false );
         fileResourceService.updateFileResource( ex.getFileResource() );
 
-        cleanUpJob.execute( null );
+        cleanUpJob.execute( null, NoopJobProgress.INSTANCE );
 
         assertNotNull( externalFileResourceService.getExternalFileResourceByAccessToken( ex.getAccessToken() ) );
         assertNotNull( fileResourceService.getFileResource( uid ) );
@@ -260,7 +261,7 @@ public class FileResourceCleanUpJobTest
         ex.getFileResource().setStorageStatus( FileResourceStorageStatus.PENDING );
         fileResourceService.updateFileResource( ex.getFileResource() );
 
-        cleanUpJob.execute( null );
+        cleanUpJob.execute( null, NoopJobProgress.INSTANCE );
 
         assertNull( externalFileResourceService.getExternalFileResourceByAccessToken( ex.getAccessToken() ) );
         assertNull( fileResourceService.getFileResource( uid ) );

@@ -137,7 +137,7 @@ public class DefaultAnalyticsTableService
         populateTables( params, partitions, progress );
         clock.logTime( "Populated analytics tables" );
 
-        progress.startingStage( "Invoking analytics table hooks" + tableType );
+        progress.startingStage( "Invoking analytics table hooks " + tableType );
         tableUpdates += tableManager.invokeAnalyticsTableSqlHooks();
         clock.logTime( "Invoked analytics table hooks" );
 

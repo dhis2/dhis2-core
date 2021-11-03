@@ -35,7 +35,6 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -162,6 +161,11 @@ public interface JobProgress
 
     default <T> boolean runStageInParallel( int parallelism, Collection<T> items, Consumer<T> work )
     {
+        if ( parallelism <= 1 )
+        {
+            return runStage( items, work );
+        }
+        int cores = Runtime.getRuntime().availableProcessors();
         Callable<Boolean> task = () -> items.parallelStream().map( item -> {
             if ( isCancellationRequested() )
             {
@@ -186,7 +190,9 @@ public interface JobProgress
         {
             // this might not be obvious but running a parallel stream
             // as task in a FJP makes the stream use the pool
-            boolean allSuccessful = pool.submit( task ).get();
+            boolean allSuccessful = parallelism >= cores
+                ? task.call()
+                : pool.submit( task ).get();
             if ( allSuccessful )
             {
                 completedStage( null );
@@ -201,7 +207,7 @@ public interface JobProgress
         {
             Thread.currentThread().interrupt();
         }
-        catch ( ExecutionException ex )
+        catch ( Exception ex )
         {
             failedStage( ex );
         }
@@ -248,8 +254,8 @@ public interface JobProgress
         public long getDurationMillis()
         {
             return completedTime == null
-                ? getStartedTime().getTime() - System.currentTimeMillis()
-                : getStartedTime().getTime() - completedTime.getTime();
+                ? System.currentTimeMillis() - getStartedTime().getTime()
+                : completedTime.getTime() - getStartedTime().getTime();
         }
 
         @JsonProperty
