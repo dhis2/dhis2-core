@@ -53,54 +53,54 @@ public class NoopJobProgress implements JobProgress
     @Override
     public void startingProcess( String description )
     {
-
+        // as the name said we do nothing
     }
 
     @Override
     public void completedProcess( String summary )
     {
-
+        // as the name said we do nothing
     }
 
     @Override
     public void failedProcess( String error )
     {
-
+        // as the name said we do nothing
     }
 
     @Override
     public void startingStage( String description, int workItems )
     {
-
+        // as the name said we do nothing
     }
 
     @Override
     public void completedStage( String summary )
     {
-
+        // as the name said we do nothing
     }
 
     @Override
     public void failedStage( String error )
     {
-
+        // as the name said we do nothing
     }
 
     @Override
     public void startingWorkItem( String description )
     {
-
+        // as the name said we do nothing
     }
 
     @Override
     public void completedWorkItem( String summary )
     {
-
+        // as the name said we do nothing
     }
 
     @Override
     public void failedWorkItem( String error )
     {
-
+        // as the name said we do nothing
     }
 }

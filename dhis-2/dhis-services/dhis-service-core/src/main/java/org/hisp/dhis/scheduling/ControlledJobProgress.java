@@ -39,9 +39,9 @@ import lombok.RequiredArgsConstructor;
  * {@link JobProgress} API. Additional tracking can be done by wrapping another
  * {@link JobProgress} as {@link #tracker}.
  *
- * The implementation is thread-safe and allows for parallel processes, stages
- * and items as long as the same thread that started a process, stage or item is
- * used in a sequential manner.
+ * The implementation does allow for parallel items but would merge parallel
+ * stages or processes. Stages and processes should always be sequential in a
+ * main thread.
  *
  * @author Jan Bernitt
  */
