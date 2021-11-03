@@ -120,7 +120,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( String.format( "Table update start: %s, earliest: %s, parameters: %s",
             tableType.getTableName(), getLongDateString( params.getFromDate() ), params.toString() ) );
         progress.startingStage( "Performing pre-create table work" );
-        tableManager.preCreateTables( params );
+        progress.runStage( () -> tableManager.preCreateTables( params ) );
         clock.logTime( "Performed pre-create table work " + tableType );
 
         progress.startingStage( "Dropping temp tables " + tableType, tables.size() );
@@ -138,7 +138,7 @@ public class DefaultAnalyticsTableService
         clock.logTime( "Populated analytics tables" );
 
         progress.startingStage( "Invoking analytics table hooks " + tableType );
-        tableUpdates += tableManager.invokeAnalyticsTableSqlHooks();
+        tableUpdates += progress.runStage( 0, tableManager::invokeAnalyticsTableSqlHooks );
         clock.logTime( "Invoked analytics table hooks" );
 
         // multi-stage, one for each level started within method...

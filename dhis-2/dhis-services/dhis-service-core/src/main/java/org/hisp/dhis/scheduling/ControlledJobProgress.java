@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 import java.util.Deque;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import lombok.RequiredArgsConstructor;
 
@@ -55,9 +56,9 @@ public class ControlledJobProgress implements JobProgress
 
     private final Deque<Process> processes = new ConcurrentLinkedDeque<>();
 
-    private final ThreadLocal<Process> incompleteProcess = new ThreadLocal<>();
+    private final AtomicReference<Process> incompleteProcess = new AtomicReference<>();
 
-    private final ThreadLocal<Stage> incompleteStage = new ThreadLocal<>();
+    private final AtomicReference<Stage> incompleteStage = new AtomicReference<>();
 
     private final ThreadLocal<Item> incompleteItem = new ThreadLocal<>();
 
@@ -81,8 +82,8 @@ public class ControlledJobProgress implements JobProgress
     public void startingProcess( String description )
     {
         tracker.startingProcess( description );
-        incompleteProcess.remove();
-        incompleteStage.remove();
+        incompleteProcess.set( null );
+        incompleteStage.set( null );
         incompleteItem.remove();
         addProcessRecord( description );
     }

@@ -159,6 +159,29 @@ public interface JobProgress
         return true;
     }
 
+    default boolean runStage( Runnable work )
+    {
+        return runStage( false, () -> {
+            work.run();
+            return true;
+        } );
+    }
+
+    default <T> T runStage( T errorValue, Callable<T> work )
+    {
+        try
+        {
+            T res = work.call();
+            completedStage( null );
+            return res;
+        }
+        catch ( Exception ex )
+        {
+            failedStage( ex );
+            return errorValue;
+        }
+    }
+
     default <T> boolean runStageInParallel( int parallelism, Collection<T> items, Consumer<T> work )
     {
         if ( parallelism <= 1 )
@@ -166,6 +189,8 @@ public interface JobProgress
             return runStage( items, work );
         }
         int cores = Runtime.getRuntime().availableProcessors();
+        boolean useCustomPool = parallelism >= cores;
+
         Callable<Boolean> task = () -> items.parallelStream().map( item -> {
             if ( isCancellationRequested() )
             {
@@ -185,12 +210,12 @@ public interface JobProgress
             }
         } ).reduce( Boolean::logicalAnd ).orElse( false );
 
-        ForkJoinPool pool = new ForkJoinPool( parallelism );
+        ForkJoinPool pool = useCustomPool ? new ForkJoinPool( parallelism ) : null;
         try
         {
             // this might not be obvious but running a parallel stream
             // as task in a FJP makes the stream use the pool
-            boolean allSuccessful = parallelism >= cores
+            boolean allSuccessful = pool == null
                 ? task.call()
                 : pool.submit( task ).get();
             if ( allSuccessful )
@@ -205,6 +230,7 @@ public interface JobProgress
         }
         catch ( InterruptedException ex )
         {
+            failedStage( ex );
             Thread.currentThread().interrupt();
         }
         catch ( Exception ex )
@@ -213,7 +239,10 @@ public interface JobProgress
         }
         finally
         {
-            pool.shutdown();
+            if ( pool != null )
+            {
+                pool.shutdown();
+            }
         }
         return false;
     }
@@ -268,6 +297,7 @@ public interface JobProgress
         {
             this.summary = summary;
             this.status = Status.SUCCESS;
+            this.completedTime = new Date();
         }
 
         public void completeExceptionally( String error, Exception cause )
@@ -275,6 +305,7 @@ public interface JobProgress
             this.error = error;
             this.cause = cause;
             this.status = Status.ERROR;
+            this.completedTime = new Date();
         }
     }
 

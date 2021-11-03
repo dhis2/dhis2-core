@@ -96,7 +96,7 @@ public class DefaultAnalyticsTableGenerator
         {
             if ( !params.isSkipResourceTables() && !params.isLatestUpdate() )
             {
-                generateResourceTables( progress );
+                generateResourceTablesInternal( progress );
             }
 
             for ( AnalyticsTableService service : analyticsTableServices )
