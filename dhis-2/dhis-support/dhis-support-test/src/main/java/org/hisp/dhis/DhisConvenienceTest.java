@@ -87,6 +87,8 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.DefaultLocationManager;
@@ -1316,6 +1318,17 @@ public abstract class DhisConvenienceTest
         visualization.setType( PIVOT_TABLE );
 
         return visualization;
+    }
+
+    public static EventVisualization createEventVisualization( char uniqueCharacter, Program program )
+    {
+        EventVisualization eventVisualization = new EventVisualization();
+        eventVisualization.setAutoFields();
+        eventVisualization.setProgram( program );
+        eventVisualization.setName( "EventVisualization" + uniqueCharacter );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        return eventVisualization;
     }
 
     public static User createUser( char uniqueCharacter )

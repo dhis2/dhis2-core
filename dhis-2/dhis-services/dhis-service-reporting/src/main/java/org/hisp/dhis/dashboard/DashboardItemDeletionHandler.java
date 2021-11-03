@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.system.deletion.DeletionHandler;
@@ -57,6 +58,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     protected void register()
     {
         whenDeleting( Visualization.class, this::deleteVisualization );
+        whenDeleting( EventVisualization.class, this::deleteEventVisualization );
         whenDeleting( EventChart.class, this::deleteEventChart );
         whenDeleting( Map.class, this::deleteMap );
         whenDeleting( EventReport.class, this::deleteEventReport );
@@ -68,6 +70,14 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     private void deleteVisualization( Visualization visualization )
     {
         for ( DashboardItem item : dashboardService.getVisualizationDashboardItems( visualization ) )
+        {
+            dashboardService.deleteDashboardItem( item );
+        }
+    }
+
+    private void deleteEventVisualization( EventVisualization eventVisualization )
+    {
+        for ( DashboardItem item : dashboardService.getEventVisualizationDashboardItems( eventVisualization ) )
         {
             dashboardService.deleteDashboardItem( item );
         }

@@ -91,7 +91,7 @@ public class EventVisualizationDeletionHandler
         {
             if ( eventVisualization.getProgramStage().equals( programStage ) )
             {
-                service.deleteEventVisualization( eventVisualization );
+                service.delete( eventVisualization );
             }
         }
     }
@@ -104,7 +104,7 @@ public class EventVisualizationDeletionHandler
         {
             if ( eventVisualization.getProgram().equals( program ) )
             {
-                service.deleteEventVisualization( eventVisualization );
+                service.delete( eventVisualization );
             }
         }
     }

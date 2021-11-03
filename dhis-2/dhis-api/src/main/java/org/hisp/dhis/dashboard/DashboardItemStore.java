@@ -33,6 +33,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.user.User;
@@ -47,6 +48,8 @@ public interface DashboardItemStore
     Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );
 
     List<DashboardItem> getVisualizationDashboardItems( Visualization visualization );
+
+    List<DashboardItem> getEventVisualizationDashboardItems( EventVisualization eventVisualization );
 
     List<DashboardItem> getEventChartDashboardItems( EventChart eventChart );
 

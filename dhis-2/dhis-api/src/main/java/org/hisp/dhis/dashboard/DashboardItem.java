@@ -41,6 +41,7 @@ import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
@@ -69,6 +70,8 @@ public class DashboardItem
     public static final int MAX_CONTENT = 8;
 
     private Visualization visualization;
+
+    private EventVisualization eventVisualization;
 
     private EventChart eventChart;
 
@@ -128,13 +131,17 @@ public class DashboardItem
         {
             return DashboardItemType.EVENT_CHART;
         }
-        else if ( map != null )
-        {
-            return DashboardItemType.MAP;
-        }
         else if ( eventReport != null )
         {
             return DashboardItemType.EVENT_REPORT;
+        }
+        if ( eventVisualization != null )
+        {
+            return DashboardItemType.EVENT_VISUALIZATION;
+        }
+        else if ( map != null )
+        {
+            return DashboardItemType.MAP;
         }
         else if ( text != null )
         {
@@ -178,13 +185,17 @@ public class DashboardItem
         {
             return eventChart;
         }
-        else if ( map != null )
-        {
-            return map;
-        }
         else if ( eventReport != null )
         {
             return eventReport;
+        }
+        if ( eventVisualization != null )
+        {
+            return eventVisualization;
+        }
+        else if ( map != null )
+        {
+            return map;
         }
 
         return null;
@@ -236,6 +247,7 @@ public class DashboardItem
     {
         int count = 0;
         count += visualization != null ? 1 : 0;
+        count += eventVisualization != null ? 1 : 0;
         count += eventChart != null ? 1 : 0;
         count += map != null ? 1 : 0;
         count += eventReport != null ? 1 : 0;
@@ -302,6 +314,19 @@ public class DashboardItem
     public void setVisualization( Visualization visualization )
     {
         this.visualization = visualization;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public EventVisualization getEventVisualization()
+    {
+        return eventVisualization;
+    }
+
+    public void setEventVisualization( EventVisualization eventVisualization )
+    {
+        this.eventVisualization = eventVisualization;
     }
 
     @JsonProperty

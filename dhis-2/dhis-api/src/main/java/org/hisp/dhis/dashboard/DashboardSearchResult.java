@@ -37,6 +37,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.user.User;
@@ -54,6 +55,8 @@ public class DashboardSearchResult
     private List<User> users = new ArrayList<>();
 
     private List<SimpleVisualizationView> visualizations = new ArrayList<>();
+
+    private List<EventVisualization> eventVisualizations = new ArrayList<>();
 
     private List<EventChart> eventCharts = new ArrayList<>();
 
@@ -84,6 +87,7 @@ public class DashboardSearchResult
     {
         int results = 0;
         results += users.size();
+        results += eventVisualizations.size();
         results += visualizations.size();
         results += eventCharts.size();
         results += maps.size();
@@ -106,6 +110,13 @@ public class DashboardSearchResult
     public int getVisualizationCount()
     {
         return visualizations.size();
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public int getEventVisualizationCount()
+    {
+        return eventVisualizations.size();
     }
 
     @JsonProperty
@@ -180,6 +191,20 @@ public class DashboardSearchResult
     public void setVisualizations( final List<SimpleVisualizationView> visualizations )
     {
         this.visualizations = visualizations;
+    }
+
+    @JsonProperty( value = "eventVisualizations" )
+    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JacksonXmlElementWrapper( localName = "eventVisualizations", namespace = DXF_2_0 )
+    @JacksonXmlProperty( localName = "eventVisualization", namespace = DXF_2_0 )
+    public List<EventVisualization> getEventVisualizations()
+    {
+        return eventVisualizations;
+    }
+
+    public void setEventVisualizations( final List<EventVisualization> eventVisualizations )
+    {
+        this.eventVisualizations = eventVisualizations;
     }
 
     @JsonProperty( value = "eventCharts" )

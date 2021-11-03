@@ -37,15 +37,50 @@ import org.hisp.dhis.common.AnalyticalObjectService;
 public interface EventVisualizationService
     extends AnalyticalObjectService<EventVisualization>
 {
-    long saveEventVisualization( EventVisualization eventVisualization );
+    /**
+     * Saves a EventVisualization.
+     *
+     * @param eventVisualization the EventVisualization to save.
+     * @return the generated identifier.
+     */
+    long save( EventVisualization eventVisualization );
 
-    void updateEventVisualization( EventVisualization eventVisualization );
-
+    /**
+     * Retrieves the EventVisualization with the given id.
+     *
+     * @param id the id of the EventVisualization to retrieve.
+     * @return the EventVisualization.
+     */
     EventVisualization getEventVisualization( long id );
 
+    /**
+     * Retrieves the EventVisualization with the given uid.
+     *
+     * @param uid the uid of the EventVisualization to retrieve.
+     * @return the EventVisualization.
+     */
     EventVisualization getEventVisualization( String uid );
 
-    void deleteEventVisualization( EventVisualization eventVisualization );
+    /**
+     * Deletes a EventVisualization.
+     *
+     * @param eventVisualization the EventVisualization to delete.
+     */
+    void delete( EventVisualization eventVisualization );
 
+    /**
+     * Retrieves the EventVisualization with the given uid. Bypasses the ACL
+     * system.
+     *
+     * @param uid the uid of the EventVisualization to retrieve.
+     * @return the EventVisualization found.
+     */
+    EventVisualization getVisualizationNoAcl( String uid );
+
+    /**
+     * Retrieves all EventVisualizations.
+     *
+     * @return the list of EventVisualization found.
+     */
     List<EventVisualization> getAllEventVisualizations();
 }

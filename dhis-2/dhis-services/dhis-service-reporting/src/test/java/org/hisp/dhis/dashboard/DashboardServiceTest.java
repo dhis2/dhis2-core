@@ -43,6 +43,8 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventchart.EventChartService;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationService;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.visualization.Visualization;
@@ -61,6 +63,9 @@ public class DashboardServiceTest
 
     @Autowired
     private VisualizationService visualizationService;
+
+    @Autowired
+    private EventVisualizationService eventVisualizationService;
 
     @Autowired
     private DocumentService documentService;
@@ -83,9 +88,13 @@ public class DashboardServiceTest
 
     private DashboardItem diD;
 
+    private DashboardItem diE;
+
     private Visualization vzA;
 
     private Visualization vzB;
+
+    private EventVisualization evzB;
 
     private Document dcA;
 
@@ -95,8 +104,13 @@ public class DashboardServiceTest
         vzA = createVisualization( "A" );
         vzB = createVisualization( "B" );
 
+        Program program = createProgram( 'Y', null, null );
+        objectManager.save( program );
+        evzB = createEventVisualization( "A", program );
+
         visualizationService.save( vzA );
         visualizationService.save( vzB );
+        eventVisualizationService.save( evzB );
 
         dcA = new Document( "A", "url", false, null );
         Document dcB = new Document( "B", "url", false, null );
@@ -129,6 +143,10 @@ public class DashboardServiceTest
         diD.getResources().add( dcC );
         diD.getResources().add( dcD );
 
+        diE = new DashboardItem();
+        diE.setAutoFields();
+        diE.setEventVisualization( evzB );
+
         dbA = new Dashboard( "A" );
         dbA.setAutoFields();
         dbA.getItems().add( diA );
@@ -140,6 +158,7 @@ public class DashboardServiceTest
         dbB.setRestrictFilters( true );
         dbB.setAllowedFilters( allowedFilters );
         dbB.getItems().add( diD );
+        dbB.getItems().add( diE );
     }
 
     @Test
@@ -153,7 +172,7 @@ public class DashboardServiceTest
         assertEquals( 2, dbB.getAllowedFilters().size() );
 
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
-        assertEquals( 1, dashboardService.getDashboard( dBId ).getItems().size() );
+        assertEquals( 2, dashboardService.getDashboard( dBId ).getItems().size() );
     }
 
     @Test
@@ -262,7 +281,12 @@ public class DashboardServiceTest
             Visualization visualization = createVisualization( 'A' );
             visualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
             visualizationService.save( visualization );
+        } );
 
+        IntStream.range( 1, 30 ).forEach( i -> {
+            EventVisualization eventVisualization = createEventVisualization( "A", prA );
+            eventVisualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
+            eventVisualizationService.save( eventVisualization );
         } );
 
         IntStream.range( 1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
@@ -282,6 +306,10 @@ public class DashboardServiceTest
         assertThat( result.getVisualizationCount(), is( 29 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
 
+        result = dashboardService.search( Sets.newHashSet( DashboardItemType.EVENT_VISUALIZATION ), 3, 29 );
+
+        assertThat( result.getEventVisualizationCount(), is( 29 ) );
+        assertThat( result.getEventChartCount(), is( 3 ) );
     }
 
     private Visualization createVisualization( String name )
@@ -289,6 +317,13 @@ public class DashboardServiceTest
         Visualization visualization = createVisualization( 'X' );
         visualization.setName( name );
         return visualization;
+    }
+
+    private EventVisualization createEventVisualization( String name, Program program )
+    {
+        EventVisualization eventVisualization = createEventVisualization( 'X', program );
+        eventVisualization.setName( name );
+        return eventVisualization;
     }
 
     private EventChart createEventChart( Program program )

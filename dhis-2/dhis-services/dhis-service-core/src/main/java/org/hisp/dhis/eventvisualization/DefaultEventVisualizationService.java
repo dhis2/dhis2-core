@@ -70,7 +70,7 @@ public class DefaultEventVisualizationService
 
     @Override
     @Transactional
-    public long saveEventVisualization( EventVisualization report )
+    public long save( EventVisualization report )
     {
         eventVisualizationStore.save( report );
         return report.getId();
@@ -78,7 +78,7 @@ public class DefaultEventVisualizationService
 
     @Override
     @Transactional
-    public void updateEventVisualization( EventVisualization report )
+    public void update( EventVisualization report )
     {
         eventVisualizationStore.update( report );
     }
@@ -99,9 +99,15 @@ public class DefaultEventVisualizationService
 
     @Override
     @Transactional
-    public void deleteEventVisualization( EventVisualization report )
+    public void delete( EventVisualization report )
     {
         eventVisualizationStore.delete( report );
+    }
+
+    @Override
+    public EventVisualization getVisualizationNoAcl( String uid )
+    {
+        return eventVisualizationStore.getByUidNoAcl( uid );
     }
 
     @Override
