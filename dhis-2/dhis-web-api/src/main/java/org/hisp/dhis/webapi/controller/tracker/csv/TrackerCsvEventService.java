@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.event.EventStatus;
@@ -146,13 +147,13 @@ public class TrackerCsvEventService
         ParseException
     {
         final CsvSchema csvSchema = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
-            .withLineSeparator( "\n" )
-            .withUseHeader( skipFirst );
+            .withUseHeader( skipFirst )
+            .withColumnReordering( true );
 
         List<Event> events = Lists.newArrayList();
 
         ObjectReader reader = CSV_MAPPER.readerFor( CsvEventDataValue.class )
-            .with( csvSchema.withSkipFirstDataRow( skipFirst ) );
+            .with( csvSchema );
 
         MappingIterator<CsvEventDataValue> iterator = reader.readValues( inputStream );
         Event event = new Event();
@@ -198,15 +199,20 @@ public class TrackerCsvEventService
                 events.add( event );
             }
 
-            DataValue value = new DataValue();
-            value.setStoredBy( dataValue.getStoredBy() );
-            value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-            value.setDataElement( dataValue.getDataElement() );
-            value.setValue( dataValue.getValue() );
-            value.setCreatedAt( DateUtils.instantFromDateAsString( dataValue.getCreatedAtDataValue() ) );
-            value.setUpdatedAt( DateUtils.instantFromDateAsString( dataValue.getUpdatedAtDataValue() ) );
-
-            event.getDataValues().add( value );
+            if ( ObjectUtils.anyNotNull( dataValue.getProvidedElsewhere(),
+                dataValue.getDataElement(), dataValue.getValue(), dataValue.getCreatedAtDataValue(),
+                dataValue.getUpdatedAtDataValue(), dataValue.getStoredByDataValue() ) )
+            {
+                DataValue value = new DataValue();
+                value.setProvidedElsewhere(
+                    dataValue.getProvidedElsewhere() != null && dataValue.getProvidedElsewhere() );
+                value.setDataElement( dataValue.getDataElement() );
+                value.setValue( dataValue.getValue() );
+                value.setCreatedAt( DateUtils.instantFromDateAsString( dataValue.getCreatedAtDataValue() ) );
+                value.setUpdatedAt( DateUtils.instantFromDateAsString( dataValue.getUpdatedAtDataValue() ) );
+                value.setStoredBy( dataValue.getStoredByDataValue() );
+                event.getDataValues().add( value );
+            }
         }
 
         return events;

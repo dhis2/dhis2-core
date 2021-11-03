@@ -45,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "orgUnitName",
     "occurredAt",
     "scheduledAt",
+    "geometry",
     "latitude",
     "longitude",
     "followup",
@@ -63,9 +64,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
     "value",
     "storedBy",
     "providedElsewhere",
-    "completedAt",
-    "completedBy",
-    "geometry"
+    "storedByDataValue",
+    "createAtDataValue",
+    "updatedAtDataValue"
 } )
 public class CsvEventDataValue
 {
@@ -105,6 +106,8 @@ public class CsvEventDataValue
 
     private String updatedBy;
 
+    private String geometry;
+
     private Double latitude;
 
     private Double longitude;
@@ -127,7 +130,7 @@ public class CsvEventDataValue
 
     private String updatedAtDataValue;
 
-    private String geometry;
+    private String storedByDataValue;
 
     public CsvEventDataValue()
     {
@@ -153,6 +156,7 @@ public class CsvEventDataValue
         completedBy = dataValue.getCompletedBy();
         completedAt = dataValue.getCompletedAt();
         updatedBy = dataValue.getUpdatedBy();
+        geometry = dataValue.getGeometry();
         latitude = dataValue.getLatitude();
         longitude = dataValue.getLongitude();
         dataElement = dataValue.getDataElement();
@@ -161,7 +165,7 @@ public class CsvEventDataValue
         providedElsewhere = dataValue.getProvidedElsewhere();
         createdAtDataValue = dataValue.getCreatedAtDataValue();
         updatedAtDataValue = dataValue.getUpdatedAtDataValue();
-        geometry = dataValue.getGeometry();
+        storedByDataValue = dataValue.getStoredByDataValue();
     }
 
     @JsonProperty
@@ -493,5 +497,16 @@ public class CsvEventDataValue
     public void setUpdatedAtDataValue( String updatedAtDataValue )
     {
         this.updatedAtDataValue = updatedAtDataValue;
+    }
+
+    @JsonProperty
+    public String getStoredByDataValue()
+    {
+        return storedByDataValue;
+    }
+
+    public void setStoredByDataValue( String storedByDataValue )
+    {
+        this.storedByDataValue = storedByDataValue;
     }
 }
