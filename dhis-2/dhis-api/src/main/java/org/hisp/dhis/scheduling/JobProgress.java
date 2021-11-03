@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static java.util.stream.StreamSupport.stream;
-
 import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
@@ -37,11 +35,13 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -113,35 +113,32 @@ public interface JobProgress
      * Running work items within a stage
      */
 
-    default boolean runStage( Iterable<Runnable> items )
+    default boolean runStage( Collection<Runnable> items )
     {
-        return runStage( stream( items.spliterator(), false ) );
+        return runStage( items, item -> null, Runnable::run );
     }
 
-    default <T> boolean runStage( Collection<T> items, Consumer<T> work )
+    default <T> boolean runStage( Collection<T> items, Function<T, String> description, Consumer<T> work )
     {
-        return runStage( items.stream(), work );
+        return runStage( items.stream(), description, work );
     }
 
-    default <T> boolean runStage( Stream<T> items, Consumer<T> work )
-    {
-        return runStage( items.map( item -> () -> work.accept( item ) ) );
-    }
-
-    default boolean runStage( Stream<Runnable> items )
+    default <T> boolean runStage( Stream<T> items, Function<T, String> description, Consumer<T> work )
     {
         int i = 0;
-        for ( Iterator<Runnable> it = items.iterator(); it.hasNext(); )
+        for ( Iterator<T> it = items.iterator(); it.hasNext(); )
         {
-            Runnable item = it.next();
+            T item = it.next();
             if ( isCancellationRequested() )
             {
                 return false; // ends the stage immediately
             }
-            startingWorkItem( i++ );
+            String desc = description.apply( item );
+            startingWorkItem( desc != null ? desc : String.valueOf( i ) );
+            i++;
             try
             {
-                item.run();
+                work.accept( item );
                 completedWorkItem( null );
             }
             catch ( RuntimeException ex )
@@ -182,11 +179,12 @@ public interface JobProgress
         }
     }
 
-    default <T> boolean runStageInParallel( int parallelism, Collection<T> items, Consumer<T> work )
+    default <T> boolean runStageInParallel( int parallelism, Collection<T> items, Function<T, String> description,
+        Consumer<T> work )
     {
         if ( parallelism <= 1 )
         {
-            return runStage( items, work );
+            return runStage( items, description, work );
         }
         int cores = Runtime.getRuntime().availableProcessors();
         boolean useCustomPool = parallelism >= cores;
@@ -196,7 +194,7 @@ public interface JobProgress
             {
                 return false;
             }
-            startingWorkItem( null );
+            startingWorkItem( description.apply( item ) );
             try
             {
                 work.accept( item );
@@ -267,7 +265,6 @@ public interface JobProgress
         @JsonProperty
         private String summary;
 
-        @JsonProperty
         private Exception cause;
 
         @JsonProperty
@@ -320,6 +317,10 @@ public interface JobProgress
 
         @JsonProperty
         private final Deque<Stage> stages = new ConcurrentLinkedDeque<>();
+
+        @Setter
+        @JsonProperty
+        private String jobId;
     }
 
     @Getter

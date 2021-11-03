@@ -48,6 +48,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ControlledJobProgress implements JobProgress
 {
+    private final JobConfiguration configuration;
+
     private final JobProgress tracker;
 
     private final boolean cancelOnFailure;
@@ -190,6 +192,10 @@ public class ControlledJobProgress implements JobProgress
     private Process addProcessRecord( String description )
     {
         Process process = new Process( description );
+        if ( configuration != null )
+        {
+            process.setJobId( configuration.getUid() );
+        }
         incompleteProcess.set( process );
         processes.add( process );
         return process;

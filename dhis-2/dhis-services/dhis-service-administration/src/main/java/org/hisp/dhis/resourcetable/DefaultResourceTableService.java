@@ -216,7 +216,7 @@ public class DefaultResourceTableService
             .collect( toList() );
 
         progress.startingStage( "Create SQL views", nonQueryViews.size() );
-        progress.runStage( nonQueryViews, view -> {
+        progress.runStage( nonQueryViews, SqlView::getViewName, view -> {
             try
             {
                 sqlViewService.createViewTable( view );
@@ -237,6 +237,6 @@ public class DefaultResourceTableService
             .sorted( reverseOrder() )
             .collect( toList() );
         progress.startingStage( "Drop SQL views", nonQueryViews.size() );
-        progress.runStage( nonQueryViews, sqlViewService::deleteSqlView );
+        progress.runStage( nonQueryViews, SqlView::getViewName, sqlViewService::deleteSqlView );
     }
 }

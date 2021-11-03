@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.Collection;
 import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObjects;
@@ -43,8 +42,6 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
@@ -54,7 +51,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -111,17 +107,6 @@ public class JobConfigurationController
         }
 
         return objectReport;
-    }
-
-    @GetMapping( value = "progress", produces = APPLICATION_JSON_VALUE )
-    @ResponseBody
-    public Collection<JobProgress.Process> getProgress( @RequestParam( "type" ) String type,
-        @RequestParam( value = "historic", defaultValue = "false", required = false ) boolean historic )
-    {
-        JobType jobType = JobType.valueOf( type.toUpperCase() );
-        return historic
-            ? schedulingManager.getLastRunProgress( jobType )
-            : schedulingManager.getRunningProgress( jobType );
     }
 
     @Override

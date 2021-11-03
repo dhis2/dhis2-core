@@ -107,7 +107,13 @@ public interface SchedulingManager
      */
     boolean executeNow( JobConfiguration configuration );
 
+    void cancel( JobType type );
+
+    Collection<JobType> getRunningTypes();
+
+    Collection<JobType> getCompletedTypes();
+
     Collection<Process> getRunningProgress( JobType type );
 
-    Collection<Process> getLastRunProgress( JobType type );
+    Collection<Process> getCompletedProgress( JobType type );
 }

@@ -202,7 +202,7 @@ public class DefaultAnalyticsTableService
      */
     private void dropTempTables( List<AnalyticsTable> tables, JobProgress progress )
     {
-        progress.runStage( tables, tableManager::dropTempTable );
+        progress.runStage( tables, AnalyticsTable::getTableName, tableManager::dropTempTable );
     }
 
     /**
@@ -210,7 +210,7 @@ public class DefaultAnalyticsTableService
      */
     private void createTables( List<AnalyticsTable> tables, JobProgress progress )
     {
-        progress.runStage( tables, tableManager::createTable );
+        progress.runStage( tables, AnalyticsTable::getTableName, tableManager::createTable );
     }
 
     /**
@@ -222,7 +222,7 @@ public class DefaultAnalyticsTableService
         int parallelism = Math.min( getProcessNo(), partitions.size() );
         log.info( "Populate table task number: " + parallelism );
 
-        progress.runStageInParallel( parallelism, partitions,
+        progress.runStageInParallel( parallelism, partitions, AnalyticsTablePartition::getTableName,
             partition -> tableManager.populateTablePartition( params, partition ) );
     }
 
@@ -248,7 +248,7 @@ public class DefaultAnalyticsTableService
             if ( !dataElements.isEmpty() )
             {
                 progress.startingStage( "Applying aggregation level " + level + " " + tableType, partitions.size() );
-                progress.runStageInParallel( getProcessNo(), partitions,
+                progress.runStageInParallel( getProcessNo(), partitions, AnalyticsTablePartition::getTableName,
                     partition -> tableManager.applyAggregationLevels( partition, dataElements, level ) );
 
                 aggLevels += dataElements.size();
@@ -262,7 +262,8 @@ public class DefaultAnalyticsTableService
      */
     private void vacuumTables( List<AnalyticsTablePartition> partitions, JobProgress progress )
     {
-        progress.runStageInParallel( getProcessNo(), partitions, tableManager::vacuumTables );
+        progress.runStageInParallel( getProcessNo(), partitions, AnalyticsTablePartition::getTableName,
+            tableManager::vacuumTables );
     }
 
     /**
@@ -270,8 +271,11 @@ public class DefaultAnalyticsTableService
      */
     private void createIndexes( List<AnalyticsIndex> indexes, JobProgress progress )
     {
+        AnalyticsTableType type = getAnalyticsTableType();
         log.info( "No of analytics table indexes: " + indexes.size() );
-        progress.runStageInParallel( getProcessNo(), indexes, tableManager::createIndex );
+        progress.runStageInParallel( getProcessNo(), indexes,
+            index -> index.getIndexName( type ).replace( "\"", "" ),
+            tableManager::createIndex );
     }
 
     /**
@@ -307,7 +311,8 @@ public class DefaultAnalyticsTableService
      */
     private void analyzeTables( List<AnalyticsTablePartition> partitions, JobProgress progress )
     {
-        progress.runStage( partitions, table -> tableManager.analyzeTable( table.getTempTableName() ) );
+        progress.runStage( partitions, AnalyticsTablePartition::getTableName,
+            table -> tableManager.analyzeTable( table.getTempTableName() ) );
     }
 
     /**
@@ -321,7 +326,7 @@ public class DefaultAnalyticsTableService
         resourceTableService.dropAllSqlViews( progress );
 
         progress.startingStage( "Swapping analytics tables " + getAnalyticsTableType(), tables.size() );
-        progress.runStage( tables, table -> tableManager.swapTable( params, table ) );
+        progress.runStage( tables, AnalyticsTable::getTableName, table -> tableManager.swapTable( params, table ) );
 
         resourceTableService.createAllSqlViews( progress );
     }

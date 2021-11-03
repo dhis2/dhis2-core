@@ -28,6 +28,8 @@
 package org.hisp.dhis.scheduling;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
 import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
@@ -83,7 +85,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
      */
     private final Map<JobType, ControlledJobProgress> runningJobProgress = new ConcurrentHashMap<>();
 
-    private final Map<JobType, ControlledJobProgress> lastRunJobProgress = new ConcurrentHashMap<>();
+    private final Map<JobType, ControlledJobProgress> completedJobProgress = new ConcurrentHashMap<>();
 
     /**
      * Check if this job configuration is currently running
@@ -97,17 +99,39 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
     }
 
     @Override
-    public Collection<Process> getRunningProgress( JobType type )
+    public Collection<JobType> getRunningTypes()
     {
-        ControlledJobProgress progress = runningJobProgress.get( type );
-        return progress == null ? emptyList() : progress.getProcesses();
+        return unmodifiableSet( runningJobProgress.keySet() );
     }
 
     @Override
-    public Collection<Process> getLastRunProgress( JobType type )
+    public Collection<JobType> getCompletedTypes()
     {
-        ControlledJobProgress progress = lastRunJobProgress.get( type );
-        return progress == null ? emptyList() : progress.getProcesses();
+        return unmodifiableSet( completedJobProgress.keySet() );
+    }
+
+    @Override
+    public Collection<Process> getRunningProgress( JobType type )
+    {
+        ControlledJobProgress progress = runningJobProgress.get( type );
+        return progress == null ? emptyList() : unmodifiableCollection( progress.getProcesses() );
+    }
+
+    @Override
+    public Collection<Process> getCompletedProgress( JobType type )
+    {
+        ControlledJobProgress progress = completedJobProgress.get( type );
+        return progress == null ? emptyList() : unmodifiableCollection( progress.getProcesses() );
+    }
+
+    @Override
+    public void cancel( JobType type )
+    {
+        ControlledJobProgress progress = runningJobProgress.get( type );
+        if ( progress != null )
+        {
+            progress.requestCancellation();
+        }
     }
 
     protected final void execute( String jobId )
@@ -163,7 +187,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
         finally
         {
-            lastRunJobProgress.put( type, runningJobProgress.remove( type ) );
+            completedJobProgress.put( type, runningJobProgress.remove( type ) );
 
             whenRunIsDone( configuration, clock );
         }
@@ -174,7 +198,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         JobProgress tracker = configuration.getJobType().isUsingNotifications()
             ? new NotifierJobProgress( notifier, configuration )
             : NoopJobProgress.INSTANCE;
-        return new ControlledJobProgress( tracker, true );
+        return new ControlledJobProgress( configuration, tracker, true );
     }
 
     private void whenRunIsDone( JobConfiguration configuration, Clock clock )
