@@ -158,13 +158,13 @@ public class TrackerEventsExportController
         }
 
         OutputStream outputStream = response.getOutputStream();
-        response.setContentType( "application/csv" );
+        response.setContentType( CONTENT_TYPE_CSV );
 
         if ( ContextUtils.isAcceptCsvGzip( request ) )
         {
             response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
             outputStream = new GZIPOutputStream( outputStream );
-            response.setContentType( "application/csv+gzip" );
+            response.setContentType( CONTENT_TYPE_CSV_GZIP );
         }
 
         csvEventService.writeEvents( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
