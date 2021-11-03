@@ -41,6 +41,7 @@ import java.util.HashSet;
 import org.apache.commons.lang.time.DateUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryOperator;
@@ -109,6 +110,14 @@ public class TrackedEntityCriteriaMapperTest
 
     private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
 
+    private String userId1;
+
+    private String userId2;
+
+    private String userId3;
+
+    private String userIds;
+
     @Override
     public void setUpTest()
     {
@@ -128,6 +137,12 @@ public class TrackedEntityCriteriaMapperTest
         attributeService.addTrackedEntityAttribute( attrE );
         attributeService.addTrackedEntityAttribute( filtF );
         attributeService.addTrackedEntityAttribute( filtG );
+
+        userId1 = CodeGenerator.generateUid();
+        userId2 = CodeGenerator.generateUid();
+        userId3 = "user-3";
+
+        userIds = userId1 + ";" + userId2 + ";" + userId3;
 
         // mock user
         super.userService = this.userService;
@@ -161,7 +176,7 @@ public class TrackedEntityCriteriaMapperTest
         criteria.setEventStartDate( getDate( 2019, 7, 7 ) );
         criteria.setEventEndDate( getDate( 2020, 7, 7 ) );
         criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
-        criteria.setAssignedUser( "user-1;user-2" );
+        criteria.setAssignedUser( userIds );
         criteria.setSkipMeta( true );
         criteria.setPage( 1 );
         criteria.setPageSize( 50 );
@@ -213,8 +228,9 @@ public class TrackedEntityCriteriaMapperTest
         assertThat( queryParams.getEventStartDate(), is( criteria.getEventStartDate() ) );
         assertThat( queryParams.getEventEndDate(), is( criteria.getEventEndDate() ) );
         assertThat( queryParams.getAssignedUserSelectionMode(), is( AssignedUserSelectionMode.PROVIDED ) );
-        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( "user-1" ) ) );
-        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( "user-2" ) ) );
+        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId1 ) ) );
+        assertTrue( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId2 ) ) );
+        assertThat( queryParams.getAssignedUsers().stream().anyMatch( u -> u.equals( userId3 ) ), is( false ) );
 
         assertThat( queryParams.isIncludeDeleted(), is( true ) );
         assertThat( queryParams.isIncludeAllAttributes(), is( true ) );
@@ -301,7 +317,7 @@ public class TrackedEntityCriteriaMapperTest
     public void testGetFromUrlFailOnNonProvidedAndAssignedUsers()
     {
         TrackedEntityInstanceCriteria criteria = new TrackedEntityInstanceCriteria();
-        criteria.setAssignedUser( "user-1;user-2" );
+        criteria.setAssignedUser( userIds );
         criteria.setAssignedUserMode( AssignedUserSelectionMode.CURRENT );
 
         IllegalQueryException e = assertThrows( IllegalQueryException.class,

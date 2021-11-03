@@ -46,6 +46,7 @@ import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -181,6 +182,7 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
+    @SuppressWarnings( "unchecked" )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params )
     {
         String sql = getQuery( params, false );
@@ -197,6 +199,13 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return ids;
+    }
+
+    private String encodeAndQuote( Collection<String> elements )
+    {
+        return getQuotedCommaDelimitedString( elements.stream()
+            .map( element -> statementBuilder.encode( element, false ) )
+            .collect( Collectors.toList() ) );
     }
 
     @Override
@@ -304,22 +313,22 @@ public class HibernateTrackedEntityInstanceStore
      * Generates SQL based on "params". The purpose of the SQL is to retrieve a
      * list of tracked entity instances, and additionally any requested
      * attributes (If defined in params).
-     *
+     * <p>
      * The params are validated before we generate the SQL, so the only
      * access-related SQL is the inner join o organisation units.
-     *
+     * <p>
      * The general structure of the query is as follows:
-     *
+     * <p>
      * select (main_projection) from (constraint_subquery) left join
      * (additional_information) group by (main_groupby) order by (order)
-     *
+     * <p>
      * The constraint_subquery looks as follows:
-     *
+     * <p>
      * select (subquery_projection) from (tracked entity instances) inner join
      * (attribute_constraints) [inner join (program_owner)] inner join
      * (organisation units) left join (attribute_orderby) where
      * exist(program_constraint) order by (order) limit (limit_offset)
-     *
+     * <p>
      * main_projection: Will have an aggregate string of attributevalues
      * (uid:value) as well as basic tei-info. constraint_subquery: Includes all
      * SQL related to narrowing down the number of tei's we are looking for. We
@@ -361,7 +370,6 @@ public class HibernateTrackedEntityInstanceStore
      * etc. We left join, since we don't want to reduce the results, just add
      * information. main_groupby: The purpose of this group by, is to aggregate
      * any attributes added in additional_information
-     *
      *
      * @param params params defining the query
      * @return SQL string
@@ -565,7 +573,7 @@ public class HibernateTrackedEntityInstanceStore
             trackedEntity
                 .append( whereAnd.whereAnd() )
                 .append( "TEI.uid IN (" )
-                .append( getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) )
+                .append( encodeAndQuote( params.getTrackedEntityInstanceUids() ) )
                 .append( ") " );
         }
 
@@ -961,7 +969,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( "SELECT userinfoid AS userid " )
                 .append( "FROM userinfo " )
                 .append( "WHERE uid IN (" )
-                .append( getQuotedCommaDelimitedString( params.getAssignedUsers() ) )
+                .append( encodeAndQuote( params.getAssignedUsers() ) )
                 .append( ") " )
                 .append( ") AU ON AU.userid = PSI.assigneduserid" );
         }
@@ -1305,20 +1313,20 @@ public class HibernateTrackedEntityInstanceStore
      * Generates the LIMIT and OFFSET part of the subquery. The limit is decided
      * by several factors: 1. maxteilimit in a TET or Program 2. PageSize and
      * Offset 3. No paging
-     *
+     * <p>
      * If maxteilimit is not 0, it means this is the hard limit of the number of
      * results. In the case where there exists more results than maxteilimit, we
      * should return an error to the user (This prevents snooping outside the
      * users capture scope to some degree). 0 means no maxteilimit, or it's not
      * applicable.
-     *
+     * <p>
      * If we have maxteilimit and paging on, we set the limit to maxteilimit.
-     *
+     * <p>
      * If we dont have maxteilimit, and paging on, we set normal paging
      * parameters
-     *
+     * <p>
      * If neither maxteilimit or paging is set, we have no limit.
-     *
+     * <p>
      * The limit is set in the subquery, so the latter joins have fewer rows to
      * consider.
      *
@@ -1367,7 +1375,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( LIMIT )
                 .append( SPACE )
                 .append( limit + 1 ) // We add +1, since we use this limit to
-                                     // restrict a user to search to wide.
+                // restrict a user to search to wide.
                 .append( SPACE )
                 .toString();
         }
