@@ -53,7 +53,6 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
  */
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore" )
 public class HibernateTrackedEntityInstanceAuditStore
