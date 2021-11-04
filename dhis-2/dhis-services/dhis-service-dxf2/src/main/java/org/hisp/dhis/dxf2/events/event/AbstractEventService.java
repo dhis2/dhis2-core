@@ -1193,8 +1193,8 @@ public abstract class AbstractEventService
         else
         {
             events = events.stream()
-                    .filter( CodeGenerator::isValidUid )
-                    .collect( Collectors.toSet() );
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
         }
 
         if ( filters != null )
