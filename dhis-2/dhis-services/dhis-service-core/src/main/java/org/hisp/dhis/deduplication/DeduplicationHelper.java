@@ -228,6 +228,8 @@ public class DeduplicationHelper
     }
 
     public MergeObject generateMergeObject( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+        throws PotentialDuplicateForbiddenException,
+        PotentialDuplicateConflictException
     {
         if ( !duplicate.getTrackedEntityType().equals( original.getTrackedEntityType() ) )
         {
@@ -293,6 +295,7 @@ public class DeduplicationHelper
     }
 
     private List<String> getMergeableAttributes( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+        throws PotentialDuplicateConflictException
     {
         Map<String, String> existingTeavs = original.getTrackedEntityAttributeValues().stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), TrackedEntityAttributeValue::getValue ) );
@@ -372,6 +375,7 @@ public class DeduplicationHelper
     }
 
     private List<String> getMergeableEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+        throws PotentialDuplicateConflictException
     {
         List<String> enrollments = new ArrayList<>();
 
