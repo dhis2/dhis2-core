@@ -27,7 +27,7 @@ pipeline {
             steps {
                 echo 'Building DHIS2 ...'
                 script {
-                    withMaven(options: [artifactsPublisher(disabled: true)]) {
+                    withMaven {
                         sh 'mvn -X -T 4 clean install -f dhis-2/pom-full.xml -Pjdk8 --update-snapshots'
                     }
                 }
