@@ -28,6 +28,7 @@
 package org.hisp.dhis.scheduling;
 
 import java.util.Deque;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -104,21 +105,31 @@ public class ControlledJobProgress implements JobProgress
     public void failedProcess( String error )
     {
         tracker.failedProcess( error );
-        possiblyRequestCancellation();
-        getOrAddLastIncompleteProcess().completeExceptionally( error, null );
+        if ( processes.getLast().getStatus() != Status.CANCELLED )
+        {
+            possiblyRequestCancellation();
+            getOrAddLastIncompleteProcess().completeExceptionally( error, null );
+        }
     }
 
     @Override
     public void failedProcess( Exception cause )
     {
         tracker.failedProcess( cause );
-        possiblyRequestCancellation();
-        getOrAddLastIncompleteProcess().completeExceptionally( cause.getMessage(), cause );
+        if ( processes.getLast().getStatus() != Status.CANCELLED )
+        {
+            possiblyRequestCancellation();
+            getOrAddLastIncompleteProcess().completeExceptionally( cause.getMessage(), cause );
+        }
     }
 
     @Override
     public void startingStage( String description, int workItems )
     {
+        if ( isCancellationRequested() )
+        {
+            throw new CancellationException();
+        }
         tracker.startingStage( description, workItems );
         addStageRecord( getOrAddLastIncompleteProcess(), description, workItems );
     }

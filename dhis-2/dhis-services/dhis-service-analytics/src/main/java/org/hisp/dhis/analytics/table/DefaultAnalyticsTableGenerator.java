@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static java.util.Arrays.asList;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -173,17 +174,23 @@ public class DefaultAnalyticsTableGenerator
     {
         resourceTableService.dropAllSqlViews( progress );
 
-        List<Runnable> generators = asList(
-            resourceTableService::generateOrganisationUnitStructures,
-            resourceTableService::generateDataSetOrganisationUnitCategoryTable,
-            resourceTableService::generateCategoryOptionComboNames,
-            resourceTableService::generateDataElementGroupSetTable,
-            resourceTableService::generateIndicatorGroupSetTable,
-            resourceTableService::generateOrganisationUnitGroupSetTable,
-            resourceTableService::generateCategoryTable,
-            resourceTableService::generateDataElementTable,
-            resourceTableService::generatePeriodTable,
-            resourceTableService::generateDatePeriodTable,
+        Map<String, Runnable> generators = new LinkedHashMap<>();
+        generators.put( "generating OrganisationUnit structures",
+            resourceTableService::generateOrganisationUnitStructures );
+        generators.put( "generating DataSetOrganisationUnitCategory table",
+            resourceTableService::generateDataSetOrganisationUnitCategoryTable );
+        generators.put( "generating CategoryOptionCombo names",
+            resourceTableService::generateCategoryOptionComboNames );
+        generators.put( "generating DataElementGroupSet table",
+            resourceTableService::generateDataElementGroupSetTable );
+        generators.put( "generating IndicatorGroupSet table", resourceTableService::generateIndicatorGroupSetTable );
+        generators.put( "generating OrganisationUnitGroupSet table",
+            resourceTableService::generateOrganisationUnitGroupSetTable );
+        generators.put( "generating Category table", resourceTableService::generateCategoryTable );
+        generators.put( "generating  DataElement table", resourceTableService::generateDataElementTable );
+        generators.put( "generating Period table", resourceTableService::generatePeriodTable );
+        generators.put( "generating DatePeriod table", resourceTableService::generateDatePeriodTable );
+        generators.put( "generating  CategoryOptionCombo table",
             resourceTableService::generateCategoryOptionComboTable );
         progress.startingStage( "Generating resource tables", generators.size() );
         progress.runStage( generators );

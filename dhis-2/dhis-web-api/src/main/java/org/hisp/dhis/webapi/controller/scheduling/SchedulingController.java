@@ -42,6 +42,7 @@ import lombok.Getter;
 
 import org.hisp.dhis.scheduling.JobProgress.Process;
 import org.hisp.dhis.scheduling.JobProgress.Stage;
+import org.hisp.dhis.scheduling.JobProgress.Status;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.http.HttpStatus;
@@ -119,6 +120,9 @@ public class SchedulingController
         private final String jobId;
 
         @JsonProperty
+        private final Status status;
+
+        @JsonProperty
         private final String description;
 
         @JsonProperty
@@ -142,6 +146,7 @@ public class SchedulingController
         ProcessInfo( Process process )
         {
             this.jobId = process.getJobId();
+            this.status = process.getStatus();
             this.startedTime = process.getStartedTime();
             this.completedTime = process.getCompletedTime();
             this.cancelledTime = process.getCancelledTime();

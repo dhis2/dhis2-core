@@ -28,12 +28,16 @@
 package org.hisp.dhis.scheduling;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiFunction;
@@ -128,7 +132,8 @@ public interface JobProgress
 
     default void failedProcess( Exception cause )
     {
-        failedProcess( "Process failed: " + cause.getMessage() );
+        String message = cause.getMessage();
+        failedProcess( "Process failed: " + (isNotEmpty( message ) ? message : cause.getClass().getSimpleName()) );
     }
 
     /**
@@ -136,8 +141,11 @@ public interface JobProgress
      *
      * @param description describes the work done
      * @param workItems number of work items in the stage, -1 if unknown
+     * @throws CancellationException in case cancellation has been requested
+     *         before this stage had started
      */
-    void startingStage( String description, int workItems );
+    void startingStage( String description, int workItems )
+        throws CancellationException;
 
     default void startingStage( String description )
     {
@@ -184,6 +192,11 @@ public interface JobProgress
     default boolean runStage( Collection<Runnable> items )
     {
         return runStage( items, item -> null, Runnable::run );
+    }
+
+    default boolean runStage( Map<String, Runnable> items )
+    {
+        return runStage( items.entrySet(), Entry::getKey, entry -> entry.getValue().run() );
     }
 
     /**
@@ -241,8 +254,8 @@ public interface JobProgress
             T item = it.next();
             if ( isCancellationRequested() )
             {
-                failedStage(
-                    format( "cancelled after %d successful and %d failed items", i - failed, failed ) );
+                failedStage( new CancellationException(
+                    format( "cancelled after %d successful and %d failed items", i - failed, failed ) ) );
                 return false; // ends the stage immediately
             }
             String desc = description.apply( item );
@@ -267,7 +280,8 @@ public interface JobProgress
                 failedWorkItem( ex );
                 if ( !cancellationRequestedBefore && isCancellationRequested() )
                 {
-                    failedStage( ex );
+                    failedStage(
+                        new CancellationException( "cancelled as failing item caused request for cancellation" ) );
                     return false;
                 }
             }
@@ -384,6 +398,10 @@ public interface JobProgress
             {
                 completedStage( null );
             }
+            else if ( isCancellationRequested() )
+            {
+                failedStage( new CancellationException( "cancelled parallel processing" ) );
+            }
             else
             {
                 failedStage( (String) null );
@@ -442,7 +460,7 @@ public interface JobProgress
         public abstract Date getStartedTime();
 
         @JsonProperty
-        public long getDurationMillis()
+        public long getDuration()
         {
             return completedTime == null
                 ? System.currentTimeMillis() - getStartedTime().getTime()
@@ -466,7 +484,7 @@ public interface JobProgress
         {
             this.error = error;
             this.cause = cause;
-            this.status = Status.ERROR;
+            this.status = cause instanceof CancellationException ? Status.CANCELLED : Status.ERROR;
             this.completedTime = new Date();
         }
     }
@@ -487,7 +505,6 @@ public interface JobProgress
         @JsonProperty
         private String jobId;
 
-        @Setter
         @JsonProperty
         private Date cancelledTime;
 
