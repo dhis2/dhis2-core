@@ -77,6 +77,7 @@ public class DefaultDeduplicationService
     @Override
     @Transactional( readOnly = true )
     public boolean exists( PotentialDuplicate potentialDuplicate )
+        throws PotentialDuplicateConflictException
     {
         return potentialDuplicateStore.exists( potentialDuplicate );
     }
@@ -107,11 +108,16 @@ public class DefaultDeduplicationService
     @Override
     @Transactional
     public void autoMerge( DeduplicationMergeParams params )
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         String autoMergeConflicts = getAutoMergeConflictErrors( params.getOriginal(), params.getDuplicate() );
+
         if ( autoMergeConflicts != null )
+        {
             throw new PotentialDuplicateConflictException(
                 "PotentialDuplicate can not be merged automatically: " + autoMergeConflicts );
+        }
 
         params.setMergeObject( deduplicationHelper.generateMergeObject( params.getOriginal(), params.getDuplicate() ) );
 
@@ -121,6 +127,9 @@ public class DefaultDeduplicationService
     @Override
     @Transactional
     public void manualMerge( DeduplicationMergeParams deduplicationMergeParams )
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
+
     {
         String invalidReference = deduplicationHelper.getInvalidReferenceErrors( deduplicationMergeParams );
         if ( invalidReference != null )
@@ -163,15 +172,19 @@ public class DefaultDeduplicationService
     }
 
     private void merge( DeduplicationMergeParams params )
+        throws PotentialDuplicateForbiddenException
     {
         TrackedEntityInstance original = params.getOriginal();
         TrackedEntityInstance duplicate = params.getDuplicate();
         MergeObject mergeObject = params.getMergeObject();
 
         String accessError = deduplicationHelper.getUserAccessErrors( original, duplicate, mergeObject );
+
         if ( accessError != null )
+        {
             throw new PotentialDuplicateForbiddenException(
                 "Insufficient access: " + accessError );
+        }
 
         potentialDuplicateStore.moveTrackedEntityAttributeValues( original, duplicate,
             mergeObject.getTrackedEntityAttributes() );
