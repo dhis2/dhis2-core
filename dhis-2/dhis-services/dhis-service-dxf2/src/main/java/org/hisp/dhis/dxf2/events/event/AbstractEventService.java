@@ -1193,8 +1193,8 @@ public abstract class AbstractEventService
         else
         {
             events = events.stream()
-                    .filter( CodeGenerator::isValidUid )
-                    .collect( Collectors.toSet() );
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
         }
 
         if ( filters != null )
@@ -1541,7 +1541,7 @@ public abstract class AbstractEventService
             eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
         }
 
-        sendProgramNotification( programStageInstance, importOptions, false );
+        sendProgramNotification( programStageInstance, importOptions, isLinkedWithRuleVariable );
 
         if ( !importOptions.isSkipLastUpdated() )
         {
@@ -2002,6 +2002,11 @@ public abstract class AbstractEventService
 
         boolean isLinkedWithRuleVariable = isDataElementLinked( event, program );
 
+        if ( !importOptions.isSkipNotifications() && isLinkedWithRuleVariable )
+        {
+            eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
+        }
+
         sendProgramNotification( programStageInstance, importOptions, isLinkedWithRuleVariable );
 
         if ( importSummary.getConflicts().size() > 0 )
@@ -2019,23 +2024,23 @@ public abstract class AbstractEventService
     }
 
     private void sendProgramNotification( ProgramStageInstance programStageInstance, ImportOptions importOptions,
-        boolean isLinkedWithRuleVariable )
+        boolean isLinkedToProgramRules )
     {
         if ( !importOptions.isSkipNotifications() )
         {
-            if ( isLinkedWithRuleVariable )
-            {
-                eventPublisher.publishEvent( new DataValueUpdatedEvent( this, programStageInstance.getId() ) );
-            }
-
             if ( programStageInstance.isCompleted() )
             {
                 eventPublisher
                     .publishEvent( new ProgramStageCompletionNotificationEvent( this, programStageInstance.getId() ) );
-                eventPublisher.publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getId() ) );
+
+                if ( isLinkedToProgramRules )
+                {
+                    eventPublisher
+                        .publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getId() ) );
+                }
             }
 
-            if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) )
+            if ( EventStatus.SCHEDULE.equals( programStageInstance.getStatus() ) && isLinkedToProgramRules )
             {
                 eventPublisher.publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getId() ) );
             }
@@ -2804,7 +2809,7 @@ public abstract class AbstractEventService
 
                 if ( isLinkedWithRuleVariable )
                 {
-                    break;
+                    return true;
                 }
             }
         }
