@@ -25,22 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.event.csv;
+package org.hisp.dhis.gist;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
+import org.hisp.dhis.gist.GistQuery.Comparison;
+import org.hisp.dhis.gist.GistQuery.Filter;
+import org.junit.Test;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Tests the {@link GistQuery} API methods to compose a {@link GistQuery}
+ * object.
+ *
+ * @author Jan Bernitt
  */
-public interface CsvEventService<T>
+public class GistQueryTest
 {
-    void writeEvents( OutputStream outputStream, List<T> events, boolean withHeader )
-        throws IOException;
 
-    List<T> readEvents( InputStream inputStream, boolean skipFirst )
-        throws IOException,
-        org.locationtech.jts.io.ParseException;
+    @Test
+    public void testFilterParse()
+    {
+        assertFilterEquals( Filter.parse( "name:eq:2" ), 0, "name", Comparison.EQ, "2" );
+        assertFilterEquals( Filter.parse( "1:name:eq:2" ), 1, "name", Comparison.EQ, "2" );
+    }
+
+    private void assertFilterEquals( Filter actual, int group, String name, Comparison op, String... value )
+    {
+        assertEquals( group, actual.getGroup() );
+        assertEquals( name, actual.getPropertyPath() );
+        assertEquals( op, actual.getOperator() );
+        assertArrayEquals( value, actual.getValue() );
+    }
 }
