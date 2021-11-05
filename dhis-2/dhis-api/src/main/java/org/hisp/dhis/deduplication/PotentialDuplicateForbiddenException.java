@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.deduplication;
 
-import lombok.Getter;
-
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-@Getter
 public class PotentialDuplicateForbiddenException extends Exception
 {
     public PotentialDuplicateForbiddenException( String message )
