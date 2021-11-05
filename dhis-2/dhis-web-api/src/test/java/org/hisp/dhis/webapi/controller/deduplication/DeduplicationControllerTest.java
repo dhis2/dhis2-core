@@ -29,14 +29,21 @@ package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.deduplication.DeduplicationService;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
+import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -155,7 +162,8 @@ public class DeduplicationControllerTest
         throws OperationNotAllowedException,
         ConflictException,
         NotFoundException,
-        BadRequestException
+        BadRequestException,
+        PotentialDuplicateConflictException
     {
         Mockito.when( deduplicationService.exists( new PotentialDuplicate( teiA, teiB ) ) ).thenReturn( false );
 
@@ -180,7 +188,8 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( "invalid", "invalid1" ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException
+            | PotentialDuplicateConflictException e )
         {
             assertTrue( e instanceof BadRequestException );
         }
@@ -195,7 +204,8 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, "invalid" ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException
+            | PotentialDuplicateConflictException e )
         {
             assertTrue( e instanceof BadRequestException );
         }
@@ -210,7 +220,8 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( null, null ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException
+            | PotentialDuplicateConflictException e )
         {
             assertTrue( e instanceof BadRequestException );
         }
@@ -225,7 +236,8 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, null ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException
+            | PotentialDuplicateConflictException e )
         {
             assertTrue( e instanceof BadRequestException );
         }
@@ -243,7 +255,8 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException
+            | PotentialDuplicateConflictException e )
         {
             assertTrue( e instanceof NotFoundException );
         }
@@ -261,7 +274,8 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException
+            | PotentialDuplicateConflictException e )
         {
             assertTrue( e instanceof OperationNotAllowedException );
         }
@@ -283,7 +297,8 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( new PotentialDuplicate( teiA, teiB ) );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException
+            | PotentialDuplicateConflictException e )
         {
             assertTrue( e instanceof OperationNotAllowedException );
         }
@@ -295,6 +310,7 @@ public class DeduplicationControllerTest
 
     @Test
     public void postPotentialDuplicateAlreadyExists()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate pd = new PotentialDuplicate( teiA, teiB );
 
@@ -309,7 +325,8 @@ public class DeduplicationControllerTest
         {
             deduplicationController.postPotentialDuplicate( pd );
         }
-        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException e )
+        catch ( OperationNotAllowedException | ConflictException | NotFoundException | BadRequestException
+            | PotentialDuplicateConflictException e )
         {
             assertTrue( e instanceof ConflictException );
         }
