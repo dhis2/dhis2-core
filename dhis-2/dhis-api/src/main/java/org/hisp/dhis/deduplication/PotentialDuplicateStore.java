@@ -39,7 +39,8 @@ public interface PotentialDuplicateStore
 
     List<PotentialDuplicate> getAllByQuery( PotentialDuplicateQuery query );
 
-    boolean exists( PotentialDuplicate potentialDuplicate );
+    boolean exists( PotentialDuplicate potentialDuplicate )
+        throws PotentialDuplicateConflictException;
 
     /**
      * Moves the tracked entity attribute values from the "duplicate" tei into
