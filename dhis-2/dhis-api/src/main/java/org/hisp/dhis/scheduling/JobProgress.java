@@ -101,6 +101,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * not requested. When cancellation is requested ongoing work items are finished
  * and the process exists cooperatively by not starting any further work.
  *
+ * When a stage is cancelled the run-methods usually return false to give caller
+ * a chance to react if needed. The next call to {@link #startingStage(String)}
+ * will then throw a {@link CancellationException} and thereby short-circuit the
+ * rest of the process.
+ *
  * @author Jan Bernitt
  */
 public interface JobProgress
@@ -194,6 +199,16 @@ public interface JobProgress
         return runStage( items, item -> null, Runnable::run );
     }
 
+    /**
+     * Runs {@link Runnable} work items as sequence.
+     *
+     * @param items the work items to run in the sequence to run them with the
+     *        keys used as item description. Items are processed in map
+     *        iteration order.
+     * @return true if all items were processed successful, otherwise false
+     *
+     * @see #runStage(Collection, Function, Consumer)
+     */
     default boolean runStage( Map<String, Runnable> items )
     {
         return runStage( items.entrySet(), Entry::getKey, entry -> entry.getValue().run() );
