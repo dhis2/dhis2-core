@@ -65,6 +65,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
+import org.hisp.dhis.user.User;
 
 /**
  * The {@link GistPlanner} is responsible to expand the list of {@link Field}s
@@ -99,6 +100,7 @@ class GistPlanner
         fields = withPresetFields( fields ); // 1:n
         fields = withAttributeFields( fields ); // 1:1
         fields = withDisplayAsTranslatedFields( fields ); // 1:1
+        fields = withUserNameAsFromTransformedField( fields ); // 1:1
         fields = withInnerAsSeparateFields( fields ); // 1:n
         fields = withCollectionItemPropertyAsTransformation( fields ); // 1:1
         fields = withEffectiveTransformation( fields ); // 1:1
@@ -293,6 +295,16 @@ class GistPlanner
             f -> isDisplayShortName( f.getPropertyPath() ),
             f -> f.withAlias( f.getName() ).withTranslate()
                 .withPropertyPath( pathOnSameParent( f.getPropertyPath(), "shortName" ) ) );
+    }
+
+    private List<Field> withUserNameAsFromTransformedField( List<Field> fields )
+    {
+        return query.getElementType() != User.class
+            ? fields
+            : map1to1( fields,
+                f -> f.getPropertyPath().equals( "name" ),
+                f -> f.toBuilder().transformation( Transform.FROM ).transformationArgument( "firstName,surname" )
+                    .build() );
     }
 
     /**

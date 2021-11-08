@@ -25,38 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jdbc.statementbuilder;
-
-import static org.junit.Assert.*;
-
-import org.hamcrest.CoreMatchers;
-import org.hamcrest.MatcherAssert;
-import org.hisp.dhis.jdbc.StatementBuilder;
-import org.junit.Test;
+package org.hisp.dhis.deduplication;
 
 /**
- * @author Lars Helge Overland
+ * @author Luca Cambi <luca@dhis2.org>
  */
-public class StatementBuilderTest
+public class PotentialDuplicateForbiddenException extends Exception
 {
-    @Test
-    public void testStatementBuilder()
+    public PotentialDuplicateForbiddenException( String message )
     {
-        StatementBuilder builder = new PostgreSQLStatementBuilder();
-
-        String autoIncrement = builder.getAutoIncrementValue();
-
-        assertEquals( "nextval('hibernate_sequence')", autoIncrement );
+        super( message );
     }
-
-    @Test
-    public void encodeTest()
-    {
-        StatementBuilder builder = new PostgreSQLStatementBuilder();
-
-        String encoded = builder.encode( "contains'character" );
-
-        MatcherAssert.assertThat( encoded, CoreMatchers.containsString( "''" ) );
-    }
-
 }

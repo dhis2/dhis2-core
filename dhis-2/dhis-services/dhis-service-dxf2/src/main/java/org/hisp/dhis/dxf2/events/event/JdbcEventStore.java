@@ -72,6 +72,7 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COL
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery.COLUMNS.UPDATEDCLIENT;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
+import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.util.DateUtils.getDateAfterAddition;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
@@ -1613,7 +1614,7 @@ public class JdbcEventStore implements EventStore
 
     /**
      * Saves a list of {@see ProgramStageInstance} using JDBC batch update.
-     *
+     * <p>
      * Note that this method is using JdbcTemplate to execute the batch
      * operation, therefore it's able to participate in any Spring-initiated
      * transaction
@@ -1621,7 +1622,6 @@ public class JdbcEventStore implements EventStore
      * @param batch the list of {@see ProgramStageInstance}
      * @return the list of created {@see ProgramStageInstance} with primary keys
      *         assigned
-     *
      */
     private List<ProgramStageInstance> saveAllEvents( List<ProgramStageInstance> batch )
     {
@@ -1697,7 +1697,7 @@ public class JdbcEventStore implements EventStore
         Optional.ofNullable( teiUids ).filter( s -> !s.isEmpty() )
             .ifPresent( teis -> updateTrackedEntityInstances( teis.stream()
                 .sorted() // make sure the list is sorted, to prevent
-                          // deadlocks
+                // deadlocks
                 .map( s -> "'" + s + "'" )
                 .collect( Collectors.joining( ", " ) ), user ) );
     }
@@ -1870,9 +1870,9 @@ public class JdbcEventStore implements EventStore
             {
                 String dataElementsUidsSqlString = getQuotedCommaDelimitedString( deUids );
 
-                String deSql = "select de.uid, de.attributevalues #>> '{" + idScheme.getAttribute()
+                String deSql = "select de.uid, de.attributevalues #>> '{" + escapeSql( idScheme.getAttribute() )
                     + ", value}' as value from dataelement de where de.uid in (" + dataElementsUidsSqlString + ") "
-                    + "and de.attributevalues ? '" + idScheme.getAttribute() + "'";
+                    + "and de.attributevalues ? '" + escapeSql( idScheme.getAttribute() ) + "'";
 
                 SqlRowSet deRowSet = jdbcTemplate.queryForRowSet( deSql );
 

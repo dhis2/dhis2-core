@@ -39,9 +39,20 @@ echo -e "Port: $DHIS2_PORT\n"
 read -p "Do you want to skip compile? (if yes press y/Y) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-  java -Ddhis2.home=$DHIS2_HOME -Djetty.host=$DHIS2_HOSTNAME -Djetty.http.port=$DHIS2_PORT -jar ./dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar
+  java \
+    -Ddhis2.home=$DHIS2_HOME \
+    -Djetty.host=$DHIS2_HOSTNAME \
+    -Djetty.http.port=$DHIS2_PORT \
+    -jar "$(dirname "$0")/dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar"
   exit 0;
 fi
 
-mvn clean install -Pdev -Pjdk11 -T 100C -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
-java -Ddhis2.home=$DHIS2_HOME -Djetty.host=$DHIS2_HOSTNAME -Djetty.http.port=$DHIS2_PORT -jar ./dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar
+mvn clean install \
+    -f "$(dirname "$0")/pom.xml" \
+    -Pdev -Pjdk11 -T 100C \
+    -DskipTests -Dmaven.test.skip=true -Dmaven.site.skip=true -Dmaven.javadoc.skip=true
+java \
+    -Ddhis2.home=$DHIS2_HOME \
+    -Djetty.host=$DHIS2_HOSTNAME \
+    -Djetty.http.port=$DHIS2_PORT \
+    -jar "$(dirname "$0")/dhis-web-embedded-jetty/target/dhis-web-embedded-jetty.jar"

@@ -161,7 +161,7 @@ public class EventController
 
     private final EventService eventService;
 
-    private final CsvEventService csvEventService;
+    private final CsvEventService<Event> csvEventService;
 
     private final EventRowService eventRowService;
 
@@ -642,7 +642,7 @@ public class EventController
             response.addHeader( "Content-Disposition", "attachment; filename=" + eventCriteria.getAttachment() );
         }
 
-        csvEventService.writeEvents( outputStream, events, !skipHeader );
+        csvEventService.writeEvents( outputStream, events.getEvents(), !skipHeader );
     }
 
     // -------------------------------------------------------------------------
@@ -904,15 +904,15 @@ public class EventController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
-        Events events = csvEventService.readEvents( inputStream, skipFirst );
+        List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
+            ImportSummaries importSummaries = eventService.addEvents( events, importOptions, null );
             importSummaries.setImportOptions( importOptions );
             return importSummaries( importSummaries );
         }
-        return startAsyncImport( importOptions, events.getEvents() );
+        return startAsyncImport( importOptions, events );
     }
 
     // -------------------------------------------------------------------------

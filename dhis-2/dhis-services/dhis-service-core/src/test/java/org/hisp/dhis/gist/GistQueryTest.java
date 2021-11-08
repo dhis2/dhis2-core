@@ -25,22 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.gist;
 
-import lombok.Getter;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.hisp.dhis.gist.GistQuery.Comparison;
+import org.hisp.dhis.gist.GistQuery.Filter;
+import org.junit.Test;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * Tests the {@link GistQuery} API methods to compose a {@link GistQuery}
+ * object.
+ *
+ * @author Jan Bernitt
  */
-@Getter
-@ResponseStatus( HttpStatus.FORBIDDEN )
-public class PotentialDuplicateForbiddenException extends RuntimeException
+public class GistQueryTest
 {
-    public PotentialDuplicateForbiddenException( String message )
+
+    @Test
+    public void testFilterParse()
     {
-        super( message );
+        assertFilterEquals( Filter.parse( "name:eq:2" ), 0, "name", Comparison.EQ, "2" );
+        assertFilterEquals( Filter.parse( "1:name:eq:2" ), 1, "name", Comparison.EQ, "2" );
+    }
+
+    private void assertFilterEquals( Filter actual, int group, String name, Comparison op, String... value )
+    {
+        assertEquals( group, actual.getGroup() );
+        assertEquals( name, actual.getPropertyPath() );
+        assertEquals( op, actual.getOperator() );
+        assertArrayEquals( value, actual.getValue() );
     }
 }

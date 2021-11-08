@@ -167,6 +167,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testExistsDuplicate()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -176,6 +177,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test( expected = PotentialDuplicateConflictException.class )
     public void testShouldThrowWhenMissingTeiBProperty()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -185,6 +187,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test( expected = PotentialDuplicateConflictException.class )
     public void testShouldThrowWhenMissingTeiAProperty()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -194,6 +197,7 @@ public class DeduplicationServiceIntegrationTest
 
     @Test
     public void testExistsTwoTeisReverse()
+        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicateReverse = new PotentialDuplicate( teiB, teiA );
