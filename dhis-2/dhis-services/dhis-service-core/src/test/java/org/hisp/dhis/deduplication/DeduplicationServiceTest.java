@@ -168,6 +168,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldBeAutoMergeable()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         MergeObject mergeObject = MergeObject.builder().build();
 
@@ -190,6 +192,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldNotBeAutoMergeableDifferentTrackedEntityType()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         String uidOther = "uidOther";
 
@@ -210,6 +214,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldNotBeAutoMergeableSameProgramInstance()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         Program program = new Program();
         program.setUid( "programUid" );
@@ -230,6 +236,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldNotBeAutoMergeableDeletedTrackedEntityInstance()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         when( trackedEntityInstanceA.isDeleted() ).thenReturn( true );
 
@@ -249,6 +257,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldNotBeAutoMergeableWithSameProgram()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         Program program = new Program();
         program.setUid( "progrUid" );
@@ -268,6 +278,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldNotBeAutoMergeableDifferentAttributeValues()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         TrackedEntityAttributeValue sexAttributeValueB = getTrackedEntityAttributeValue( sexUid, sexName,
             trackedEntityInstanceB );
@@ -289,6 +301,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldNotBeAutoMergeableNoUserAccess()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         MergeObject mergeObject = MergeObject.builder().build();
 
@@ -310,6 +324,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldtBeAutoMergeableAttributeValuesIsEmpty()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         when( trackedEntityInstanceB.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>() );
@@ -334,6 +350,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldBeManualMergeable()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         deduplicationService.manualMerge( deduplicationMergeParams );
 
@@ -351,6 +369,8 @@ public class DeduplicationServiceTest
 
     @Test
     public void shouldThrowManualMergeableHasInvalidReference()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         when( deduplicationHelper.getInvalidReferenceErrors( deduplicationMergeParams ) ).thenReturn( "Error" );
         assertThrows( PotentialDuplicateConflictException.class,

@@ -32,7 +32,10 @@ import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.R
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Deque;
+import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,12 +44,15 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportService;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -57,6 +63,7 @@ import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.locationtech.jts.io.ParseException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -83,6 +90,8 @@ public class TrackerImportController
     private final TrackerImportStrategyHandler trackerImportStrategy;
 
     private final TrackerImportService trackerImportService;
+
+    private final CsvEventService<Event> csvEventService;
 
     private final ContextService contextService;
 
@@ -125,6 +134,70 @@ public class TrackerImportController
 
         TrackerImportReport trackerImportReport = trackerImportStrategy
             .importReport( trackerImportReportRequest );
+
+        ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
+            ? ResponseEntity.status( HttpStatus.CONFLICT )
+            : ResponseEntity.ok();
+
+        return builder.body( trackerImportReport );
+    }
+
+    @PostMapping( value = "", consumes = { "application/csv", "text/csv" }, produces = APPLICATION_JSON_VALUE )
+    @ResponseBody
+    public WebMessage asyncPostCsvTracker( HttpServletRequest request,
+        User currentUser,
+        @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst )
+        throws IOException,
+        ParseException
+    {
+        String jobId = CodeGenerator.generateUid();
+        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+
+        List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
+        TrackerBundleParams trackerBundleParams = new TrackerBundleParams();
+        trackerBundleParams.setEvents( events );
+
+        TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
+            .trackerBundleParams( trackerBundleParams )
+            .contextService( contextService )
+            .userUid( currentUser.getUid() )
+            .isAsync( true )
+            .uid( jobId )
+            .authentication( SecurityContextHolder.getContext().getAuthentication() )
+            .build();
+
+        trackerImportStrategy.importReport( trackerImportReportRequest );
+
+        String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
+
+        return ok( TRACKER_JOB_ADDED )
+            .setLocation( "/tracker/jobs/" + jobId )
+            .setResponse( TrackerJobWebMessageResponse.builder().id( jobId ).location( location ).build() );
+    }
+
+    @PostMapping( value = "", consumes = { "application/csv",
+        "text/csv" }, produces = APPLICATION_JSON_VALUE, params = { "async=false" } )
+    public ResponseEntity<TrackerImportReport> syncPostCsvTracker(
+        HttpServletRequest request,
+        @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
+        @RequestParam( defaultValue = "errors", required = false ) String reportMode, User currentUser )
+        throws IOException,
+        ParseException
+    {
+        InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
+
+        List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
+        TrackerBundleParams trackerBundleParams = new TrackerBundleParams();
+        trackerBundleParams.setEvents( events );
+        TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
+            .trackerBundleParams( trackerBundleParams )
+            .contextService( contextService )
+            .userUid( currentUser.getUid() )
+            .trackerBundleReportMode( TrackerBundleReportMode.getTrackerBundleReportMode( reportMode ) )
+            .uid( CodeGenerator.generateUid() )
+            .build();
+
+        TrackerImportReport trackerImportReport = trackerImportStrategy.importReport( trackerImportReportRequest );
 
         ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
             ? ResponseEntity.status( HttpStatus.CONFLICT )

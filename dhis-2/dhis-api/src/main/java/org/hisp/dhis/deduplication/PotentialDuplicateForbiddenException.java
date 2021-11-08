@@ -27,32 +27,13 @@
  */
 package org.hisp.dhis.deduplication;
 
-import java.util.List;
-
-public interface DeduplicationService
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+public class PotentialDuplicateForbiddenException extends Exception
 {
-    PotentialDuplicate getPotentialDuplicateById( long id );
-
-    PotentialDuplicate getPotentialDuplicateByUid( String uid );
-
-    List<PotentialDuplicate> getAllPotentialDuplicates();
-
-    int countPotentialDuplicates( PotentialDuplicateQuery query );
-
-    boolean exists( PotentialDuplicate potentialDuplicate )
-        throws PotentialDuplicateConflictException;
-
-    List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
-
-    void addPotentialDuplicate( PotentialDuplicate potentialDuplicate );
-
-    void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
-
-    void autoMerge( DeduplicationMergeParams deduplicationRequest )
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException;
-
-    void manualMerge( DeduplicationMergeParams deduplicationRequest )
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException;
+    public PotentialDuplicateForbiddenException( String message )
+    {
+        super( message );
+    }
 }
