@@ -146,7 +146,7 @@ public class TrackerImportController
     @ResponseBody
     public WebMessage asyncPostCsvTracker( HttpServletRequest request,
         User currentUser,
-        @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst )
+        @RequestParam( required = false, defaultValue = "true" ) boolean skipFirst )
         throws IOException,
         ParseException
     {
