@@ -179,7 +179,7 @@ public class TrackerImportController
         "text/csv" }, produces = APPLICATION_JSON_VALUE, params = { "async=false" } )
     public ResponseEntity<TrackerImportReport> syncPostCsvTracker(
         HttpServletRequest request,
-        @RequestParam( required = false, defaultValue = "false" ) boolean skipFirst,
+        @RequestParam( required = false, defaultValue = "true" ) boolean skipFirst,
         @RequestParam( defaultValue = "errors", required = false ) String reportMode, User currentUser )
         throws IOException,
         ParseException
