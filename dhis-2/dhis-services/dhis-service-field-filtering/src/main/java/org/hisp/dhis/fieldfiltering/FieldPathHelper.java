@@ -114,31 +114,21 @@ public class FieldPathHelper
 
         if ( property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX ) )
         {
-            schema.getProperties().forEach( p -> {
-                FieldPath fp = new FieldPath( p.isCollection() ? p.getCollectionName() : p.getName(), paths );
-                fp.setProperty( p );
-
-                fieldPathMap.put( fp.toFullPath(), fp );
-
-                // check if anything else needs to be expanded
-                applyDefault( fp, fieldPathMap );
-            } );
+            expandComplex( fieldPathMap, paths, schema );
         }
         else if ( property.is( PropertyType.REFERENCE ) || property.itemIs( PropertyType.REFERENCE ) )
         {
-            Property idProperty = schema.getProperty( "id" );
-
-            FieldPath fp = new FieldPath(
-                idProperty.isCollection() ? idProperty.getCollectionName() : idProperty.getName(), paths );
-            fp.setProperty( idProperty );
-
-            fieldPathMap.put( fp.toFullPath(), fp );
+            expandReference( fieldPathMap, paths, schema );
         }
     }
 
     private void applyDefault( FieldPath fieldPath, Map<String, FieldPath> fieldPathMap )
     {
+        List<String> paths = new ArrayList<>( fieldPath.getPath() );
+        paths.add( fieldPath.getName() );
+
         Property property = fieldPath.getProperty();
+        fieldPathMap.put( fieldPath.toFullPath(), fieldPath );
 
         if ( property.isSimple() )
         {
@@ -152,6 +142,37 @@ public class FieldPathHelper
         {
             return;
         }
+
+        if ( property.is( PropertyType.COMPLEX ) || property.itemIs( PropertyType.COMPLEX ) )
+        {
+            expandComplex( fieldPathMap, paths, schema );
+        }
+        else if ( property.is( PropertyType.REFERENCE ) || property.itemIs( PropertyType.REFERENCE ) )
+        {
+            expandReference( fieldPathMap, paths, schema );
+        }
+    }
+
+    private void expandReference( Map<String, FieldPath> fieldPathMap, List<String> paths, Schema schema )
+    {
+        Property idProperty = schema.getProperty( "id" );
+
+        FieldPath fp = new FieldPath(
+            idProperty.isCollection() ? idProperty.getCollectionName() : idProperty.getName(), paths );
+        fp.setProperty( idProperty );
+
+        fieldPathMap.put( fp.toFullPath(), fp );
+    }
+
+    private void expandComplex( Map<String, FieldPath> fieldPathMap, List<String> paths, Schema schema )
+    {
+        schema.getProperties().forEach( p -> {
+            FieldPath fp = new FieldPath( p.isCollection() ? p.getCollectionName() : p.getName(), paths );
+            fp.setProperty( p );
+
+            // check if anything else needs to be expanded
+            applyDefault( fp, fieldPathMap );
+        } );
     }
 
     private void applyProperties( Collection<FieldPath> fieldPaths, Class<?> rootKlass )

@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
@@ -71,7 +70,7 @@ public class FieldFilterManager
         objectMapper = objectMapper.copy();
 
         SimpleModule module = new SimpleModule();
-        module.setMixInAnnotation( IdentifiableObject.class, FieldFilterMixin.class );
+        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
 
         objectMapper.registerModule( module );
 

@@ -78,23 +78,23 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     private String getPath( PropertyWriter writer, JsonGenerator jgen )
     {
         StringBuilder nestedPath = new StringBuilder();
-        nestedPath.append( writer.getName() );
-        JsonStreamContext context = jgen.getOutputContext();
+        JsonStreamContext sc = jgen.getOutputContext();
 
-        if ( context != null )
+        if ( sc != null )
         {
-            context = context.getParent();
+            nestedPath.append( writer.getName() );
+            sc = sc.getParent();
         }
 
-        for ( ; context != null; context = context.getParent() )
+        while ( sc != null )
         {
-            String name = context.getCurrentName();
-
-            if ( name != null && context.inObject() )
+            if ( sc.getCurrentName() != null && sc.getCurrentValue() != null )
             {
                 nestedPath.insert( 0, "." );
-                nestedPath.insert( 0, name );
+                nestedPath.insert( 0, sc.getCurrentName() );
             }
+
+            sc = sc.getParent();
         }
 
         return nestedPath.toString();
