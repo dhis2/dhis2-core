@@ -41,4 +41,6 @@ public interface AclStore
     List<Long> getAccessibleProgramStages( String userUID, List<String> userGroupUIDs );
 
     List<Long> getAccessibleRelationshipTypes( String userUID, List<String> userGroupUIDs );
+
+    List<Long> getAccessibleTrackedEntityAttributes( String userUID, List<String> userGroupUIDs );
 }

@@ -245,7 +245,10 @@ public class TrackedEntityAttributeStoreTest
     {
 
         Set<TrackedEntityAttribute> trackedEntityAttributes = attributeService
-            .getTrackedEntityAttributesByTrackedEntityTypes();
+            .getTrackedEntityAttributesByTrackedEntityTypes()
+            .values().stream()
+            .flatMap( Set::stream )
+            .collect( Collectors.toSet() );
 
         assertThat( trackedEntityAttributes, hasSize( 20 ) );
     }

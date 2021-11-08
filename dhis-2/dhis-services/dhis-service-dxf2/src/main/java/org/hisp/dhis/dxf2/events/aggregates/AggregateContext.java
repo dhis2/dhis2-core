@@ -73,6 +73,12 @@ public class AggregateContext
     List<Long> relationshipTypes;
 
     /**
+     * A List of TrackedEntityAttribute ID to which the user has READ ONLY
+     * access
+     */
+    List<Long> trackedEntityAttributes;
+
+    /**
      * The tei params to specify depth of tei graph
      */
     TrackedEntityInstanceParams params;

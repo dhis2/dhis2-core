@@ -95,7 +95,7 @@ public class TrackedEntityInstanceAggregate
     @NonNull
     private final CacheProvider cacheProvider;
 
-    private Cache<Set<TrackedEntityAttribute>> teiAttributesCache;
+    private Cache<Map<String, Set<TrackedEntityAttribute>>> teiAttributesCache;
 
     private Cache<Map<Program, Set<TrackedEntityAttribute>>> programTeiAttributesCache;
 
@@ -129,7 +129,7 @@ public class TrackedEntityInstanceAggregate
         if ( !userGroupUIDCache.get( user.getUid() ).isPresent() && !CollectionUtils.isEmpty( user.getGroups() ) )
         {
             userGroupUIDCache.put( user.getUid(),
-                user.getGroups().stream().map( group -> group.getUid() ).collect( Collectors.toList() ) );
+                user.getGroups().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
         }
 
         /*
@@ -188,7 +188,7 @@ public class TrackedEntityInstanceAggregate
          * TrackedEntityInstance id
          */
         final CompletableFuture<Multimap<String, String>> ownedTeiAsync = supplyAsync(
-            () -> trackedEntityInstanceStore.getOwnedTeis( ids, ctx ), getPool() );
+            () -> trackedEntityInstanceStore.getOwnedProgramsByTei( ids, ctx ), getPool() );
 
         /*
          * Execute all queries and merge the results
@@ -217,7 +217,8 @@ public class TrackedEntityInstanceAggregate
                     tei.setAttributes( filterAttributes( attributes.get( uid ), ownedTeis.get( uid ),
                         teiAttributesCache
                             .get( "ALL_ATTRIBUTES",
-                                s -> trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes() ),
+                                s -> trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes() )
+                            .get( tei.getTrackedEntityType() ),
                         programTeiAttributesCache
                             .get( "ATTRIBUTES_BY_PROGRAM",
                                 s -> trackedEntityAttributeService.getTrackedEntityAttributesByProgram() ),
@@ -256,7 +257,7 @@ public class TrackedEntityInstanceAggregate
      * Filter attributes based on queryParams, ownership and super user status
      *
      */
-    private List<Attribute> filterAttributes( Collection<Attribute> attributes, Collection<String> programs,
+    private List<Attribute> filterAttributes( Collection<Attribute> attributes, Collection<String> ownedPrograms,
         Set<TrackedEntityAttribute> trackedEntityTypeAttributes, Map<Program, Set<TrackedEntityAttribute>> teaByProgram,
         AggregateContext ctx )
     {
@@ -268,23 +269,17 @@ public class TrackedEntityInstanceAggregate
             return attributeList;
         }
 
-        // Add all tet attributes. Conditionally filter out the ones marked for
-        // skipSynchronization in case this is a dataSynchronization query
-        Set<String> allowedAttributeUids = trackedEntityTypeAttributes.stream()
-            .filter( att -> (!ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
+        Stream<TrackedEntityAttribute> trackedEntityTypeAttributesStream = trackedEntityTypeAttributes.stream();
+
+        Stream<TrackedEntityAttribute> programAttributesStream = teaByProgram.entrySet().stream()
+            .filter( entry -> ownedPrograms.contains( entry.getKey().getUid() ) )
+            .flatMap( entry -> entry.getValue().stream() );
+
+        Set<String> allowedAttributeUids = Stream.concat( trackedEntityTypeAttributesStream, programAttributesStream )
+            .filter( att -> isAccessible( att, ctx ) )
+            .filter( att -> isNotSynchQueryAndIsNotSkipSynch( ctx, att ) )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
-
-        for ( Program program : teaByProgram.keySet() )
-        {
-            if ( programs.contains( program.getUid() ) || ctx.isSuperUser() )
-            {
-                allowedAttributeUids.addAll( teaByProgram.get( program ).stream()
-                    .filter( att -> (!ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
-                    .map( BaseIdentifiableObject::getUid )
-                    .collect( Collectors.toSet() ) );
-            }
-        }
 
         for ( Attribute attributeValue : attributes )
         {
@@ -295,6 +290,17 @@ public class TrackedEntityInstanceAggregate
         }
 
         return attributeList;
+    }
+
+    private boolean isNotSynchQueryAndIsNotSkipSynch( AggregateContext ctx, TrackedEntityAttribute att )
+    {
+        return !ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization();
+    }
+
+    private boolean isAccessible( TrackedEntityAttribute trackedEntityAttribute,
+        AggregateContext ctx )
+    {
+        return ctx.isSuperUser() || ctx.getTrackedEntityAttributes().contains( trackedEntityAttribute.getId() );
     }
 
     /**
@@ -329,12 +335,16 @@ public class TrackedEntityInstanceAggregate
         final CompletableFuture<List<Long>> getRelationshipTypes = supplyAsync(
             () -> aclStore.getAccessibleRelationshipTypes( userUID, userGroupUIDs ), getPool() );
 
+        final CompletableFuture<List<Long>> getTrackedEntityAttribute = supplyAsync(
+            () -> aclStore.getAccessibleTrackedEntityAttributes( userUID, userGroupUIDs ), getPool() );
+
         return allOf( getTeiTypes, getPrograms, getProgramStages, getRelationshipTypes ).thenApplyAsync(
             fn -> AggregateContext.builder()
                 .trackedEntityTypes( getTeiTypes.join() )
                 .programs( getPrograms.join() )
                 .programStages( getProgramStages.join() )
                 .relationshipTypes( getRelationshipTypes.join() )
+                .trackedEntityAttributes( getTrackedEntityAttribute.join() )
                 .build(),
             getPool() )
             .join();

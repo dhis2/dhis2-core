@@ -74,6 +74,10 @@ public class DefaultAclStore
         + "FROM relationshiptype rs"
         + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
 
+    private final static String GET_TRACKED_ENTITY_ATTRIBUTE_ACL = "SELECT tea.trackedentityattributeid "
+        + "FROM trackedentityattribute tea"
+        + " WHERE " + PUBLIC_ACCESS_CONDITION + " OR " + USERACCESS_CONDITION;
+
     public DefaultAclStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
@@ -101,6 +105,12 @@ public class DefaultAclStore
     public List<Long> getAccessibleRelationshipTypes( String userUID, List<String> userGroupUIDs )
     {
         return executeAclQuery( userUID, userGroupUIDs, GET_RELATIONSHIPTYPE_ACL, "relationshiptypeid" );
+    }
+
+    @Override
+    public List<Long> getAccessibleTrackedEntityAttributes( String userUID, List<String> userGroupUIDs )
+    {
+        return executeAclQuery( userUID, userGroupUIDs, GET_TRACKED_ENTITY_ATTRIBUTE_ACL, "trackedentityattributeid" );
     }
 
     private List<Long> executeAclQuery( String userUID, List<String> userGroupUIDs, String sql, String primaryKey )

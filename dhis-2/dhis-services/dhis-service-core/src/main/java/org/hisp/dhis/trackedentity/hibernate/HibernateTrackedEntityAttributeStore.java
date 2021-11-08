@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.trackedentity.hibernate;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -163,17 +167,18 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     @Override
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
-    public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
+    @SuppressWarnings( { "unchecked" } )
+    public Map<String, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByTrackedEntityTypes()
     {
-        Query query = sessionFactory.getCurrentSession()
-            .createQuery( "select trackedEntityTypeAttributes from TrackedEntityType" );
-
-        Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new HashSet<>( query.list() );
-
-        return trackedEntityTypeAttributes.stream()
-            .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
-            .collect( Collectors.toSet() );
+        return ((Stream<TrackedEntityTypeAttribute>) sessionFactory.getCurrentSession()
+            .createQuery( "select t.trackedEntityTypeAttributes from TrackedEntityType t" )
+            .stream())
+                .collect(
+                    groupingBy(
+                        trackedEntityTypeAttribute -> trackedEntityTypeAttribute.getTrackedEntityType().getUid(),
+                        mapping(
+                            TrackedEntityTypeAttribute::getTrackedEntityAttribute,
+                            toSet() ) ) );
     }
 
     @Override

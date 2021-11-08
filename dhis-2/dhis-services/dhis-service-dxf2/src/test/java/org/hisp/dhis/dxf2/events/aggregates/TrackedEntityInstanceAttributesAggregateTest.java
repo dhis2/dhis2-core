@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -56,6 +57,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -251,8 +253,15 @@ public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             ProgramStage programStageA2 = createProgramStage( programA, true );
 
             // Create 5 Tracked Entity Attributes (named A .. E)
-            IntStream.range( A, F ).mapToObj( i -> Character.toString( (char) i ) ).forEach( c -> attributeService
-                .addTrackedEntityAttribute( createTrackedEntityAttribute( c.charAt( 0 ), ValueType.TEXT ) ) );
+            IntStream.range( A, F ).mapToObj( i -> Character.toString( (char) i ) )
+                .forEach( c -> {
+                    long attrId = attributeService.addTrackedEntityAttribute(
+                        createTrackedEntityAttribute( c.charAt( 0 ), ValueType.TEXT ) );
+                    TrackedEntityAttribute trackedEntityAttribute = attributeService
+                        .getTrackedEntityAttribute( attrId );
+                    trackedEntityAttribute.setPublicAccess( DATA_READ );
+                    attributeService.updateTrackedEntityAttribute( trackedEntityAttribute );
+                } );
 
             // Transform the Tracked Entity Attributes into a List of
             // TrackedEntityTypeAttribute

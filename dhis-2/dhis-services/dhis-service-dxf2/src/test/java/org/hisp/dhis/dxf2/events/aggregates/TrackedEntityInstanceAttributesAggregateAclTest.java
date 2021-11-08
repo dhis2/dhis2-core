@@ -30,19 +30,30 @@ package org.hisp.dhis.dxf2.events.aggregates;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
+import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
+import static org.hisp.dhis.security.acl.AccessStringHelper.FULL;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
@@ -66,6 +77,12 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
     @Autowired
     private TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
+
+    @Autowired
+    private TrackedEntityAttributeService attributeService;
+
+    @Autowired
+    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Override
     protected void mockCurrentUserService()
@@ -142,6 +159,78 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
             .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances, hasSize( 2 ) );
+    }
+
+    @Test
+    public void verifyTeasACL()
+    {
+        final String tetUid = CodeGenerator.generateUid();
+        doInTransaction( () -> {
+
+            TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+            trackedEntityTypeA.setUid( tetUid );
+
+            attributeService
+                .addTrackedEntityAttribute( createTrackedEntityAttribute( 'A', ValueType.TEXT ) );
+            attributeService.addTrackedEntityAttribute( createTrackedEntityAttribute( 'B', ValueType.TEXT ) );
+
+            TrackedEntityAttribute attrA = attributeService.getTrackedEntityAttributeByName( "AttributeA" );
+            attrA.setPublicAccess( DATA_READ );
+            attributeService.updateTrackedEntityAttribute( attrA );
+
+            TrackedEntityAttribute attrB = attributeService.getTrackedEntityAttributeByName( "AttributeB" );
+            attrB.setPublicAccess( DEFAULT );
+            attributeService.updateTrackedEntityAttribute( attrB );
+
+            List<TrackedEntityTypeAttribute> teatList = Stream.of( "A", "B" )
+                .map( s -> new TrackedEntityTypeAttribute( trackedEntityTypeA,
+                    attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
+                .collect( Collectors.toList() );
+
+            trackedEntityTypeA.setTrackedEntityTypeAttributes( teatList );
+            trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
+
+            final TrackedEntityType trackedEntityType = trackedEntityTypeService
+                .getTrackedEntityType( tetUid );
+            trackedEntityType.setPublicAccess( FULL );
+            trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
+
+            Set<TrackedEntityAttributeValue> attributeValues = Stream.of( "A", "B" )
+                .map( s -> new TrackedEntityAttributeValue(
+                    attributeService.getTrackedEntityAttributeByName( "Attribute" + s ),
+                    null,
+                    "attribute" + s ) )
+                .collect( Collectors.toSet() );
+
+            long teiId = persistTrackedEntityInstance( ImmutableMap.of(
+                "trackedEntityType",
+                trackedEntityTypeA ) ).getId();
+
+            attributeValues.forEach( trackedEntityAttributeValue -> {
+                trackedEntityAttributeValue.setEntityInstance( teiService.getTrackedEntityInstance( teiId ) );
+                trackedEntityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
+            } );
+
+            org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService
+                .getTrackedEntityInstance( teiId );
+            trackedEntityInstance.setTrackedEntityAttributeValues( attributeValues );
+            teiService.updateTrackedEntityInstance( trackedEntityInstance );
+        } );
+
+        final TrackedEntityType trackedEntityType = trackedEntityTypeService
+            .getTrackedEntityType( tetUid );
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityType );
+        queryParams.setIncludeAllAttributes( true );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( trackedEntityInstances.get( 0 ).getAttributes(), hasSize( 1 ) );
+
     }
 
     protected void setUserAuthorityToNonSuper( User user )

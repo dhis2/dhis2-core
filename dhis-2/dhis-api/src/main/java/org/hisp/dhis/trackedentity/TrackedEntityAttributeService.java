@@ -188,7 +188,7 @@ public interface TrackedEntityAttributeService
      *
      * @return a Set of {@link TrackedEntityAttribute}
      */
-    Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
+    Map<String, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByTrackedEntityTypes();
 
     /**
      * Get all {@link TrackedEntityAttribute} grouped by {@link Program}

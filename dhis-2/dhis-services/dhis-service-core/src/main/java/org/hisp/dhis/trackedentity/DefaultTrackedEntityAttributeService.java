@@ -367,7 +367,7 @@ public class DefaultTrackedEntityAttributeService
 
     @Override
     @Transactional( readOnly = true )
-    public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes()
+    public Map<String, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByTrackedEntityTypes()
     {
         return this.trackedEntityAttributeStore.getTrackedEntityAttributesByTrackedEntityTypes();
     }
