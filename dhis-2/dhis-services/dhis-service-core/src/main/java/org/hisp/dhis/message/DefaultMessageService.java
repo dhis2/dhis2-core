@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -406,9 +407,9 @@ public class DefaultMessageService
     }
 
     @Override
-    public List<MessageConversation> getMessagesConversationsMatchingText( User user, String messageText )
+    public List<MessageConversation> getMatchingExtId( String extMessageId )
     {
-        return messageConversationStore.getMessagesConversationFromSenderMatching( user, messageText );
+        return messageConversationStore.getMessagesConversationFromSenderMatchingExtMessageId( extMessageId );
     }
 
     @Override
@@ -469,6 +470,19 @@ public class DefaultMessageService
         }
 
         return new HashSet<>();
+    }
+
+    @Override
+    public Set<User> getSystemUpdateNotificationRecipients()
+    {
+        UserGroup feedbackRecipients = configurationService.getConfiguration().getSystemUpdateNotificationRecipients();
+
+        if ( feedbackRecipients == null )
+        {
+            return Collections.emptySet();
+        }
+
+        return feedbackRecipients.getMembers();
     }
 
     private void invokeMessageSenders( String subject, String text, String footer, User sender, Set<User> users,

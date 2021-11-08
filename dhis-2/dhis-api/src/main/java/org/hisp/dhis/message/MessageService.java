@@ -82,7 +82,7 @@ public interface MessageService
 
     List<MessageConversation> getMessageConversations( int first, int max );
 
-    List<MessageConversation> getMessagesConversationsMatchingText( User sender, String messageText );
+    List<MessageConversation> getMatchingExtId( String messageId );
 
     List<MessageConversation> getMessageConversations( User user, Collection<String> uids );
 
@@ -99,4 +99,6 @@ public interface MessageService
     boolean hasAccessToManageFeedbackMessages( User user );
 
     Set<User> getFeedbackRecipients();
+
+    Set<User> getSystemUpdateNotificationRecipients();
 }

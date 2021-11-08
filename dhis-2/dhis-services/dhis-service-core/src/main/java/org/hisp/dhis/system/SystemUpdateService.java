@@ -29,9 +29,11 @@ package org.hisp.dhis.system;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.TreeMap;
 
 import lombok.AllArgsConstructor;
@@ -82,7 +84,7 @@ public class SystemUpdateService
     public static final String FIELD_NAME_URL = "url";
 
     @NonNull
-    private final HibernateUserCredentialsStore hibernateUserCredentialsStore;
+    private final HibernateUserCredentialsStore userCredentialsStore;
 
     @NonNull
     private final UserService userService;
@@ -102,6 +104,12 @@ public class SystemUpdateService
         JsonObject allVersions = fetchAllVersions();
 
         List<JsonElement> newerPatchVersions = extractNewerPatchVersions( currentVersion, allVersions );
+
+        // Only pick the top/latest patch version
+        if ( !newerPatchVersions.isEmpty() )
+        {
+            newerPatchVersions = newerPatchVersions.subList( newerPatchVersions.size() - 1, newerPatchVersions.size() );
+        }
 
         return convertJsonToMap( newerPatchVersions );
     }
@@ -199,27 +207,27 @@ public class SystemUpdateService
 
     public void sendMessageForEachVersion( Map<Semver, Map<String, String>> patchVersions )
     {
-        List<User> recipients = getRecipients();
+        Set<User> recipients = getRecipients();
 
         for ( Map.Entry<Semver, Map<String, String>> entry : patchVersions.entrySet() )
         {
-            String messageText = buildMessageText( entry.getValue() );
+            Semver version = entry.getKey();
+            Map<String, String> message = entry.getValue();
 
             for ( User recipient : recipients )
             {
-                // Check to see if message has already been sent before.
-                List<MessageConversation> messagesConv = messageService
-                    .getMessagesConversationsMatchingText( recipient, messageText );
+                // Check if message has been sent before using
+                // version.getValue() as extMessageId
+                List<MessageConversation> existingMessages = messageService.getMatchingExtId( version.getValue() );
 
-                // Only send message if there is no similar message text been
-                // sent to the user before.
-                if ( messagesConv.isEmpty() )
+                if ( existingMessages.isEmpty() )
                 {
                     MessageConversationParams params = new MessageConversationParams.Builder()
                         .withRecipients( ImmutableSet.of( recipient ) )
                         .withSubject( NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT )
-                        .withText( messageText )
-                        .withMessageType( MessageType.SYSTEM ).build();
+                        .withText( buildMessageText( message ) )
+                        .withMessageType( MessageType.SYSTEM )
+                        .withExtMessageId( version.getValue() ).build();
 
                     messageService.sendMessage( params );
                 }
@@ -227,24 +235,30 @@ public class SystemUpdateService
         }
     }
 
-    private List<User> getRecipients()
+    private Set<User> getRecipients()
     {
-        List<User> recipients = new ArrayList<>();
+        Set<User> recipients = messageService.getSystemUpdateNotificationRecipients();
 
-        List<UserCredentials> usersWithAllAuthority = hibernateUserCredentialsStore.getUsersWithAuthority( "ALL" );
-
-        for ( UserCredentials userCredentials : usersWithAllAuthority )
+        // Fallback to fetching all users with ALL authority for our recipient
+        // list.
+        if ( recipients.isEmpty() )
         {
-            recipients.add( userService.getUserByUsername( userCredentials.getUsername() ) );
+            recipients = getUsersWithAllAuthority();
         }
 
-        if ( recipients.size() > MAX_NOTIFING_RECIPIENTS )
-        {
-            log.warn( "There is more recipients than the max allowed, "
-                + "limiting recipients list to max allowed size: {}",
-                MAX_NOTIFING_RECIPIENTS );
+        return recipients;
+    }
 
-            recipients = recipients.subList( 0, MAX_NOTIFING_RECIPIENTS - 1 );
+    private Set<User> getUsersWithAllAuthority()
+    {
+        Set<User> recipients = new HashSet<>();
+
+        List<UserCredentials> userCredentials = userCredentialsStore.getHasAuthority( "ALL",
+            MAX_NOTIFING_RECIPIENTS );
+
+        for ( UserCredentials credentials : userCredentials )
+        {
+            recipients.add( userService.getUserByUsername( credentials.getUsername() ) );
         }
 
         return recipients;

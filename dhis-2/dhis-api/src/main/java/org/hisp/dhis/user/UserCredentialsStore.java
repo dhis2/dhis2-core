@@ -94,5 +94,5 @@ public interface UserCredentialsStore
      */
     UserCredentials getUserCredentialsByUuid( UUID uuid );
 
-    List<UserCredentials> getUsersWithAuthority( String authority );
+    List<UserCredentials> getHasAuthority( String authority, int maxResult );
 }

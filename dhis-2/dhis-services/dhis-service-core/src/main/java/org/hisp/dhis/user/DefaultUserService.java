@@ -839,6 +839,6 @@ public class DefaultUserService
     @Override
     public List<UserCredentials> getUsersWithAuthority( String authority )
     {
-        return userCredentialsStore.getUsersWithAuthority( authority );
+        return userCredentialsStore.getHasAuthority( authority, Integer.MAX_VALUE );
     }
 }

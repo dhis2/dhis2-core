@@ -98,7 +98,7 @@ public class HibernateUserCredentialsStore
     }
 
     @Override
-    public List<UserCredentials> getUsersWithAuthority( String authority )
+    public List<UserCredentials> getHasAuthority( String authority, int maxResult )
     {
         String hql = "select distinct uc2 from UserCredentials uc2 " +
             "inner join uc2.userAuthorityGroups ag2 " +
@@ -107,6 +107,7 @@ public class HibernateUserCredentialsStore
 
         Query<UserCredentials> query = getQuery( hql );
         query.setParameter( "authority", authority );
+        query.setMaxResults( maxResult );
 
         return query.getResultList();
     }
