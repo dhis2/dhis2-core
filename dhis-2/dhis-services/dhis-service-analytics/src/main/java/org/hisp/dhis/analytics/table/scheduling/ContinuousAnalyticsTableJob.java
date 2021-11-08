@@ -95,9 +95,17 @@ public class ContinuousAnalyticsTableJob implements Job
             DEFAULT_HOUR_OF_DAY );
 
         Date now = new Date();
+
         Date defaultNextFullUpdate = DateUtils.getNextDate( fullUpdateHourOfDay, now );
-        Date nextFullUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE,
-            defaultNextFullUpdate );
+
+        Date nextFullUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE );
+
+        if ( nextFullUpdate == null )
+        {
+            nextFullUpdate = defaultNextFullUpdate;
+        }
+
+        Preconditions.checkNotNull( nextFullUpdate );
 
         log.info(
             "Starting continuous analytics table update, current time: '{}', default next full update: '{}', next full update: '{}'",
