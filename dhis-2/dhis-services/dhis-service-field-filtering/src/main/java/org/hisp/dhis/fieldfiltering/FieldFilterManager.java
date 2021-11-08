@@ -77,7 +77,7 @@ public class FieldFilterManager
         return objectMapper;
     }
 
-    public List<ObjectNode> toObjectNode( FieldFilterParams<?> params )
+    public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
     {
         List<ObjectNode> objectNodes = new ArrayList<>();
 

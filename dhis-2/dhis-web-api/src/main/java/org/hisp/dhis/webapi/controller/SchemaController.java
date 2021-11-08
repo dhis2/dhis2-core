@@ -95,7 +95,7 @@ public class SchemaController
 
         FieldFilterParams<Schema> params = FieldFilterParams.of( schemas,
             Sets.newHashSet( StringUtils.join( fields, "," ) ) );
-        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
+        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
 
         return ResponseEntity.ok( JsonRoot.of( "schemas", objectNodes ) );
     }
@@ -112,7 +112,7 @@ public class SchemaController
 
             FieldFilterParams<Schema> params = FieldFilterParams.of( schema,
                 Sets.newHashSet( StringUtils.join( fields, "," ) ) );
-            List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
+            List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
 
             return ResponseEntity.ok( objectNodes.get( 0 ) );
         }

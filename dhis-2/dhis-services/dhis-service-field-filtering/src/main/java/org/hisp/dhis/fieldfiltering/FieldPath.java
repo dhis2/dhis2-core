@@ -32,6 +32,8 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.schema.Property;
@@ -78,6 +80,8 @@ public class FieldPath
     /**
      * Schema Property if present (added by {@link FieldPathHelper}).
      */
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Property property;
 
     public FieldPath( String name, List<String> path )

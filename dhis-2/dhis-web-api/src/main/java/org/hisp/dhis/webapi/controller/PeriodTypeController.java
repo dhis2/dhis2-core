@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -80,7 +81,7 @@ public class PeriodTypeController
 
         FieldFilterParams<PeriodType> params = FieldFilterParams.of( periodTypes,
             Sets.newHashSet( StringUtils.join( fields, "," ) ) );
-        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
+        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
 
         return ResponseEntity.ok( JsonRoot.of( "periodTypes", objectNodes ) );
     }
@@ -89,12 +90,11 @@ public class PeriodTypeController
     public @ResponseBody ResponseEntity<JsonRoot> getOrgUnits(
         @RequestParam( defaultValue = "*" ) List<String> fields )
     {
-        List<OrganisationUnit> organisationUnits = organisationUnitService.getOrganisationUnitsAtLevel( 4 ).subList( 0,
-            10 );
+        List<OrganisationUnit> organisationUnits = new ArrayList<>( organisationUnitService.getAllOrganisationUnits() );
 
         FieldFilterParams<OrganisationUnit> params = FieldFilterParams.of( organisationUnits,
             Sets.newHashSet( StringUtils.join( fields, "," ) ) );
-        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNode( params );
+        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
 
         return ResponseEntity.ok( JsonRoot.of( "organisationUnits", objectNodes ) );
     }
