@@ -97,6 +97,8 @@ public class DeduplicationServiceMergeIntegrationTest
 
     @Test
     public void shouldManualMergeWithAuthorityAll()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
@@ -156,6 +158,8 @@ public class DeduplicationServiceMergeIntegrationTest
 
     @Test
     public void shouldManualMergeWithUserGroupOfProgram()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );

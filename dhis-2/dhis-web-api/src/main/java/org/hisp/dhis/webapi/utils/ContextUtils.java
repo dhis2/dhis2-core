@@ -77,6 +77,10 @@ public class ContextUtils
 
     public static final String CONTENT_TYPE_CSV = "application/csv; charset=UTF-8";
 
+    public static final String CONTENT_TYPE_TEXT_CSV = "text/csv";
+
+    public static final String CONTENT_TYPE_CSV_GZIP = "application/csv+gzip";
+
     public static final String CONTENT_TYPE_PNG = "image/png";
 
     public static final String CONTENT_TYPE_JPG = "image/jpeg";
