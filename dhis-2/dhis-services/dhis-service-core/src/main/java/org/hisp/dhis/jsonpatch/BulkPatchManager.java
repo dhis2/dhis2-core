@@ -38,7 +38,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
@@ -46,7 +45,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;
 
 @Service
-public class SharingPatchManager
+public class BulkPatchManager
 {
     private final IdentifiableObjectManager manager;
 
@@ -54,7 +53,7 @@ public class SharingPatchManager
 
     private final JsonPatchManager jsonPatchManager;
 
-    public SharingPatchManager( SchemaService schemaService, IdentifiableObjectManager manager,
+    public BulkPatchManager( SchemaService schemaService, IdentifiableObjectManager manager,
         JsonPatchManager jsonPatchManager )
     {
         this.manager = manager;
@@ -72,7 +71,7 @@ public class SharingPatchManager
      * @return
      */
     public List<IdentifiableObject> applyPatch( Schema schema, BulkJsonPatch bulkJsonPatch,
-        BulkJsonPatchParameters patchParameters )
+        BulkPatchParameters patchParameters )
     {
         String className = bulkJsonPatch.getTargetIds().keySet().iterator().next();
 
@@ -82,15 +81,17 @@ public class SharingPatchManager
             return Collections.emptyList();
         }
 
-        if ( !validateSharingSchema( className, schema, patchParameters.getErrorReports() ) )
+        List<ErrorReport> errors = patchParameters.getSchemaValidator().apply( schema );
+        if ( !errors.isEmpty() )
         {
+            patchParameters.addErrorReports( errors );
             return Collections.emptyList();
         }
 
         List<IdentifiableObject> patchedObjects = new ArrayList<>();
 
         bulkJsonPatch.getIdsByClassName( className )
-            .forEach( id -> patchObject( id, schema, bulkJsonPatch.getPatch(), patchParameters.getErrorReports() )
+            .forEach( id -> patchObject( id, schema, bulkJsonPatch.getPatch(), patchParameters )
                 .ifPresent( patched -> patchedObjects.add( patched ) ) );
 
         return patchedObjects;
@@ -105,7 +106,7 @@ public class SharingPatchManager
      * @return
      */
     public List<IdentifiableObject> applyPatches( Map<String, Map<String, JsonPatch>> patches,
-        BulkJsonPatchParameters patchParameters )
+        BulkPatchParameters patchParameters )
     {
         List<IdentifiableObject> patchedObjects = new ArrayList<>();
 
@@ -113,7 +114,7 @@ public class SharingPatchManager
         {
             Schema schema = schemaService.getSchemaByPluralName( className );
 
-            if ( !validateSharingSchema( className, schema, patchParameters.getErrorReports() ) )
+            if ( !validateSchema( className, schema, patchParameters.getErrorReports() ) )
             {
                 continue;
             }
@@ -121,17 +122,18 @@ public class SharingPatchManager
             Map<String, JsonPatch> mapPatches = patches.get( className );
 
             mapPatches.keySet()
-                .forEach( id -> patchObject( id, schema, mapPatches.get( id ), patchParameters.getErrorReports() )
+                .forEach( id -> patchObject( id, schema, mapPatches.get( id ), patchParameters )
                     .ifPresent( patchedObjects::add ) );
         }
         return patchedObjects;
     }
 
     private Optional<IdentifiableObject> patchObject( String id, Schema schema, JsonPatch patch,
-        List<ErrorReport> errors )
+        BulkPatchParameters patchParams )
     {
-        Optional<IdentifiableObject> entity = validate( schema.getKlass(), patch, id, errors );
-        Optional<IdentifiableObject> patched = applyWithTryCatch( schema, patch, entity.orElse( null ), errors );
+        Optional<IdentifiableObject> entity = validate( schema.getKlass(), patch, id, patchParams );
+        Optional<IdentifiableObject> patched = applyWithTryCatch( schema, patch, entity.orElse( null ),
+            patchParams.getErrorReports() );
         patched.ifPresent( patchedObject -> postApply( id, patchedObject ) );
         return patched;
     }
@@ -150,7 +152,7 @@ public class SharingPatchManager
         }
     }
 
-    private boolean validateSharingSchema( String className, Schema schema, List<ErrorReport> errorReports )
+    private boolean validateSchema( String className, Schema schema, List<ErrorReport> errorReports )
     {
         if ( schema == null )
         {
@@ -167,38 +169,25 @@ public class SharingPatchManager
         return true;
     }
 
-    private List<ErrorReport> validatePath( JsonPatch patch, String path )
-    {
-        List<ErrorReport> errors = new ArrayList<>();
-
-        for ( JsonPatchOperation operation : patch.getOperations() )
-        {
-            if ( !operation.getPath().matchesProperty( path ) )
-            {
-                errors.add( new ErrorReport( JsonPatchException.class, ErrorCode.E4032, operation.getPath() ) );
-            }
-        }
-
-        return errors;
-    }
-
     private Optional<IdentifiableObject> validate( Class<?> klass, JsonPatch patch, String id,
-        List<ErrorReport> errorReports )
+        BulkPatchParameters patchParams )
     {
         IdentifiableObject entity = manager.get( (Class<? extends IdentifiableObject>) klass, id );
 
         if ( entity == null )
         {
-            errorReports.add( new ErrorReport( klass, ErrorCode.E4014, id, klass.getSimpleName() ) );
+            patchParams.addErrorReport( new ErrorReport( klass, ErrorCode.E4014, id, klass.getSimpleName() ) );
             return Optional.empty();
         }
 
-        List<ErrorReport> errors = validatePath( patch, "sharing" );
-
-        if ( !errors.isEmpty() )
+        if ( patchParams.hasPatchValidator() )
         {
-            errorReports.addAll( errors );
-            return Optional.empty();
+            List<ErrorReport> errors = patchParams.getPatchValidator().apply( patch );
+            if ( !errors.isEmpty() )
+            {
+                patchParams.addErrorReports( errors );
+                return Optional.empty();
+            }
         }
 
         return Optional.of( entity );

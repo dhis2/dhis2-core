@@ -25,31 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.jsonpatch;
+package org.hisp.dhis.jsonpatch;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.schema.Schema;
 
-public class BulkSharingPatchValidator
+public class BulkPatchPathValidator
 {
-    public boolean validateSharingSchema( String className, Schema schema, List<ErrorReport> errorReports )
+    public static List<ErrorReport> validatePath( JsonPatch patch )
     {
-        if ( schema == null )
+        List<ErrorReport> errors = new ArrayList<>();
+
+        for ( JsonPatchOperation operation : patch.getOperations() )
         {
-            errorReports.add( new ErrorReport( JsonPatchException.class, ErrorCode.E6002, className ) );
-            return false;
+            if ( !operation.getPath().matchesProperty( "sharing" ) )
+            {
+                errors.add( new ErrorReport( JsonPatchException.class, ErrorCode.E4032, operation.getPath() ) );
+            }
         }
 
-        if ( !schema.isShareable() )
-        {
-            errorReports.add( new ErrorReport( JsonPatchException.class, ErrorCode.E3019, className ) );
-            return false;
-        }
-
-        return true;
+        return errors;
     }
 }

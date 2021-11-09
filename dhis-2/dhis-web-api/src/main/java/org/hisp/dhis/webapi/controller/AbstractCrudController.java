@@ -73,9 +73,11 @@ import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
-import org.hisp.dhis.jsonpatch.BulkJsonPatchParameters;
+import org.hisp.dhis.jsonpatch.BulkPatchManager;
+import org.hisp.dhis.jsonpatch.BulkPatchParameters;
+import org.hisp.dhis.jsonpatch.BulkPatchPathValidator;
+import org.hisp.dhis.jsonpatch.BulkPatchSchemaValidator;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
-import org.hisp.dhis.jsonpatch.SharingPatchManager;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -150,7 +152,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     protected SharingService sharingService;
 
     @Autowired
-    protected SharingPatchManager sharingPatchManager;
+    protected BulkPatchManager bulkPatchManager;
 
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -414,10 +416,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     {
         final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue( request.getInputStream(), BulkJsonPatch.class );
 
-        BulkJsonPatchParameters param = BulkJsonPatchParameters.builder()
-            .isAtomic( atomic ).build();
+        BulkPatchParameters param = BulkPatchParameters.builder()
+            .isAtomic( atomic )
+            .schemaValidator( BulkPatchSchemaValidator::validateSharingSchema )
+            .patchValidator( BulkPatchPathValidator::validatePath )
+            .build();
 
-        List<IdentifiableObject> patchedObjects = sharingPatchManager.applyPatch( getSchema(), bulkJsonPatch, param );
+        List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( getSchema(), bulkJsonPatch, param );
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 

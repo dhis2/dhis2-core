@@ -68,8 +68,10 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.jsonpatch.BulkJsonPatchParameters;
-import org.hisp.dhis.jsonpatch.SharingPatchManager;
+import org.hisp.dhis.jsonpatch.BulkPatchManager;
+import org.hisp.dhis.jsonpatch.BulkPatchParameters;
+import org.hisp.dhis.jsonpatch.BulkPatchPathValidator;
+import org.hisp.dhis.jsonpatch.BulkPatchSchemaValidator;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -142,7 +144,7 @@ public class MetadataImportExportController
     protected ObjectMapper jsonMapper;
 
     @Autowired
-    protected SharingPatchManager sharingPatchManager;
+    protected BulkPatchManager bulkPatchManager;
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
@@ -261,10 +263,13 @@ public class MetadataImportExportController
     {
         final BulkJsonPatches bulkJsonPatches = jsonMapper.readValue( request.getInputStream(), BulkJsonPatches.class );
 
-        BulkJsonPatchParameters param = BulkJsonPatchParameters.builder()
-            .isAtomic( atomic ).build();
+        BulkPatchParameters param = BulkPatchParameters.builder()
+            .isAtomic( atomic )
+            .schemaValidator( BulkPatchSchemaValidator::validateSharingSchema )
+            .patchValidator( BulkPatchPathValidator::validatePath )
+            .build();
 
-        List<IdentifiableObject> patchedObjects = sharingPatchManager.applyPatches( bulkJsonPatches, param );
+        List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, param );
 
         if ( patchedObjects.isEmpty() )
         {

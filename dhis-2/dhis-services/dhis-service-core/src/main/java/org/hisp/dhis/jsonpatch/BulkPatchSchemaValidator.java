@@ -27,31 +27,25 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
-import lombok.Builder;
-import lombok.Data;
-
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 
-@Data
-@Builder
-public class BulkJsonPatchParameters
+import com.google.common.collect.Lists;
+
+public class BulkPatchSchemaValidator
 {
-    private List<ErrorReport> errorReports = new ArrayList<>();
-
-    private boolean isAtomic;
-
-    private Function<JsonPatch, List<ErrorReport>> patchValidator;
-
-    private Function<Schema, List<ErrorReport>> schemValidator;
-
-    public void addErrorReport( ErrorReport errorReport )
+    public static List<ErrorReport> validateSharingSchema( Schema schema )
     {
-        errorReports.add( errorReport );
+        if ( !schema.isShareable() )
+        {
+            return Lists.newArrayList( new ErrorReport( JsonPatchException.class, ErrorCode.E3019, schema.getName() ) );
+        }
+
+        return Collections.emptyList();
     }
 }
