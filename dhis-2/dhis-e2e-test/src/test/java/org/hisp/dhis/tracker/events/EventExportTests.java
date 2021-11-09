@@ -146,7 +146,7 @@ public class EventExportTests
     Stream<Arguments> shouldUseCorrectScopeWhenOuIsProvided()
     {
         return Stream.of(
-            Arguments.of( "OU: root", "SELECTED", rootOu, true, Arrays.asList( rootOu ) ),
+            Arguments.of( "OU: root", "SELECTED", rootOu, false, null ),
             Arguments.of( "OU: capture", "SELECTED", captureOu, true, Arrays.asList( captureOu ) ),
             Arguments.of( "OU: search", "SELECTED", searchOu, true, Arrays.asList( searchOu ) ),
             Arguments.of( "OU: data read", "SELECTED", dataReadOu, true, Arrays.asList( dataReadOu ) ),
@@ -238,7 +238,7 @@ public class EventExportTests
     private Stream<Arguments> shouldReturnSingleEvent()
     {
         return Stream.of( new Arguments[] {
-            Arguments.of( "PROGRAM: event, OU: search, shouldReturn: false", events.get( searchOu ), true ),
+            Arguments.of( "PROGRAM: event, OU: search, shouldReturn: true", events.get( searchOu ), true ),
             Arguments.of( "PROGRAM: tracker, OU: search, shouldReturn: true", trackerEvents.get( searchOu ), true ),
             Arguments.of( "PROGRAM: event, OU: dataRead, shouldReturn: true", events.get( dataReadOu ), true ),
             Arguments.of( "PROGRAM: event, OU: root, shouldReturn: false", events.get( rootOu ), false ),

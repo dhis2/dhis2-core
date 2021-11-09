@@ -1082,12 +1082,12 @@ public abstract class AbstractEventService implements EventService
     private boolean isOrgUnitAccessible( OrganisationUnit orgUnit, Program program, User user )
     {
         // always allow if these are null. Internal process?
-        if ( user == null || user.isSuper() || orgUnit == null || program == null )
+        if ( user == null || user.isSuper() || orgUnit == null )
         {
             return true;
         }
 
-        if ( program.isClosed() )
+        if ( program != null && program.isClosed() )
         {
             return organisationUnitService.isInUserHierarchy( user, orgUnit );
         }
