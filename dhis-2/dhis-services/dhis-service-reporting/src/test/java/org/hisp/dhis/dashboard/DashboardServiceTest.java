@@ -36,7 +36,7 @@ import static org.junit.Assert.assertNull;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;

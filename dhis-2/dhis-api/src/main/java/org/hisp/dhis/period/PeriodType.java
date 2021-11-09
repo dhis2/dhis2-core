@@ -308,8 +308,7 @@ public abstract class PeriodType
      */
     public Period createPeriod( final Date date )
     {
-        return PERIOD_CACHE.get( getCacheKey( date ), s -> createPeriod( createCalendarInstance( date ) ) )
-            .orElse( null );
+        return PERIOD_CACHE.get( getCacheKey( date ), s -> createPeriod( createCalendarInstance( date ) ) );
     }
 
     public Period createPeriod( Calendar cal )
@@ -332,7 +331,7 @@ public abstract class PeriodType
     public Period createPeriod( final Date date, final org.hisp.dhis.calendar.Calendar calendar )
     {
         return PERIOD_CACHE.get( getCacheKey( calendar, date ),
-            p -> createPeriod( calendar.fromIso( DateTimeUnit.fromJdkDate( date ) ), calendar ) ).orElse( null );
+            p -> createPeriod( calendar.fromIso( DateTimeUnit.fromJdkDate( date ) ), calendar ) );
     }
 
     public Period toIsoPeriod( DateTimeUnit start, DateTimeUnit end )

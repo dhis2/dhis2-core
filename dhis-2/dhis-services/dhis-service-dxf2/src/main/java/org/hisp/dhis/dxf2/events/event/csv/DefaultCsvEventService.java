@@ -36,7 +36,6 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.event.EventStatus;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -48,13 +47,14 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "org.hisp.dhis.dxf2.events.event.csv.CsvEventService" )
 public class DefaultCsvEventService
-    implements CsvEventService
+    implements CsvEventService<Event>
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
 
@@ -62,14 +62,14 @@ public class DefaultCsvEventService
         .withLineSeparator( "\n" );
 
     @Override
-    public void writeEvents( OutputStream outputStream, Events events, boolean withHeader )
+    public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
         throws IOException
     {
         ObjectWriter writer = CSV_MAPPER.writer( CSV_SCHEMA.withUseHeader( withHeader ) );
 
         List<CsvEventDataValue> dataValues = new ArrayList<>();
 
-        for ( Event event : events.getEvents() )
+        for ( Event event : events )
         {
             CsvEventDataValue templateDataValue = new CsvEventDataValue();
             templateDataValue.setEvent( event.getEvent() );
@@ -115,11 +115,11 @@ public class DefaultCsvEventService
     }
 
     @Override
-    public Events readEvents( InputStream inputStream, boolean skipFirst )
+    public List<Event> readEvents( InputStream inputStream, boolean skipFirst )
         throws IOException,
         ParseException
     {
-        Events events = new Events();
+        List<Event> events = Lists.newArrayList();
 
         ObjectReader reader = CSV_MAPPER.readerFor( CsvEventDataValue.class )
             .with( CSV_SCHEMA.withSkipFirstDataRow( skipFirst ) );
@@ -158,7 +158,7 @@ public class DefaultCsvEventService
                         .read( "Point(" + dataValue.getLongitude() + " " + dataValue.getLatitude() + ")" ) );
                 }
 
-                events.getEvents().add( event );
+                events.add( event );
             }
 
             DataValue value = new DataValue( dataValue.getDataElement(), dataValue.getValue() );

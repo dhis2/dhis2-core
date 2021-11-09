@@ -310,7 +310,7 @@ public class CategoryOptionCombo
      * extensions to the category end dates for aggregate data entry in data
      * sets with openPeriodsAfterCoEndDate.
      *
-     * @return the latest option start date for this combo.
+     * @return the earliest option end date for this combo.
      */
     public Date getEarliestEndDate()
     {

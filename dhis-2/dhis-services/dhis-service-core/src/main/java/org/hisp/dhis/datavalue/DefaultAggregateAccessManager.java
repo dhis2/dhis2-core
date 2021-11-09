@@ -167,7 +167,7 @@ public class DefaultAggregateAccessManager
     {
         String cacheKey = user.getUid() + "-" + optionCombo.getUid();
 
-        return canDataWriteCocCache.get( cacheKey, key -> canWrite( user, optionCombo ) ).orElse( null );
+        return canDataWriteCocCache.get( cacheKey, key -> canWrite( user, optionCombo ) );
     }
 
     @Override

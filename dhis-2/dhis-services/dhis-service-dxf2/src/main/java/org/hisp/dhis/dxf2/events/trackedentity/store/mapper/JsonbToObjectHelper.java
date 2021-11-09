@@ -25,34 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 
-public class DataApprovalStateResponses
+import org.hisp.dhis.program.UserInfoSnapshot;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+public class JsonbToObjectHelper
 {
-    List<DataApprovalStateResponse> dataApprovalStateResponses = new ArrayList<>();
 
-    public DataApprovalStateResponses()
+    private final static ObjectMapper MAPPER;
+
+    static
     {
+        MAPPER = new ObjectMapper();
+        MAPPER.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false );
     }
 
-    @JsonProperty
-    public List<DataApprovalStateResponse> getDataApprovalStateResponses()
+    static void setUserInfoSnapshot( ResultSet rs, String columnName,
+        Consumer<UserInfoSnapshot> applier )
+        throws SQLException
     {
-        return dataApprovalStateResponses;
+        Optional.ofNullable( rs.getObject( columnName ) )
+            .map( Object::toString )
+            .map( JsonbToObjectHelper::safelyConvert )
+            .ifPresent( applier );
     }
 
-    public void setDataApprovalStateResponses( List<DataApprovalStateResponse> dataApprovalStateResponses )
+    @SneakyThrows
+    static UserInfoSnapshot safelyConvert( String userInfoSnapshotAsString )
     {
-        this.dataApprovalStateResponses = dataApprovalStateResponses;
-    }
-
-    public void add( DataApprovalStateResponse dataApprovalStateResponse )
-    {
-        dataApprovalStateResponses.add( dataApprovalStateResponse );
+        return MAPPER.readValue( userInfoSnapshotAsString, UserInfoSnapshot.class );
     }
 }

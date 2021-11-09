@@ -25,22 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
+package org.hisp.dhis.dxf2.events.event;
 
-import lombok.Getter;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-/**
- * @author Luca Cambi <luca@dhis2.org>
- */
-@Getter
-@ResponseStatus( HttpStatus.CONFLICT )
-public class PotentialDuplicateConflictException extends RuntimeException
+@Service
+@Profile( "test" )
+public class TestSkipLockedProvider implements SkipLockedProvider
 {
-    public PotentialDuplicateConflictException( String message )
+    @Override
+    public String getSkipLocked()
     {
-        super( message );
+        return "";
     }
 }

@@ -311,7 +311,7 @@ public class DefaultUserSettingService
         String cacheKey = getCacheKey( key.getName(), username );
 
         SerializableOptional result = userSettingCache
-            .get( cacheKey, c -> getUserSettingOptional( key, username ) ).get();
+            .get( cacheKey, c -> getUserSettingOptional( key, username ) );
 
         if ( !result.isPresent() && NAME_SETTING_KEY_MAP.containsKey( key.getName() ) )
         {

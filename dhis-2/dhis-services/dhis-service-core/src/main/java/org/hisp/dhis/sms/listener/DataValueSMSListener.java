@@ -149,7 +149,7 @@ public class DataValueSMSListener
 
         if ( parsedMessage.isEmpty() )
         {
-            sendFeedback( org.apache.commons.lang.StringUtils.defaultIfEmpty( smsCommand.getDefaultMessage(),
+            sendFeedback( org.apache.commons.lang3.StringUtils.defaultIfEmpty( smsCommand.getDefaultMessage(),
                 "No values reported for command '" + smsCommand.getName() + "'" ), sms.getOriginator(), ERROR );
 
             update( sms, SmsMessageStatus.FAILED, false );
@@ -157,7 +157,7 @@ public class DataValueSMSListener
         }
         else if ( !valueStored )
         {
-            sendFeedback( org.apache.commons.lang.StringUtils.defaultIfEmpty( smsCommand.getWrongFormatMessage(),
+            sendFeedback( org.apache.commons.lang3.StringUtils.defaultIfEmpty( smsCommand.getWrongFormatMessage(),
                 SMSCommand.WRONG_FORMAT_MESSAGE ), sms.getOriginator(), ERROR );
 
             update( sms, SmsMessageStatus.FAILED, false );

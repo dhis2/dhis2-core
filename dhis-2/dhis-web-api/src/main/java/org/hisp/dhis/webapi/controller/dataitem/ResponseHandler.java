@@ -140,7 +140,7 @@ class ResponseHandler
             // Counting and summing up the results for each entity.
             count.addAndGet( pageCountingCache.get(
                 createPageCountingCacheKey( currentUser, targetEntities, filters, options ),
-                p -> countEntityRowsTotal( targetEntities, options, paramsMap ) ).orElse( 0L ) );
+                p -> countEntityRowsTotal( targetEntities, options, paramsMap ) ) );
 
             final Pager pager = new Pager( options.getPage(), count.get(), options.getPageSize() );
 

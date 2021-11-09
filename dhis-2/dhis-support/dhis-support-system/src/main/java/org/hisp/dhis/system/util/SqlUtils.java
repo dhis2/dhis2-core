@@ -32,6 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.Sets;
@@ -127,6 +128,15 @@ public class SqlUtils
     public static String lower( String value )
     {
         return "lower(" + value + ")";
+    }
+
+    public static String escapeSql( String str )
+    {
+        if ( str == null )
+        {
+            return null;
+        }
+        return StringUtils.replace( str, "'", "''" );
     }
 
 }

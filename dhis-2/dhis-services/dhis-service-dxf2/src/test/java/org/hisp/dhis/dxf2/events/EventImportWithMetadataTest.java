@@ -36,8 +36,8 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -74,7 +74,7 @@ public class EventImportWithMetadataTest extends DhisSpringTest
 
     private static final IdSchemes idSchemes = new IdSchemes();
 
-    private static Events events;
+    private static List<Event> events;
 
     @Override
     protected void setUpTest()
@@ -110,7 +110,7 @@ public class EventImportWithMetadataTest extends DhisSpringTest
         ImportOptions importOptions = new ImportOptions();
         importOptions.setIdSchemes( idSchemes );
 
-        ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
+        ImportSummaries importSummaries = eventService.addEvents( events, importOptions, null );
 
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
     }
@@ -122,7 +122,7 @@ public class EventImportWithMetadataTest extends DhisSpringTest
         ImportOptions importOptions = new ImportOptions();
         importOptions.setIdSchemes( idSchemes );
 
-        ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
+        ImportSummaries importSummaries = eventService.addEvents( events, importOptions, null );
 
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
     }
