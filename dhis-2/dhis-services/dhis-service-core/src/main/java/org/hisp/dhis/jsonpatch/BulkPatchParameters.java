@@ -64,7 +64,7 @@ public class BulkPatchParameters
     private Function<Schema, List<ErrorReport>> schemaValidator;
 
     /**
-     * Schema instance of the class that is patched.
+     * Schema instance of the class that need to be patched.
      * <p>
      * Only available if bulk update for single class.
      */

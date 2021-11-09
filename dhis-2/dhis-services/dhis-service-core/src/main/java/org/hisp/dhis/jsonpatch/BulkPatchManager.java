@@ -46,8 +46,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Contains functions to apply multiple {@link JsonPatch} to one or multiple
- * objects
+ * Contains functions to apply {@link JsonPatch} to one or multiple object
+ * types.
  */
 @Service
 public class BulkPatchManager
@@ -67,7 +67,7 @@ public class BulkPatchManager
     }
 
     /**
-     * Apply a {@link JsonPatch} to multiple objects.
+     * Apply one {@link JsonPatch} to multiple objects of same class.
      *
      * @param bulkJsonPatch {@link BulkJsonPatch} instance contains the data
      *        parsed from request payload.
@@ -96,7 +96,8 @@ public class BulkPatchManager
     }
 
     /**
-     * Apply list of {@link JsonPatch} to list of objects from given Map.
+     * Apply {@link JsonPatch} to multiple objects of different classes from
+     * given {@link BulkJsonPatches}.
      * <p>
      * Each object has its own {@link JsonPatch}.
      *

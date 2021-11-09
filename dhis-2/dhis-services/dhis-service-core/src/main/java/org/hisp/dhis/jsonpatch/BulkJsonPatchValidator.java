@@ -39,7 +39,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 
 /**
- * These validation methods can be added to {@link BulkPatchParameters}
+ * Contains validation methods that can be added to {@link BulkPatchParameters}
  * <p>
  * and are called in {@link BulkPatchManager} before {@link JsonPatch} are
  * applied.
