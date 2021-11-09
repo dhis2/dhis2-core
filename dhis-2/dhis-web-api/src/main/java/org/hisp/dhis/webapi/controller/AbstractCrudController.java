@@ -410,7 +410,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @ResponseBody
-    @PatchMapping( path = "/sharing", consumes = "application/json-patch" )
+    @PatchMapping( path = "/sharing", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
         HttpServletRequest request )
         throws Exception

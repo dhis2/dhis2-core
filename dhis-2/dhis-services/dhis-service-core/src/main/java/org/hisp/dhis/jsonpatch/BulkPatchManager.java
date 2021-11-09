@@ -45,6 +45,10 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Contains functions to apply multiple {@link JsonPatch} to one or multiple
+ * objects
+ */
 @Service
 public class BulkPatchManager
 {
@@ -92,7 +96,7 @@ public class BulkPatchManager
     }
 
     /**
-     * Apply {@link JsonPatch} to list of objects from given Map.
+     * Apply list of {@link JsonPatch} to list of objects from given Map.
      * <p>
      * Each object has its own {@link JsonPatch}.
      *
@@ -101,12 +105,12 @@ public class BulkPatchManager
      * @return
      */
     @Transactional( readOnly = true )
-    public List<IdentifiableObject> applyPatches( Map<String, Map<String, JsonPatch>> patches,
+    public List<IdentifiableObject> applyPatches( BulkJsonPatches patches,
         BulkPatchParameters patchParameters )
     {
         List<IdentifiableObject> patchedObjects = new ArrayList<>();
 
-        for ( String className : patches.keySet() )
+        for ( String className : patches.getClassNames() )
         {
             Optional<Schema> schema = validateClassName( className, patchParameters );
 
@@ -121,6 +125,7 @@ public class BulkPatchManager
                 .forEach( id -> patchObject( id, schema.get(), mapPatches.get( id ), patchParameters )
                     .ifPresent( patchedObjects::add ) );
         }
+
         return patchedObjects;
     }
 
@@ -159,24 +164,6 @@ public class BulkPatchManager
             errors.add( new ErrorReport( schema.getKlass(), ErrorCode.E6003, e.getMessage() ) );
             return Optional.empty();
         }
-    }
-
-    private boolean validateClassName( Schema schema, String className, BulkPatchParameters patchParameters )
-    {
-        if ( !schema.getPlural().equals( className ) )
-        {
-            patchParameters.addErrorReport( new ErrorReport( JsonPatchException.class, ErrorCode.E6002, className ) );
-            return false;
-        }
-
-        List<ErrorReport> errors = patchParameters.getSchemaValidator().apply( schema );
-        if ( !errors.isEmpty() )
-        {
-            patchParameters.addErrorReports( errors );
-            return false;
-        }
-
-        return true;
     }
 
     /**

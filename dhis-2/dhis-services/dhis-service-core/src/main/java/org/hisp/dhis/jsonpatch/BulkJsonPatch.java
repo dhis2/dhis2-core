@@ -38,6 +38,9 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * DTO for applying one {@link JsonPatch} to multiple objects.
+ */
 @Data
 public class BulkJsonPatch
 {

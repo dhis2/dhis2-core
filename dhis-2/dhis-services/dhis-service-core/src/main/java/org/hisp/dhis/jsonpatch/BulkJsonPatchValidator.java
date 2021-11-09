@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,20 +39,20 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 
 /**
- * These validation methods can be added to {@link BulkPatchParameters} and are
- * used in
+ * These validation methods can be added to {@link BulkPatchParameters}
  * <p>
- * {@link BulkPatchManager} before applying the patches.
+ * and are called in {@link BulkPatchManager} before {@link JsonPatch} are
+ * applied.
  */
 public class BulkJsonPatchValidator
 {
     /**
      * Validate if all {@link JsonPatchOperation} of given {@link JsonPatch} are
-     * applied to sharing property.
+     * applied to "sharing" property.
      *
-     * @param patch {@llink JsonPatch} for validating.
-     * @return List of {@link ErrorReport}, each error is linked to
-     *         {@link ErrorCode#E4032}.
+     * @param patch {@link JsonPatch} for validating.
+     * @return {@link ErrorCode#E4032} if {@link JsonPatchOperation#getPath()}
+     *         is different from "sharing"
      */
     public static List<ErrorReport> validateSharingPath( JsonPatch patch )
     {
@@ -73,8 +73,8 @@ public class BulkJsonPatchValidator
      * Validate if given schema is shareable.
      *
      * @param schema {@link Schema} for validation.
-     * @return Singleton List of {@link ErrorReport}, the error is linked to
-     *         {@link ErrorCode#E3019}.
+     * @return {@link ErrorCode#E3019} if given {@link Schema#isShareable()} is
+     *         false.
      */
     public static List<ErrorReport> validateShareableSchema( Schema schema )
     {

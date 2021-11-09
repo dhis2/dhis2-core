@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,13 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.jsonpatch;
+package org.hisp.dhis.jsonpatch;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 
-public class BulkJsonPatches extends LinkedHashMap<String, Map<String, JsonPatch>>
+/**
+ * DTO for applying multiple {@link JsonPatch} to multiple objects.
+ * <p>
+ * The format is {@code Map<className,Map<UID,JsonPatch>}
+ *
+ * <p>
+ * className is in plural form {@link org.hisp.dhis.schema.Schema#getPlural()}
+ */
+public class BulkJsonPatches
+    extends LinkedHashMap<String, Map<String, JsonPatch>>
 {
+    public Set<String> getClassNames()
+    {
+        return keySet();
+    }
 }
