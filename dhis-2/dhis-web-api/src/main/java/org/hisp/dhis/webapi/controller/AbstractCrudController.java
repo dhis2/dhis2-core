@@ -40,7 +40,6 @@ import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -73,7 +72,10 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsonpatch.BulkJsonPatch;
+import org.hisp.dhis.jsonpatch.BulkJsonPatchParameters;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
+import org.hisp.dhis.jsonpatch.SharingPatchManager;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -88,7 +90,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.hisp.dhis.webapi.webdomain.sharing.IdJsonPatch;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
@@ -102,7 +103,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
@@ -148,6 +148,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @Autowired
     protected SharingService sharingService;
+
+    @Autowired
+    protected SharingPatchManager sharingPatchManager;
 
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -405,40 +408,16 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @ResponseBody
     @PatchMapping( path = "/sharing", consumes = "application/json-patch" )
-    public WebMessage bulkSharing( @RequestParam Map<String, String> rpParameters,
+    public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
         HttpServletRequest request )
         throws Exception
     {
-        final List<IdJsonPatch> idJsonPatches = jsonMapper.readValue( request.getInputStream(),
-            new TypeReference<List<IdJsonPatch>>()
-            {
-            } );
+        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue( request.getInputStream(), BulkJsonPatch.class );
 
-        List<T> patchedObjects = new ArrayList<>();
+        BulkJsonPatchParameters param = BulkJsonPatchParameters.builder()
+            .isAtomic( atomic ).build();
 
-        for ( IdJsonPatch idJsonPatch : idJsonPatches )
-        {
-            T entity = manager.get( idJsonPatch.getUid() );
-
-            if ( entity == null )
-            {
-                continue;
-            }
-
-            T patchedObject = entity;
-
-            patchedObject = jsonPatchManager.apply( idJsonPatch.getPatches(), patchedObject );
-
-            // we don't allow changing UIDs
-            ((BaseIdentifiableObject) patchedObject).setUid( entity.getUid() );
-
-            // Only supports new Sharing format
-            ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
-
-            prePatchEntity( entity, patchedObject );
-
-            patchedObjects.add( patchedObject );
-        }
+        List<IdentifiableObject> patchedObjects = sharingPatchManager.applyPatch( getSchema(), bulkJsonPatch, param );
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 
@@ -449,9 +428,24 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             .addObjects( patchedObjects );
 
         ImportReport importReport = importService.importMetadata( params );
-        WebMessage webMessage = objectReport( importReport );
 
-        return webMessage;
+        if ( param.getErrorReports().isEmpty() )
+        {
+            return objectReport( importReport );
+        }
+
+        if ( importReport.getFirstObjectReport() != null )
+        {
+            importReport.getFirstObjectReport().addErrorReports( param.getErrorReports() );
+        }
+        else
+        {
+            ObjectReport objectReport = new ObjectReport( getEntityClass(), 0 );
+            objectReport.addErrorReports( param.getErrorReports() );
+            importReport.getTypeReport( getEntityClass() ).addObjectReport( objectReport );
+        }
+
+        return objectReport( importReport );
     }
 
     // --------------------------------------------------------------------------

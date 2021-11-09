@@ -25,8 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.jsonpatch;
 
-public class JsonPatchUtils
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
+import lombok.Builder;
+import lombok.Data;
+
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.schema.Schema;
+
+@Data
+@Builder
+public class BulkJsonPatchParameters
 {
+    private List<ErrorReport> errorReports = new ArrayList<>();
+
+    private boolean isAtomic;
+
+    private Function<JsonPatch, List<ErrorReport>> patchValidator;
+
+    private Function<Schema, List<ErrorReport>> schemValidator;
+
+    public void addErrorReport( ErrorReport errorReport )
+    {
+        errorReports.add( errorReport );
+    }
 }

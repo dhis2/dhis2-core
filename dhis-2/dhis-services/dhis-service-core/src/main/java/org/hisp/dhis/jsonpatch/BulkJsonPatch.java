@@ -25,8 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.jsonpatch;
 
-public class JsonPatchUtils
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import lombok.Data;
+
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Data
+public class BulkJsonPatch
 {
+    @JsonAnySetter
+    @JsonProperty
+    private Map<String, List<String>> targetIds = new HashMap<>();
+
+    @JsonProperty
+    private JsonPatch patch;
+
+    public List<String> getIdsByClassName( String className )
+    {
+        return targetIds.get( className );
+    }
 }

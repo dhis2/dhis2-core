@@ -28,8 +28,10 @@
 package org.hisp.dhis.webapi.controller.metadata;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.scheduling.JobType.GML_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -48,12 +50,14 @@ import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.gml.GmlImportService;
+import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -61,6 +65,11 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsonpatch.BulkJsonPatchParameters;
+import org.hisp.dhis.jsonpatch.SharingPatchManager;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -71,15 +80,19 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.webdomain.jsonpatch.BulkJsonPatches;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -124,6 +137,12 @@ public class MetadataImportExportController
 
     @Autowired
     private ObjectFactory<GmlAsyncImporter> gmlAsyncImporterFactory;
+
+    @Autowired
+    protected ObjectMapper jsonMapper;
+
+    @Autowired
+    protected SharingPatchManager sharingPatchManager;
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
@@ -231,6 +250,50 @@ public class MetadataImportExportController
         RootNode rootNode = metadataExportService.getMetadataAsNode( params );
 
         return MetadataExportControllerUtils.createResponseEntity( rootNode, download );
+    }
+
+    @ResponseBody
+    @PatchMapping( value = "sharing", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
+        HttpServletRequest request )
+        throws IOException,
+        JsonPatchException
+    {
+        final BulkJsonPatches bulkJsonPatches = jsonMapper.readValue( request.getInputStream(), BulkJsonPatches.class );
+
+        BulkJsonPatchParameters param = BulkJsonPatchParameters.builder()
+            .isAtomic( atomic ).build();
+
+        List<IdentifiableObject> patchedObjects = sharingPatchManager.applyPatches( bulkJsonPatches, param );
+
+        if ( patchedObjects.isEmpty() )
+        {
+            return errorReports( param.getErrorReports() );
+        }
+
+        Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
+
+        MetadataImportParams params = metadataImportService.getParamsFromMap( parameterValuesMap );
+
+        params.setUser( currentUserService.getCurrentUser() )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .setAtomicMode( atomic ? AtomicMode.ALL : AtomicMode.NONE )
+            .addObjects( patchedObjects );
+
+        ImportReport importReport = metadataImportService.importMetadata( params );
+
+        if ( param.getErrorReports().isEmpty() )
+        {
+            return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        }
+
+        ObjectReport objectReport = new ObjectReport( JsonPatchException.class, 0 );
+        objectReport.addErrorReports( param.getErrorReports() );
+        TypeReport typeReport = new TypeReport( JsonPatchException.class );
+        typeReport.addObjectReport( objectReport );
+        importReport.addTypeReport( typeReport );
+
+        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
 
     // ----------------------------------------------------------------------------------------------------------------------------------------

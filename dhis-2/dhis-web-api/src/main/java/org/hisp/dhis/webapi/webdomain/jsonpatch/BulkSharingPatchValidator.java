@@ -25,30 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain.sharing;
+package org.hisp.dhis.webapi.webdomain.jsonpatch;
 
-import java.util.LinkedHashMap;
+import java.util.List;
 
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.schema.Schema;
 
-/**
- * This object represent the payload format of JsonPatch function with multiple
- * objects.
- * <p>
- * This payload is consumed by AbstractCrudController#bulkSharing().
- * <p>
- * The format looks like this: {@code [ { "objectUid" : [ { JsonPatch }, {
- * JsonPatch } ] }, { "objectUid" : [ { JsonPatch } ] } ] }
- */
-public class IdJsonPatch extends LinkedHashMap<String, JsonPatch>
+public class BulkSharingPatchValidator
 {
-    public String getUid()
+    public boolean validateSharingSchema( String className, Schema schema, List<ErrorReport> errorReports )
     {
-        return keySet().iterator().next();
-    }
+        if ( schema == null )
+        {
+            errorReports.add( new ErrorReport( JsonPatchException.class, ErrorCode.E6002, className ) );
+            return false;
+        }
 
-    public JsonPatch getPatches()
-    {
-        return values().iterator().next();
+        if ( !schema.isShareable() )
+        {
+            errorReports.add( new ErrorReport( JsonPatchException.class, ErrorCode.E3019, className ) );
+            return false;
+        }
+
+        return true;
     }
 }

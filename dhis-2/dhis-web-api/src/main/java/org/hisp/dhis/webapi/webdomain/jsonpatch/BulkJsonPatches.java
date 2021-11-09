@@ -25,8 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.webapi.webdomain.jsonpatch;
 
-public class JsonPatchUtils
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+
+public class BulkJsonPatches extends LinkedHashMap<String, Map<String, JsonPatch>>
 {
 }
