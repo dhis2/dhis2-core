@@ -234,12 +234,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         else // this branch will only happen if coming from /events
         {
             OrganisationUnit ou = programInstance.getOrganisationUnit();
-            if ( ou != null )
+
+            if ( !isOrgUnitAccessible( user, program, ou ) )
             {
-                if ( !organisationUnitService.isInUserDataViewHierarchyCached( user, ou ) )
-                {
-                    errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-                }
+                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
         }
 
@@ -434,12 +432,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         else
         {
             OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-            if ( ou != null )
+
+            if ( !isOrgUnitAccessible( user, program, ou ) )
             {
-                if ( !organisationUnitService.isInUserDataViewHierarchyCached( user, ou ) )
-                {
-                    errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-                }
+                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
         }
 
@@ -564,7 +560,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             OrganisationUnit ou = programStageInstance.getOrganisationUnit();
             if ( ou != null )
             {
-                if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
+                if ( !organisationUnitService.isInUserSearchHierarchy( user, ou ) )
                 {
                     errors.add( "User has no update access to organisation unit: " + ou.getUid() );
                 }
@@ -807,4 +803,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         return programStage == null || programStage.getProgram() == null;
     }
 
+    private boolean isOrgUnitAccessible( User user, Program program, OrganisationUnit orgUnit )
+    {
+        // always allow if these are null. Internal process?
+        if ( user == null || user.isSuper() || orgUnit == null )
+        {
+            return true;
+        }
+
+        if ( program != null && program.isClosed() )
+        {
+            return organisationUnitService.isInUserHierarchy( user, orgUnit );
+        }
+
+        return organisationUnitService.isInUserSearchHierarchy( user, orgUnit );
+    }
 }

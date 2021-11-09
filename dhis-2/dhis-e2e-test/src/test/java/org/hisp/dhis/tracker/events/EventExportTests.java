@@ -84,7 +84,7 @@ public class EventExportTests
     @ValueSource( strings = {
         "?ouMode=ACCESSIBLE&program=programId&event=eventId&fields=*",
         "?ouMode=ACCESSIBLE&program=programId&event=eventId&fields=relationships",
-        //"?ouMode=ACCESSIBLE&event=eventId&fields=*", // todo uncomment when bug in /events is fixed. 
+        "?ouMode=ACCESSIBLE&event=eventId&fields=*",
         //"?ouMode=ACCESSIBLE&event=eventId&fields=relationships",
         "?ouMode=ACCESSIBLE&program=programId&fields=*",
         "?ouMode=ACCESSIBLE&program=programId&fields=relationships"
