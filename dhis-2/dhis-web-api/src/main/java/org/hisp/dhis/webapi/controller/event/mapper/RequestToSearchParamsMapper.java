@@ -179,15 +179,6 @@ public class RequestToSearchParamsMapper
             throw new IllegalQueryException( "Org unit is specified but does not exist: " + orgUnit );
         }
 
-        if ( ou != null && !organisationUnitService.isInUserHierarchy( ou ) )
-        {
-            if ( !userCredentials.isSuper()
-                && !userCredentials.isAuthorized( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ) )
-            {
-                throw new IllegalQueryException( "User has no access to organisation unit: " + ou.getUid() );
-            }
-        }
-
         if ( pr != null && !userCredentials.isSuper() && !aclService.canDataRead( user, pr ) )
         {
             throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
