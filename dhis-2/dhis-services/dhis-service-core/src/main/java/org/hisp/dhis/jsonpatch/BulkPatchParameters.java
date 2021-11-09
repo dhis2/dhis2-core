@@ -58,12 +58,12 @@ public class BulkPatchParameters
 
     public void addErrorReport( ErrorReport errorReport )
     {
-        errorReports.add( errorReport );
+        getErrorReports().add( errorReport );
     }
 
     public void addErrorReports( List<ErrorReport> errorReports )
     {
-        errorReports.addAll( errorReports );
+        getErrorReports().addAll( errorReports );
     }
 
     public boolean hasPatchValidator()
