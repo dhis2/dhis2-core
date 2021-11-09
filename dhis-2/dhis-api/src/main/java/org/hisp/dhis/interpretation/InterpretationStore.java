@@ -30,6 +30,7 @@ package org.hisp.dhis.interpretation;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.visualization.Visualization;
 
@@ -37,9 +38,10 @@ import org.hisp.dhis.visualization.Visualization;
  * @author Lars Helge Overland
  */
 public interface InterpretationStore
-    extends IdentifiableObjectStore<Interpretation>
-{
-    List<Interpretation> getInterpretations( Map map );
+        extends IdentifiableObjectStore<Interpretation> {
+    List<Interpretation> getInterpretations(Map map);
 
-    List<Interpretation> getInterpretations( Visualization visualization );
+    List<Interpretation> getInterpretations(Visualization visualization);
+
+    List<Interpretation> getInterpretations(EventVisualization eventVisualization);
 }

@@ -42,6 +42,7 @@ import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.legend.LegendSet;
@@ -163,7 +164,47 @@ public class DashboardCascadeSharingTest
         assertTrue( aclService.canRead( userB, visualizationA ) );
         assertTrue( aclService.canRead( userA, updatedDataElementA ) );
         assertTrue( aclService.canRead( userB, updatedDataElementB ) );
+    }
 
+    /**
+     * Dashboard has sharingUserA and eventVisualizationA
+     * <p>
+     * eventVisualizationA has dataElementA
+     * <p>
+     * Expected: eventVisualizationA and dataElementA should be shared to userA
+     */
+    @Test
+    public void testCascadeShareEventVisualization()
+    {
+        DataElement dataElementA = createDEWithDefaultSharing( 'A' );
+        objectManager.save( dataElementA );
+        DataElement dataElementB = createDEWithDefaultSharing( 'B' );
+        objectManager.save( dataElementB );
+
+        Program program = createProgram( 'Y', null, null );
+        objectManager.save( program );
+
+        EventVisualization eventVisualizationA = createEventVisualization( 'A', program );
+        eventVisualizationA.addDataDimensionItem( dataElementA );
+        eventVisualizationA.addDataDimensionItem( dataElementB );
+        eventVisualizationA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
+        objectManager.save( eventVisualizationA, false );
+
+        Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserAB );
+        dashboard.getItems().get( 0 ).setEventVisualization( eventVisualizationA );
+        objectManager.save( dashboard, false );
+
+        CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
+                new CascadeSharingParameters() );
+        assertEquals( 0, report.getErrorReports().size() );
+
+        DataElement updatedDataElementA = objectManager.get( DataElement.class, dataElementA.getUid() );
+        DataElement updatedDataElementB = objectManager.get( DataElement.class, dataElementB.getUid() );
+
+        assertTrue( aclService.canRead( userA, eventVisualizationA ) );
+        assertTrue( aclService.canRead( userB, eventVisualizationA ) );
+        assertTrue( aclService.canRead( userA, updatedDataElementA ) );
+        assertTrue( aclService.canRead( userB, updatedDataElementB ) );
     }
 
     @Test

@@ -60,6 +60,7 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
@@ -106,6 +107,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.visualization.Visualization;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -904,6 +906,32 @@ public class Metadata
     public void setEventCharts( List<EventChart> eventCharts )
     {
         setValues( EventChart.class, eventCharts );
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "eventVisualizations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "eventVisualization", namespace = DxfNamespaces.DXF_2_0 )
+    public List<EventVisualization> getEventVisualizations()
+    {
+        return getValues( EventVisualization.class );
+    }
+
+    public void setEventVisualizations( List<EventVisualization> eventVisualizations )
+    {
+        setValues( EventVisualization.class, eventVisualizations );
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "visualizations", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "visualization", namespace = DxfNamespaces.DXF_2_0 )
+    public List<Visualization> getVisualizations()
+    {
+        return getValues( Visualization.class );
+    }
+
+    public void setVisualizations( List<Visualization> visualizations )
+    {
+        setValues( Visualization.class, visualizations );
     }
 
     @JsonProperty

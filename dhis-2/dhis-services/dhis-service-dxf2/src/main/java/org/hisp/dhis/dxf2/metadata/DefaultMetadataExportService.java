@@ -61,6 +61,7 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -907,6 +908,17 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEventVisualization(
+            SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, EventVisualization eventVisualization )
+    {
+        if ( eventVisualization == null )
+            return metadata;
+        metadata.putValue( EventVisualization.class, eventVisualization );
+        handleAttributes( metadata, eventVisualization );
+
+        return metadata;
+    }
+
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleReport(
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, Report report )
     {
@@ -963,6 +975,7 @@ public class DefaultMetadataExportService implements MetadataExportService
         handleAttributes( metadata, dashboardItem );
 
         handleVisualization( metadata, dashboardItem.getVisualization() );
+        handleEventVisualization( metadata, dashboardItem.getEventVisualization() );
         handleEventChart( metadata, dashboardItem.getEventChart() );
         handleEventReport( metadata, dashboardItem.getEventReport() );
         handleMap( metadata, dashboardItem.getMap() );

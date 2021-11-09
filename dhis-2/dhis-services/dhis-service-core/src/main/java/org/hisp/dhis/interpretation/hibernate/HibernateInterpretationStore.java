@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationStore;
 import org.hisp.dhis.mapping.Map;
@@ -70,5 +71,13 @@ public class HibernateInterpretationStore
         return getQuery( "select distinct i from Interpretation i where i.visualization = :visualization" )
             .setParameter( "visualization", visualization )
             .list();
+    }
+
+    @Override
+    public List<Interpretation> getInterpretations( EventVisualization eventVisualization )
+    {
+        return getQuery( "select distinct i from Interpretation i where i.eventVisualization = :eventVisualization" )
+                .setParameter( "eventVisualization", eventVisualization )
+                .list();
     }
 }

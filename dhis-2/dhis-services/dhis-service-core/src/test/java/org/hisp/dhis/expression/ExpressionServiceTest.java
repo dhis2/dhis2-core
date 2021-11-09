@@ -808,10 +808,8 @@ public class ExpressionServiceTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testExpressionNumeric()
+    public void testNumericConstants()
     {
-        // Numeric constants
-
         assertEquals( "2", eval( "2" ) );
         assertEquals( "2", eval( "2." ) );
         assertEquals( "2", eval( "2.0" ) );
@@ -833,10 +831,14 @@ public class ExpressionServiceTest
         assertEquals( "200", eval( "2E2" ) );
         assertEquals( "2", eval( "+2" ) );
         assertEquals( "-2", eval( "-2" ) );
+    }
 
-        // Numeric operators in precedence order:
+    // Numeric Operator tests are in precedence order:
 
-        // Exponentiation (right-to-left)
+    @Test
+    public void testExponentiation()
+    {
+        // Exponentiation precedence is right-to-left
 
         assertEquals( "512", eval( "2 ^ 3 ^ 2" ) );
         assertEquals( "64", eval( "( 2 ^ 3 ) ^ 2" ) );
@@ -844,21 +846,30 @@ public class ExpressionServiceTest
 
         assertEquals( "null DeA DeE", eval( "#{dataElemenA} ^ #{dataElemenE}" ) );
         assertEquals( "null DeA DeE", eval( "#{dataElemenE} ^ #{dataElemenA}" ) );
+    }
 
-        // Unary +, -
+    @Test
+    public void testUnaryPlusMinus()
+    {
+        // Unary plus/minus precedence is left-to-right
 
         assertEquals( "5", eval( "+ (2 + 3)" ) );
+        assertEquals( "1", eval( "- 2 + 3" ) );
         assertEquals( "-5", eval( "- (2 + 3)" ) );
 
         assertEquals( "null DeE", eval( "- #{dataElemenE}" ) );
 
-        // Unary +, - after Exponentiation
+        // Unary +, - precedence is after Exponentiation
 
         assertEquals( "-4", eval( "-(2) ^ 2" ) );
         assertEquals( "4", eval( "(-(2)) ^ 2" ) );
         assertEquals( "4", eval( "+(2) ^ 2" ) );
+    }
 
-        // Multiply, divide, modulus (left-to-right)
+    @Test
+    public void testMultiplyDivideModulus()
+    {
+        // Multiply, Divide, Modulus precedence is left-to-right
 
         assertEquals( "24", eval( "2 * 3 * 4" ) );
         assertEquals( "2", eval( "12 / 3 / 2" ) );
@@ -884,8 +895,12 @@ public class ExpressionServiceTest
         assertEquals( "-1.5", eval( "-(3 / 2)" ) );
         assertEquals( "-1", eval( "-(7) % 3" ) );
         assertEquals( "-1", eval( "-(7 % 3)" ) );
+    }
 
-        // Add, subtract (left-to-right)
+    @Test
+    public void testAddSubtract()
+    {
+        // Add, Subtrace precedence is left-to-right
 
         assertEquals( "9", eval( "2 + 3 + 4" ) );
         assertEquals( "9", eval( "2 + ( 3 + 4 )" ) );
@@ -897,7 +912,7 @@ public class ExpressionServiceTest
         assertEquals( "null DeA DeE", eval( "#{dataElemenA} + #{dataElemenE}" ) );
         assertEquals( "null DeA DeE", eval( "#{dataElemenE} - #{dataElemenA}" ) );
 
-        // Add, subtract after Multiply, divide, modulus
+        // Add, subtract precedence is after Multiply, Divide, Modulus
 
         assertEquals( "10", eval( "4 + 3 * 2" ) );
         assertEquals( "14", eval( "( 4 + 3 ) * 2" ) );
@@ -912,9 +927,11 @@ public class ExpressionServiceTest
         assertEquals( "0.5", eval( "( 4 - 3 ) / 2" ) );
         assertEquals( "3", eval( "4 - 3 % 2" ) );
         assertEquals( "1", eval( "( 4 - 3 ) % 2" ) );
+    }
 
-        // Logarithms
-
+    @Test
+    public void testLogarithms()
+    {
         assertEquals( 3.912023005428146, evalDouble( "log(50)" ), DELTA );
         assertEquals( 1, evalDouble( "log(2.718281828459045)" ), DELTA );
         assertEquals( "-Infinity", eval( "log(0)" ) );
@@ -932,9 +949,11 @@ public class ExpressionServiceTest
         assertEquals( 3, evalDouble( "log10(1000)" ), DELTA );
         assertEquals( "-Infinity", eval( "log10(0)" ) );
         assertEquals( "NaN", eval( "log10(-1)" ) );
+    }
 
-        // Comparisons (left-to-right)
-
+    @Test
+    public void testComparisons()
+    {
         assertEquals( "1", eval( "if(1 < 2, 1, 0)" ) );
         assertEquals( "0", eval( "if(1 < 1, 1, 0)" ) );
         assertEquals( "0", eval( "if(2 < 1, 1, 0)" ) );
@@ -954,7 +973,7 @@ public class ExpressionServiceTest
         assertEquals( "null DeA DeE", eval( "if( #{dataElemenA} > #{dataElemenE}, 1, 0)" ) );
         assertEquals( "null DeA DeE", eval( "if( #{dataElemenE} < #{dataElemenA}, 1, 0)" ) );
 
-        // Comparisons after Add, subtract
+        // Comparison precedence is after Add, Subtract
 
         assertEquals( "0", eval( "if(5 < 2 + 3, 1, 0)" ) );
         assertEquals( "0", eval( "if(5 > 2 + 3, 1, 0)" ) );
@@ -975,9 +994,11 @@ public class ExpressionServiceTest
         assertNull( error( "if((5 > 8) - 3, 1, 0)" ) );
         assertNull( error( "if((5 <= 8) - 3, 1, 0)" ) );
         assertNull( error( "if((5 >= 8) - 3, 1, 0)" ) );
+    }
 
-        // Equality
-
+    @Test
+    public void testEqualityInequality()
+    {
         assertEquals( "1", eval( "if(1 == 1, 1, 0)" ) );
         assertEquals( "0", eval( "if(1 == 2, 1, 0)" ) );
 
@@ -987,7 +1008,7 @@ public class ExpressionServiceTest
         assertEquals( "null DeA DeE", eval( "if( #{dataElemenA} == #{dataElemenE}, 1, 0)" ) );
         assertEquals( "null DeA DeE", eval( "if( #{dataElemenE} != #{dataElemenA}, 1, 0)" ) );
 
-        // Equality after Comparisons
+        // Equality precedence is after Comparisons
 
         assertEquals( "1", eval( "if(1 + 2 == 3, 1, 0)" ) );
         assertEquals( "0", eval( "if(1 + 2 != 3, 1, 0)" ) );
@@ -997,7 +1018,7 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testExpressionString()
+    public void testStringOperators()
     {
         // Comparisons
 
@@ -1027,15 +1048,15 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testExpressionBoolean()
+    public void testBooleanConstants()
     {
-        // Boolean constants
-
         assertEquals( "1", eval( "if( true, 1, 0)" ) );
         assertEquals( "0", eval( "if( false, 1, 0)" ) );
+    }
 
-        // Unary not
-
+    @Test
+    public void testBooleanNot()
+    {
         assertEquals( "0", eval( "if( ! true, 1, 0)" ) );
         assertEquals( "1", eval( "if( ! false, 1, 0)" ) );
 
@@ -1045,9 +1066,11 @@ public class ExpressionServiceTest
 
         assertNull( error( "if( ! 5 > 3, 1, 0)" ) );
         assertEquals( "0", eval( "if( ! (5 > 3), 1, 0)" ) );
+    }
 
-        // Comparison
-
+    @Test
+    public void testBooleanComparison()
+    {
         assertEquals( "0", eval( "if( true < true, 1, 0)" ) );
         assertEquals( "0", eval( "if( true < false, 1, 0)" ) );
         assertEquals( "1", eval( "if( false < true, 1, 0)" ) );
@@ -1075,8 +1098,13 @@ public class ExpressionServiceTest
         assertEquals( "0", eval( "if( ! ( true > false ), 1, 0)" ) );
         assertEquals( "1", eval( "if( ! ( true <= false ), 1, 0)" ) );
         assertEquals( "1", eval( "if( ! ( true < false ), 1, 0)" ) );
+    }
 
-        // Equality (associative, left/right parsing direction doesn't matter)
+    @Test
+    public void testBooleanEqualityInequality()
+    {
+        // Boolean equality is associative. Left/right parsing direction doesn't
+        // matter
 
         assertEquals( "1", eval( "if( true == true, 1, 0)" ) );
         assertEquals( "0", eval( "if( true == false, 1, 0)" ) );
@@ -1085,7 +1113,11 @@ public class ExpressionServiceTest
         assertEquals( "1", eval( "if( true != false, 1, 0)" ) );
 
         assertEquals( "1", eval( "if( true == false == false, 1, 0)" ) );
+    }
 
+    @Test
+    public void testBooleanAndOr()
+    {
         // && (and)
 
         assertEquals( "1", eval( "if( true && true, 1, 0)" ) );
@@ -1112,7 +1144,7 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testExpressionItems()
+    public void testDataElementAndDataElementOperand()
     {
         assertEquals( "HllvX50cXC0", categoryService.getDefaultCategoryOptionCombo().getUid() );
 
@@ -1144,11 +1176,11 @@ public class ExpressionServiceTest
         assertEquals( "17 DeB CocB CocA", eval( "#{dataElemenB.catOptCombB.catOptCombA}" ) );
         assertEquals( "9 DeA * CocB", eval( "#{dataElemenA.*.catOptCombB}" ) );
         assertEquals( "19 DeB * CocA", eval( "#{dataElemenB.*.catOptCombA}" ) );
+    }
 
-        // Indicator operand
-
-        assertEquals( "88 IndicatorA", eval( "N{mindicatorA}" ) );
-
+    @Test
+    public void testProgramItems()
+    {
         // Program data element
 
         assertEquals( "101 PA DeC", eval( "D{programUidA.dataElemenC}" ) );
@@ -1163,6 +1195,14 @@ public class ExpressionServiceTest
 
         assertEquals( "301 PiA", eval( "I{programIndA}" ) );
         assertEquals( "302 PiB", eval( "I{programIndB}" ) );
+    }
+
+    @Test
+    public void testOtherValuedItems()
+    {
+        // Indicator
+
+        assertEquals( "88 IndicatorA", eval( "N{mindicatorA}" ) );
 
         // Data set reporting rate
 
@@ -1189,7 +1229,7 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testExpressionLogical()
+    public void testLogicalFunctions()
     {
         // If function is tested elsewhere
 
@@ -1227,7 +1267,7 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testExpressionMissingValueStrategy()
+    public void testMissingValueStrategy()
     {
         assertEquals( "3 DeA", eval( "#{dataElemenA}", SKIP_IF_ANY_VALUE_MISSING ) );
         assertEquals( "16 DeA DeB", eval( "#{dataElemenA} + #{dataElemenB}", SKIP_IF_ANY_VALUE_MISSING ) );
@@ -1253,7 +1293,7 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testExpressionPredictorMissingValueStrategy()
+    public void testPredictorMissingValueStrategy()
     {
         assertEquals( "null DeA", evalPredictor( "sum(#{dataElemenA} + #{dataElemenA})", SKIP_IF_ANY_VALUE_MISSING ) );
         assertEquals( "null DeA DeB",
@@ -1272,7 +1312,7 @@ public class ExpressionServiceTest
     }
 
     @Test
-    public void testGetExpressionOrgUnitGroups()
+    public void testGetOrgUnitGroups()
     {
         assertEquals( "", getOrgUnitGroups( "#{dataElemenA} " ) );
         assertEquals( "OugA", getOrgUnitGroups( "OUG{orgUnitGrpA}" ) );
