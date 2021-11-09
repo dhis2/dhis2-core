@@ -260,14 +260,13 @@ public class MetadataImportExportController
         final BulkJsonPatches bulkJsonPatches = jsonMapper.readValue( request.getInputStream(), BulkJsonPatches.class );
 
         BulkPatchParameters patchParams = BulkPatchParameters.builder()
-            .atomic( atomic )
             .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
             .patchValidator( BulkJsonPatchValidator::validateSharingPath )
             .build();
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, patchParams );
 
-        if ( patchedObjects.isEmpty() )
+        if ( patchedObjects.isEmpty() || (atomic && !patchParams.getErrorReports().isEmpty()) )
         {
             return errorReports( patchParams.getErrorReports() );
         }
@@ -283,12 +282,10 @@ public class MetadataImportExportController
 
         ImportReport importReport = metadataImportService.importMetadata( importParams );
 
-        if ( patchParams.getErrorReports().isEmpty() )
+        if ( !patchParams.getErrorReports().isEmpty() )
         {
-            return importReport( importReport );
+            importReport.addTypeReport( typeReport( JsonPatchException.class, patchParams.getErrorReports() ) );
         }
-
-        importReport.addTypeReport( typeReport( JsonPatchException.class, patchParams.getErrorReports() ) );
 
         return importReport( importReport );
     }

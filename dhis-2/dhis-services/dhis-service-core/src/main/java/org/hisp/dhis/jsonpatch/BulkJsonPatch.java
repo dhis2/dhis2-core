@@ -48,8 +48,13 @@ public class BulkJsonPatch
     @JsonProperty
     private JsonPatch patch;
 
-    public List<String> getIdsByClassName( String className )
+    public String getClassName()
     {
-        return targetIds.get( className );
+        return targetIds.keySet().iterator().next();
+    }
+
+    public List<String> getIds()
+    {
+        return targetIds.values().iterator().next();
     }
 }

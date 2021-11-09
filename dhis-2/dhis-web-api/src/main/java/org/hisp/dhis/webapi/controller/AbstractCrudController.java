@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
@@ -416,13 +417,18 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     {
         final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue( request.getInputStream(), BulkJsonPatch.class );
 
-        BulkPatchParameters param = BulkPatchParameters.builder()
-            .atomic( atomic )
+        BulkPatchParameters patchParams = BulkPatchParameters.builder()
             .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
             .patchValidator( BulkJsonPatchValidator::validateSharingPath )
+            .schema( getSchema() )
             .build();
 
-        List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( getSchema(), bulkJsonPatch, param );
+        List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( bulkJsonPatch, patchParams );
+
+        if ( patchedObjects.isEmpty() || (atomic && !patchParams.getErrorReports().isEmpty()) )
+        {
+            return errorReports( patchParams.getErrorReports() );
+        }
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 
@@ -434,12 +440,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         ImportReport importReport = importService.importMetadata( params );
 
-        if ( param.getErrorReports().isEmpty() )
+        if ( !patchParams.getErrorReports().isEmpty() )
         {
-            return importReport( importReport );
+            importReport.addTypeReport( typeReport( getEntityClass(), patchParams.getErrorReports() ) );
         }
-
-        importReport.addTypeReport( typeReport( getEntityClass(), param.getErrorReports() ) );
 
         return importReport( importReport );
     }

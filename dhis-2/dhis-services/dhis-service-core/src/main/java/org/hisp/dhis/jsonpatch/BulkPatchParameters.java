@@ -29,6 +29,7 @@ package org.hisp.dhis.jsonpatch;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 
 import lombok.Builder;
@@ -48,12 +49,6 @@ public class BulkPatchParameters
     private List<ErrorReport> errorReports = new ArrayList<>();
 
     /**
-     * If atomic is true then patch process will stop when there is an error and
-     * no object will be saved.
-     */
-    private boolean atomic;
-
-    /**
      * Validator that will be applied to all JsonPatchOperation of given
      * {@link JsonPatch}
      * <p>
@@ -68,9 +63,21 @@ public class BulkPatchParameters
      */
     private Function<Schema, List<ErrorReport>> schemaValidator;
 
+    /**
+     * Schema instance of the class that is patched.
+     * <p>
+     * Only available if bulk update for single class.
+     */
+    private Schema schema;
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
+
+    public Optional<Schema> getSchema()
+    {
+        return Optional.ofNullable( schema );
+    }
 
     public Function<JsonPatch, List<ErrorReport>> getPatchValidator()
     {
@@ -105,10 +112,5 @@ public class BulkPatchParameters
     public boolean hasSchemaValidator()
     {
         return schemaValidator != null;
-    }
-
-    public boolean isAtomic()
-    {
-        return atomic;
     }
 }
