@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,13 +62,14 @@ public class BulkPatchManager
     }
 
     /**
-     * Apply sharing json patch for multiple objects with one set of sharing
-     * settings.
+     * Apply a {@link JsonPatch} to multiple objects.
      *
-     * @param schema
-     * @param bulkJsonPatch
-     * @param patchParameters
-     * @return
+     * @param schema {@link Schema} instance of the patching entity.
+     * @param bulkJsonPatch {@link BulkJsonPatch} instance contains the data
+     *        parsed from request payload.
+     * @param patchParameters {@link BulkPatchParameters} contains all
+     *        parameters used for patch function.
+     * @return List of patched objects
      */
     public List<IdentifiableObject> applyPatch( Schema schema, BulkJsonPatch bulkJsonPatch,
         BulkPatchParameters patchParameters )
@@ -98,8 +99,9 @@ public class BulkPatchManager
     }
 
     /**
-     * Apply sharing json patch for multiple objects, each of object has a
-     * separate list of sharing settings.
+     * Apply {@link JsonPatch} to list of objects from given Map.
+     * <p>
+     * Each object has its own {@link JsonPatch}.
      *
      * @param patches
      * @param patchParameters
@@ -132,9 +134,12 @@ public class BulkPatchManager
         BulkPatchParameters patchParams )
     {
         Optional<IdentifiableObject> entity = validate( schema.getKlass(), patch, id, patchParams );
-        Optional<IdentifiableObject> patched = applyWithTryCatch( schema, patch, entity.orElse( null ),
-            patchParams.getErrorReports() );
+
+        Optional<IdentifiableObject> patched = entity.isPresent() ? applyWithTryCatch( schema, patch, entity.get(),
+            patchParams.getErrorReports() ) : Optional.empty();
+
         patched.ifPresent( patchedObject -> postApply( id, patchedObject ) );
+
         return patched;
     }
 

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
@@ -73,11 +74,10 @@ import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
+import org.hisp.dhis.jsonpatch.BulkJsonPatchValidator;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
-import org.hisp.dhis.jsonpatch.PatchSharingPathValidator;
-import org.hisp.dhis.jsonpatch.PatchSharingSchemaValidator;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -417,9 +417,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue( request.getInputStream(), BulkJsonPatch.class );
 
         BulkPatchParameters param = BulkPatchParameters.builder()
-            .isAtomic( atomic )
-            .schemaValidator( PatchSharingSchemaValidator::validate )
-            .patchValidator( PatchSharingPathValidator::validate )
+            .atomic( atomic )
+            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
             .build();
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( getSchema(), bulkJsonPatch, param );
@@ -436,20 +436,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( param.getErrorReports().isEmpty() )
         {
-            return objectReport( importReport );
+            return importReport( importReport );
         }
 
-        if ( importReport.getFirstObjectReport() != null )
-        {
-            importReport.getFirstObjectReport().addErrorReports( param.getErrorReports() );
-        }
-        else
-        {
-            importReport.getTypeReport( getEntityClass() )
-                .addObjectReport( new ObjectReport( getEntityClass(), 0, param.getErrorReports() ) );
-        }
+        importReport.addTypeReport( typeReport( getEntityClass(), param.getErrorReports() ) );
 
-        return objectReport( importReport );
+        return importReport( importReport );
     }
 
     // --------------------------------------------------------------------------

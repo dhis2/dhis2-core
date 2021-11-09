@@ -66,10 +66,9 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsonpatch.BulkJsonPatchValidator;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
-import org.hisp.dhis.jsonpatch.PatchSharingPathValidator;
-import org.hisp.dhis.jsonpatch.PatchSharingSchemaValidator;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -261,9 +260,9 @@ public class MetadataImportExportController
         final BulkJsonPatches bulkJsonPatches = jsonMapper.readValue( request.getInputStream(), BulkJsonPatches.class );
 
         BulkPatchParameters patchParams = BulkPatchParameters.builder()
-            .isAtomic( atomic )
-            .schemaValidator( PatchSharingSchemaValidator::validate )
-            .patchValidator( PatchSharingPathValidator::validate )
+            .atomic( atomic )
+            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
             .build();
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, patchParams );
@@ -286,12 +285,12 @@ public class MetadataImportExportController
 
         if ( patchParams.getErrorReports().isEmpty() )
         {
-            return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+            return importReport( importReport );
         }
 
         importReport.addTypeReport( typeReport( JsonPatchException.class, patchParams.getErrorReports() ) );
 
-        return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
+        return importReport( importReport );
     }
 
     // ----------------------------------------------------------------------------------------------------------------------------------------

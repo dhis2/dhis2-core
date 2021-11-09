@@ -27,43 +27,74 @@
  */
 package org.hisp.dhis.jsonpatch;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
 import lombok.Builder;
-import lombok.Data;
 
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 
-import com.google.api.client.util.Lists;
-
-@Data
 @Builder
 public class BulkPatchParameters
 {
-    private List<ErrorReport> errorReports;
+    /**
+     * List of {@link ErrorReport} created during the patch process and will be
+     * returned to api consumer.
+     */
+    @Builder.Default
+    private List<ErrorReport> errorReports = new ArrayList<>();
 
-    private boolean isAtomic;
+    /**
+     * If atomic is true then patch process will stop when there is an error and
+     * no object will be saved.
+     */
+    private boolean atomic;
 
+    /**
+     * Validator that will be applied to all JsonPatchOperation of given
+     * {@link JsonPatch}
+     * <p>
+     * The validation function must return list of {@link ErrorReport}
+     */
     private Function<JsonPatch, List<ErrorReport>> patchValidator;
 
+    /**
+     * Validator that will be apply to given {@link Schema}
+     * <p>
+     * The validation function must return list of {@link ErrorReport}
+     */
     private Function<Schema, List<ErrorReport>> schemaValidator;
+
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
+    public Function<JsonPatch, List<ErrorReport>> getPatchValidator()
+    {
+        return patchValidator;
+    }
+
+    public Function<Schema, List<ErrorReport>> getSchemaValidator()
+    {
+        return schemaValidator;
+    }
 
     public List<ErrorReport> getErrorReports()
     {
-        return errorReports == null ? Lists.newArrayList() : errorReports;
+        return errorReports;
     }
 
     public void addErrorReport( ErrorReport errorReport )
     {
-        getErrorReports().add( errorReport );
+        errorReports.add( errorReport );
     }
 
-    public void addErrorReports( List<ErrorReport> errorReports )
+    public void addErrorReports( List<ErrorReport> errors )
     {
-        getErrorReports().addAll( errorReports );
+        errorReports.addAll( errors );
     }
 
     public boolean hasPatchValidator()
@@ -74,5 +105,10 @@ public class BulkPatchParameters
     public boolean hasSchemaValidator()
     {
         return schemaValidator != null;
+    }
+
+    public boolean isAtomic()
+    {
+        return atomic;
     }
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.jsonpatch;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
@@ -35,10 +36,25 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.schema.Schema;
 
-public class PatchSharingPathValidator
+/**
+ * These validation methods can be added to {@link BulkPatchParameters} and are
+ * used in
+ * <p>
+ * {@link BulkPatchManager} before applying the patches.
+ */
+public class BulkJsonPatchValidator
 {
-    public static List<ErrorReport> validate( JsonPatch patch )
+    /**
+     * Validate if all {@link JsonPatchOperation} of given {@link JsonPatch} are
+     * applied to sharing property.
+     *
+     * @param patch {@llink JsonPatch} for validating.
+     * @return List of {@link ErrorReport}, each error is linked to
+     *         {@link ErrorCode#E4032}.
+     */
+    public static List<ErrorReport> validateSharingPath( JsonPatch patch )
     {
         List<ErrorReport> errors = new ArrayList<>();
 
@@ -51,5 +67,23 @@ public class PatchSharingPathValidator
         }
 
         return errors;
+    }
+
+    /**
+     * Validate if given schema is shareable.
+     *
+     * @param schema {@link Schema} for validation.
+     * @return Singleton List of {@link ErrorReport}, the error is linked to
+     *         {@link ErrorCode#E3019}.
+     */
+    public static List<ErrorReport> validateShareableSchema( Schema schema )
+    {
+        if ( !schema.isShareable() )
+        {
+            return Collections
+                .singletonList( new ErrorReport( JsonPatchException.class, ErrorCode.E3019, schema.getName() ) );
+        }
+
+        return Collections.emptyList();
     }
 }
