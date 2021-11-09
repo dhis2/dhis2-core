@@ -75,9 +75,9 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
-import org.hisp.dhis.jsonpatch.BulkPatchPathValidator;
-import org.hisp.dhis.jsonpatch.BulkPatchSchemaValidator;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
+import org.hisp.dhis.jsonpatch.PatchSharingPathValidator;
+import org.hisp.dhis.jsonpatch.PatchSharingSchemaValidator;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -418,8 +418,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         BulkPatchParameters param = BulkPatchParameters.builder()
             .isAtomic( atomic )
-            .schemaValidator( BulkPatchSchemaValidator::validateSharingSchema )
-            .patchValidator( BulkPatchPathValidator::validatePath )
+            .schemaValidator( PatchSharingSchemaValidator::validate )
+            .patchValidator( PatchSharingPathValidator::validate )
             .build();
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( getSchema(), bulkJsonPatch, param );
@@ -1106,5 +1106,4 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
         return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
-
 }

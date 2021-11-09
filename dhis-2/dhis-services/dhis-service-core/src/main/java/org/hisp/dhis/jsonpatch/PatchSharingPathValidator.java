@@ -36,9 +36,9 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 
-public class BulkPatchPathValidator
+public class PatchSharingPathValidator
 {
-    public static List<ErrorReport> validatePath( JsonPatch patch )
+    public static List<ErrorReport> validate( JsonPatch patch )
     {
         List<ErrorReport> errors = new ArrayList<>();
 

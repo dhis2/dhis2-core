@@ -37,9 +37,9 @@ import org.hisp.dhis.schema.Schema;
 
 import com.google.common.collect.Lists;
 
-public class BulkPatchSchemaValidator
+public class PatchSharingSchemaValidator
 {
-    public static List<ErrorReport> validateSharingSchema( Schema schema )
+    public static List<ErrorReport> validate( Schema schema )
     {
         if ( !schema.isShareable() )
         {

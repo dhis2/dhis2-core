@@ -68,8 +68,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
-import org.hisp.dhis.jsonpatch.BulkPatchPathValidator;
-import org.hisp.dhis.jsonpatch.BulkPatchSchemaValidator;
+import org.hisp.dhis.jsonpatch.PatchSharingPathValidator;
+import org.hisp.dhis.jsonpatch.PatchSharingSchemaValidator;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -262,8 +262,8 @@ public class MetadataImportExportController
 
         BulkPatchParameters param = BulkPatchParameters.builder()
             .isAtomic( atomic )
-            .schemaValidator( BulkPatchSchemaValidator::validateSharingSchema )
-            .patchValidator( BulkPatchPathValidator::validatePath )
+            .schemaValidator( PatchSharingSchemaValidator::validate )
+            .patchValidator( PatchSharingPathValidator::validate )
             .build();
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, param );

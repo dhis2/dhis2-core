@@ -64,4 +64,9 @@ public class BulkPatchParameters
     {
         return patchValidator != null;
     }
+
+    public boolean hasSchemaValidator()
+    {
+        return schemaValidator != null;
+    }
 }

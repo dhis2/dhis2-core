@@ -114,7 +114,7 @@ public class BulkPatchManager
         {
             Schema schema = schemaService.getSchemaByPluralName( className );
 
-            if ( !validateSchema( className, schema, patchParameters.getErrorReports() ) )
+            if ( !validateSchema( className, schema, patchParameters ) )
             {
                 continue;
             }
@@ -152,18 +152,22 @@ public class BulkPatchManager
         }
     }
 
-    private boolean validateSchema( String className, Schema schema, List<ErrorReport> errorReports )
+    private boolean validateSchema( String className, Schema schema, BulkPatchParameters patchParameters )
     {
         if ( schema == null )
         {
-            errorReports.add( new ErrorReport( JsonPatchException.class, ErrorCode.E6002, className ) );
+            patchParameters.addErrorReport( new ErrorReport( JsonPatchException.class, ErrorCode.E6002, className ) );
             return false;
         }
 
-        if ( !schema.isShareable() )
+        if ( patchParameters.hasSchemaValidator() )
         {
-            errorReports.add( new ErrorReport( JsonPatchException.class, ErrorCode.E3019, className ) );
-            return false;
+            List<ErrorReport> errors = patchParameters.getSchemaValidator().apply( schema );
+            if ( !errors.isEmpty() )
+            {
+                patchParameters.addErrorReports( errors );
+                return false;
+            }
         }
 
         return true;
