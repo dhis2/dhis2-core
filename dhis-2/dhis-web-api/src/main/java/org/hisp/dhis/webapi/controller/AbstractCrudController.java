@@ -445,9 +445,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
         else
         {
-            ObjectReport objectReport = new ObjectReport( getEntityClass(), 0 );
-            objectReport.addErrorReports( param.getErrorReports() );
-            importReport.getTypeReport( getEntityClass() ).addObjectReport( objectReport );
+            importReport.getTypeReport( getEntityClass() )
+                .addObjectReport( new ObjectReport( getEntityClass(), 0, param.getErrorReports() ) );
         }
 
         return objectReport( importReport );

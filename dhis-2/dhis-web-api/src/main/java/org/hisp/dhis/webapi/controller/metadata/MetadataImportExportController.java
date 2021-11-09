@@ -31,7 +31,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 import static org.hisp.dhis.scheduling.JobType.GML_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -65,8 +65,6 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.feedback.ObjectReport;
-import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
@@ -258,8 +256,7 @@ public class MetadataImportExportController
     @PatchMapping( value = "sharing", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
         HttpServletRequest request )
-        throws IOException,
-        JsonPatchException
+        throws IOException
     {
         final BulkJsonPatches bulkJsonPatches = jsonMapper.readValue( request.getInputStream(), BulkJsonPatches.class );
 
@@ -292,11 +289,7 @@ public class MetadataImportExportController
             return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
         }
 
-        ObjectReport objectReport = new ObjectReport( JsonPatchException.class, 0 );
-        objectReport.addErrorReports( param.getErrorReports() );
-        TypeReport typeReport = new TypeReport( JsonPatchException.class );
-        typeReport.addObjectReport( objectReport );
-        importReport.addTypeReport( typeReport );
+        importReport.addTypeReport( typeReport( JsonPatchException.class, param.getErrorReports() ) );
 
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
