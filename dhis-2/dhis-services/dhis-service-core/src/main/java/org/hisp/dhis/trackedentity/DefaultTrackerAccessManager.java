@@ -806,12 +806,12 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     private boolean isOrgUnitAccessible( User user, Program program, OrganisationUnit orgUnit )
     {
         // always allow if these are null. Internal process?
-        if ( user == null || user.isSuper() || program == null || orgUnit == null )
+        if ( user == null || user.isSuper() || orgUnit == null )
         {
             return true;
         }
 
-        if ( program.isClosed() )
+        if ( program != null && program.isClosed() )
         {
             return organisationUnitService.isInUserHierarchy( user, orgUnit );
         }
