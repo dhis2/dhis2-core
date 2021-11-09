@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -38,17 +37,24 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 
+import com.google.api.client.util.Lists;
+
 @Data
 @Builder
 public class BulkPatchParameters
 {
-    private List<ErrorReport> errorReports = new ArrayList<>();
+    private List<ErrorReport> errorReports;
 
     private boolean isAtomic;
 
     private Function<JsonPatch, List<ErrorReport>> patchValidator;
 
     private Function<Schema, List<ErrorReport>> schemaValidator;
+
+    public List<ErrorReport> getErrorReports()
+    {
+        return errorReports == null ? Lists.newArrayList() : errorReports;
+    }
 
     public void addErrorReport( ErrorReport errorReport )
     {

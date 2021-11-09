@@ -260,36 +260,36 @@ public class MetadataImportExportController
     {
         final BulkJsonPatches bulkJsonPatches = jsonMapper.readValue( request.getInputStream(), BulkJsonPatches.class );
 
-        BulkPatchParameters param = BulkPatchParameters.builder()
+        BulkPatchParameters patchParams = BulkPatchParameters.builder()
             .isAtomic( atomic )
             .schemaValidator( PatchSharingSchemaValidator::validate )
             .patchValidator( PatchSharingPathValidator::validate )
             .build();
 
-        List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, param );
+        List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, patchParams );
 
         if ( patchedObjects.isEmpty() )
         {
-            return errorReports( param.getErrorReports() );
+            return errorReports( patchParams.getErrorReports() );
         }
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 
-        MetadataImportParams params = metadataImportService.getParamsFromMap( parameterValuesMap );
+        MetadataImportParams importParams = metadataImportService.getParamsFromMap( parameterValuesMap );
 
-        params.setUser( currentUserService.getCurrentUser() )
+        importParams.setUser( currentUserService.getCurrentUser() )
             .setImportStrategy( ImportStrategy.UPDATE )
             .setAtomicMode( atomic ? AtomicMode.ALL : AtomicMode.NONE )
             .addObjects( patchedObjects );
 
-        ImportReport importReport = metadataImportService.importMetadata( params );
+        ImportReport importReport = metadataImportService.importMetadata( importParams );
 
-        if ( param.getErrorReports().isEmpty() )
+        if ( patchParams.getErrorReports().isEmpty() )
         {
             return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
         }
 
-        importReport.addTypeReport( typeReport( JsonPatchException.class, param.getErrorReports() ) );
+        importReport.addTypeReport( typeReport( JsonPatchException.class, patchParams.getErrorReports() ) );
 
         return importReport( importReport ).withPlainResponseBefore( DhisApiVersion.V38 );
     }
