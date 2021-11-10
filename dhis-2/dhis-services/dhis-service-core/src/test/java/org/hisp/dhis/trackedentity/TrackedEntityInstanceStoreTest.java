@@ -49,6 +49,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -97,6 +98,8 @@ public class TrackedEntityInstanceStoreTest
     private TrackedEntityInstance teiE;
 
     private TrackedEntityInstance teiF;
+
+    private TrackedEntityInstance teiG;
 
     private TrackedEntityAttribute atA;
 
@@ -147,6 +150,7 @@ public class TrackedEntityInstanceStoreTest
         teiD = createTrackedEntityInstance( ouC );
         teiE = createTrackedEntityInstance( ouC );
         teiF = createTrackedEntityInstance( ouC );
+        teiG = createTrackedEntityInstance( ouC );
     }
 
     @Test
@@ -216,6 +220,91 @@ public class TrackedEntityInstanceStoreTest
         teiStore.save( teiB );
 
         assertTrue( equals( teiStore.getAll(), teiA, teiB ) );
+    }
+
+    @Test
+    public void testQueryHardLimit()
+    {
+        assertTrue( dhisConfigurationProvider.hasProperty( ConfigurationKey.TRACKER_TRACKED_ENTITY_QUERY_LIMIT ) );
+
+        int trackedEntityHardLimit = Integer
+            .valueOf( dhisConfigurationProvider.getProperty( ConfigurationKey.TRACKER_TRACKED_ENTITY_QUERY_LIMIT ) );
+        final int limit = trackedEntityHardLimit + 1;
+
+        // Create 7 entities. Limit set for h2 tests is 6.
+        teiStore.save( teiA );
+        teiStore.save( teiB );
+        teiStore.save( teiC );
+        teiStore.save( teiD );
+        teiStore.save( teiE );
+        teiStore.save( teiF );
+        teiStore.save( teiG );
+
+        attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiD, "Male" ) );
+        attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiE, "Male" ) );
+        attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiF, "Female" ) );
+
+        programInstanceService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
+        programInstanceService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
+
+        // Case: Paging true and limit 0. Page size > hard limit
+        // Ensure that hard limit applies
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setPageSize( trackedEntityHardLimit + 1 );
+        params.setSkipPaging( false );
+        params.setMaxTeiLimit( 0 );
+
+        List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
+
+        assertEquals( trackedEntityHardLimit, teis.size() );
+
+        // Case: Paging true and limit > hard limit. Page size > hard limit
+        // Ensure that hard limit still applies
+        params.setPageSize( trackedEntityHardLimit + 1 );
+        params.setSkipPaging( false );
+        params.setMaxTeiLimit( limit );
+
+        teis = teiStore.getTrackedEntityInstances( params );
+
+        assertEquals( trackedEntityHardLimit, teis.size() );
+
+        // Case: Paging true and limit 0. Page size < hard limit
+        // Ensure that page size is respected
+        params.setPageSize( trackedEntityHardLimit - 1 );
+        params.setSkipPaging( false );
+        params.setMaxTeiLimit( 0 );
+
+        teis = teiStore.getTrackedEntityInstances( params );
+
+        assertEquals( trackedEntityHardLimit - 1, teis.size() );
+
+        // Case: Paging true and limit > hard limit. Page size < hard limit
+        // Ensure that page size is respected
+        params.setPageSize( trackedEntityHardLimit - 1 );
+        params.setSkipPaging( false );
+        params.setMaxTeiLimit( limit );
+
+        teis = teiStore.getTrackedEntityInstances( params );
+
+        assertEquals( trackedEntityHardLimit - 1, teis.size() );
+
+        // Case: Paging false and limit 0
+        // Ensure that hard limit still applies
+        params.setSkipPaging( true );
+        params.setMaxTeiLimit( 0 );
+
+        teis = teiStore.getTrackedEntityInstances( params );
+
+        assertEquals( trackedEntityHardLimit, teis.size() );
+
+        // Case: Paging false and limit > hard limit
+        // Ensure that hard limit still applies
+        params.setSkipPaging( true );
+        params.setMaxTeiLimit( limit );
+
+        teis = teiStore.getTrackedEntityInstances( params );
+
+        assertEquals( trackedEntityHardLimit, teis.size() );
     }
 
     @Test

@@ -1353,7 +1353,12 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( limit == 0 && !params.isPaging() )
         {
-            return "";
+            return limitOffset
+                .append( LIMIT )
+                .append( SPACE )
+                .append( trackedEntityHardLimit )
+                .append( SPACE )
+                .toString();
         }
         else if ( limit == 0 && params.isPaging() )
         {
