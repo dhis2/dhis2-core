@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonSchema;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -52,6 +58,34 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Not Found", 404, "ERROR", "404 Type xyz does not exist.",
             POST( "/schemas/xyz", "{}" )
                 .content( HttpStatus.NOT_FOUND ) );
+    }
 
+    @Test
+    public void testFieldFilteringNameKlass()
+    {
+        JsonSchema schema = GET( "/schemas/organisationUnit?fields=name,klass" ).content().as( JsonSchema.class );
+
+        assertNotNull( schema.getKlass() );
+        assertNotNull( schema.getName() );
+        assertNull( schema.getSingular() );
+        assertNull( schema.getPlural() );
+        assertFalse( schema.has( "properties" ) );
+    }
+
+    @Test
+    public void testFieldFilteringDefaultExpansion()
+    {
+        JsonSchema schema = GET( "/schemas/organisationUnit?fields=name,klass,properties" ).content()
+            .as( JsonSchema.class );
+
+        assertNotNull( schema.getKlass() );
+        assertNotNull( schema.getName() );
+        assertNull( schema.getSingular() );
+        assertNull( schema.getPlural() );
+
+        assertTrue( schema.has( "properties" ) );
+        assertNotNull( schema.getProperties().get( 0 ).getName() );
+        assertNotNull( schema.getProperties().get( 0 ).getKlass() );
+        assertNotNull( schema.getProperties().get( 0 ).getFieldName() );
     }
 }
