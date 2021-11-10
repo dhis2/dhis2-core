@@ -69,7 +69,7 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
         assertNotNull( schema.getName() );
         assertNull( schema.getSingular() );
         assertNull( schema.getPlural() );
-        assertFalse( schema.has( "properties" ) );
+        assertFalse( schema.get( "properties" ).exists() );
     }
 
     @Test
@@ -83,7 +83,7 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
         assertNull( schema.getSingular() );
         assertNull( schema.getPlural() );
 
-        assertTrue( schema.has( "properties" ) );
+        assertTrue( schema.get( "properties" ).exists() );
         assertNotNull( schema.getProperties().get( 0 ).getName() );
         assertNotNull( schema.getProperties().get( 0 ).getKlass() );
         assertNotNull( schema.getProperties().get( 0 ).getFieldName() );
