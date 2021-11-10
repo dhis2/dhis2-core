@@ -66,7 +66,8 @@ public class EventsTests
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
         return Stream.of(
-            Arguments.arguments( "event.json", ContentType.JSON.toString() ) );
+            Arguments.arguments( "event.json", ContentType.JSON.toString() ),
+            Arguments.arguments( "event.csv", "text/csv" ) );
     }
 
     @BeforeAll
@@ -101,7 +102,6 @@ public class EventsTests
 
     }
 
-    @Disabled( "disabled until csv is supported" )
     @ParameterizedTest
     @MethodSource( "provideEventFilesTestArguments" )
     public void eventsImportNewEventsFromFile( String fileName, String contentType )
@@ -113,7 +113,7 @@ public class EventsTests
 
         ApiResponse response = trackerActions
             .post( "", contentType, obj, new QueryParamsBuilder()
-                .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "skipFirst=true" ) );
+                .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID" ) );
         response
             .validate()
             .statusCode( 200 );

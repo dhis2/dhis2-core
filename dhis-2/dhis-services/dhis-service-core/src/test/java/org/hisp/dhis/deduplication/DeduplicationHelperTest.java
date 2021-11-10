@@ -255,12 +255,16 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
     @Test( expected = PotentialDuplicateForbiddenException.class )
     public void shouldFailGenerateMergeObjectDifferentTrackedEntityType()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         deduplicationHelper.generateMergeObject( getTeiA(), getTeiB() );
     }
 
     @Test( expected = PotentialDuplicateConflictException.class )
     public void shouldFailGenerateMergeObjectConflictingValue()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         TrackedEntityInstance original = getTeiA();
 
@@ -285,6 +289,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
     @Test
     public void shoudGenerateMergeObjectForAttribute()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         TrackedEntityInstance original = getTeiA();
 
@@ -314,6 +320,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
     @Test
     public void testMergeObjectRelationship()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         TrackedEntityInstance original = getTeiA();
 
@@ -357,6 +365,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
     @Test
     public void shouldGenerateMergeObjectWIthEnrollments()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         TrackedEntityInstance original = getTeiA();
         Program programA = createProgram( 'A' );
@@ -377,6 +387,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
     @Test( expected = PotentialDuplicateConflictException.class )
     public void shouldFailGenerateMergeObjectEnrollmentsSameProgram()
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         TrackedEntityInstance original = getTeiA();
 

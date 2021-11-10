@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -123,7 +124,8 @@ public class DeduplicationControllerMvcTest
             .original( trackedEntityInstanceA ).duplicate( trackedEntityInstanceB )
             .mergeObject( MergeObject.builder().build() ).build();
 
-        mockMvc = MockMvcBuilders.standaloneSetup( deduplicationController ).build();
+        mockMvc = MockMvcBuilders.standaloneSetup( deduplicationController )
+            .setControllerAdvice( new CrudControllerAdvice() ).build();
 
         lenient().when( trackedEntityInstanceService.getTrackedEntityInstance( teiA ) )
             .thenReturn( trackedEntityInstanceA );
@@ -158,7 +160,6 @@ public class DeduplicationControllerMvcTest
             .content( objectMapper.writeValueAsString( potentialDuplicate ) )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isBadRequest() )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
     }
 
@@ -177,7 +178,6 @@ public class DeduplicationControllerMvcTest
             .content( objectMapper.writeValueAsString( potentialDuplicate ) )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isBadRequest() )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
 
         verify( deduplicationService ).getPotentialDuplicateByUid( uid );
@@ -197,7 +197,6 @@ public class DeduplicationControllerMvcTest
             .content( objectMapper.writeValueAsString( potentialDuplicate ) )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isBadRequest() )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof BadRequestException ) );
 
         verify( deduplicationService ).getPotentialDuplicateByUid( uid );
@@ -277,7 +276,6 @@ public class DeduplicationControllerMvcTest
             .content( "{}" )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isNotFound() )
             .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
     }
 
@@ -347,7 +345,6 @@ public class DeduplicationControllerMvcTest
             .param( "mergeStrategy", MergeStrategy.AUTO.name() )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isForbidden() )
             .andExpect(
                 result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateForbiddenException ) );
 
@@ -375,7 +372,6 @@ public class DeduplicationControllerMvcTest
             .param( "mergeStrategy", MergeStrategy.AUTO.name() )
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
-            .andExpect( status().isConflict() )
             .andExpect(
                 result -> assertTrue( result.getResolvedException() instanceof PotentialDuplicateConflictException ) );
 
