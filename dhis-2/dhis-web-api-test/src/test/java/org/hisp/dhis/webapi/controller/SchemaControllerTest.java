@@ -84,6 +84,8 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
         assertNull( schema.getPlural() );
 
         assertTrue( schema.get( "properties" ).exists() );
+        assertFalse( schema.getProperties().isEmpty() );
+
         assertNotNull( schema.getProperties().get( 0 ).getName() );
         assertNotNull( schema.getProperties().get( 0 ).getKlass() );
         assertNotNull( schema.getProperties().get( 0 ).getFieldName() );
