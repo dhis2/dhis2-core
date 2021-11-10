@@ -137,11 +137,9 @@ public class EventRequestToParamsMapperTest
             new HashSet<>(), new HashSet<>(), null,
             null,
             new HashSet<>(), Collections.singleton( "UXz7xuGCEhU:GT:100" ), new HashSet<>(), false,
-            false );
-        // Then
+            false );// Then
+
         assertThat( eventSearchParams, is( not( nullValue() ) ) );
-        // verify( responseHandler, times( 1 ) ).addResultsToNode( any(
-        // RootNode.class ), anyList(), anySet() );
     }
 
 }
