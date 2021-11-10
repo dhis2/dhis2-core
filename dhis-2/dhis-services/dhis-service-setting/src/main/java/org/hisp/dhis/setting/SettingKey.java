@@ -206,8 +206,7 @@ public enum SettingKey
     /**
      * The caching strategy enabled.
      */
-    ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class ),
-    SOFTWARE_UPDATE_ALERT_ENABLED( "softwareUpdateAlertEnabled", true, Boolean.class );
+    ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class );
 
     private final String name;
 

@@ -27,16 +27,17 @@
  */
 package org.hisp.dhis.system;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_UPDATE_NOTIFICATIONS_ENABLED;
+
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SettingKey;
-import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Component;
 public class SystemUpdateAlertJob implements Job
 {
     @NonNull
-    private final SystemSettingManager systemSettingManager;
+    private DhisConfigurationProvider dhisConfig;
 
     @NonNull
     private final SystemUpdateService systemUpdateService;
@@ -69,10 +70,9 @@ public class SystemUpdateAlertJob implements Job
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        boolean isSoftwareUpdateAlertEnabled = systemSettingManager.getBoolSetting(
-            SettingKey.SOFTWARE_UPDATE_ALERT_ENABLED );
+        boolean systemUpdateNotificationsEnabled = dhisConfig.isEnabled( SYSTEM_UPDATE_NOTIFICATIONS_ENABLED );
 
-        if ( !isSoftwareUpdateAlertEnabled )
+        if ( !systemUpdateNotificationsEnabled )
         {
             log.info( String.format( "%s aborted. System update alerts are disabled",
                 "messageSystemSoftwareUpdateAvailableJob" ) );
