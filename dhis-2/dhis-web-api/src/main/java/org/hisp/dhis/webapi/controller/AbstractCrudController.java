@@ -420,7 +420,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         BulkPatchParameters patchParams = BulkPatchParameters.builder()
             .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
             .patchValidator( BulkJsonPatchValidator::validateSharingPath )
-            .schema( getSchema() )
             .build();
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( bulkJsonPatch, patchParams );

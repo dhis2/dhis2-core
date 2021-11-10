@@ -168,16 +168,16 @@ public class BulkPatchManager
     }
 
     /**
-     * Validate if the given className has a {@link Schema}
+     * Validate if there is a {@link Schema} exists with the given className.
      * <p>
-     * and also apply schema validator from
+     * Also apply schema validator from
      * {@link BulkPatchParameters#getSchemaValidator()}
      *
      * @return {@link Schema}
      */
     private Optional<Schema> validateClassName( String className, BulkPatchParameters patchParameters )
     {
-        Schema schema = patchParameters.getSchema().orElse( schemaService.getSchemaByPluralName( className ) );
+        Schema schema = schemaService.getSchemaByPluralName( className );
 
         if ( schema == null )
         {
@@ -241,7 +241,7 @@ public class BulkPatchManager
     }
 
     /**
-     * Apply some custom logics for patched object.
+     * Apply some additional logics for patched object.
      */
     private void postApply( String id, IdentifiableObject patchedObject )
     {

@@ -29,7 +29,6 @@ package org.hisp.dhis.jsonpatch;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Function;
 
 import lombok.Builder;
@@ -63,21 +62,9 @@ public class BulkPatchParameters
      */
     private Function<Schema, List<ErrorReport>> schemaValidator;
 
-    /**
-     * Schema instance of the class that need to be patched.
-     * <p>
-     * Only available if bulk update for single class.
-     */
-    private Schema schema;
-
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
-
-    public Optional<Schema> getSchema()
-    {
-        return Optional.ofNullable( schema );
-    }
 
     public Function<JsonPatch, List<ErrorReport>> getPatchValidator()
     {
