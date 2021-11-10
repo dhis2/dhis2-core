@@ -1386,16 +1386,9 @@ public class HibernateTrackedEntityInstanceStore
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( Math.min( trackedEntityHardLimit, limit + 1 ) ) // We
-                                                                         // add
-                                                                         // +1,
-                                                                         // since
-                                                                         // we
-                                                                         // use
-                                                                         // this
-                                                                         // limit
-                                                                         // to
-                // restrict a user to search to wide.
+                // We add +1, since we use this limit to restrict a user to
+                // search to wide.
+                .append( Math.min( trackedEntityHardLimit, limit + 1 ) )
                 .append( SPACE )
                 .toString();
         }
