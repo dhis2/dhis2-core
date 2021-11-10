@@ -177,8 +177,7 @@ public class BulkPatchManager
      */
     private Optional<Schema> validateClassName( String className, BulkPatchParameters patchParameters )
     {
-        Schema schema = patchParameters.getSchema().isPresent() ? patchParameters.getSchema().get()
-            : schemaService.getSchemaByPluralName( className );
+        Schema schema = patchParameters.getSchema().orElse( schemaService.getSchemaByPluralName( className ) );
 
         if ( schema == null )
         {
