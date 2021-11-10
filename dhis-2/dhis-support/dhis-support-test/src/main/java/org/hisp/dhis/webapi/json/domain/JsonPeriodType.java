@@ -49,8 +49,8 @@ public interface JsonPeriodType extends JsonObject
         return getString( "isoFormat" ).string();
     }
 
-    default int getFrequencyOrder()
+    default Number getFrequencyOrder()
     {
-        return getNumber( "frequencyOrder" ).intValue();
+        return getNumber( "frequencyOrder" ).number();
     }
 }

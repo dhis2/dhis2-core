@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -61,14 +60,14 @@ public class PeriodTypeControllerTest extends DhisControllerConvenienceTest
         assertNotNull( periodType.getName() );
         assertNotNull( periodType.getIsoDuration() );
         assertNotNull( periodType.getIsoFormat() );
-        assertTrue( periodType.has( "frequencyOrder" ) );
+        assertNotNull( periodType.getFrequencyOrder() );
     }
 
     @Test
     public void testPeriodTypeNameIsoFormat()
     {
-        JsonObject object = GET( "/periodTypes?fields=name,isoFormat" ).content( HttpStatus.OK ).as( JsonObject.class );
-        JsonList<JsonPeriodType> periodTypes = object.getList( "periodTypes", JsonPeriodType.class );
+        JsonList<JsonPeriodType> periodTypes = GET( "/periodTypes?fields=name,isoFormat" ).content( HttpStatus.OK )
+            .as( JsonObject.class ).getList( "periodTypes", JsonPeriodType.class );
 
         assertTrue( periodTypes.exists() );
         assertEquals( 18, periodTypes.size() );
@@ -79,6 +78,6 @@ public class PeriodTypeControllerTest extends DhisControllerConvenienceTest
         assertNotNull( periodType.getIsoFormat() );
 
         assertNull( periodType.getIsoDuration() );
-        assertFalse( periodType.has( "frequencyOrder" ) );
+        assertNull( periodType.getFrequencyOrder() );
     }
 }
