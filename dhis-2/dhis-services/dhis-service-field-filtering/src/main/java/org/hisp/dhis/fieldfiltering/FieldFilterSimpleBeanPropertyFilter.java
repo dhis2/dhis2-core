@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,7 +48,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 {
     private final List<FieldPath> fieldPaths;
 
-    private final Map<FieldPath, String> fullPathCache = new HashMap<>();
+    private static final Map<FieldPath, String> FULL_PATH_CACHE = new ConcurrentHashMap<>();
 
     @Override
     protected boolean include( final BeanPropertyWriter writer )
@@ -68,7 +68,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
         for ( FieldPath fieldPath : fieldPaths )
         {
-            String fullPath = fullPathCache.computeIfAbsent( fieldPath, FieldPath::toFullPath );
+            String fullPath = FULL_PATH_CACHE.computeIfAbsent( fieldPath, FieldPath::toFullPath );
 
             if ( fullPath.equals( path ) )
             {

@@ -88,7 +88,7 @@ public class PeriodTypeController
 
     @GetMapping( "/orgUnits" )
     public @ResponseBody ResponseEntity<JsonRoot> getOrgUnits(
-        @RequestParam( defaultValue = "*" ) List<String> fields )
+        @RequestParam( defaultValue = "id,displayName" ) List<String> fields )
     {
         List<OrganisationUnit> organisationUnits = new ArrayList<>( organisationUnitService.getAllOrganisationUnits() );
 

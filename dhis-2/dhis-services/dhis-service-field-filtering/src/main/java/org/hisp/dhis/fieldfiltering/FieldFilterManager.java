@@ -41,8 +41,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.cfg.MapperConfig;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -59,6 +64,24 @@ public class FieldFilterManager
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
+    private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
+    {
+        /**
+         * Since the field filter will handle type refinement itself (to avoid
+         * recursive loops), we want to ignore any type refinement happening
+         * with @JsonSerialize(...). In the future we would want to remove
+         * all @JsonSerialize annotations and just use the field filters, but
+         * since we still have object mappers without field filtering we can't
+         * do this just yet.
+         */
+        @Override
+        public JavaType refineSerializationType( MapperConfig<?> config, Annotated a, JavaType baseType )
+            throws JsonMappingException
+        {
+            return baseType;
+        }
+    }
+
     public FieldFilterManager( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper )
     {
         this.fieldPathHelper = fieldPathHelper;
@@ -73,6 +96,7 @@ public class FieldFilterManager
         module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
 
         objectMapper.registerModule( module );
+        objectMapper.setAnnotationIntrospector( new IgnoreJsonSerializerRefinementAnnotationInspector() );
 
         return objectMapper;
     }
