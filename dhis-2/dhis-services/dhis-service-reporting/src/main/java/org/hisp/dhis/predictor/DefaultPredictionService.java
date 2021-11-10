@@ -357,8 +357,8 @@ public class DefaultPredictionService
 
         for ( OrganisationUnitLevel orgUnitLevel : predictor.getOrganisationUnitLevels() )
         {
-            List<OrganisationUnit> orgUnits = organisationUnitService.getOrganisationUnitsAtOrgUnitLevels(
-                Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits );
+            List<OrganisationUnit> orgUnits = new ArrayList<>( organisationUnitService
+                .getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits ) );
 
             orgUnits.sort( Comparator.comparing( OrganisationUnit::getPath ) );
 
