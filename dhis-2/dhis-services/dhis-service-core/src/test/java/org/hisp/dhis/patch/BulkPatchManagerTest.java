@@ -36,13 +36,21 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
 import org.hisp.dhis.jsonpatch.BulkJsonPatchValidator;
+import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -66,24 +74,52 @@ public class BulkPatchManagerTest extends DhisSpringTest
     @Autowired
     private IdentifiableObjectManager manager;
 
+    @Autowired
+    private AclService aclService;
+
+    @Autowired
+    private PeriodService periodService;
+
     private DataElement dataElementA;
 
     private DataElement dataElementB;
+
+    private DataSet dataSetA;
+
+    private User userA;
+
+    private User userB;
+
+    private User userC;
+
+    private User userD;
 
     @Override
     public void setUpTest()
     {
         userService = _userService;
-        User userA = createUserWithId( "A", "NOOF56dveaZ" );
-        User userB = createUserWithId( "B", "Kh68cDMwZsg" );
+        userA = createUserWithId( "A", "NOOF56dveaZ" );
+        userB = createUserWithId( "B", "Kh68cDMwZsg" );
+        userC = createUser( "C" );
+        userD = createUser( "D" );
         dataElementA = createDataElement( 'A' );
+        dataElementA
+            .setSharing( Sharing.builder().owner( userD.getUid() ).publicAccess( AccessStringHelper.DEFAULT ).build() );
         dataElementA.setUid( "fbfJHSPpUQD" );
-        manager.save( dataElementA );
+        manager.save( dataElementA, false );
 
         dataElementB = createDataElement( 'B' );
         dataElementB.setUid( "cYeuwXTCPkU" );
-        manager.save( dataElementB );
+        dataElementB
+            .setSharing( Sharing.builder().owner( userD.getUid() ).publicAccess( AccessStringHelper.DEFAULT ).build() );
+        manager.save( dataElementB, false );
 
+        PeriodType periodType = periodService.getPeriodTypeByClass( MonthlyPeriodType.class );
+        dataSetA = createDataSet( 'A', periodType );
+        dataSetA.setUid( "em8Bg4LCr5k" );
+        dataSetA
+            .setSharing( Sharing.builder().owner( userD.getUid() ).publicAccess( AccessStringHelper.DEFAULT ).build() );
+        manager.save( dataSetA, false );
     }
 
     @Test
@@ -102,6 +138,29 @@ public class BulkPatchManagerTest extends DhisSpringTest
         List<IdentifiableObject> patchedObjects = patchManager
             .applyPatch( bulkJsonPatch, patchParameters );
         assertEquals( 2, patchedObjects.size() );
+        assertTrue( aclService.canRead( userA, patchedObjects.get( 0 ) ) );
+        assertTrue( aclService.canRead( userA, patchedObjects.get( 1 ) ) );
+        assertFalse( aclService.canRead( userC, patchedObjects.get( 0 ) ) );
+    }
+
+    @Test
+    public void testApplyPatchInvalidClassName()
+        throws IOException
+    {
+        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
+            new ClassPathResource( "patch/bulk_sharing_patch_invalid_class_name.json" ).getInputStream(),
+            BulkJsonPatch.class );
+
+        BulkPatchParameters patchParameters = BulkPatchParameters.builder()
+            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
+            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .build();
+
+        List<IdentifiableObject> patchedObjects = patchManager
+            .applyPatch( bulkJsonPatch, patchParameters );
+        assertEquals( 0, patchedObjects.size() );
+        assertEquals( 1, patchParameters.getErrorReports().size() );
+        assertEquals( ErrorCode.E6002, patchParameters.getErrorReports().get( 0 ).getErrorCode() );
     }
 
     @Test
@@ -123,5 +182,84 @@ public class BulkPatchManagerTest extends DhisSpringTest
         assertEquals( 1, patchedObjects.size() );
         assertEquals( 1, patchParameters.getErrorReports().size() );
         assertEquals( ErrorCode.E4014, patchParameters.getErrorReports().get( 0 ).getErrorCode() );
+        assertTrue( aclService.canRead( userA, patchedObjects.get( 0 ) ) );
+        assertFalse( aclService.canRead( userC, patchedObjects.get( 0 ) ) );
+    }
+
+    @Test
+    public void testApplyPatchInvalidPath()
+        throws IOException
+    {
+        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
+            new ClassPathResource( "patch/bulk_sharing_patch_invalid_path.json" ).getInputStream(),
+            BulkJsonPatch.class );
+
+        BulkPatchParameters patchParameters = BulkPatchParameters.builder()
+            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
+            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .build();
+
+        List<IdentifiableObject> patchedObjects = patchManager
+            .applyPatch( bulkJsonPatch, patchParameters );
+        assertEquals( 0, patchedObjects.size() );
+        assertEquals( 2, patchParameters.getErrorReports().size() );
+        assertEquals( ErrorCode.E4032, patchParameters.getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( ErrorCode.E4032, patchParameters.getErrorReports().get( 1 ).getErrorCode() );
+    }
+
+    @Test
+    public void testApplyPatchNotShareableSchema()
+        throws IOException
+    {
+        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
+            new ClassPathResource( "patch/bulk_sharing_patch_not_shareable.json" ).getInputStream(),
+            BulkJsonPatch.class );
+
+        BulkPatchParameters patchParameters = BulkPatchParameters.builder()
+            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
+            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .build();
+
+        List<IdentifiableObject> patchedObjects = patchManager
+            .applyPatch( bulkJsonPatch, patchParameters );
+        assertEquals( 0, patchedObjects.size() );
+        assertEquals( 1, patchParameters.getErrorReports().size() );
+        assertEquals( ErrorCode.E3019, patchParameters.getErrorReports().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void testApplyPatchesOk()
+        throws IOException
+    {
+        final BulkJsonPatches bulkJsonPatch = jsonMapper.readValue(
+            new ClassPathResource( "patch/bulk_sharing_patches.json" ).getInputStream(),
+            BulkJsonPatches.class );
+
+        BulkPatchParameters patchParameters = BulkPatchParameters.builder()
+            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
+            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .build();
+
+        List<IdentifiableObject> patchedObjects = patchManager
+            .applyPatches( bulkJsonPatch, patchParameters );
+        assertEquals( 3, patchedObjects.size() );
+
+        assertFalse( aclService.canRead( userA, dataSetA ) );
+        assertFalse( aclService.canRead( userB, dataSetA ) );
+
+        IdentifiableObject patchedDataElementA = patchedObjects.stream()
+            .filter( de -> de.getUid().equals( dataElementA.getUid() ) ).findFirst().get();
+        IdentifiableObject patchedDataElementB = patchedObjects.stream()
+            .filter( de -> de.getUid().equals( dataElementB.getUid() ) ).findFirst().get();
+        IdentifiableObject patchedDataSetA = patchedObjects.stream()
+            .filter( de -> de.getUid().equals( dataSetA.getUid() ) ).findFirst().get();
+        assertTrue( aclService.canRead( userA, patchedDataElementA ) );
+        assertTrue( aclService.canRead( userB, patchedDataElementB ) );
+
+        assertTrue( aclService.canRead( userA, patchedDataSetA ) );
+        assertTrue( aclService.canRead( userB, patchedDataSetA ) );
+
+        assertFalse( aclService.canRead( userC, patchedDataElementA ) );
+        assertFalse( aclService.canRead( userC, patchedDataSetA ) );
     }
 }
