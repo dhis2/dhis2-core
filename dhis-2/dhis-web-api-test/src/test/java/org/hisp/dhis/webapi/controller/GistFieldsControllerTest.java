@@ -240,4 +240,11 @@ public class GistFieldsControllerTest extends AbstractGistControllerTest
         assertEquals( 1, dataElements.size() );
         assertEquals( "extra-value", dataElements.getObject( 0 ).getString( "extra" ).string() );
     }
+
+    @Test
+    public void testField_UserNameAutomaticFromTransformation()
+    {
+        JsonArray users = GET( "/users/gist?fields=id,name&headless=true" ).content();
+        assertEquals( "admin admin", users.getObject( 0 ).getString( "name" ).string() );
+    }
 }

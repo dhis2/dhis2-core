@@ -25,18 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.event.csv;
+package org.hisp.dhis.webapi.controller.tracker.csv;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.domain.DataValue;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
 import org.springframework.stereotype.Service;
@@ -50,22 +54,23 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.google.common.collect.Lists;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-@Service( "org.hisp.dhis.dxf2.events.event.csv.CsvEventService" )
-public class DefaultCsvEventService
+@Service( "org.hisp.dhis.webapi.controller.tracker.CsvEventService" )
+public class TrackerCsvEventService
     implements CsvEventService<Event>
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
-
-    private static final CsvSchema CSV_SCHEMA = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
-        .withLineSeparator( "\n" );
 
     @Override
     public void writeEvents( OutputStream outputStream, List<Event> events, boolean withHeader )
         throws IOException
     {
-        ObjectWriter writer = CSV_MAPPER.writer( CSV_SCHEMA.withUseHeader( withHeader ) );
+        final CsvSchema csvSchema = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
+            .withLineSeparator( "\n" )
+            .withUseHeader( withHeader );
+
+        ObjectWriter writer = CSV_MAPPER.writer( csvSchema.withUseHeader( withHeader ) );
 
         List<CsvEventDataValue> dataValues = new ArrayList<>();
 
@@ -78,11 +83,29 @@ public class DefaultCsvEventService
             templateDataValue.setProgramStage( event.getProgramStage() );
             templateDataValue.setEnrollment( event.getEnrollment() );
             templateDataValue.setOrgUnit( event.getOrgUnit() );
-            templateDataValue.setEventDate( event.getEventDate() );
-            templateDataValue.setDueDate( event.getDueDate() );
-            templateDataValue.setStoredBy( event.getStoredBy() );
-            templateDataValue.setCompletedDate( event.getCompletedDate() );
+            templateDataValue.setOrgUnitName( event.getOrgUnitName() );
+            templateDataValue.setOccurredAt( event.getOccurredAt() == null ? null : event.getOccurredAt().toString() );
+            templateDataValue
+                .setScheduledAt( event.getScheduledAt() == null ? null : event.getScheduledAt().toString() );
+            templateDataValue.setFollowup( event.isFollowup() );
+            templateDataValue.setDeleted( event.isDeleted() );
+            templateDataValue.setCreatedAt( event.getCreatedAt() == null ? null : event.getCreatedAt().toString() );
+            templateDataValue.setCreatedAtClient(
+                event.getCreatedAtClient() == null ? null : event.getCreatedAtClient().toString() );
+            templateDataValue.setUpdatedAt( event.getUpdatedAt() == null ? null : event.getUpdatedAt().toString() );
+            templateDataValue.setUpdatedAtClient(
+                event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString() );
             templateDataValue.setCompletedBy( event.getCompletedBy() );
+            templateDataValue
+                .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
+            templateDataValue.setUpdatedBy( event.getUpdatedBy() );
+            templateDataValue.setStoredBy( event.getStoredBy() );
+            templateDataValue
+                .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
+            templateDataValue.setCompletedBy( event.getCompletedBy() );
+            templateDataValue.setAttributeOptionCombo( event.getAttributeOptionCombo() );
+            templateDataValue.setAttributeCategoryOptions( event.getAttributeCategoryOptions() );
+            templateDataValue.setAssignedUser( event.getAssignedUser() );
 
             if ( event.getGeometry() != null )
             {
@@ -100,7 +123,11 @@ public class DefaultCsvEventService
                 CsvEventDataValue dataValue = new CsvEventDataValue( templateDataValue );
                 dataValue.setDataElement( value.getDataElement() );
                 dataValue.setValue( value.getValue() );
-                dataValue.setProvidedElsewhere( value.getProvidedElsewhere() );
+                dataValue.setProvidedElsewhere( value.isProvidedElsewhere() );
+                dataValue
+                    .setCreatedAtDataValue( value.getCreatedAt() == null ? null : value.getCreatedAt().toString() );
+                dataValue
+                    .setUpdatedAtDataValue( value.getUpdatedAt() == null ? null : value.getUpdatedAt().toString() );
 
                 if ( value.getStoredBy() != null )
                 {
@@ -119,20 +146,23 @@ public class DefaultCsvEventService
         throws IOException,
         ParseException
     {
+        final CsvSchema csvSchema = CSV_MAPPER.schemaFor( CsvEventDataValue.class )
+            .withUseHeader( skipFirst )
+            .withColumnReordering( true );
+
         List<Event> events = Lists.newArrayList();
 
         ObjectReader reader = CSV_MAPPER.readerFor( CsvEventDataValue.class )
-            .with( CSV_SCHEMA.withSkipFirstDataRow( skipFirst ) );
+            .with( csvSchema );
 
         MappingIterator<CsvEventDataValue> iterator = reader.readValues( inputStream );
         Event event = new Event();
-        event.setEvent( "not_valid" );
 
         while ( iterator.hasNext() )
         {
             CsvEventDataValue dataValue = iterator.next();
 
-            if ( !event.getEvent().equals( dataValue.getEvent() ) )
+            if ( !Objects.equals( event.getEvent(), dataValue.getEvent() ) )
             {
                 event = new Event();
                 event.setEvent( dataValue.getEvent() );
@@ -143,10 +173,18 @@ public class DefaultCsvEventService
                 event.setProgramStage( dataValue.getProgramStage() );
                 event.setEnrollment( dataValue.getEnrollment() );
                 event.setOrgUnit( dataValue.getOrgUnit() );
-                event.setEventDate( dataValue.getEventDate() );
-                event.setDueDate( dataValue.getDueDate() );
-                event.setCompletedDate( dataValue.getCompletedDate() );
+                event.setCreatedAt( DateUtils.instantFromDateAsString( dataValue.getCreatedAt() ) );
+                event.setCreatedAtClient( DateUtils.instantFromDateAsString( dataValue.getCreatedAtClient() ) );
+                event.setUpdatedAt( DateUtils.instantFromDateAsString( dataValue.getUpdatedAt() ) );
+                event.setUpdatedAtClient( DateUtils.instantFromDateAsString( dataValue.getUpdatedAtClient() ) );
+                event.setOccurredAt( DateUtils.instantFromDateAsString( dataValue.getOccurredAt() ) );
+                event.setScheduledAt( DateUtils.instantFromDateAsString( dataValue.getScheduledAt() ) );
+                event.setCompletedAt( DateUtils.instantFromDateAsString( dataValue.getCompletedAt() ) );
                 event.setCompletedBy( dataValue.getCompletedBy() );
+                event.setStoredBy( dataValue.getStoredBy() );
+                event.setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
+                event.setAttributeCategoryOptions( dataValue.getAttributeCategoryOptions() );
+                event.setAssignedUser( dataValue.getAssignedUser() );
 
                 if ( dataValue.getGeometry() != null )
                 {
@@ -161,11 +199,20 @@ public class DefaultCsvEventService
                 events.add( event );
             }
 
-            DataValue value = new DataValue( dataValue.getDataElement(), dataValue.getValue() );
-            value.setStoredBy( dataValue.getStoredBy() );
-            value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-
-            event.getDataValues().add( value );
+            if ( ObjectUtils.anyNotNull( dataValue.getProvidedElsewhere(),
+                dataValue.getDataElement(), dataValue.getValue(), dataValue.getCreatedAtDataValue(),
+                dataValue.getUpdatedAtDataValue(), dataValue.getStoredByDataValue() ) )
+            {
+                DataValue value = new DataValue();
+                value.setProvidedElsewhere(
+                    dataValue.getProvidedElsewhere() != null && dataValue.getProvidedElsewhere() );
+                value.setDataElement( dataValue.getDataElement() );
+                value.setValue( dataValue.getValue() );
+                value.setCreatedAt( DateUtils.instantFromDateAsString( dataValue.getCreatedAtDataValue() ) );
+                value.setUpdatedAt( DateUtils.instantFromDateAsString( dataValue.getUpdatedAtDataValue() ) );
+                value.setStoredBy( dataValue.getStoredByDataValue() );
+                event.getDataValues().add( value );
+            }
         }
 
         return events;
