@@ -57,6 +57,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
@@ -92,6 +93,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -146,23 +148,27 @@ public class HibernateTrackedEntityInstanceStore
 
     private final StatementBuilder statementBuilder;
 
-    private final DhisConfigurationProvider dhisConfigurationProvider;
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
 
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder,
-        DhisConfigurationProvider dhisConfigurationProvider )
+        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService,
             false );
 
         checkNotNull( statementBuilder );
         checkNotNull( organisationUnitStore );
-        checkNotNull( dhisConfigurationProvider );
 
         this.statementBuilder = statementBuilder;
         this.organisationUnitStore = organisationUnitStore;
-        this.dhisConfigurationProvider = dhisConfigurationProvider;
+    }
+
+    @PostConstruct
+    private void init()
+    {
+        checkNotNull( dhisConfigurationProvider );
     }
 
     // -------------------------------------------------------------------------
