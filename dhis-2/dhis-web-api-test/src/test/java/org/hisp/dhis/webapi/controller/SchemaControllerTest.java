@@ -63,7 +63,8 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testFieldFilteringNameKlass()
     {
-        JsonSchema schema = GET( "/schemas/organisationUnit?fields=name,klass" ).content().as( JsonSchema.class );
+        JsonSchema schema = GET( "/schemas/organisationUnit?fields=name,klass" ).content( HttpStatus.OK )
+            .as( JsonSchema.class );
 
         assertNotNull( schema.getKlass() );
         assertNotNull( schema.getName() );
@@ -75,7 +76,7 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testFieldFilteringDefaultExpansion()
     {
-        JsonSchema schema = GET( "/schemas/organisationUnit?fields=name,klass,properties" ).content()
+        JsonSchema schema = GET( "/schemas/organisationUnit?fields=name,klass,properties" ).content( HttpStatus.OK )
             .as( JsonSchema.class );
 
         assertNotNull( schema.getKlass() );
