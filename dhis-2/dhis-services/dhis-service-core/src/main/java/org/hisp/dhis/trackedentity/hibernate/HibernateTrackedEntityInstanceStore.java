@@ -79,6 +79,8 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -96,8 +98,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -137,7 +137,7 @@ public class HibernateTrackedEntityInstanceStore
     private static final String TEI_LASTUPDATED = " tei.lastUpdated";
 
     private static final String GT_EQUAL = " >= ";
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -145,12 +145,13 @@ public class HibernateTrackedEntityInstanceStore
     private final OrganisationUnitStore organisationUnitStore;
 
     private final StatementBuilder statementBuilder;
-    
-    private final Integer trackedEntityHardLimit;
+
+    private final DhisConfigurationProvider dhisConfigurationProvider;
 
     public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
-        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder, DhisConfigurationProvider dhisConfigurationProvider )
+        AclService aclService, OrganisationUnitStore organisationUnitStore, StatementBuilder statementBuilder,
+        DhisConfigurationProvider dhisConfigurationProvider )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService,
             false );
@@ -161,9 +162,9 @@ public class HibernateTrackedEntityInstanceStore
 
         this.statementBuilder = statementBuilder;
         this.organisationUnitStore = organisationUnitStore;
-        this.trackedEntityHardLimit = Integer.valueOf(dhisConfigurationProvider.getProperty(ConfigurationKey.TRACKER_TRACKED_ENTITY_QUERY_LIMIT));
+        this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
-    
+
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
@@ -1347,6 +1348,8 @@ public class HibernateTrackedEntityInstanceStore
     {
         StringBuilder limitOffset = new StringBuilder();
         int limit = params.getMaxTeiLimit();
+        int trackedEntityHardLimit = Integer
+            .valueOf( dhisConfigurationProvider.getProperty( ConfigurationKey.TRACKER_TRACKED_ENTITY_QUERY_LIMIT ) );
 
         if ( limit == 0 && !params.isPaging() )
         {
@@ -1383,8 +1386,16 @@ public class HibernateTrackedEntityInstanceStore
             return limitOffset
                 .append( LIMIT )
                 .append( SPACE )
-                .append( Math.min( trackedEntityHardLimit, limit + 1 ) ) // We add +1, since we use this limit to
-                                     // restrict a user to search to wide.
+                .append( Math.min( trackedEntityHardLimit, limit + 1 ) ) // We
+                                                                         // add
+                                                                         // +1,
+                                                                         // since
+                                                                         // we
+                                                                         // use
+                                                                         // this
+                                                                         // limit
+                                                                         // to
+                // restrict a user to search to wide.
                 .append( SPACE )
                 .toString();
         }
