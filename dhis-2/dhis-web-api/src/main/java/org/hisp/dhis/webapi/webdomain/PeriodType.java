@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.webdomain;
 import lombok.Data;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.fieldfiltering.FieldFilterMixin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -40,7 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @Data
 @JacksonXmlRootElement( localName = "periodType", namespace = DxfNamespaces.DXF_2_0 )
-public class PeriodType implements FieldFilterMixin
+public class PeriodType
 {
     private final String name;
 
