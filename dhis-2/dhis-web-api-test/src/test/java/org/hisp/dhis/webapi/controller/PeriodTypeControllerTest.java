@@ -40,7 +40,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the {@link SchemaController} using (mocked) REST requests.
+ * Tests the {@link PeriodTypeController} using (mocked) REST requests.
  *
  * @author Morten Olav Hansen
  */
