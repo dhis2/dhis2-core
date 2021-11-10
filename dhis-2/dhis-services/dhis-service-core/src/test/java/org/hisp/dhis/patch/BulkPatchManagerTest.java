@@ -36,6 +36,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
 import org.hisp.dhis.jsonpatch.BulkJsonPatchValidator;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
@@ -65,24 +66,28 @@ public class BulkPatchManagerTest extends DhisSpringTest
     @Autowired
     private IdentifiableObjectManager manager;
 
+    private DataElement dataElementA;
+
+    private DataElement dataElementB;
+
     @Override
     public void setUpTest()
     {
         userService = _userService;
         User userA = createUserWithId( "A", "NOOF56dveaZ" );
         User userB = createUserWithId( "B", "Kh68cDMwZsg" );
-        DataElement dataElementA = createDataElement( 'A' );
+        dataElementA = createDataElement( 'A' );
         dataElementA.setUid( "fbfJHSPpUQD" );
         manager.save( dataElementA );
 
-        DataElement dataElementB = createDataElement( 'B' );
+        dataElementB = createDataElement( 'B' );
         dataElementB.setUid( "cYeuwXTCPkU" );
         manager.save( dataElementB );
 
     }
 
     @Test
-    public void testApplyPatch()
+    public void testApplyPatchOk()
         throws IOException
     {
         final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
@@ -97,5 +102,26 @@ public class BulkPatchManagerTest extends DhisSpringTest
         List<IdentifiableObject> patchedObjects = patchManager
             .applyPatch( bulkJsonPatch, patchParameters );
         assertEquals( 2, patchedObjects.size() );
+    }
+
+    @Test
+    public void testApplyPatchInvalidUid()
+        throws IOException
+    {
+        manager.delete( dataElementA );
+        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
+            new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
+            BulkJsonPatch.class );
+
+        BulkPatchParameters patchParameters = BulkPatchParameters.builder()
+            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
+            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .build();
+
+        List<IdentifiableObject> patchedObjects = patchManager
+            .applyPatch( bulkJsonPatch, patchParameters );
+        assertEquals( 1, patchedObjects.size() );
+        assertEquals( 1, patchParameters.getErrorReports().size() );
+        assertEquals( ErrorCode.E4014, patchParameters.getErrorReports().get( 0 ).getErrorCode() );
     }
 }
