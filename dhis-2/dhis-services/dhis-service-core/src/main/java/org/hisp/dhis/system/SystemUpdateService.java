@@ -67,7 +67,7 @@ import com.vdurmont.semver4j.Semver;
 @AllArgsConstructor
 public class SystemUpdateService
 {
-    public static final String DHIS_2_ORG_VERSIONS_JSON = "https://releases.dhis2.org/versions.json";
+    public static final String DHIS_2_ORG_VERSIONS_JSON = "https://releases.dhis2.org/v1/versions/stable.json";
 
     public static final String NEW_VERSION_AVAILABLE_MESSAGE_SUBJECT = "System update available";
 
