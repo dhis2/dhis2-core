@@ -69,7 +69,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @Slf4j
-@Component( "logInitializer" )
+//@Component( "logInitializer" )
 public class Log4JLogConfigInitializer
     implements LogConfigInitializer
 {
