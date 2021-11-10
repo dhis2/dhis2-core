@@ -90,6 +90,9 @@ public class IntegrationTestConfig
         DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider()
             .newInstance()) // NOSONAR
                 .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
+                .appendCustomPostgresConfig( "fsync=off" )
+                .appendCustomPostgresConfig( "synchronous_commit=off" )
+                .appendCustomPostgresConfig( "full_page_writes=off" )
                 .withDatabaseName( POSTGRES_DATABASE_NAME )
                 .withUsername( POSTGRES_CREDENTIALS )
                 .withPassword( POSTGRES_CREDENTIALS );
