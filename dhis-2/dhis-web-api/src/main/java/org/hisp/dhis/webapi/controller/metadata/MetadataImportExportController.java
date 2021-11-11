@@ -66,10 +66,10 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.jsonpatch.BulkJsonPatchValidator;
 import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
+import org.hisp.dhis.jsonpatch.BulkPatchValidators;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -252,7 +252,7 @@ public class MetadataImportExportController
     }
 
     @ResponseBody
-    @PatchMapping( value = "sharing", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @PatchMapping( value = "sharing", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
     public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
         HttpServletRequest request )
         throws IOException
@@ -260,8 +260,7 @@ public class MetadataImportExportController
         final BulkJsonPatches bulkJsonPatches = jsonMapper.readValue( request.getInputStream(), BulkJsonPatches.class );
 
         BulkPatchParameters patchParams = BulkPatchParameters.builder()
-            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
-            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
+            .validators( BulkPatchValidators.sharingValidators() )
             .build();
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, patchParams );

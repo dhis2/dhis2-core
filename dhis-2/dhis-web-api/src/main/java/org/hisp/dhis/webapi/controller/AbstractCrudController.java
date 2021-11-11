@@ -75,9 +75,9 @@ import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
-import org.hisp.dhis.jsonpatch.BulkJsonPatchValidator;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
+import org.hisp.dhis.jsonpatch.BulkPatchValidators;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
@@ -410,7 +410,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     }
 
     @ResponseBody
-    @PatchMapping( path = "/sharing", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
+    @PatchMapping( path = "/sharing", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
     public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
         HttpServletRequest request )
         throws Exception
@@ -418,8 +418,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue( request.getInputStream(), BulkJsonPatch.class );
 
         BulkPatchParameters patchParams = BulkPatchParameters.builder()
-            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
-            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
+            .validators( BulkPatchValidators.sharingValidators() )
             .build();
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( bulkJsonPatch, patchParams );

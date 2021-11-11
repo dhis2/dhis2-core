@@ -27,41 +27,26 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
 import lombok.Builder;
 import lombok.Getter;
 
-import org.hisp.dhis.feedback.ErrorReport;
-
+/**
+ * Contains all validators needed for the patch process.
+ */
 @Builder
 @Getter
-public class BulkPatchParameters
+public class BulkPatchValidators
 {
-    /**
-     * List of {@link ErrorReport} created during the patch process and will be
-     * returned to api consumer.
-     */
-    @Builder.Default
-    private List<ErrorReport> errorReports = new ArrayList<>();
+    private Optional<SchemaValidator> schemaValidator;
 
-    /**
-     * Contains all validators needed for the patch process.
-     */
-    private BulkPatchValidators validators;
+    private Optional<JsonPatchValidator> jsonPatchValidator;
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    public void addErrorReport( ErrorReport errorReport )
+    public static BulkPatchValidators sharingValidators()
     {
-        errorReports.add( errorReport );
-    }
-
-    public void addErrorReports( List<ErrorReport> errors )
-    {
-        errorReports.addAll( errors );
+        return BulkPatchValidators.builder()
+            .schemaValidator( Optional.of( SchemaValidator.isShareable ) )
+            .jsonPatchValidator( Optional.of( JsonPatchValidator.isSharingPatch ) ).build();
     }
 }

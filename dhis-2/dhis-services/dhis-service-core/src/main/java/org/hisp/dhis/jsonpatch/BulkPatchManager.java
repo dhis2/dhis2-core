@@ -96,14 +96,10 @@ public class BulkPatchManager
     }
 
     /**
-     * Apply {@link JsonPatch} to multiple objects of different classes from
-     * given {@link BulkJsonPatches}.
+     * Apply multiple {@link JsonPatch} to multiple objects of different classes
+     * from given {@link BulkJsonPatches}.
      * <p>
      * Each object has its own {@link JsonPatch}.
-     *
-     * @param patches
-     * @param patchParameters
-     * @return
      */
     @Transactional( readOnly = true )
     public List<IdentifiableObject> applyPatches( BulkJsonPatches patches,
@@ -131,12 +127,15 @@ public class BulkPatchManager
     }
 
     /**
-     * Main method to patch an object with given id and given {@link JsonPatch}
+     * Main method for validate and patch an object with given id and given
+     * {@link JsonPatch}
      */
     private Optional<IdentifiableObject> patchObject( String id, Schema schema, JsonPatch patch,
         BulkPatchParameters patchParams )
     {
-        Optional<IdentifiableObject> entity = validate( schema.getKlass(), patch, id, patchParams );
+        validateJsonPatch( patch, patchParams );
+
+        Optional<IdentifiableObject> entity = validateId( schema.getKlass(), id, patchParams );
 
         Optional<IdentifiableObject> patched = entity.isPresent() ? applyWithTryCatch( schema, patch, entity.get(),
             patchParams.getErrorReports() ) : Optional.empty();
@@ -171,7 +170,7 @@ public class BulkPatchManager
      * Validate if there is a {@link Schema} exists with the given className.
      * <p>
      * Also apply schema validator from
-     * {@link BulkPatchParameters#getSchemaValidator()}
+     * {@link org.hisp.dhis.jsonpatch.SchemaValidator}
      *
      * @return {@link Schema}
      */
@@ -185,15 +184,9 @@ public class BulkPatchManager
             return Optional.empty();
         }
 
-        if ( !schema.getPlural().equals( className ) )
+        if ( patchParameters.getValidators().getSchemaValidator().isPresent() )
         {
-            patchParameters.addErrorReport( new ErrorReport( JsonPatchException.class, ErrorCode.E6002, className ) );
-            return Optional.empty();
-        }
-
-        if ( patchParameters.hasSchemaValidator() )
-        {
-            List<ErrorReport> errors = patchParameters.getSchemaValidator().apply( schema );
+            List<ErrorReport> errors = patchParameters.getValidators().getSchemaValidator().get().apply( schema );
             if ( !errors.isEmpty() )
             {
                 patchParameters.addErrorReports( errors );
@@ -206,17 +199,13 @@ public class BulkPatchManager
 
     /**
      * Validate if an object exists with given id.
-     * <p>
-     * Also apply {@link BulkPatchParameters#getPatchValidator()} to given
-     * {@link JsonPatch}.
      *
      * @param klass Class of the object that need to be patched
-     * @param patch {@link JsonPatch} to patch the object
      * @param id UID of the object that need to be patched
      * @param patchParams {@link BulkPatchParameters}
      * @return {@link IdentifiableObject}
      */
-    private Optional<IdentifiableObject> validate( Class<?> klass, JsonPatch patch, String id,
+    private Optional<IdentifiableObject> validateId( Class<?> klass, String id,
         BulkPatchParameters patchParams )
     {
         IdentifiableObject entity = manager.get( (Class<? extends IdentifiableObject>) klass, id );
@@ -227,17 +216,26 @@ public class BulkPatchManager
             return Optional.empty();
         }
 
-        if ( patchParams.hasPatchValidator() )
+        return Optional.of( entity );
+    }
+
+    /**
+     * Apply {@link JsonPatchValidator} to given {@link JsonPatch}.
+     *
+     * @param patch {@link JsonPatch} to be validated
+     * @param patchParams {@link BulkPatchParameters} contains validation
+     *        errors.
+     */
+    private void validateJsonPatch( JsonPatch patch, BulkPatchParameters patchParams )
+    {
+        if ( patchParams.getValidators().getJsonPatchValidator().isPresent() )
         {
-            List<ErrorReport> errors = patchParams.getPatchValidator().apply( patch );
+            List<ErrorReport> errors = patchParams.getValidators().getJsonPatchValidator().get().apply( patch );
             if ( !errors.isEmpty() )
             {
                 patchParams.addErrorReports( errors );
-                return Optional.empty();
             }
         }
-
-        return Optional.of( entity );
     }
 
     /**

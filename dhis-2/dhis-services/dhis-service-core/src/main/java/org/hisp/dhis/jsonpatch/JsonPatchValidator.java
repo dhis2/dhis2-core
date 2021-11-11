@@ -27,41 +27,36 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-import lombok.Builder;
-import lombok.Getter;
-
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 
-@Builder
-@Getter
-public class BulkPatchParameters
+/**
+ * Contains validation method that can be added to {@link BulkPatchParameters}
+ * <p>
+ * which then will be used in {@link BulkPatchManager}
+ */
+@FunctionalInterface
+public interface JsonPatchValidator extends Function<JsonPatch, List<ErrorReport>>
 {
     /**
-     * List of {@link ErrorReport} created during the patch process and will be
-     * returned to api consumer.
-     */
-    @Builder.Default
-    private List<ErrorReport> errorReports = new ArrayList<>();
+     * Validate if all {@link JsonPatchOperation} of given {@link JsonPatch} are
+     * applied to "sharing" property.
+     **/
+    JsonPatchValidator isSharingPatch = checkPath( op -> op.getPath().matchesProperty( "sharing" ), ErrorCode.E4032 );
 
-    /**
-     * Contains all validators needed for the patch process.
-     */
-    private BulkPatchValidators validators;
-
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
-    public void addErrorReport( ErrorReport errorReport )
+    static JsonPatchValidator checkPath( final Predicate<JsonPatchOperation> predicate, ErrorCode errorCode )
     {
-        errorReports.add( errorReport );
+        return jsonPatch -> jsonPatch.getOperations().stream().filter( op -> !predicate.test( op ) )
+            .map( op -> new ErrorReport( JsonPatchException.class, errorCode, op.getPath() ) )
+            .collect( Collectors.toList() );
     }
 
-    public void addErrorReports( List<ErrorReport> errors )
-    {
-        errorReports.addAll( errors );
-    }
 }

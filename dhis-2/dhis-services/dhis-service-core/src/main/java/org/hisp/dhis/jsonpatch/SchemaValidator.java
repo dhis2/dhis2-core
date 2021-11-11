@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,63 +27,34 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.ArrayList;
+import static java.util.Collections.emptyList;
+
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 
 /**
- * Contains validation methods that can be added to {@link BulkPatchParameters}
+ * Contains validation method that can be added to {@link BulkPatchParameters}
  * <p>
- * and are called in {@link BulkPatchManager} before {@link JsonPatch} are
- * applied.
+ * which then will be used in {@link BulkPatchManager}
  */
-public class BulkJsonPatchValidator
+@FunctionalInterface
+public interface SchemaValidator extends Function<Schema, List<ErrorReport>>
 {
     /**
-     * Validate if all {@link JsonPatchOperation} of given {@link JsonPatch} are
-     * applied to "sharing" property.
-     *
-     * @param patch {@link JsonPatch} for validating.
-     * @return {@link ErrorCode#E4032} if {@link JsonPatchOperation#getPath()}
-     *         is different from "sharing"
-     */
-    public static List<ErrorReport> validateSharingPath( JsonPatch patch )
-    {
-        List<ErrorReport> errors = new ArrayList<>();
-
-        for ( JsonPatchOperation operation : patch.getOperations() )
-        {
-            if ( !operation.getPath().matchesProperty( "sharing" ) )
-            {
-                errors.add( new ErrorReport( JsonPatchException.class, ErrorCode.E4032, operation.getPath() ) );
-            }
-        }
-
-        return errors;
-    }
-
-    /**
      * Validate if given schema is shareable.
-     *
-     * @param schema {@link Schema} for validation.
-     * @return {@link ErrorCode#E3019} if given {@link Schema#isShareable()} is
-     *         false.
      */
-    public static List<ErrorReport> validateShareableSchema( Schema schema )
-    {
-        if ( !schema.isShareable() )
-        {
-            return Collections
-                .singletonList( new ErrorReport( JsonPatchException.class, ErrorCode.E3019, schema.getName() ) );
-        }
+    SchemaValidator isShareable = rule( Schema::isShareable, ErrorCode.E3019 );
 
-        return Collections.emptyList();
+    static SchemaValidator rule( final Predicate<Schema> predicate, ErrorCode errorCode )
+    {
+        return schema -> !predicate.test( schema ) ? Collections
+            .singletonList( new ErrorReport( JsonPatchException.class, errorCode, schema.getName() ) ) : emptyList();
     }
 }

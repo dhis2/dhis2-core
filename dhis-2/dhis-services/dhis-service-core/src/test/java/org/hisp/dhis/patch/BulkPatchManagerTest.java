@@ -39,10 +39,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
-import org.hisp.dhis.jsonpatch.BulkJsonPatchValidator;
 import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
+import org.hisp.dhis.jsonpatch.BulkPatchValidators;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -131,8 +131,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
             BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
-            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .validators( BulkPatchValidators.sharingValidators() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -152,8 +151,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
             BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
-            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .validators( BulkPatchValidators.sharingValidators() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -173,8 +171,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
             BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
-            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .validators( BulkPatchValidators.sharingValidators() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -195,8 +192,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
             BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
-            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .validators( BulkPatchValidators.sharingValidators() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -216,8 +212,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
             BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
-            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .validators( BulkPatchValidators.sharingValidators() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -236,8 +231,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
             BulkJsonPatches.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .patchValidator( BulkJsonPatchValidator::validateSharingPath )
-            .schemaValidator( BulkJsonPatchValidator::validateShareableSchema )
+            .validators( BulkPatchValidators.sharingValidators() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
