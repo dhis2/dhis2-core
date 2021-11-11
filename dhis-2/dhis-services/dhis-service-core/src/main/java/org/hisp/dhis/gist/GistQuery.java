@@ -393,6 +393,11 @@ public final class GistQuery
         {
             return ordinal() >= CAN_READ.ordinal();
         }
+
+        public boolean isCaseInsensitive()
+        {
+            return ordinal() >= ILIKE.ordinal() && ordinal() <= NOT_ENDS_WITH.ordinal();
+        }
     }
 
     @Getter
