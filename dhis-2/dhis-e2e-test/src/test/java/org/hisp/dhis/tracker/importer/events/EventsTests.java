@@ -113,7 +113,7 @@ public class EventsTests
 
         ApiResponse response = trackerActions
             .post( "", contentType, obj, new QueryParamsBuilder()
-                .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID", "skipFirst=true" ) );
+                .addAll( "dryRun=false", "eventIdScheme=UID", "orgUnitIdScheme=UID" ) );
         response
             .validate()
             .statusCode( 200 );

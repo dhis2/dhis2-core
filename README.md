@@ -19,7 +19,7 @@ For general info visit the [project web page](https://www.dhis2.org/).
 
 For software developer resources visit the [developer portal](https://developers.dhis2.org/).
 
-To contribute to the software read the [contributor guidelines](https://developers.dhis2.org/docs/conceptual/contribute).
+To contribute to the software read the [contributor guidelines](https://developers.dhis2.org/community/contribute).
 
 The software is open source and released under the [BSD license](https://opensource.org/licenses/BSD-2-Clause).
 
