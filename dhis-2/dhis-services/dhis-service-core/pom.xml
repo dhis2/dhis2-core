@@ -46,10 +46,6 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-acl</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-audit-consumer</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -91,8 +87,8 @@
     <!-- Other -->
 
     <dependency>
-      <groupId>org.hisp.dhis.rules</groupId>
-      <artifactId>rule-engine</artifactId>
+      <groupId>org.hisp.dhis.parser</groupId>
+      <artifactId>dhis-antlr-expression-parser</artifactId>
     </dependency>
     <dependency>
       <groupId>com.cronutils</groupId>
