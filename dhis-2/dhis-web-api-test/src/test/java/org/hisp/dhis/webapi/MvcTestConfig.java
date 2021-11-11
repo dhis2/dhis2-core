@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.Compression;
+import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
@@ -44,6 +45,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
@@ -87,6 +89,9 @@ public class MvcTestConfig implements WebMvcConfigurer
 
     @Autowired
     private UserSettingService userSettingService;
+
+    @Autowired
+    public DefaultRequestInfoService requestInfoService;
 
     @Autowired
     private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
@@ -150,6 +155,7 @@ public class MvcTestConfig implements WebMvcConfigurer
     public void addInterceptors( InterceptorRegistry registry )
     {
         registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
+        registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
     }
 
     @Bean
