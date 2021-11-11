@@ -19,12 +19,12 @@ jobs:
       - name: Test core
         env:
           MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn clean install -Pdefault -Pjdk11 --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
+        run: mvn -T 1C clean install -Pdefault -Pjdk11 --no-transfer-progress --update-snapshots -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
 
       - name: Test dhis-web
         env:
           MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn clean install -Pdefault -Pjdk11 --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml $MAVEN_BUILD_OPTS
+        run: mvn -T 1C clean install -Pdefault -Pjdk11 --no-transfer-progress --update-snapshots -f ./dhis-2/dhis-web/pom.xml $MAVEN_BUILD_OPTS
 
   integration-test:
     runs-on: ubuntu-latest
@@ -40,7 +40,7 @@ jobs:
       - name: Run integration tests
         env:
           MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn clean install -Pintegration -Pjdk11 --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
+        run: mvn -T 1C clean install -Pintegration -Pjdk11 --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
 
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
