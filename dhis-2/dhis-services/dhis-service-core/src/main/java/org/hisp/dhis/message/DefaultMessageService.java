@@ -407,6 +407,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<MessageConversation> getMatchingExtId( String extMessageId )
     {
         return messageConversationStore.getMessagesConversationFromSenderMatchingExtMessageId( extMessageId );
@@ -460,6 +461,7 @@ public class DefaultMessageService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Set<User> getFeedbackRecipients()
     {
         UserGroup feedbackRecipients = configurationService.getConfiguration().getFeedbackRecipients();
@@ -473,6 +475,7 @@ public class DefaultMessageService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Set<User> getSystemUpdateNotificationRecipients()
     {
         UserGroup feedbackRecipients = configurationService.getConfiguration().getSystemUpdateNotificationRecipients();
