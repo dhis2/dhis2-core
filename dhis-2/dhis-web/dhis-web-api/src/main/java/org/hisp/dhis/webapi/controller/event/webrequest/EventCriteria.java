@@ -123,8 +123,8 @@ public class EventCriteria extends PagingAndSortingCriteriaAdapter
     public Set<String> getEvents()
     {
         return CollectionUtils.emptyIfNull( TextUtils.splitToArray( event, TextUtils.SEMICOLON ) )
-                .stream()
-                .filter( CodeGenerator::isValidUid )
-                .collect( Collectors.toSet() );
+            .stream()
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toSet() );
     }
 }
