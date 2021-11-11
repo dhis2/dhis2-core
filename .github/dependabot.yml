@@ -10,7 +10,7 @@ updates:
       prefix: "github-actions"
       include: "scope"
   - package-ecosystem: "maven"
-    directory: "/"
+    directory: "/dhis-2"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10

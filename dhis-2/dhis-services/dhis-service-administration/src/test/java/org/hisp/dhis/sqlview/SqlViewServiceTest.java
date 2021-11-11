@@ -380,6 +380,18 @@ public class SqlViewServiceTest
     }
 
     @Test
+    public void testValidate_InvalidVarName()
+    {
+        SqlView sqlView = getSqlView(
+            "select * from dataelement where valueType = '${typö}' and aggregationtype = '${aggregationType}'" );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> sqlViewService.validateSqlView( sqlView, null, null ) );
+        assertEquals( ErrorCode.E4313, ex.getErrorCode() );
+        assertEquals( "SQL query contains variable names that are invalid: `[typö]`", ex.getMessage() );
+    }
+
+    @Test
     public void testGetSqlViewGrid()
     {
         User admin = createAndInjectAdminUser(); // makes admin current user
