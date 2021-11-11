@@ -29,6 +29,7 @@ package org.hisp.dhis.sqlview;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,9 +39,14 @@ import java.util.regex.Pattern;
  */
 public class SqlViewUtils
 {
-    public static final String VARIABLE_EXPRESSION = "\\$\\{(\\w+)\\}";
+    private SqlViewUtils()
+    {
+        // hide
+    }
 
-    public static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_EXPRESSION, Pattern.DOTALL );
+    private static final String VARIABLE_EXPRESSION = "\\$\\{([^}]+)}";
+
+    private static final Pattern VARIABLE_PATTERN = Pattern.compile( VARIABLE_EXPRESSION, Pattern.DOTALL );
 
     /**
      * Returns the variables contained in the given SQL string.
@@ -76,11 +82,12 @@ public class SqlViewUtils
 
         if ( variables != null )
         {
-            for ( String param : variables.keySet() )
+            for ( Entry<String, String> param : variables.entrySet() )
             {
-                if ( param != null && SqlView.isValidQueryParam( param ) )
+                String name = param.getKey();
+                if ( SqlView.isValidQueryParam( name ) )
                 {
-                    sqlQuery = substituteSqlVariable( sqlQuery, param, variables.get( param ) );
+                    sqlQuery = substituteSqlVariable( sqlQuery, name, param.getValue() );
                 }
             }
         }
@@ -99,11 +106,9 @@ public class SqlViewUtils
      */
     public static String substituteSqlVariable( String sql, String name, String value )
     {
-        final String regex = "\\$\\{(" + name + ")\\}";
-
-        if ( value != null && SqlView.isValidQueryValue( value ) )
+        if ( SqlView.isValidQueryValue( value ) )
         {
-            return sql.replaceAll( regex, value );
+            return sql.replace( "${" + name + "}", value );
         }
 
         return sql;
