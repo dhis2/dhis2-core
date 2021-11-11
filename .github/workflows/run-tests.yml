@@ -39,11 +39,32 @@ jobs:
           cache: maven
 
       - name: Run integration tests
-        run: mvn --threads 1C clean install -Pintegration -Pjdk11 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty
-
+        run: mvn --threads 1C clean install -Pintegration -Pjdk11 -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-"dhis-services/dhis-service-analytics"
+        
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
         with:
           name: surefire-reports
+          path: "**/target/surefire-reports/TEST-*.xml"
+          retention-days: 10
+
+  integration-test-analytics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: zulu
+          cache: maven
+
+      - name: Run analytics integration tests
+        run: mvn clean install -Pintegration -Pjdk11 -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
+
+      - name: Archive surefire reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: surefire-reports-analytics
           path: "**/target/surefire-reports/TEST-*.xml"
           retention-days: 10
