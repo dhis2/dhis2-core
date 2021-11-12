@@ -43,10 +43,10 @@ public class BulkPatchValidators
 
     private JsonPatchValidator jsonPatchValidator;
 
-    public static Optional<BulkPatchValidators> empty()
+    public static BulkPatchValidators empty()
     {
-        return Optional.of( BulkPatchValidators.builder().jsonPatchValidator( JsonPatchValidator.empty )
-            .schemaValidator( SchemaValidator.empty ).build() );
+        return BulkPatchValidators.builder().jsonPatchValidator( JsonPatchValidator.empty )
+            .schemaValidator( SchemaValidator.empty ).build();
     }
 
     public static Optional<BulkPatchValidators> sharingValidators()

@@ -71,6 +71,6 @@ public class BulkPatchParameters
 
     public BulkPatchValidators getValidators()
     {
-        return validators.orElse( BulkPatchValidators.empty().get() );
+        return validators.orElse( BulkPatchValidators.empty() );
     }
 }
