@@ -33,20 +33,26 @@ import lombok.Builder;
 import lombok.Getter;
 
 /**
- * Contains all validators needed for the patch process.
+ * Contains all validators needed for the json patch process.
  */
 @Builder
 @Getter
 public class BulkPatchValidators
 {
-    private Optional<SchemaValidator> schemaValidator;
+    private SchemaValidator schemaValidator;
 
-    private Optional<JsonPatchValidator> jsonPatchValidator;
+    private JsonPatchValidator jsonPatchValidator;
 
-    public static BulkPatchValidators sharingValidators()
+    public static Optional<BulkPatchValidators> empty()
     {
-        return BulkPatchValidators.builder()
-            .schemaValidator( Optional.of( SchemaValidator.isShareable ) )
-            .jsonPatchValidator( Optional.of( JsonPatchValidator.isSharingPatch ) ).build();
+        return Optional.of( BulkPatchValidators.builder().jsonPatchValidator( JsonPatchValidator.empty )
+            .schemaValidator( SchemaValidator.empty ).build() );
+    }
+
+    public static Optional<BulkPatchValidators> sharingValidators()
+    {
+        return Optional.of( BulkPatchValidators.builder()
+            .schemaValidator( SchemaValidator.isShareable )
+            .jsonPatchValidator( JsonPatchValidator.isSharingPatch ).build() );
     }
 }

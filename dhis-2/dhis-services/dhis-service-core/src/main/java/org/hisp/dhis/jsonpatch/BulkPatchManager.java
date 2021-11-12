@@ -133,7 +133,10 @@ public class BulkPatchManager
     private Optional<IdentifiableObject> patchObject( String id, Schema schema, JsonPatch patch,
         BulkPatchParameters patchParams )
     {
-        validateJsonPatch( patch, patchParams );
+        if ( !validateJsonPatch( patch, patchParams ) )
+        {
+            return Optional.empty();
+        }
 
         Optional<IdentifiableObject> entity = validateId( schema.getKlass(), id, patchParams );
 
@@ -184,14 +187,12 @@ public class BulkPatchManager
             return Optional.empty();
         }
 
-        if ( patchParameters.getValidators().getSchemaValidator().isPresent() )
+        List<ErrorReport> errors = patchParameters.getValidators().getSchemaValidator().apply( schema );
+
+        if ( !errors.isEmpty() )
         {
-            List<ErrorReport> errors = patchParameters.getValidators().getSchemaValidator().get().apply( schema );
-            if ( !errors.isEmpty() )
-            {
-                patchParameters.addErrorReports( errors );
-                return Optional.empty();
-            }
+            patchParameters.addErrorReports( errors );
+            return Optional.empty();
         }
 
         return Optional.of( schema );
@@ -226,16 +227,17 @@ public class BulkPatchManager
      * @param patchParams {@link BulkPatchParameters} contains validation
      *        errors.
      */
-    private void validateJsonPatch( JsonPatch patch, BulkPatchParameters patchParams )
+    private boolean validateJsonPatch( JsonPatch patch, BulkPatchParameters patchParams )
     {
-        if ( patchParams.getValidators().getJsonPatchValidator().isPresent() )
+        List<ErrorReport> errors = patchParams.getValidators().getJsonPatchValidator().apply( patch );
+
+        if ( !errors.isEmpty() )
         {
-            List<ErrorReport> errors = patchParams.getValidators().getJsonPatchValidator().get().apply( patch );
-            if ( !errors.isEmpty() )
-            {
-                patchParams.addErrorReports( errors );
-            }
+            patchParams.addErrorReports( errors );
+            return false;
         }
+
+        return true;
     }
 
     /**

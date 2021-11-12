@@ -74,7 +74,8 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED, POST( "/dataElements", jsonMapper.writeValueAsString( deA ) ) );
 
         DataElement deB = createDataElement( 'B', "cYeuwXTCPkU", userCId );
-        assertStatus( HttpStatus.CREATED, POST( "/dataElements", jsonMapper.writeValueAsString( deB ) ) );
+        assertStatus( HttpStatus.CREATED,
+            POST( "/dataElementsBulkPatchManagerTes", jsonMapper.writeValueAsString( deB ) ) );
 
         String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
             StandardCharsets.UTF_8 );

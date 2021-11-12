@@ -29,14 +29,13 @@ package org.hisp.dhis.jsonpatch;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.Builder;
-import lombok.Getter;
 
 import org.hisp.dhis.feedback.ErrorReport;
 
 @Builder
-@Getter
 public class BulkPatchParameters
 {
     /**
@@ -49,7 +48,7 @@ public class BulkPatchParameters
     /**
      * Contains all validators needed for the patch process.
      */
-    private BulkPatchValidators validators;
+    private Optional<BulkPatchValidators> validators;
 
     // -------------------------------------------------------------------------
     // Helpers
@@ -63,5 +62,15 @@ public class BulkPatchParameters
     public void addErrorReports( List<ErrorReport> errors )
     {
         errorReports.addAll( errors );
+    }
+
+    public List<ErrorReport> getErrorReports()
+    {
+        return errorReports;
+    }
+
+    public BulkPatchValidators getValidators()
+    {
+        return validators.orElse( BulkPatchValidators.empty().get() );
     }
 }

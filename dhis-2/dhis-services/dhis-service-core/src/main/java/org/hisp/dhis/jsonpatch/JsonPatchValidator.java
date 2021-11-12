@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.jsonpatch;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -46,6 +47,8 @@ import org.hisp.dhis.feedback.ErrorReport;
 @FunctionalInterface
 public interface JsonPatchValidator extends Function<JsonPatch, List<ErrorReport>>
 {
+    JsonPatchValidator empty = $ -> Collections.emptyList();
+
     /**
      * Validate if all {@link JsonPatchOperation} of given {@link JsonPatch} are
      * applied to "sharing" property.

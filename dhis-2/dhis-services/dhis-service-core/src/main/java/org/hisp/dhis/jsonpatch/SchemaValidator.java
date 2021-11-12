@@ -47,6 +47,8 @@ import org.hisp.dhis.schema.Schema;
 @FunctionalInterface
 public interface SchemaValidator extends Function<Schema, List<ErrorReport>>
 {
+    SchemaValidator empty = $ -> emptyList();
+
     /**
      * Validate if given schema is shareable.
      */

@@ -165,9 +165,8 @@ public class BulkPatchManagerTest extends DhisSpringTest
     public void testApplyPatchInvalidUid()
         throws IOException
     {
-        manager.delete( dataElementA );
         final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
-            new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
+            new ClassPathResource( "patch/bulk_sharing_patch_invalid_uid.json" ).getInputStream(),
             BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
