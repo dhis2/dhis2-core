@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -36,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -62,31 +64,152 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
     @Autowired
     private IdentifiableObjectManager manager;
 
+    private String userAId = "NOOF56dveaZ";
+
+    private String userBId = "Kh68cDMwZsg";
+
+    private String userCId;
+
+    private String deAId = "fbfJHSPpUQD";
+
+    private String deBId = "cYeuwXTCPkU";
+
+    private String dsIdA = "em8Bg4LCr5k";
+
     @Test
     public void testApplyPatchOk()
         throws IOException
     {
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userA", "NOOF56dveaZ" ) ) );
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userB", "Kh68cDMwZsg" ) ) );
-        String userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userA", userAId ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userB", userBId ) ) );
+        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
 
-        DataElement deA = createDataElement( 'A', "fbfJHSPpUQD", userCId );
-        assertStatus( HttpStatus.CREATED, POST( "/dataElements", jsonMapper.writeValueAsString( deA ) ) );
-
-        DataElement deB = createDataElement( 'B', "cYeuwXTCPkU", userCId );
         assertStatus( HttpStatus.CREATED,
-            POST( "/dataElementsBulkPatchManagerTes", jsonMapper.writeValueAsString( deB ) ) );
+            POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'A', deAId, userCId ) ) ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
 
         String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
             StandardCharsets.UTF_8 );
         assertStatus( HttpStatus.OK, PATCH( "/dataElements/sharing", payload ) );
 
-        JsonIdentifiableObject saveDeA = GET( "/dataElements/{uid}", "fbfJHSPpUQD" ).content( HttpStatus.OK )
+        JsonIdentifiableObject saveDeA = GET( "/dataElements/{uid}", deAId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
-        JsonIdentifiableObject saveDeB = GET( "/dataElements/{uid}", "cYeuwXTCPkU" ).content( HttpStatus.OK )
+        JsonIdentifiableObject saveDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
         assertEquals( 2, saveDeA.getSharing().getUsers().size() );
         assertEquals( 2, saveDeB.getSharing().getUsers().size() );
+    }
+
+    /**
+     * Payload contains two DataElements but only one exists in database.
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testApplyPatchWithInvalidUid()
+        throws IOException
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userA", userAId ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userB", userBId ) ) );
+        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
+
+        String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
+            StandardCharsets.UTF_8 );
+        HttpResponse response = PATCH( "/dataElements/sharing", payload );
+        assertStatus( HttpStatus.CONFLICT, response );
+
+        assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getErrorMessage( response ) );
+        JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
+            .as( JsonIdentifiableObject.class );
+        assertEquals( 2, savedDeB.getSharing().getUsers().size() );
+        assertNotNull( savedDeB.getSharing().getUsers().get( userAId ) );
+        assertNotNull( savedDeB.getSharing().getUsers().get( userBId ) );
+    }
+
+    /**
+     * Payload contains two DataElements but only one exists in database. Atomic
+     * = true so no sharing settings will be saved.
+     *
+     * @throws IOException
+     */
+    @Test
+    public void testApplyPatchWithInvalidUidAtomic()
+        throws IOException
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userA", userAId ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userB", userBId ) ) );
+        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
+
+        String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
+            StandardCharsets.UTF_8 );
+        HttpResponse response = PATCH( "/dataElements/sharing?atomic=true", payload );
+        assertStatus( HttpStatus.CONFLICT, response );
+
+        assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getErrorMessage( response ) );
+        JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
+            .as( JsonIdentifiableObject.class );
+        assertEquals( 0, savedDeB.getSharing().getUsers().size() );
+    }
+
+    @Test
+    public void testApplyPatches()
+        throws IOException
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userA", userAId ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userB", userBId ) ) );
+        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
+
+        assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets", jsonMapper.writeValueAsString( createDataSet( 'A', dsIdA, userCId ) ) ) );
+        assertStatus( HttpStatus.CREATED,
+            POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'A', deAId, userCId ) ) ) );
+        assertStatus( HttpStatus.CREATED,
+            POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
+
+        String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patches.json" ).getInputStream(),
+            StandardCharsets.UTF_8 );
+        assertStatus( HttpStatus.OK, PATCH( "/metadata/sharing", payload ) );
+
+        JsonIdentifiableObject savedDeA = GET( "/dataElements/{uid}", deAId ).content( HttpStatus.OK )
+            .as( JsonIdentifiableObject.class );
+        JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
+            .as( JsonIdentifiableObject.class );
+        JsonIdentifiableObject savedDsA = GET( "/dataSets/{uid}", dsIdA ).content( HttpStatus.OK )
+            .as( JsonIdentifiableObject.class );
+
+        assertEquals( 2, savedDeA.getSharing().getUsers().size() );
+        assertEquals( 2, savedDeB.getSharing().getUsers().size() );
+        assertEquals( 2, savedDsA.getSharing().getUsers().size() );
+
+        assertNotNull( savedDeA.getSharing().getUsers().get( userAId ) );
+        assertNotNull( savedDeB.getSharing().getUsers().get( userAId ) );
+        assertNotNull( savedDsA.getSharing().getUsers().get( userAId ) );
+
+        assertNotNull( savedDeA.getSharing().getUsers().get( userBId ) );
+        assertNotNull( savedDeB.getSharing().getUsers().get( userBId ) );
+        assertNotNull( savedDsA.getSharing().getUsers().get( userBId ) );
+    }
+
+    private String getErrorMessage( HttpResponse response )
+    {
+        return response.error().get( "response.typeReports[0].objectReports[0].errorReports[0].message" )
+            .node().value().toString();
+    }
+
+    private DataSet createDataSet( char uniqueChar, String uid, String owner )
+    {
+        DataSet dataSet = createDataSet( uniqueChar );
+        dataSet.setUid( uid );
+        dataSet.setSharing( Sharing.builder().publicAccess( AccessStringHelper.DEFAULT ).owner( owner ).build() );
+        return dataSet;
     }
 
     private DataElement createDataElement( char uniqueChar, String uid, String owner )

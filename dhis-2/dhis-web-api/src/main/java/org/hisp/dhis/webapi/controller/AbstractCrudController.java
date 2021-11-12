@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
@@ -425,7 +424,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         if ( patchedObjects.isEmpty() || (atomic && !patchParams.getErrorReports().isEmpty()) )
         {
-            return errorReports( patchParams.getErrorReports() );
+            ImportReport importReport = new ImportReport();
+            importReport.addTypeReport( typeReport( getEntityClass(), patchParams.getErrorReports() ) );
+            importReport.setStatus( Status.ERROR );
+            return importReport( importReport );
         }
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
@@ -441,6 +443,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         if ( !patchParams.getErrorReports().isEmpty() )
         {
             importReport.addTypeReport( typeReport( getEntityClass(), patchParams.getErrorReports() ) );
+            importReport.setStatus( importReport.getStatus() == Status.OK ? Status.WARNING : importReport.getStatus() );
         }
 
         return importReport( importReport );

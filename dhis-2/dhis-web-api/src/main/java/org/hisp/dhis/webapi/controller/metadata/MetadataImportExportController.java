@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.metadata;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.errorReports;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
@@ -65,6 +64,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
@@ -267,7 +267,10 @@ public class MetadataImportExportController
 
         if ( patchedObjects.isEmpty() || (atomic && !patchParams.getErrorReports().isEmpty()) )
         {
-            return errorReports( patchParams.getErrorReports() );
+            ImportReport importReport = new ImportReport();
+            importReport.addTypeReport( typeReport( JsonPatchException.class, patchParams.getErrorReports() ) );
+            importReport.setStatus( Status.ERROR );
+            return importReport( importReport );
         }
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
@@ -284,6 +287,7 @@ public class MetadataImportExportController
         if ( !patchParams.getErrorReports().isEmpty() )
         {
             importReport.addTypeReport( typeReport( JsonPatchException.class, patchParams.getErrorReports() ) );
+            importReport.setStatus( importReport.getStatus() == Status.OK ? Status.WARNING : importReport.getStatus() );
         }
 
         return importReport( importReport );

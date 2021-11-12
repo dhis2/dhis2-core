@@ -230,11 +230,6 @@ public class DefaultSharingService implements SharingService
         return objectReport;
     }
 
-    public void saveBatchSharing()
-    {
-
-    }
-
     private void syncSharingForEventProgram( Program program )
     {
         if ( ProgramType.WITH_REGISTRATION == program.getProgramType()
