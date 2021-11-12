@@ -40,11 +40,34 @@ jobs:
       - name: Run integration tests
         env:
           MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn -T 1C clean test -Pintegration -Pjdk11 --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
+        run: mvn -T 1C clean test -Pintegration -Pjdk11 --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-"dhis-services/dhis-service-analytics" $MAVEN_BUILD_OPTS
 
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
         with:
           name: surefire-reports
+          path: "**/target/surefire-reports/TEST-*.xml"
+          retention-days: 10
+
+  integration-test-analytics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: 11
+          distribution: zulu
+          cache: maven
+
+      - name: Run analytics integration tests
+        env:
+          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+        run: mvn clean install -Pintegration -Pjdk11 --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml $MAVEN_BUILD_OPTS
+
+      - name: Archive surefire reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: surefire-reports-analytics
           path: "**/target/surefire-reports/TEST-*.xml"
           retention-days: 10
