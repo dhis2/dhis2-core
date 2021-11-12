@@ -839,6 +839,11 @@ public abstract class AbstractEventService implements EventService
 
         if ( orgUnitSelectionMode == null )
         {
+            if ( params.getOrgUnit() != null )
+            {
+                return Arrays.asList( params.getOrgUnit() );
+            }
+
             return getAccessibleOrgUnits( params, user );
         }
 
@@ -847,7 +852,7 @@ public abstract class AbstractEventService implements EventService
         switch ( orgUnitSelectionMode )
         {
         case ALL:
-            organisationUnits = getAllOrgUnits( user );
+            organisationUnits = getAllOrgUnits( params, user );
             break;
         case CHILDREN:
             organisationUnits = getChildrenOrgUnits( params );
@@ -856,7 +861,7 @@ public abstract class AbstractEventService implements EventService
             organisationUnits = getDescendantOrgUnits( params );
             break;
         case CAPTURE:
-            organisationUnits = getCaptureOrgUnits( user );
+            organisationUnits = getCaptureOrgUnits( params, user );
             break;
         case SELECTED:
             organisationUnits = getSelectedOrgUnits( params );
@@ -869,8 +874,13 @@ public abstract class AbstractEventService implements EventService
         return organisationUnits;
     }
 
-    private List<OrganisationUnit> getAllOrgUnits( User user )
+    private List<OrganisationUnit> getAllOrgUnits( EventSearchParams params, User user )
     {
+        if ( params.getOrgUnit() != null )
+        {
+            return Arrays.asList( params.getOrgUnit() );
+        }
+
         if ( !userCanSearchOuModeALL( user ) )
         {
             throw new IllegalQueryException( "User is not authorized to use ALL organisation units. " );
@@ -912,8 +922,13 @@ public abstract class AbstractEventService implements EventService
         return organisationUnitService.getOrganisationUnitWithChildren( params.getOrgUnit().getUid() );
     }
 
-    private List<OrganisationUnit> getCaptureOrgUnits( User user )
+    private List<OrganisationUnit> getCaptureOrgUnits( EventSearchParams params, User user )
     {
+        if ( params.getOrgUnit() != null )
+        {
+            return Arrays.asList( params.getOrgUnit() );
+        }
+
         if ( user == null )
         {
             throw new IllegalQueryException( "User is required to use CAPTURE scope." );
@@ -925,6 +940,11 @@ public abstract class AbstractEventService implements EventService
 
     private List<OrganisationUnit> getAccessibleOrgUnits( EventSearchParams params, User user )
     {
+        if ( params.getOrgUnit() != null )
+        {
+            return Arrays.asList( params.getOrgUnit() );
+        }
+
         if ( user == null )
         {
             throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
