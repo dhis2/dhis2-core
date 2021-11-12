@@ -25,39 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.preprocess;
-
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
+package org.hisp.dhis.dxf2.events.importer.update.validation;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 /**
- * @author maikel arabori
+ * @author Luciano Fiandesio
  */
-@Getter
-@Component( "eventsPreUpdateProcessorFactory" )
-@RequiredArgsConstructor
-public class PreUpdateProcessorFactory extends AbstractProcessorFactory
+@Component
+public class UpdateProgramStageInstanceAclCheck extends BaseEventAclCheck
 {
-    @NonNull
-    @Qualifier( "eventUpdatePreProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
-
-    private final ImportStrategy importStrategy = UPDATE;
-
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isUpdate;
-
+    @Override
+    public List<String> checkAcl( final TrackerAccessManager trackerAccessManager, final User user,
+        final ProgramStageInstance programStageInstance )
+    {
+        return trackerAccessManager.canUpdate( user, programStageInstance, false );
+    }
 }

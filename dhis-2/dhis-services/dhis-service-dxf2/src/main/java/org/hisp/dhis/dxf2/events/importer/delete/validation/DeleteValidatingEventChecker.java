@@ -25,26 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
+package org.hisp.dhis.dxf2.events.importer.delete.validation;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.event.EventStatus;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
+
+import lombok.Getter;
+
+import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
+import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
+import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.stereotype.Component;
 
 /**
- * This PreProcessor converts event's VISITED status to ACTIVE
- *
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author maikel arabori
  */
-public class EventStatusPreProcessor implements Processor
+@Component
+public class DeleteValidatingEventChecker extends ValidatingEventChecker
 {
-    @Override
-    public void process( Event event, WorkContext ctx )
+    @Getter
+    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isDelete;
+
+    public DeleteValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
+        EventImporterValidationRunner validationRunner )
     {
-        if ( event.getStatus().equals( EventStatus.VISITED ) )
-        {
-            event.setStatus( EventStatus.ACTIVE );
-        }
+        super( checkNotNull(
+            checkNotNull( checkersByImportStrategy ).get( DELETE ) ), validationRunner );
     }
+
 }

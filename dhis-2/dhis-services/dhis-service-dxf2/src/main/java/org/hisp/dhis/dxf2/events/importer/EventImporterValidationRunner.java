@@ -25,48 +25,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.dxf2.events.importer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isUpdate;
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.WARNING;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventChecking;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
-/**
- * @author maikel arabori
- */
-@Component( "eventsUpdateValidationFactory" )
-public class UpdateValidationFactory implements EventChecking
+@Component
+public class EventImporterValidationRunner
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap;
-
-    public UpdateValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap )
+    /**
+     * Validates the events using the supplied list of validators.
+     * <p>
+     * Only returns the ImportSummary for Events that *did* not pass validation
+     *
+     * @param payload Validation Runner payload to run against
+     * @return returns the ImportSummary for Events that did not pass validation
+     */
+    public List<ImportSummary> run( ValidationRunnerPayload payload )
     {
-        checkNotNull( eventUpdateValidatorMap );
-        this.eventUpdateValidatorMap = eventUpdateValidatorMap;
-    }
+        final List<ImportSummary> importSummaries = new ArrayList<>( 0 );
 
-    @Override
-    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
-    {
-        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
-
-        if ( isUpdate( importStrategy ) )
+        for ( final Event event : payload.events )
         {
-            return new ValidationRunner( ctx, events ).run( eventUpdateValidatorMap.get( UPDATE ) );
+            for ( Checker validationCheck : payload.validators )
+            {
+                final ImportSummary importSummary = validationCheck.check( new ImmutableEvent( event ),
+                    payload.workContext );
+
+                if ( importSummary.isStatus( ERROR ) || importSummary.isStatus( WARNING ) )
+                {
+                    importSummaries.add( importSummary );
+                    if ( importSummary.isStatus( ERROR ) )
+                    {
+                        break;
+                    }
+                }
+            }
         }
 
-        return emptyList();
+        return importSummaries;
+    }
+
+    @RequiredArgsConstructor( staticName = "of" )
+    static class ValidationRunnerPayload
+    {
+        private final WorkContext workContext;
+
+        private final List<Event> events;
+
+        private final List<? extends Checker> validators;
     }
 }

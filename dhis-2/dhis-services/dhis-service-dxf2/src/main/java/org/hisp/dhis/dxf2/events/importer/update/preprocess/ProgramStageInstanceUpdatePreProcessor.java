@@ -43,10 +43,12 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.stereotype.Component;
 
 /**
  * @author maikel arabori
  */
+@Component
 public class ProgramStageInstanceUpdatePreProcessor implements Processor
 {
     @Override

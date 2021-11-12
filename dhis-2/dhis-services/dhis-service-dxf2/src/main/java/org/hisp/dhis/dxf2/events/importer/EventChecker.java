@@ -25,48 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.delete.validation;
+package org.hisp.dhis.dxf2.events.importer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isDelete;
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
+import static org.apache.commons.logging.LogFactory.getLog;
 
 import java.util.List;
-import java.util.Map;
 
+import org.apache.commons.logging.Log;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventChecking;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
 
 /**
+ * Simple interface that provides checking capabilities on events.
+ *
  * @author maikel arabori
  */
-@Component( "eventsDeleteValidationFactory" )
-public class DeleteValidationFactory implements EventChecking
+public interface EventChecker
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap;
+    List<ImportSummary> check( final WorkContext workContext, final List<Event> events );
 
-    public DeleteValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap )
-    {
-        checkNotNull( eventDeleteValidatorMap );
-        this.eventDeleteValidatorMap = eventDeleteValidatorMap;
-    }
+    Log log = getLog( EventChecker.class );
 
-    @Override
-    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
-    {
-        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
-
-        if ( isDelete( importStrategy ) )
-        {
-            return new ValidationRunner( ctx, events ).run( eventDeleteValidatorMap.get( DELETE ) );
-        }
-
-        return emptyList();
-    }
 }

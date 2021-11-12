@@ -28,8 +28,9 @@
 package org.hisp.dhis.dxf2.events.importer;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -38,29 +39,29 @@ import org.hisp.dhis.importexport.ImportStrategy;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public abstract class AbstractProcessorFactory implements EventProcessing
+@RequiredArgsConstructor
+public class EventProcessorExecutor
 {
 
-    @Override
-    public void process( final WorkContext workContext, final List<Event> events )
+    private final ProcessorRunner processorRunner;
+
+    private final List<? extends Processor> processors;
+
+    private final Predicate<ImportStrategy> importStrategyPredicate;
+
+    public void execute( final WorkContext workContext, final List<Event> events )
     {
         final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
 
         if ( isApplicable( importStrategy ) )
         {
-            new ProcessorRunner( workContext, events ).run( getProcessorMap().get( getImportStrategy() ) );
+            processorRunner.run( workContext, events, processors );
         }
     }
 
-    protected abstract Predicate<ImportStrategy> getImportStrategyPredicate();
-
-    protected abstract ImportStrategy getImportStrategy();
-
-    protected abstract Map<ImportStrategy, List<Class<? extends Processor>>> getProcessorMap();
-
     private boolean isApplicable( ImportStrategy importStrategy )
     {
-        return getImportStrategyPredicate().test( importStrategy );
+        return importStrategyPredicate.test( importStrategy );
     }
 
 }

@@ -25,22 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramCheck implements Checker
+@Component
+public class SharedProgramCheck implements Checker
 {
     @Override
-    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
-            "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found.", event );
+            "Event.program does not point to a valid program: " + event.getProgram(), event );
     }
 }

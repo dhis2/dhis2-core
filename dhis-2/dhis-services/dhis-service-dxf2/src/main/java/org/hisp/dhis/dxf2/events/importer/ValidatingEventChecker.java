@@ -25,22 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.shared.validation;
+package org.hisp.dhis.dxf2.events.importer;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.importexport.ImportStrategy;
 
-/**
- * @author Luciano Fiandesio
- */
-public class ProgramCheck implements Checker
+@RequiredArgsConstructor
+public abstract class ValidatingEventChecker implements EventChecker
 {
+
+    private final List<? extends Checker> checkers;
+
+    private final EventImporterValidationRunner validationRunner;
+
     @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
     {
-        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
-            "Event.program does not point to a valid program: " + event.getProgram(), event );
+        return Optional.ofNullable( ctx )
+            .map( WorkContext::getImportOptions )
+            .map( ImportOptions::getImportStrategy )
+            .filter( this::isSupported )
+            .map( importStrategy -> EventImporterValidationRunner.ValidationRunnerPayload.of(
+                ctx,
+                events,
+                checkers ) )
+            .map( validationRunner::run )
+            .orElse( Collections.emptyList() );
     }
+
+    private boolean isSupported( ImportStrategy importStrategy )
+    {
+        return getSupportedPredicate().test( importStrategy );
+    }
+
+    protected abstract Predicate<ImportStrategy> getSupportedPredicate();
+
 }

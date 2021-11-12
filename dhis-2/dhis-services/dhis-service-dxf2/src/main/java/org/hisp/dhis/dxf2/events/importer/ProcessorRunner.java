@@ -25,24 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.dxf2.events.importer;
 
 import java.util.List;
 
-import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
-public class ProgramStageInstanceAclCheck extends BaseEventAclCheck
+@Component
+public class ProcessorRunner
 {
-    @Override
-    public List<String> checkAcl( final TrackerAccessManager trackerAccessManager, final User user,
-        final ProgramStageInstance programStageInstance )
+
+    public void run( WorkContext workContext, List<Event> events, final List<? extends Processor> processors )
     {
-        return trackerAccessManager.canUpdate( user, programStageInstance, false );
+        events.forEach(
+            event -> processors.forEach(
+                processor -> processor.process( event, workContext ) ) );
     }
 }

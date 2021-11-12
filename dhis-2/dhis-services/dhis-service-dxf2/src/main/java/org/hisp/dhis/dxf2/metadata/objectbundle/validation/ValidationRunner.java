@@ -25,56 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
-
-import static org.apache.commons.logging.LogFactory.getLog;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Simple interface that provides processing capabilities on events.
- *
- * @author maikel arabori
- */
-public interface EventProcessing
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+class ValidationRunner
 {
-    void process( WorkContext workContext, List<Event> events );
 
-    Log log = getLog( EventProcessing.class );
+    private final Map<ImportStrategy, List<ValidationCheck>> validatorMap;
 
-    class ProcessorRunner
+    public <T extends IdentifiableObject> TypeReport executeValidationChain( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
+        ValidationContext ctx )
     {
-        private final WorkContext workContext;
+        TypeReport typeReport = new TypeReport( klass );
 
-        private final List<Event> events;
+        validatorMap.get( bundle.getImportMode() )
+            .forEach( validationCheck -> typeReport.merge( validationCheck.check( bundle, klass, persistedObjects,
+                nonPersistedObjects, bundle.getImportMode(), ctx ) ) );
 
-        public ProcessorRunner( WorkContext workContext, List<Event> events )
-        {
-            this.workContext = workContext;
-            this.events = events;
-        }
-
-        public void run( final List<Class<? extends Processor>> processors )
-        {
-            for ( final Event event : events )
-            {
-                for ( Class<? extends Processor> processor : processors )
-                {
-                    try
-                    {
-                        final Processor pre = processor.newInstance();
-                        pre.process( event, workContext );
-                    }
-                    catch ( InstantiationException | IllegalAccessException e )
-                    {
-                        log.error( "An error occurred during Event import processing", e );
-                    }
-                }
-            }
-        }
+        return typeReport;
     }
 }

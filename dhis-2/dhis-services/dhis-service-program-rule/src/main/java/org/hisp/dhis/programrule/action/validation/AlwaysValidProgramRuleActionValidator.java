@@ -29,10 +29,12 @@ package org.hisp.dhis.programrule.action.validation;
 
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
  */
+@Component
 public class AlwaysValidProgramRuleActionValidator implements ProgramRuleActionValidator
 {
     @Override

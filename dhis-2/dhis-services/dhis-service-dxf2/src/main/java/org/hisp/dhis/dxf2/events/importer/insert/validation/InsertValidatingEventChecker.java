@@ -25,43 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
+package org.hisp.dhis.dxf2.events.importer.insert.validation;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
+import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
+import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
+import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
-@Getter
-@RequiredArgsConstructor
+/**
+ * @author Luciano Fiandesio
+ */
 @Component
-public class ProcessingManager
+public class InsertValidatingEventChecker extends ValidatingEventChecker
 {
+    @Getter
+    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isInsert;
 
-    @NonNull
-    @Qualifier( "eventsPreInsertProcessorFactory" )
-    private final EventProcessing preInsertProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPostInsertProcessorFactory" )
-    private final EventProcessing postInsertProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPreUpdateProcessorFactory" )
-    private final EventProcessing preUpdateProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPostUpdateProcessorFactory" )
-    private final EventProcessing postUpdateProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPreDeleteProcessorFactory" )
-    private final EventProcessing preDeleteProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPostDeleteProcessorFactory" )
-    private final EventProcessing postDeleteProcessorFactory;
-
+    public InsertValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
+        EventImporterValidationRunner validationRunner )
+    {
+        super( checkNotNull(
+            checkNotNull( checkersByImportStrategy ).get( CREATE ) ), validationRunner );
+    }
 }

@@ -56,12 +56,14 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author Luciano Fiandesio
  */
+@Component
 public class DataValueCheck implements Checker
 {
     @Override
