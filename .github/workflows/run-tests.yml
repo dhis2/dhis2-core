@@ -40,7 +40,7 @@ jobs:
       - name: Run integration tests
         env:
           MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn --threads 1C clean install -Pintegration -Pjdk11 --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty,-"dhis-services/dhis-service-analytics" $MAVEN_BUILD_OPTS
+        run: mvn --threads 1C clean install -Pintegration -DexcludeAnalyticsTests=true -Pjdk11 --no-transfer-progress -f ./dhis-2/pom.xml -pl -dhis-web-embedded-jetty $MAVEN_BUILD_OPTS
 
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
@@ -60,10 +60,15 @@ jobs:
           distribution: zulu
           cache: maven
 
+      - name: Build analytics with dependencies
+        env:
+          MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+        run: mvn --threads 2C clean install -DskipTests -Dmaven.tests.skip=true -Pjdk11 --batch-mode --no-transfer-progress -f dhis-2/pom.xml -pl=dhis-services/dhis-service-analytics/pom.xml --also-make
+
       - name: Run analytics integration tests
         env:
-          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-        run: mvn clean install -Pintegration -Pjdk11 --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml $MAVEN_BUILD_OPTS
+          MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+        run: mvn test -Pintegration -Pjdk11 --batch-mode --no-transfer-progress -f ./dhis-2/dhis-services/dhis-service-analytics/pom.xml
 
       - name: Archive surefire reports
         uses: actions/upload-artifact@v2
