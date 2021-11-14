@@ -37,6 +37,7 @@ import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.program.Program;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
@@ -83,6 +84,8 @@ public class CategoryOptionComboTest
     private DataSet dataSetB;
 
     private DataSet dataSetC;
+
+    private Program program;
 
     @Before
     public void before()
@@ -148,6 +151,8 @@ public class CategoryOptionComboTest
         dataSetA.setOpenPeriodsAfterCoEndDate( 0 );
         dataSetB.setOpenPeriodsAfterCoEndDate( 1 );
         dataSetC.setOpenPeriodsAfterCoEndDate( 2 );
+
+        program = new Program();
     }
 
     @Test
@@ -228,6 +233,38 @@ public class CategoryOptionComboTest
         dateRange = optionComboC.getDateRange( dataElement ); // [null, Jan 1-4,
                                                               // Jan 2-5] +0,
                                                               // +1, +2
+        assertEquals( jan2, dateRange.getStartDate() );
+        assertEquals( jan6, dateRange.getEndDate() );
+    }
+
+    @Test
+    public void testGetDateRangeProgram()
+    {
+        DateRange dateRange;
+
+        dateRange = optionComboA.getDateRange( program );
+        assertNull( dateRange.getStartDate() );
+        assertNull( dateRange.getEndDate() );
+
+        dateRange = optionComboB.getDateRange( program );
+        assertEquals( jan1, dateRange.getStartDate() );
+        assertEquals( jan4, dateRange.getEndDate() );
+
+        dateRange = optionComboC.getDateRange( program );
+        assertEquals( jan2, dateRange.getStartDate() );
+        assertEquals( jan4, dateRange.getEndDate() );
+
+        program.setOpenDaysAfterCoEndDate( 2 );
+
+        dateRange = optionComboA.getDateRange( program );
+        assertNull( dateRange.getStartDate() );
+        assertNull( dateRange.getEndDate() );
+
+        dateRange = optionComboB.getDateRange( program );
+        assertEquals( jan1, dateRange.getStartDate() );
+        assertEquals( jan6, dateRange.getEndDate() );
+
+        dateRange = optionComboC.getDateRange( program );
         assertEquals( jan2, dateRange.getStartDate() );
         assertEquals( jan6, dateRange.getEndDate() );
     }

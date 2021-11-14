@@ -42,6 +42,7 @@ import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -217,7 +218,7 @@ public class CategoryOptionCombo
      */
     public DateRange getDateRange( DataSet dataSet )
     {
-        return getDateRange( dataSet, null );
+        return getDateRange( dataSet, null, null );
     }
 
     /**
@@ -235,7 +236,25 @@ public class CategoryOptionCombo
      */
     public DateRange getDateRange( DataElement dataElement )
     {
-        return getDateRange( null, dataElement );
+        return getDateRange( null, dataElement, null );
+    }
+
+    /**
+     * Gets a range of valid dates for this (attribute) cateogry option combo
+     * for a program.
+     * <p>
+     * The earliest valid date is the latest start date (if any) from all the
+     * category options associated with this option combo.
+     * <p>
+     * The latest valid date is the earliest end date (if any) from all the
+     * category options associated with this option combo.
+     *
+     * @param program the data set for which to check dates.
+     * @return valid date range for this (attribute) category option combo.
+     */
+    public DateRange getDateRange( Program program )
+    {
+        return getDateRange( null, null, program );
     }
 
     /**
@@ -338,10 +357,11 @@ public class CategoryOptionCombo
      * for a data set or, if that is not present, a data element.
      *
      * @param dataSet the data set to get the range for, or
-     * @param dataElement the data element to get the range for
+     * @param dataElement the data element to get the range for, or
+     * @param program the program to get the range for
      * @return valid date range for this (attribute) category option combo.
      */
-    private DateRange getDateRange( DataSet dataSet, DataElement dataElement )
+    private DateRange getDateRange( DataSet dataSet, DataElement dataElement, Program program )
     {
         Date latestStartDate = null;
         Date earliestEndDate = null;
@@ -353,9 +373,7 @@ public class CategoryOptionCombo
                 latestStartDate = co.getStartDate();
             }
 
-            Date coEndDate = dataSet != null
-                ? co.getAdjustedEndDate( dataSet )
-                : co.getAdjustedEndDate( dataElement );
+            Date coEndDate = co.getAdjustedEndDate( dataSet, dataElement, program );
 
             if ( coEndDate != null && (earliestEndDate == null || coEndDate.before( earliestEndDate )) )
             {

@@ -41,6 +41,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.DailyPeriodType;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -221,18 +223,43 @@ public class CategoryOption
     }
 
     /**
-     * Gets an adjusted end date for a data set or, if that is not present, a
-     * data element.
+     * Gets an adjusted end date, adjusted if this program has open days after
+     * the end date.
      *
-     * @param dataSet the data set to adjust for
-     * @param dataElement the data element to adjust for
+     * @param program the program to adjust for
      * @return the adjusted end date
      */
-    public Date getAdjustedEndDate( DataSet dataSet, DataElement dataElement )
+    public Date getAdjustedEndDate( Program program )
     {
-        return dataSet != null
-            ? getAdjustedEndDate( dataSet )
-            : getAdjustedEndDate( dataElement );
+        if ( endDate == null || program.getOpenDaysAfterCoEndDate() == 0 )
+        {
+            return endDate;
+        }
+
+        return (new DailyPeriodType()).getRewindedDate( endDate, -program.getOpenDaysAfterCoEndDate() );
+    }
+
+    /**
+     * Gets an adjusted end date for a data set, data element, or program.
+     *
+     * @param dataSet the data set to adjust for, or
+     * @param dataElement the data element to adjust for, or
+     * @param dataElement the program to adjust for
+     * @return the adjusted end date
+     */
+    public Date getAdjustedEndDate( DataSet dataSet, DataElement dataElement, Program program )
+    {
+        if ( dataSet != null )
+        {
+            return getAdjustedEndDate( dataSet );
+        }
+
+        if ( dataElement != null )
+        {
+            return getAdjustedEndDate( dataElement );
+        }
+
+        return getAdjustedEndDate( program );
     }
 
     // -------------------------------------------------------------------------
