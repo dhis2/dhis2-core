@@ -38,6 +38,7 @@ import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.i18n.I18n;
@@ -225,6 +226,12 @@ public class DefaultInterpretationService
     public List<Interpretation> getInterpretations( Visualization visualization )
     {
         return interpretationStore.getInterpretations( visualization );
+    }
+
+    @Override
+    public List<Interpretation> getInterpretations( EventVisualization eventVisualization )
+    {
+        return interpretationStore.getInterpretations( eventVisualization );
     }
 
     @Override

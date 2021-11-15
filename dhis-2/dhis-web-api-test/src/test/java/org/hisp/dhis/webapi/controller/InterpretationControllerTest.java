@@ -99,6 +99,14 @@ public class InterpretationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void testWriteEventVisualizationInterpretation()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "EventVisualization does not exist or is not accessible: xyz",
+            POST( "/interpretations/eventVisualization/xyz?pe=2021&ou=" + ouId, "text/plain:text" )
+                .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
     public void testWriteMapInterpretation()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Map does not exist or is not accessible: xyz",

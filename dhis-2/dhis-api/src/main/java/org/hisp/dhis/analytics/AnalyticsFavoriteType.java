@@ -39,8 +39,6 @@ public enum AnalyticsFavoriteType
 {
     VISUALIZATION,
     EVENT_VISUALIZATION,
-    REPORT_TABLE,
-    CHART,
     MAP,
     EVENT_REPORT,
     EVENT_CHART,

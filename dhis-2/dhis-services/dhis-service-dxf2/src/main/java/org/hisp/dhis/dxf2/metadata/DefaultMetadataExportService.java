@@ -873,18 +873,6 @@ public class DefaultMetadataExportService implements MetadataExportService
         return metadata;
     }
 
-    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEventVisualization(
-        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
-        EventVisualization eventVisualization )
-    {
-        if ( eventVisualization == null )
-            return metadata;
-        metadata.putValue( EventVisualization.class, eventVisualization );
-        handleAttributes( metadata, eventVisualization );
-
-        return metadata;
-    }
-
     private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleMapView(
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata, MapView mapView )
     {
@@ -916,6 +904,18 @@ public class DefaultMetadataExportService implements MetadataExportService
             return metadata;
         metadata.putValue( Visualization.class, visualization );
         handleAttributes( metadata, visualization );
+
+        return metadata;
+    }
+
+    private SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> handleEventVisualization(
+        SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata,
+        EventVisualization eventVisualization )
+    {
+        if ( eventVisualization == null )
+            return metadata;
+        metadata.putValue( EventVisualization.class, eventVisualization );
+        handleAttributes( metadata, eventVisualization );
 
         return metadata;
     }

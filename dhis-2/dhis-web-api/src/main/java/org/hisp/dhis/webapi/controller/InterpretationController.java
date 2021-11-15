@@ -46,6 +46,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.interpretation.InterpretationComment;
@@ -152,6 +153,27 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             currentUserService.getCurrentUser() );
 
         return createInterpretation( new Interpretation( visualization, orgUnit, text ) );
+    }
+
+    @PostMapping( value = "/eventVisualization/{uid}", consumes = { "text/html", "text/plain" } )
+    @ResponseBody
+    public WebMessage writeEventVisualizationInterpretation( @PathVariable( "uid" )
+    final String uid, @RequestParam( value = "ou", required = false )
+    final String orgUnitUid, @RequestBody
+    final String text )
+        throws WebMessageException
+    {
+        final EventVisualization eventVisualization = idObjectManager.get( EventVisualization.class, uid );
+
+        if ( eventVisualization == null )
+        {
+            return conflict( "EventVisualization does not exist or is not accessible: " + uid );
+        }
+
+        final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventVisualization,
+            currentUserService.getCurrentUser() );
+
+        return createInterpretation( new Interpretation( eventVisualization, orgUnit, text ) );
     }
 
     @PostMapping( value = "/map/{uid}", consumes = { "text/html", "text/plain" } )
