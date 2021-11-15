@@ -55,7 +55,7 @@ public class FieldFilterParams<T>
         return FieldFilterParams
             .<O> builder()
             .objects( objects )
-            .filters( Sets.newHashSet( StringUtils.join( filters, "," ) ) )
+            .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
             .build();
     }
 
@@ -64,7 +64,7 @@ public class FieldFilterParams<T>
         return FieldFilterParams
             .<O> builder()
             .objects( Collections.singletonList( object ) )
-            .filters( Sets.newHashSet( StringUtils.join( filters, "," ) ) )
+            .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
             .build();
     }
 }
