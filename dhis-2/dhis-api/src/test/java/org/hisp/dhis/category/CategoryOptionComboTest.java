@@ -268,4 +268,20 @@ public class CategoryOptionComboTest
         assertEquals( jan2, dateRange.getStartDate() );
         assertEquals( jan6, dateRange.getEndDate() );
     }
+
+    @Test
+    public void testGetLatestStartDate()
+    {
+        assertNull( optionComboA.getLatestStartDate() );
+        assertEquals( jan1, optionComboB.getLatestStartDate() );
+        assertEquals( jan2, optionComboC.getLatestStartDate() );
+    }
+
+    @Test
+    public void testGetEarliestEndDate()
+    {
+        assertNull( optionComboA.getEarliestEndDate() );
+        assertEquals( jan4, optionComboB.getEarliestEndDate() );
+        assertEquals( jan4, optionComboC.getEarliestEndDate() );
+    }
 }

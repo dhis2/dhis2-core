@@ -239,29 +239,6 @@ public class CategoryOption
         return (new DailyPeriodType()).getRewindedDate( endDate, -program.getOpenDaysAfterCoEndDate() );
     }
 
-    /**
-     * Gets an adjusted end date for a data set, data element, or program.
-     *
-     * @param dataSet the data set to adjust for, or
-     * @param dataElement the data element to adjust for, or
-     * @param dataElement the program to adjust for
-     * @return the adjusted end date
-     */
-    public Date getAdjustedEndDate( DataSet dataSet, DataElement dataElement, Program program )
-    {
-        if ( dataSet != null )
-        {
-            return getAdjustedEndDate( dataSet );
-        }
-
-        if ( dataElement != null )
-        {
-            return getAdjustedEndDate( dataElement );
-        }
-
-        return getAdjustedEndDate( program );
-    }
-
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------

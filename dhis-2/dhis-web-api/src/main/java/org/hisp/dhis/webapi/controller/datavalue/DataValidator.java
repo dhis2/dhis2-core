@@ -357,11 +357,14 @@ public class DataValidator
                     getMediumDateString( option.getStartDate() ), option.getUid() ) );
             }
 
-            if ( option.getEndDate() != null
-                && period.getStartDate().after( option.getAdjustedEndDate( dataSet, dataElement, null ) ) )
+            Date adjustedEndDate = (dataSet != null)
+                ? option.getAdjustedEndDate( dataSet )
+                : option.getAdjustedEndDate( dataElement );
+
+            if ( adjustedEndDate != null && period.getStartDate().after( adjustedEndDate ) )
             {
                 throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2024, period.getIsoDate(),
-                    getMediumDateString( option.getAdjustedEndDate( dataSet, dataElement, null ) ), option.getUid() ) );
+                    getMediumDateString( adjustedEndDate ), option.getUid() ) );
             }
         }
     }
