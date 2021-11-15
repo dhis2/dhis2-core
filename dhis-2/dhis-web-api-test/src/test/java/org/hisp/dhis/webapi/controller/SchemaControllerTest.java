@@ -33,6 +33,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -74,7 +76,7 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testFieldFilteringDefaultExpansion()
+    public void testFieldFilteringDefaultPropertiesExpansion()
     {
         JsonSchema schema = GET( "/schemas/organisationUnit?fields=name,klass,properties" ).content( HttpStatus.OK )
             .as( JsonSchema.class );
@@ -90,5 +92,20 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
         assertNotNull( schema.getProperties().get( 0 ).getName() );
         assertNotNull( schema.getProperties().get( 0 ).getKlass() );
         assertNotNull( schema.getProperties().get( 0 ).getFieldName() );
+    }
+
+    @Test
+    public void testFieldFilteringAllSchemas()
+    {
+        JsonList<JsonSchema> schemas = GET( "/schemas?fields=name,klass" ).content( HttpStatus.OK )
+            .as( JsonObject.class ).getList( "schemas", JsonSchema.class );
+
+        for ( JsonSchema schema : schemas )
+        {
+            assertNotNull( schema.getKlass() );
+            assertNotNull( schema.getName() );
+            assertNull( schema.getSingular() );
+            assertNull( schema.getPlural() );
+        }
     }
 }
