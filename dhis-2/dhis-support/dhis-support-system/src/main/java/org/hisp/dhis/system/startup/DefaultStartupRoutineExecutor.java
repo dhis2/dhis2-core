@@ -28,11 +28,12 @@
 package org.hisp.dhis.system.startup;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -46,6 +47,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component( "org.hisp.dhis.system.startup.StartupRoutineExecutor" )
+@RequiredArgsConstructor
 public class DefaultStartupRoutineExecutor
     implements StartupRoutineExecutor
 {
@@ -53,11 +55,11 @@ public class DefaultStartupRoutineExecutor
 
     private static final String SKIP_PROP = "dhis.skip.startup";
 
-    @Autowired
-    private DhisConfigurationProvider config;
+    private final DhisConfigurationProvider config;
 
-    @Autowired( required = false )
-    private List<StartupRoutine> startupRoutines;
+    private final List<StartupRoutine> startupRoutines;
+
+    private final AtomicBoolean started = new AtomicBoolean( false );
 
     // -------------------------------------------------------------------------
     // Execute
@@ -80,6 +82,10 @@ public class DefaultStartupRoutineExecutor
     private void execute( boolean testing )
         throws Exception
     {
+        if ( !started.compareAndSet( false, true ) )
+        {
+            return; // already ran or running the startup routines
+        }
         if ( startupRoutines == null || startupRoutines.isEmpty() )
         {
             log.debug( "No startup routines found" );

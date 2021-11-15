@@ -28,8 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.WebClient.Header;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.JsonResponse;
 import org.junit.Test;
 
 /**
@@ -42,13 +46,16 @@ public class RequestInfoControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetCurrentInfo_NoHeader()
     {
-        System.out.println( GET( "/request" ).content() );
+        JsonObject info = GET( "/request" ).content();
+        assertTrue( info.isObject() );
+        assertTrue( info.isEmpty() );
     }
 
     @Test
     public void testGetCurrentInfo_XRequestIdHeader()
     {
-        System.out.println( GET( "/request", Header( "X-Request-ID", "abc" ) ).content() );
+        JsonResponse info = GET( "/request", Header( "X-Request-ID", "abc" ) ).content();
+        assertTrue( info.isObject() );
+        assertEquals( "abc", info.getString( "headerXRequestID" ).string() );
     }
-
 }
