@@ -7,7 +7,7 @@
   <class name="org.hisp.dhis.interpretation.Interpretation" table="interpretation">
 
     <cache usage="read-write" />
-    
+
     <id name="id" column="interpretationid">
       <generator class="native" />
     </id>
@@ -19,8 +19,10 @@
     <many-to-one name="visualization" class="org.hisp.dhis.visualization.Visualization" column="visualizationid"
       foreign-key="fk_interpretation_visualizationid" />
 
-    <many-to-one name="map" class="org.hisp.dhis.mapping.Map" column="mapid"
-      foreign-key="fk_interpretation_mapid" />
+    <many-to-one name="eventVisualization" class="org.hisp.dhis.eventvisualization.EventVisualization"
+      column="eventvisualizationid" foreign-key="fk_interpretation_evisualizationid"/>
+
+    <many-to-one name="map" class="org.hisp.dhis.mapping.Map" column="mapid" foreign-key="fk_interpretation_mapid" />
 
     <many-to-one name="eventReport" class="org.hisp.dhis.eventreport.EventReport" column="eventreportid"
       foreign-key="fk_interpretation_eventreportid" />
@@ -62,9 +64,8 @@
 
     <!-- Sharing -->
     <property name="sharing" type="jsbObjectSharing"/>
-    
+
     <property name="mentions" type="jlbMentions" />
 
   </class>
-
 </hibernate-mapping>

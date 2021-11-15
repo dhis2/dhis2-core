@@ -61,7 +61,6 @@ INSERT INTO eventvisualization
 
     -- eventchart specifics
     showdata,
-    rewindrelativeperiods,
     rangeaxismaxvalue,
     rangeaxisminvalue,
     rangeaxissteps,
@@ -98,7 +97,7 @@ SELECT eventchartid,
        startdate,
        enddate,
        sortorder,
-       toplimit,
+       NULL,
        outputtype,
        dataelementvaluedimensionid,
        attributevaluedimensionid,
@@ -129,7 +128,6 @@ SELECT eventchartid,
 
        -- eventchart specifics
        showdata,
-       rewindrelativeperiods,
        rangeaxismaxvalue,
        rangeaxisminvalue,
        rangeaxissteps,
@@ -203,7 +201,6 @@ INSERT INTO eventvisualization
     type,
 
     -- eventreport specifics
-    subtotals,
     hideemptyrows,
     digitgroupseparator,
     displaydensity,
@@ -264,7 +261,6 @@ SELECT eventreportid,
        datatype,
 
        -- eventreport specifics
-       subtotals,
        hideemptyrows,
        digitgroupseparator,
        displaydensity,
@@ -664,10 +660,6 @@ SET showdata = false
 WHERE showdata IS NULL;
 
 UPDATE eventvisualization
-SET rewindrelativeperiods = false
-WHERE rewindrelativeperiods IS NULL;
-
-UPDATE eventvisualization
 SET hidelegend = false
 WHERE hidelegend IS NULL;
 
@@ -682,10 +674,6 @@ WHERE cumulativevalues IS NULL;
 UPDATE eventvisualization
 SET nospacebetweencolumns = false
 WHERE nospacebetweencolumns IS NULL;
-
-UPDATE eventvisualization
-SET subtotals = false
-WHERE subtotals IS NULL;
 
 UPDATE eventvisualization
 SET hideemptyrows = false

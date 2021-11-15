@@ -1322,7 +1322,7 @@ public abstract class DhisConvenienceTest
 
     public static EventVisualization createEventVisualization( char uniqueCharacter, Program program )
     {
-        EventVisualization eventVisualization = new EventVisualization();
+        EventVisualization eventVisualization = new EventVisualization( "name-" + uniqueCharacter );
         eventVisualization.setAutoFields();
         eventVisualization.setProgram( program );
         eventVisualization.setName( "EventVisualization" + uniqueCharacter );

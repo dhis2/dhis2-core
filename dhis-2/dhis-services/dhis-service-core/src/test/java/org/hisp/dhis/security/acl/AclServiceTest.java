@@ -42,6 +42,8 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
@@ -217,6 +219,30 @@ public class AclServiceTest extends TransactionalIntegrationTest
         visualization.setPublicAccess( AccessStringHelper.DEFAULT );
 
         assertTrue( aclService.canUpdate( user, visualization ) );
+    }
+
+    @Test
+    public void testCanCreatePrivatePublicEventVisualization()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+
+        assertFalse( aclService.canMakeClassPublic( user, EventVisualization.class ) );
+        assertTrue( aclService.canMakeClassPrivate( user, EventVisualization.class ) );
+    }
+
+    @Test
+    public void testCanUpdatePrivateEventVisualization()
+    {
+        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+
+        EventVisualization eventVisualization = new EventVisualization( "any" );
+        eventVisualization.setAutoFields();
+        eventVisualization.setCreatedBy( user );
+        eventVisualization.getSharing().setOwner( user );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+        eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        assertTrue( aclService.canUpdate( user, eventVisualization ) );
     }
 
     @Test

@@ -273,6 +273,11 @@ public class EventVisualization extends BaseAnalyticalObject
      */
     private boolean showDimensionLabels;
 
+    public EventVisualization( final String name )
+    {
+        super.name = name;
+    }
+
     @Override
     public void init( User user, Date date, OrganisationUnit organisationUnit,
         List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,

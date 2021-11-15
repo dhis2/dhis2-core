@@ -38,6 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public enum AnalyticsFavoriteType
 {
     VISUALIZATION,
+    EVENT_VISUALIZATION,
     REPORT_TABLE,
     CHART,
     MAP,

@@ -56,7 +56,6 @@ CREATE TABLE IF NOT EXISTS eventvisualization
 
     -- eventchart specifics
     showdata                          bool         NULL,
-    rewindrelativeperiods             bool         NULL,
     rangeaxismaxvalue                 float8       NULL,
     rangeaxisminvalue                 float8       NULL,
     rangeaxissteps                    int4         NULL,
@@ -76,7 +75,6 @@ CREATE TABLE IF NOT EXISTS eventvisualization
 
     -- eventreport specifics
     datatype                          varchar(230) NULL,
-    subtotals                         bool         NULL,
     hideemptyrows                     bool         NULL,
     digitgroupseparator               varchar(255) NULL,
     displaydensity                    varchar(255) NULL,
