@@ -46,7 +46,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -65,8 +64,7 @@ public class PeriodTypeController
     private final FieldFilterManager fieldFilterManager;
 
     @GetMapping
-    public @ResponseBody ResponseEntity<JsonRoot> getPeriodTypes(
-        @RequestParam( defaultValue = "*" ) List<String> fields )
+    public ResponseEntity<JsonRoot> getPeriodTypes( @RequestParam( defaultValue = "*" ) List<String> fields )
     {
         List<PeriodType> periodTypes = periodService.getAllPeriodTypes().stream()
             .map( PeriodType::new )
@@ -79,7 +77,7 @@ public class PeriodTypeController
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody RelativePeriodEnum[] getRelativePeriodTypes()
+    public RelativePeriodEnum[] getRelativePeriodTypes()
     {
         return RelativePeriodEnum.values();
     }

@@ -53,13 +53,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,7 +67,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Controller
+@RestController
 @RequestMapping( "/schemas" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
@@ -86,7 +85,7 @@ public class SchemaController
     private final ObjectMapper objectMapper;
 
     @GetMapping
-    public @ResponseBody ResponseEntity<JsonRoot> getSchemas( @RequestParam( defaultValue = "*" ) List<String> fields )
+    public ResponseEntity<JsonRoot> getSchemas( @RequestParam( defaultValue = "*" ) List<String> fields )
     {
         List<Schema> schemas = schemaService.getSortedSchemas();
         linkService.generateSchemaLinks( schemas );
@@ -98,7 +97,7 @@ public class SchemaController
     }
 
     @GetMapping( "/{type}" )
-    public @ResponseBody ResponseEntity<ObjectNode> getSchema( @PathVariable String type,
+    public ResponseEntity<ObjectNode> getSchema( @PathVariable String type,
         @RequestParam( defaultValue = "*" ) List<String> fields )
     {
         Schema schema = getSchemaFromType( type );
@@ -118,7 +117,6 @@ public class SchemaController
 
     @RequestMapping( value = "/{type}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    @ResponseBody
     public WebMessage validateSchema( @PathVariable String type, HttpServletRequest request,
         HttpServletResponse response )
         throws IOException
@@ -137,7 +135,7 @@ public class SchemaController
     }
 
     @GetMapping( "/{type}/{property}" )
-    public @ResponseBody Property getSchemaProperty( @PathVariable String type, @PathVariable String property )
+    public Property getSchemaProperty( @PathVariable String type, @PathVariable String property )
     {
         Schema schema = getSchemaFromType( type );
 
