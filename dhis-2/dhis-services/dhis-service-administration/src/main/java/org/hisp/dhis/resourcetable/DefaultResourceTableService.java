@@ -27,12 +27,13 @@
  */
 package org.hisp.dhis.resourcetable;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Comparator.reverseOrder;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.Category;
@@ -51,7 +52,20 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.resourcetable.table.*;
+import org.hisp.dhis.resourcetable.table.CategoryOptionComboNameResourceTable;
+import org.hisp.dhis.resourcetable.table.CategoryOptionComboResourceTable;
+import org.hisp.dhis.resourcetable.table.CategoryResourceTable;
+import org.hisp.dhis.resourcetable.table.DataApprovalMinLevelResourceTable;
+import org.hisp.dhis.resourcetable.table.DataApprovalRemapLevelResourceTable;
+import org.hisp.dhis.resourcetable.table.DataElementGroupSetResourceTable;
+import org.hisp.dhis.resourcetable.table.DataElementResourceTable;
+import org.hisp.dhis.resourcetable.table.DataSetOrganisationUnitCategoryResourceTable;
+import org.hisp.dhis.resourcetable.table.DatePeriodResourceTable;
+import org.hisp.dhis.resourcetable.table.IndicatorGroupSetResourceTable;
+import org.hisp.dhis.resourcetable.table.OrganisationUnitGroupSetResourceTable;
+import org.hisp.dhis.resourcetable.table.OrganisationUnitStructureResourceTable;
+import org.hisp.dhis.resourcetable.table.PeriodResourceTable;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewService;
 import org.springframework.stereotype.Service;
@@ -64,56 +78,25 @@ import com.google.common.collect.Lists;
  */
 @Slf4j
 @Service( "org.hisp.dhis.resourcetable.ResourceTableService" )
+@AllArgsConstructor
 public class DefaultResourceTableService
     implements ResourceTableService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private final ResourceTableStore resourceTableStore;
 
-    private ResourceTableStore resourceTableStore;
+    private final IdentifiableObjectManager idObjectManager;
 
-    private IdentifiableObjectManager idObjectManager;
+    private final OrganisationUnitService organisationUnitService;
 
-    private OrganisationUnitService organisationUnitService;
+    private final PeriodService periodService;
 
-    private PeriodService periodService;
+    private final SqlViewService sqlViewService;
 
-    private SqlViewService sqlViewService;
+    private final DataApprovalLevelService dataApprovalLevelService;
 
-    private DataApprovalLevelService dataApprovalLevelService;
+    private final CategoryService categoryService;
 
-    private CategoryService categoryService;
-
-    private StatementBuilder statementBuilder;
-
-    public DefaultResourceTableService( ResourceTableStore resourceTableStore,
-        IdentifiableObjectManager idObjectManager, OrganisationUnitService organisationUnitService,
-        PeriodService periodService, SqlViewService sqlViewService, DataApprovalLevelService dataApprovalLevelService,
-        CategoryService categoryService, StatementBuilder statementBuilder )
-    {
-        checkNotNull( resourceTableStore );
-        checkNotNull( idObjectManager );
-        checkNotNull( organisationUnitService );
-        checkNotNull( periodService );
-        checkNotNull( sqlViewService );
-        checkNotNull( dataApprovalLevelService );
-        checkNotNull( categoryService );
-        checkNotNull( statementBuilder );
-
-        this.resourceTableStore = resourceTableStore;
-        this.idObjectManager = idObjectManager;
-        this.organisationUnitService = organisationUnitService;
-        this.periodService = periodService;
-        this.sqlViewService = sqlViewService;
-        this.dataApprovalLevelService = dataApprovalLevelService;
-        this.categoryService = categoryService;
-        this.statementBuilder = statementBuilder;
-    }
-
-    // -------------------------------------------------------------------------
-    // ResourceTableService implementation
-    // -------------------------------------------------------------------------
+    private final StatementBuilder statementBuilder;
 
     @Override
     @Transactional
@@ -225,41 +208,35 @@ public class DefaultResourceTableService
     // -------------------------------------------------------------------------
 
     @Override
-    public void createAllSqlViews()
+    public void createAllSqlViews( JobProgress progress )
     {
-        List<SqlView> views = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() );
-        Collections.sort( views );
+        List<SqlView> nonQueryViews = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() ).stream()
+            .sorted()
+            .filter( view -> !view.isQuery() )
+            .collect( toList() );
 
-        for ( SqlView view : views )
-        {
-            if ( !view.isQuery() )
+        progress.startingStage( "Create SQL views", nonQueryViews.size() );
+        progress.runStage( nonQueryViews, SqlView::getViewName, view -> {
+            try
             {
-                try
-                {
-                    sqlViewService.createViewTable( view );
-                }
-                catch ( IllegalQueryException ex )
-                {
-                    log.warn( String.format( "Ignoring SQL view which failed validation: %s, %s, message: %s",
-                        view.getUid(), view.getName(), ex.getMessage() ) );
-                }
+                sqlViewService.createViewTable( view );
             }
-        }
+            catch ( IllegalQueryException ex )
+            {
+                log.warn( String.format( "Ignoring SQL view which failed validation: %s, %s, message: %s",
+                    view.getUid(), view.getName(), ex.getMessage() ) );
+            }
+        } );
     }
 
     @Override
-    public void dropAllSqlViews()
+    public void dropAllSqlViews( JobProgress progress )
     {
-        List<SqlView> views = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() );
-        Collections.sort( views );
-        Collections.reverse( views );
-
-        for ( SqlView view : views )
-        {
-            if ( !view.isQuery() )
-            {
-                sqlViewService.dropViewTable( view );
-            }
-        }
+        List<SqlView> nonQueryViews = new ArrayList<>( sqlViewService.getAllSqlViewsNoAcl() ).stream()
+            .filter( view -> !view.isQuery() )
+            .sorted( reverseOrder() )
+            .collect( toList() );
+        progress.startingStage( "Drop SQL views", nonQueryViews.size() );
+        progress.runStage( nonQueryViews, SqlView::getViewName, sqlViewService::deleteSqlView );
     }
 }

@@ -39,6 +39,7 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -85,7 +86,7 @@ public class AccountExpiryAlertJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         if ( !systemSettingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) )
         {
@@ -101,33 +102,35 @@ public class AccountExpiryAlertJob implements Job
         {
             return;
         }
-
+        progress.startingProcess();
         log.info( format( "%d user accounts expire within next %d days", soonExpiring.size(), inDays ) );
-        int notified = 0;
-        int failed = 0;
-        for ( UserAccountExpiryInfo user : soonExpiring )
+        progress.startingStage( "Notify user accounts that expire within next " + inDays + " days",
+            soonExpiring.size() );
+        progress.runStage( soonExpiring.stream(), UserAccountExpiryInfo::getUsername,
+            user -> emailMessageSender.sendMessage( "Account Expiry Alert", computeEmailMessage( user ),
+                user.getEmail() ),
+            AccountExpiryAlertJob::computeStageSummary );
+        progress.completedProcess( null );
+    }
+
+    private static String computeEmailMessage( UserAccountExpiryInfo user )
+    {
+        return format( "Dear %s, your account is about to expire on %2$tY-%2$tm-%2$te. "
+            + "If your use of the account needs to continue, get in touch with your system administrator.",
+            user.getUsername(), user.getAccountExpiry() );
+    }
+
+    private static String computeStageSummary( int successful, int failed )
+    {
+        log.info( format( "%d user accounts have been notified about their expiring accounts", successful ) );
+        if ( failed == 0 )
         {
-            try
-            {
-                emailMessageSender.sendMessage( "Account Expiry Alert",
-                    format( "Dear %s, your account is about to expire on %2$tY-%2$tm-%2$te. "
-                        + "If your use of the account needs to continue, get in touch with your system administrator.",
-                        user.getUsername(), user.getAccountExpiry() ),
-                    user.getEmail() );
-                notified++;
-            }
-            catch ( Exception ex )
-            {
-                log.debug( ex.getMessage(), ex );
-                failed++;
-            }
+            return null;
         }
-        log.info( format( "%d user accounts have been notified about their expiring accounts", notified ) );
-        if ( failed > 0 )
-        {
-            log.warn( format(
-                "%d user accounts were not notified about their expiring accounts due to errors while sending the email",
-                failed ) );
-        }
+        String summary = format(
+            "%d user accounts were not notified about their expiring accounts due to errors while sending the email",
+            failed );
+        log.warn( summary );
+        return summary;
     }
 }
