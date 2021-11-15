@@ -33,8 +33,10 @@ import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -269,9 +271,14 @@ public class TrackedEntityInstanceAggregate
             return attributeList;
         }
 
-        Stream<TrackedEntityAttribute> trackedEntityTypeAttributesStream = trackedEntityTypeAttributes.stream();
+        Stream<TrackedEntityAttribute> trackedEntityTypeAttributesStream = Optional
+            .ofNullable( trackedEntityTypeAttributes )
+            .map( Collection::stream )
+            .orElse( Stream.empty() );
 
-        Stream<TrackedEntityAttribute> programAttributesStream = teaByProgram.entrySet().stream()
+        Stream<TrackedEntityAttribute> programAttributesStream = Optional.ofNullable( teaByProgram )
+            .orElse( Collections.emptyMap() )
+            .entrySet().stream()
             .filter( entry -> ownedPrograms.contains( entry.getKey().getUid() ) )
             .flatMap( entry -> entry.getValue().stream() );
 
