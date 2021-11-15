@@ -20,9 +20,7 @@ jobs:
           cache: maven
 
       - name: Check formatting in core
-        env:
         run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/pom.xml
 
       - name: Check formatting in web
-        env:
         run: mvn speedy-spotless:check -Pdefault -Pjdk11 --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml

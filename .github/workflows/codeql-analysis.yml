@@ -58,10 +58,8 @@ jobs:
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Build core
-        env:
         run: mvn clean install -f ./dhis-2/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -V
       - name: Build web
-        env:
         run: mvn clean install -f ./dhis-2/dhis-web/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -V
 
       - name: Perform CodeQL Analysis
