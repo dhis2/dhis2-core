@@ -7,15 +7,15 @@ updates:
     pull-request-branch-name:
       separator: "-"
     commit-message:
-      prefix: "github-actions"
+      prefix: "chore"
       include: "scope"
   - package-ecosystem: "maven"
-    directory: "/"
+    directory: "/dhis-2"
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
     pull-request-branch-name:
       separator: "-"
     commit-message:
-      prefix: "maven"
+      prefix: "chore"
       include: "scope"

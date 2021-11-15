@@ -63,12 +63,12 @@
         <dhis-hisp-staxwax.version>1.4</dhis-hisp-staxwax.version>
 
         <!-- Security-->
-        <spring-security.version>5.4.7</spring-security.version>
+        <spring-security.version>5.5.3</spring-security.version>
         <spring-security-oauth2.version>2.5.0.RELEASE</spring-security-oauth2.version>
         <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
         <jasypt.version>1.9.3</jasypt.version>
-        <cglib.version>3.2.4</cglib.version>
+        <cglib.version>3.3.0</cglib.version>
 
         <!-- Spring-->
         <spring.version>5.3.6</spring.version>
@@ -82,7 +82,7 @@
         <lettuce.version>5.2.0.RELEASE</lettuce.version>
 
         <!--DBMS -->
-        <flyway-core.version>7.0.4</flyway-core.version>
+        <flyway-core.version>8.0.4</flyway-core.version>
         <hibernate.version>5.4.28.Final</hibernate.version>
         <hibernate-types.version>2.10.4</hibernate-types.version>
         <!-- Keep in sync with Hibernate! -->
@@ -91,7 +91,7 @@
         <javassist.version>3.27.0-GA</javassist.version>
         <!-- Data sources,db pools and db drivers-->
         <c3p0.version>0.9.5.5</c3p0.version>
-        <HikariCP.version>3.4.5</HikariCP.version>
+        <HikariCP.version>5.0.0</HikariCP.version>
         <postgresql-driver.version>42.2.19</postgresql-driver.version>
         <postgis-jdbc.version>2.5.0</postgis-jdbc.version>
         <datasource-proxy.version>1.7</datasource-proxy.version>
@@ -105,7 +105,7 @@
         <velocity-tools.version>2.0</velocity-tools.version>
 
         <!-- Jackson -->
-        <jackson.version>2.12.1</jackson.version>
+        <jackson.version>2.13.0</jackson.version>
         <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
         <jackson-datatype-hibernate5.version>2.11.2</jackson-datatype-hibernate5.version>
         <classmate.version>1.3.2</classmate.version>
@@ -122,13 +122,13 @@
         <!--Reporting -->
         <jasperreports.version>6.3.1</jasperreports.version>
         <jasperreports-fonts.version>4.0.0</jasperreports-fonts.version>
-        <jfreechart.version>1.5.0</jfreechart.version>
+        <jfreechart.version>1.5.3</jfreechart.version>
         <htmlparser.version>2.1</htmlparser.version>
         <htmllexer.version>2.1</htmllexer.version>
         <poi.version>4.1.1</poi.version>
         <jacoco.version>0.8.2</jacoco.version>
         <itext.version>2.1.7</itext.version>
-        <jclouds.version>2.2.0</jclouds.version>
+        <jclouds.version>2.4.0</jclouds.version>
         <antlr.version>4.7.2</antlr.version>
 
         <!-- GIS -->
@@ -136,8 +136,8 @@
         <batik-codec.version>1.13</batik-codec.version>
         <fop.version>2.5</fop.version>
         <mapstruct.version>1.4.1.Final</mapstruct.version>
-        <geotools.version>24.0</geotools.version>
-        <jts-io-common.version>1.16.0</jts-io-common.version>
+        <geotools.version>26.0</geotools.version>
+        <jts.version>1.16.0</jts.version>
 
         <!-- Apache Artemis -->
         <artemis.version>2.17.0</artemis.version>
@@ -156,7 +156,7 @@
         <json-path.version>2.4.0</json-path.version>
         <jsmpp-X.version>2.1.0-RELEASE</jsmpp-X.version>
         <jboss-logging.version>3.4.1.Final</jboss-logging.version>
-        <jsoup.version>1.14.2</jsoup.version>
+        <jsoup.version>1.14.3</jsoup.version>
 
         <!-- Embedded Jetty -->
         <jetty.version>9.4.41.v20210516</jetty.version>
@@ -164,9 +164,9 @@
 
         <!-- Div. utils -->
         <version.debezium>1.5.2.Final</version.debezium>
-        <guava.version>30.1-jre</guava.version>
+        <guava.version>31.0.1-jre</guava.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
-        <google-api-client.version>1.30.10</google-api-client.version>
+        <google-api-client.version>1.32.2</google-api-client.version>
         <lombok.version>1.18.20</lombok.version>
         <lombok-maven-plugin.version>1.18.16.0</lombok-maven-plugin.version>
         <joda-time.version>2.10.5</joda-time.version>
@@ -184,7 +184,7 @@
         <commons-fileupload.version>1.4</commons-fileupload.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-validator.version>1.6</commons-validator.version>
-        <commons-io.version>2.7</commons-io.version>
+        <commons-io.version>2.11.0</commons-io.version>
         <commons-codec.version>1.14</commons-codec.version>
         <commons-jexl.version>2.1.1</commons-jexl.version>
         <commons-email.version>1.5</commons-email.version>
@@ -198,14 +198,14 @@
         <slf4j.version>1.7.32</slf4j.version>
 
         <!-- Test -->
-        <junit.version>4.13.1</junit.version>
+        <junit.version>4.13.2</junit.version>
         <mockito-core.version>3.4.6</mockito-core.version>
         <powermock.version>2.0.4</powermock.version>
         <hamcrest-core.version>1.3</hamcrest-core.version>
         <hamcrest-date.version>2.0.7</hamcrest-date.version>
         <hamcrest-library.version>1.3</hamcrest-library.version>
         <testcontainers.version>1.15.1</testcontainers.version>
-        <objenesis.version>3.1</objenesis.version>
+        <objenesis.version>3.2</objenesis.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <awaitility.version>4.0.2</awaitility.version>
         <random-beans.version>3.7.0</random-beans.version>
@@ -226,9 +226,9 @@
         <dependency-check-maven.version>6.0.3</dependency-check-maven.version>
         <spotbugs-maven-plugin.version>4.2.0</spotbugs-maven-plugin.version>
         <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <jrebel-x-maven-plugin.version>1.1.6</jrebel-x-maven-plugin.version>
-        <dhis-antlr-expression-parser.version>1.0.18</dhis-antlr-expression-parser.version>
+        <dhis-antlr-expression-parser.version>1.0.19</dhis-antlr-expression-parser.version>
         <ow2.asm.version>9.0</ow2.asm.version>
         <jai-imageio.version>1.1.1</jai-imageio.version>
         <gson.version>2.8.2</gson.version>
@@ -2144,9 +2144,14 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.locationtech.jts</groupId>
+                <artifactId>jts-core</artifactId>
+                <version>${jts.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.locationtech.jts.io</groupId>
                 <artifactId>jts-io-common</artifactId>
-                <version>${jts-io-common.version}</version>
+                <version>${jts.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.jsoup</groupId>
