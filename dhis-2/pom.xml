@@ -68,7 +68,7 @@
         <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
         <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
         <jasypt.version>1.9.3</jasypt.version>
-        <cglib.version>3.2.4</cglib.version>
+        <cglib.version>3.3.0</cglib.version>
 
         <!-- Spring-->
         <spring.version>5.3.6</spring.version>
