@@ -35,11 +35,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
@@ -57,12 +55,6 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
 {
     @Autowired
     private ObjectMapper jsonMapper;
-
-    @Autowired
-    private AclService aclService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     private String userAId = "NOOF56dveaZ";
 
@@ -121,9 +113,9 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
         String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
             StandardCharsets.UTF_8 );
         HttpResponse response = PATCH( "/dataElements/sharing", payload );
-        assertStatus( HttpStatus.CONFLICT, response );
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getFirstErrorMessage( response ) );
 
-        assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getErrorMessage( response ) );
         JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
         assertEquals( 2, savedDeB.getSharing().getUsers().size() );
@@ -151,9 +143,9 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
         String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
             StandardCharsets.UTF_8 );
         HttpResponse response = PATCH( "/dataElements/sharing?atomic=true", payload );
-        assertStatus( HttpStatus.CONFLICT, response );
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getFirstErrorMessage( response ) );
 
-        assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getErrorMessage( response ) );
         JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
         assertEquals( 0, savedDeB.getSharing().getUsers().size() );
@@ -198,7 +190,20 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
         assertNotNull( savedDsA.getSharing().getUsers().get( userBId ) );
     }
 
-    private String getErrorMessage( HttpResponse response )
+    @Test
+    public void testApplyPatchesInvalidClass()
+        throws IOException
+    {
+        String payload = IOUtils.toString(
+            new ClassPathResource( "patch/bulk_sharing_patches_invalid_class.json" ).getInputStream(),
+            StandardCharsets.UTF_8 );
+
+        HttpResponse response = PATCH( "/metadata/sharing", payload );
+        assertEquals( HttpStatus.CONFLICT, response.status() );
+        assertEquals( "Sharing is not enabled for this object `organisationUnit`", getFirstErrorMessage( response ) );
+    }
+
+    private String getFirstErrorMessage( HttpResponse response )
     {
         return response.error().get( "response.typeReports[0].objectReports[0].errorReports[0].message" )
             .node().value().toString();
