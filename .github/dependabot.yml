@@ -7,7 +7,7 @@ updates:
     pull-request-branch-name:
       separator: "-"
     commit-message:
-      prefix: "github-actions"
+      prefix: "chore"
       include: "scope"
   - package-ecosystem: "maven"
     directory: "/dhis-2"
@@ -17,5 +17,5 @@ updates:
     pull-request-branch-name:
       separator: "-"
     commit-message:
-      prefix: "maven"
+      prefix: "chore"
       include: "scope"
