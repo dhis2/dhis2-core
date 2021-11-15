@@ -42,6 +42,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
@@ -80,7 +81,7 @@ public class AccountExpiryAlertJobTest
     {
         when( settingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) ).thenReturn( false );
 
-        job.execute( new JobConfiguration() );
+        job.execute( new JobConfiguration(), NoopJobProgress.INSTANCE );
 
         verify( userService, never() ).getExpiringUserAccounts( anyInt() );
     }
@@ -92,7 +93,7 @@ public class AccountExpiryAlertJobTest
             .thenReturn( singletonList( new UserAccountExpiryInfo( "username", "email@example.com",
                 Date.valueOf( "2021-08-23" ) ) ) );
 
-        job.execute( new JobConfiguration() );
+        job.execute( new JobConfiguration(), NoopJobProgress.INSTANCE );
 
         ArgumentCaptor<String> subject = ArgumentCaptor.forClass( String.class );
         ArgumentCaptor<String> text = ArgumentCaptor.forClass( String.class );

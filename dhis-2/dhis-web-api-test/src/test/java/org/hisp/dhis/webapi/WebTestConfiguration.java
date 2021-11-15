@@ -64,6 +64,7 @@ import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -225,9 +226,10 @@ public class WebTestConfiguration
     @Primary
     public SchedulingManager synchronousSchedulingManager( JobService jobService,
         JobConfigurationService jobConfigurationService,
-        MessageService messageService, LeaderManager leaderManager )
+        MessageService messageService, Notifier notifier, LeaderManager leaderManager )
     {
-        return new TestSchedulingManager( jobService, jobConfigurationService, messageService, leaderManager );
+        return new TestSchedulingManager( jobService, jobConfigurationService, messageService, notifier,
+            leaderManager );
     }
 
     public static class TestSchedulingManager extends AbstractSchedulingManager
@@ -235,9 +237,9 @@ public class WebTestConfiguration
         private boolean enabled = true;
 
         public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-            MessageService messageService, LeaderManager leaderManager )
+            MessageService messageService, Notifier notifier, LeaderManager leaderManager )
         {
-            super( jobService, jobConfigurationService, messageService, leaderManager );
+            super( jobService, jobConfigurationService, messageService, leaderManager, notifier );
         }
 
         @Override

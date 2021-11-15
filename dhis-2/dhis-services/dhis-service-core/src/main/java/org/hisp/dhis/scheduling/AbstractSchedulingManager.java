@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.scheduling;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
 import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,6 +47,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.JobProgress.Process;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 
 /**
@@ -64,6 +70,8 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
 
     private final LeaderManager leaderManager;
 
+    private final Notifier notifier;
+
     @PostConstruct
     public void init()
     {
@@ -75,7 +83,9 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
      * {@link Map#putIfAbsent(Object, Object)} to "atomically" start or abort
      * execution.
      */
-    private final Map<JobType, Boolean> runningJobTypes = new ConcurrentHashMap<>();
+    private final Map<JobType, ControlledJobProgress> runningJobProgress = new ConcurrentHashMap<>();
+
+    private final Map<JobType, ControlledJobProgress> completedJobProgress = new ConcurrentHashMap<>();
 
     /**
      * Check if this job configuration is currently running
@@ -85,7 +95,43 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
      */
     boolean isRunning( JobType type )
     {
-        return runningJobTypes.containsKey( type );
+        return runningJobProgress.containsKey( type );
+    }
+
+    @Override
+    public Collection<JobType> getRunningTypes()
+    {
+        return unmodifiableSet( runningJobProgress.keySet() );
+    }
+
+    @Override
+    public Collection<JobType> getCompletedTypes()
+    {
+        return unmodifiableSet( completedJobProgress.keySet() );
+    }
+
+    @Override
+    public Collection<Process> getRunningProgress( JobType type )
+    {
+        ControlledJobProgress progress = runningJobProgress.get( type );
+        return progress == null ? emptyList() : unmodifiableCollection( progress.getProcesses() );
+    }
+
+    @Override
+    public Collection<Process> getCompletedProgress( JobType type )
+    {
+        ControlledJobProgress progress = completedJobProgress.get( type );
+        return progress == null ? emptyList() : unmodifiableCollection( progress.getProcesses() );
+    }
+
+    @Override
+    public void cancel( JobType type )
+    {
+        ControlledJobProgress progress = runningJobProgress.get( type );
+        if ( progress != null )
+        {
+            progress.requestCancellation();
+        }
     }
 
     protected final void execute( String jobId )
@@ -105,7 +151,11 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             whenLeaderOnlyOnNonLeader( configuration );
             return;
         }
-        if ( runningJobTypes.putIfAbsent( type, true ) != null )
+        ControlledJobProgress progress = createJobProgress( configuration );
+        // OBS: we cannot use computeIfAbsent since we have no way of
+        // atomically create and find out if there was a value before
+        // so we need to pay the price of creating the progress up front
+        if ( runningJobProgress.putIfAbsent( type, progress ) != null )
         {
             whenAlreadyRunning( configuration );
             return;
@@ -124,7 +174,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             configuration.setLastExecutedStatus( JobStatus.RUNNING );
 
             // run the actual job
-            jobService.getJob( type ).execute( configuration );
+            jobService.getJob( type ).execute( configuration, progress );
 
             if ( configuration.getLastExecutedStatus() == RUNNING )
             {
@@ -137,10 +187,18 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
         finally
         {
-            runningJobTypes.remove( configuration.getJobType() );
+            completedJobProgress.put( type, runningJobProgress.remove( type ) );
 
             whenRunIsDone( configuration, clock );
         }
+    }
+
+    private ControlledJobProgress createJobProgress( JobConfiguration configuration )
+    {
+        JobProgress tracker = configuration.getJobType().isUsingNotifications()
+            ? new NotifierJobProgress( notifier, configuration )
+            : NoopJobProgress.INSTANCE;
+        return new ControlledJobProgress( configuration, tracker, true );
     }
 
     private void whenRunIsDone( JobConfiguration configuration, Clock clock )
