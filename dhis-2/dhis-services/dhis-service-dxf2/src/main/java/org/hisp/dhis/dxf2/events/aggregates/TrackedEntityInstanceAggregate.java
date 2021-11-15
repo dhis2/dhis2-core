@@ -284,7 +284,7 @@ public class TrackedEntityInstanceAggregate
 
         Set<String> allowedAttributeUids = Stream.concat( trackedEntityTypeAttributesStream, programAttributesStream )
             .filter( att -> isAccessible( att, ctx ) )
-            .filter( att -> isNotSynchQueryAndIsNotSkipSynch( ctx, att ) )
+            .filter( att -> isNotSyncQueryOrIsNotSkipSync( ctx, att ) )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
@@ -299,7 +299,7 @@ public class TrackedEntityInstanceAggregate
         return attributeList;
     }
 
-    private boolean isNotSynchQueryAndIsNotSkipSynch( AggregateContext ctx, TrackedEntityAttribute att )
+    private boolean isNotSyncQueryOrIsNotSkipSync(AggregateContext ctx, TrackedEntityAttribute att )
     {
         return !ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization();
     }

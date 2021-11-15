@@ -186,7 +186,7 @@ public interface TrackedEntityAttributeService
      * Get all {@link TrackedEntityAttribute} linked to all
      * {@link TrackedEntityType} present in the system
      *
-     * @return a Set of {@link TrackedEntityAttribute}
+     * @return a Map of {@link TrackedEntityAttribute} where keys are TrackedEntityType uids
      */
     Map<String, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByTrackedEntityTypes();
 
