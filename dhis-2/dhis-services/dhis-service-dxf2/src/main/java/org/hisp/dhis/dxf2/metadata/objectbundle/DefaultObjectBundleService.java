@@ -28,6 +28,8 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.analytics.EventDataType.AGGREGATED_VALUES;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +48,8 @@ import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
+import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.preheat.Preheat;
@@ -192,6 +196,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
         List<T> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
+
+        handleDeprecatedEventModels( klass, objects );
 
         if ( objects.isEmpty() )
         {
@@ -396,5 +402,36 @@ public class DefaultObjectBundleService implements ObjectBundleService
             .map( schema -> (Class<? extends IdentifiableObject>) schema.getKlass() )
             .filter( bundle::hasObjects )
             .collect( toList() );
+    }
+
+    /**
+     * Needed to keep backward compatibility between the new EventVisualization
+     * and EventReport entities.
+     *
+     * @param klass
+     * @param objects
+     */
+    @Deprecated
+    private void handleDeprecatedEventModels( final Class klass, final List objects )
+    {
+        if ( klass.getSimpleName().equals( EventReport.class.getSimpleName() ) )
+        {
+            if ( isNotEmpty( objects ) )
+            {
+                for ( final Object object : objects )
+                {
+                    final EventReport eventReport = (EventReport) object;
+
+                    if ( AGGREGATED_VALUES == eventReport.getDataType() )
+                    {
+                        eventReport.setType( EventVisualizationType.PIVOT_TABLE );
+                    }
+                    else
+                    {
+                        eventReport.setType( EventVisualizationType.LINE_LIST );
+                    }
+                }
+            }
+        }
     }
 }

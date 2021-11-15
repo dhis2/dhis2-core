@@ -273,6 +273,10 @@ public class EventVisualization extends BaseAnalyticalObject
      */
     private boolean showDimensionLabels;
 
+    public EventVisualization()
+    {
+    }
+
     public EventVisualization( final String name )
     {
         super.name = name;

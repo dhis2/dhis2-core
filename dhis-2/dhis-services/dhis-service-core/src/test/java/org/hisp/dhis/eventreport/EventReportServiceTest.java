@@ -27,10 +27,13 @@
  */
 package org.hisp.dhis.eventreport;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.EventDataType;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.junit.Test;
@@ -63,12 +66,17 @@ public class EventReportServiceTest
         EventReport erA = new EventReport( "erA" );
         erA.setProgram( prA );
         erA.setDataType( EventDataType.AGGREGATED_VALUES );
+        erA.setType( EventVisualizationType.PIVOT_TABLE );
+
         EventReport erB = new EventReport( "erB" );
         erB.setProgram( prA );
         erB.setDataType( EventDataType.AGGREGATED_VALUES );
+        erB.setType( EventVisualizationType.PIVOT_TABLE );
+
         EventReport erC = new EventReport( "erC" );
         erC.setProgram( prA );
         erC.setDataType( EventDataType.AGGREGATED_VALUES );
+        erC.setType( EventVisualizationType.PIVOT_TABLE );
 
         long idA = eventReportService.saveEventReport( erA );
         long idB = eventReportService.saveEventReport( erB );
@@ -85,12 +93,17 @@ public class EventReportServiceTest
         EventReport erA = new EventReport( "erA" );
         erA.setProgram( prA );
         erA.setDataType( EventDataType.AGGREGATED_VALUES );
+        erA.setType( EventVisualizationType.PIVOT_TABLE );
+
         EventReport erB = new EventReport( "erB" );
         erB.setProgram( prA );
         erB.setDataType( EventDataType.AGGREGATED_VALUES );
+        erB.setType( EventVisualizationType.PIVOT_TABLE );
+
         EventReport erC = new EventReport( "erC" );
         erC.setProgram( prA );
         erC.setDataType( EventDataType.AGGREGATED_VALUES );
+        erC.setType( EventVisualizationType.PIVOT_TABLE );
 
         long idA = eventReportService.saveEventReport( erA );
         long idB = eventReportService.saveEventReport( erB );
