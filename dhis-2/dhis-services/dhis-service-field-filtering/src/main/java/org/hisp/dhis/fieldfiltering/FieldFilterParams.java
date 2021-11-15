@@ -34,6 +34,8 @@ import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.collect.Sets;
 
 /**
@@ -48,21 +50,21 @@ public class FieldFilterParams<T>
     @Builder.Default
     private final Set<String> filters = Sets.newHashSet( "*" );
 
-    public static <O> FieldFilterParams<O> of( List<O> objects, Set<String> filters )
+    public static <O> FieldFilterParams<O> of( List<O> objects, List<String> filters )
     {
         return FieldFilterParams
             .<O> builder()
             .objects( objects )
-            .filters( filters )
+            .filters( Sets.newHashSet( StringUtils.join( filters, "," ) ) )
             .build();
     }
 
-    public static <O> FieldFilterParams<O> of( O object, Set<String> filters )
+    public static <O> FieldFilterParams<O> of( O object, List<String> filters )
     {
         return FieldFilterParams
             .<O> builder()
             .objects( Collections.singletonList( object ) )
-            .filters( filters )
+            .filters( Sets.newHashSet( StringUtils.join( filters, "," ) ) )
             .build();
     }
 }

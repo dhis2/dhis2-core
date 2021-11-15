@@ -37,7 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -65,7 +64,6 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -93,8 +91,7 @@ public class SchemaController
         List<Schema> schemas = schemaService.getSortedSchemas();
         linkService.generateSchemaLinks( schemas );
 
-        FieldFilterParams<Schema> params = FieldFilterParams.of( schemas,
-            Sets.newHashSet( StringUtils.join( fields, "," ) ) );
+        FieldFilterParams<Schema> params = FieldFilterParams.of( schemas, fields );
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
 
         return ResponseEntity.ok( JsonRoot.of( "schemas", objectNodes ) );
@@ -110,8 +107,7 @@ public class SchemaController
         {
             linkService.generateSchemaLinks( schema );
 
-            FieldFilterParams<Schema> params = FieldFilterParams.of( schema,
-                Sets.newHashSet( StringUtils.join( fields, "," ) ) );
+            FieldFilterParams<Schema> params = FieldFilterParams.of( schema, fields );
             List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
 
             return ResponseEntity.ok( objectNodes.get( 0 ) );

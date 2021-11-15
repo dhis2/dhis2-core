@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.fieldfiltering.FieldFilterManager;
@@ -51,7 +50,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -74,8 +72,7 @@ public class PeriodTypeController
             .map( PeriodType::new )
             .collect( Collectors.toList() );
 
-        FieldFilterParams<PeriodType> params = FieldFilterParams.of( periodTypes,
-            Sets.newHashSet( StringUtils.join( fields, "," ) ) );
+        FieldFilterParams<PeriodType> params = FieldFilterParams.of( periodTypes, fields );
         List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
 
         return ResponseEntity.ok( JsonRoot.of( "periodTypes", objectNodes ) );
