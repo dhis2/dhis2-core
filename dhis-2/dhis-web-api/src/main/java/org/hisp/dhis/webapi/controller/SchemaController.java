@@ -41,8 +41,8 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.fieldfiltering.FieldFilterManager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -79,7 +79,7 @@ public class SchemaController
 
     private final LinkService linkService;
 
-    private final FieldFilterManager fieldFilterManager;
+    private final FieldFilterService fieldFilterService;
 
     @Qualifier( "jsonMapper" )
     private final ObjectMapper objectMapper;
@@ -91,7 +91,7 @@ public class SchemaController
         linkService.generateSchemaLinks( schemas );
 
         FieldFilterParams<Schema> params = FieldFilterParams.of( schemas, fields );
-        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
 
         return ResponseEntity.ok( JsonRoot.of( "schemas", objectNodes ) );
     }
@@ -107,7 +107,7 @@ public class SchemaController
             linkService.generateSchemaLinks( schema );
 
             FieldFilterParams<Schema> params = FieldFilterParams.of( schema, fields );
-            List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
+            List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
 
             return ResponseEntity.ok( objectNodes.get( 0 ) );
         }

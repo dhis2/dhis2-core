@@ -36,8 +36,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
-import org.hisp.dhis.fieldfiltering.FieldFilterManager;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -61,7 +61,7 @@ public class PeriodTypeController
 {
     private final PeriodService periodService;
 
-    private final FieldFilterManager fieldFilterManager;
+    private final FieldFilterService fieldFilterService;
 
     @GetMapping
     public ResponseEntity<JsonRoot> getPeriodTypes( @RequestParam( defaultValue = "*" ) List<String> fields )
@@ -71,7 +71,7 @@ public class PeriodTypeController
             .collect( Collectors.toList() );
 
         FieldFilterParams<PeriodType> params = FieldFilterParams.of( periodTypes, fields );
-        List<ObjectNode> objectNodes = fieldFilterManager.toObjectNodes( params );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
 
         return ResponseEntity.ok( JsonRoot.of( "periodTypes", objectNodes ) );
     }

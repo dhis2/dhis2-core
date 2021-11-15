@@ -57,7 +57,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
  * @author Morten Olav Hansen
  */
 @Service
-public class FieldFilterManager
+public class FieldFilterService
 {
     private final FieldPathHelper fieldPathHelper;
 
@@ -82,7 +82,7 @@ public class FieldFilterManager
         }
     }
 
-    public FieldFilterManager( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper )
+    public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper )
     {
         this.fieldPathHelper = fieldPathHelper;
         this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );

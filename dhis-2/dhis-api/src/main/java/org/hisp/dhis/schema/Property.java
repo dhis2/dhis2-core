@@ -883,12 +883,12 @@ public class Property implements Ordered, Klass
 
     public boolean is( PropertyType propertyType )
     {
-        return propertyType != null && propertyType.equals( this.propertyType );
+        return propertyType == this.propertyType;
     }
 
     public boolean itemIs( PropertyType propertyType )
     {
-        return propertyType != null && propertyType.equals( this.itemPropertyType );
+        return propertyType == this.itemPropertyType;
     }
 
     public boolean is( PropertyType... anyOf )
