@@ -47,6 +47,7 @@ import org.hisp.dhis.deduplication.MergeObject;
 import org.hisp.dhis.deduplication.MergeStrategy;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.deduplication.PotentialDuplicateConflictException;
+import org.hisp.dhis.deduplication.PotentialDuplicateForbiddenException;
 import org.hisp.dhis.deduplication.PotentialDuplicateQuery;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -142,11 +143,11 @@ public class DeduplicationController
     @ResponseStatus( value = HttpStatus.OK )
     public PotentialDuplicate postPotentialDuplicate(
         @RequestBody PotentialDuplicate potentialDuplicate )
-        throws HttpStatusCodeException,
-        OperationNotAllowedException,
+        throws OperationNotAllowedException,
         ConflictException,
         NotFoundException,
-        BadRequestException
+        BadRequestException,
+        PotentialDuplicateConflictException
     {
         validatePotentialDuplicate( potentialDuplicate );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
@@ -157,7 +158,6 @@ public class DeduplicationController
     @ResponseStatus( value = HttpStatus.OK )
     public void updatePotentialDuplicate( @PathVariable String id, @RequestParam( value = "status" ) String status )
         throws NotFoundException,
-        HttpStatusCodeException,
         BadRequestException
     {
         checkDeduplicationStatusRequestParam( status );
@@ -175,9 +175,11 @@ public class DeduplicationController
     @ResponseStatus( value = HttpStatus.OK )
     public void mergePotentialDuplicate(
         @PathVariable String id,
-        @RequestParam( defaultValue = "MANUAL" ) MergeStrategy mergeStrategy,
+        @RequestParam( defaultValue = "AUTO" ) MergeStrategy mergeStrategy,
         @RequestBody( required = false ) MergeObject mergeObject )
-        throws NotFoundException
+        throws NotFoundException,
+        PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException
     {
         PotentialDuplicate potentialDuplicate = getPotentialDuplicateBy( id );
 
@@ -247,7 +249,8 @@ public class DeduplicationController
         throws OperationNotAllowedException,
         ConflictException,
         NotFoundException,
-        BadRequestException
+        BadRequestException,
+        PotentialDuplicateConflictException
     {
         checkValidTei( potentialDuplicate.getOriginal(), "original" );
 
@@ -261,7 +264,8 @@ public class DeduplicationController
     }
 
     private void checkAlreadyExistingDuplicate( PotentialDuplicate potentialDuplicate )
-        throws ConflictException
+        throws ConflictException,
+        PotentialDuplicateConflictException
     {
         if ( deduplicationService.exists( potentialDuplicate ) )
         {

@@ -29,14 +29,14 @@ package org.hisp.dhis.tracker.importer.tei;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
-import org.hisp.dhis.actions.IdGenerator;
-import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
+import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
@@ -56,6 +56,8 @@ public class TeiValidationTests
 
     private String mandatoryTetAttribute;
 
+    private String uniqueTetAttribute;
+
     private String mandatoryProgramAttribute;
 
     private String attributeWithOptionSet;
@@ -69,10 +71,29 @@ public class TeiValidationTests
     }
 
     @Test
+    public void shouldValidateUniqueness()
+    {
+        String value = DataGenerator.randomString();
+
+        JsonObject payload = new TeiDataBuilder()
+            .addAttribute( uniqueTetAttribute, value )
+            .addAttribute( mandatoryTetAttribute, value )
+            .array( trackedEntityType, Constants.ORG_UNIT_IDS[0] );
+
+        trackerActions.postAndGetJobReport( payload )
+            .validateSuccessfulImport();
+
+        trackerActions.postAndGetJobReport( payload ).validateErrorReport()
+            .body( "", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "errorCode", hasItem( "E1064" ) )
+            .body( "message", hasItem( containsStringIgnoringCase( "non-unique" ) ) );
+    }
+
+    @Test
     public void shouldReturnErrorReportsWhenTeiIncorrect()
     {
         // arrange
-        JsonObject trackedEntities = new TeiDataBuilder().build( "", Constants.ORG_UNIT_IDS[0] );
+        JsonObject trackedEntities = new TeiDataBuilder().array( "", Constants.ORG_UNIT_IDS[0] );
 
         // act
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -85,18 +106,18 @@ public class TeiValidationTests
     @Test
     public void shouldNotReturnErrorWhenMandatoryTetAttributeIsPresent()
     {
-        JsonObject trackedEntities = buildTeiWithMandatoryAttribute();
+        JsonObject trackedEntities = buildTeiWithMandatoryAttribute().array();
 
         // assert
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
-        response.validateSuccessfulImport();
+        trackerActions.postAndGetJobReport( trackedEntities )
+            .validateSuccessfulImport();
     }
 
     @Test
     public void shouldReturnErrorWhenMandatoryAttributesMissing()
     {
         // arrange
-        JsonObject trackedEntities = new TeiDataBuilder().build( trackedEntityType, Constants.ORG_UNIT_IDS[0] );
+        JsonObject trackedEntities = new TeiDataBuilder().array( trackedEntityType, Constants.ORG_UNIT_IDS[0] );
 
         // assert
         TrackerApiResponse response = trackerActions.postAndGetJobReport( trackedEntities );
@@ -109,7 +130,7 @@ public class TeiValidationTests
     @Test
     public void shouldReturnErrorWhenRemovingMandatoryAttributes()
     {
-        JsonObject object = buildTeiWithEnrollmentAndMandatoryAttributes();
+        JsonObject object = buildTeiWithEnrollmentAndMandatoryAttributes().array();
 
         TrackerApiResponse response = trackerActions
             .postAndGetJobReport( object, new QueryParamsBuilder().add( "async=false" ) );
@@ -140,17 +161,18 @@ public class TeiValidationTests
     @Test
     public void shouldNotReturnErrorWhenRemovingNotMandatoryAttributes()
     {
-        JsonObject object = buildTeiWithMandatoryAndOptionSetAttribute();
+        JsonObject payload = buildTeiWithMandatoryAndOptionSetAttribute().array();
+
         String teiId = trackerActions
-            .postAndGetJobReport( buildTeiWithMandatoryAndOptionSetAttribute(),
+            .postAndGetJobReport( payload,
                 new QueryParamsBuilder().add( "async=false" ) )
             .validateSuccessfulImport().extractImportedTeis().get( 0 );
 
-        JsonObjectBuilder.jsonObject( object )
+        JsonObjectBuilder.jsonObject( payload )
             .addPropertyByJsonPath( "trackedEntities[0]", "trackedEntity", teiId )
             .addPropertyByJsonPath( "trackedEntities[0].attributes[1]", "value", null );
 
-        trackerActions.postAndGetJobReport( object, new QueryParamsBuilder().add( "async=false" ) )
+        trackerActions.postAndGetJobReport( payload, new QueryParamsBuilder().add( "async=false" ) )
             .validateSuccessfulImport();
 
         trackerActions.getTrackedEntity( teiId )
@@ -178,14 +200,9 @@ public class TeiValidationTests
     @Test
     public void shouldReturnErrorWhenAttributeWithOptionSetInvalid()
     {
-        JsonObject trackedEntities = JsonObjectBuilder
-            .jsonObject( buildTeiWithMandatoryAttribute() )
-            .addOrAppendToArrayByJsonPath( "trackedEntities[0]", "attributes",
-                new JsonObjectBuilder()
-                    .addProperty( "attribute", attributeWithOptionSet )
-                    .addProperty( "value", DataGenerator.randomString() )
-                    .build() )
-            .build();
+        JsonObject trackedEntities = buildTeiWithMandatoryAttribute()
+            .addAttribute( attributeWithOptionSet, DataGenerator.randomString() )
+            .array();
 
         trackerActions.postAndGetJobReport( trackedEntities, new QueryParamsBuilder().add( "async=false" ) )
             .validateErrorReport()
@@ -196,128 +213,53 @@ public class TeiValidationTests
     @Test
     public void shouldNotReturnErrorWhenAttributeWithOptionSetIsPresent()
     {
-        JsonObject trackedEntities = buildTeiWithMandatoryAndOptionSetAttribute();
+        JsonObject trackedEntities = buildTeiWithMandatoryAndOptionSetAttribute().array();
 
         trackerActions.postAndGetJobReport( trackedEntities ).validateSuccessfulImport();
 
     }
 
-    private JsonObject buildTeiWithMandatoryAndOptionSetAttribute()
+    private TeiDataBuilder buildTeiWithMandatoryAndOptionSetAttribute()
     {
-        JsonObject object = buildTeiWithMandatoryAttribute();
-
-        JsonObjectBuilder.jsonObject( object )
-            .addOrAppendToArrayByJsonPath( "trackedEntities[0]", "attributes", new JsonObjectBuilder()
-                .addProperty( "attribute", attributeWithOptionSet )
-                .addProperty( "value", "TA_YES" )
-                .build() );
-
-        return object;
+        return buildTeiWithMandatoryAttribute()
+            .addAttribute( attributeWithOptionSet, "TA_YES" );
     }
 
-    private JsonObject buildTeiWithMandatoryAttribute()
+    private TeiDataBuilder buildTeiWithMandatoryAttribute()
     {
-        JsonObject trackedEntities = JsonObjectBuilder
-            .jsonObject( new TeiDataBuilder().build( trackedEntityType, Constants.ORG_UNIT_IDS[0] ) )
-            .addPropertyByJsonPath( "trackedEntities[0]", "trackedEntity", new IdGenerator().generateUniqueId() )
-            .addArrayByJsonPath( "trackedEntities[0]", "attributes", new JsonObjectBuilder()
-                .addProperty( "attribute", mandatoryTetAttribute )
-                .addProperty( "value", DataGenerator.randomString() )
-                .build() )
-            .build();
-
-        return trackedEntities;
+        return new TeiDataBuilder()
+            .setTeiType( trackedEntityType )
+            .setOu( Constants.ORG_UNIT_IDS[0] )
+            .addAttribute( mandatoryTetAttribute, DataGenerator.randomString() );
     }
 
-    private JsonObject buildTeiWithEnrollmentAndMandatoryAttributes()
+    private TeiDataBuilder buildTeiWithEnrollmentAndMandatoryAttributes()
     {
-        JsonObject trackedEntities = JsonObjectBuilder
-            .jsonObject( new TeiDataBuilder().buildWithEnrollment( trackedEntityType, Constants.ORG_UNIT_IDS[0], program ) )
-            .addArrayByJsonPath( "trackedEntities[0]", "attributes", new JsonObjectBuilder()
-                .addProperty( "attribute", mandatoryTetAttribute )
-                .addProperty( "value", DataGenerator.randomString() )
-                .build() )
-            .addArrayByJsonPath( "trackedEntities[0].enrollments[0]", "attributes", new JsonObjectBuilder()
-                .addProperty( "attribute", mandatoryProgramAttribute )
-                .addProperty( "value", DataGenerator.randomString() )
-                .build() )
-            .build();
-
-        return trackedEntities;
+        return buildTeiWithMandatoryAttribute()
+            .addEnrollment( new EnrollmentDataBuilder().addAttribute( mandatoryProgramAttribute, DataGenerator.randomString() )
+                .setProgram( program ).setOu( Constants.ORG_UNIT_IDS[0] ) );
     }
 
     private void setupData()
     {
-        // create attributes
-        RestApiActions trackedEntityAttributeActions = new RestApiActions( "trackedEntityAttributes" );
+        TrackedEntityAttributeActions trackedEntityAttributeActions = new TrackedEntityAttributeActions();
         ProgramActions programActions = new ProgramActions();
+        TrackedEntityTypeActions trackedEntityTypeActions = new TrackedEntityTypeActions();
 
-        mandatoryTetAttribute = trackedEntityAttributeActions.create( dummyTeiAttribute() );
-        mandatoryProgramAttribute = trackedEntityAttributeActions.create( dummyTeiAttribute() );
-        attributeWithOptionSet = trackedEntityAttributeActions.create( dummyTeiAttributeWithOptionSet() );
+        trackedEntityType = trackedEntityTypeActions.create();
 
-        RestApiActions trackedEntityTypeActions = new RestApiActions( "trackedEntityTypes" );
+        // create attributes
+        uniqueTetAttribute = trackedEntityAttributeActions.create( "TEXT", true );
+        mandatoryTetAttribute = trackedEntityAttributeActions.create( "TEXT" );
+        mandatoryProgramAttribute = trackedEntityAttributeActions.create( "TEXT" );
+        attributeWithOptionSet = trackedEntityAttributeActions.createOptionSetAttribute( "ZGkmoWb77MW" );
 
-        // create a TET
-        JsonObject trackedEntityTypePayload = JsonObjectBuilder.jsonObject()
-            .addProperty( "name", DataGenerator.randomEntityName() )
-            .addProperty( "shortName", DataGenerator.randomEntityName() )
-            .addUserGroupAccess()
-            .addOrAppendToArray( "trackedEntityTypeAttributes",
-                new JsonObjectBuilder()
-                    .addProperty( "mandatory", "true" )
-                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
-                        .addProperty( "id", mandatoryTetAttribute ) )
-                    .build(),
-                new JsonObjectBuilder()
-                    .addProperty( "mandatory", "false" )
-                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
-                        .addProperty( "id", attributeWithOptionSet ) )
-                    .build() )
-            .build();
-
-        trackedEntityType = trackedEntityTypeActions.create( trackedEntityTypePayload );
+        trackedEntityTypeActions.addAttribute( trackedEntityType, mandatoryTetAttribute, true );
+        trackedEntityTypeActions.addAttribute( trackedEntityType, attributeWithOptionSet, false );
+        trackedEntityTypeActions.addAttribute( trackedEntityType, uniqueTetAttribute, false );
 
         // create a program
-        program = programActions.createTrackerProgram( null, Constants.ORG_UNIT_IDS ).extractUid();
-        ApiResponse programResponse = programActions.get( program );
-
-        JsonObject programPayload = programResponse.getBody();
-
-        new JsonObjectBuilder( programPayload )
-            .addObject( "trackedEntityType", new JsonObjectBuilder().addProperty( "id", trackedEntityType ) )
-            .addOrAppendToArray( "programTrackedEntityAttributes",
-                new JsonObjectBuilder()
-                    .addProperty( "mandatory", "true" )
-                    .addObject( "trackedEntityAttribute",
-                        new JsonObjectBuilder().addProperty( "id", mandatoryProgramAttribute ) )
-                    .build() )
-            .build();
-
-        trackedEntityTypeActions.update( trackedEntityType, trackedEntityTypePayload ).validate().statusCode( 200 );
-        programActions.update( program, programPayload ).validate().statusCode( 200 );
-    }
-
-    private JsonObject dummyTeiAttribute()
-    {
-        return JsonObjectBuilder.jsonObject()
-            .addProperty( "name", "TA attribute " + DataGenerator.randomEntityName() )
-            .addProperty( "valueType", "TEXT" )
-            .addProperty( "aggregationType", "NONE" )
-            .addProperty( "shortName", "TA attribute" + DataGenerator.randomString() )
-            .addUserGroupAccess()
-            .build();
-    }
-
-    private JsonObject dummyTeiAttributeWithOptionSet()
-    {
-        return JsonObjectBuilder.jsonObject()
-            .addProperty( "name", "TA attribute " + DataGenerator.randomEntityName() )
-            .addProperty( "valueType", "TEXT" )
-            .addProperty( "aggregationType", "NONE" )
-            .addProperty( "shortName", "TA attribute" + DataGenerator.randomString() )
-            .addObject( "optionSet", new JsonObjectBuilder().addProperty( "id", "ZGkmoWb77MW" ) )
-            .addUserGroupAccess()
-            .build();
+        program = programActions.createTrackerProgram( trackedEntityType, Constants.ORG_UNIT_IDS ).extractUid();
+        programActions.addAttribute( program, mandatoryProgramAttribute, true );
     }
 }

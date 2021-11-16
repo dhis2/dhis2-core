@@ -43,6 +43,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
+import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
@@ -52,17 +53,20 @@ import org.springframework.stereotype.Repository;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
  */
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore" )
 public class HibernateTrackedEntityInstanceAuditStore
     extends HibernateGenericStore<TrackedEntityInstanceAudit>
     implements TrackedEntityInstanceAuditStore
 {
+
+    private final StatementBuilder statementBuilder;
+
     public HibernateTrackedEntityInstanceAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
+        ApplicationEventPublisher publisher, StatementBuilder statementBuilder )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstanceAudit.class, false );
+        this.statementBuilder = statementBuilder;
     }
 
     // -------------------------------------------------------------------------
@@ -94,7 +98,8 @@ public class HibernateTrackedEntityInstanceAuditStore
             sb.append( "now()" ).append( "," );
             sb.append( singleQuote( audit.getAccessedBy() ) ).append( "," );
             sb.append( singleQuote( audit.getAuditType().getValue() ) ).append( "," );
-            sb.append( StringUtils.isNotEmpty( audit.getComment() ) ? singleQuote( audit.getComment() ) : "''" );
+            sb.append(
+                StringUtils.isNotEmpty( audit.getComment() ) ? statementBuilder.encode( audit.getComment() ) : "''" );
             sb.append( ")" );
             return sb.toString();
         };

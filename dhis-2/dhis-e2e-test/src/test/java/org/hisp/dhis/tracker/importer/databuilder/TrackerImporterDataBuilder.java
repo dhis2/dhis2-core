@@ -25,22 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.deduplication;
 
-import lombok.Getter;
+package org.hisp.dhis.tracker.importer.databuilder;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.google.gson.JsonObject;
 
 /**
- * @author Luca Cambi <luca@dhis2.org>
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Getter
-@ResponseStatus( HttpStatus.CONFLICT )
-public class PotentialDuplicateConflictException extends RuntimeException
+public interface TrackerImporterDataBuilder
 {
-    public PotentialDuplicateConflictException( String message )
-    {
-        super( message );
-    }
+    public JsonObject single();
+
+    public JsonObject array();
 }

@@ -45,6 +45,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
@@ -77,9 +78,10 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService,
         TrackerSideEffectConverterService sideEffectConverterService,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
         TrackedEntityAttributeValueService attributeValueService )
     {
-        super( reservedValueService, attributeValueService );
+        super( reservedValueService, trackedEntityAttributeValueAuditService, attributeValueService );
         this.eventConverter = eventConverter;
         this.trackedEntityCommentService = trackedEntityCommentService;
         this.sideEffectConverterService = sideEffectConverterService;
@@ -146,7 +148,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     protected void updateAttributes( Session session, TrackerPreheat preheat,
         Event event, ProgramStageInstance programStageInstance )
     {
-        // DO NOTHING - TEI HAVE NO ATTRIBUTES
+        // DO NOTHING - EVENT HAVE NO ATTRIBUTES
     }
 
     @Override

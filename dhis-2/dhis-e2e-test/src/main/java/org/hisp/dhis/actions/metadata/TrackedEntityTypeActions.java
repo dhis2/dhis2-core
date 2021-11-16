@@ -25,19 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.actions.metadata;
+
+import com.google.gson.JsonObject;
+import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.utils.DataGenerator;
 
 /**
- * A class that can consume a deflated data value.
- *
- * @author Jim Grace
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface DeflatedDataValueConsumer
+public class TrackedEntityTypeActions
+    extends RestApiActions
 {
-    /**
-     * Consumes a deflated data value.
-     *
-     * @param deflatedDataValue the DeflatedDataValue to consume.
-     */
-    void consume( DeflatedDataValue deflatedDataValue );
+    public TrackedEntityTypeActions()
+    {
+        super( "/trackedEntityTypes" );
+    }
+
+    public String create()
+    {
+        JsonObject payload = JsonObjectBuilder.jsonObject()
+            .addProperty( "name", DataGenerator.randomEntityName() )
+            .addProperty( "shortName", DataGenerator.randomEntityName() )
+            .addUserGroupAccess()
+            .build();
+
+        return this.create( payload );
+    }
+
+    public void addAttribute( String tet, String attribute, boolean mandatory )
+    {
+        JsonObject object = this.get( tet ).getBodyAsJsonBuilder()
+            .addOrAppendToArray( "trackedEntityTypeAttributes",
+                new JsonObjectBuilder()
+                    .addProperty( "mandatory", String.valueOf( mandatory ) )
+                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
+                        .addProperty( "id", attribute ) )
+                    .build() )
+            .build();
+
+        this.update( tet, object ).validateStatus( 200 );
+    }
 }

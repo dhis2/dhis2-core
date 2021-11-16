@@ -45,17 +45,19 @@ import com.google.gson.JsonObject;
 public class EventUpdateTests
     extends TrackerNtiApiTest
 {
+    private String eventId;
+
     @BeforeAll
-    public void beforeAll()
-    {
+    public void beforeAll() throws Exception {
         loginActions.loginAsSuperUser();
+        eventId = importTeiWithEnrollmentAndEvent().extractImportedEvents().get( 0 );
     }
 
     @Test
     public void shouldNotUpdateImmutableProperties()
         throws Exception
     {
-        String eventId = importTeiWithEnrollmentAndEvent().extractImportedEvents().get( 0 );
+
         String enrollmentId = importEnrollment();
         JsonObject object = trackerActions.get( "/events/" + eventId ).getBody();
 
@@ -70,5 +72,21 @@ public class EventUpdateTests
             .body( "errorCode", hasItems( "E1128", "E1128" ) )
             .body( "message", allOf( Matchers.hasItem( Matchers.containsString( "programStage" ) ),
                 hasItem( Matchers.containsString( "enrollment" ) ) ) );
+    }
+
+    @Test
+    public void shouldValidateWhenEnrollmentIsMissing()
+    {
+        JsonObject object = trackerActions.get( "/events/" + eventId ).getBody();
+
+        object = JsonObjectBuilder.jsonObject( object )
+                .addProperty( "enrollment", null )
+                .wrapIntoArray( "events" );
+
+        trackerActions.postAndGetJobReport( object )
+                .validateErrorReport()
+                .body( "", hasSize( Matchers.greaterThanOrEqualTo( 1 ) ) )
+                .body( "errorCode", hasItems( "E1033" ) )
+                .body( "message", Matchers.hasItem( Matchers.containsString( "Enrollment" ) ) );
     }
 }

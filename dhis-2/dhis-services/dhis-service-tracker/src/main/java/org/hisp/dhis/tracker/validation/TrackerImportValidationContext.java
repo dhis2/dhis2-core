@@ -219,7 +219,7 @@ public class TrackerImportValidationContext
 
     public boolean usernameExists( String username )
     {
-        return bundle.getPreheat().getUsernames().contains( username );
+        return bundle.getPreheat().getUsers().containsKey( username );
     }
 
     public FileResource getFileResource( String id )

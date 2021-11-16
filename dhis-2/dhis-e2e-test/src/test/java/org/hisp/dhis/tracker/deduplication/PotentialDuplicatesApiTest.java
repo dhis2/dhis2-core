@@ -89,14 +89,14 @@ public class PotentialDuplicatesApiTest
 
     protected String createTei()
     {
-        JsonObject object = new TeiDataBuilder().build( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] );
+        JsonObject object = new TeiDataBuilder().array( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] );
 
         return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
     }
 
     protected String createTei( String teiType )
     {
-        JsonObject object = new TeiDataBuilder().build( teiType, Constants.ORG_UNIT_IDS[0] );
+        JsonObject object = new TeiDataBuilder().array( teiType, Constants.ORG_UNIT_IDS[0] );
 
         return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
     }

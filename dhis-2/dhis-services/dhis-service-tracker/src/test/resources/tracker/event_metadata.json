@@ -66,6 +66,31 @@
       "attributeValues": []
     }
   ],
+  "trackedEntityTypes": [
+    {
+      "created": "2020-02-10T09:09:22.093",
+      "lastUpdated": "2020-02-10T09:56:30.292",
+      "name": "Person",
+      "id": "nEenWmSyUEp",
+      "publicAccess": "rwrw----",
+      "maxTeiCountToReturn": 0,
+      "allowAuditLog": true,
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "style": {},
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "userGroupAccesses": [],
+      "attributeValues": [],
+      "trackedEntityTypeAttributes": [],
+      "translations": [],
+      "userAccesses": []
+    }
+  ],
   "organisationUnits": [
     {
       "created": "2019-01-28T11:04:13.489",

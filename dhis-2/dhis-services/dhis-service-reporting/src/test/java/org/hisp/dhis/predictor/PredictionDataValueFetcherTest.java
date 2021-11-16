@@ -27,21 +27,24 @@
  */
 package org.hisp.dhis.predictor;
 
+import static org.hisp.dhis.datavalue.DataValueStore.END_OF_DDV_DATA;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.BlockingQueue;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -132,9 +135,13 @@ public class PredictionDataValueFetcherTest
 
     private DataValue dataValueC;
 
-    private Semaphore semaphore;
+    private DeflatedDataValue deflatedDataValueA;
 
-    PredictionDataValueFetcher fetcher;
+    private DeflatedDataValue deflatedDataValueB;
+
+    private DeflatedDataValue deflatedDataValueC;
+
+    private PredictionDataValueFetcher fetcher;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -157,11 +164,17 @@ public class PredictionDataValueFetcherTest
         cocA.setId( 3 );
         cocB.setId( 4 );
 
+        cocA.setUid( "CatOptionCA" );
+        cocB.setUid( "CatOptionCB" );
+
         aocC = createCategoryOptionCombo( 'C' );
         aocD = createCategoryOptionCombo( 'D' );
 
         aocC.setId( 5 );
         aocD.setId( 6 );
+
+        aocC.setUid( "AttOptionCC" );
+        aocD.setUid( "AttOptionCD" );
 
         dataElementOperandA = new DataElementOperand( dataElementA, cocA );
         dataElementOperandB = new DataElementOperand( dataElementB, cocA );
@@ -185,10 +198,19 @@ public class PredictionDataValueFetcherTest
         orgUnitD.setUid( "orgUnitDuid" );
         orgUnitE.setUid( "orgUnitEuid" );
 
+        orgUnitA.setPath( "/orgUnitAuid" );
+        orgUnitB.setPath( "/orgUnitBuid" );
+        orgUnitC.setPath( "/orgUnitCuid" );
+        orgUnitD.setPath( "/orgUnitDuid" );
+        orgUnitE.setPath( "/orgUnitEuid" );
+
         orgUnits = Lists.newArrayList( orgUnitA, orgUnitB, orgUnitC, orgUnitD, orgUnitE );
 
         periodA = createPeriod( "202001" );
         periodB = createPeriod( "202002" );
+
+        periodA.setUid( "Perio202001" );
+        periodB.setUid( "Perio202002" );
 
         periods = Sets.newHashSet( periodA, periodB );
 
@@ -199,9 +221,9 @@ public class PredictionDataValueFetcherTest
         dataValueB = new DataValue( dataElementA, periodA, orgUnitD, cocA, aocD, "20", "Y", null, null, null, true );
         dataValueC = new DataValue( dataElementB, periodB, orgUnitD, cocB, aocC, "30", "Y", null, null, null, false );
 
-        semaphore = new Semaphore( 1 );
-
-        semaphore.acquireUninterruptibly();
+        deflatedDataValueA = new DeflatedDataValue( dataValueA );
+        deflatedDataValueB = new DeflatedDataValue( dataValueB );
+        deflatedDataValueC = new DeflatedDataValue( dataValueC );
 
         fetcher = new PredictionDataValueFetcher( dataValueService, categoryService );
     }
@@ -210,20 +232,55 @@ public class PredictionDataValueFetcherTest
     // Tests
     // -------------------------------------------------------------------------
 
-    @Test( expected = RuntimeException.class )
+    @Test
+    public void testGetDataValues()
+    {
+        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
+        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
+        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
+        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
+
+        when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
+            BlockingQueue blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            blockingQueue.put( deflatedDataValueA );
+            blockingQueue.put( deflatedDataValueB );
+            blockingQueue.put( deflatedDataValueC );
+            blockingQueue.put( END_OF_DDV_DATA );
+            return new ArrayList<>();
+        } );
+
+        fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, dataElementOperands );
+
+        assertContainsOnly( fetcher.getDataValues( orgUnitA ) );
+        assertContainsOnly( fetcher.getDataValues( orgUnitB ), dataValueA );
+        assertContainsOnly( fetcher.getDataValues( orgUnitC ) );
+        assertContainsOnly( fetcher.getDataValues( orgUnitD ), dataValueB, dataValueC );
+        assertContainsOnly( fetcher.getDataValues( orgUnitE ) );
+    }
+
+    @Test( expected = IllegalArgumentException.class )
     public void testOrgUnitsOutOfOrder()
     {
-        when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> unsynchronizedDb() );
+        when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
+            BlockingQueue blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            blockingQueue.put( END_OF_DDV_DATA );
+            return new ArrayList<>();
+        } );
 
         fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, dataElementOperands );
 
         fetcher.getDataValues( orgUnitC );
+        fetcher.getDataValues( orgUnitA );
     }
 
     @Test
     public void testNoDataValues()
     {
-        when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> emptyDb() );
+        when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
+            BlockingQueue blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            blockingQueue.put( END_OF_DDV_DATA );
+            return new ArrayList<>();
+        } );
 
         fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, dataElementOperands );
 
@@ -234,105 +291,13 @@ public class PredictionDataValueFetcherTest
         assertEquals( 0, fetcher.getDataValues( orgUnitE ).size() );
     }
 
-    @Test( expected = NullPointerException.class )
+    @Test( expected = ArithmeticException.class )
     public void testProducerException()
     {
-        try
-        {
-            when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> {
-                throw new NullPointerException();
-            } );
+        when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> {
+            throw new ArithmeticException();
+        } );
 
-            fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, new HashSet<>() );
-        }
-        catch ( Exception ex )
-        {
-            throw new RuntimeException( "Exception happened too soon: " + ex.toString() );
-        }
-
-        fetcher.getDataValues( orgUnitA );
-    }
-
-    @Test( expected = RuntimeException.class )
-    public void testTimeoutWaitingForProducer()
-    {
-        try
-        {
-            fetcher.setSemaphoreTimeout( 2, TimeUnit.MILLISECONDS );
-
-            when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> {
-                Thread.sleep( 100 );
-                return null;
-            } );
-
-            fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, new HashSet<>() );
-        }
-        catch ( Exception ex )
-        {
-            throw new RuntimeException( "Exception happened too soon: " + ex.toString() );
-        }
-
-        fetcher.getDataValues( orgUnitA );
-    }
-
-    @Test( expected = RuntimeException.class )
-    public void testTimeoutWaitingForConsumer()
-    {
-        try
-        {
-            fetcher.setSemaphoreTimeout( 2, TimeUnit.MILLISECONDS );
-
-            when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> unsynchronizedDb() );
-
-            fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, dataElementOperands );
-
-            fetcher.getDataValues( orgUnitA );
-
-            Thread.sleep( 100 );
-        }
-        catch ( Exception ex )
-        {
-            throw new RuntimeException( "Exception happened too soon: " + ex.toString() );
-        }
-
-        fetcher.getDataValues( orgUnitB );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive Methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Returns the database values without trying to synchronize with the test
-     * routine.
-     *
-     * @return null (return value is not needed when callback is used)
-     */
-    private List<DeflatedDataValue> unsynchronizedDb()
-    {
-        fetcher.consume( makeDeflatedDataValue( dataValueA ) );
-        fetcher.consume( makeDeflatedDataValue( dataValueB ) );
-        fetcher.consume( makeDeflatedDataValue( dataValueC ) );
-
-        return null;
-    }
-
-    private DeflatedDataValue makeDeflatedDataValue( DataValue dv )
-    {
-        DeflatedDataValue ddv = new DeflatedDataValue( dv );
-
-        ddv.setSourcePath( dv.getSource().getPath() );
-
-        return ddv;
-    }
-
-    /**
-     * Simulates an empty database where no values are returned.
-     *
-     * @return null (return value is not needed when callback is used)
-     */
-    private List<DeflatedDataValue> emptyDb()
-    {
-        return null;
+        fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, new HashSet<>() );
     }
 }

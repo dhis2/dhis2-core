@@ -30,11 +30,14 @@ package org.hisp.dhis.split.orgunit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
@@ -97,6 +100,19 @@ public class OrgUnitSplitServiceTest
         assertTrue( request.getTargets().contains( ouC ) );
         assertEquals( ouB, request.getPrimaryTarget() );
         assertTrue( request.isDeleteSource() );
+    }
+
+    @Test
+    public void testTargetOrgUnitNotFound()
+    {
+        OrgUnitSplitQuery query = new OrgUnitSplitQuery();
+        query.setSource( BASE_OU_UID + 'A' );
+        query.setTargets( Lists.newArrayList( BASE_OU_UID + 'B', BASE_OU_UID + 'X' ) );
+        query.setPrimaryTarget( BASE_OU_UID + 'B' );
+
+        IllegalQueryException ex = assertThrows(
+            IllegalQueryException.class, () -> service.getFromQuery( query ) );
+        assertEquals( ErrorCode.E1515, ex.getErrorCode() );
     }
 
     @Test
