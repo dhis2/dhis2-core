@@ -4,6 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
     pull-request-branch-name:
       separator: "-"
     commit-message:
@@ -13,6 +15,8 @@ updates:
     directory: "/dhis-2"
     schedule:
       interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
     open-pull-requests-limit: 10
     pull-request-branch-name:
       separator: "-"
