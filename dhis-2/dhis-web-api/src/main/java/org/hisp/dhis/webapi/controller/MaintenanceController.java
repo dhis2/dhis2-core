@@ -48,6 +48,7 @@ import org.hisp.dhis.maintenance.MaintenanceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.resourcetable.ResourceTableService;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -188,7 +189,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void createSqlViews()
     {
-        resourceTableService.createAllSqlViews();
+        resourceTableService.createAllSqlViews( NoopJobProgress.INSTANCE );
     }
 
     @RequestMapping( value = "/sqlViewsDrop", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -196,7 +197,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void dropSqlViews()
     {
-        resourceTableService.dropAllSqlViews();
+        resourceTableService.dropAllSqlViews( NoopJobProgress.INSTANCE );
     }
 
     @RequestMapping( value = "/categoryOptionComboUpdate", method = { RequestMethod.PUT, RequestMethod.POST } )
@@ -373,7 +374,7 @@ public class MaintenanceController
 
         if ( resourceTableUpdate )
         {
-            analyticsTableGenerator.generateResourceTables( null );
+            analyticsTableGenerator.generateResourceTables( NoopJobProgress.INSTANCE );
         }
     }
 }

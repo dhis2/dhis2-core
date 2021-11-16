@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.resourcetable;
 
+import org.hisp.dhis.scheduling.JobProgress;
+
 /**
  * @author Lars Helge Overland
  */
@@ -108,10 +110,10 @@ public interface ResourceTableService
     /**
      * Create all SQL views.
      */
-    void createAllSqlViews();
+    void createAllSqlViews( JobProgress progress );
 
     /**
      * Drop all SQL views.
      */
-    void dropAllSqlViews();
+    void dropAllSqlViews( JobProgress progress );
 }

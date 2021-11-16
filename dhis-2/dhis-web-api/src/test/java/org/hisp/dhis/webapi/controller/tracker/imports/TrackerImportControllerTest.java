@@ -145,7 +145,7 @@ public class TrackerImportControllerTest
             .andExpect( jsonPath( "$.message" ).value( TRACKER_JOB_ADDED ) )
             .andExpect( content().contentType( "application/json" ) );
 
-        verify( csvEventService ).readEvents( any(), eq( false ) );
+        verify( csvEventService ).readEvents( any(), eq( true ) );
         verify( importStrategy ).importReport( any() );
     }
 

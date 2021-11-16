@@ -199,17 +199,17 @@ public class DefaultSystemSettingManager
      */
     private SerializableOptional getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = systemSettingStore.getByName( name );
+        Serializable displayValue = getSettingDisplayValue( name );
 
-        if ( setting != null && setting.hasValue() )
+        if ( displayValue != null )
         {
             if ( isConfidential( name ) )
             {
                 try
                 {
-                    return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
+                    return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) displayValue ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e )
+                catch ( ClassCastException | EncryptionOperationNotPossibleException e )
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
                     return SerializableOptional.empty();
@@ -217,13 +217,25 @@ public class DefaultSystemSettingManager
             }
             else
             {
-                return SerializableOptional.of( setting.getDisplayValue() );
+                return SerializableOptional.of( displayValue );
             }
         }
         else
         {
             return SerializableOptional.of( defaultValue );
         }
+    }
+
+    private Serializable getSettingDisplayValue( String name )
+    {
+        SystemSetting setting = systemSettingStore.getByName( name );
+
+        if ( setting != null && setting.hasValue() )
+        {
+            return setting.getDisplayValue();
+        }
+
+        return null;
     }
 
     @Override
