@@ -23,3 +23,7 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "java"
+      - "run-api-tests"
