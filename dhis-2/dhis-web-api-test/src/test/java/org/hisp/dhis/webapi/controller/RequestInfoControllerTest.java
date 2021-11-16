@@ -34,9 +34,7 @@ import static org.junit.Assert.assertTrue;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonResponse;
-import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link RequestInfoController}.
@@ -45,9 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class RequestInfoControllerTest extends DhisControllerConvenienceTest
 {
-    @Autowired
-    private RequestInfoInterceptor filter;
-
     @Test
     public void testGetCurrentInfo_NoHeader()
     {
