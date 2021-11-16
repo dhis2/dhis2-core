@@ -36,8 +36,6 @@ import lombok.Data;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Morten Olav Hansen
  */
@@ -48,7 +46,7 @@ public class FieldFilterParams<T>
     private final List<T> objects;
 
     @Builder.Default
-    private final Set<String> filters = Sets.newHashSet( "*" );
+    private final Set<String> filters = Collections.singleton( "*" );
 
     public static <O> FieldFilterParams<O> of( List<O> objects, List<String> filters )
     {
