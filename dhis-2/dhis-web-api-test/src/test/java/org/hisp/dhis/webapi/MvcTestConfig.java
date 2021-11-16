@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.node.DefaultNodeService;
@@ -45,7 +44,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
@@ -55,7 +53,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
-import org.springframework.format.support.FormattingConversionService;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -73,9 +70,6 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.handler.ConversionServiceExposingInterceptor;
-import org.springframework.web.servlet.resource.ResourceUrlProvider;
-import org.springframework.web.servlet.resource.ResourceUrlProviderExposingInterceptor;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -95,9 +89,6 @@ public class MvcTestConfig implements WebMvcConfigurer
     private UserSettingService userSettingService;
 
     @Autowired
-    public DefaultRequestInfoService requestInfoService;
-
-    @Autowired
     private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
     @Autowired
@@ -109,8 +100,7 @@ public class MvcTestConfig implements WebMvcConfigurer
     private ObjectMapper xmlMapper;
 
     @Bean
-    public CustomRequestMappingHandlerMapping requestMappingHandlerMapping(
-        FormattingConversionService mvcConversionService, ResourceUrlProvider mvcResourceUrlProvider )
+    public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
     {
         CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
             mediaTypeMap );
@@ -125,11 +115,7 @@ public class MvcTestConfig implements WebMvcConfigurer
         CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
         mapping.setOrder( 0 );
         mapping.setContentNegotiationManager( manager );
-        TestInterceptorRegistry registry = new TestInterceptorRegistry();
-        addInterceptors( registry );
-        registry.addInterceptor( new ConversionServiceExposingInterceptor( mvcConversionService ) );
-        registry.addInterceptor( new ResourceUrlProviderExposingInterceptor( mvcResourceUrlProvider ) );
-        mapping.setInterceptors( registry.getInterceptors().toArray() );
+
         return mapping;
     }
 
@@ -163,8 +149,8 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Override
     public void addInterceptors( InterceptorRegistry registry )
     {
+        // OBS! Be aware that HandlerInterceptors will not work in test setup
         registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
-        registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
     }
 
     @Bean
@@ -229,14 +215,5 @@ public class MvcTestConfig implements WebMvcConfigurer
     public MessageSender fakeMessageSender()
     {
         return new FakeMessageSender();
-    }
-
-    static final class TestInterceptorRegistry extends InterceptorRegistry
-    {
-        @Override
-        public List<Object> getInterceptors()
-        {
-            return super.getInterceptors();
-        }
     }
 }
