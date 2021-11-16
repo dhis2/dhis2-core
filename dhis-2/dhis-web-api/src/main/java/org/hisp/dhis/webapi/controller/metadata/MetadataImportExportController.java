@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.metadata;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
 import static org.hisp.dhis.scheduling.JobType.GML_IMPORT;
 import static org.hisp.dhis.scheduling.JobType.METADATA_IMPORT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -49,7 +48,6 @@ import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.csv.CsvImportClass;
@@ -138,10 +136,10 @@ public class MetadataImportExportController
     private ObjectFactory<GmlAsyncImporter> gmlAsyncImporterFactory;
 
     @Autowired
-    protected ObjectMapper jsonMapper;
+    private ObjectMapper jsonMapper;
 
     @Autowired
-    protected BulkPatchManager bulkPatchManager;
+    private BulkPatchManager bulkPatchManager;
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
@@ -265,10 +263,10 @@ public class MetadataImportExportController
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, patchParams );
 
-        if ( patchedObjects.isEmpty() || (atomic && !patchParams.getErrorReports().isEmpty()) )
+        if ( patchedObjects.isEmpty() || (atomic && !patchParams.hasErrorReports()) )
         {
             ImportReport importReport = new ImportReport();
-            importReport.addTypeReport( typeReport( JsonPatchException.class, patchParams.getErrorReports() ) );
+            importReport.addTypeReports( patchParams.getTypeReports() );
             importReport.setStatus( Status.ERROR );
             return importReport( importReport );
         }
@@ -284,9 +282,9 @@ public class MetadataImportExportController
 
         ImportReport importReport = metadataImportService.importMetadata( importParams );
 
-        if ( !patchParams.getErrorReports().isEmpty() )
+        if ( patchParams.hasErrorReports() )
         {
-            importReport.addTypeReport( typeReport( JsonPatchException.class, patchParams.getErrorReports() ) );
+            importReport.addTypeReports( patchParams.getTypeReports() );
             importReport.setStatus( importReport.getStatus() == Status.OK ? Status.WARNING : importReport.getStatus() );
         }
 

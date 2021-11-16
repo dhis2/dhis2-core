@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.Optional;
-
 import lombok.Builder;
 import lombok.Getter;
 
@@ -49,10 +47,10 @@ public class BulkPatchValidators
             .schemaValidator( SchemaValidator.empty ).build();
     }
 
-    public static Optional<BulkPatchValidators> sharingValidators()
+    public static BulkPatchValidators sharingValidators()
     {
-        return Optional.of( BulkPatchValidators.builder()
+        return BulkPatchValidators.builder()
             .schemaValidator( SchemaValidator.isShareable )
-            .jsonPatchValidator( JsonPatchValidator.isSharingPatch ).build() );
+            .jsonPatchValidator( JsonPatchValidator.isSharingPatch ).build();
     }
 }

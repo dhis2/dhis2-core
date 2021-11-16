@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -40,6 +42,8 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;
@@ -50,6 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
  * types.
  */
 @Service
+@AllArgsConstructor
 public class BulkPatchManager
 {
     private final IdentifiableObjectManager manager;
@@ -57,14 +62,6 @@ public class BulkPatchManager
     private final SchemaService schemaService;
 
     private final JsonPatchManager jsonPatchManager;
-
-    public BulkPatchManager( SchemaService schemaService, IdentifiableObjectManager manager,
-        JsonPatchManager jsonPatchManager )
-    {
-        this.manager = manager;
-        this.schemaService = schemaService;
-        this.jsonPatchManager = jsonPatchManager;
-    }
 
     /**
      * Apply one {@link JsonPatch} to multiple objects of same class.
@@ -133,17 +130,25 @@ public class BulkPatchManager
     private Optional<IdentifiableObject> patchObject( String id, Schema schema, JsonPatch patch,
         BulkPatchParameters patchParams )
     {
-        if ( !validateJsonPatch( patch, patchParams ) )
+        TypeReport typeReport = new TypeReport( schema.getKlass() );
+        ObjectReport objectReport = new ObjectReport( schema.getKlass(), 0 );
+
+        if ( !validateJsonPatch( patch, patchParams, objectReport ) )
         {
+            typeReport.addObjectReport( objectReport );
+            patchParams.addTypeReport( typeReport );
             return Optional.empty();
         }
 
-        Optional<IdentifiableObject> entity = validateId( schema.getKlass(), id, patchParams );
+        Optional<IdentifiableObject> entity = validateId( schema.getKlass(), id, objectReport );
 
-        Optional<IdentifiableObject> patched = entity.isPresent() ? applyWithTryCatch( schema, patch, entity.get(),
-            patchParams.getErrorReports() ) : Optional.empty();
+        Optional<IdentifiableObject> patched = entity.isPresent() ? applySafely( schema, patch, entity.get(),
+            objectReport ) : Optional.empty();
 
         patched.ifPresent( patchedObject -> postApply( id, patchedObject ) );
+
+        typeReport.addObjectReport( objectReport );
+        patchParams.addTypeReport( typeReport );
 
         return patched;
     }
@@ -155,8 +160,8 @@ public class BulkPatchManager
      * If there is an error, add it to the given errors list and return
      * {@link Optional#empty()}.
      */
-    private Optional<IdentifiableObject> applyWithTryCatch( Schema schema, JsonPatch patch, IdentifiableObject entity,
-        List<ErrorReport> errors )
+    private Optional<IdentifiableObject> applySafely( Schema schema, JsonPatch patch, IdentifiableObject entity,
+        ObjectReport objectReport )
     {
         try
         {
@@ -164,7 +169,7 @@ public class BulkPatchManager
         }
         catch ( JsonPatchException e )
         {
-            errors.add( new ErrorReport( schema.getKlass(), ErrorCode.E6003, e.getMessage() ) );
+            objectReport.addErrorReport( new ErrorReport( schema.getKlass(), ErrorCode.E6003, e.getMessage() ) );
             return Optional.empty();
         }
     }
@@ -183,7 +188,9 @@ public class BulkPatchManager
 
         if ( schema == null )
         {
-            patchParameters.addErrorReport( new ErrorReport( JsonPatchException.class, ErrorCode.E6002, className ) );
+            patchParameters.addTypeReport(
+                createTypeReport( JsonPatchException.class,
+                    new ErrorReport( JsonPatchException.class, ErrorCode.E6002, className ) ) );
             return Optional.empty();
         }
 
@@ -191,7 +198,7 @@ public class BulkPatchManager
 
         if ( !errors.isEmpty() )
         {
-            patchParameters.addErrorReports( errors );
+            patchParameters.addTypeReport( createTypeReport( schema.getKlass(), errors ) );
             return Optional.empty();
         }
 
@@ -206,14 +213,13 @@ public class BulkPatchManager
      * @param patchParams {@link BulkPatchParameters}
      * @return {@link IdentifiableObject}
      */
-    private Optional<IdentifiableObject> validateId( Class<?> klass, String id,
-        BulkPatchParameters patchParams )
+    private Optional<IdentifiableObject> validateId( Class<?> klass, String id, ObjectReport objectReport )
     {
         IdentifiableObject entity = manager.get( (Class<? extends IdentifiableObject>) klass, id );
 
         if ( entity == null )
         {
-            patchParams.addErrorReport( new ErrorReport( klass, ErrorCode.E4014, id, klass.getSimpleName() ) );
+            objectReport.addErrorReport( new ErrorReport( klass, ErrorCode.E4014, id, klass.getSimpleName() ) );
             return Optional.empty();
         }
 
@@ -227,13 +233,13 @@ public class BulkPatchManager
      * @param patchParams {@link BulkPatchParameters} contains validation
      *        errors.
      */
-    private boolean validateJsonPatch( JsonPatch patch, BulkPatchParameters patchParams )
+    private boolean validateJsonPatch( JsonPatch patch, BulkPatchParameters patchParams, ObjectReport objectReport )
     {
         List<ErrorReport> errors = patchParams.getValidators().getJsonPatchValidator().apply( patch );
 
         if ( !errors.isEmpty() )
         {
-            patchParams.addErrorReports( errors );
+            objectReport.addErrorReports( errors );
             return false;
         }
 
@@ -250,5 +256,23 @@ public class BulkPatchManager
 
         // Only supports new Sharing format
         ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
+    }
+
+    private TypeReport createTypeReport( Class<?> klass, ErrorReport errorReport )
+    {
+        TypeReport typeReport = new TypeReport( JsonPatchException.class );
+        ObjectReport objectReport = new ObjectReport( JsonPatchException.class, 0 );
+        objectReport.addErrorReport( errorReport );
+        typeReport.addObjectReport( objectReport );
+        return typeReport;
+    }
+
+    private TypeReport createTypeReport( Class<?> klass, List<ErrorReport> errorReports )
+    {
+        TypeReport typeReport = new TypeReport( klass );
+        ObjectReport objectReport = new ObjectReport( klass, 0 );
+        objectReport.addErrorReports( errorReports );
+        typeReport.addObjectReport( objectReport );
+        return typeReport;
     }
 }

@@ -113,8 +113,7 @@ public class ObjectReport implements ErrorReportContainer
 
     public ObjectReport( Class<?> klass, int index, List<ErrorReport> errorReports )
     {
-        this.klass = klass;
-        this.index = index;
+        this( klass, index );
         errorReports.forEach( this::addErrorReport );
     }
 

@@ -157,8 +157,8 @@ public class BulkPatchManagerTest extends DhisSpringTest
         List<IdentifiableObject> patchedObjects = patchManager
             .applyPatch( bulkJsonPatch, patchParameters );
         assertEquals( 0, patchedObjects.size() );
-        assertEquals( 1, patchParameters.getErrorReports().size() );
-        assertEquals( ErrorCode.E6002, patchParameters.getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 1, patchParameters.getErrorReportsCount() );
+        assertEquals( 1, patchParameters.getErrorReportsCount( ErrorCode.E6002 ) );
     }
 
     @Test
@@ -176,8 +176,8 @@ public class BulkPatchManagerTest extends DhisSpringTest
         List<IdentifiableObject> patchedObjects = patchManager
             .applyPatch( bulkJsonPatch, patchParameters );
         assertEquals( 1, patchedObjects.size() );
-        assertEquals( 1, patchParameters.getErrorReports().size() );
-        assertEquals( ErrorCode.E4014, patchParameters.getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 1, patchParameters.getErrorReportsCount() );
+        assertEquals( 1, patchParameters.getErrorReportsCount( ErrorCode.E4014 ) );
         assertTrue( aclService.canRead( userA, patchedObjects.get( 0 ) ) );
         assertFalse( aclService.canRead( userC, patchedObjects.get( 0 ) ) );
     }
@@ -197,9 +197,8 @@ public class BulkPatchManagerTest extends DhisSpringTest
         List<IdentifiableObject> patchedObjects = patchManager
             .applyPatch( bulkJsonPatch, patchParameters );
         assertEquals( 0, patchedObjects.size() );
-        assertEquals( 2, patchParameters.getErrorReports().size() );
-        assertEquals( ErrorCode.E4032, patchParameters.getErrorReports().get( 0 ).getErrorCode() );
-        assertEquals( ErrorCode.E4032, patchParameters.getErrorReports().get( 1 ).getErrorCode() );
+        assertEquals( 2, patchParameters.getErrorReportsCount() );
+        assertEquals( 2, patchParameters.getErrorReportsCount( ErrorCode.E4032 ) );
     }
 
     @Test
@@ -217,8 +216,8 @@ public class BulkPatchManagerTest extends DhisSpringTest
         List<IdentifiableObject> patchedObjects = patchManager
             .applyPatch( bulkJsonPatch, patchParameters );
         assertEquals( 0, patchedObjects.size() );
-        assertEquals( 1, patchParameters.getErrorReports().size() );
-        assertEquals( ErrorCode.E3019, patchParameters.getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 1, patchParameters.getErrorReportsCount() );
+        assertEquals( 1, patchParameters.getErrorReportsCount( ErrorCode.E3019 ) );
     }
 
     @Test

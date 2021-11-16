@@ -422,10 +422,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( bulkJsonPatch, patchParams );
 
-        if ( patchedObjects.isEmpty() || (atomic && !patchParams.getErrorReports().isEmpty()) )
+        if ( patchedObjects.isEmpty() || (atomic && patchParams.hasErrorReports()) )
         {
             ImportReport importReport = new ImportReport();
-            importReport.addTypeReport( typeReport( getEntityClass(), patchParams.getErrorReports() ) );
+            importReport.addTypeReports( patchParams.getTypeReports() );
             importReport.setStatus( Status.ERROR );
             return importReport( importReport );
         }
@@ -440,9 +440,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         ImportReport importReport = importService.importMetadata( params );
 
-        if ( !patchParams.getErrorReports().isEmpty() )
+        if ( patchParams.hasErrorReports() )
         {
-            importReport.addTypeReport( typeReport( getEntityClass(), patchParams.getErrorReports() ) );
+            importReport.addTypeReports( patchParams.getTypeReports() );
             importReport.setStatus( importReport.getStatus() == Status.OK ? Status.WARNING : importReport.getStatus() );
         }
 

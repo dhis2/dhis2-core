@@ -27,50 +27,121 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import lombok.Builder;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ErrorReportContainer;
+import org.hisp.dhis.feedback.TypeReport;
+
+import com.google.common.base.MoreObjects;
 
 @Builder
-public class BulkPatchParameters
+public class BulkPatchParameters implements ErrorReportContainer
 {
     /**
      * List of {@link ErrorReport} created during the patch process and will be
      * returned to api consumer.
      */
     @Builder.Default
-    private List<ErrorReport> errorReports = new ArrayList<>();
+    private final Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();
 
     /**
      * Contains all validators needed for the patch process.
      */
-    private Optional<BulkPatchValidators> validators;
+    private BulkPatchValidators validators;
 
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    public void addErrorReport( ErrorReport errorReport )
-    {
-        errorReports.add( errorReport );
-    }
-
-    public void addErrorReports( List<ErrorReport> errors )
-    {
-        errorReports.addAll( errors );
-    }
-
-    public List<ErrorReport> getErrorReports()
-    {
-        return errorReports;
-    }
-
     public BulkPatchValidators getValidators()
     {
-        return validators.orElse( BulkPatchValidators.empty() );
+        return validators == null ? BulkPatchValidators.empty() : validators;
+    }
+
+    public Iterable<TypeReport> getTypeReports()
+    {
+        return typeReportMap.values();
+    }
+
+    public int getErrorReportsCountByCode( Class<?> klass, ErrorCode errorCode )
+    {
+        TypeReport report = typeReportMap.get( klass );
+        return report == null ? 0 : report.getErrorReportsCount( errorCode );
+    }
+
+    public void addTypeReport( TypeReport report )
+    {
+        if ( report == null )
+        {
+            return;
+        }
+
+        typeReportMap.compute( report.getKlass(), ( key, value ) -> {
+            if ( value == null )
+            {
+                return report;
+            }
+            value.merge( report );
+            return value;
+        } );
+    }
+
+    // -----------------------------------------------------------------------------------
+    // Getters and Setters
+    // -----------------------------------------------------------------------------------
+
+    public boolean isEmpty()
+    {
+        return typeReportMap.isEmpty();
+    }
+
+    public TypeReport getTypeReport( Class<?> klass )
+    {
+        return typeReportMap.get( klass );
+    }
+
+    @Override
+    public int getErrorReportsCount()
+    {
+        return typeReportMap.values().stream().mapToInt( TypeReport::getErrorReportsCount ).sum();
+    }
+
+    @Override
+    public int getErrorReportsCount( ErrorCode errorCode )
+    {
+        return typeReportMap.values().stream().mapToInt( report -> report.getErrorReportsCount( errorCode ) ).sum();
+    }
+
+    @Override
+    public boolean hasErrorReports()
+    {
+        return typeReportMap.values().stream().anyMatch( TypeReport::hasErrorReports );
+    }
+
+    @Override
+    public boolean hasErrorReport( Predicate<ErrorReport> test )
+    {
+        return typeReportMap.values().stream().anyMatch( report -> report.hasErrorReport( test ) );
+    }
+
+    @Override
+    public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
+    {
+        typeReportMap.values().forEach( report -> report.forEachErrorReport( reportConsumer ) );
+    }
+
+    @Override
+    public String toString()
+    {
+        return MoreObjects.toStringHelper( this )
+            .add( "typeReportMap", typeReportMap )
+            .toString();
     }
 }

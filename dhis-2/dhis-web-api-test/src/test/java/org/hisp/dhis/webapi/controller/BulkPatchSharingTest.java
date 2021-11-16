@@ -46,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -108,11 +109,9 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
         userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
 
         assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
+            POST( "/dataElements", toJsonString( createDataElement( 'B', deBId, userCId ) ) ) );
 
-        String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
-            StandardCharsets.UTF_8 );
-        HttpResponse response = PATCH( "/dataElements/sharing", payload );
+        HttpResponse response = PATCH( "/dataElements/sharing", "patch/bulk_sharing_patch.json" );
         assertEquals( HttpStatus.CONFLICT, response.status() );
         assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getFirstErrorMessage( response ) );
 
@@ -201,6 +200,12 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
         HttpResponse response = PATCH( "/metadata/sharing", payload );
         assertEquals( HttpStatus.CONFLICT, response.status() );
         assertEquals( "Sharing is not enabled for this object `organisationUnit`", getFirstErrorMessage( response ) );
+    }
+
+    private String toJsonString( Object object )
+        throws JsonProcessingException
+    {
+        return jsonMapper.writeValueAsString( object );
     }
 
     private String getFirstErrorMessage( HttpResponse response )
