@@ -178,6 +178,7 @@ public class DefaultSystemSettingManager
      * cache hits.
      */
     @Override
+    @SuppressWarnings( "unchecked" )
     @Transactional( readOnly = true )
     public <T extends Serializable> T getSystemSetting( SettingKey key, T defaultValue )
     {

@@ -40,9 +40,9 @@ import org.testcontainers.utility.DockerImageName;
 public class DhisPostgisContainerProvider
     extends PostgisContainerProvider
 {
-    private static final String DEFAULT_TAG = "10";
+    private static final String DEFAULT_TAG = "10-2.5-alpine";
 
-    private static final String DEFAULT_IMAGE = "mdillon/postgis";
+    private static final String DEFAULT_IMAGE = "postgis/postgis";
 
     @Override
     public JdbcDatabaseContainer newInstance()
