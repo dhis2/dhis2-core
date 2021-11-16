@@ -66,12 +66,12 @@
         <spring-security.version>5.5.3</spring-security.version>
         <spring-security-oauth2.version>2.5.0.RELEASE</spring-security-oauth2.version>
         <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
-        <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
+        <bcprov-jdk15on.version>1.69</bcprov-jdk15on.version>
         <jasypt.version>1.9.3</jasypt.version>
         <cglib.version>3.3.0</cglib.version>
 
         <!-- Spring-->
-        <spring.version>5.3.6</spring.version>
+        <spring.version>5.3.13</spring.version>
         <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
         <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
         <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -121,7 +121,7 @@
 
         <!--Reporting -->
         <jasperreports.version>6.3.1</jasperreports.version>
-        <jasperreports-fonts.version>4.0.0</jasperreports-fonts.version>
+        <jasperreports-fonts.version>6.18.1</jasperreports-fonts.version>
         <jfreechart.version>1.5.3</jfreechart.version>
         <htmlparser.version>2.1</htmlparser.version>
         <htmllexer.version>2.1</htmllexer.version>
@@ -135,12 +135,12 @@
         <batik-transcoder.version>1.13</batik-transcoder.version>
         <batik-codec.version>1.13</batik-codec.version>
         <fop.version>2.5</fop.version>
-        <mapstruct.version>1.4.1.Final</mapstruct.version>
+        <mapstruct.version>1.4.2.Final</mapstruct.version>
         <geotools.version>26.0</geotools.version>
         <jts.version>1.16.0</jts.version>
 
         <!-- Apache Artemis -->
-        <artemis.version>2.17.0</artemis.version>
+        <artemis.version>2.19.0</artemis.version>
         <activemq-artemis-native.version>1.0.2</activemq-artemis-native.version>
         <netty-all.version>4.1.59.Final</netty-all.version>
         <classgraph.version>4.8.90</classgraph.version>
@@ -153,7 +153,7 @@
         <javax.interceptor-api.version>1.2.1</javax.interceptor-api.version>
         <jsmpp.version>2.3.7</jsmpp.version>
         <rxtx.version>2.1.7</rxtx.version>
-        <json-path.version>2.4.0</json-path.version>
+        <json-path.version>2.6.0</json-path.version>
         <jsmpp-X.version>2.1.0-RELEASE</jsmpp-X.version>
         <jboss-logging.version>3.4.1.Final</jboss-logging.version>
         <jsoup.version>1.14.3</jsoup.version>
@@ -170,7 +170,7 @@
         <lombok.version>1.18.20</lombok.version>
         <lombok-maven-plugin.version>1.18.16.0</lombok-maven-plugin.version>
         <joda-time.version>2.10.5</joda-time.version>
-        <cron-utils.version>9.1.3</cron-utils.version>
+        <cron-utils.version>9.1.6</cron-utils.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
         <jep.version>2.4.2</jep.version>

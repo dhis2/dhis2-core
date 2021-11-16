@@ -30,8 +30,6 @@ package org.hisp.dhis.analytics;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
 
 /**
  * Manager for the analytics database tables.
@@ -77,7 +75,7 @@ public interface AnalyticsTableManager
     /**
      * Performs work before tables are being created.
      *
-     * @param the {@link AnalyticsTableUpdateParams}.
+     * @param params {@link AnalyticsTableUpdateParams}.
      */
     void preCreateTables( AnalyticsTableUpdateParams params );
 
@@ -85,10 +83,12 @@ public interface AnalyticsTableManager
      * Removes updated and deleted data from tables for "latest" partition
      * update.
      *
-     * @param params the {@link AnalyticsTableUpdateParams}.
-     * @param tables the list of {@link AnalyticsTable}.
+     * @param tables tables to pick partitions from
      */
-    void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables );
+    default void removeUpdatedData( List<AnalyticsTable> tables )
+    {
+        // NOOP by default
+    }
 
     /**
      * Attempts to drop and then create analytics table.
@@ -101,10 +101,9 @@ public interface AnalyticsTableManager
      * Creates single indexes on the given columns of the analytics table with
      * the given name.
      *
-     * @param indexes the analytics indexes.
-     * @return a future representing the asynchronous task.
+     * @param index the analytics index.
      */
-    Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes );
+    void createIndex( AnalyticsIndex index );
 
     /**
      * Attempts to drop the analytics table with partitions and rename the
@@ -124,11 +123,10 @@ public interface AnalyticsTableManager
      * The data range is based on the start date of the data value row.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
-     * @param tablePartitions the analytics table partitions.
-     * @return a future representing the asynchronous task.
+     * @param partition the analytics table partition to populate
      */
-    Future<?> populateTablesAsync( AnalyticsTableUpdateParams params,
-        ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
+    void populateTablePartition( AnalyticsTableUpdateParams params,
+        AnalyticsTablePartition partition );
 
     /**
      * Invokes analytics table SQL hooks for the table type.
@@ -170,23 +168,27 @@ public interface AnalyticsTableManager
      * organisation unit level column values to null for the levels above the
      * given aggregation level.
      *
-     * @param partitions the analytics table partitions.
+     * @param partition the analytics table partition.
      * @param dataElements the data element identifiers to apply aggregation
      *        levels for.
      * @param aggregationLevel the aggregation level.
-     * @return a future representing the asynchronous task.
      */
-    Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
-        Collection<String> dataElements, int aggregationLevel );
+    default void applyAggregationLevels( AnalyticsTablePartition partition,
+        Collection<String> dataElements, int aggregationLevel )
+    {
+        // NOOP by default
+    }
 
     /**
      * Performs vacuum or optimization of the given table. The type of operation
      * performed is dependent on the underlying DBMS.
      *
-     * @param partitions the analytics table partitions.
-     * @return a future representing the asynchronous task.
+     * @param partition the analytics table partition.
      */
-    Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions );
+    default void vacuumTables( AnalyticsTablePartition partition )
+    {
+        // NOOP by default
+    }
 
     /**
      * Returns a list of non-dynamic {@link AnalyticsTableColumn}.

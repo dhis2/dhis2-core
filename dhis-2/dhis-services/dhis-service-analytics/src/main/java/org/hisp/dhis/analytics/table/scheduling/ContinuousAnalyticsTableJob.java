@@ -38,6 +38,7 @@ import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.setting.SettingKey;
@@ -86,7 +87,7 @@ public class ContinuousAnalyticsTableJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         ContinuousAnalyticsJobParameters parameters = (ContinuousAnalyticsJobParameters) jobConfiguration
             .getJobParameters();
@@ -119,7 +120,7 @@ public class ContinuousAnalyticsTableJob implements Job
 
             try
             {
-                analyticsTableGenerator.generateTables( params );
+                analyticsTableGenerator.generateTables( params, progress );
             }
             finally
             {
@@ -140,7 +141,7 @@ public class ContinuousAnalyticsTableJob implements Job
                 .withStartTime( now )
                 .build();
 
-            analyticsTableGenerator.generateTables( params );
+            analyticsTableGenerator.generateTables( params, progress );
         }
     }
 }
