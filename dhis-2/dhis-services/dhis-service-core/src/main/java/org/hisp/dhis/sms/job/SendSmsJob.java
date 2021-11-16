@@ -35,6 +35,7 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
 import org.hisp.dhis.sms.outbound.OutboundSms;
@@ -76,7 +77,7 @@ public class SendSmsJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         SmsJobParameters parameters = (SmsJobParameters) jobConfiguration.getJobParameters();
         OutboundSms sms = new OutboundSms();

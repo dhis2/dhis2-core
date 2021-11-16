@@ -57,6 +57,7 @@ import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.system.notification.Notifier;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -97,7 +98,7 @@ public class SchedulingManagerTest
         when( applicationContext.getBeansOfType( any() ) ).thenReturn( Collections.singletonMap( "test", job ) );
 
         schedulingManager = new DefaultSchedulingManager( new DefaultJobService( applicationContext ),
-            jobConfigurationService, mock( MessageService.class ),
+            jobConfigurationService, mock( MessageService.class ), mock( Notifier.class ),
             mock( LeaderManager.class ), taskScheduler, mock( AsyncTaskExecutor.class ) );
     }
 
@@ -272,7 +273,7 @@ public class SchedulingManagerTest
         doAnswer( invocation -> {
             execute.accept( invocation.getArgument( 0, JobConfiguration.class ) );
             return null;
-        } ).when( job ).execute( any( JobConfiguration.class ) );
+        } ).when( job ).execute( any( JobConfiguration.class ), any( JobProgress.class ) );
     }
 
     /**

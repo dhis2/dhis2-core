@@ -812,6 +812,10 @@ final class GistBuilder
         {
             fieldTemplate = "size(%s)";
         }
+        else if ( operator.isCaseInsensitive() )
+        {
+            fieldTemplate = "lower(%s)";
+        }
         str.append( String.format( fieldTemplate, field ) );
         str.append( " " ).append( createOperatorLeftSideHQL( operator ) );
         if ( !operator.isUnary() )
@@ -994,12 +998,20 @@ final class GistBuilder
                 Object value = filter.isAttribute()
                     ? filter.getValue()[0]
                     : getParameterValue( context.resolveMandatory( filter.getPropertyPath() ), filter, argumentParser );
-                dest.accept( "f_" + i, operator.isStringCompare()
-                    ? completeLikeExpression( operator, (String) value )
-                    : value );
+                dest.accept( "f_" + i,
+                    operator.isStringCompare()
+                        ? completeLikeExpression( operator, stringParameterValue( operator, value ) )
+                        : value );
             }
             i++;
         }
+    }
+
+    private String stringParameterValue( Comparison operator, Object value )
+    {
+        return value == null
+            ? null
+            : operator.isCaseInsensitive() ? value.toString().toLowerCase() : (String) value;
     }
 
     private Object getParameterValue( Property property, Filter filter,

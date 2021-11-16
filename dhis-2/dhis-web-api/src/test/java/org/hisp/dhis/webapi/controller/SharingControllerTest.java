@@ -80,7 +80,7 @@ public class SharingControllerTest
 
         doReturn( OrganisationUnit.class ).when( aclService ).classForType( eq( "organisationUnit" ) );
         when( aclService.isClassShareable( eq( OrganisationUnit.class ) ) ).thenReturn( true );
-        doReturn( organisationUnit ).when( manager ).get( eq( OrganisationUnit.class ), eq( "kkSjhdhks" ) );
+        doReturn( organisationUnit ).when( manager ).getNoAcl( eq( OrganisationUnit.class ), eq( "kkSjhdhks" ) );
 
         sharingController.postSharing( "organisationUnit", "kkSjhdhks", request );
     }
@@ -94,7 +94,7 @@ public class SharingControllerTest
 
         doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
         when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
-        when( manager.get( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
+        when( manager.getNoAcl( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
 
         sharingController.postSharing( "category", "kkSjhdhks", request );
     }
@@ -108,7 +108,7 @@ public class SharingControllerTest
 
         doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
         when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
-        when( manager.get( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
+        when( manager.getNoAcl( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
 
         WebMessage message = sharingController.postSharing( "category", "kkSjhdhks", request );
         assertThat( message.getMessage(),

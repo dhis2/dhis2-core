@@ -37,8 +37,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -66,6 +64,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTableService;
@@ -76,7 +75,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.util.Assert;
 
 import com.google.common.base.Preconditions;
@@ -178,19 +176,6 @@ public abstract class AbstractJdbcTableManager
     {
     }
 
-    /**
-     * Removes data which was updated or deleted between the last successful
-     * analytics table update and the start of this analytics table update
-     * process, excluding data which was created during that time span.
-     *
-     * Override in order to remove updated and deleted data for "latest"
-     * partition update.
-     */
-    @Override
-    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
-    {
-    }
-
     @Override
     public void createTable( AnalyticsTable table )
     {
@@ -205,33 +190,20 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    @Async
-    public Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes )
+    public void createIndex( AnalyticsIndex index )
     {
-        while ( true )
-        {
-            AnalyticsIndex inx = indexes.poll();
+        final String indexName = index.getIndexName( getAnalyticsTableType() );
+        final String indexColumns = StringUtils.join( index.getColumns(), "," );
 
-            if ( inx == null )
-            {
-                break;
-            }
+        final String sql = "create index " + indexName + " " +
+            "on " + index.getTable() + " " +
+            "using " + index.getType().keyword() + " (" + indexColumns + ");";
 
-            final String indexName = inx.getIndexName( getAnalyticsTableType() );
-            final String indexColumns = StringUtils.join( inx.getColumns(), "," );
+        log.debug( "Create index: '{}' with SQL: '{}'", indexName, sql );
 
-            final String sql = "create index " + indexName + " " +
-                "on " + inx.getTable() + " " +
-                "using " + inx.getType().keyword() + " (" + indexColumns + ");";
+        jdbcTemplate.execute( sql );
 
-            log.debug( "Create index: '{}' with SQL: '{}'", indexName, sql );
-
-            jdbcTemplate.execute( sql );
-
-            log.debug( "Created index: '{}'", indexName );
-        }
-
-        return null;
+        log.debug( "Created index: '{}'", indexName );
     }
 
     @Override
@@ -279,23 +251,9 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    @Async
-    public Future<?> populateTablesAsync( AnalyticsTableUpdateParams params,
-        ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
+    public void populateTablePartition( AnalyticsTableUpdateParams params, AnalyticsTablePartition partition )
     {
-        while ( true )
-        {
-            AnalyticsTablePartition partition = partitions.poll();
-
-            if ( partition == null )
-            {
-                break;
-            }
-
-            populateTable( params, partition );
-        }
-
-        return null;
+        populateTable( params, partition );
     }
 
     @Override
