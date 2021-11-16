@@ -31,11 +31,6 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.Filter;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -54,7 +49,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
@@ -95,21 +89,9 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
-        DefaultMockMvcBuilder mvcBuilder = MockMvcBuilders.webAppContextSetup( webApplicationContext );
-        List<Filter> filters = new ArrayList<>();
-        addFilters( filters );
-        if ( !filters.isEmpty() )
-        {
-            mvcBuilder.addFilters( filters.toArray( new Filter[0] ) );
-        }
-        mvc = mvcBuilder.build();
+        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
         TestUtils.executeStartupRoutines( webApplicationContext );
         superUser = switchToNewUser( null, "ALL" );
-    }
-
-    protected void addFilters( List<Filter> filters )
-    {
-
     }
 
     protected final String getSuperuserUid()

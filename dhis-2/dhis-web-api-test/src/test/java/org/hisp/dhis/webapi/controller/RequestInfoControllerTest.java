@@ -31,14 +31,10 @@ import static org.hisp.dhis.webapi.WebClient.Header;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.List;
-
-import javax.servlet.Filter;
-
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.filter.RequestInfoFilter;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -50,13 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class RequestInfoControllerTest extends DhisControllerConvenienceTest
 {
     @Autowired
-    private RequestInfoFilter filter;
-
-    @Override
-    protected void addFilters( List<Filter> filters )
-    {
-        filters.add( filter );
-    }
+    private RequestInfoInterceptor filter;
 
     @Test
     public void testGetCurrentInfo_NoHeader()

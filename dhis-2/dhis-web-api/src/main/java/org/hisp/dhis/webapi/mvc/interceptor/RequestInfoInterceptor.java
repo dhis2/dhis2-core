@@ -25,12 +25,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
-import java.io.IOException;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,7 +36,8 @@ import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.common.RequestInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Maintains the information contained in {@code X-Request-ID} header as an
@@ -50,28 +47,27 @@ import org.springframework.web.filter.OncePerRequestFilter;
  */
 @Component
 @AllArgsConstructor
-public final class RequestInfoFilter extends OncePerRequestFilter
+public final class RequestInfoInterceptor implements HandlerInterceptor
 {
     @Autowired
     private final DefaultRequestInfoService requestInfoService;
 
     @Override
-    protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response,
-        FilterChain chain )
-        throws ServletException,
-        IOException
+    public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler )
+        throws Exception
     {
         requestInfoService.setCurrentInfo( RequestInfo.builder()
             .headerXRequestID( request.getHeader( "X-Request-ID" ) )
             .build() );
-        try
-        {
-            chain.doFilter( request, response );
-        }
-        finally
-        {
-            requestInfoService.setCurrentInfo( null );
-        }
+        return true;
+    }
+
+    @Override
+    public void postHandle( HttpServletRequest request, HttpServletResponse response, Object handler,
+        ModelAndView modelAndView )
+        throws Exception
+    {
+        requestInfoService.setCurrentInfo( null );
     }
 
 }
