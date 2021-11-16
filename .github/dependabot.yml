@@ -19,3 +19,7 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    ignore:
+      - dependency-name: "com.zaxxer:HikariCP" # remove once we update minimum JDK to JDK11; https://github.com/brettwooldridge/HikariCP#artifacts
+          versions:
+            - ">= 5.0"
