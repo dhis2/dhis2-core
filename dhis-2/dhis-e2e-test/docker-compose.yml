@@ -14,7 +14,7 @@ services:
     environment:
       POSTGRES_USER: dhis
       POSTGRES_DB: dhis2
-      POSTGRES_PASSOWRD: dhis
+      POSTGRES_PASSWORD: dhis
 
   web:
     image: "${IMAGE_NAME}"
