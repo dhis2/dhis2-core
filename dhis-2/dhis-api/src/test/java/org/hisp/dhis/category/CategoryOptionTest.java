@@ -34,6 +34,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.program.Program;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
@@ -108,5 +109,20 @@ public class CategoryOptionTest
 
         dataSetB.setOpenPeriodsAfterCoEndDate( 4 );
         assertEquals( new DateTime( 2020, 5, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( dataElement ) );
+    }
+
+    @Test
+    public void getAdjustedDate_Program()
+    {
+        CategoryOption categoryOption = new CategoryOption();
+        Program program = new Program( "program" );
+
+        assertNull( categoryOption.getAdjustedEndDate( program ) );
+
+        categoryOption.setEndDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
+        assertEquals( new DateTime( 2020, 1, 1, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( program ) );
+
+        program.setOpenDaysAfterCoEndDate( 3 );
+        assertEquals( new DateTime( 2020, 1, 4, 0, 0 ).toDate(), categoryOption.getAdjustedEndDate( program ) );
     }
 }
