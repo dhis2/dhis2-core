@@ -46,10 +46,11 @@ public interface Job
 {
     JobType getJobType();
 
-    void execute( JobConfiguration jobConfiguration );
-
     default ErrorReport validate()
     {
         return null;
     }
+
+    void execute( JobConfiguration jobConfiguration, JobProgress progress );
+
 }
