@@ -73,10 +73,9 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -106,6 +105,9 @@ public abstract class TrackerTest extends IntegrationTestBase
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
+    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+
+    @Autowired
     protected UserService userService;
 
     @Autowired
@@ -133,6 +135,10 @@ public abstract class TrackerTest extends IntegrationTestBase
 
     protected RelationshipType relationshipType;
 
+    protected TrackedEntityAttribute teaA;
+
+    protected TrackedEntityAttribute teaB;
+
     protected final static String DEF_COC_UID = CodeGenerator.generateUid();
 
     @Override
@@ -143,6 +149,19 @@ public abstract class TrackerTest extends IntegrationTestBase
         trackedEntityTypeA = createTrackedEntityType( 'A' );
         trackedEntityTypeA.setUid( CodeGenerator.generateUid() );
         trackedEntityTypeA.setName( "TrackedEntityTypeA" + trackedEntityTypeA.getUid() );
+
+        teaA = createTrackedEntityAttribute( 'a' );
+        teaB = createTrackedEntityAttribute( 'b' );
+        teaB.setSkipSynchronization( true );
+
+        manager.save( teaA );
+        manager.save( teaB );
+
+        TrackedEntityTypeAttribute tetaA = new TrackedEntityTypeAttribute( trackedEntityTypeA, teaA, true, false );
+        TrackedEntityTypeAttribute tetaB = new TrackedEntityTypeAttribute( trackedEntityTypeA, teaB, true, false );
+
+        trackedEntityTypeA.getTrackedEntityTypeAttributes().add( tetaA );
+        trackedEntityTypeA.getTrackedEntityTypeAttributes().add( tetaB );
 
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitA.setUid( CodeGenerator.generateUid() );
@@ -213,7 +232,15 @@ public abstract class TrackerTest extends IntegrationTestBase
     {
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnitA );
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
+        TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', entityInstance, teaB );
+        entityInstance.getTrackedEntityAttributeValues().add( teavB );
+
+        TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue( 'a', entityInstance, teaA );
+        entityInstance.getTrackedEntityAttributeValues().add( teavA );
         trackedEntityInstanceService.addTrackedEntityInstance( entityInstance );
+
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavA );
+        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavB );
         return entityInstance;
     }
 

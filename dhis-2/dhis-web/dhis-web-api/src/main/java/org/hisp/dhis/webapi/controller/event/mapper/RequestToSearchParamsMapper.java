@@ -186,6 +186,12 @@ public class RequestToSearchParamsMapper
         {
             events = new HashSet<>();
         }
+        else
+        {
+            events = events.stream()
+                .filter( CodeGenerator::isValidUid )
+                .collect( Collectors.toSet() );
+        }
 
         if ( filters != null )
         {

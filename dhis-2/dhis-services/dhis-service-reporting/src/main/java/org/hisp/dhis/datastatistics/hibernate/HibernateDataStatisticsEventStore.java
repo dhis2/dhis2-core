@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datastatistics.hibernate;
 
+import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
 import java.util.Date;
@@ -114,8 +115,8 @@ public class HibernateDataStatisticsEventStore
         }
 
         sql += "group by uid) as events " +
-            "inner join " + eventType.getTable() + " c on c.uid = events.uid " +
-            "order by events.views " + sortOrder.getValue() + " " +
+            "inner join " + escapeSql( eventType.getTable() ) + " c on c.uid = events.uid " +
+            "order by events.views " + escapeSql( sortOrder.getValue() ) + " " +
             "limit ?;";
 
         PreparedStatementSetter pss = ( ps ) -> {
