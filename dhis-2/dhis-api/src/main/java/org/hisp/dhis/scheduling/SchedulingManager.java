@@ -57,6 +57,10 @@ import java.util.Date;
  * a specific point in time.</dd>
  * </dl>
  *
+ * More information about scheduling in DHIS2 can be found in <a href=
+ * "https://github.com/dhis2/wow-backend/blob/master/documentation/job_scheduling.md">backend
+ * WOW</a> pages.
+ *
  * @author Henning Håkonsen
  */
 public interface SchedulingManager
