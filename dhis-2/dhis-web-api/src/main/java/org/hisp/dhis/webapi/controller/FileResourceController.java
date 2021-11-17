@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
@@ -35,8 +34,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletResponse;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -48,7 +45,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
@@ -64,6 +61,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.base.MoreObjects;
 
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Halvdan Hoem Grelland
  */
@@ -71,29 +71,12 @@ import com.google.common.base.MoreObjects;
 @RequestMapping( value = FileResourceSchemaDescriptor.API_ENDPOINT )
 @Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class FileResourceController
 {
-    private final CurrentUserService currentUserService;
-
     private final FileResourceService fileResourceService;
 
     private final FileResourceUtils fileResourceUtils;
-
-    public FileResourceController( CurrentUserService currentUserService,
-        FileResourceService fileResourceService, FileResourceUtils fileResourceUtils )
-    {
-        checkNotNull( currentUserService );
-        checkNotNull( fileResourceService );
-        checkNotNull( fileResourceUtils );
-
-        this.currentUserService = currentUserService;
-        this.fileResourceService = fileResourceService;
-        this.fileResourceUtils = fileResourceUtils;
-    }
-
-    // -------------------------------------------------------------------------
-    // Controller methods
-    // -------------------------------------------------------------------------
 
     @GetMapping( value = "/{uid}" )
     public FileResource getFileResource( @PathVariable String uid,
@@ -115,7 +98,7 @@ public class FileResourceController
 
     @GetMapping( value = "/{uid}/data" )
     public void getFileResourceData( @PathVariable String uid, HttpServletResponse response,
-        @RequestParam( required = false ) ImageFileDimension dimension )
+        @RequestParam( required = false ) ImageFileDimension dimension, @CurrentUser User currentUser )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -128,7 +111,7 @@ public class FileResourceController
         FileResourceUtils.setImageFileDimensions( fileResource,
             MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
-        if ( !checkSharing( fileResource ) )
+        if ( !checkSharing( fileResource, currentUser ) )
         {
             throw new WebMessageException(
                 unauthorized( "You don't have access to fileResource '" + uid
@@ -172,10 +155,8 @@ public class FileResourceController
      *
      * @return true if user has access, false if not.
      */
-    private boolean checkSharing( FileResource fileResource )
+    private boolean checkSharing( FileResource fileResource, User currentUser )
     {
-        User currentUser = currentUserService.getCurrentUser();
-
         /*
          * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint
          * doesn't make sense So we will return false if the fileResource have

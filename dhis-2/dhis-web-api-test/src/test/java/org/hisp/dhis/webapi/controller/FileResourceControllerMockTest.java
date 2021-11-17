@@ -67,14 +67,15 @@ public class FileResourceControllerMockTest
         throws WebMessageException,
         IOException
     {
-        controller = new FileResourceController( currentUserService, fileResourceService, fileResourceUtils );
+        controller = new FileResourceController( fileResourceService, fileResourceUtils );
         FileResource fileResource = new FileResource();
         fileResource.setDomain( FileResourceDomain.ORG_UNIT );
         fileResource.setUid( "id" );
 
         when( fileResourceService.getFileResource( "id" ) ).thenReturn( fileResource );
 
-        controller.getFileResourceData( "id", new MockHttpServletResponse(), null );
+        controller.getFileResourceData( "id", new MockHttpServletResponse(), null,
+            currentUserService.getCurrentUser() );
 
         verify( fileResourceService ).copyFileResourceContent( any(), any() );
     }
@@ -84,13 +85,14 @@ public class FileResourceControllerMockTest
         throws WebMessageException,
         IOException
     {
-        controller = new FileResourceController( currentUserService, fileResourceService, fileResourceUtils );
+        controller = new FileResourceController( fileResourceService, fileResourceUtils );
         FileResource fileResource = new FileResource();
         fileResource.setDomain( FileResourceDomain.DATA_VALUE );
         fileResource.setUid( "id" );
 
         when( fileResourceService.getFileResource( "id" ) ).thenReturn( fileResource );
 
-        controller.getFileResourceData( "id", new MockHttpServletResponse(), null );
+        controller.getFileResourceData( "id", new MockHttpServletResponse(), null,
+            currentUserService.getCurrentUser() );
     }
 }

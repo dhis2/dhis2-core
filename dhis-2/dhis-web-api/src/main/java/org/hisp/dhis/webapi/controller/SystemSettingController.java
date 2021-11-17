@@ -47,8 +47,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.AllArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -56,7 +54,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -78,6 +76,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import lombok.AllArgsConstructor;
+
 /**
  * @author Lars Helge Overland
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -91,8 +91,6 @@ public class SystemSettingController
     private final SystemSettingManager systemSettingManager;
 
     private final RenderService renderService;
-
-    private final CurrentUserService currentUserService;
 
     private final UserSettingService userSettingService;
 
@@ -196,29 +194,30 @@ public class SystemSettingController
 
     @GetMapping( value = "/{key}", produces = ContextUtils.CONTENT_TYPE_TEXT )
     public @ResponseBody Serializable getSystemSettingOrTranslationAsPlainText( @PathVariable( "key" ) String key,
-        @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
+        @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response,
+        @CurrentUser User currentUser )
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
-        return String.valueOf( getSystemSettingOrTranslation( key, locale ) );
+        return String.valueOf( getSystemSettingOrTranslation( key, locale, currentUser ) );
     }
 
     @GetMapping( value = "/{key}", produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
     public @ResponseBody ResponseEntity<Map<String, Serializable>> getSystemSettingOrTranslationAsJson(
         @PathVariable( "key" ) String key,
-        @RequestParam( value = "locale", required = false ) String locale )
+        @RequestParam( value = "locale", required = false ) String locale, @CurrentUser User currentUser )
     {
         return ResponseEntity.ok()
             .cacheControl( CacheControl.noCache().cachePrivate() )
-            .body( singletonMap( key, getSystemSettingOrTranslation( key, locale ) ) );
+            .body( singletonMap( key, getSystemSettingOrTranslation( key, locale, currentUser ) ) );
     }
 
-    private Serializable getSystemSettingOrTranslation( String key, String locale )
+    private Serializable getSystemSettingOrTranslation( String key, String locale, User currentUser )
     {
         Optional<SettingKey> settingKey = SettingKey.getByName( key );
         if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent() )
         {
-            Optional<String> localeToFetch = getLocaleToFetch( locale, key );
+            Optional<String> localeToFetch = getLocaleToFetch( locale, key, currentUser );
 
             if ( localeToFetch.isPresent() )
             {
@@ -245,12 +244,10 @@ public class SystemSettingController
         return StringUtils.EMPTY;
     }
 
-    private Optional<String> getLocaleToFetch( String locale, String key )
+    private Optional<String> getLocaleToFetch( String locale, String key, User currentUser )
     {
         if ( systemSettingManager.isTranslatable( key ) )
         {
-            User currentUser = currentUserService.getCurrentUser();
-
             if ( StringUtils.isNotEmpty( locale ) )
             {
                 return Optional.of( locale );

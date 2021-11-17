@@ -69,6 +69,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
@@ -160,7 +161,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     @GetMapping
     public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, User currentUser )
+        HttpServletResponse response, @CurrentUser User currentUser )
         throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -313,10 +314,9 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         @PathVariable( "itemId" ) String pvItemId,
         @RequestParam Map<String, String> parameters,
         TranslateParams translateParams,
-        HttpServletResponse response )
+        HttpServletResponse response, @CurrentUser User user )
         throws Exception
     {
-        User user = currentUserService.getCurrentUser();
         setUserContext( user, translateParams );
 
         try

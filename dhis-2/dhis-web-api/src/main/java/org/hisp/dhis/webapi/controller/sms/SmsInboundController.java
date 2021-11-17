@@ -38,8 +38,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -50,6 +48,7 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -63,6 +62,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import lombok.AllArgsConstructor;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -93,7 +94,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     @ResponseBody
     public WebMessage receiveSMSMessage( @RequestParam String originator,
         @RequestParam( required = false ) Date receivedTime, @RequestParam String message,
-        @RequestParam( defaultValue = "Unknown", required = false ) String gateway )
+        @RequestParam( defaultValue = "Unknown", required = false ) String gateway, @CurrentUser User currentUser )
         throws WebMessageException
     {
         if ( originator == null || originator.length() <= 0 )
@@ -107,7 +108,7 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
         }
 
         long smsId = incomingSMSService.save( message, originator, gateway, receivedTime,
-            getUserByPhoneNumber( originator, message ) );
+            getUserByPhoneNumber( originator, message, currentUser ) );
 
         return ok( "Received SMS: " + smsId );
     }
@@ -115,12 +116,12 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     @ResponseBody
-    public WebMessage receiveSMSMessage( HttpServletRequest request )
+    public WebMessage receiveSMSMessage( HttpServletRequest request, @CurrentUser User currentUser )
         throws WebMessageException,
         IOException
     {
         IncomingSms sms = renderService.fromJson( request.getInputStream(), IncomingSms.class );
-        sms.setCreatedBy( getUserByPhoneNumber( sms.getOriginator(), sms.getText() ) );
+        sms.setCreatedBy( getUserByPhoneNumber( sms.getOriginator(), sms.getText(), currentUser ) );
 
         long smsId = incomingSMSService.save( sms );
 
@@ -177,15 +178,13 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     // SUPPORTIVE METHOD
     // -------------------------------------------------------------------------
 
-    private User getUserByPhoneNumber( String phoneNumber, String text )
+    private User getUserByPhoneNumber( String phoneNumber, String text, User currentUser )
         throws WebMessageException
     {
         SMSCommand unregisteredParser = smsCommandService.getSMSCommand( SmsUtils.getCommandString( text ),
             ParserType.UNREGISTERED_PARSER );
 
         List<User> users = userService.getUsersByPhoneNumber( phoneNumber );
-
-        User currentUser = currentUserService.getCurrentUser();
 
         if ( SmsUtils.isBase64( text ) )
         {

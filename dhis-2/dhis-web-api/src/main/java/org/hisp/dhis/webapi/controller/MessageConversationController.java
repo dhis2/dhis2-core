@@ -71,6 +71,7 @@ import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.MessageConversationSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
@@ -131,7 +132,6 @@ public class MessageConversationController
     @Override
     protected void postProcessResponseEntity( org.hisp.dhis.message.MessageConversation entity, WebOptions options,
         Map<String, String> parameters )
-        throws Exception
     {
         if ( !messageService.hasAccessToManageFeedbackMessages( currentUserService.getCurrentUser() ) )
         {
@@ -637,18 +637,19 @@ public class MessageConversationController
     @PostMapping( value = "/{uid}/read", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationRead(
-        @PathVariable String uid, @RequestParam( required = false ) String userUid, HttpServletResponse response )
+        @PathVariable String uid, @RequestParam( required = false ) String userUid, HttpServletResponse response,
+        @CurrentUser User currentUser )
     {
-        return modifyMessageConversationRead( userUid, Lists.newArrayList( uid ), response, true );
+        return modifyMessageConversationRead( userUid, Lists.newArrayList( uid ), response, true, currentUser );
     }
 
     @PostMapping( value = "/read", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationsRead(
         @RequestParam( value = "user", required = false ) String userUid, @RequestBody List<String> uids,
-        HttpServletResponse response )
+        HttpServletResponse response, @CurrentUser User currentUser )
     {
-        return modifyMessageConversationRead( userUid, uids, response, true );
+        return modifyMessageConversationRead( userUid, uids, response, true, currentUser );
     }
 
     // --------------------------------------------------------------------------
@@ -658,18 +659,19 @@ public class MessageConversationController
     @PostMapping( value = "/{uid}/unread", produces = {
         MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationUnread(
-        @PathVariable String uid, @RequestParam( required = false ) String userUid, HttpServletResponse response )
+        @PathVariable String uid, @RequestParam( required = false ) String userUid, HttpServletResponse response,
+        @CurrentUser User currentUser )
     {
-        return modifyMessageConversationRead( userUid, Lists.newArrayList( uid ), response, false );
+        return modifyMessageConversationRead( userUid, Lists.newArrayList( uid ), response, false, currentUser );
     }
 
     @PostMapping( value = "/unread", produces = { MediaType.APPLICATION_JSON_VALUE,
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationsUnread(
         @RequestParam( value = "user", required = false ) String userUid, @RequestBody List<String> uids,
-        HttpServletResponse response )
+        HttpServletResponse response, @CurrentUser User currentUser )
     {
-        return modifyMessageConversationRead( userUid, uids, response, false );
+        return modifyMessageConversationRead( userUid, uids, response, false, currentUser );
     }
 
     // --------------------------------------------------------------------------
@@ -680,11 +682,10 @@ public class MessageConversationController
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode markMessageConversationFollowup(
         @RequestParam( value = "user", required = false ) String userUid, @RequestBody List<String> uids,
-        HttpServletResponse response )
+        HttpServletResponse response, @CurrentUser User currentUser )
     {
         RootNode responseNode = new RootNode( "response" );
 
-        User currentUser = currentUserService.getCurrentUser();
         User user = userUid != null ? userService.getUser( userUid ) : currentUser;
 
         if ( user == null )
@@ -735,11 +736,10 @@ public class MessageConversationController
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode unmarkMessageConversationFollowup(
         @RequestParam( value = "user", required = false ) String userUid, @RequestBody List<String> uids,
-        HttpServletResponse response )
+        HttpServletResponse response, @CurrentUser User currentUser )
     {
         RootNode responseNode = new RootNode( "response" );
 
-        User currentUser = currentUserService.getCurrentUser();
         User user = userUid != null ? userService.getUser( userUid ) : currentUser;
 
         if ( user == null )
@@ -859,12 +859,10 @@ public class MessageConversationController
         MediaType.APPLICATION_XML_VALUE } )
     public @ResponseBody RootNode removeUserFromMessageConversations(
         @RequestParam( "mc" ) List<String> mcUids, @RequestParam( value = "user", required = false ) String userUid,
-        HttpServletResponse response )
+        HttpServletResponse response, @CurrentUser User currentUser )
         throws DeleteAccessDeniedException
     {
         RootNode responseNode = new RootNode( "response" );
-
-        User currentUser = currentUserService.getCurrentUser();
 
         User user = userUid == null ? currentUser : userService.getUser( userUid );
 
@@ -989,11 +987,10 @@ public class MessageConversationController
      * @param readValue true when setting as read, false when setting unread.
      */
     private RootNode modifyMessageConversationRead( String userUid, List<String> uids, HttpServletResponse response,
-        boolean readValue )
+        boolean readValue, User currentUser )
     {
         RootNode responseNode = new RootNode( "response" );
 
-        User currentUser = currentUserService.getCurrentUser();
         User user = userUid != null ? userService.getUser( userUid ) : currentUser;
 
         if ( user == null )
