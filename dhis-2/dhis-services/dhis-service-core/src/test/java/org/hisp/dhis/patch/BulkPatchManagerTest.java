@@ -42,7 +42,7 @@ import org.hisp.dhis.jsonpatch.BulkJsonPatch;
 import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
-import org.hisp.dhis.jsonpatch.BulkPatchValidators;
+import org.hisp.dhis.jsonpatch.SharingBulkPatchValidators;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -126,12 +126,10 @@ public class BulkPatchManagerTest extends DhisSpringTest
     public void testApplyPatchOk()
         throws IOException
     {
-        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
-            new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
-            BulkJsonPatch.class );
+        final BulkJsonPatch bulkJsonPatch = loadPatch( "bulk_sharing_patch.json", BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( BulkPatchValidators.sharingValidators() )
+            .validators( SharingBulkPatchValidators.getInstance() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -146,12 +144,11 @@ public class BulkPatchManagerTest extends DhisSpringTest
     public void testApplyPatchInvalidClassName()
         throws IOException
     {
-        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
-            new ClassPathResource( "patch/bulk_sharing_patch_invalid_class_name.json" ).getInputStream(),
+        final BulkJsonPatch bulkJsonPatch = loadPatch( "bulk_sharing_patch_invalid_class_name.json",
             BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( BulkPatchValidators.sharingValidators() )
+            .validators( SharingBulkPatchValidators.getInstance() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -165,12 +162,10 @@ public class BulkPatchManagerTest extends DhisSpringTest
     public void testApplyPatchInvalidUid()
         throws IOException
     {
-        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
-            new ClassPathResource( "patch/bulk_sharing_patch_invalid_uid.json" ).getInputStream(),
-            BulkJsonPatch.class );
+        final BulkJsonPatch bulkJsonPatch = loadPatch( "bulk_sharing_patch_invalid_uid.json", BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( BulkPatchValidators.sharingValidators() )
+            .validators( SharingBulkPatchValidators.getInstance() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -186,12 +181,10 @@ public class BulkPatchManagerTest extends DhisSpringTest
     public void testApplyPatchInvalidPath()
         throws IOException
     {
-        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
-            new ClassPathResource( "patch/bulk_sharing_patch_invalid_path.json" ).getInputStream(),
-            BulkJsonPatch.class );
+        final BulkJsonPatch bulkJsonPatch = loadPatch( "bulk_sharing_patch_invalid_path.json", BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( BulkPatchValidators.sharingValidators() )
+            .validators( SharingBulkPatchValidators.getInstance() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -205,12 +198,10 @@ public class BulkPatchManagerTest extends DhisSpringTest
     public void testApplyPatchNotShareableSchema()
         throws IOException
     {
-        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue(
-            new ClassPathResource( "patch/bulk_sharing_patch_not_shareable.json" ).getInputStream(),
-            BulkJsonPatch.class );
+        final BulkJsonPatch bulkJsonPatch = loadPatch( "bulk_sharing_patch_not_shareable.json", BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( BulkPatchValidators.sharingValidators() )
+            .validators( SharingBulkPatchValidators.getInstance() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -224,12 +215,10 @@ public class BulkPatchManagerTest extends DhisSpringTest
     public void testApplyPatchesOk()
         throws IOException
     {
-        final BulkJsonPatches bulkJsonPatch = jsonMapper.readValue(
-            new ClassPathResource( "patch/bulk_sharing_patches.json" ).getInputStream(),
-            BulkJsonPatches.class );
+        final BulkJsonPatches bulkJsonPatch = loadPatch( "bulk_sharing_patches.json", BulkJsonPatches.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( BulkPatchValidators.sharingValidators() )
+            .validators( SharingBulkPatchValidators.getInstance() )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -253,5 +242,13 @@ public class BulkPatchManagerTest extends DhisSpringTest
 
         assertFalse( aclService.canRead( userC, patchedDataElementA ) );
         assertFalse( aclService.canRead( userC, patchedDataSetA ) );
+    }
+
+    private <T> T loadPatch( String fileName, Class<T> klass )
+        throws IOException
+    {
+        return jsonMapper.readValue(
+            new ClassPathResource( "patch/" + fileName ).getInputStream(),
+            klass );
     }
 }

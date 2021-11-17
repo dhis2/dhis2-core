@@ -155,8 +155,8 @@ public class BulkPatchManager
      * Try to apply given {@link JsonPatch} to given entity by calling
      * {@link JsonPatchManager#apply}.
      * <p>
-     * If there is an error, add it to the given errors list and return
-     * {@link Optional#empty()}.
+     * If there is an error, add it to the given {@link ObjectReport} list and
+     * return {@link Optional#empty()}.
      */
     private Optional<IdentifiableObject> applySafely( Schema schema, JsonPatch patch, IdentifiableObject entity,
         ObjectReport objectReport )
@@ -192,7 +192,7 @@ public class BulkPatchManager
             return Optional.empty();
         }
 
-        List<ErrorReport> errors = patchParameters.getValidators().getSchemaValidator().apply( schema );
+        List<ErrorReport> errors = patchParameters.getValidators().validateSchema( schema );
 
         if ( !errors.isEmpty() )
         {
@@ -232,7 +232,7 @@ public class BulkPatchManager
      */
     private boolean validateJsonPatch( JsonPatch patch, BulkPatchParameters patchParams, ObjectReport objectReport )
     {
-        List<ErrorReport> errors = patchParams.getValidators().getJsonPatchValidator().apply( patch );
+        List<ErrorReport> errors = patchParams.getValidators().validateJsonPatch( patch );
 
         if ( !errors.isEmpty() )
         {

@@ -45,8 +45,8 @@ import com.google.common.base.MoreObjects;
 public class BulkPatchParameters implements ErrorReportContainer
 {
     /**
-     * List of {@link ErrorReport} created during the patch process and will be
-     * returned to api consumer.
+     * Map of {@link TypeReport} that contains all errors from the patch process
+     * and will be returned to api consumer.
      */
     @Builder.Default
     private final Map<Class<?>, TypeReport> typeReportMap = new HashMap<>();

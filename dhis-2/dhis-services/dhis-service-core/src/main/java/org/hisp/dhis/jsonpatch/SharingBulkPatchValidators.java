@@ -27,45 +27,44 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.Collections;
 import java.util.List;
+
+import lombok.Builder;
+import lombok.Getter;
 
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 
 /**
- * Contains all validators needed for the json patch process
- *
- * @author viet@dhis2.org
+ * Contains all validators needed for the sharing json patch
  */
-public interface BulkPatchValidators
+@Builder
+@Getter
+public class SharingBulkPatchValidators implements BulkPatchValidators
 {
-    List<ErrorReport> validateJsonPatch( JsonPatch jsonPatch );
+    private SchemaValidator schemaValidator;
 
-    List<ErrorReport> validateSchema( Schema schema );
+    private JsonPatchValidator jsonPatchValidator;
 
-    static BulkPatchValidators empty()
+    private static final SharingBulkPatchValidators instance = SharingBulkPatchValidators.builder()
+        .schemaValidator( SchemaValidator.isShareable )
+        .jsonPatchValidator( JsonPatchValidator.isSharingPatch ).build();
+
+    public static SharingBulkPatchValidators getInstance()
     {
-        return new EmptyBulkPatchValidators();
+        return instance;
     }
 
-    /**
-     * Empty validator to use when no instance of BulkPatchValidators provided
-     * to {@link BulkPatchParameters}
-     */
-    class EmptyBulkPatchValidators implements BulkPatchValidators
+    @Override
+    public List<ErrorReport> validateJsonPatch( JsonPatch jsonPatch )
     {
-        @Override
-        public List<ErrorReport> validateJsonPatch( JsonPatch jsonPatch )
-        {
-            return Collections.emptyList();
-        }
+        return jsonPatchValidator.apply( jsonPatch );
+    }
 
-        @Override
-        public List<ErrorReport> validateSchema( Schema schema )
-        {
-            return Collections.emptyList();
-        }
+    @Override
+    public List<ErrorReport> validateSchema( Schema schema )
+    {
+        return schemaValidator.apply( schema );
     }
 }

@@ -32,9 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 
-import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -43,7 +41,6 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -52,7 +49,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author viet@dhis2.org
  */
-public class BulkPatchSharingTest extends DhisControllerConvenienceTest
+public class BulkPatchSharingControllerTest
+    extends DhisControllerConvenienceTest
 {
     @Autowired
     private ObjectMapper jsonMapper;
@@ -83,9 +81,7 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
 
-        String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
-            StandardCharsets.UTF_8 );
-        assertStatus( HttpStatus.OK, PATCH( "/dataElements/sharing", payload ) );
+        assertStatus( HttpStatus.OK, PATCH( "/dataElements/sharing", "patch/bulk_sharing_patch.json" ) );
 
         JsonIdentifiableObject saveDeA = GET( "/dataElements/{uid}", deAId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
@@ -139,9 +135,7 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
 
-        String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patch.json" ).getInputStream(),
-            StandardCharsets.UTF_8 );
-        HttpResponse response = PATCH( "/dataElements/sharing?atomic=true", payload );
+        HttpResponse response = PATCH( "/dataElements/sharing?atomic=true", "patch/bulk_sharing_patch.json" );
         assertEquals( HttpStatus.CONFLICT, response.status() );
         assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getFirstErrorMessage( response ) );
 
@@ -165,9 +159,7 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
 
-        String payload = IOUtils.toString( new ClassPathResource( "patch/bulk_sharing_patches.json" ).getInputStream(),
-            StandardCharsets.UTF_8 );
-        assertStatus( HttpStatus.OK, PATCH( "/metadata/sharing", payload ) );
+        assertStatus( HttpStatus.OK, PATCH( "/metadata/sharing", "patch/bulk_sharing_patches.json" ) );
 
         JsonIdentifiableObject savedDeA = GET( "/dataElements/{uid}", deAId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
@@ -193,11 +185,7 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
     public void testApplyPatchesInvalidClass()
         throws IOException
     {
-        String payload = IOUtils.toString(
-            new ClassPathResource( "patch/bulk_sharing_patches_invalid_class.json" ).getInputStream(),
-            StandardCharsets.UTF_8 );
-
-        HttpResponse response = PATCH( "/metadata/sharing", payload );
+        HttpResponse response = PATCH( "/metadata/sharing", "patch/bulk_sharing_patches_invalid_class.json" );
         assertEquals( HttpStatus.CONFLICT, response.status() );
         assertEquals( "Sharing is not enabled for this object `organisationUnit`", getFirstErrorMessage( response ) );
     }
@@ -210,8 +198,8 @@ public class BulkPatchSharingTest extends DhisControllerConvenienceTest
 
     private String getFirstErrorMessage( HttpResponse response )
     {
-        return response.error().get( "response.typeReports[0].objectReports[0].errorReports[0].message" )
-            .node().value().toString();
+        return response.error().getString( "response.typeReports[0].objectReports[0].errorReports[0].message" )
+            .string();
     }
 
     private DataSet createDataSet( char uniqueChar, String uid, String owner )
