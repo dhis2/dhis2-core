@@ -95,7 +95,7 @@ public class ProgramObjectBundleHookTest
     @Before
     public void setUp()
     {
-        this.subject = new ProgramObjectBundleHook( programInstanceService, programService, programStageService,
+        this.subject = new ProgramObjectBundleHook( programInstanceService, programStageService,
             aclService );
 
         programA = createProgram( 'A' );
@@ -113,8 +113,6 @@ public class ProgramObjectBundleHookTest
     @Test
     public void verifyMissingBundleIsIgnored()
     {
-        ProgramInstance programInstance = new ProgramInstance();
-
         subject.preCreate( programA, null );
 
         verifyNoInteractions( programInstanceService );

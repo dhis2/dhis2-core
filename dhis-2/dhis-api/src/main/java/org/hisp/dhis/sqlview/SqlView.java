@@ -75,7 +75,7 @@ public class SqlView
 
     private static final String REGEX_SEP = "|";
 
-    private static final String QUERY_VALUE_REGEX = "^[\\w\\s\\-]*$";
+    private static final String QUERY_VALUE_REGEX = "^[\\p{L}\\w\\s\\-]*$";
 
     private static final String QUERY_NAME_REGEX = "^[-a-zA-Z0-9_]+$";
 

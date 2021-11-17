@@ -35,6 +35,7 @@ import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -74,7 +75,7 @@ public class DataIntegrityJob implements Job
     // -------------------------------------------------------------------------
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         Timer timer = new SystemTimer().start();
 

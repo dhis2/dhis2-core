@@ -25,45 +25,82 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.table.scheduling;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.hisp.dhis.analytics.AnalyticsTableGenerator;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.scheduling;
 
 /**
- * @author Lars Helge Overland
+ * The {@link NoopJobProgress} can be used as a {@link JobProgress} instance
+ * when no actual flow control and tracking is wanted. For example in test
+ * context or in manual runs of operations that would generally support the
+ * tracking though the {@link JobProgress} abstraction.
+ *
+ * @author Jan Bernitt
  */
-@Component( "resourceTableJob" )
-public class ResourceTableJob implements Job
+public class NoopJobProgress implements JobProgress
 {
-    private final AnalyticsTableGenerator analyticsTableGenerator;
+    public static final JobProgress INSTANCE = new NoopJobProgress();
 
-    public ResourceTableJob( AnalyticsTableGenerator analyticsTableGenerator )
+    private NoopJobProgress()
     {
-        checkNotNull( analyticsTableGenerator );
-
-        this.analyticsTableGenerator = analyticsTableGenerator;
-    }
-
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public JobType getJobType()
-    {
-        return JobType.RESOURCE_TABLE;
+        // hide
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
+    public boolean isCancellationRequested()
     {
-        analyticsTableGenerator.generateResourceTables( progress );
+        return false;
+    }
+
+    @Override
+    public void startingProcess( String description )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void completedProcess( String summary )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void failedProcess( String error )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void startingStage( String description, int workItems )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void completedStage( String summary )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void failedStage( String error )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void startingWorkItem( String description )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void completedWorkItem( String summary )
+    {
+        // as the name said we do nothing
+    }
+
+    @Override
+    public void failedWorkItem( String error )
+    {
+        // as the name said we do nothing
     }
 }

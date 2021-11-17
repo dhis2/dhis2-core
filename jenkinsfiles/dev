@@ -17,6 +17,7 @@ pipeline {
 
     environment {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m'
+        MAVEN_CLI_OPTS = '--batch-mode --no-transfer-progress'
         AWX_TEMPLATE = 37
         HOST = 'play.dhis2.org'
         INSTANCE_NAME = "${env.GIT_BRANCH == 'master' ? 'dev' : env.GIT_BRANCH + 'dev'}"
