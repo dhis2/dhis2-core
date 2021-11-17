@@ -49,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.config.EventProcessorPhase;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;

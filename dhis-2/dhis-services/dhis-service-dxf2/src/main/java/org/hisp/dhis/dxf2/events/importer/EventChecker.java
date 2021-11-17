@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.dxf2.events.importer;
 
-import static org.apache.commons.logging.LogFactory.getLog;
-
 import java.util.List;
 
-import org.apache.commons.logging.Log;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -44,7 +41,4 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 public interface EventChecker
 {
     List<ImportSummary> check( final WorkContext workContext, final List<Event> events );
-
-    Log log = getLog( EventChecker.class );
-
 }

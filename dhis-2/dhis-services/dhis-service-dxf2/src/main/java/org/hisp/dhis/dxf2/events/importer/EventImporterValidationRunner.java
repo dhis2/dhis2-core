@@ -33,8 +33,6 @@ import static org.hisp.dhis.dxf2.importsummary.ImportStatus.WARNING;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
@@ -49,19 +47,20 @@ public class EventImporterValidationRunner
      * <p>
      * Only returns the ImportSummary for Events that *did* not pass validation
      *
-     * @param payload Validation Runner payload to run against
+     * @param workContext workContext for validation runner
+     * @param events a list of events to validate
+     * @param checkers a list of checkers to apply
      * @return returns the ImportSummary for Events that did not pass validation
      */
-    public List<ImportSummary> run( ValidationRunnerPayload payload )
+    public List<ImportSummary> run( WorkContext workContext, List<Event> events, List<? extends Checker> checkers )
     {
         final List<ImportSummary> importSummaries = new ArrayList<>( 0 );
 
-        for ( final Event event : payload.events )
+        for ( final Event event : events )
         {
-            for ( Checker validationCheck : payload.validators )
+            for ( Checker checker : checkers )
             {
-                final ImportSummary importSummary = validationCheck.check( new ImmutableEvent( event ),
-                    payload.workContext );
+                final ImportSummary importSummary = checker.check( new ImmutableEvent( event ), workContext );
 
                 if ( importSummary.isStatus( ERROR ) || importSummary.isStatus( WARNING ) )
                 {
@@ -77,13 +76,4 @@ public class EventImporterValidationRunner
         return importSummaries;
     }
 
-    @RequiredArgsConstructor( staticName = "of" )
-    static class ValidationRunnerPayload
-    {
-        private final WorkContext workContext;
-
-        private final List<Event> events;
-
-        private final List<? extends Checker> validators;
-    }
 }

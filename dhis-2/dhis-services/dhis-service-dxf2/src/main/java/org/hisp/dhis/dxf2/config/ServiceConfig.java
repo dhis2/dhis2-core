@@ -28,12 +28,12 @@
 package org.hisp.dhis.dxf2.config;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.dxf2.config.EventProcessorPhase.DELETE_POST;
-import static org.hisp.dhis.dxf2.config.EventProcessorPhase.DELETE_PRE;
-import static org.hisp.dhis.dxf2.config.EventProcessorPhase.INSERT_POST;
-import static org.hisp.dhis.dxf2.config.EventProcessorPhase.INSERT_PRE;
-import static org.hisp.dhis.dxf2.config.EventProcessorPhase.UPDATE_POST;
-import static org.hisp.dhis.dxf2.config.EventProcessorPhase.UPDATE_PRE;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.DELETE_POST;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.DELETE_PRE;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.INSERT_POST;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.INSERT_PRE;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.UPDATE_POST;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.UPDATE_PRE;
 import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
 import static org.hisp.dhis.importexport.ImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
@@ -51,9 +51,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.EventProcessorExecutor;
+import org.hisp.dhis.dxf2.events.importer.EventProcessorPhase;
 import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.ProcessorRunner;
 import org.hisp.dhis.dxf2.events.importer.delete.postprocess.EventDeleteAuditPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.delete.validation.DeleteProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.postprocess.EventInsertAuditPostProcessor;
@@ -203,8 +203,8 @@ public class ServiceConfig
         return retryTemplate;
     }
 
-    @Bean( "validatorMap" )
-    public Map<ImportStrategy, List<ValidationCheck>> validatorMap()
+    @Bean
+    public Map<ImportStrategy, List<ValidationCheck>> validatorsByImportStrategy()
     {
         return ImmutableMap.of(
             CREATE_AND_UPDATE, newArrayList(
@@ -327,7 +327,7 @@ public class ServiceConfig
      */
 
     @Bean
-    Map<EventProcessorPhase, EventProcessorExecutor> executorsByPhase( ProcessorRunner processorRunner )
+    Map<EventProcessorPhase, EventProcessorExecutor> executorsByPhase()
     {
         return ImmutableMap.<EventProcessorPhase, Predicate<ImportStrategy>> builder()
             .put( INSERT_PRE, ImportStrategyUtils::isInsert )
@@ -338,7 +338,7 @@ public class ServiceConfig
             .put( DELETE_POST, ImportStrategyUtils::isDelete )
             .build().entrySet().stream()
             .map( entry -> Pair.of( entry.getKey(),
-                new EventProcessorExecutor( processorRunner, processorsByPhase.get( entry.getKey() ),
+                new EventProcessorExecutor( processorsByPhase.get( entry.getKey() ),
                     entry.getValue() ) ) )
             .collect( Collectors.toMap(
                 Pair::getKey,

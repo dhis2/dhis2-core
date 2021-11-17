@@ -27,20 +27,12 @@
  */
 package org.hisp.dhis.dxf2.events.importer;
 
-import java.util.List;
-
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.springframework.stereotype.Component;
-
-@Component
-public class ProcessorRunner
+public enum EventProcessorPhase
 {
-
-    public void run( WorkContext workContext, List<Event> events, final List<? extends Processor> processors )
-    {
-        events.forEach(
-            event -> processors.forEach(
-                processor -> processor.process( event, workContext ) ) );
-    }
+    INSERT_PRE,
+    INSERT_POST,
+    UPDATE_PRE,
+    UPDATE_POST,
+    DELETE_PRE,
+    DELETE_POST
 }

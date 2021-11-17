@@ -43,7 +43,7 @@ import org.springframework.stereotype.Component;
 class ValidationRunner
 {
 
-    private final Map<ImportStrategy, List<ValidationCheck>> validatorMap;
+    private final Map<ImportStrategy, List<ValidationCheck>> validatorsByImportStrategy;
 
     public <T extends IdentifiableObject> TypeReport executeValidationChain( ObjectBundle bundle, Class<T> klass,
         List<T> persistedObjects, List<T> nonPersistedObjects,
@@ -51,7 +51,7 @@ class ValidationRunner
     {
         TypeReport typeReport = new TypeReport( klass );
 
-        validatorMap.get( bundle.getImportMode() )
+        validatorsByImportStrategy.get( bundle.getImportMode() )
             .forEach( validationCheck -> typeReport.merge( validationCheck.check( bundle, klass, persistedObjects,
                 nonPersistedObjects, bundle.getImportMode(), ctx ) ) );
 

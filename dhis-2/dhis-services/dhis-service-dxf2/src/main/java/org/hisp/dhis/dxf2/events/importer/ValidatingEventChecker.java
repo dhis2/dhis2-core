@@ -29,12 +29,10 @@ package org.hisp.dhis.dxf2.events.importer;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -51,16 +49,11 @@ public abstract class ValidatingEventChecker implements EventChecker
     @Override
     public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
     {
-        return Optional.ofNullable( ctx )
-            .map( WorkContext::getImportOptions )
-            .map( ImportOptions::getImportStrategy )
-            .filter( this::isSupported )
-            .map( importStrategy -> EventImporterValidationRunner.ValidationRunnerPayload.of(
-                ctx,
-                events,
-                checkers ) )
-            .map( validationRunner::run )
-            .orElse( Collections.emptyList() );
+        if ( isSupported( ctx.getImportOptions().getImportStrategy() ) )
+        {
+            return validationRunner.run( ctx, events, checkers );
+        }
+        return Collections.emptyList();
     }
 
     private boolean isSupported( ImportStrategy importStrategy )

@@ -43,19 +43,17 @@ import org.hisp.dhis.importexport.ImportStrategy;
 public class EventProcessorExecutor
 {
 
-    private final ProcessorRunner processorRunner;
-
     private final List<? extends Processor> processors;
 
     private final Predicate<ImportStrategy> importStrategyPredicate;
 
     public void execute( final WorkContext workContext, final List<Event> events )
     {
-        final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
-
-        if ( isApplicable( importStrategy ) )
+        if ( isApplicable( workContext.getImportOptions().getImportStrategy() ) )
         {
-            processorRunner.run( workContext, events, processors );
+            events.forEach(
+                event -> processors.forEach(
+                    processor -> processor.process( event, workContext ) ) );
         }
     }
 
