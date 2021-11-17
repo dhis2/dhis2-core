@@ -159,23 +159,20 @@ public class ServiceConfig
     public ServiceConfig( Collection<Checker> checkers, Collection<ValidationCheck> validationChecks,
         Collection<Processor> processors, Collection<ProgramRuleActionValidator> programRuleActionValidators )
     {
-        checkersByClass = checkers.stream()
-            .collect( Collectors.toMap(
-                Checker::getClass,
-                Functions.identity() ) );
-        validationCheckByClass = validationChecks.stream()
-            .collect( Collectors.toMap(
-                ValidationCheck::getClass,
-                Functions.identity() ) );
-        processorsByClass = processors.stream()
-            .collect( Collectors.toMap(
-                Processor::getClass,
-                Functions.identity() ) );
-        programRuleActionValidatorsByClass = programRuleActionValidators.stream()
-            .collect( Collectors.toMap(
-                ProgramRuleActionValidator::getClass,
-                Functions.identity() ) );
+        checkersByClass = byClass( checkers );
+        validationCheckByClass = byClass( validationChecks );
+        processorsByClass = byClass( processors );
+        programRuleActionValidatorsByClass = byClass( programRuleActionValidators );
         processorsByPhase = getProcessorsByPhase();
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private <T> Map<Class<? extends T>, T> byClass( Collection<T> items )
+    {
+        return items.stream()
+            .collect( Collectors.toMap(
+                e -> (Class<? extends T>) e.getClass(),
+                Functions.identity() ) );
     }
 
     @Bean
