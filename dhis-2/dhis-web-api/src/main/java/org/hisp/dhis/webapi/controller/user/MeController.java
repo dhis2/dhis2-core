@@ -339,7 +339,7 @@ public class MeController
 
     @PostMapping( value = "/verifyPassword", consumes = "text/*" )
     public @ResponseBody RootNode verifyPasswordText( @RequestBody String password, HttpServletResponse response,
-        @CurrentUser( required = true, wrap = true ) User currentUser )
+        @CurrentUser( required = true ) User currentUser )
         throws WebMessageException
     {
         return verifyPasswordInternal( password, currentUser );
@@ -347,7 +347,7 @@ public class MeController
 
     @PostMapping( value = "/validatePassword", consumes = "text/*" )
     public @ResponseBody RootNode validatePasswordText( @RequestBody String password, HttpServletResponse response,
-        @CurrentUser( required = true, wrap = true ) User currentUser )
+        @CurrentUser( required = true ) User currentUser )
         throws WebMessageException
     {
         return validatePasswordInternal( password, currentUser );
@@ -355,7 +355,7 @@ public class MeController
 
     @PostMapping( value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE )
     public @ResponseBody RootNode verifyPasswordJson( @RequestBody Map<String, String> body,
-        HttpServletResponse response, @CurrentUser( required = true, wrap = true ) User currentUser )
+        HttpServletResponse response, @CurrentUser( required = true ) User currentUser )
         throws WebMessageException
     {
         return verifyPasswordInternal( body.get( "password" ), currentUser );

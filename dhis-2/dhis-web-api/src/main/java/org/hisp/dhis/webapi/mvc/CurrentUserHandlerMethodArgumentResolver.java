@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.webapi.mvc;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -42,8 +41,6 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
-
-import lombok.AllArgsConstructor;
 
 /**
  * Makes {@link CurrentUser} annotation have its effect.
@@ -61,7 +58,7 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
     public boolean supportsParameter( MethodParameter parameter )
     {
         Class<?> type = parameter.getParameterType();
-        return parameter.getAnnotatedElement().isAnnotationPresent( CurrentUser.class )
+        return parameter.getParameterAnnotation( CurrentUser.class ) != null
             && (type == String.class
                 || User.class.isAssignableFrom( type )
                 || UserInfo.class.isAssignableFrom( type )
@@ -79,12 +76,10 @@ public class CurrentUserHandlerMethodArgumentResolver implements HandlerMethodAr
             return currentUserService.getCurrentUsername();
         }
         User user = currentUserService.getCurrentUser();
-        CurrentUser annotation = parameter.getMethodAnnotation( CurrentUser.class );
+        CurrentUser annotation = parameter.getParameterAnnotation( CurrentUser.class );
         if ( user == null && annotation != null && annotation.required() )
         {
-            throw annotation.wrap()
-                ? new WebMessageException( unauthorized( "Not authenticated" ) )
-                : new NotAuthenticatedException();
+            throw new NotAuthenticatedException();
         }
         if ( User.class.isAssignableFrom( type ) )
         {

@@ -34,6 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import lombok.RequiredArgsConstructor;
+
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.category.CategoryService;
@@ -74,8 +76,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
 
-import lombok.RequiredArgsConstructor;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -104,7 +104,6 @@ public class DataElementOperandController
     }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
-
 
     @GetMapping
     @SuppressWarnings( "unchecked" )

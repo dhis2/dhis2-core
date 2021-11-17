@@ -41,6 +41,8 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
@@ -75,8 +77,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpStatusCodeException;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -38,6 +38,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -62,8 +64,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import lombok.AllArgsConstructor;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
