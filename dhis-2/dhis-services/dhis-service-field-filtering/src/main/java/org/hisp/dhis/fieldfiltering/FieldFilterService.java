@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.fieldfiltering.transformers.IsEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.IsNotEmptyFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.PluckFieldTransformer;
@@ -41,10 +39,16 @@ import org.hisp.dhis.fieldfiltering.transformers.RenameFieldTransformer;
 import org.hisp.dhis.fieldfiltering.transformers.SizeFieldTransformer;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.cfg.MapperConfig;
+import com.fasterxml.jackson.databind.introspect.Annotated;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -52,22 +56,67 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 /**
  * @author Morten Olav Hansen
  */
-@Component
-@RequiredArgsConstructor
-public class FieldFilterManager
+@Service
+public class FieldFilterService
 {
+    private final FieldPathHelper fieldPathHelper;
+
     @Qualifier( "jsonMapper" )
     private final ObjectMapper jsonMapper;
 
-    public List<ObjectNode> toObjectNode( FieldFilterParams<?> params )
+    private static class IgnoreJsonSerializerRefinementAnnotationInspector extends JacksonAnnotationIntrospector
     {
+        /**
+         * Since the field filter will handle type refinement itself (to avoid
+         * recursive loops), we want to ignore any type refinement happening
+         * with @JsonSerialize(...). In the future we would want to remove
+         * all @JsonSerialize annotations and just use the field filters, but
+         * since we still have object mappers without field filtering we can't
+         * do this just yet.
+         */
+        @Override
+        public JavaType refineSerializationType( MapperConfig<?> config, Annotated a, JavaType baseType )
+            throws JsonMappingException
+        {
+            return baseType;
+        }
+    }
+
+    public FieldFilterService( FieldPathHelper fieldPathHelper, ObjectMapper jsonMapper )
+    {
+        this.fieldPathHelper = fieldPathHelper;
+        this.jsonMapper = configureFieldFilterObjectMapper( jsonMapper );
+    }
+
+    private ObjectMapper configureFieldFilterObjectMapper( ObjectMapper objectMapper )
+    {
+        objectMapper = objectMapper.copy();
+
+        SimpleModule module = new SimpleModule();
+        module.setMixInAnnotation( Object.class, FieldFilterMixin.class );
+
+        objectMapper.registerModule( module );
+        objectMapper.setAnnotationIntrospector( new IgnoreJsonSerializerRefinementAnnotationInspector() );
+
+        return objectMapper;
+    }
+
+    public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
+    {
+        List<ObjectNode> objectNodes = new ArrayList<>();
+
+        if ( params.getObjects().isEmpty() )
+        {
+            return objectNodes;
+        }
+
         List<FieldPath> fieldPaths = FieldFilterParser.parse( params.getFilters() );
+        fieldPathHelper.apply( fieldPaths, params.getObjects().iterator().next().getClass() );
 
         SimpleFilterProvider filterProvider = getSimpleFilterProvider( fieldPaths );
         ObjectMapper objectMapper = jsonMapper.setFilterProvider( filterProvider );
-        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
 
-        List<ObjectNode> objectNodes = new ArrayList<>();
+        Map<String, List<FieldTransformer>> fieldTransformers = getTransformers( fieldPaths );
 
         for ( Object object : params.getObjects() )
         {
@@ -89,7 +138,7 @@ public class FieldFilterManager
 
             if ( transformers != null )
             {
-                transformers.forEach( t -> t.apply( path.substring( 1 ), node, parent ) );
+                transformers.forEach( tf -> tf.apply( path.substring( 1 ), node, parent ) );
             }
         }
 
