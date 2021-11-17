@@ -30,8 +30,8 @@ package org.hisp.dhis.jsonpatch;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import lombok.AllArgsConstructor;
 
@@ -83,13 +83,11 @@ public class BulkPatchManager
             return Collections.emptyList();
         }
 
-        List<IdentifiableObject> patchedObjects = new ArrayList<>();
-
-        bulkJsonPatch.getIds()
-            .forEach( id -> patchObject( id, schema.get(), bulkJsonPatch.getPatch(), patchParameters )
-                .ifPresent( patched -> patchedObjects.add( patched ) ) );
-
-        return patchedObjects;
+        return bulkJsonPatch.getIds().stream()
+            .map( id -> patchObject( id, schema.get(), bulkJsonPatch.getPatch(), patchParameters ) )
+            .filter( patched -> patched.isPresent() )
+            .map( Optional::get )
+            .collect( Collectors.toList() );
     }
 
     /**
@@ -113,11 +111,11 @@ public class BulkPatchManager
                 continue;
             }
 
-            Map<String, JsonPatch> mapPatches = patches.get( className );
-
-            mapPatches.keySet()
-                .forEach( id -> patchObject( id, schema.get(), mapPatches.get( id ), patchParameters )
-                    .ifPresent( patchedObjects::add ) );
+            patchedObjects.addAll( patches.get( className ).entrySet().stream()
+                .map( entry -> patchObject( entry.getKey(), schema.get(), entry.getValue(), patchParameters ) )
+                .filter( Optional::isPresent )
+                .map( Optional::get )
+                .collect( Collectors.toList() ) );
         }
 
         return patchedObjects;
@@ -210,7 +208,6 @@ public class BulkPatchManager
      *
      * @param klass Class of the object that need to be patched
      * @param id UID of the object that need to be patched
-     * @param patchParams {@link BulkPatchParameters}
      * @return {@link IdentifiableObject}
      */
     private Optional<IdentifiableObject> validateId( Class<?> klass, String id, ObjectReport objectReport )
