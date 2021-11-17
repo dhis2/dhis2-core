@@ -34,7 +34,6 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
-import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.indicator.IndicatorGroup;
@@ -216,12 +215,14 @@ public class StoreConfig
             jdbcTemplate, publisher, EventChart.class, currentUserService, aclService, true );
     }
 
-    @Bean( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
-    public HibernateAnalyticalObjectStore<EventVisualization> eventEventVisualizationStore()
-    {
-        return new HibernateAnalyticalObjectStore<>( sessionFactory,
-            jdbcTemplate, publisher, EventVisualization.class, currentUserService, aclService, true );
-    }
+    /*
+     * @Bean( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
+     * public HibernateAnalyticalObjectStore<EventVisualization>
+     * eventEventVisualizationStore() { return new
+     * HibernateAnalyticalObjectStore<>( sessionFactory, jdbcTemplate,
+     * publisher, EventVisualization.class, currentUserService, aclService, true
+     * ); }
+     */
 
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     public HibernateIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore()

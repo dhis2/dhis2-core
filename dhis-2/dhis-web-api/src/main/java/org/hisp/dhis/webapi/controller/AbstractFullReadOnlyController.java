@@ -49,6 +49,8 @@ import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -163,9 +165,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         HttpServletResponse response, User currentUser )
         throws QueryParserException
     {
+        List<Order> orders = orderParams.getOrders( getSchema() );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<Order> orders = orderParams.getOrders( getSchema() );
+        forceFilterForEventChartOrReport( filters );
 
         if ( fields.isEmpty() )
         {
@@ -588,5 +591,25 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         }
 
         return InclusionStrategy.Include.NON_NULL;
+    }
+
+    /**
+     * This is a temporary workaround to keep EventChart and EventReport
+     * backward compatible with the new EventVisualization entity.
+     *
+     * @param filters
+     */
+    @Deprecated
+    private void forceFilterForEventChartOrReport( final List<String> filters )
+    {
+        if ( EventChart.class.getSimpleName().equals( getEntityClass().getSimpleName() ) )
+        {
+            filters.add( "type:!eq:PIVOT_TABLE" );
+            filters.add( "type:!eq:LINE_LIST" );
+        }
+        else if ( EventReport.class.getSimpleName().equals( getEntityClass().getSimpleName() ) )
+        {
+            filters.add( "type:in:[PIVOT_TABLE,LINE_LIST]" );
+        }
     }
 }

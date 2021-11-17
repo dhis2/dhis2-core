@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
@@ -58,6 +59,7 @@ public class InterpretationDeletionHandler
     {
         whenDeleting( User.class, this::deleteUser );
         whenDeleting( Visualization.class, this::deleteVisualizationInterpretations );
+        whenDeleting( EventVisualization.class, this::deleteEventVisualizationInterpretations );
         whenDeleting( Map.class, this::deleteMapInterpretations );
     }
 
@@ -78,6 +80,16 @@ public class InterpretationDeletionHandler
     private void deleteVisualizationInterpretations( Visualization visualization )
     {
         List<Interpretation> interpretations = interpretationService.getInterpretations( visualization );
+
+        if ( interpretations != null )
+        {
+            interpretations.forEach( interpretationService::deleteInterpretation );
+        }
+    }
+
+    private void deleteEventVisualizationInterpretations( EventVisualization eventVisualization )
+    {
+        List<Interpretation> interpretations = interpretationService.getInterpretations( eventVisualization );
 
         if ( interpretations != null )
         {

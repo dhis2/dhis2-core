@@ -52,6 +52,8 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationStore;
+import org.hisp.dhis.eventvisualization.SimpleEventVisualizationView;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.user.User;
@@ -94,22 +96,26 @@ public class DefaultDashboardService
 
     private final AppManager appManager;
 
+    private final EventVisualizationStore eventVisualizationStore;
+
     public DefaultDashboardService(
         @Qualifier( "org.hisp.dhis.dashboard.DashboardStore" ) HibernateIdentifiableObjectStore<Dashboard> dashboardStore,
         IdentifiableObjectManager objectManager, UserService userService, DashboardItemStore dashboardItemStore,
-        AppManager appManager )
+        AppManager appManager, EventVisualizationStore eventVisualizationStore )
     {
         checkNotNull( dashboardStore );
         checkNotNull( objectManager );
         checkNotNull( userService );
         checkNotNull( dashboardItemStore );
         checkNotNull( appManager );
+        checkNotNull( eventVisualizationStore );
 
         this.dashboardStore = dashboardStore;
         this.objectManager = objectManager;
         this.userService = userService;
         this.dashboardItemStore = dashboardItemStore;
         this.appManager = appManager;
+        this.eventVisualizationStore = eventVisualizationStore;
     }
 
     // -------------------------------------------------------------------------
@@ -141,16 +147,18 @@ public class DefaultDashboardService
 
         result.setUsers( userService.getAllUsersBetweenByName( query, 0,
             getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
-        result.setVisualizations( convertFrom( objectManager.getBetweenLikeName( Visualization.class, words, 0,
-            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setEventVisualizations( objectManager.getBetweenLikeName( EventVisualization.class, words, 0,
+        result.setVisualizations(
+            convertFromVisualization( objectManager.getBetweenLikeName( Visualization.class, words, 0,
+                getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
+        result.setEventVisualizations(
+            convertFromEventVisualization( objectManager.getBetweenLikeName( EventVisualization.class, words, 0,
+                getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) ) );
+        result.setEventCharts( eventVisualizationStore.getChartsLikeName( words, 0,
             getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) );
-        result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0,
-            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0,
             getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setEventReports( objectManager.getBetweenLikeName( EventReport.class, words, 0,
-            getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
+        result.setEventReports( eventVisualizationStore.getReportsLikeName( words, 0,
+            getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0,
             getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0,
@@ -166,16 +174,17 @@ public class DefaultDashboardService
     {
         DashboardSearchResult result = new DashboardSearchResult();
 
-        result.setVisualizations( convertFrom( objectManager.getBetweenSorted( Visualization.class, 0,
+        result.setVisualizations( convertFromVisualization( objectManager.getBetweenSorted( Visualization.class, 0,
             getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setEventVisualizations( objectManager.getBetweenSorted( EventVisualization.class, 0,
+        result.setEventVisualizations(
+            convertFromEventVisualization( objectManager.getBetweenSorted( EventVisualization.class, 0,
+                getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) ) );
+        result.setEventCharts( eventVisualizationStore.getCharts( 0,
             getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) );
-        result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0,
-            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenSorted( Map.class, 0,
             getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0,
-            getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
+        result.setEventReports( eventVisualizationStore.getReports( 0,
+            getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenSorted( Report.class, 0,
             getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenSorted( Document.class, 0,
@@ -483,9 +492,9 @@ public class DefaultDashboardService
         return maxTypes != null && maxTypes.contains( type ) ? dashboardsMax : dashboardsCount;
     }
 
-    private List<SimpleVisualizationView> convertFrom( final List<Visualization> visualizations )
+    private List<SimpleVisualizationView> convertFromVisualization( final List<Visualization> visualizations )
     {
-        final List<SimpleVisualizationView> views = new ArrayList<>( 1 );
+        final List<SimpleVisualizationView> views = new ArrayList<>();
 
         if ( isNotEmpty( visualizations ) )
         {
@@ -494,6 +503,7 @@ public class DefaultDashboardService
                 views.add( convertFrom( visualization ) );
             }
         }
+
         return views;
     }
 
@@ -501,6 +511,31 @@ public class DefaultDashboardService
     {
         final SimpleVisualizationView view = new SimpleVisualizationView();
         BeanUtils.copyProperties( visualization, view );
+
+        return view;
+    }
+
+    private List<SimpleEventVisualizationView> convertFromEventVisualization(
+        final List<EventVisualization> eventVisualizations )
+    {
+        final List<SimpleEventVisualizationView> views = new ArrayList<>();
+
+        if ( isNotEmpty( eventVisualizations ) )
+        {
+            for ( final EventVisualization eventVisualization : eventVisualizations )
+            {
+                views.add( convertFrom( eventVisualization ) );
+            }
+        }
+
+        return views;
+    }
+
+    private SimpleEventVisualizationView convertFrom( final EventVisualization visualization )
+    {
+        final SimpleEventVisualizationView view = new SimpleEventVisualizationView();
+        BeanUtils.copyProperties( visualization, view );
+
         return view;
     }
 }

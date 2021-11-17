@@ -609,6 +609,7 @@ WHERE eventchartid IS NOT NULL;
 --UPDATE userroleauthorities SET authority = 'F_EVENTVISUALIZATION_PUBLIC_ADD' WHERE authority = 'F_EVENTREPORT_PUBLIC_ADD';
 --UPDATE userroleauthorities SET authority = 'F_EVENTVISUALIZATION_EXTERNAL' WHERE authority = 'F_EVENTREPORT_EXTERNAL';
 
+
 -- Populate the eventvisualizationviews based on existing metrics for report table and charts.
 UPDATE datastatistics
 SET eventvisualizationviews = eventreportviews + eventchartviews
@@ -617,6 +618,7 @@ WHERE eventvisualizationviews IS NULL;
 UPDATE datastatistics
 SET eventvisualizations = eventreports + eventcharts
 WHERE eventvisualizations IS NULL;
+
 
 -- Set all NULL boolean columns to false. Hibernate are primitive booleans.
 UPDATE eventvisualization
@@ -703,7 +705,15 @@ UPDATE eventvisualization
 SET colsubtotals = false
 WHERE colsubtotals IS NULL;
 
+
 -- Set all NULL boolean columns to 0. Hibernate are primitive int's.
 UPDATE eventvisualization
 SET toplimit = 0
 WHERE toplimit IS NULL;
+
+
+-- update constraints
+ALTER TABLE dashboarditem DROP CONSTRAINT IF EXISTS fk_dashboarditem_eventchartid;
+ALTER TABLE dashboarditem DROP CONSTRAINT IF EXISTS fk_dashboarditem_eventreportid;
+ALTER TABLE dashboarditem ADD CONSTRAINT fk_dashboarditem_eventchartid FOREIGN KEY (eventchartid) REFERENCES eventvisualization(eventvisualizationid);
+ALTER TABLE dashboarditem ADD CONSTRAINT fk_dashboarditem_eventreportid FOREIGN KEY (eventreport) REFERENCES eventvisualization(eventvisualizationid);

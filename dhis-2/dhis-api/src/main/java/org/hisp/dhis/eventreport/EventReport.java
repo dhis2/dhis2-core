@@ -573,6 +573,8 @@ public class EventReport
     // Cannot be removed until EventReport if fully deprecated.
     // -------------------------------------------------------------------------
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public EventVisualizationType getType()
     {
         return type;

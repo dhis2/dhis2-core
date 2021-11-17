@@ -39,9 +39,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.statistics.StatisticsProvider;
@@ -85,6 +84,9 @@ public class DefaultDataStatisticsService
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
 
+    @Autowired
+    private EventVisualizationStore eventVisualizationStore;
+
     // -------------------------------------------------------------------------
     // DataStatisticsService implementation
     // -------------------------------------------------------------------------
@@ -116,8 +118,8 @@ public class DefaultDataStatisticsService
 
         double savedMaps = idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate );
         double savedVisualizations = idObjectManager.getCountByCreated( Visualization.class, startDate );
-        double savedEventReports = idObjectManager.getCountByCreated( EventReport.class, startDate );
-        double savedEventCharts = idObjectManager.getCountByCreated( EventChart.class, startDate );
+        double savedEventReports = eventVisualizationStore.countReportsCreated( startDate );
+        double savedEventCharts = eventVisualizationStore.countChartsCreated( startDate );
         double savedEventVisualizations = idObjectManager.getCountByCreated( EventVisualization.class, startDate );
         double savedDashboards = idObjectManager.getCountByCreated( Dashboard.class, startDate );
         double savedIndicators = idObjectManager.getCountByCreated( Indicator.class, startDate );

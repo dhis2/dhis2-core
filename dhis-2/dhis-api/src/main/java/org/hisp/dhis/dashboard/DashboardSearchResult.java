@@ -35,9 +35,8 @@ import java.util.List;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.document.Document;
-import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.SimpleEventVisualizationView;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.user.User;
@@ -56,13 +55,13 @@ public class DashboardSearchResult
 
     private List<SimpleVisualizationView> visualizations = new ArrayList<>();
 
-    private List<EventVisualization> eventVisualizations = new ArrayList<>();
+    private List<SimpleEventVisualizationView> eventVisualizations = new ArrayList<>();
 
-    private List<EventChart> eventCharts = new ArrayList<>();
+    private List<EventVisualization> eventCharts = new ArrayList<>();
 
     private List<Map> maps = new ArrayList<>();
 
-    private List<EventReport> eventReports = new ArrayList<>();
+    private List<EventVisualization> eventReports = new ArrayList<>();
 
     private List<Report> reports = new ArrayList<>();
 
@@ -194,15 +193,15 @@ public class DashboardSearchResult
     }
 
     @JsonProperty( value = "eventVisualizations" )
-    @JsonSerialize( contentAs = BaseIdentifiableObject.class )
+    @JsonSerialize( contentAs = SimpleEventVisualizationView.class )
     @JacksonXmlElementWrapper( localName = "eventVisualizations", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "eventVisualization", namespace = DXF_2_0 )
-    public List<EventVisualization> getEventVisualizations()
+    public List<SimpleEventVisualizationView> getEventVisualizations()
     {
         return eventVisualizations;
     }
 
-    public void setEventVisualizations( final List<EventVisualization> eventVisualizations )
+    public void setEventVisualizations( final List<SimpleEventVisualizationView> eventVisualizations )
     {
         this.eventVisualizations = eventVisualizations;
     }
@@ -211,12 +210,12 @@ public class DashboardSearchResult
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "eventCharts", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "eventChart", namespace = DXF_2_0 )
-    public List<EventChart> getEventCharts()
+    public List<EventVisualization> getEventCharts()
     {
         return eventCharts;
     }
 
-    public void setEventCharts( List<EventChart> eventCharts )
+    public void setEventCharts( List<EventVisualization> eventCharts )
     {
         this.eventCharts = eventCharts;
     }
@@ -239,12 +238,12 @@ public class DashboardSearchResult
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "eventReports", namespace = DXF_2_0 )
     @JacksonXmlProperty( localName = "eventReport", namespace = DXF_2_0 )
-    public List<EventReport> getEventReports()
+    public List<EventVisualization> getEventReports()
     {
         return eventReports;
     }
 
-    public void setEventReports( List<EventReport> eventReports )
+    public void setEventReports( List<EventVisualization> eventReports )
     {
         this.eventReports = eventReports;
     }

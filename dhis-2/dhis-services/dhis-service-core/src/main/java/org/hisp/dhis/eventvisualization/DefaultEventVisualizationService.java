@@ -33,12 +33,13 @@ import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
-import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
+ * Basic service methods for EventVisualization.
+ *
  * @author maikel arabori
  */
 @Service
@@ -46,11 +47,11 @@ public class DefaultEventVisualizationService
     extends GenericAnalyticalObjectService<EventVisualization>
     implements EventVisualizationService
 {
-    private final HibernateAnalyticalObjectStore<EventVisualization> eventVisualizationStore;
+    private final EventVisualizationStore eventVisualizationStore;
 
     public DefaultEventVisualizationService(
         @Qualifier( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
-        final HibernateAnalyticalObjectStore<EventVisualization> eventVisualizationStore )
+        final EventVisualizationStore eventVisualizationStore )
     {
         checkNotNull( eventVisualizationStore );
 
@@ -65,47 +66,47 @@ public class DefaultEventVisualizationService
     @Transactional( readOnly = true )
     protected AnalyticalObjectStore<EventVisualization> getAnalyticalObjectStore()
     {
-        return eventVisualizationStore;
+        return (AnalyticalObjectStore<EventVisualization>) eventVisualizationStore;
     }
 
     @Override
     @Transactional
-    public long save( EventVisualization report )
+    public long save( final EventVisualization eventVisualization )
     {
-        eventVisualizationStore.save( report );
-        return report.getId();
+        eventVisualizationStore.save( eventVisualization );
+        return eventVisualization.getId();
     }
 
     @Override
     @Transactional
-    public void update( EventVisualization report )
+    public void update( final EventVisualization report )
     {
         eventVisualizationStore.update( report );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public EventVisualization getEventVisualization( long id )
+    public EventVisualization getEventVisualization( final long id )
     {
         return eventVisualizationStore.get( id );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public EventVisualization getEventVisualization( String uid )
+    public EventVisualization getEventVisualization( final String uid )
     {
         return eventVisualizationStore.getByUid( uid );
     }
 
     @Override
     @Transactional
-    public void delete( EventVisualization report )
+    public void delete( final EventVisualization eventVisualization )
     {
-        eventVisualizationStore.delete( report );
+        eventVisualizationStore.delete( eventVisualization );
     }
 
     @Override
-    public EventVisualization getVisualizationNoAcl( String uid )
+    public EventVisualization getVisualizationNoAcl( final String uid )
     {
         return eventVisualizationStore.getByUidNoAcl( uid );
     }

@@ -447,7 +447,6 @@ public class EventVisualization extends BaseAnalyticalObject
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @Property( value = PropertyType.CONSTANT, required = TRUE )
-    @PropertyRange( min = 1, max = 40 )
     public EventVisualizationType getType()
     {
         return type;
