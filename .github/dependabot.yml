@@ -4,6 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
     pull-request-branch-name:
       separator: "-"
     commit-message:
@@ -13,12 +15,18 @@ updates:
     directory: "/dhis-2"
     schedule:
       interval: "daily"
-    open-pull-requests-limit: 10
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
+    open-pull-requests-limit: 5
     pull-request-branch-name:
       separator: "-"
     commit-message:
       prefix: "chore"
       include: "scope"
+    labels:
+      - "dependencies"
+      - "java"
+      - "run-api-tests"
     ignore:
       - dependency-name: "com.zaxxer:HikariCP" # remove once we update minimum JDK to JDK11; https://github.com/brettwooldridge/HikariCP#artifacts
           versions:

@@ -72,7 +72,7 @@ public enum TrackerErrorCode
     E1050( "Event ScheduledAt date is missing." ),
     E1055( "Default AttributeOptionCombo is not allowed since program has non-default CategoryCombo." ),
     E1056( "Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`." ),
-    E1057( "Event date: `{0}`, is after end date: `{1}`, for AttributeOption; `{2}`." ),
+    E1057( "Event date: `{0}`, is after end date: `{1}`, for AttributeOption: `{2}` in program: `{3}`." ),
     E1063( "TrackedEntityInstance: `{0}`, does not exist." ),
     E1064( "Non-unique attribute value `{0}` for attribute `{1}`" ),
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to Enrollment." ),
