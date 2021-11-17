@@ -5,3 +5,8 @@ services:
     stdin_open: true
     image: "${IMAGE_NAME}"
     command: ./wait-for-it.sh web:8080 -t 0 -- mvn test -Dinstance.url=http://web:8080/api -Dtest.cleanup=false -Duser.default.username=admin -Duser.default.password=district
+    environment:
+      # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
+      MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+      # This is to quiet down maven logs on CI
+      MAVEN_CLI_OPTS: --batch-mode --no-transfer-progress
