@@ -271,7 +271,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         IdScheme idScheme = idSchemes.getProgramIdScheme();
 
         String sqlSelect = "select p.programid as id, p.uid, p.code, p.name, p.sharing as program_sharing, "
-            + "p.type, tet.trackedentitytypeid, tet.sharing  as tet_sharing, "
+            + "p.type, p.opendaysaftercoenddate, tet.trackedentitytypeid, tet.sharing  as tet_sharing, "
             + "tet.uid           as tet_uid, c.categorycomboid as catcombo_id, "
             + "c.uid             as catcombo_uid, c.name            as catcombo_name, "
             + "c.code            as catcombo_code, ps.programstageid as ps_id, ps.uid as ps_uid, "
@@ -308,6 +308,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                     program.setUid( rs.getString( "uid" ) );
                     program.setName( rs.getString( "name" ) );
                     program.setCode( rs.getString( "code" ) );
+                    program.setOpenDaysAfterCoEndDate( rs.getInt( "opendaysaftercoenddate" ) );
 
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
                     program.setSharing( toSharing( rs.getString( "program_sharing" ) ) );

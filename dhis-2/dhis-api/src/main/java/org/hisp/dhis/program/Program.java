@@ -167,6 +167,12 @@ public class Program
     private int completeEventsExpiryDays;
 
     /**
+     * Number of days to open for data capture that are after the category
+     * option's end date.
+     */
+    private int openDaysAfterCoEndDate;
+
+    /**
      * Property indicating minimum number of attributes required to fill before
      * search is triggered
      */
@@ -809,6 +815,18 @@ public class Program
     public void setCompleteEventsExpiryDays( int completeEventsExpiryDays )
     {
         this.completeEventsExpiryDays = completeEventsExpiryDays;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public int getOpenDaysAfterCoEndDate()
+    {
+        return openDaysAfterCoEndDate;
+    }
+
+    public void setOpenDaysAfterCoEndDate( int openDaysAfterCoEndDate )
+    {
+        this.openDaysAfterCoEndDate = openDaysAfterCoEndDate;
     }
 
     @JsonProperty
