@@ -28,14 +28,19 @@
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 
@@ -103,4 +108,25 @@ public class EventCriteria extends PagingAndSortingCriteriaAdapter
     private Set<String> programInstances;
 
     private IdSchemes idSchemes = new IdSchemes();
+
+    public Set<String> getAssignedUsers()
+    {
+        Set<String> assignedUsers = new HashSet<>();
+
+        if ( assignedUser != null && !assignedUser.isEmpty() )
+        {
+            assignedUsers = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON ).stream()
+                .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
+        }
+
+        return assignedUsers;
+    }
+
+    public Set<String> getEvents()
+    {
+        return CollectionUtils.emptyIfNull( TextUtils.splitToArray( event, TextUtils.SEMICOLON ) )
+            .stream()
+            .filter( CodeGenerator::isValidUid )
+            .collect( Collectors.toSet() );
+    }
 }

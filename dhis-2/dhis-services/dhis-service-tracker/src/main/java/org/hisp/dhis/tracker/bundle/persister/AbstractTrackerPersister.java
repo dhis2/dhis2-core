@@ -356,7 +356,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         for ( Attribute at : payloadAttributes )
         {
             boolean isNew = false;
-            AuditType auditType;
+
+            AuditType auditType = null;
 
             TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, at.getAttribute() );
 
@@ -373,6 +374,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 attributeValue.setEntityInstance( trackedEntityInstance );
 
                 isNew = true;
+                auditType = AuditType.CREATE;
+            }
+            else if ( !attributeValue.getPlainValue().equals( at.getValue() ) )
+            {
+                auditType = AuditType.UPDATE;
             }
 
             attributeValue
@@ -400,7 +406,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 }
 
                 saveOrUpdate( session, isNew, attributeValue );
-                auditType = isNew ? AuditType.CREATE : AuditType.UPDATE;
             }
 
             logTrackedEntityAttributeValueHistory( preheat.getUsername(), attributeValue,
@@ -424,7 +429,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     {
         boolean allowAuditLog = trackedEntityInstance.getTrackedEntityType().isAllowAuditLog();
 
-        if ( allowAuditLog )
+        if ( allowAuditLog && auditType != null )
         {
             TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
                 attributeValue, attributeValue.getValue(), userName, auditType );

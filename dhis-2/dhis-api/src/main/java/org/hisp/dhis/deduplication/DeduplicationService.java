@@ -39,7 +39,8 @@ public interface DeduplicationService
 
     int countPotentialDuplicates( PotentialDuplicateQuery query );
 
-    boolean exists( PotentialDuplicate potentialDuplicate );
+    boolean exists( PotentialDuplicate potentialDuplicate )
+        throws PotentialDuplicateConflictException;
 
     List<PotentialDuplicate> getAllPotentialDuplicatesBy( PotentialDuplicateQuery query );
 
@@ -47,7 +48,11 @@ public interface DeduplicationService
 
     void updatePotentialDuplicate( PotentialDuplicate potentialDuplicate );
 
-    void autoMerge( DeduplicationMergeParams deduplicationRequest );
+    void autoMerge( DeduplicationMergeParams deduplicationRequest )
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException;
 
-    void manualMerge( DeduplicationMergeParams deduplicationRequest );
+    void manualMerge( DeduplicationMergeParams deduplicationRequest )
+        throws PotentialDuplicateConflictException,
+        PotentialDuplicateForbiddenException;
 }

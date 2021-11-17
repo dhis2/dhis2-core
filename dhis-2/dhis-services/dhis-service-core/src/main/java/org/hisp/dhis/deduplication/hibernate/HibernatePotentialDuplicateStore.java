@@ -167,10 +167,13 @@ public class HibernatePotentialDuplicateStore
     @Override
     @SuppressWarnings( "unchecked" )
     public boolean exists( PotentialDuplicate potentialDuplicate )
+        throws PotentialDuplicateConflictException
     {
         if ( potentialDuplicate.getOriginal() == null || potentialDuplicate.getDuplicate() == null )
+        {
             throw new PotentialDuplicateConflictException(
                 "Can't search for pair of potential duplicates: original and duplicate must not be null" );
+        }
 
         NativeQuery<BigInteger> query = getSession()
             .createNativeQuery( "select count(potentialduplicateid) from potentialduplicate pd " +

@@ -333,7 +333,8 @@ public class AttributeOptionComboLoader
     private CategoryOption loadCategoryOption( IdScheme idScheme, String id )
     {
         String key = "categoryoptionid";
-        final String sql = "select " + key + ", uid, code, name, sharing from dataelementcategoryoption "
+        final String sql = "select " + key
+            + ", uid, code, name, startdate, enddate, sharing from dataelementcategoryoption "
             + "where " + resolveId( idScheme, key, id );
 
         try
@@ -344,6 +345,8 @@ public class AttributeOptionComboLoader
                 categoryOption.setUid( rs.getString( "uid" ) );
                 categoryOption.setCode( rs.getString( "code" ) );
                 categoryOption.setName( rs.getString( "name" ) );
+                categoryOption.setStartDate( rs.getDate( "startdate" ) );
+                categoryOption.setEndDate( rs.getDate( "enddate" ) );
                 categoryOption.setSharing( getSharing( rs.getString( "sharing" ) ) );
                 return categoryOption;
             } );

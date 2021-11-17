@@ -59,6 +59,10 @@ public class SecurityCheck implements ObjectValidationCheck
         {
             runValidationCheck( bundle, klass, nonPersistedObjects, ImportStrategy.CREATE, context, addReports );
         }
+        if ( importStrategy.isDelete() )
+        {
+            runValidationCheck( bundle, klass, persistedObjects, ImportStrategy.DELETE, context, addReports );
+        }
     }
 
     private <T extends IdentifiableObject> void runValidationCheck( ObjectBundle bundle, Class<T> klass,
