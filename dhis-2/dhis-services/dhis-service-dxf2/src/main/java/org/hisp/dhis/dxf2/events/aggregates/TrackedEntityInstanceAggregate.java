@@ -299,7 +299,7 @@ public class TrackedEntityInstanceAggregate
         return attributeList;
     }
 
-    private boolean isNotSyncQueryOrIsNotSkipSync(AggregateContext ctx, TrackedEntityAttribute att )
+    private boolean isNotSyncQueryOrIsNotSkipSync( AggregateContext ctx, TrackedEntityAttribute att )
     {
         return !ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization();
     }
