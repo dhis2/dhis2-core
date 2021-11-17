@@ -16,6 +16,7 @@ pipeline {
 
     environment {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m'
+        MAVEN_CLI_OPTS = '--batch-mode --no-transfer-progress'
     }
 
     stages {

@@ -39,6 +39,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -50,10 +51,20 @@ public class AttributeOptionComboDateCheckTest extends BaseValidationTest
 {
     private AttributeOptionComboDateCheck rule;
 
+    private Program program;
+
+    private final String PROGRAM_UID = "ProgramUidA";
+
     @Before
     public void setUp()
     {
         rule = new AttributeOptionComboDateCheck();
+
+        program = new Program();
+        program.setUid( PROGRAM_UID );
+        program.setName( "TestProgram" );
+
+        event.setProgram( PROGRAM_UID );
     }
 
     @Test
@@ -81,7 +92,22 @@ public class AttributeOptionComboDateCheckTest extends BaseValidationTest
 
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
         assertHasError( importSummary, event,
-            "Event date 2019-05-01 is after end date 2019-04-01 for attributeOption 'test'" );
+            "Event date 2019-05-01 is after end date 2019-04-01 for attributeOption 'test' in program 'TestProgram'" );
+    }
+
+    @Test
+    public void succeedBeforeOpenDaysAfterCoEndDate()
+    {
+        event.setEventDate( "2019-05-01" );
+        event.setDueDate( "2019-05-10" );
+
+        program.setOpenDaysAfterCoEndDate( 31 );
+
+        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( "2019-04-01", false );
+        mockContext( categoryOptionCombo );
+
+        ImportSummary importSummary = rule.check( new ImmutableEvent( event ), this.workContext );
+        assertNoError( importSummary );
     }
 
     private void mockContext( CategoryOptionCombo categoryOptionCombo )
@@ -89,6 +115,10 @@ public class AttributeOptionComboDateCheckTest extends BaseValidationTest
         Map<String, CategoryOptionCombo> cocMap = new HashMap<>();
         cocMap.put( event.getUid(), categoryOptionCombo );
         when( workContext.getCategoryOptionComboMap() ).thenReturn( cocMap );
+
+        Map<String, Program> programsMap = new HashMap<>();
+        programsMap.put( PROGRAM_UID, program );
+        when( workContext.getProgramsMap() ).thenReturn( programsMap );
     }
 
     private CategoryOptionCombo createCategoryOptionCombo( String date, boolean startDate )
