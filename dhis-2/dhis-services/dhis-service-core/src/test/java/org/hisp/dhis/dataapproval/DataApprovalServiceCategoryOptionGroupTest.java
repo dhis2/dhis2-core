@@ -28,6 +28,11 @@
 package org.hisp.dhis.dataapproval;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.hisp.dhis.dataapproval.DataApproval.AUTH_ACCEPT_LOWER_LEVELS;
+import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE;
+import static org.hisp.dhis.dataapproval.DataApproval.AUTH_APPROVE_LOWER_LEVELS;
+import static org.hisp.dhis.dataapproval.DataApproval.AUTH_VIEW_UNAPPROVED_DATA;
+import static org.hisp.dhis.user.UserAuthorityGroup.AUTHORITY_ALL;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -64,6 +69,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
@@ -72,7 +78,6 @@ import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -81,7 +86,6 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
-@Ignore
 public class DataApprovalServiceCategoryOptionGroupTest
     extends IntegrationTestBase
 {
@@ -151,7 +155,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
     private Date dateA;
 
-    private CurrentUserService superUser;
+    private MockCurrentUserService superUser;
 
     private CurrentUserService globalConsultant;
 
@@ -161,7 +165,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
     private CurrentUserService globalAcceptOnly;
 
-    private CurrentUserService globalReadEverything;
+    private CurrentUserService globalReadAll;
 
     private CurrentUserService globalAgencyAUser;
 
@@ -265,11 +269,10 @@ public class DataApprovalServiceCategoryOptionGroupTest
     // Set up/tear down helper methods
     // -------------------------------------------------------------------------
 
-    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag,
-        OrganisationUnit orgUnit, String... auths )
+    private MockCurrentUserService mockUser( String userName, OrganisationUnit orgUnit, String... auths )
     {
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag,
-            Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
+        MockCurrentUserService mockCurrentUserService = new MockCurrentUserService(
+            false, Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
 
         User user = mockCurrentUserService.getCurrentUser();
 
@@ -282,8 +285,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
         {
-            role.setName( CodeGenerator.generateUid() ); // Give the role an
-                                                         // arbitrary name
+            role.setName( CodeGenerator.generateUid() ); // Arbitrary name
 
             userService.addUserAuthorityGroup( role );
         }
@@ -304,10 +306,11 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         userGroupService.addUserGroup( userGroup );
 
-        users.forEach( user -> {
+        for ( User user : users )
+        {
             user.getGroups().add( userGroup );
             userService.updateUser( user );
-        } );
+        }
 
         return userGroup;
     }
@@ -324,11 +327,11 @@ public class DataApprovalServiceCategoryOptionGroupTest
         return users;
     }
 
-    private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
+    private void setAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
         object.getSharing().setPublicAccess( ACCESS_NONE );
-        // object.getSharing().setOwner( userA ); // Needed for sharing to work
-        // object.setUser( userA );
+        object.getSharing().setOwner( userA ); // Needed for sharing to work
+        object.setUser( userA );
         object.getSharing().resetUserGroupAccesses();
         object.getSharing().resetUserAccesses();
         for ( UserGroup group : userGroups )
@@ -337,6 +340,11 @@ public class DataApprovalServiceCategoryOptionGroupTest
         }
 
         identifiableObjectManager.updateNoAcl( object );
+    }
+
+    private void constrainByMechanism( CurrentUserService user )
+    {
+        user.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
     }
 
     // -------------------------------------------------------------------------
@@ -372,60 +380,49 @@ public class DataApprovalServiceCategoryOptionGroupTest
 
         dateA = new Date();
 
-        superUser = getMockCurrentUserService( "SuperUser", true, global, UserAuthorityGroup.AUTHORITY_ALL );
-        globalConsultant = getMockCurrentUserService( "GlobalConsultant", false, global, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        globalUser = getMockCurrentUserService( "GlobalUser", false, global, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        globalApproveOnly = getMockCurrentUserService( "GlobalApproveOnly", false, global, DataApproval.AUTH_APPROVE );
-        globalAcceptOnly = getMockCurrentUserService( "GlobalAcceptOnly", false, global,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        globalReadEverything = getMockCurrentUserService( "GlobalReadEverything", false, global,
-            DataApproval.AUTH_VIEW_UNAPPROVED_DATA );
-        globalAgencyAUser = getMockCurrentUserService( "GlobalAgencyAUser", false, global, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        globalAgencyBUser = getMockCurrentUserService( "GlobalAgencyBUser", false, global, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        brazilInteragencyUser = getMockCurrentUserService( "BrazilInteragencyUser", false, brazil,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        chinaInteragencyUser = getMockCurrentUserService( "ChinaInteragencyUser", false, china,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        chinaInteragencyApproveOnly = getMockCurrentUserService( "ChinaInteragencyApproveOnly", false, china,
-            DataApproval.AUTH_APPROVE );
-        chinalInteragencyAcceptOnly = getMockCurrentUserService( "ChinalInteragencyAcceptOnly", false, china,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        indiaInteragencyUser = getMockCurrentUserService( "IndiaInteragencyUser", false, india,
-            DataApproval.AUTH_APPROVE, DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        brazilAgencyAUser = getMockCurrentUserService( "BrazilAgencyAUser", false, brazil, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        chinaAgencyAUser = getMockCurrentUserService( "ChinaAgencyAUser", false, china, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        chinaAgencyAApproveOnly = getMockCurrentUserService( "ChinaAgencyAApproveOnly", false, china,
-            DataApproval.AUTH_APPROVE );
-        chinaAgencyAAcceptOnly = getMockCurrentUserService( "ChinaAgencyAAcceptOnly", false, china,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        chinaAgencyBUser = getMockCurrentUserService( "ChinaAgencyBUser", false, china, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        indiaAgencyAUser = getMockCurrentUserService( "IndiaAgencyAUser", false, india, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        brazilPartner1User = getMockCurrentUserService( "BrazilPartner1User", false, brazil,
-            DataApproval.AUTH_APPROVE );
-        chinaPartner1User = getMockCurrentUserService( "ChinaPartner1User", false, china, DataApproval.AUTH_APPROVE );
-        chinaPartner2User = getMockCurrentUserService( "ChinaPartner2User", false, china, DataApproval.AUTH_APPROVE );
-        indiaPartner1User = getMockCurrentUserService( "IndiaPartner1User", false, india, DataApproval.AUTH_APPROVE );
+        superUser = mockUser( "SuperUser", global, AUTHORITY_ALL );
+        superUser.setSuperUserFlag( true );
+
+        globalConsultant = mockUser( "GlobalConsultant", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS,
+            AUTH_APPROVE_LOWER_LEVELS );
+
+        globalUser = mockUser( "GlobalUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        globalApproveOnly = mockUser( "GlobalApproveOnly", global, AUTH_APPROVE );
+        globalAcceptOnly = mockUser( "GlobalAcceptOnly", global, AUTH_ACCEPT_LOWER_LEVELS );
+        globalReadAll = mockUser( "GlobalReadEverything", global, AUTH_VIEW_UNAPPROVED_DATA );
+        globalAgencyAUser = mockUser( "GlobalAgencyAUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        globalAgencyBUser = mockUser( "GlobalAgencyBUser", global, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        brazilInteragencyUser = mockUser( "BrazilInteragencyUser", brazil, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaInteragencyUser = mockUser( "ChinaInteragencyUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaInteragencyApproveOnly = mockUser( "ChinaInteragencyApproveOnly", china, AUTH_APPROVE );
+        chinalInteragencyAcceptOnly = mockUser( "ChinalInteragencyAcceptOnly", china, AUTH_ACCEPT_LOWER_LEVELS );
+        indiaInteragencyUser = mockUser( "IndiaInteragencyUser", india, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        brazilAgencyAUser = mockUser( "BrazilAgencyAUser", brazil, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaAgencyAUser = mockUser( "ChinaAgencyAUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaAgencyAApproveOnly = mockUser( "ChinaAgencyAApproveOnly", china, AUTH_APPROVE );
+        chinaAgencyAAcceptOnly = mockUser( "ChinaAgencyAAcceptOnly", china, AUTH_ACCEPT_LOWER_LEVELS );
+        chinaAgencyBUser = mockUser( "ChinaAgencyBUser", china, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        indiaAgencyAUser = mockUser( "IndiaAgencyAUser", india, AUTH_APPROVE, AUTH_ACCEPT_LOWER_LEVELS );
+        brazilPartner1User = mockUser( "BrazilPartner1User", brazil, AUTH_APPROVE );
+        chinaPartner1User = mockUser( "ChinaPartner1User", china, AUTH_APPROVE );
+        chinaPartner2User = mockUser( "ChinaPartner2User", china, AUTH_APPROVE );
+        indiaPartner1User = mockUser( "IndiaPartner1User", india, AUTH_APPROVE );
         currentMockUserService = null;
 
         UserGroup globalUsers = getUserGroup( "GlobalUsers",
-            userSet( globalUser, globalApproveOnly, globalAcceptOnly, globalConsultant, globalReadEverything ) );
+            userSet( globalUser, globalApproveOnly, globalAcceptOnly, globalConsultant, globalReadAll ) );
+
         UserGroup globalAgencyAUsers = getUserGroup( "GlobalAgencyAUsers", userSet( globalAgencyAUser ) );
         UserGroup globalAgencyBUsers = getUserGroup( "GlobalAgencyBUsers", userSet( globalAgencyBUser ) );
         UserGroup brazilInteragencyUsers = getUserGroup( "BrazilInteragencyUsers", userSet( brazilInteragencyUser ) );
         UserGroup chinaInteragencyUsers = getUserGroup( "ChinaInteragencyUsers",
             userSet( chinaInteragencyUser, chinaInteragencyApproveOnly, chinalInteragencyAcceptOnly ) );
+
         UserGroup indiaInteragencyUsers = getUserGroup( "IndiaInteragencyUsers", userSet( indiaInteragencyUser ) );
         UserGroup brazilAgencyAUsers = getUserGroup( "BrazilAgencyAUsers", userSet( brazilAgencyAUser ) );
         UserGroup chinaAgencyAUsers = getUserGroup( "ChinaAgencyAUsers",
             userSet( chinaAgencyAUser, chinaAgencyAApproveOnly, chinaAgencyAAcceptOnly ) );
+
         UserGroup chinaAgencyBUsers = getUserGroup( "ChinaAgencyBUsers", userSet( chinaAgencyBUser ) );
         UserGroup indiaAgencyAUsers = getUserGroup( "IndiaAgencyAUsers", userSet( indiaAgencyAUser ) );
         UserGroup brazilPartner1Users = getUserGroup( "BrazilPartner1Users", userSet( brazilPartner1User ) );
@@ -454,18 +451,23 @@ public class DataApprovalServiceCategoryOptionGroupTest
         categoryService.addCategoryOption( chinaB2 );
         categoryService.addCategoryOption( indiaA1 );
 
-        setPrivateAccess( brazilA1, globalUsers, globalAgencyAUsers, brazilInteragencyUsers, brazilAgencyAUsers,
-            brazilPartner1Users );
-        setPrivateAccess( chinaA1_1, globalUsers, globalAgencyAUsers, chinaInteragencyUsers, chinaAgencyAUsers,
-            chinaPartner1Users );
-        setPrivateAccess( chinaA1_2, globalUsers, globalAgencyAUsers, chinaInteragencyUsers, chinaAgencyAUsers,
-            chinaPartner1Users );
-        setPrivateAccess( chinaA2, globalUsers, globalAgencyAUsers, chinaInteragencyUsers, chinaAgencyAUsers,
-            chinaPartner2Users );
-        setPrivateAccess( chinaB2, globalUsers, globalAgencyBUsers, chinaInteragencyUsers, chinaAgencyBUsers,
-            chinaPartner2Users );
-        setPrivateAccess( indiaA1, globalUsers, globalAgencyAUsers, indiaInteragencyUsers, indiaAgencyAUsers,
-            indiaPartner1Users );
+        setAccess( brazilA1,
+            globalUsers, globalAgencyAUsers, brazilInteragencyUsers, brazilAgencyAUsers, brazilPartner1Users );
+
+        setAccess( chinaA1_1,
+            globalUsers, globalAgencyAUsers, chinaInteragencyUsers, chinaAgencyAUsers, chinaPartner1Users );
+
+        setAccess( chinaA1_2,
+            globalUsers, globalAgencyAUsers, chinaInteragencyUsers, chinaAgencyAUsers, chinaPartner1Users );
+
+        setAccess( chinaA2,
+            globalUsers, globalAgencyAUsers, chinaInteragencyUsers, chinaAgencyAUsers, chinaPartner2Users );
+
+        setAccess( chinaB2,
+            globalUsers, globalAgencyBUsers, chinaInteragencyUsers, chinaAgencyBUsers, chinaPartner2Users );
+
+        setAccess( indiaA1,
+            globalUsers, globalAgencyAUsers, indiaInteragencyUsers, indiaAgencyAUsers, indiaPartner1Users );
 
         mechanismCategory = createCategory( 'A', brazilA1, chinaA1_1, chinaA1_2, chinaA2, chinaB2, indiaA1 );
         categoryService.addCategory( mechanismCategory );
@@ -473,20 +475,18 @@ public class DataApprovalServiceCategoryOptionGroupTest
         mechanismCategoryCombo = createCategoryCombo( 'A', mechanismCategory );
         categoryService.addCategoryCombo( mechanismCategoryCombo );
 
-        globalAgencyAUser.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
-        globalAgencyBUser.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
-        brazilAgencyAUser.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
-        chinaAgencyAUser.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
-        chinaAgencyAApproveOnly.getCurrentUser().getUserCredentials().getCatDimensionConstraints()
-            .add( mechanismCategory );
-        chinaAgencyAAcceptOnly.getCurrentUser().getUserCredentials().getCatDimensionConstraints()
-            .add( mechanismCategory );
-        chinaAgencyBUser.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
-        indiaAgencyAUser.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
-        brazilPartner1User.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
-        chinaPartner1User.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
-        chinaPartner2User.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
-        indiaPartner1User.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( mechanismCategory );
+        constrainByMechanism( globalAgencyAUser );
+        constrainByMechanism( globalAgencyBUser );
+        constrainByMechanism( brazilAgencyAUser );
+        constrainByMechanism( chinaAgencyAUser );
+        constrainByMechanism( chinaAgencyAApproveOnly );
+        constrainByMechanism( chinaAgencyAAcceptOnly );
+        constrainByMechanism( chinaAgencyBUser );
+        constrainByMechanism( indiaAgencyAUser );
+        constrainByMechanism( brazilPartner1User );
+        constrainByMechanism( chinaPartner1User );
+        constrainByMechanism( chinaPartner2User );
+        constrainByMechanism( indiaPartner1User );
 
         userService.updateUser( globalAgencyAUser.getCurrentUser() );
         userService.updateUser( globalAgencyBUser.getCurrentUser() );
@@ -534,14 +534,18 @@ public class DataApprovalServiceCategoryOptionGroupTest
         categoryService.saveCategoryOptionGroup( partner1 );
         categoryService.saveCategoryOptionGroup( partner2 );
 
-        setPrivateAccess( agencyA, globalUsers, globalAgencyAUsers, brazilInteragencyUsers, chinaInteragencyUsers,
-            indiaInteragencyUsers,
+        setAccess( agencyA,
+            globalUsers, globalAgencyAUsers, brazilInteragencyUsers, chinaInteragencyUsers, indiaInteragencyUsers,
             brazilAgencyAUsers, chinaAgencyAUsers, indiaAgencyAUsers );
-        setPrivateAccess( agencyB, globalUsers, globalAgencyBUsers, chinaInteragencyUsers, chinaAgencyBUsers );
-        setPrivateAccess( partner1, globalUsers, brazilInteragencyUsers, chinaInteragencyUsers, indiaInteragencyUsers,
-            brazilAgencyAUsers, chinaAgencyAUsers, indiaAgencyAUsers,
-            brazilPartner1Users, chinaPartner1Users, indiaPartner1Users );
-        setPrivateAccess( partner2, globalUsers, chinaInteragencyUsers, chinaAgencyAUsers, chinaPartner2Users );
+
+        setAccess( agencyB,
+            globalUsers, globalAgencyBUsers, chinaInteragencyUsers, chinaAgencyBUsers );
+
+        setAccess( partner1,
+            globalUsers, brazilInteragencyUsers, chinaInteragencyUsers, indiaInteragencyUsers, brazilAgencyAUsers,
+            chinaAgencyAUsers, indiaAgencyAUsers, brazilPartner1Users, chinaPartner1Users, indiaPartner1Users );
+
+        setAccess( partner2, globalUsers, chinaInteragencyUsers, chinaAgencyAUsers, chinaPartner2Users );
 
         agencies = new CategoryOptionGroupSet( "Agencies" );
         partners = new CategoryOptionGroupSet( "Partners" );
@@ -549,13 +553,15 @@ public class DataApprovalServiceCategoryOptionGroupTest
         categoryService.saveCategoryOptionGroupSet( partners );
         categoryService.saveCategoryOptionGroupSet( agencies );
 
-        setPrivateAccess( agencies, globalUsers, globalAgencyAUsers, globalAgencyBUsers, brazilInteragencyUsers,
-            chinaInteragencyUsers, indiaInteragencyUsers,
-            brazilAgencyAUsers, chinaAgencyAUsers, chinaAgencyBUsers, chinaAgencyBUsers, indiaAgencyAUsers );
+        setAccess( agencies,
+            globalUsers, globalAgencyAUsers, globalAgencyBUsers, brazilInteragencyUsers, chinaInteragencyUsers,
+            indiaInteragencyUsers, brazilAgencyAUsers, chinaAgencyAUsers, chinaAgencyBUsers, chinaAgencyBUsers,
+            indiaAgencyAUsers );
 
-        setPrivateAccess( partners, globalUsers, brazilInteragencyUsers, chinaInteragencyUsers, indiaInteragencyUsers,
-            brazilAgencyAUsers, chinaAgencyAUsers, chinaAgencyBUsers, chinaAgencyBUsers, indiaAgencyAUsers,
-            brazilPartner1Users, chinaPartner1Users, chinaPartner2Users, indiaPartner1Users );
+        setAccess( partners,
+            globalUsers, brazilInteragencyUsers, chinaInteragencyUsers, indiaInteragencyUsers, brazilAgencyAUsers,
+            chinaAgencyAUsers, chinaAgencyBUsers, chinaAgencyBUsers, indiaAgencyAUsers, brazilPartner1Users,
+            chinaPartner1Users, chinaPartner2Users, indiaPartner1Users );
 
         agencies.addCategoryOptionGroup( agencyA );
         agencies.addCategoryOptionGroup( agencyB );
@@ -591,10 +597,11 @@ public class DataApprovalServiceCategoryOptionGroupTest
         periodA = createPeriod( "201801" );
         periodService.addPeriod( periodA );
 
-        workflow1 = new DataApprovalWorkflow( "workflow1", periodType,
-            newHashSet( globalLevel1, countryLevel3, agencyLevel4, partnerLevel5 ) );
-        workflow2 = new DataApprovalWorkflow( "workflow2", periodType,
-            newHashSet( globalLevel1, globalAgencyLevel2, agencyLevel4, partnerLevel5 ) );
+        workflow1 = new DataApprovalWorkflow( "workflow1",
+            periodType, newHashSet( globalLevel1, countryLevel3, agencyLevel4, partnerLevel5 ) );
+
+        workflow2 = new DataApprovalWorkflow( "workflow2",
+            periodType, newHashSet( globalLevel1, globalAgencyLevel2, agencyLevel4, partnerLevel5 ) );
 
         dataApprovalService.addWorkflow( workflow1 );
         dataApprovalService.addWorkflow( workflow2 );
@@ -629,12 +636,9 @@ public class DataApprovalServiceCategoryOptionGroupTest
     @Override
     public void tearDownTest()
     {
-        setDependency( dataApprovalService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( dataApprovalStore, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( organisationUnitService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( hibernateCategoryOptionGroupStore, "currentUserService", currentUserService,
-            CurrentUserService.class );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+            currentUserService, dataApprovalService, dataApprovalStore, dataApprovalLevelService,
+            organisationUnitService, hibernateCategoryOptionGroupStore );
 
         systemSettingManager.saveSystemSetting( SettingKey.IGNORE_ANALYTICS_APPROVAL_YEAR_THRESHOLD, -1 );
         systemSettingManager.saveSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL, false );
@@ -650,13 +654,9 @@ public class DataApprovalServiceCategoryOptionGroupTest
     {
         if ( mockUserService != currentMockUserService )
         {
-            setDependency( dataApprovalService, "currentUserService", mockUserService, CurrentUserService.class );
-            setDependency( dataApprovalStore, "currentUserService", mockUserService, CurrentUserService.class );
-            setDependency( dataApprovalLevelService, "currentUserService", mockUserService, CurrentUserService.class );
-            setDependency( organisationUnitService, "currentUserService", mockUserService, CurrentUserService.class );
-            setDependency( hibernateCategoryOptionGroupStore, "currentUserService", mockUserService,
-                CurrentUserService.class );
-
+            setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
+                mockUserService, dataApprovalService, dataApprovalStore, dataApprovalLevelService,
+                organisationUnitService, hibernateCategoryOptionGroupStore );
             currentMockUserService = mockUserService;
         }
     }
@@ -705,7 +705,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         return Arrays.copyOf( approvalStrings.toArray(), approvalStrings.size(), String[].class );
     }
 
-    private String getUserLevels( CurrentUserService mockUserService, DataApprovalWorkflow workflow )
+    private String levels( CurrentUserService mockUserService, DataApprovalWorkflow workflow )
     {
         setUser( mockUserService );
 
@@ -822,6 +822,11 @@ public class DataApprovalServiceCategoryOptionGroupTest
         }
     }
 
+    private static void eq( Object expected, Object actual )
+    {
+        assertEquals( expected, actual );
+    }
+
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
@@ -829,69 +834,52 @@ public class DataApprovalServiceCategoryOptionGroupTest
     @Test
     public void testGetUserDataApprovalLevels()
     {
-        assertEquals( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5",
-            getUserLevels( superUser, workflow1 ) );
-        assertEquals( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalConsultant, workflow1 ) );
-        assertEquals( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalUser, workflow1 ) );
-        assertEquals( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalApproveOnly, workflow1 ) );
-        assertEquals( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalAcceptOnly, workflow1 ) );
-        assertEquals( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalReadEverything, workflow1 ) );
-        assertEquals( "CountryLevel3, AgencyLevel4, PartnerLevel5", getUserLevels( brazilInteragencyUser, workflow1 ) );
-        assertEquals( "CountryLevel3, AgencyLevel4, PartnerLevel5", getUserLevels( chinaInteragencyUser, workflow1 ) );
-        assertEquals( "CountryLevel3, AgencyLevel4, PartnerLevel5",
-            getUserLevels( chinaInteragencyApproveOnly, workflow1 ) );
-        assertEquals( "CountryLevel3, AgencyLevel4, PartnerLevel5",
-            getUserLevels( chinalInteragencyAcceptOnly, workflow1 ) );
-        assertEquals( "CountryLevel3, AgencyLevel4, PartnerLevel5", getUserLevels( indiaInteragencyUser, workflow1 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( globalAgencyAUser, workflow1 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( globalAgencyBUser, workflow1 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( brazilAgencyAUser, workflow1 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaAgencyAUser, workflow1 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaAgencyAApproveOnly, workflow1 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaAgencyAAcceptOnly, workflow1 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaAgencyBUser, workflow1 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( indiaAgencyAUser, workflow1 ) );
-        assertEquals( "PartnerLevel5", getUserLevels( brazilPartner1User, workflow1 ) );
-        assertEquals( "PartnerLevel5", getUserLevels( chinaPartner1User, workflow1 ) );
-        assertEquals( "PartnerLevel5", getUserLevels( chinaPartner2User, workflow1 ) );
-        assertEquals( "PartnerLevel5", getUserLevels( indiaPartner1User, workflow1 ) );
-
-        assertEquals( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5",
-            getUserLevels( superUser, workflow2 ) );
-        assertEquals( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalConsultant, workflow2 ) );
-        assertEquals( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalUser, workflow2 ) );
-        assertEquals( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalApproveOnly, workflow2 ) );
-        assertEquals( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalAcceptOnly, workflow2 ) );
-        assertEquals( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalReadEverything, workflow2 ) );
-        assertEquals( "GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalAgencyAUser, workflow2 ) );
-        assertEquals( "GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5",
-            getUserLevels( globalAgencyBUser, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( brazilInteragencyUser, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaInteragencyUser, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaInteragencyApproveOnly, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinalInteragencyAcceptOnly, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( indiaInteragencyUser, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( brazilAgencyAUser, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaAgencyAUser, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaAgencyAApproveOnly, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaAgencyAAcceptOnly, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( chinaAgencyBUser, workflow2 ) );
-        assertEquals( "AgencyLevel4, PartnerLevel5", getUserLevels( indiaAgencyAUser, workflow2 ) );
-        assertEquals( "PartnerLevel5", getUserLevels( brazilPartner1User, workflow2 ) );
-        assertEquals( "PartnerLevel5", getUserLevels( chinaPartner1User, workflow2 ) );
-        assertEquals( "PartnerLevel5", getUserLevels( chinaPartner2User, workflow2 ) );
-        assertEquals( "PartnerLevel5", getUserLevels( indiaPartner1User, workflow2 ) );
+        eq( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5", levels( superUser, workflow1 ) );
+        eq( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5", levels( globalConsultant, workflow1 ) );
+        eq( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5", levels( globalUser, workflow1 ) );
+        eq( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5", levels( globalApproveOnly, workflow1 ) );
+        eq( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5", levels( globalAcceptOnly, workflow1 ) );
+        eq( "GlobalLevel1, CountryLevel3, AgencyLevel4, PartnerLevel5", levels( globalReadAll, workflow1 ) );
+        eq( "CountryLevel3, AgencyLevel4, PartnerLevel5", levels( brazilInteragencyUser, workflow1 ) );
+        eq( "CountryLevel3, AgencyLevel4, PartnerLevel5", levels( chinaInteragencyUser, workflow1 ) );
+        eq( "CountryLevel3, AgencyLevel4, PartnerLevel5", levels( chinaInteragencyApproveOnly, workflow1 ) );
+        eq( "CountryLevel3, AgencyLevel4, PartnerLevel5", levels( chinalInteragencyAcceptOnly, workflow1 ) );
+        eq( "CountryLevel3, AgencyLevel4, PartnerLevel5", levels( indiaInteragencyUser, workflow1 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( globalAgencyAUser, workflow1 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( globalAgencyBUser, workflow1 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( brazilAgencyAUser, workflow1 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaAgencyAUser, workflow1 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaAgencyAApproveOnly, workflow1 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaAgencyAAcceptOnly, workflow1 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaAgencyBUser, workflow1 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( indiaAgencyAUser, workflow1 ) );
+        eq( "PartnerLevel5", levels( brazilPartner1User, workflow1 ) );
+        eq( "PartnerLevel5", levels( chinaPartner1User, workflow1 ) );
+        eq( "PartnerLevel5", levels( chinaPartner2User, workflow1 ) );
+        eq( "PartnerLevel5", levels( indiaPartner1User, workflow1 ) );
+        eq( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5", levels( superUser, workflow2 ) );
+        eq( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5", levels( globalConsultant, workflow2 ) );
+        eq( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5", levels( globalUser, workflow2 ) );
+        eq( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5", levels( globalApproveOnly, workflow2 ) );
+        eq( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5", levels( globalAcceptOnly, workflow2 ) );
+        eq( "GlobalLevel1, GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5", levels( globalReadAll, workflow2 ) );
+        eq( "GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5", levels( globalAgencyAUser, workflow2 ) );
+        eq( "GlobalAgencyLevel2, AgencyLevel4, PartnerLevel5", levels( globalAgencyBUser, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( brazilInteragencyUser, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaInteragencyUser, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaInteragencyApproveOnly, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinalInteragencyAcceptOnly, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( indiaInteragencyUser, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( brazilAgencyAUser, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaAgencyAUser, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaAgencyAApproveOnly, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaAgencyAAcceptOnly, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( chinaAgencyBUser, workflow2 ) );
+        eq( "AgencyLevel4, PartnerLevel5", levels( indiaAgencyAUser, workflow2 ) );
+        eq( "PartnerLevel5", levels( brazilPartner1User, workflow2 ) );
+        eq( "PartnerLevel5", levels( chinaPartner1User, workflow2 ) );
+        eq( "PartnerLevel5", levels( chinaPartner2User, workflow2 ) );
+        eq( "PartnerLevel5", levels( indiaPartner1User, workflow2 ) );
     }
 
     @Test
@@ -953,7 +941,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
             "ou=China mechanism=ChinaA2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=China mechanism=ChinaB2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=India mechanism=IndiaA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T" },
-            getUserApprovalsAndPermissions( globalReadEverything, workflow1, periodA, null ) );
+            getUserApprovalsAndPermissions( globalReadAll, workflow1, periodA, null ) );
 
         assertArrayEquals( new String[] {
             "ou=Brazil mechanism=BrazilA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=F" },
@@ -1045,7 +1033,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         assertFalse( approve( globalUser, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( approve( globalApproveOnly, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( approve( globalAcceptOnly, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
-        assertFalse( approve( globalReadEverything, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
+        assertFalse( approve( globalReadAll, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
 
         assertFalse( approve( brazilInteragencyUser, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( approve( chinaInteragencyUser, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
@@ -1122,7 +1110,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
             "ou=China mechanism=ChinaA2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=China mechanism=ChinaB2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=India mechanism=IndiaA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T" },
-            getUserApprovalsAndPermissions( globalReadEverything, workflow1, periodA, null ) );
+            getUserApprovalsAndPermissions( globalReadAll, workflow1, periodA, null ) );
 
         assertArrayEquals( new String[] {
             "ou=Brazil mechanism=BrazilA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=F" },
@@ -1216,7 +1204,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         assertFalse( approve( globalUser, partnerLevel5, workflow1, periodA, china, chinaA1_2Combo ) );
         assertFalse( approve( globalApproveOnly, partnerLevel5, workflow1, periodA, china, chinaA1_2Combo ) );
         assertFalse( approve( globalAcceptOnly, partnerLevel5, workflow1, periodA, china, chinaA1_2Combo ) );
-        assertFalse( approve( globalReadEverything, partnerLevel5, workflow1, periodA, china, chinaA1_2Combo ) );
+        assertFalse( approve( globalReadAll, partnerLevel5, workflow1, periodA, china, chinaA1_2Combo ) );
 
         assertFalse( approve( brazilInteragencyUser, partnerLevel5, workflow1, periodA, china, chinaA1_2Combo ) );
         assertFalse( approve( chinaInteragencyApproveOnly, partnerLevel5, workflow1, periodA, china, chinaA1_2Combo ) );
@@ -1294,7 +1282,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
             "ou=China mechanism=ChinaA2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=China mechanism=ChinaB2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=India mechanism=IndiaA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T" },
-            getUserApprovalsAndPermissions( globalReadEverything, workflow1, periodA, null ) );
+            getUserApprovalsAndPermissions( globalReadAll, workflow1, periodA, null ) );
 
         assertArrayEquals( new String[] {
             "ou=Brazil mechanism=BrazilA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=F" },
@@ -1386,7 +1374,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         assertFalse( accept( globalUser, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( accept( globalApproveOnly, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( accept( globalAcceptOnly, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
-        assertFalse( accept( globalReadEverything, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
+        assertFalse( accept( globalReadAll, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
 
         assertFalse( accept( brazilInteragencyUser, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( accept( chinaInteragencyUser, partnerLevel5, workflow1, periodA, china, chinaA1_1Combo ) );
@@ -1465,7 +1453,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
             "ou=China mechanism=ChinaA2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=China mechanism=ChinaB2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=India mechanism=IndiaA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T" },
-            getUserApprovalsAndPermissions( globalReadEverything, workflow1, periodA, null ) );
+            getUserApprovalsAndPermissions( globalReadAll, workflow1, periodA, null ) );
 
         assertArrayEquals( new String[] {
             "ou=Brazil mechanism=BrazilA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=F" },
@@ -1556,7 +1544,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         assertFalse( approve( globalUser, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( approve( globalApproveOnly, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( approve( globalAcceptOnly, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
-        assertFalse( approve( globalReadEverything, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
+        assertFalse( approve( globalReadAll, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
 
         assertFalse( approve( brazilInteragencyUser, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( approve( chinaInteragencyUser, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
@@ -1635,7 +1623,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
             "ou=China mechanism=ChinaA2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=China mechanism=ChinaB2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=India mechanism=IndiaA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T" },
-            getUserApprovalsAndPermissions( globalReadEverything, workflow1, periodA, null ) );
+            getUserApprovalsAndPermissions( globalReadAll, workflow1, periodA, null ) );
 
         assertArrayEquals( new String[] {
             "ou=Brazil mechanism=BrazilA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=F" },
@@ -1728,7 +1716,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         assertFalse( accept( globalUser, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( accept( globalApproveOnly, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( accept( globalAcceptOnly, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
-        assertFalse( accept( globalReadEverything, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
+        assertFalse( accept( globalReadAll, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
 
         assertFalse( accept( brazilInteragencyUser, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( accept( indiaInteragencyUser, agencyLevel4, workflow1, periodA, china, chinaA1_1Combo ) );
@@ -1807,7 +1795,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
             "ou=China mechanism=ChinaA2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=China mechanism=ChinaB2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=India mechanism=IndiaA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T" },
-            getUserApprovalsAndPermissions( globalReadEverything, workflow1, periodA, null ) );
+            getUserApprovalsAndPermissions( globalReadAll, workflow1, periodA, null ) );
 
         assertArrayEquals( new String[] {
             "ou=Brazil mechanism=BrazilA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=F" },
@@ -1899,7 +1887,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         assertFalse( approve( globalUser, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( approve( globalApproveOnly, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( approve( globalAcceptOnly, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
-        assertFalse( approve( globalReadEverything, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
+        assertFalse( approve( globalReadAll, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
 
         assertFalse( approve( brazilInteragencyUser, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( approve( indiaInteragencyUser, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
@@ -1978,7 +1966,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
             "ou=China mechanism=ChinaA2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=China mechanism=ChinaB2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=India mechanism=IndiaA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T" },
-            getUserApprovalsAndPermissions( globalReadEverything, workflow1, periodA, null ) );
+            getUserApprovalsAndPermissions( globalReadAll, workflow1, periodA, null ) );
 
         assertArrayEquals( new String[] {
             "ou=Brazil mechanism=BrazilA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=F" },
@@ -2067,7 +2055,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         assertTrue( accept( globalConsultant, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
         assertTrue( unaccept( globalConsultant, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
 
-        assertFalse( accept( globalReadEverything, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
+        assertFalse( accept( globalReadAll, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
 
         assertFalse( accept( brazilInteragencyUser, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
         assertFalse( accept( chinaInteragencyUser, countryLevel3, workflow1, periodA, china, chinaA1_1Combo ) );
@@ -2149,7 +2137,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
             "ou=China mechanism=ChinaA2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=China mechanism=ChinaB2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=India mechanism=IndiaA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T" },
-            getUserApprovalsAndPermissions( globalReadEverything, workflow1, periodA, null ) );
+            getUserApprovalsAndPermissions( globalReadAll, workflow1, periodA, null ) );
 
         assertArrayEquals( new String[] {
             "ou=Brazil mechanism=BrazilA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=F" },
@@ -2232,9 +2220,8 @@ public class DataApprovalServiceCategoryOptionGroupTest
         // Approve ChinaA1_1 at level 1
         // ---------------------------------------------------------------------
 
-        assertFalse( approve( superUser, globalLevel1, workflow1, periodA, china, chinaA1_1Combo ) ); // Wrong
-                                                                                                      // org
-                                                                                                      // unit.
+        // False because wrong org unit:
+        assertFalse( approve( superUser, globalLevel1, workflow1, periodA, china, chinaA1_1Combo ) );
 
         assertTrue( approve( superUser, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
         assertTrue( unapprove( superUser, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
@@ -2242,7 +2229,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         assertTrue( approve( globalConsultant, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
         assertTrue( unapprove( globalConsultant, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
 
-        assertFalse( approve( globalReadEverything, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
+        assertFalse( approve( globalReadAll, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
 
         assertFalse( approve( brazilInteragencyUser, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
         assertFalse( approve( chinaInteragencyUser, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
@@ -2320,7 +2307,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
             "ou=China mechanism=ChinaA2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=China mechanism=ChinaB2 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T",
             "ou=India mechanism=IndiaA1 level=5 UNAPPROVED_READY approve=F unapprove=F accept=F unaccept=F read=T" },
-            getUserApprovalsAndPermissions( globalReadEverything, workflow1, periodA, null ) );
+            getUserApprovalsAndPermissions( globalReadAll, workflow1, periodA, null ) );
 
         assertArrayEquals( new String[] {
             "ou=China mechanism=ChinaA1_1 level=3 ACCEPTED_HERE approve=F unapprove=F accept=F unaccept=F read=T",
@@ -2401,7 +2388,7 @@ public class DataApprovalServiceCategoryOptionGroupTest
         assertTrue( unapprove( globalConsultant, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
         assertTrue( approve( globalConsultant, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
 
-        assertFalse( unapprove( globalReadEverything, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
+        assertFalse( unapprove( globalReadAll, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
 
         assertFalse( unapprove( brazilInteragencyUser, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );
         assertFalse( unapprove( chinaInteragencyUser, globalLevel1, workflow1, periodA, global, chinaA1_1Combo ) );

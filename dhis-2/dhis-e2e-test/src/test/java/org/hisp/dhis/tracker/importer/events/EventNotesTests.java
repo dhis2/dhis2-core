@@ -33,8 +33,9 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -46,7 +47,7 @@ import static org.hamcrest.Matchers.*;
 public class EventNotesTests
     extends TrackerNtiApiTest
 {
-    @BeforeAll
+    @BeforeEach
     public void beforeAll()
     {
         loginActions.loginAsAdmin();
@@ -73,7 +74,8 @@ public class EventNotesTests
             .body( "stats.updated", equalTo( 1 ) );
 
         trackerActions.getEvent( eventId + "?fields=notes" )
-            .validate().statusCode( 200 ).body( "notes", hasSize( 2 ) )
+            .validate().statusCode( 200 )
+            .body( "notes", hasSize( 2 ) )
             .body( "notes.storedBy", CoreMatchers.everyItem( equalTo( "taadmin" ) ) );
     }
 
@@ -104,12 +106,11 @@ public class EventNotesTests
 
     private JsonObject buildEventWithNote()
     {
-        JsonObject ob = trackerActions
-            .buildEvent( Constants.ORG_UNIT_IDS[1], Constants.EVENT_PROGRAM_ID, Constants.EVENT_PROGRAM_STAGE_ID );
-
-        JsonObjectBuilder.jsonObject( ob )
-            .addArrayByJsonPath( "events[0]", "notes",
-                new JsonObjectBuilder().addProperty( "value", DataGenerator.randomString() ).build() );
+        JsonObject ob = new EventDataBuilder().setOu( Constants.ORG_UNIT_IDS[0] )
+            .setProgram( Constants.EVENT_PROGRAM_ID )
+            .setProgramStage( Constants.EVENT_PROGRAM_STAGE_ID )
+            .addNote( DataGenerator.randomString() )
+            .array();
         return ob;
     }
 

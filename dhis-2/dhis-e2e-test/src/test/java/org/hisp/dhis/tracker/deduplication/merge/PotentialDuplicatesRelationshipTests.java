@@ -35,6 +35,7 @@ import org.hisp.dhis.actions.tracker.RelationshipActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -144,9 +145,9 @@ public class PotentialDuplicatesRelationshipTests
 
     private TrackerApiResponse createRelationship( String teiA, String teiB )
     {
-        JsonObject payload = JsonObjectBuilder
-            .jsonObject( trackerActions.buildBidirectionalTrackedEntityRelationship( teiA, teiB ) )
-            .wrapIntoArray( "relationships" );
+        JsonObject payload = new RelationshipDataBuilder()
+            .buildBidirectionalRelationship( teiA, teiB )
+            .array();
 
         return trackerActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
@@ -154,9 +155,9 @@ public class PotentialDuplicatesRelationshipTests
 
     private TrackerApiResponse createUniDirectionalRelationship( String teiA, String teiB )
     {
-        JsonObject payload = JsonObjectBuilder
-            .jsonObject( trackerActions.buildNonBidirectionalTrackedEntityRelationship( teiA, teiB ) )
-            .wrapIntoArray( "relationships" );
+        JsonObject payload = new RelationshipDataBuilder()
+            .buildUniDirectionalRelationship( teiA, teiB )
+            .array();
 
         return trackerActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();

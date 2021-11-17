@@ -39,7 +39,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -76,6 +75,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
@@ -89,6 +89,7 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
+import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.ExternalFileResource;
@@ -124,6 +125,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -394,59 +396,27 @@ public abstract class DhisConvenienceTest
     // Dependency injection methods
     // -------------------------------------------------------------------------
 
-    /**
-     * Sets a dependency on the target service. This method can be used to set
-     * mock implementations of dependencies on services for testing purposes.
-     * The advantage of using this method over setting the services directly is
-     * that the test can still be executed against the interface type of the
-     * service; making the test unaware of the implementation and thus
-     * re-usable. A weakness is that the field name of the dependency must be
-     * assumed.
-     *
-     * @param targetService the target service.
-     * @param fieldName the name of the dependency field in the target service.
-     * @param dependency the dependency.
-     */
-    protected void setDependency( Object targetService, String fieldName, Object dependency )
+    protected final <T, D> void setDependency( Class<T> role, BiConsumer<T, D> setter, D dependency,
+        Object... targetServices )
     {
-        Class<?> clazz = dependency.getClass().getInterfaces()[0];
-
-        setDependency( targetService, fieldName, dependency, clazz );
+        for ( Object targetService : targetServices )
+        {
+            setDependency( role, setter, dependency, targetService );
+        }
     }
 
-    /**
-     * Sets a dependency on the target service. This method can be used to set
-     * mock implementations of dependencies on services for testing purposes.
-     * The advantage of using this method over setting the services directly is
-     * that the test can still be executed against the interface type of the
-     * service; making the test unaware of the implementation and thus
-     * re-usable. A weakness is that the field name of the dependency must be
-     * assumed.
-     *
-     * @param targetService the target service.
-     * @param fieldName the name of the dependency field in the target service.
-     * @param dependency the dependency.
-     * @param clazz the interface type of the dependency.
-     */
-    protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
+    @SuppressWarnings( "unchecked" )
+    private final <T, D> void setDependency( Class<T> role, BiConsumer<T, D> setter, D dependency,
+        Object targetService )
     {
-        try
+        if ( role.isInstance( targetService ) )
         {
-            targetService = getRealObject( targetService );
-
-            String setMethodName = "set" + fieldName.substring( 0, 1 ).toUpperCase()
-                + fieldName.substring( 1 );
-
-            Class<?>[] argumentClass = new Class<?>[] { clazz };
-
-            Method method = targetService.getClass().getMethod( setMethodName, argumentClass );
-
-            method.invoke( targetService, dependency );
+            setter.accept( (T) targetService, dependency );
         }
-        catch ( Exception ex )
+        else
         {
-            throw new IllegalArgumentException(
-                "Failed to set dependency '" + fieldName + "' on service: " + getStackTrace( ex ), ex );
+            throw new IllegalArgumentException( "Failed to set dependency " + role + " on service "
+                + targetService.getClass().getSimpleName() );
         }
     }
 
@@ -1533,6 +1503,19 @@ public abstract class DhisConvenienceTest
         return programInstance;
     }
 
+    public static ProgramStageInstance createProgramStageInstance( ProgramStage programStage,
+        ProgramInstance pi, OrganisationUnit organisationUnit )
+    {
+        ProgramStageInstance psi = new ProgramStageInstance();
+        psi.setAutoFields();
+
+        psi.setProgramStage( programStage );
+        psi.setProgramInstance( pi );
+        psi.setOrganisationUnit( organisationUnit );
+
+        return psi;
+    }
+
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )
     {
         ProgramRule programRule = new ProgramRule();
@@ -1752,6 +1735,8 @@ public abstract class DhisConvenienceTest
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( _from );
         relationship.setTo( _to );
+        relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
+        relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
         relationship.setAutoFields();
 
@@ -2169,7 +2154,10 @@ public abstract class DhisConvenienceTest
      */
     public void setExternalTestDir( LocationManager locationManager )
     {
-        setDependency( locationManager, "externalDir", EXT_TEST_DIR, String.class );
+        if ( locationManager instanceof DefaultLocationManager )
+        {
+            ((DefaultLocationManager) locationManager).setExternalDir( EXT_TEST_DIR );
+        }
     }
 
     /**

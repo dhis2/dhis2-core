@@ -72,8 +72,8 @@ public class TrackedEntityAttributeRowCallbackHandler
     {
         Attribute attribute = new Attribute();
 
-        attribute.setCreated( DateUtils.getIso8601NoTz( rs.getDate( getColumnName( CREATED ) ) ) );
-        attribute.setLastUpdated( DateUtils.getIso8601NoTz( rs.getDate( getColumnName( UPDATED ) ) ) );
+        attribute.setCreated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( CREATED ) ) ) );
+        attribute.setLastUpdated( DateUtils.getIso8601NoTz( rs.getTimestamp( getColumnName( UPDATED ) ) ) );
         attribute.setDisplayName( rs.getString( getColumnName( ATTR_NAME ) ) );
         attribute.setAttribute( rs.getString( getColumnName( ATTR_UID ) ) );
         attribute.setValueType( ValueType.fromString( rs.getString( getColumnName( ATTR_VALUE_TYPE ) ) ) );

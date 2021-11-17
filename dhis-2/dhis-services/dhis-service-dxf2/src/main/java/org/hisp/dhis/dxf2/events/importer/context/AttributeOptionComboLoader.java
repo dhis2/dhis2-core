@@ -38,7 +38,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -252,7 +252,7 @@ public class AttributeOptionComboLoader
             .map( s -> "'" + s + "'" )
             .collect( Collectors.joining( "," ) );
 
-        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String> builder()
+        StringSubstitutor sub = new StringSubstitutor( ImmutableMap.<String, String> builder()
             .put( "resolvedScheme", Objects.requireNonNull( categoryComboKey ) )
             .put( "option_ids", optionsId )
             .build() );
@@ -288,7 +288,7 @@ public class AttributeOptionComboLoader
     {
         String key = "categoryoptioncomboid";
 
-        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String> builder()
+        StringSubstitutor sub = new StringSubstitutor( ImmutableMap.<String, String> builder()
             .put( "key", key )
             .put( "resolvedScheme", Objects.requireNonNull( resolveId( idScheme, key, id ) ) )
             .build() );
@@ -333,7 +333,8 @@ public class AttributeOptionComboLoader
     private CategoryOption loadCategoryOption( IdScheme idScheme, String id )
     {
         String key = "categoryoptionid";
-        final String sql = "select " + key + ", uid, code, name, sharing from dataelementcategoryoption "
+        final String sql = "select " + key
+            + ", uid, code, name, startdate, enddate, sharing from dataelementcategoryoption "
             + "where " + resolveId( idScheme, key, id );
 
         try
@@ -344,6 +345,8 @@ public class AttributeOptionComboLoader
                 categoryOption.setUid( rs.getString( "uid" ) );
                 categoryOption.setCode( rs.getString( "code" ) );
                 categoryOption.setName( rs.getString( "name" ) );
+                categoryOption.setStartDate( rs.getDate( "startdate" ) );
+                categoryOption.setEndDate( rs.getDate( "enddate" ) );
                 categoryOption.setSharing( getSharing( rs.getString( "sharing" ) ) );
                 return categoryOption;
             } );

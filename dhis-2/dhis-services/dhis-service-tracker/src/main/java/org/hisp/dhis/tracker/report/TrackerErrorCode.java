@@ -37,6 +37,7 @@ public enum TrackerErrorCode
     E1000( "User: `{0}`, has no write access to OrganisationUnit: `{1}`." ),
     E1001( "User: `{0}`, has no data write access to TrackedEntityType: `{1}`." ),
     E1002( "TrackedEntityInstance: `{0}`, already exists." ),
+    E1003( "OrganisationUnit: `{0}` of TrackedEntity is outside search scope of User: `{1}`." ),
     E1005( "Could not find TrackedEntityType: `{0}`." ),
     E1006( "Attribute: `{0}`, does not exist." ),
     E1007( "Error validating attribute value type: `{0}`; Error: `{1}`." ),
@@ -48,7 +49,7 @@ public enum TrackerErrorCode
     E1014( "Provided Program: `{0}`, is a Program without registration. " +
         "An Enrollment cannot be created into Program without registration." ),
     E1015( "TrackedEntityInstance: `{0}`, already has an active Enrollment in Program `{1}`." ),
-    E1016( "TrackedEntityInstance: `{0}`, already has an active enrollment in Program: `{1}`, and this " +
+    E1016( "TrackedEntityInstance: `{0}`, already has an enrollment in Program: `{1}`, and this " +
         "program only allows enrolling one time." ),
     E1018( "Attribute: `{0}`, is mandatory in program `{1}` but not declared in enrollment `{2}`." ),
     E1019( "Only Program attributes is allowed for enrollment; Non valid attribute: `{0}`." ),
@@ -71,7 +72,7 @@ public enum TrackerErrorCode
     E1050( "Event ScheduledAt date is missing." ),
     E1055( "Default AttributeOptionCombo is not allowed since program has non-default CategoryCombo." ),
     E1056( "Event date: `{0}`, is before start date: `{1}`, for AttributeOption: `{2}`." ),
-    E1057( "Event date: `{0}`, is after end date: `{1}`, for AttributeOption; `{2}`." ),
+    E1057( "Event date: `{0}`, is after end date: `{1}`, for AttributeOption: `{2}` in program: `{3}`." ),
     E1063( "TrackedEntityInstance: `{0}`, does not exist." ),
     E1064( "Non-unique attribute value `{0}` for attribute `{1}`" ),
     E1068( "Could not find TrackedEntityInstance: `{0}`, linked to Enrollment." ),
@@ -118,7 +119,6 @@ public enum TrackerErrorCode
     E1126( "Not allowed to update Tracked Entity property: {0}." ),
     E1127( "Not allowed to update Enrollment property: {0}." ),
     E1128( "Not allowed to update Event property: {0}." ),
-    E1017( "Attribute: `{0}`, does not exist." ),
     E1094( "Not allowed to update Enrollment: `{0}`, existing Program `{1}`." ),
     E1110( "Not allowed to update Event: `{0}`, existing Program `{1}`." ),
     E1045( "Program: `{0}`, expiry date has passed. It is not possible to make changes to this event." ),

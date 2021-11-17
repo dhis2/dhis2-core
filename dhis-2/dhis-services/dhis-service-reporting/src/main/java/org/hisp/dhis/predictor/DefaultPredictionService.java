@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsServiceTarget;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -90,6 +91,7 @@ import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandlerFactory;
@@ -106,7 +108,7 @@ import com.google.common.collect.Sets;
 @Service( "org.hisp.dhis.predictor.PredictionService" )
 @Transactional
 public class DefaultPredictionService
-    implements PredictionService
+    implements PredictionService, AnalyticsServiceTarget, CurrentUserServiceTarget
 {
     private final PredictorService predictorService;
 
@@ -169,19 +171,13 @@ public class DefaultPredictionService
         this.currentUserService = currentUserService;
     }
 
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
+    @Override
     public void setAnalyticsService( AnalyticsService analyticsService )
     {
         this.analyticsService = analyticsService;
     }
 
-    /**
-     * Used only for testing, remove when test is refactored
-     */
-    @Deprecated
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
@@ -361,8 +357,8 @@ public class DefaultPredictionService
 
         for ( OrganisationUnitLevel orgUnitLevel : predictor.getOrganisationUnitLevels() )
         {
-            List<OrganisationUnit> orgUnits = organisationUnitService.getOrganisationUnitsAtOrgUnitLevels(
-                Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits );
+            List<OrganisationUnit> orgUnits = new ArrayList<>( organisationUnitService
+                .getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits ) );
 
             orgUnits.sort( Comparator.comparing( OrganisationUnit::getPath ) );
 

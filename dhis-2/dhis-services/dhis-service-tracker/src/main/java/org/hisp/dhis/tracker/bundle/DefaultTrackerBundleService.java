@@ -150,7 +150,7 @@ public class DefaultTrackerBundleService
 
         Session session = sessionFactory.getCurrentSession();
 
-        Stream.of( TrackerType.values() )
+        TrackerType.getOrderedByPriority()
             .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
                 .apply( session, bundle ) ) );
 

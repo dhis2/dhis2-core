@@ -72,13 +72,13 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
-    public Optional<V> get( String key, Function<String, V> mappingFunction )
+    public V get( String key, Function<String, V> mappingFunction )
     {
         if ( null == mappingFunction )
         {
             throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
-        return Optional.ofNullable( Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue ) );
+        return Optional.ofNullable( mappingFunction.apply( key ) ).orElse( defaultValue );
     }
 
     @Override

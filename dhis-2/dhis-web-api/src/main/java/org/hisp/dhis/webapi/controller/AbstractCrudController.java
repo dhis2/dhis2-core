@@ -96,8 +96,6 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -269,7 +267,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
+    @PatchMapping( "/{uid}/{property}" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
@@ -295,7 +293,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         Property property = getSchema().getProperty( pvProperty );
         T persistedObject = entities.get( 0 );
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), persistedObject ) )
+        User user = currentUserService.getCurrentUser();
+        if ( !aclService.canUpdate( user, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -315,8 +314,18 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         prePatchEntity( persistedObject );
         Object value = property.getGetterMethod().invoke( object );
         property.getSetterMethod().invoke( persistedObject, value );
-        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
-        manager.update( persistedObject );
+
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+        params.setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( persistedObject );
+
+        ImportReport importReport = importService.importMetadata( params );
+        if ( importReport.getStatus() != Status.OK )
+        {
+            throw new WebMessageException( objectReport( importReport ) );
+        }
+
         postPatchEntity( persistedObject );
     }
 
@@ -370,6 +379,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
         prePatchEntity( persistedObject, patchedObject );
+
+        // Only supports new Sharing format
+        ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 

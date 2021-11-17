@@ -153,7 +153,13 @@ public @interface Gist
          * Without argument same as {@link #IDS}, argument can be used to
          * extract any other {@link String} field.
          */
-        PLUCK;
+        PLUCK,
+
+        /**
+         * Provides a non-persistent property based on one or more persisted
+         * ones. For example {@code name~from(firstName,surname)}.
+         */
+        FROM;
 
         public static Transform parse( String transform )
         {

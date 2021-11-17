@@ -36,7 +36,11 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
-import org.hisp.dhis.dxf2.metadata.sync.*;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncParams;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPostProcessor;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncPreProcessor;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
+import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.sync.SynchronizationJob;
@@ -44,6 +48,7 @@ import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SettingKey;
@@ -130,7 +135,7 @@ public class MetadataSyncJob extends SynchronizationJob
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         log.info( "Metadata Sync cron Job started" );
 

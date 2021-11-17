@@ -43,7 +43,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.time.DateUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -270,12 +270,6 @@ public class TrackedEntityInstanceQueryParams
      * Data sync job).
      */
     private boolean synchronizationQuery;
-
-    /**
-     * Indicates to use legacy fetching mechanism in case the tei result count
-     * is high
-     */
-    private boolean useLegacy;
 
     /**
      * Indicates a point in the time used to decide the data that should not be
@@ -1199,17 +1193,6 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setInternalSearch( boolean internalSearch )
     {
         this.internalSearch = internalSearch;
-        return this;
-    }
-
-    public boolean isUseLegacy()
-    {
-        return useLegacy;
-    }
-
-    public TrackedEntityInstanceQueryParams setUseLegacy( boolean useLegacy )
-    {
-        this.useLegacy = useLegacy;
         return this;
     }
 

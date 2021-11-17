@@ -27,13 +27,7 @@
  */
 package org.hisp.dhis.tracker.importer.events;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-import java.io.File;
-import java.util.stream.Stream;
-
+import com.google.gson.JsonObject;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
@@ -43,6 +37,8 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
+import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -50,7 +46,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com.google.gson.JsonObject;
+import java.io.File;
+import java.util.stream.Stream;
+
+import static org.hamcrest.CoreMatchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -121,12 +122,11 @@ public class EventValidationTests
     @ParameterizedTest
     public void shouldValidateEventProperties( String status, String occurredAt, String error )
     {
-        JsonObject object = trackerActions.buildEvent( OU_ID, trackerProgramId, trackerProgramStageId );
-
-        JsonObject event = object.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject();
-        event.addProperty( "occurredAt", occurredAt );
-        event.addProperty( "status", status );
-        event.addProperty( "enrollment", enrollment );
+        JsonObject object = new EventDataBuilder()
+            .setStatus( status )
+            .setEventDate( occurredAt )
+            .setEnrollment( enrollment )
+            .array( OU_ID, trackerProgramId, trackerProgramStageId );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
         response.validateErrorReport()
@@ -136,15 +136,17 @@ public class EventValidationTests
     @Test
     public void shouldSetDueDate()
     {
-        JsonObject object = trackerActions.buildEvent( OU_ID, trackerProgramId, trackerProgramStageId );
-        object.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "enrollment", enrollment );
+        JsonObject eventBody = new EventDataBuilder()
+            .setEnrollment( enrollment )
+            .array( OU_ID, trackerProgramId, trackerProgramStageId );
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( object );
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( eventBody );
 
         String eventId = response.validateSuccessfulImport().extractImportedEvents().get( 0 );
-        JsonObject obj = trackerActions.get( "/events/" + eventId ).getBody();
 
-        assertEquals( obj.get( "eventDate" ), obj.get( "dueDate" ) );
+        JsonObject event = trackerActions.get( "/events/" + eventId ).getBody();
+
+        assertEquals( event.get( "eventDate" ), event.get( "dueDate" ) );
     }
 
     @ParameterizedTest
@@ -152,7 +154,7 @@ public class EventValidationTests
     public void eventImportShouldValidateReferences( String ouId, String programId, String programStageId,
         String errorCode )
     {
-        JsonObject jsonObject = trackerActions.buildEvent( ouId, programId, programStageId );
+        JsonObject jsonObject = new EventDataBuilder().array( ouId, programId, programStageId );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
@@ -163,8 +165,9 @@ public class EventValidationTests
     @Test
     public void eventImportShouldValidateProgramFromProgramStage()
     {
-        JsonObject jsonObject = trackerActions.buildEvent( OU_ID, anotherTrackerProgramId, trackerProgramStageId );
-        jsonObject.getAsJsonArray( "events" ).get( 0 ).getAsJsonObject().addProperty( "enrollment", enrollment );
+        JsonObject jsonObject = new EventDataBuilder()
+            .setEnrollment( enrollment )
+            .array( OU_ID, anotherTrackerProgramId, trackerProgramStageId );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
@@ -175,7 +178,7 @@ public class EventValidationTests
     @Test
     public void eventImportShouldPassValidationWhenOnlyEventProgramIsDefined()
     {
-        JsonObject jsonObject = trackerActions.buildEvent( OU_ID, eventProgramId, null );
+        JsonObject jsonObject = new EventDataBuilder().array( OU_ID, eventProgramId, null );
 
         TrackerApiResponse response = trackerActions.postAndGetJobReport( jsonObject );
 
@@ -200,7 +203,7 @@ public class EventValidationTests
         new UserActions().grantCurrentUserAccessToOrgUnit( ouIdWithoutAccess );
 
         enrollment = trackerActions
-            .postAndGetJobReport( trackerActions.buildTeiAndEnrollment( OU_ID, trackerProgramId ) )
+            .postAndGetJobReport( new TeiDataBuilder().buildWithEnrollment( OU_ID, trackerProgramId ) )
             .validateSuccessfulImport().extractImportedEnrollments().get( 0 );
     }
 }

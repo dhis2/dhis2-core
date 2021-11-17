@@ -32,15 +32,19 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
+import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -48,7 +52,8 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
@@ -64,19 +69,13 @@ import org.hisp.dhis.tracker.report.TrackerTypeReport;
  * @author Luciano Fiandesio
  */
 @Slf4j
+@RequiredArgsConstructor( access = AccessLevel.PROTECTED )
 public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends BaseIdentifiableObject>
     implements TrackerPersister<T, V>
 {
     protected final ReservedValueService reservedValueService;
 
-    private TrackedEntityAttributeValueService attributeValueService;
-
-    protected AbstractTrackerPersister( ReservedValueService reservedValueService,
-        TrackedEntityAttributeValueService attributeValueService )
-    {
-        this.reservedValueService = reservedValueService;
-        this.attributeValueService = attributeValueService;
-    }
+    protected final TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService;
 
     /**
      * Template method that can be used by classes extending this class to
@@ -337,76 +336,152 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
     {
-        // TODO: Do not use attributeValueService.
-        // We should have the right version of attribute values present in the
-        // TEI
-        // at any moment
-        Map<String, TrackedEntityAttributeValue> attributeValueDBMap = attributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance )
+        if ( payloadAttributes.isEmpty() )
+        {
+            return;
+        }
+
+        Map<String, TrackedEntityAttributeValue> attributeValueByUid = trackedEntityInstance
+            .getTrackedEntityAttributeValues()
             .stream()
             .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), Function.identity() ) );
 
-        for ( Attribute at : payloadAttributes )
-        {
-            boolean isNew = false;
-            TrackedEntityAttribute attribute = preheat.get( TrackedEntityAttribute.class, at.getAttribute() );
+        payloadAttributes
+            .forEach( attribute -> {
 
-            checkNotNull( attribute,
-                "Attribute " + at.getAttribute()
-                    + " should never be NULL here if validation is enforced before commit." );
+                // We cannot get the value from attributeToStore because it uses
+                // encryption logic, so we need to use the one from payload
+                boolean isDelete = StringUtils.isEmpty( attribute.getValue() );
 
-            TrackedEntityAttributeValue attributeValue = attributeValueDBMap.get( at.getAttribute() );
+                TrackedEntityAttributeValue trackedEntityAttributeValue = attributeValueByUid
+                    .get( attribute.getAttribute() );
 
-            if ( attributeValue == null )
-            {
-                attributeValue = new TrackedEntityAttributeValue();
-                isNew = true;
-            }
+                boolean isUpdated = false;
 
-            attributeValue
-                .setAttribute( attribute )
-                .setEntityInstance( trackedEntityInstance )
-                .setValue( at.getValue() )
-                .setStoredBy( at.getStoredBy() );
+                boolean isNew = Objects.isNull( trackedEntityAttributeValue );
 
-            // We cannot use attributeValue.getValue() because it uses
-            // encryption logic
-            // So we need to use at.getValue()
-            if ( StringUtils.isEmpty( at.getValue() ) )
-            {
-                if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
+                if ( isDelete && isNew )
                 {
-                    unassignFileResource( session, preheat, attributeValueDBMap.get( at.getAttribute() ).getValue() );
-                }
-                session.remove( attributeValue );
-            }
-            else
-            {
-                if ( attribute.getValueType() == ValueType.FILE_RESOURCE )
-                {
-                    assignFileResource( session, preheat, attributeValue.getValue() );
+                    return;
                 }
 
-                saveOrUpdate( session, isNew, attributeValue );
-            }
+                if ( isDelete )
+                {
+                    delete( session, preheat, trackedEntityAttributeValue, trackedEntityInstance );
+                }
+                else
+                {
+                    if ( !isNew )
+                    {
+                        isUpdated = !trackedEntityAttributeValue.getPlainValue().equals( attribute.getValue() );
+                    }
 
-            if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
-            {
-                reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(),
-                    attributeValue.getValue() );
-            }
-        }
+                    trackedEntityAttributeValue = Optional.ofNullable( trackedEntityAttributeValue )
+                        .orElseGet( () -> new TrackedEntityAttributeValue()
+                            .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
+                            .setEntityInstance( trackedEntityInstance ) )
+                        .setStoredBy( attribute.getStoredBy() )
+                        .setValue( attribute.getValue() );
+
+                    saveOrUpdate( session, preheat, isNew, trackedEntityInstance, trackedEntityAttributeValue,
+                        isUpdated );
+                }
+
+                handleReservedValue( trackedEntityAttributeValue );
+            } );
     }
 
-    private void saveOrUpdate( Session session, boolean isNew, Object persistable )
+    private void delete( Session session, TrackerPreheat preheat,
+        TrackedEntityAttributeValue trackedEntityAttributeValue, TrackedEntityInstance trackedEntityInstance )
     {
+        if ( isFileResource( trackedEntityAttributeValue ) )
+        {
+            unassignFileResource( session, preheat, trackedEntityAttributeValue.getValue() );
+        }
+
+        session.remove( trackedEntityAttributeValue );
+
+        logTrackedEntityAttributeValueHistory(
+            preheat.getUsername(),
+            trackedEntityAttributeValue,
+            trackedEntityInstance,
+            AuditType.DELETE );
+    }
+
+    private void saveOrUpdate( Session session, TrackerPreheat preheat, boolean isNew,
+        TrackedEntityInstance trackedEntityInstance, TrackedEntityAttributeValue trackedEntityAttributeValue,
+        boolean isUpdated )
+    {
+        if ( isFileResource( trackedEntityAttributeValue ) )
+        {
+            assignFileResource( session, preheat, trackedEntityAttributeValue.getValue() );
+        }
+
+        AuditType auditType = null;
+
         if ( isNew )
         {
-            session.persist( persistable );
+            session.persist( trackedEntityAttributeValue );
+            // In case it's a newly created attribute we'll add it back to TEI,
+            // so it can end up in preheat
+            trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
+            auditType = AuditType.CREATE;
         }
         else
         {
-            session.merge( persistable );
+            session.merge( trackedEntityAttributeValue );
+
+            if ( isUpdated )
+            {
+                auditType = AuditType.UPDATE;
+            }
+        }
+
+        logTrackedEntityAttributeValueHistory(
+            preheat.getUsername(),
+            trackedEntityAttributeValue,
+            trackedEntityInstance,
+            auditType );
+    }
+
+    private static boolean isFileResource( TrackedEntityAttributeValue trackedEntityAttributeValue )
+    {
+        return trackedEntityAttributeValue.getAttribute().getValueType() == ValueType.FILE_RESOURCE;
+    }
+
+    private static TrackedEntityAttribute getTrackedEntityAttributeFromPreheat( TrackerPreheat preheat,
+        String attributeUid )
+    {
+        TrackedEntityAttribute trackedEntityAttribute = preheat.get( TrackedEntityAttribute.class, attributeUid );
+
+        checkNotNull( trackedEntityAttribute,
+            "Attribute " + attributeUid
+                + " should never be NULL here if validation is enforced before commit." );
+
+        return trackedEntityAttribute;
+    }
+
+    private void handleReservedValue( TrackedEntityAttributeValue attributeValue )
+    {
+        if ( attributeValue.getAttribute().isGenerated() && attributeValue.getAttribute().getTextPattern() != null )
+        {
+            reservedValueService.useReservedValue( attributeValue.getAttribute().getTextPattern(),
+                attributeValue.getValue() );
+        }
+    }
+
+    private void logTrackedEntityAttributeValueHistory( String userName,
+        TrackedEntityAttributeValue attributeValue, TrackedEntityInstance trackedEntityInstance, AuditType auditType )
+    {
+        boolean allowAuditLog = trackedEntityInstance.getTrackedEntityType().isAllowAuditLog();
+
+        // create log entry only for updated, created and deleted attributes
+        if ( allowAuditLog && auditType != null )
+        {
+            TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
+                attributeValue, attributeValue.getValue(), userName, auditType );
+            valueAudit.setEntityInstance( trackedEntityInstance );
+            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( valueAudit );
         }
     }
 }

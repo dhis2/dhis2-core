@@ -115,7 +115,8 @@ public class GistDescribeControllerTest extends AbstractGistControllerTest
         JsonObject parameters = hql.getObject( "parameters" );
         assertTrue( parameters.isObject() );
         assertEquals( 1, parameters.size() );
-        assertEquals( "Jo%", parameters.getString( "f_0" ).string() );
+        // starts with is case-insensitive so both term and DB field are lowered
+        assertEquals( "jo%", parameters.getString( "f_0" ).string() );
     }
 
     @Test

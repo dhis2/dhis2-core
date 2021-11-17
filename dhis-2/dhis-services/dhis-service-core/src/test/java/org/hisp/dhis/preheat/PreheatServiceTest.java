@@ -55,7 +55,12 @@ package org.hisp.dhis.preheat;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -484,8 +489,7 @@ public class PreheatServiceTest
         preheatService.validate( params );
         Preheat preheat = preheatService.preheat( params );
 
-        Map<String, IdentifiableObject> map = preheat.getMap().get( PreheatIdentifier.UID ).get( DataElement.class );
-        assertEquals( 3, map.size() );
+        assertEquals( 3, preheat.getIdentifierKeyCount( PreheatIdentifier.UID, DataElement.class ) );
     }
 
     @Test
@@ -509,12 +513,7 @@ public class PreheatServiceTest
 
         Preheat preheat = preheatService.preheat( params );
 
-        Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> object = preheat.getMap()
-            .get( PreheatIdentifier.UID );
-
-        assertNotNull( object );
-        assertFalse( object.isEmpty() );
-        assertEquals( 3, object.size() );
+        assertEquals( 3, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
     }
 
     @Test
@@ -543,14 +542,11 @@ public class PreheatServiceTest
         params.setObjects( metadata );
 
         Preheat preheat = preheatService.preheat( params );
-        assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
-        assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
+        assertTrue( preheat.hasKlassKeys( PreheatIdentifier.CODE ) );
+        assertTrue( preheat.hasKlassKeys( PreheatIdentifier.UID ) );
 
-        assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
-        assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
-
-        assertEquals( 1, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
-        assertEquals( 2, preheat.getMap().get( PreheatIdentifier.UID ).size() );
+        assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.CODE ) );
+        assertEquals( 2, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
     }
 
     @Test
@@ -579,14 +575,11 @@ public class PreheatServiceTest
         params.setObjects( metadata );
 
         Preheat preheat = preheatService.preheat( params );
-        assertNotNull( preheat.getMap().get( PreheatIdentifier.CODE ) );
-        assertNotNull( preheat.getMap().get( PreheatIdentifier.UID ) );
+        assertTrue( preheat.hasKlassKeys( PreheatIdentifier.CODE ) );
+        assertTrue( preheat.hasKlassKeys( PreheatIdentifier.UID ) );
 
-        assertFalse( preheat.getMap().get( PreheatIdentifier.CODE ).isEmpty() );
-        assertFalse( preheat.getMap().get( PreheatIdentifier.UID ).isEmpty() );
-
-        assertEquals( 1, preheat.getMap().get( PreheatIdentifier.CODE ).size() );
-        assertEquals( 2, preheat.getMap().get( PreheatIdentifier.UID ).size() );
+        assertEquals( 1, preheat.getKlassKeyCount( PreheatIdentifier.CODE ) );
+        assertEquals( 2, preheat.getKlassKeyCount( PreheatIdentifier.UID ) );
 
         assertNull( preheat.get( PreheatIdentifier.CODE, User.class, "some-user-uid" ) );
         assertNotNull( preheat.get( PreheatIdentifier.CODE, User.class, user1.getUid() ) );

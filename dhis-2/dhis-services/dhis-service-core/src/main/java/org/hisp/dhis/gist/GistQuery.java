@@ -44,8 +44,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.common.PrimaryKeyObject;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -85,7 +85,7 @@ public final class GistQuery
         /**
          * The object type that has the collection
          */
-        private final Class<? extends IdentifiableObject> type;
+        private final Class<? extends PrimaryKeyObject> type;
 
         /**
          * Id of the collection owner object.
@@ -106,7 +106,7 @@ public final class GistQuery
 
     private final Owner owner;
 
-    private final Class<? extends IdentifiableObject> elementType;
+    private final Class<? extends PrimaryKeyObject> elementType;
 
     @JsonProperty
     private final int pageOffset;
@@ -164,6 +164,12 @@ public final class GistQuery
     private final boolean describe;
 
     /**
+     * Weather or not to include the API endpoints references
+     */
+    @JsonProperty
+    private final boolean references;
+
+    /**
      * The extend to which fields are included by default
      */
     @JsonProperty( value = "auto" )
@@ -203,6 +209,16 @@ public final class GistQuery
         return isAbsoluteUrls() ? getContextRoot() : "";
     }
 
+    public boolean hasFilterGroups()
+    {
+        if ( filters.size() <= 1 )
+        {
+            return false;
+        }
+        int group0 = filters.get( 0 ).group;
+        return filters.stream().anyMatch( f -> f.group != group0 );
+    }
+
     public GistQuery with( NamedParams params )
     {
         int page = abs( params.getInt( "page", 1 ) );
@@ -214,6 +230,7 @@ public final class GistQuery
             .absoluteUrls( params.getBoolean( "absoluteUrls", false ) )
             .headless( params.getBoolean( "headless", false ) )
             .describe( params.getBoolean( "describe", false ) )
+            .references( params.getBoolean( "references", true ) )
             .anyFilter( params.getString( "rootJunction", "AND" ).equalsIgnoreCase( "OR" ) )
             .fields( params.getStrings( "fields", FIELD_SPLIT ).stream()
                 .map( Field::parse ).collect( toList() ) )
@@ -376,6 +393,11 @@ public final class GistQuery
         {
             return ordinal() >= CAN_READ.ordinal();
         }
+
+        public boolean isCaseInsensitive()
+        {
+            return ordinal() >= ILIKE.ordinal() && ordinal() <= NOT_ENDS_WITH.ordinal();
+        }
     }
 
     @Getter
@@ -404,9 +426,12 @@ public final class GistQuery
         @JsonProperty
         private final boolean translate;
 
+        @JsonProperty
+        private final boolean attribute;
+
         public Field( String propertyPath, Transform transformation )
         {
-            this( propertyPath, transformation, "", null, false );
+            this( propertyPath, transformation, "", null, false, false );
         }
 
         @JsonProperty
@@ -433,6 +458,11 @@ public final class GistQuery
         public Field withTranslate()
         {
             return toBuilder().translate( true ).build();
+        }
+
+        public Field asAttribute()
+        {
+            return toBuilder().attribute( true ).build();
         }
 
         @Override
@@ -469,7 +499,7 @@ public final class GistQuery
                     }
                 }
             }
-            return new Field( parts[0], transform, alias, arg, false );
+            return new Field( parts[0], transform, alias, arg, false, false );
         }
 
         private static String parseArgument( String part )
@@ -512,8 +542,12 @@ public final class GistQuery
     }
 
     @Getter
+    @AllArgsConstructor( access = AccessLevel.PRIVATE )
     public static final class Filter
     {
+        @JsonProperty
+        private final int group;
+
         @JsonProperty
         private final String propertyPath;
 
@@ -523,11 +557,12 @@ public final class GistQuery
         @JsonProperty
         private final String[] value;
 
+        @JsonProperty
+        private final boolean attribute;
+
         public Filter( String propertyPath, Comparison operator, String... value )
         {
-            this.propertyPath = propertyPath;
-            this.operator = operator;
-            this.value = value;
+            this( 0, propertyPath, operator, value, false );
         }
 
         public Filter withPropertyPath( String path )
@@ -540,22 +575,43 @@ public final class GistQuery
             return new Filter( propertyPath, operator, value );
         }
 
+        public Filter asAttribute()
+        {
+            return new Filter( group, propertyPath, operator, value, true );
+        }
+
+        public Filter inGroup( int group )
+        {
+            return group == this.group ? this : new Filter( group, propertyPath, operator, value, attribute );
+        }
+
         public static Filter parse( String filter )
         {
             String[] parts = filter.split( "(?:::|:|~|@)" );
-            if ( parts.length == 2 )
+            int group = 0;
+            int nameIndex = 0;
+            int opIndex = 1;
+            int valueIndex = 2;
+            if ( parts[0].matches( "[0-9]" ) )
             {
-                return new Filter( parts[0], Comparison.parse( parts[1] ) );
+                nameIndex++;
+                opIndex++;
+                valueIndex++;
+                group = Integer.parseInt( parts[0] );
             }
-            if ( parts.length == 3 )
+            if ( parts.length == valueIndex )
             {
-                String value = parts[2];
+                return new Filter( parts[nameIndex], Comparison.parse( parts[opIndex] ) ).inGroup( group );
+            }
+            if ( parts.length == valueIndex + 1 )
+            {
+                String value = parts[valueIndex];
                 if ( value.startsWith( "[" ) && value.endsWith( "]" ) )
                 {
-                    return new Filter( parts[0], Comparison.parse( parts[1] ),
-                        value.substring( 1, value.length() - 1 ).split( "," ) );
+                    return new Filter( parts[nameIndex], Comparison.parse( parts[opIndex] ),
+                        value.substring( 1, value.length() - 1 ).split( "," ) ).inGroup( group );
                 }
-                return new Filter( parts[0], Comparison.parse( parts[1] ), value );
+                return new Filter( parts[nameIndex], Comparison.parse( parts[opIndex] ), value ).inGroup( group );
             }
             throw new IllegalArgumentException( "Not a valid filter expression: " + filter );
         }

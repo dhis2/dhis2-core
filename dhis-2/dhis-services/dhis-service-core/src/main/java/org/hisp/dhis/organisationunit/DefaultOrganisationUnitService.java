@@ -59,6 +59,7 @@ import org.hisp.dhis.system.filter.OrganisationUnitPolygonCoveringCoordinateFilt
 import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -72,8 +73,7 @@ import com.google.common.collect.Sets;
  */
 @Service( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
 public class DefaultOrganisationUnitService
-    implements
-    OrganisationUnitService
+    implements OrganisationUnitService, CurrentUserServiceTarget
 {
     private static final String LEVEL_PREFIX = "Level ";
 
@@ -126,10 +126,7 @@ public class DefaultOrganisationUnitService
         this.inUserOrgUnitViewHierarchyCache = cacheProvider.createInUserViewOrgUnitHierarchyCache();
     }
 
-    /**
-     * Used only by test harness. Remove after test refactoring
-     */
-    @Deprecated
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
@@ -483,8 +480,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return inUserOrgUnitHierarchyCache.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) )
-            .orElse( false );
+        return inUserOrgUnitHierarchyCache.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) );
     }
 
     @Override
@@ -517,7 +513,8 @@ public class DefaultOrganisationUnitService
     @Transactional( readOnly = true )
     public boolean isInUserDataViewHierarchy( User user, OrganisationUnit organisationUnit )
     {
-        if ( user == null || user.getOrganisationUnits() == null || user.getOrganisationUnits().isEmpty() )
+        if ( user == null || user.getDataViewOrganisationUnitsWithFallback() == null
+            || user.getDataViewOrganisationUnitsWithFallback().isEmpty() )
         {
             return false;
         }
@@ -532,8 +529,7 @@ public class DefaultOrganisationUnitService
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
         return inUserOrgUnitViewHierarchyCache
-            .get( cacheKey, ou -> isInUserDataViewHierarchy( user, organisationUnit ) )
-            .orElse( false );
+            .get( cacheKey, ou -> isInUserDataViewHierarchy( user, organisationUnit ) );
     }
 
     @Override
@@ -557,7 +553,7 @@ public class DefaultOrganisationUnitService
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
         return inUserOrgUnitSearchHierarchyCache
-            .get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).orElse( false );
+            .get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) );
     }
 
     @Override
@@ -612,8 +608,7 @@ public class DefaultOrganisationUnitService
             params.setParents( user.getOrganisationUnits() );
             params.setFetchChildren( true );
             return organisationUnitStore.isOrgUnitCountAboveThreshold( params, threshold );
-        } )
-            .orElse( false );
+        } );
     }
 
     // -------------------------------------------------------------------------

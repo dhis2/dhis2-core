@@ -30,6 +30,8 @@ package org.hisp.dhis.sqlview;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USERNAME_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.CURRENT_USER_ID_VARIABLE;
 import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
+import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryParams;
+import static org.hisp.dhis.sqlview.SqlView.getInvalidQueryValues;
 
 import java.util.List;
 import java.util.Map;
@@ -38,7 +40,6 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -199,7 +200,7 @@ public class DefaultSqlViewService
     private String parseFilters( List<String> filters, SqlHelper sqlHelper )
         throws QueryParserException
     {
-        String query = StringUtils.EMPTY;
+        String query = "";
 
         for ( String filter : filters )
         {
@@ -221,7 +222,7 @@ public class DefaultSqlViewService
 
     private String getFilterQuery( SqlHelper sqlHelper, String columnName, String operator, String value )
     {
-        String query = StringUtils.EMPTY;
+        String query = "";
 
         query += sqlHelper.whereAnd() + " " + columnName + " " + QueryUtils.parseFilterOperator( operator, value );
 
@@ -307,7 +308,7 @@ public class DefaultSqlViewService
 
     private String getCriteriaSqlClause( Map<String, String> criteria, SqlHelper sqlHelper )
     {
-        String sql = StringUtils.EMPTY;
+        String sql = "";
 
         if ( criteria != null && !criteria.isEmpty() )
         {
@@ -351,24 +352,24 @@ public class DefaultSqlViewService
             error = new ErrorMessage( ErrorCode.E4302 );
         }
 
-        if ( variables != null && variables.keySet().contains( null ) )
+        if ( variables != null && variables.containsKey( null ) )
         {
             error = new ErrorMessage( ErrorCode.E4303 );
         }
 
-        if ( variables != null && variables.values().contains( null ) )
+        if ( variables != null && variables.containsValue( null ) )
         {
             error = new ErrorMessage( ErrorCode.E4304 );
         }
 
-        if ( variables != null && !SqlView.getInvalidQueryParams( variables.keySet() ).isEmpty() )
+        if ( variables != null && !getInvalidQueryParams( variables.keySet() ).isEmpty() )
         {
-            error = new ErrorMessage( ErrorCode.E4305, SqlView.getInvalidQueryParams( variables.keySet() ) );
+            error = new ErrorMessage( ErrorCode.E4305, getInvalidQueryParams( variables.keySet() ) );
         }
 
-        if ( variables != null && !SqlView.getInvalidQueryValues( variables.values() ).isEmpty() )
+        if ( variables != null && !getInvalidQueryValues( variables.values() ).isEmpty() )
         {
-            error = new ErrorMessage( ErrorCode.E4306, SqlView.getInvalidQueryValues( variables.values() ) );
+            error = new ErrorMessage( ErrorCode.E4306, getInvalidQueryValues( variables.values() ) );
         }
 
         if ( sqlView.isQuery() && !sqlVars.isEmpty() && (!allowedVariables.containsAll( sqlVars )) )
@@ -376,14 +377,19 @@ public class DefaultSqlViewService
             error = new ErrorMessage( ErrorCode.E4307, sqlVars );
         }
 
-        if ( criteria != null && !SqlView.getInvalidQueryParams( criteria.keySet() ).isEmpty() )
+        if ( sqlView.isQuery() && !sqlVars.isEmpty() && !getInvalidQueryParams( sqlVars ).isEmpty() )
         {
-            error = new ErrorMessage( ErrorCode.E4308, SqlView.getInvalidQueryParams( criteria.keySet() ) );
+            error = new ErrorMessage( ErrorCode.E4313, getInvalidQueryParams( sqlVars ) );
         }
 
-        if ( criteria != null && !SqlView.getInvalidQueryValues( criteria.values() ).isEmpty() )
+        if ( criteria != null && !getInvalidQueryParams( criteria.keySet() ).isEmpty() )
         {
-            error = new ErrorMessage( ErrorCode.E4309, SqlView.getInvalidQueryValues( criteria.values() ) );
+            error = new ErrorMessage( ErrorCode.E4308, getInvalidQueryParams( criteria.keySet() ) );
+        }
+
+        if ( criteria != null && !getInvalidQueryValues( criteria.values() ).isEmpty() )
+        {
+            error = new ErrorMessage( ErrorCode.E4309, getInvalidQueryValues( criteria.values() ) );
         }
 
         if ( !ignoreSqlViewTableProtection && sql.matches( SqlView.getProtectedTablesRegex() ) )

@@ -88,6 +88,22 @@ public class DefaultTrackerImportAccessManager
         }
     }
 
+    public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit )
+    {
+        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        User user = bundle.getUser();
+
+        checkNotNull( user, USER_CANT_BE_NULL );
+        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
+
+        if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
+        {
+            reporter.addError( newReport( TrackerErrorCode.E1003 )
+                .addArg( orgUnit )
+                .addArg( user ) );
+        }
+    }
+
     public void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, TrackedEntityType trackedEntityType )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();

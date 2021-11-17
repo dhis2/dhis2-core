@@ -36,7 +36,7 @@ import org.hibernate.Session;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -68,9 +68,9 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
         TrackedEntityCommentService trackedEntityCommentService,
         TrackerSideEffectConverterService sideEffectConverterService,
         TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
-        TrackedEntityAttributeValueService attributeValueService )
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService )
     {
-        super( reservedValueService, attributeValueService );
+        super( reservedValueService, trackedEntityAttributeValueAuditService );
 
         this.enrollmentConverter = enrollmentConverter;
         this.trackedEntityCommentService = trackedEntityCommentService;
@@ -83,7 +83,7 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
         Enrollment enrollment, ProgramInstance programInstance )
     {
         handleTrackedEntityAttributeValues( session, preheat, enrollment.getAttributes(),
-            programInstance.getEntityInstance() );
+            preheat.getTrackedEntity( TrackerIdScheme.UID, programInstance.getEntityInstance().getUid() ) );
     }
 
     @Override
@@ -133,6 +133,8 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
             .object( programInstance.getUid() )
             .importStrategy( bundle.getImportStrategy() )
             .accessedBy( bundle.getUsername() )
+            .programInstance( programInstance )
+            .program( programInstance.getProgram() )
             .build();
     }
 

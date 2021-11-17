@@ -53,6 +53,7 @@ import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.CsvUtils;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
@@ -68,7 +69,7 @@ import com.google.common.base.Preconditions;
 @Slf4j
 @Repository( "org.hisp.dhis.dxf2.datavalueset.DataValueSetStore" )
 public class SpringDataValueSetStore
-    implements DataValueSetStore
+    implements DataValueSetStore, CurrentUserServiceTarget
 {
     private CurrentUserService currentUserService;
 
@@ -83,9 +84,7 @@ public class SpringDataValueSetStore
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    /**
-     * Use only for testing.
-     */
+    @Override
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;

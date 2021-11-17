@@ -280,13 +280,8 @@ public class JdbcEventAnalyticsTableManager
     }
 
     @Override
-    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
+    public void removeUpdatedData( List<AnalyticsTable> tables )
     {
-        if ( !params.isLatestUpdate() )
-        {
-            return;
-        }
-
         for ( AnalyticsTable table : tables )
         {
             AnalyticsTablePartition partition = table.getLatestPartition();

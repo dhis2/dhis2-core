@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.collection.ListUtils;
+import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
@@ -754,6 +755,8 @@ public abstract class AbstractRelationshipService
 
         daoRelationship.setFrom( fromItem );
         daoRelationship.setTo( toItem );
+        daoRelationship.setKey( RelationshipUtils.generateRelationshipKey( daoRelationship ) );
+        daoRelationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( daoRelationship ) );
 
         return daoRelationship;
     }

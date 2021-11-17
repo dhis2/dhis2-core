@@ -49,7 +49,7 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -145,7 +145,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
             Set<AnalyticsPeriodBoundary> boundaries = map.get( programStage );
 
             String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
-            sql += " (select count(*) from " + eventTableName + " where " + eventTableName +
+            sql += " exists(select 1 from " + eventTableName + " where " + eventTableName +
                 ".pi = " + ANALYTICS_TBL_ALIAS + ".pi and executiondate is not null ";
 
             for ( AnalyticsPeriodBoundary boundary : boundaries )
@@ -156,7 +156,7 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
                     + "' as date )";
             }
 
-            sql += ") > 0";
+            sql += " limit 1)";
         }
 
         return sql;

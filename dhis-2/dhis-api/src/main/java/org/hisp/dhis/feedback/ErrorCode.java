@@ -49,6 +49,7 @@ public enum ErrorCode
     E1500( "At least two source orgs unit must be specified" ),
     E1501( "Target org unit must be specified" ),
     E1502( "Target org unit cannot be a source org unit" ),
+    E1503( "Source org unit does not exist: `{0}`" ),
 
     /* Org unit split */
     E1510( "Source org unit must be specified" ),
@@ -56,12 +57,13 @@ public enum ErrorCode
     E1512( "Source org unit cannot be a target org unit" ),
     E1513( "Primary target must be specified" ),
     E1514( "Primary target must be a target org unit" ),
+    E1515( "Target org unit does not exist: `{0}`" ),
 
     /* Org unit move */
-    E1515( "User `{0}` is not allowed to move organisation units" ),
-    E1516( "User `{0}` is not allowed to move organisation `{1}`" ),
-    E1517( "User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`" ),
-    E1518( "User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`" ),
+    E1520( "User `{0}` is not allowed to move organisation units" ),
+    E1521( "User `{0}` is not allowed to move organisation `{1}`" ),
+    E1522( "User `{0}` is not allowed to move organisation `{1}` unit from parent `{2}`" ),
+    E1523( "User `{0}` is not allowed to move organisation `{1}` unit to parent `{2}`" ),
 
     /* Data */
     E2000( "Query parameters cannot be null" ),
@@ -171,6 +173,7 @@ public enum ErrorCode
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
     E4030( "Object could not be deleted because it is associated with another object: {0}" ),
+    E4031( "Property `{0}` requires a valid JSON payload, was given `{1}`." ),
 
     /* ProgramRuleAction validation */
     E4033( "A program rule action of type `{0}` associated with program rule name `{1}` is invalid" ),
@@ -208,6 +211,7 @@ public enum ErrorCode
     E4310( "SQL query contains references to protected tables" ),
     E4311( "SQL query contains illegal keywords" ),
     E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
+    E4313( "SQL query contains variable names that are invalid: `{0}`" ),
 
     /* Preheat */
     E5000( "Found matching object for reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),

@@ -53,7 +53,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
-import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -213,7 +213,7 @@ public class RequestToSearchParamsMapper
                 "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
 
-        if ( events != null && filters != null )
+        if ( !CollectionUtils.isEmpty( events ) && !CollectionUtils.isEmpty( filters ) )
         {
             throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
         }
@@ -245,6 +245,11 @@ public class RequestToSearchParamsMapper
 
                 params.getDataElements().add( dataElement );
             }
+        }
+
+        if ( orgUnitSelectionMode == null )
+        {
+            orgUnitSelectionMode = OrganisationUnitSelectionMode.ACCESSIBLE;
         }
 
         if ( assignedUserSelectionMode != null && assignedUsers != null && !assignedUsers.isEmpty()
@@ -324,8 +329,8 @@ public class RequestToSearchParamsMapper
             eventCriteria.getAttributeCos(),
             true );
 
-        Set<String> eventIds = TextUtils.splitToArray( eventCriteria.getEvent(), TextUtils.SEMICOLON );
-        Set<String> assignedUserIds = TextUtils.splitToArray( eventCriteria.getAssignedUser(), TextUtils.SEMICOLON );
+        Set<String> eventIds = eventCriteria.getEvents();
+        Set<String> assignedUserIds = eventCriteria.getAssignedUsers();
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( eventCriteria.getOrder() );
 
         return map( eventCriteria.getProgram(),

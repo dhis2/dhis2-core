@@ -29,6 +29,7 @@ package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.system.util.SqlUtils.escapeSql;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,7 +41,7 @@ import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -394,7 +395,7 @@ public class HibernateOrganisationUnitStore
 
             for ( OrganisationUnit parent : params.getParents() )
             {
-                sql += "o.path like '" + parent.getPath() + "%'" + " or ";
+                sql += "o.path like '" + escapeSql( parent.getPath() ) + "%'" + " or ";
             }
 
             sql = TextUtils.removeLastOr( sql ) + ") ";

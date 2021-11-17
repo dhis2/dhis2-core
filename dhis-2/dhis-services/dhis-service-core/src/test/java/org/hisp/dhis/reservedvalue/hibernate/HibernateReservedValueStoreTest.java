@@ -31,7 +31,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Objects;
@@ -39,12 +42,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.reservedvalue.ReservedValue;
 import org.hisp.dhis.reservedvalue.ReservedValueStore;
+import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,8 +68,10 @@ public class HibernateReservedValueStoreTest
 
     private Date futureDate;
 
+    private static final String key = "RANDOM(###)";
+
     private final ReservedValue.ReservedValueBuilder reservedValue = ReservedValue.builder()
-        .ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() ).created( new Date() ).ownerUid( teaUid ).key( "00X" )
+        .ownerObject( Objects.TRACKEDENTITYATTRIBUTE.name() ).created( new Date() ).ownerUid( teaUid ).key( key )
         .expiryDate( futureDate );
 
     @Autowired
@@ -80,7 +87,7 @@ public class HibernateReservedValueStoreTest
     private TrackedEntityAttributeStore trackedEntityAttributeStore;
 
     @Autowired
-    private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+    private TrackedEntityAttributeValueStore trackedEntityAttributeValueStore;
 
     @Override
     protected void setUpTest()
@@ -177,43 +184,72 @@ public class HibernateReservedValueStoreTest
         reservedValueStore.save( rv );
 
         List<ReservedValue> res = reservedValueStore
-            .getReservedValues( rv, Lists.newArrayList( rv.getValue() ) );
+            .getAvailableValues( rv, Lists.newArrayList( rv.getValue() ), rv.getOwnerObject() );
 
         assertEquals( rv, res.get( 0 ) );
         assertEquals( 1, res.size() );
     }
 
     @Test
-    public void getIfReservedValuesReturnEmptyListWhenNotReserved()
+    public void getAvailableValuesWhenNotReserved()
     {
         ReservedValue rv = reservedValue.value( prog001 ).build();
 
         reservedValueStore.save( rv );
 
-        List<ReservedValue> res = reservedValueStore
-            .getReservedValues( rv, Lists.newArrayList( "999" ) );
+        assertEquals( 1, reservedValueStore.getAll().size() );
 
-        assertEquals( 0, res.size() );
+        List<ReservedValue> res = reservedValueStore
+            .getAvailableValues( rv, Lists.newArrayList( prog001, prog002 ), rv.getOwnerObject() );
+
+        assertEquals( 1, res.size() );
+        assertTrue( res.stream().anyMatch( r -> r.getValue().equals( prog002 ) ) );
     }
 
     @Test
-    public void getIfReservedValuesReturnOnlyReservedValuesWhenSendingMultipleValues()
+    public void getAvailableValuesWhenAlreadyUsed()
+        throws TextPatternParser.TextPatternParsingException,
+        IllegalAccessException
     {
-        ReservedValue rv = reservedValue.value( prog001 ).build();
+        OrganisationUnit ou = createOrganisationUnit( "OU" );
+        organisationUnitStore.save( ou );
 
-        reservedValueStore.save( rv );
+        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
+        trackedEntityInstanceStore.save( tei );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );
+
+        TextPattern textPattern = TextPatternParser.parse( key );
+        textPattern.setOwnerObject( Objects.fromClass( tea.getClass() ) );
+        textPattern.setOwnerUid( tea.getUid() );
+
+        tea.setTextPattern( textPattern );
+
+        tea.setUid( teaUid );
+        trackedEntityAttributeStore.save( tea );
+
+        TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue( 'Z', tei, tea );
+        teav.setValue( prog001 );
+        trackedEntityAttributeValueStore.save( teav );
+
+        ReservedValue rv = reservedValue.value( prog001 ).build();
+        rv.setTrackedEntityAttributeId( teav.getAttribute().getId() );
+
+        assertEquals( 1, trackedEntityAttributeValueStore.getAll().size() );
+
+        assertEquals( 0, reservedValueStore.getAll().size() );
 
         List<ReservedValue> res = reservedValueStore
-            .getReservedValues( rv, Lists.newArrayList( prog001, prog002 ) );
+            .getAvailableValues( rv, Lists.newArrayList( prog001, prog002 ), rv.getOwnerObject() );
 
-        assertTrue( res.stream().anyMatch( r -> r.getValue().equals( prog001 ) ) );
-        assertFalse( res.stream().anyMatch( r -> r.getValue().equals( prog002 ) ) );
+        assertFalse( res.stream().anyMatch( r -> r.getValue().equals( prog001 ) ) );
+        assertTrue( res.stream().anyMatch( r -> r.getValue().equals( prog002 ) ) );
 
         assertEquals( 1, res.size() );
     }
 
     @Test
-    public void removeExpiredReservationsRemovesExpiredReservation()
+    public void removeExpiredReservations()
     {
         Calendar pastDate = Calendar.getInstance();
         pastDate.add( Calendar.DATE, -1 );
@@ -228,7 +264,7 @@ public class HibernateReservedValueStoreTest
         reservedValueStore.removeUsedOrExpiredReservations();
 
         assertFalse( reservedValueStore
-            .getReservedValues( rv, Lists.newArrayList( rv.getValue() ) )
+            .getAll()
             .contains( rv ) );
     }
 
@@ -265,10 +301,7 @@ public class HibernateReservedValueStoreTest
 
         TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue( 'Z', tei, tea );
         teav.setValue( prog001 );
-        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
-
-        reservedValueStore.getAvailableValues( rv,
-            new ArrayList<String>( Collections.singletonList( prog001 ) ) );
+        trackedEntityAttributeValueStore.save( teav );
 
         assertEquals( 1, reservedValueStore.getCount() );
     }
@@ -292,7 +325,7 @@ public class HibernateReservedValueStoreTest
 
         TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue( 'Z', tei, tea );
         teav.setValue( prog001 );
-        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
+        trackedEntityAttributeValueStore.save( teav );
 
         reservedValueStore.removeUsedOrExpiredReservations();
 
@@ -325,7 +358,7 @@ public class HibernateReservedValueStoreTest
 
         TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue( 'Z', tei, tea );
         teav.setValue( prog001 );
-        trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teav );
+        trackedEntityAttributeValueStore.save( teav );
 
         ReservedValue rv = reservedValue.value( prog001 ).build();
 

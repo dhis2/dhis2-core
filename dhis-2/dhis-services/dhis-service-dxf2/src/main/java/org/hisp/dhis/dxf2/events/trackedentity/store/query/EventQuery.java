@@ -27,79 +27,87 @@
  */
 package org.hisp.dhis.dxf2.events.trackedentity.store.query;
 
-import java.util.Map;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toList;
+
+import java.util.Arrays;
+import java.util.Collection;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.trackedentity.store.Function;
 import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.Subselect;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luciano Fiandesio
  */
 public class EventQuery
 {
+    @RequiredArgsConstructor
     public enum COLUMNS
     {
-        ID,
-        UID,
-        STATUS,
-        EXECUTION_DATE,
-        DUE_DATE,
-        STOREDBY,
-        COMPLETEDBY,
-        COMPLETEDDATE,
-        CREATED,
-        CREATEDCLIENT,
-        UPDATED,
-        UPDATEDCLIENT,
-        DELETED,
-        GEOMETRY,
-        TEI_UID,
-        ENROLLMENT_UID,
-        ENROLLMENT_FOLLOWUP,
-        ENROLLMENT_STATUS,
-        PROGRAM_UID,
-        PROGRAM_STAGE_UID,
-        ORGUNIT_UID,
-        ORGUNIT_NAME,
-        COC_UID,
-        CAT_OPTIONS
-    }
-
-    public static Map<COLUMNS, ? extends QueryElement> columnMap = ImmutableMap.<COLUMNS, QueryElement> builder()
-        .put( COLUMNS.ID, new TableColumn( "psi", "programstageinstanceid" ) )
-        .put( COLUMNS.UID, new TableColumn( "psi", "uid" ) )
-        .put( COLUMNS.STATUS, new TableColumn( "psi", "status" ) )
-        .put( COLUMNS.EXECUTION_DATE, new TableColumn( "psi", "executiondate" ) )
-        .put( COLUMNS.DUE_DATE, new TableColumn( "psi", "duedate" ) )
-        .put( COLUMNS.STOREDBY, new TableColumn( "psi", "storedby" ) )
-        .put( COLUMNS.COMPLETEDBY, new TableColumn( "psi", "completedby" ) )
-        .put( COLUMNS.COMPLETEDDATE, new TableColumn( "psi", "completeddate" ) )
-        .put( COLUMNS.CREATED, new TableColumn( "psi", "created" ) )
-        .put( COLUMNS.CREATEDCLIENT, new TableColumn( "psi", "createdatclient" ) )
-        .put( COLUMNS.UPDATED, new TableColumn( "psi", "lastupdated" ) )
-        .put( COLUMNS.UPDATEDCLIENT, new TableColumn( "psi", "lastupdatedatclient" ) )
-        .put( COLUMNS.DELETED, new TableColumn( "psi", "deleted" ) )
-        .put( COLUMNS.GEOMETRY, new Function( "ST_AsBinary", "psi", "geometry", "geometry" ) )
-        .put( COLUMNS.TEI_UID, new TableColumn( "tei", "uid", "tei_uid" ) )
-        .put( COLUMNS.ENROLLMENT_UID, new TableColumn( "pi", "uid", "enruid" ) )
-        .put( COLUMNS.ENROLLMENT_FOLLOWUP, new TableColumn( "pi", "followup", "enrfollowup" ) )
-        .put( COLUMNS.ENROLLMENT_STATUS, new TableColumn( "pi", "status", "enrstatus" ) )
-        .put( COLUMNS.PROGRAM_UID, new TableColumn( "p", "uid", "prguid" ) )
-        .put( COLUMNS.PROGRAM_STAGE_UID, new TableColumn( "ps", "uid", "prgstguid" ) )
-        .put( COLUMNS.ORGUNIT_UID, new TableColumn( "o", "uid", "ou_uid" ) )
-        .put( COLUMNS.ORGUNIT_NAME, new TableColumn( "o", "name", "ou_name" ) )
-        .put( COLUMNS.COC_UID, new TableColumn( "coc", "uid", "cocuid" ) )
-        .put( COLUMNS.CAT_OPTIONS, new Subselect( "( " +
+        ID( new TableColumn( "psi", "programstageinstanceid" ) ),
+        UID( new TableColumn( "psi", "uid" ) ),
+        STATUS( new TableColumn( "psi", "status" ) ),
+        EXECUTION_DATE( new TableColumn( "psi", "executiondate" ) ),
+        DUE_DATE( new TableColumn( "psi", "duedate" ) ),
+        STOREDBY( new TableColumn( "psi", "storedby" ) ),
+        COMPLETEDBY( new TableColumn( "psi", "completedby" ) ),
+        COMPLETEDDATE( new TableColumn( "psi", "completeddate" ) ),
+        CREATED_BY( new TableColumn( "psi", "createdbyuserinfo" ) ),
+        CREATED( new TableColumn( "psi", "created" ) ),
+        CREATEDCLIENT( new TableColumn( "psi", "createdatclient" ) ),
+        UPDATED( new TableColumn( "psi", "lastupdated" ) ),
+        UPDATEDCLIENT( new TableColumn( "psi", "lastupdatedatclient" ) ),
+        LAST_UPDATED_BY( new TableColumn( "psi", "lastupdatedbyuserinfo" ) ),
+        DELETED( new TableColumn( "psi", "deleted" ) ),
+        GEOMETRY( new Function( "ST_AsBinary", "psi", "geometry", "geometry" ) ),
+        TEI_UID( new TableColumn( "tei", "uid", "tei_uid" ) ),
+        ENROLLMENT_UID( new TableColumn( "pi", "uid", "enruid" ) ),
+        ENROLLMENT_FOLLOWUP( new TableColumn( "pi", "followup", "enrfollowup" ) ),
+        ENROLLMENT_STATUS( new TableColumn( "pi", "status", "enrstatus" ) ),
+        PROGRAM_UID( new TableColumn( "p", "uid", "prguid" ) ),
+        PROGRAM_STAGE_UID( new TableColumn( "ps", "uid", "prgstguid" ) ),
+        ORGUNIT_UID( new TableColumn( "o", "uid", "ou_uid" ) ),
+        ORGUNIT_NAME( new TableColumn( "o", "name", "ou_name" ) ),
+        COC_UID( new TableColumn( "coc", "uid", "cocuid" ) ),
+        CAT_OPTIONS( new Subselect( "( " +
             "SELECT string_agg(opt.uid::text, ',') " +
             "FROM dataelementcategoryoption opt " +
             "join categoryoptioncombos_categoryoptions ccc " +
             "on opt.categoryoptionid = ccc.categoryoptionid " +
-            "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )", "catoptions" ) )
-        .build();
+            "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )", "catoptions" ) );
+
+        @Getter
+        private final QueryElement queryElement;
+
+        public String getColumnName()
+        {
+            if ( queryElement instanceof TableColumn )
+            {
+                return ((TableColumn) queryElement).getColumn();
+            }
+            if ( queryElement instanceof Function )
+            {
+                return ((Function) queryElement).getColumn();
+            }
+            throw new IllegalArgumentException( "getColumnName can only be invoked on TableColumn or Function" );
+        }
+    }
+
+    private static final Collection<QueryElement> QUERY_ELEMENTS;
+
+    static
+    {
+        QUERY_ELEMENTS = Arrays.stream( COLUMNS.values() )
+            .map( COLUMNS::getQueryElement )
+            .collect( collectingAndThen( toList(), ImmutableList::copyOf ) );
+    }
 
     public static String getQuery()
     {
@@ -116,11 +124,11 @@ public class EventQuery
 
     private static String getSelect()
     {
-        return QueryUtils.getSelect( columnMap.values() );
+        return QueryUtils.getSelect( QUERY_ELEMENTS );
     }
 
     public static String getColumnName( COLUMNS columns )
     {
-        return columnMap.get( columns ).getResultsetValue();
+        return columns.getQueryElement().getResultsetValue();
     }
 }

@@ -47,7 +47,7 @@ import static org.mockito.Mockito.when;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.text.StrSubstitutor;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -137,7 +137,7 @@ public class AttributeOptionComboLoaderTest
         categoryOption.setId( 100L );
 
         when( jdbcTemplate.queryForObject(
-            eq( "select categoryoptionid, uid, code, name, sharing from dataelementcategoryoption where uid = 'abcdef'" ),
+            eq( "select categoryoptionid, uid, code, name, startdate, enddate, sharing from dataelementcategoryoption where uid = 'abcdef'" ),
             any( RowMapper.class ) ) ).thenReturn( categoryOption );
 
         when( jdbcTemplate.query( anyString(), any( RowMapper.class ) ) )

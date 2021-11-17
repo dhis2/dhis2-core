@@ -1,4 +1,9 @@
 name: SonarQube analysis
+env:
+  # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+  # This is to quiet down maven logs on CI
+  MAVEN_CLI_OPTS: --batch-mode --no-transfer-progress
 
 on:
   push:
@@ -15,24 +20,17 @@ concurrency:
 jobs:
   sonarqube:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
-
       - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2
         with:
           java-version: 11
-
-      - name: Cache maven artifacts
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
-          restore-keys: ${{ runner.os }}-maven-
+          distribution: zulu
+          cache: maven
 
       - name: Analyse PR
         env:
@@ -41,18 +39,16 @@ jobs:
           PR: ${{ github.event.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         if: github.event_name == 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11 $MAVEN_BUILD_OPTS
-          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',') $MAVEN_BUILD_OPTS
+          mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11
+          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
 
       - name: Analyse long-living branch
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          MAVEN_BUILD_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
         if: github.event_name != 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11 $MAVEN_BUILD_OPTS
-          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',') $MAVEN_BUILD_OPTS
+          mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11
+          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')

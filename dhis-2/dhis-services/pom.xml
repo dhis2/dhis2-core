@@ -12,13 +12,13 @@
   <packaging>pom</packaging>
   <name>DHIS Services Parent Project</name>
 
-  <!-- 
+  <!--
     Service modules are grouped in levels, where a module in a level can only
     depend on modules on a lower level. Note: New services should be added
     as high up in the list as possible (at the lowest level).
-    
-    The purpose is to avoid circular dependencies and have a clean dependency 
-    graph. The modules are built in in ascending order according to the level.
+
+    The purpose is to avoid circular dependencies and have a clean dependency
+    graph. The modules are built in ascending order according to the level.
   -->
 
   <modules>
@@ -40,6 +40,7 @@
     <module>dhis-service-administration</module>
     <module>dhis-service-dxf2</module>
     <!-- Level 8 -->
+    <module>dhis-service-metadata-workflow</module>
     <module>dhis-service-analytics</module>
     <module>dhis-service-tracker</module>
     <!-- Level 9 -->

@@ -1218,7 +1218,7 @@
       "valueType": "TEXT",
       "programScope": false,
       "aggregationType": "COUNT",
-      "unique": false,
+      "unique": true,
       "publicAccess": "rw------",
       "attributeValues": [],
       "pattern": "",

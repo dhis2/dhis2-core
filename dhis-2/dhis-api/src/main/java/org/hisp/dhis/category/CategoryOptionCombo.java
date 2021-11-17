@@ -30,6 +30,7 @@ package org.hisp.dhis.category;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -42,6 +43,7 @@ import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -203,7 +205,7 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo
+     * Gets a range of valid dates for this (attribute) category option combo
      * for a data set.
      * <p>
      * The earliest valid date is the latest start date (if any) from all the
@@ -217,11 +219,17 @@ public class CategoryOptionCombo
      */
     public DateRange getDateRange( DataSet dataSet )
     {
-        return getDateRange( dataSet, null );
+        Date earliestEndDate = getCategoryOptions().stream()
+            .map( co -> co.getAdjustedEndDate( dataSet ) )
+            .filter( Objects::nonNull )
+            .min( Date::compareTo )
+            .orElse( null );
+
+        return new DateRange( getLatestStartDate(), earliestEndDate );
     }
 
     /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo
+     * Gets a range of valid dates for this (attribute) category option combo
      * for a data element (for all data sets to which the data element belongs).
      * <p>
      * The earliest valid date is the latest start date (if any) from all the
@@ -235,7 +243,37 @@ public class CategoryOptionCombo
      */
     public DateRange getDateRange( DataElement dataElement )
     {
-        return getDateRange( null, dataElement );
+        Date earliestEndDate = getCategoryOptions().stream()
+            .map( co -> co.getAdjustedEndDate( dataElement ) )
+            .filter( Objects::nonNull )
+            .min( Date::compareTo )
+            .orElse( null );
+
+        return new DateRange( getLatestStartDate(), earliestEndDate );
+    }
+
+    /**
+     * Gets a range of valid dates for this (attribute) category option combo
+     * for a program.
+     * <p>
+     * The earliest valid date is the latest start date (if any) from all the
+     * category options associated with this option combo.
+     * <p>
+     * The latest valid date is the earliest end date (if any) from all the
+     * category options associated with this option combo.
+     *
+     * @param program the data set for which to check dates.
+     * @return valid date range for this (attribute) category option combo.
+     */
+    public DateRange getDateRange( Program program )
+    {
+        Date earliestEndDate = getCategoryOptions().stream()
+            .map( co -> co.getAdjustedEndDate( program ) )
+            .filter( Objects::nonNull )
+            .min( Date::compareTo )
+            .orElse( null );
+
+        return new DateRange( getLatestStartDate(), earliestEndDate );
     }
 
     /**
@@ -286,19 +324,11 @@ public class CategoryOptionCombo
      */
     public Date getLatestStartDate()
     {
-        Date latestStartDate = null;
-
-        for ( CategoryOption co : getCategoryOptions() )
-        {
-            if ( co.getStartDate() != null )
-            {
-                latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() )
-                    ? co.getStartDate()
-                    : latestStartDate);
-            }
-        }
-
-        return latestStartDate;
+        return getCategoryOptions().stream()
+            .map( CategoryOption::getStartDate )
+            .filter( Objects::nonNull )
+            .max( Date::compareTo )
+            .orElse( null );
     }
 
     /**
@@ -310,60 +340,15 @@ public class CategoryOptionCombo
      * extensions to the category end dates for aggregate data entry in data
      * sets with openPeriodsAfterCoEndDate.
      *
-     * @return the latest option start date for this combo.
+     * @return the earliest option end date for this combo.
      */
     public Date getEarliestEndDate()
     {
-        Date earliestEndDate = null;
-
-        for ( CategoryOption co : getCategoryOptions() )
-        {
-            if ( co.getEndDate() != null )
-            {
-                earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() )
-                    ? co.getStartDate()
-                    : earliestEndDate);
-            }
-        }
-
-        return earliestEndDate;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo
-     * for a data set or, if that is not present, a data element.
-     *
-     * @param dataSet the data set to get the range for, or
-     * @param dataElement the data element to get the range for
-     * @return valid date range for this (attribute) category option combo.
-     */
-    private DateRange getDateRange( DataSet dataSet, DataElement dataElement )
-    {
-        Date latestStartDate = null;
-        Date earliestEndDate = null;
-
-        for ( CategoryOption co : getCategoryOptions() )
-        {
-            if ( co.getStartDate() != null && (latestStartDate == null || co.getStartDate().after( latestStartDate )) )
-            {
-                latestStartDate = co.getStartDate();
-            }
-
-            Date coEndDate = dataSet != null
-                ? co.getAdjustedEndDate( dataSet )
-                : co.getAdjustedEndDate( dataElement );
-
-            if ( coEndDate != null && (earliestEndDate == null || coEndDate.before( earliestEndDate )) )
-            {
-                earliestEndDate = coEndDate;
-            }
-        }
-
-        return new DateRange( latestStartDate, earliestEndDate );
+        return getCategoryOptions().stream()
+            .map( CategoryOption::getEndDate )
+            .filter( Objects::nonNull )
+            .min( Date::compareTo )
+            .orElse( null );
     }
 
     // -------------------------------------------------------------------------

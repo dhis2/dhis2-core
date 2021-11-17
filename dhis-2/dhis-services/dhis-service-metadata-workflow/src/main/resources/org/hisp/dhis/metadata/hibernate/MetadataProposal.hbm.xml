@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="org.hisp.dhis.metadata.MetadataProposal"
+           table="metadataproposal">
+
+        <id name="id" column="proposalid">
+            <generator class="native"/>
+        </id>
+
+        <property name="uid" column="uid" unique="true" length="11"
+                  not-null="true"/>
+
+        <property name="type" column="type" not-null="true" length="6">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.metadata.MetadataProposalType</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <property name="status" column="status" not-null="true" length="12">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.metadata.MetadataProposalStatus</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <property name="target" column="target" not-null="true" length="30">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.metadata.MetadataProposalTarget</param>
+                <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+
+        <property name="targetId" column="targetuid" length="11"
+                  not-null="false"/>
+
+        <many-to-one name="createdBy" class="org.hisp.dhis.user.User"
+                     column="createdby"
+                     foreign-key="fk_createdby_userid" not-null="true"/>
+
+        <property name="created" type="timestamp" not-null="true"/>
+
+        <property name="change" type="jbJsonNode" not-null="true"/>
+
+        <property name="comment" column="comment" length="255"
+                  not-null="false"/>
+
+        <property name="reason" column="reason" length="1024"
+                  not-null="false"/>
+
+        <property name="finalised" type="timestamp" not-null="false"/>
+
+        <many-to-one name="finalisedBy" class="org.hisp.dhis.user.User"
+                     column="finalisedby"
+                     foreign-key="fk_finalisedby_userid" not-null="false"/>
+
+    </class>
+</hibernate-mapping>
