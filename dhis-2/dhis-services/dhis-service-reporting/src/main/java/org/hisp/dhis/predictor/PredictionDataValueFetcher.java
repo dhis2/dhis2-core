@@ -122,6 +122,8 @@ public class PredictionDataValueFetcher
 
     private String producerOrgUnitPath;
 
+    private List<String> producerOrgUnitPaths;
+
     private String consumerOrgUnitPath;
 
     private List<String> consumerOrgUnitPaths;
@@ -172,6 +174,7 @@ public class PredictionDataValueFetcher
 
         consumerOrgUnitPath = BEFORE_PATHS;
         consumerOrgUnitPaths = new ArrayList<>();
+        producerOrgUnitPaths = new ArrayList<>();
         producerException = null;
 
         blockingQueue = new ArrayBlockingQueue<>( DDV_BLOCKING_QUEUE_SIZE );
@@ -188,6 +191,8 @@ public class PredictionDataValueFetcher
         executor.shutdown();
 
         getNextDataValue(); // Prime the algorithm with the first data value.
+
+        producerOrgUnitPaths.add( producerOrgUnitPath );
     }
 
     /**
@@ -253,7 +258,7 @@ public class PredictionDataValueFetcher
 
         if ( !consumerOrgUnitPath.equals( producerOrgUnitPath ) )
         {
-            throw new IllegalArgumentException( "getDataValues ready for " + producerOrgUnitPath
+            throw new IllegalArgumentException( "getDataValues ready for " + String.join( ",", producerOrgUnitPaths )
                 + " but called with " + String.join( ",", consumerOrgUnitPaths ) );
         }
 
@@ -311,6 +316,8 @@ public class PredictionDataValueFetcher
             getNextDataValue();
         }
         while ( producerOrgUnitPath.equals( startingOrgUnitPath ) );
+
+        producerOrgUnitPaths.add( producerOrgUnitPath );
 
         return dataValues;
     }
