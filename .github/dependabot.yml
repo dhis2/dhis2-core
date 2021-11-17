@@ -27,3 +27,7 @@ updates:
       - "dependencies"
       - "java"
       - "run-api-tests"
+    ignore:
+      - dependency-name: "com.zaxxer:HikariCP" # remove once we update minimum JDK to JDK11; https://github.com/brettwooldridge/HikariCP#artifacts
+        versions:
+          - ">= 5.0"
