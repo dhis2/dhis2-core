@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.sqlview;
 
+import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -320,6 +321,13 @@ public class SqlViewServiceTest
             assertThrows( IllegalQueryException.class,
                 () -> sqlViewService.getSqlViewGrid( sqlView, null, null, null, null ) ),
             ErrorCode.E4312 );
+    }
+
+    @Test
+    public void testValidateSuccess_NonAsciiLetterVariableValues()
+    {
+        sqlViewService.validateSqlView( getSqlView( "select * from dataelement where valueType = '${valueType}'" ),
+            null, singletonMap( "valueType", "å" ) );
     }
 
     @Test
