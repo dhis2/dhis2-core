@@ -263,12 +263,9 @@ public class TrackedEntityInstanceAggregate
         Set<TrackedEntityAttribute> trackedEntityTypeAttributes, Map<Program, Set<TrackedEntityAttribute>> teaByProgram,
         AggregateContext ctx )
     {
-        List<Attribute> attributeList = new ArrayList<>();
-
-        // Nothing to filter from, return empty
         if ( attributes.isEmpty() )
         {
-            return attributeList;
+            return Collections.emptyList();
         }
 
         Stream<TrackedEntityAttribute> trackedEntityTypeAttributesStream = Optional
@@ -288,15 +285,9 @@ public class TrackedEntityInstanceAggregate
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
-        for ( Attribute attributeValue : attributes )
-        {
-            if ( allowedAttributeUids.contains( attributeValue.getAttribute() ) )
-            {
-                attributeList.add( attributeValue );
-            }
-        }
-
-        return attributeList;
+        return attributes.stream()
+                .filter(attribute -> allowedAttributeUids.contains(attribute.getAttribute()))
+                .collect(Collectors.toList());
     }
 
     private boolean isNotSyncQueryOrIsNotSkipSync( AggregateContext ctx, TrackedEntityAttribute att )
