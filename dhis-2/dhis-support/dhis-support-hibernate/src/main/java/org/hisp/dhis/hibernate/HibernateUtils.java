@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.hibernate;
 
-import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -42,6 +41,7 @@ import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.proxy.HibernateProxy;
 import org.hibernate.proxy.pojo.javassist.SerializableProxy;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.springframework.beans.BeanUtils;
 
 import com.google.common.base.Preconditions;
 
@@ -119,7 +119,7 @@ public class HibernateUtils
             .forEach( f -> {
                 try
                 {
-                    PropertyDescriptor pd = new PropertyDescriptor( f.getName(), proxy.getClass() );
+                    PropertyDescriptor pd = BeanUtils.getPropertyDescriptor( proxy.getClass(), f.getName() );
 
                     Object persistentObject = pd.getReadMethod().invoke( proxy );
 
@@ -128,7 +128,7 @@ public class HibernateUtils
                         Hibernate.initialize( persistentObject );
                     }
                 }
-                catch ( IllegalAccessException | IntrospectionException | InvocationTargetException e )
+                catch ( IllegalAccessException | InvocationTargetException e )
                 {
                     DebugUtils.getStackTrace( e );
                 }
