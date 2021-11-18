@@ -33,7 +33,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
 import org.junit.Test;
@@ -65,7 +64,7 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testFieldFilteringNameKlass()
     {
-        JsonSchema schema = GET( "/schemas/organisationUnit?fields=name,klass" ).content( HttpStatus.OK )
+        var schema = GET( "/schemas/organisationUnit?fields=name,klass" ).content( HttpStatus.OK )
             .as( JsonSchema.class );
 
         assertNotNull( schema.getKlass() );
@@ -78,7 +77,7 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testFieldFilteringDefaultPropertiesExpansion()
     {
-        JsonSchema schema = GET( "/schemas/organisationUnit?fields=name,klass,properties" ).content( HttpStatus.OK )
+        var schema = GET( "/schemas/organisationUnit?fields=name,klass,properties" ).content( HttpStatus.OK )
             .as( JsonSchema.class );
 
         assertNotNull( schema.getKlass() );
@@ -97,7 +96,7 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testFieldFilteringAllSchemas()
     {
-        JsonList<JsonSchema> schemas = GET( "/schemas?fields=name,klass" ).content( HttpStatus.OK )
+        var schemas = GET( "/schemas?fields=name,klass" ).content( HttpStatus.OK )
             .as( JsonObject.class ).getList( "schemas", JsonSchema.class );
 
         for ( JsonSchema schema : schemas )
