@@ -279,7 +279,7 @@ public class TrackedEntityInstanceAggregate
         Stream<TrackedEntityAttribute> programAttributesStream = Optional.ofNullable( teaByProgram )
             .orElse( Collections.emptyMap() )
             .entrySet().stream()
-            .filter( entry -> ownedPrograms.contains( entry.getKey().getUid() ) )
+            .filter( entry -> ctx.isSuperUser() || ownedPrograms.contains( entry.getKey().getUid() ) )
             .flatMap( entry -> entry.getValue().stream() );
 
         Set<String> allowedAttributeUids = Stream.concat( trackedEntityTypeAttributesStream, programAttributesStream )
@@ -307,7 +307,7 @@ public class TrackedEntityInstanceAggregate
     private boolean isAccessible( TrackedEntityAttribute trackedEntityAttribute,
         AggregateContext ctx )
     {
-        return ctx.isSuperUser() || ctx.getTrackedEntityAttributes().contains( trackedEntityAttribute.getId() );
+        return ctx.getTrackedEntityAttributes().contains( trackedEntityAttribute.getId() );
     }
 
     /**
