@@ -25,22 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.dxf2.events.importer;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.WARNING;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
-public class ProgramCheck implements Checker
+@Component
+public class EventImporterValidationRunner
 {
-    @Override
-    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
+    /**
+     * Validates the events using the supplied list of validators.
+     * <p>
+     * Only returns the ImportSummary for Events that *did* not pass validation
+     *
+     * @param workContext workContext for validation runner
+     * @param events a list of events to validate
+     * @param checkers a list of checkers to apply
+     * @return returns the ImportSummary for Events that did not pass validation
+     */
+    public List<ImportSummary> run( WorkContext workContext, List<Event> events, List<? extends Checker> checkers )
     {
-        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
-            "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found.", event );
+        final List<ImportSummary> importSummaries = new ArrayList<>( 0 );
+
+        for ( final Event event : events )
+        {
+            for ( Checker checker : checkers )
+            {
+                final ImportSummary importSummary = checker.check( new ImmutableEvent( event ), workContext );
+
+                if ( importSummary.isStatus( ERROR ) || importSummary.isStatus( WARNING ) )
+                {
+                    importSummaries.add( importSummary );
+                    if ( importSummary.isStatus( ERROR ) )
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return importSummaries;
     }
+
 }

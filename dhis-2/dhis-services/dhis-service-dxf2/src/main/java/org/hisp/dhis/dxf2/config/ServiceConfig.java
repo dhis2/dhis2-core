@@ -28,17 +28,34 @@
 package org.hisp.dhis.dxf2.config;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.DELETE_POST;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.DELETE_PRE;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.INSERT_POST;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.INSERT_PRE;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.UPDATE_POST;
+import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.UPDATE_PRE;
 import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
+import static org.hisp.dhis.importexport.ImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.EventProcessorExecutor;
+import org.hisp.dhis.dxf2.events.importer.EventProcessorPhase;
+import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.delete.postprocess.EventDeleteAuditPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.delete.validation.DeleteProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.postprocess.EventInsertAuditPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramInstancePreProcessor;
@@ -54,18 +71,18 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStatusPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.preprocess.SharedEventStatusPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboDateCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.DataValueCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.EventBaseCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.FilteredDataValueCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.SharedProgramCheck;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
@@ -73,9 +90,9 @@ import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstance
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ExpirationDaysCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
 import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
+import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
@@ -112,6 +129,7 @@ import org.springframework.retry.backoff.ExponentialBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
+import com.google.common.base.Functions;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -127,6 +145,35 @@ public class ServiceConfig
     @Autowired
     @Qualifier( "maxAttempts" )
     private ConfigurationPropertyFactoryBean maxAttempts;
+
+    private final Map<Class<? extends Checker>, Checker> checkersByClass;
+
+    private final Map<Class<? extends ValidationCheck>, ValidationCheck> validationCheckByClass;
+
+    private final Map<Class<? extends Processor>, Processor> processorsByClass;
+
+    private final Map<Class<? extends ProgramRuleActionValidator>, ProgramRuleActionValidator> programRuleActionValidatorsByClass;
+
+    private final Map<EventProcessorPhase, List<Processor>> processorsByPhase;
+
+    public ServiceConfig( Collection<Checker> checkers, Collection<ValidationCheck> validationChecks,
+        Collection<Processor> processors, Collection<ProgramRuleActionValidator> programRuleActionValidators )
+    {
+        checkersByClass = byClass( checkers );
+        validationCheckByClass = byClass( validationChecks );
+        processorsByClass = byClass( processors );
+        programRuleActionValidatorsByClass = byClass( programRuleActionValidators );
+        processorsByPhase = getProcessorsByPhase();
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private <T> Map<Class<? extends T>, T> byClass( Collection<T> items )
+    {
+        return items.stream()
+            .collect( Collectors.toMap(
+                e -> (Class<? extends T>) e.getClass(),
+                Functions.identity() ) );
+    }
 
     @Bean
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate( JdbcTemplate jdbcTemplate )
@@ -153,56 +200,48 @@ public class ServiceConfig
         return retryTemplate;
     }
 
-    private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = newArrayList(
-        DuplicateIdsCheck.class,
-        ValidationHooksCheck.class,
-        SecurityCheck.class,
-        SchemaCheck.class,
-        UniquenessCheck.class,
-        UniqueMultiPropertiesCheck.class,
-        MandatoryAttributesCheck.class,
-        UniqueAttributesCheck.class,
-        ReferencesCheck.class,
-        NotOwnerReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = newArrayList(
-        DuplicateIdsCheck.class,
-        ValidationHooksCheck.class,
-        SecurityCheck.class,
-        CreationCheck.class,
-        SchemaCheck.class,
-        UniquenessCheck.class,
-        UniqueMultiPropertiesCheck.class,
-        MandatoryAttributesCheck.class,
-        UniqueAttributesCheck.class,
-        ReferencesCheck.class,
-        NotOwnerReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = newArrayList(
-        DuplicateIdsCheck.class,
-        ValidationHooksCheck.class,
-        SecurityCheck.class,
-        UpdateCheck.class,
-        SchemaCheck.class,
-        UniquenessCheck.class,
-        UniqueMultiPropertiesCheck.class,
-        MandatoryAttributesCheck.class,
-        UniqueAttributesCheck.class,
-        ReferencesCheck.class,
-        NotOwnerReferencesCheck.class );
-
-    private final static List<Class<? extends ValidationCheck>> DELETE_CHECKS = newArrayList(
-        SecurityCheck.class,
-        DeletionCheck.class );
-
-    @Bean( "validatorMap" )
-    public Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap()
+    @Bean
+    public Map<ImportStrategy, List<ValidationCheck>> validatorsByImportStrategy()
     {
         return ImmutableMap.of(
-            ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
-            CREATE, CREATE_CHECKS,
-            ImportStrategy.UPDATE, UPDATE_CHECKS,
-            ImportStrategy.DELETE, DELETE_CHECKS );
+            CREATE_AND_UPDATE, newArrayList(
+                getValidationCheckByClass( DuplicateIdsCheck.class ),
+                getValidationCheckByClass( ValidationHooksCheck.class ),
+                getValidationCheckByClass( SecurityCheck.class ),
+                getValidationCheckByClass( SchemaCheck.class ),
+                getValidationCheckByClass( UniquenessCheck.class ),
+                getValidationCheckByClass( UniqueMultiPropertiesCheck.class ),
+                getValidationCheckByClass( MandatoryAttributesCheck.class ),
+                getValidationCheckByClass( UniqueAttributesCheck.class ),
+                getValidationCheckByClass( ReferencesCheck.class ),
+                getValidationCheckByClass( NotOwnerReferencesCheck.class ) ),
+            CREATE, newArrayList(
+                getValidationCheckByClass( DuplicateIdsCheck.class ),
+                getValidationCheckByClass( ValidationHooksCheck.class ),
+                getValidationCheckByClass( SecurityCheck.class ),
+                getValidationCheckByClass( CreationCheck.class ),
+                getValidationCheckByClass( SchemaCheck.class ),
+                getValidationCheckByClass( UniquenessCheck.class ),
+                getValidationCheckByClass( UniqueMultiPropertiesCheck.class ),
+                getValidationCheckByClass( MandatoryAttributesCheck.class ),
+                getValidationCheckByClass( UniqueAttributesCheck.class ),
+                getValidationCheckByClass( ReferencesCheck.class ),
+                getValidationCheckByClass( NotOwnerReferencesCheck.class ) ),
+            UPDATE, newArrayList(
+                getValidationCheckByClass( DuplicateIdsCheck.class ),
+                getValidationCheckByClass( ValidationHooksCheck.class ),
+                getValidationCheckByClass( SecurityCheck.class ),
+                getValidationCheckByClass( UpdateCheck.class ),
+                getValidationCheckByClass( SchemaCheck.class ),
+                getValidationCheckByClass( UniquenessCheck.class ),
+                getValidationCheckByClass( UniqueMultiPropertiesCheck.class ),
+                getValidationCheckByClass( MandatoryAttributesCheck.class ),
+                getValidationCheckByClass( UniqueAttributesCheck.class ),
+                getValidationCheckByClass( ReferencesCheck.class ),
+                getValidationCheckByClass( NotOwnerReferencesCheck.class ) ),
+            DELETE, newArrayList(
+                getValidationCheckByClass( SecurityCheck.class ),
+                getValidationCheckByClass( DeletionCheck.class ) ) );
     }
 
     /*
@@ -210,53 +249,74 @@ public class ServiceConfig
      */
 
     @Bean
-    public Map<ImportStrategy, List<Class<? extends Checker>>> eventInsertValidatorMap()
+    public Map<ImportStrategy, List<Checker>> checkersByImportStrategy()
     {
-        return ImmutableMap.of( CREATE, newArrayList(
-            EventDateCheck.class,
-            OrgUnitCheck.class,
-            ProgramCheck.class,
-            ProgramStageCheck.class,
-            TrackedEntityInstanceCheck.class,
-            ProgramInstanceCheck.class,
-            ProgramInstanceRepeatableStageCheck.class,
-            ProgramOrgUnitCheck.class,
-            EventGeometryCheck.class,
-            EventCreationAclCheck.class,
-            EventBaseCheck.class,
-            AttributeOptionComboCheck.class,
-            AttributeOptionComboDateCheck.class,
-            AttributeOptionComboAclCheck.class,
-            DataValueCheck.class,
-            FilteredDataValueCheck.class,
-            DataValueAclCheck.class,
-            ExpirationDaysCheck.class ) );
+        return ImmutableMap.of(
+            CREATE, newArrayList(
+                getCheckerByClass( EventDateCheck.class ),
+                getCheckerByClass( OrgUnitCheck.class ),
+                getCheckerByClass( SharedProgramCheck.class ),
+                getCheckerByClass( ProgramStageCheck.class ),
+                getCheckerByClass( TrackedEntityInstanceCheck.class ),
+                getCheckerByClass( ProgramInstanceCheck.class ),
+                getCheckerByClass( ProgramInstanceRepeatableStageCheck.class ),
+                getCheckerByClass( ProgramOrgUnitCheck.class ),
+                getCheckerByClass( EventGeometryCheck.class ),
+                getCheckerByClass( EventCreationAclCheck.class ),
+                getCheckerByClass( EventBaseCheck.class ),
+                getCheckerByClass( AttributeOptionComboCheck.class ),
+                getCheckerByClass( AttributeOptionComboDateCheck.class ),
+                getCheckerByClass( AttributeOptionComboAclCheck.class ),
+                getCheckerByClass( DataValueCheck.class ),
+                getCheckerByClass( FilteredDataValueCheck.class ),
+                getCheckerByClass( DataValueAclCheck.class ),
+                getCheckerByClass( ExpirationDaysCheck.class ) ),
+            UPDATE, newArrayList(
+                getCheckerByClass( EventSimpleCheck.class ),
+                getCheckerByClass( EventBaseCheck.class ),
+                getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
+                getCheckerByClass( UpdateProgramStageInstanceAclCheck.class ),
+                getCheckerByClass( SharedProgramCheck.class ),
+                getCheckerByClass( ProgramInstanceCheck.class ),
+                getCheckerByClass( ProgramStageInstanceAuthCheck.class ),
+                getCheckerByClass( AttributeOptionComboCheck.class ),
+                getCheckerByClass( AttributeOptionComboDateCheck.class ),
+                getCheckerByClass( EventGeometryCheck.class ),
+                getCheckerByClass( DataValueCheck.class ),
+                getCheckerByClass( FilteredDataValueCheck.class ),
+                getCheckerByClass( ExpirationDaysCheck.class ) ),
+            DELETE, newArrayList(
+                getCheckerByClass(
+                    DeleteProgramStageInstanceAclCheck.class ) )
+
+        );
     }
 
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap()
+    private Checker getCheckerByClass( Class<? extends Checker> checkerClass )
     {
-        return ImmutableMap.of( UPDATE, newArrayList(
-            EventSimpleCheck.class,
-            EventBaseCheck.class,
-            ProgramStageInstanceBasicCheck.class,
-            ProgramStageInstanceAclCheck.class,
-            ProgramCheck.class,
-            ProgramInstanceCheck.class,
-            ProgramStageInstanceAuthCheck.class,
-            AttributeOptionComboCheck.class,
-            AttributeOptionComboDateCheck.class,
-            EventGeometryCheck.class,
-            DataValueCheck.class,
-            FilteredDataValueCheck.class,
-            ExpirationDaysCheck.class ) );
+        return getByClass( checkersByClass, checkerClass );
     }
 
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap()
+    private ValidationCheck getValidationCheckByClass( Class<? extends ValidationCheck> validationCheckClass )
     {
-        return ImmutableMap.of( DELETE, newArrayList(
-            org.hisp.dhis.dxf2.events.importer.delete.validation.ProgramStageInstanceAclCheck.class ) );
+        return getByClass( validationCheckByClass, validationCheckClass );
+    }
+
+    private Processor getProcessorByClass( Class<? extends Processor> processorClass )
+    {
+        return getByClass( processorsByClass, processorClass );
+    }
+
+    private ProgramRuleActionValidator getProgramRuleActionValidatorByClass(
+        Class<? extends ProgramRuleActionValidator> programRuleActionValidatorClass )
+    {
+        return getByClass( programRuleActionValidatorsByClass, programRuleActionValidatorClass );
+    }
+
+    private <T> T getByClass( Map<Class<? extends T>, ? extends T> tByClass, Class<? extends T> clazz )
+    {
+        return Optional.ofNullable( tByClass.get( clazz ) )
+            .orElseThrow( () -> new IllegalArgumentException( "Unable to find validator by class: " + clazz ) );
     }
 
     /*
@@ -264,92 +324,96 @@ public class ServiceConfig
      */
 
     @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPreProcessorMap()
+    Map<EventProcessorPhase, EventProcessorExecutor> executorsByPhase()
     {
-        return ImmutableMap.of( CREATE, newArrayList(
-            ImportOptionsPreProcessor.class,
-            EventStoredByPreProcessor.class,
-            EventStatusPreProcessor.class,
-            ProgramInstancePreProcessor.class,
-            ProgramStagePreProcessor.class,
-            EventGeometryPreProcessor.class,
-            FilteringOutUndeclaredDataElementsProcessor.class,
-            UserInfoInsertPreProcessor.class ) );
+        return ImmutableMap.<EventProcessorPhase, Predicate<ImportStrategy>> builder()
+            .put( INSERT_PRE, ImportStrategyUtils::isInsert )
+            .put( INSERT_POST, ImportStrategyUtils::isInsert )
+            .put( UPDATE_PRE, ImportStrategyUtils::isUpdate )
+            .put( UPDATE_POST, ImportStrategyUtils::isUpdate )
+            .put( DELETE_PRE, ImportStrategyUtils::isDelete )
+            .put( DELETE_POST, ImportStrategyUtils::isDelete )
+            .build().entrySet().stream()
+            .map( entry -> Pair.of( entry.getKey(),
+                new EventProcessorExecutor( processorsByPhase.get( entry.getKey() ),
+                    entry.getValue() ) ) )
+            .collect( Collectors.toMap(
+                Pair::getKey,
+                Pair::getValue ) );
+    }
+
+    private Map<EventProcessorPhase, List<Processor>> getProcessorsByPhase()
+    {
+        return ImmutableMap.<EventProcessorPhase, List<Processor>> builder()
+            .put( INSERT_PRE, newArrayList(
+                getProcessorByClass( ImportOptionsPreProcessor.class ),
+                getProcessorByClass( EventStoredByPreProcessor.class ),
+                getProcessorByClass( SharedEventStatusPreProcessor.class ),
+                getProcessorByClass( ProgramInstancePreProcessor.class ),
+                getProcessorByClass( ProgramStagePreProcessor.class ),
+                getProcessorByClass( EventGeometryPreProcessor.class ),
+                getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ),
+                getProcessorByClass( UserInfoInsertPreProcessor.class ) ) )
+            .put( INSERT_POST, newArrayList(
+                getProcessorByClass( ProgramNotificationPostProcessor.class ),
+                getProcessorByClass( PublishEventPostProcessor.class ),
+                getProcessorByClass( EventInsertAuditPostProcessor.class ),
+                getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ) ) )
+            .put( UPDATE_PRE, newArrayList(
+                getProcessorByClass( ImportOptionsPreProcessor.class ),
+                getProcessorByClass( EventStoredByPreProcessor.class ),
+                getProcessorByClass( SharedEventStatusPreProcessor.class ),
+                getProcessorByClass( ProgramStageInstanceUpdatePreProcessor.class ),
+                getProcessorByClass( ProgramInstanceGeometryPreProcessor.class ),
+                getProcessorByClass( UserInfoUpdatePreProcessor.class ) ) )
+            .put( UPDATE_POST, newArrayList(
+                getProcessorByClass( PublishEventPostProcessor.class ),
+                getProcessorByClass( ProgramNotificationPostProcessor.class ),
+                getProcessorByClass( EventUpdateAuditPostProcessor.class ) ) )
+            .put( DELETE_PRE, Collections.emptyList() )
+            .put( DELETE_POST, newArrayList(
+                getProcessorByClass( EventDeleteAuditPostProcessor.class ) ) )
+            .build();
     }
 
     @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventInsertPostProcessorMap()
+    public Map<ProgramRuleActionType, ProgramRuleActionValidator> programRuleActionValidatorMap()
     {
-        return ImmutableMap.of( CREATE, newArrayList(
-            ProgramNotificationPostProcessor.class,
-            PublishEventPostProcessor.class,
-            EventInsertAuditPostProcessor.class,
-            FilteringOutUndeclaredDataElementsProcessor.class ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePreProcessorMap()
-    {
-        return ImmutableMap.of( UPDATE, newArrayList(
-            ImportOptionsPreProcessor.class,
-            EventStoredByPreProcessor.class,
-            EventStatusPreProcessor.class,
-            ProgramStageInstanceUpdatePreProcessor.class,
-            ProgramInstanceGeometryPreProcessor.class,
-            UserInfoUpdatePreProcessor.class ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventUpdatePostProcessorMap()
-    {
-        return ImmutableMap.of( UPDATE, newArrayList(
-            PublishEventPostProcessor.class,
-            ProgramNotificationPostProcessor.class,
-            EventUpdateAuditPostProcessor.class ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventDeletePreProcessorMap()
-    {
-        return ImmutableMap.of( DELETE, newArrayList(
-        /*
-         * Intentionally left empty since we don't have pre-delete processors at
-         * the moment, so at the moment this is a placeholder where to add
-         * pre-delete processors when we will need it (if ever). Remove this
-         * comment if you add a pre-delete processor.
-         */
-        ) );
-    }
-
-    @Bean
-    public Map<ImportStrategy, List<Class<? extends Processor>>> eventDeletePostProcessorMap()
-    {
-        return ImmutableMap.of( DELETE, newArrayList(
-            EventDeleteAuditPostProcessor.class ) );
-    }
-
-    @Bean
-    public Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> programRuleActionValidatorMap()
-    {
-        return new ImmutableMap.Builder<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>>()
-            .put( ProgramRuleActionType.SENDMESSAGE, NotificationProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.SCHEDULEMESSAGE, NotificationProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.SHOWOPTIONGROUP, ShowHideOptionGroupProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.HIDEOPTIONGROUP, ShowHideOptionGroupProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.DISPLAYTEXT, AlwaysValidProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR, AlwaysValidProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.ASSIGN, BaseProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.HIDEFIELD, BaseProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.CREATEEVENT, BaseProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.WARNINGONCOMPLETE, BaseProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.ERRORONCOMPLETE, BaseProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.SHOWWARNING, AlwaysValidProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.SHOWERROR, AlwaysValidProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.SETMANDATORYFIELD, BaseProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.HIDEOPTION, HideOptionProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.HIDESECTION, HideSectionProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.HIDEPROGRAMSTAGE, HideProgramStageProgramRuleActionValidator.class )
-
+        return ImmutableMap.<ProgramRuleActionType, ProgramRuleActionValidator> builder()
+            .put( ProgramRuleActionType.SENDMESSAGE,
+                getProgramRuleActionValidatorByClass( NotificationProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.SCHEDULEMESSAGE,
+                getProgramRuleActionValidatorByClass( NotificationProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.SHOWOPTIONGROUP,
+                getProgramRuleActionValidatorByClass( ShowHideOptionGroupProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.HIDEOPTIONGROUP,
+                getProgramRuleActionValidatorByClass( ShowHideOptionGroupProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.DISPLAYTEXT,
+                getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR,
+                getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.ASSIGN,
+                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.HIDEFIELD,
+                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.CREATEEVENT,
+                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.WARNINGONCOMPLETE,
+                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.ERRORONCOMPLETE,
+                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.SHOWWARNING,
+                getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.SHOWERROR,
+                getProgramRuleActionValidatorByClass( AlwaysValidProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.SETMANDATORYFIELD,
+                getProgramRuleActionValidatorByClass( BaseProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.HIDEOPTION,
+                getProgramRuleActionValidatorByClass( HideOptionProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.HIDESECTION,
+                getProgramRuleActionValidatorByClass( HideSectionProgramRuleActionValidator.class ) )
+            .put( ProgramRuleActionType.HIDEPROGRAMSTAGE,
+                getProgramRuleActionValidatorByClass( HideProgramStageProgramRuleActionValidator.class ) )
             .build();
     }
 }

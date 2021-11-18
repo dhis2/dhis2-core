@@ -25,43 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
+package org.hisp.dhis.dxf2.events.importer.delete.validation;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
+import static java.util.Collections.emptyList;
 
-import org.springframework.beans.factory.annotation.Qualifier;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
-@Getter
-@RequiredArgsConstructor
+/**
+ * @author maikel arabori
+ */
 @Component
-public class ProcessingManager
+public class DeleteProgramStageInstanceAclCheck extends BaseEventAclCheck
 {
+    @Override
+    public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
+        ProgramStageInstance programStageInstance )
+    {
+        if ( programStageInstance != null )
+        {
+            return trackerAccessManager.canDelete( user, programStageInstance, true );
+        }
 
-    @NonNull
-    @Qualifier( "eventsPreInsertProcessorFactory" )
-    private final EventProcessing preInsertProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPostInsertProcessorFactory" )
-    private final EventProcessing postInsertProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPreUpdateProcessorFactory" )
-    private final EventProcessing preUpdateProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPostUpdateProcessorFactory" )
-    private final EventProcessing postUpdateProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPreDeleteProcessorFactory" )
-    private final EventProcessing preDeleteProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPostDeleteProcessorFactory" )
-    private final EventProcessing postDeleteProcessorFactory;
-
+        return emptyList();
+    }
 }

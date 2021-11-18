@@ -25,22 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.shared.validation;
+package org.hisp.dhis.dxf2.events.importer.update.validation;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import java.util.List;
+
+import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramCheck implements Checker
+@Component
+public class UpdateProgramStageInstanceAclCheck extends BaseEventAclCheck
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public List<String> checkAcl( final TrackerAccessManager trackerAccessManager, final User user,
+        final ProgramStageInstance programStageInstance )
     {
-        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
-            "Event.program does not point to a valid program: " + event.getProgram(), event );
+        return trackerAccessManager.canUpdate( user, programStageInstance, false );
     }
 }

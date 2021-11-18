@@ -25,26 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
+package org.hisp.dhis.dxf2.events.importer;
+
+import java.util.List;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 
 /**
- * This PreProcessor converts event's VISITED status to ACTIVE
+ * Simple interface that provides checking capabilities on events.
  *
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author maikel arabori
  */
-public class EventStatusPreProcessor implements Processor
+public interface EventChecker
 {
-    @Override
-    public void process( Event event, WorkContext ctx )
-    {
-        if ( event.getStatus().equals( EventStatus.VISITED ) )
-        {
-            event.setStatus( EventStatus.ACTIVE );
-        }
-    }
+    List<ImportSummary> check( final WorkContext workContext, final List<Event> events );
 }
