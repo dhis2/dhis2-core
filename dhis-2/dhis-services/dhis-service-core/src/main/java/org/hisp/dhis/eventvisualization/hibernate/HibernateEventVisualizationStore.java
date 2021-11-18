@@ -42,7 +42,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -53,8 +53,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization.
- *             Needed to keep EventChart and EventReports backward compatible
+ * @deprecated Needed to keep EventChart and EventReports backward compatible
  *             with the new entity EventVisualization.
  *
  * @author maikel arabori
@@ -62,7 +61,7 @@ import org.springframework.stereotype.Repository;
 @Deprecated
 @Repository( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
 public class HibernateEventVisualizationStore extends
-    HibernateIdentifiableObjectStore<EventVisualization>
+    HibernateAnalyticalObjectStore<EventVisualization>
     implements
     EventVisualizationStore
 {
