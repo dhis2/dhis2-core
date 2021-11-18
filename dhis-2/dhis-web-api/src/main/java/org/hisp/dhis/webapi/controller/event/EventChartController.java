@@ -68,11 +68,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * @author Jan Henrik Overland
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
+ *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
+ *             NEW FEATURES SHOULD BE ADDED ON TOP OF
+ *             EventVisualizationController.
  *
- *         THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL.
- *         WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
- *         FEATURES SHOULD BE ADDED ON TOP OF EventVisualizationController.
+ * @author Jan Henrik Overland
  */
 @Deprecated
 @Controller
@@ -120,7 +121,7 @@ public class EventChartController
     protected EventChart deserializeXmlEntity( HttpServletRequest request )
         throws IOException
     {
-        EventChart eventChart = super.deserializeJsonEntity( request );
+        EventChart eventChart = super.deserializeXmlEntity( request );
         mergeEventChart( eventChart );
 
         applyCompatibilityConversions( eventChart );

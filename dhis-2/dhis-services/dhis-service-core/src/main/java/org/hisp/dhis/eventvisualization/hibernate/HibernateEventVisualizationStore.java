@@ -53,8 +53,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
- * Needed to keep EventChart and EventReports backward compatible with the new
- * entity EventVisualization.
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization.
+ *             Needed to keep EventChart and EventReports backward compatible
+ *             with the new entity EventVisualization.
  *
  * @author maikel arabori
  */

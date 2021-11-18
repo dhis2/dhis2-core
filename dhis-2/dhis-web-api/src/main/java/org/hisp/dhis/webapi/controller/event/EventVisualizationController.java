@@ -147,7 +147,7 @@ public class EventVisualizationController
     protected EventVisualization deserializeXmlEntity( final HttpServletRequest request )
         throws IOException
     {
-        final EventVisualization visualization = super.deserializeJsonEntity( request );
+        final EventVisualization visualization = super.deserializeXmlEntity( request );
 
         prepare( visualization );
 

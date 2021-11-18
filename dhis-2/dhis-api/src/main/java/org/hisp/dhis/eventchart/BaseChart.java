@@ -55,7 +55,6 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.VisualizationType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -65,11 +64,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Lars Helge Overland
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
+ *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
+ *             NEW FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
  *
- *         THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL.
- *         WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
- *         FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
+ * @author Lars Helge Overland
  */
 @Deprecated
 @JacksonXmlRootElement( localName = "baseChart", namespace = DxfNamespaces.DXF_2_0 )
@@ -155,11 +154,6 @@ public abstract class BaseChart
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-
-    public boolean isType( VisualizationType type )
-    {
-        return this.type != null && this.type.equals( type );
-    }
 
     public boolean isTargetLine()
     {

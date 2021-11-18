@@ -594,20 +594,21 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     }
 
     /**
-     * This is a temporary workaround to keep EventChart and EventReport
-     * backward compatible with the new EventVisualization entity.
+     * @deprecated This is a temporary workaround to keep EventChart and
+     *             EventReport backward compatible with the new
+     *             EventVisualization entity.
      *
      * @param filters
      */
     @Deprecated
     private void forceFilterForEventChartOrReport( final List<String> filters )
     {
-        if ( EventChart.class.getSimpleName().equals( getEntityClass().getSimpleName() ) )
+        if ( getEntityClass().isAssignableFrom( EventChart.class ) )
         {
             filters.add( "type:!eq:PIVOT_TABLE" );
             filters.add( "type:!eq:LINE_LIST" );
         }
-        else if ( EventReport.class.getSimpleName().equals( getEntityClass().getSimpleName() ) )
+        else if ( getEntityClass().isAssignableFrom( EventReport.class ) )
         {
             filters.add( "type:in:[PIVOT_TABLE,LINE_LIST]" );
         }

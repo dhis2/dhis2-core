@@ -199,6 +199,9 @@ public class StoreConfig
             ProgramExpression.class, true );
     }
 
+    /**
+     * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization.
+     */
     @Deprecated
     @Bean( "org.hisp.dhis.eventreport.EventReportStore" )
     public HibernateAnalyticalObjectStore<EventReport> eventReportStore()
@@ -207,6 +210,9 @@ public class StoreConfig
             jdbcTemplate, publisher, EventReport.class, currentUserService, aclService, true );
     }
 
+    /**
+     * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization.
+     */
     @Deprecated
     @Bean( "org.hisp.dhis.eventchart.EventChartStore" )
     public HibernateAnalyticalObjectStore<EventChart> eventChartStore()
@@ -214,15 +220,6 @@ public class StoreConfig
         return new HibernateAnalyticalObjectStore<>( sessionFactory,
             jdbcTemplate, publisher, EventChart.class, currentUserService, aclService, true );
     }
-
-    /*
-     * @Bean( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
-     * public HibernateAnalyticalObjectStore<EventVisualization>
-     * eventEventVisualizationStore() { return new
-     * HibernateAnalyticalObjectStore<>( sessionFactory, jdbcTemplate,
-     * publisher, EventVisualization.class, currentUserService, aclService, true
-     * ); }
-     */
 
     @Bean( "org.hisp.dhis.program.notification.ProgramNotificationStore" )
     public HibernateIdentifiableObjectStore<ProgramNotificationTemplate> programNotificationStore()

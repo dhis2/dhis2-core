@@ -62,11 +62,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Jan Henrik Overland
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
+ *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
+ *             NEW FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
  *
- *         THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL.
- *         WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
- *         FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
+ * @author Jan Henrik Overland
  */
 @Deprecated
 @JacksonXmlRootElement( localName = "eventReport", namespace = DxfNamespaces.DXF_2_0 )

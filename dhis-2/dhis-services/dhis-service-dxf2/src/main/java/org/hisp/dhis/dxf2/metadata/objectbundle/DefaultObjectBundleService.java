@@ -405,8 +405,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
     }
 
     /**
-     * Needed to keep backward compatibility between the new EventVisualization
-     * and EventReport entities.
+     * @deprecated Needed to keep backward compatibility between the new
+     *             EventVisualization and EventReport entities.
      *
      * @param klass
      * @param objects
@@ -414,22 +414,19 @@ public class DefaultObjectBundleService implements ObjectBundleService
     @Deprecated
     private void handleDeprecatedEventModels( final Class klass, final List objects )
     {
-        if ( klass.getSimpleName().equals( EventReport.class.getSimpleName() ) )
+        if ( klass.isAssignableFrom( EventReport.class ) && isNotEmpty( objects ) )
         {
-            if ( isNotEmpty( objects ) )
+            for ( final Object object : objects )
             {
-                for ( final Object object : objects )
-                {
-                    final EventReport eventReport = (EventReport) object;
+                final EventReport eventReport = (EventReport) object;
 
-                    if ( AGGREGATED_VALUES == eventReport.getDataType() )
-                    {
-                        eventReport.setType( EventVisualizationType.PIVOT_TABLE );
-                    }
-                    else
-                    {
-                        eventReport.setType( EventVisualizationType.LINE_LIST );
-                    }
+                if ( AGGREGATED_VALUES == eventReport.getDataType() )
+                {
+                    eventReport.setType( EventVisualizationType.PIVOT_TABLE );
+                }
+                else
+                {
+                    eventReport.setType( EventVisualizationType.LINE_LIST );
                 }
             }
         }

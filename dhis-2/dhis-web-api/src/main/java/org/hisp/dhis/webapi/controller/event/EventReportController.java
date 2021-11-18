@@ -54,11 +54,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * @author Lars Helge Overland
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
+ *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
+ *             NEW FEATURES SHOULD BE ADDED ON TOP OF
+ *             EventVisualizationController.
  *
- *         THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization MODEL.
- *         WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE. NEW
- *         FEATURES SHOULD BE ADDED ON TOP OF EventVisualizationController.
+ * @author Lars Helge Overland
  */
 @Deprecated
 @Controller

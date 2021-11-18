@@ -74,7 +74,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.VisualizationType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -132,7 +131,7 @@ public class EventVisualization extends BaseAnalyticalObject
     // Dimensional properties
     // -------------------------------------------------------------------------
 
-    protected List<String> filterDimensions = new ArrayList<>();
+    private List<String> filterDimensions = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Transient properties
@@ -278,11 +277,6 @@ public class EventVisualization extends BaseAnalyticalObject
     {
         this.relativeUser = user;
         this.format = format;
-    }
-
-    public boolean isType( VisualizationType type )
-    {
-        return this.type != null && this.type.equals( type );
     }
 
     public boolean isTargetLine()
@@ -718,20 +712,18 @@ public class EventVisualization extends BaseAnalyticalObject
     public List<DimensionalItemObject> series()
     {
         final String series = columnDimensions.get( 0 );
-
-        final DimensionalObject object = getDimensionalObject( series, relativePeriodDate, relativeUser, true,
-            organisationUnitsAtLevel, organisationUnitsInGroups, format );
-
-        setDimensionItemsForFilters( object, dataItemGrid, true );
-
-        return object != null ? object.getItems() : null;
+        return getItems( series );
     }
 
     public List<DimensionalItemObject> category()
     {
         final String category = rowDimensions.get( 0 );
+        return getItems( category );
+    }
 
-        final DimensionalObject object = getDimensionalObject( category, relativePeriodDate, relativeUser, true,
+    private List<DimensionalItemObject> getItems( final String dimension )
+    {
+        final DimensionalObject object = getDimensionalObject( dimension, relativePeriodDate, relativeUser, true,
             organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
         setDimensionItemsForFilters( object, dataItemGrid, true );

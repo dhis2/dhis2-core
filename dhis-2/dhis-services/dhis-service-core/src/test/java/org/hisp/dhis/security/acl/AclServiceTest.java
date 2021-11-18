@@ -445,7 +445,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         aclService.resetSharing( eventVisualization, user );
 
-        assertTrue( AccessStringHelper.DEFAULT.equals( eventVisualization.getPublicAccess() ) );
+        assertEquals( AccessStringHelper.DEFAULT, eventVisualization.getPublicAccess() );
         assertFalse( eventVisualization.getExternalAccess() );
         assertTrue( eventVisualization.getUserAccesses().isEmpty() );
         assertTrue( eventVisualization.getUserGroupAccesses().isEmpty() );
@@ -487,7 +487,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         aclService.resetSharing( eventVisualization, user );
 
-        assertTrue( AccessStringHelper.READ_WRITE.equals( eventVisualization.getPublicAccess() ) );
+        assertEquals( AccessStringHelper.READ_WRITE, eventVisualization.getPublicAccess() );
         assertFalse( eventVisualization.getExternalAccess() );
         assertTrue( eventVisualization.getUserAccesses().isEmpty() );
         assertTrue( eventVisualization.getUserGroupAccesses().isEmpty() );

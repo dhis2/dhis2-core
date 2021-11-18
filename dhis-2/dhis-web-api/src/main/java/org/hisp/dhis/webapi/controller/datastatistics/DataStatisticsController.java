@@ -96,8 +96,8 @@ public class DataStatisticsController
     }
 
     /**
-     * Logic needed to assist the deprecation process of event chart and event
-     * report.
+     * @deprecated Logic needed to assist the deprecation process of event chart
+     *             and event report.
      *
      * @param eventType
      * @param favorite

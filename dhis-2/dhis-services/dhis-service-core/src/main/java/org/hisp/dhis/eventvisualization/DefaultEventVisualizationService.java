@@ -33,7 +33,6 @@ import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,9 +48,7 @@ public class DefaultEventVisualizationService
 {
     private final EventVisualizationStore eventVisualizationStore;
 
-    public DefaultEventVisualizationService(
-        @Qualifier( "org.hisp.dhis.eventvisualization.EventVisualizationStore" )
-        final EventVisualizationStore eventVisualizationStore )
+    public DefaultEventVisualizationService( final EventVisualizationStore eventVisualizationStore )
     {
         checkNotNull( eventVisualizationStore );
 
@@ -63,10 +60,9 @@ public class DefaultEventVisualizationService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional( readOnly = true )
     protected AnalyticalObjectStore<EventVisualization> getAnalyticalObjectStore()
     {
-        return (AnalyticalObjectStore<EventVisualization>) eventVisualizationStore;
+        return eventVisualizationStore;
     }
 
     @Override
