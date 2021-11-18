@@ -712,8 +712,15 @@ SET toplimit = 0
 WHERE toplimit IS NULL;
 
 
--- update constraints
+-- update constraints in dashboard item table
 ALTER TABLE dashboarditem DROP CONSTRAINT IF EXISTS fk_dashboarditem_eventchartid;
 ALTER TABLE dashboarditem DROP CONSTRAINT IF EXISTS fk_dashboarditem_eventreportid;
 ALTER TABLE dashboarditem ADD CONSTRAINT fk_dashboarditem_eventchartid FOREIGN KEY (eventchartid) REFERENCES eventvisualization(eventvisualizationid);
 ALTER TABLE dashboarditem ADD CONSTRAINT fk_dashboarditem_eventreportid FOREIGN KEY (eventreport) REFERENCES eventvisualization(eventvisualizationid);
+
+
+-- update constraints in interpretation table
+ALTER TABLE interpretation DROP CONSTRAINT IF EXISTS fk_interpretation_eventreportid;
+ALTER TABLE interpretation DROP CONSTRAINT IF EXISTS fk_interpretation_eventchartid;
+ALTER TABLE interpretation ADD CONSTRAINT fk_interpretation_eventreportid FOREIGN KEY (eventchartid) REFERENCES eventvisualization(eventvisualizationid);
+ALTER TABLE interpretation ADD CONSTRAINT fk_interpretation_eventchartid FOREIGN KEY (eventreportid) REFERENCES eventvisualization(eventvisualizationid);

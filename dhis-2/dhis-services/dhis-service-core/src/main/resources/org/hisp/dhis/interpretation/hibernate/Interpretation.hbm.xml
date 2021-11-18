@@ -26,10 +26,10 @@
       foreign-key="fk_interpretation_mapid" />
 
     <many-to-one name="eventReport" class="org.hisp.dhis.eventreport.EventReport" column="eventreportid"
-      foreign-key="fk_interpretation_evisualizationid" />
+      foreign-key="fk_interpretation_eventreportid" />
 
     <many-to-one name="eventChart" class="org.hisp.dhis.eventchart.EventChart" column="eventchartid"
-      foreign-key="fk_interpretation_evisualizationid" />
+      foreign-key="fk_interpretation_eventchartid" />
 
     <many-to-one name="dataSet" class="org.hisp.dhis.dataset.DataSet" column="datasetid"
       foreign-key="fk_interpretation_datasetid" />

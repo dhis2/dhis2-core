@@ -92,8 +92,22 @@ public class DataStatisticsController
         DataStatisticsEvent event = new DataStatisticsEvent( eventType, timestamp, username, favorite );
         dataStatisticsService.addEvent( event );
 
-        // Logic needed to assist the deprecation process of event chart and
-        // event report.
+        addStatisticsForEventChartOrReport( eventType, favorite, timestamp, username );
+    }
+
+    /**
+     * Logic needed to assist the deprecation process of event chart and event
+     * report.
+     *
+     * @param eventType
+     * @param favorite
+     * @param timestamp
+     * @param username
+     */
+    @Deprecated
+    private void addStatisticsForEventChartOrReport( final DataStatisticsEventType eventType, final String favorite,
+        final Date timestamp, final String username )
+    {
         if ( eventType == EVENT_CHART_VIEW || eventType == EVENT_REPORT_VIEW )
         {
             // For each EVENT_CHART_VIEW or EVENT_REPORT_VIEW we also add a

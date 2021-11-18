@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getPrettyFilter;
 import static org.hisp.dhis.common.DimensionalObjectUtils.setDimensionItemsForFilters;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.join;
+import static org.hisp.dhis.schema.PropertyType.CONSTANT;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
@@ -68,7 +69,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -88,10 +88,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class EventVisualization extends BaseAnalyticalObject
     implements MetadataObject, EventAnalyticalObject
 {
-
-    // ####### BaseChart attributes ########
-    // ###########################
-
     protected String domainAxisLabel;
 
     protected String rangeAxisLabel;
@@ -153,9 +149,6 @@ public class EventVisualization extends BaseAnalyticalObject
     protected transient List<OrganisationUnit> organisationUnitsInGroups = new ArrayList<>();
 
     protected transient Grid dataItemGrid = null;
-
-    // ####### EventChart attributes ########
-    // ###########################
 
     /**
      * Program. Required.
@@ -222,10 +215,6 @@ public class EventVisualization extends BaseAnalyticalObject
      */
     private transient DimensionalItemObject value;
 
-    // ####### EventReport attributes ########
-    // ###########################
-    // (removing the commons with EventChart)
-
     private EventDataType dataType;
 
     /**
@@ -283,16 +272,13 @@ public class EventVisualization extends BaseAnalyticalObject
     }
 
     @Override
-    public void init( User user, Date date, OrganisationUnit organisationUnit,
-        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
-        I18nFormat format )
+    public void init( final User user, final Date date, final OrganisationUnit organisationUnit,
+        final List<OrganisationUnit> organisationUnitsAtLevel, final List<OrganisationUnit> organisationUnitsInGroups,
+        final I18nFormat format )
     {
         this.relativeUser = user;
         this.format = format;
     }
-
-    // ####### BaseChart methods ########
-    // ###########################
 
     public boolean isType( VisualizationType type )
     {
@@ -336,11 +322,6 @@ public class EventVisualization extends BaseAnalyticalObject
         }
 
         return join( titleItems, TITLE_ITEM_SEP );
-    }
-
-    public boolean isAnalyticsType( AnalyticsType type )
-    {
-        return getAnalyticsType().equals( type );
     }
 
     @Override
@@ -446,7 +427,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    @Property( value = PropertyType.CONSTANT, required = TRUE )
+    @Property( value = CONSTANT, required = TRUE )
     public EventVisualizationType getType()
     {
         return type;
@@ -692,9 +673,6 @@ public class EventVisualization extends BaseAnalyticalObject
         this.filterDimensions = filterDimensions;
     }
 
-    // ####### EventChart methods ########
-    // ###########################
-
     // -------------------------------------------------------------------------
     // AnalyticalObject
     // -------------------------------------------------------------------------
@@ -931,16 +909,12 @@ public class EventVisualization extends BaseAnalyticalObject
         this.value = value;
     }
 
-    // ######## EventReport methods ########
-    // #####################################
-    // (excluding EventChart common methods)
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    // This attribute and methods were replaced by "type", but will remain for
-    // compatibility
+    /**
+     * This attribute and its accessors were replaced by "type", but will remain
+     * here for backward-compatibility with EventReport.
+     *
+     * @return
+     */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public EventDataType getDataType()
