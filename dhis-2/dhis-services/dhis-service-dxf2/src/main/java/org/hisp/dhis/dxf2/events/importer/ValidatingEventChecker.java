@@ -25,48 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.dxf2.events.importer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isUpdate;
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
-
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.function.Predicate;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventChecking;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
 
-/**
- * @author maikel arabori
- */
-@Component( "eventsUpdateValidationFactory" )
-public class UpdateValidationFactory implements EventChecking
+@RequiredArgsConstructor
+public abstract class ValidatingEventChecker implements EventChecker
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap;
 
-    public UpdateValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap )
-    {
-        checkNotNull( eventUpdateValidatorMap );
-        this.eventUpdateValidatorMap = eventUpdateValidatorMap;
-    }
+    private final List<? extends Checker> checkers;
+
+    private final EventImporterValidationRunner validationRunner;
 
     @Override
     public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
     {
-        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
-
-        if ( isUpdate( importStrategy ) )
+        if ( isSupported( ctx.getImportOptions().getImportStrategy() ) )
         {
-            return new ValidationRunner( ctx, events ).run( eventUpdateValidatorMap.get( UPDATE ) );
+            return validationRunner.run( ctx, events, checkers );
         }
-
-        return emptyList();
+        return Collections.emptyList();
     }
+
+    private boolean isSupported( ImportStrategy importStrategy )
+    {
+        return getSupportedPredicate().test( importStrategy );
+    }
+
+    protected abstract Predicate<ImportStrategy> getSupportedPredicate();
+
 }

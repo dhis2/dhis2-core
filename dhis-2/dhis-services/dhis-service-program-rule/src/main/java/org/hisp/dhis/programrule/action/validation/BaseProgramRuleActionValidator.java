@@ -43,12 +43,14 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
  */
 
 @Slf4j
+@Component
 public class BaseProgramRuleActionValidator implements ProgramRuleActionValidator
 {
     @Override

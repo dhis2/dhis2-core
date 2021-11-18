@@ -60,6 +60,9 @@ import org.hisp.dhis.scheduling.JobProgress.Process;
  * a specific point in time.</dd>
  * </dl>
  *
+ * @see <a href=
+ *      "https://github.com/dhis2/wow-backend/blob/master/docs/job_scheduling.md">Docs</a>
+ *
  * @author Henning Håkonsen (initial)
  * @author Jan Bernitt (overhaul and extension)
  */

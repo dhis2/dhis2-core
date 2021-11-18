@@ -25,48 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.delete.validation;
+package org.hisp.dhis.webapi.json.domain;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isDelete;
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
-
-import java.util.List;
-import java.util.Map;
-
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventChecking;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * @author maikel arabori
+ * @author Morten Olav Hansen
  */
-@Component( "eventsDeleteValidationFactory" )
-public class DeleteValidationFactory implements EventChecking
+public interface JsonPeriodType extends JsonObject
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap;
-
-    public DeleteValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap )
+    default String getName()
     {
-        checkNotNull( eventDeleteValidatorMap );
-        this.eventDeleteValidatorMap = eventDeleteValidatorMap;
+        return getString( "name" ).string();
     }
 
-    @Override
-    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
+    default String getIsoDuration()
     {
-        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
+        return getString( "isoDuration" ).string();
+    }
 
-        if ( isDelete( importStrategy ) )
-        {
-            return new ValidationRunner( ctx, events ).run( eventDeleteValidatorMap.get( DELETE ) );
-        }
+    default String getIsoFormat()
+    {
+        return getString( "isoFormat" ).string();
+    }
 
-        return emptyList();
+    default Number getFrequencyOrder()
+    {
+        return getNumber( "frequencyOrder" ).number();
     }
 }

@@ -25,40 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
-
-import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
-import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
-@Getter
-@Component( "eventsPreInsertProcessorFactory" )
+@Component
 @RequiredArgsConstructor
-public class PreInsertProcessorFactory extends AbstractProcessorFactory
+class ValidationRunner
 {
 
-    @NonNull
-    @Qualifier( "eventInsertPreProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
+    private final Map<ImportStrategy, List<ValidationCheck>> validatorsByImportStrategy;
 
-    private final ImportStrategy importStrategy = CREATE;
+    public <T extends IdentifiableObject> TypeReport executeValidationChain( ObjectBundle bundle, Class<T> klass,
+        List<T> persistedObjects, List<T> nonPersistedObjects,
+        ValidationContext ctx )
+    {
+        TypeReport typeReport = new TypeReport( klass );
 
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isInsert;
+        validatorsByImportStrategy.get( bundle.getImportMode() )
+            .forEach( validationCheck -> typeReport.merge( validationCheck.check( bundle, klass, persistedObjects,
+                nonPersistedObjects, bundle.getImportMode(), ctx ) ) );
 
+        return typeReport;
+    }
 }

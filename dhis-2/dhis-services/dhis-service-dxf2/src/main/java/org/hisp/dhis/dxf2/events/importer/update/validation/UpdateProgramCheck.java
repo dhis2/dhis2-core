@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.dxf2.events.importer.update.validation;
 
-import java.util.List;
-
-import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceAclCheck extends BaseEventAclCheck
+@Component
+public class UpdateProgramCheck implements Checker
 {
     @Override
-    public List<String> checkAcl( final TrackerAccessManager trackerAccessManager, final User user,
-        final ProgramStageInstance programStageInstance )
+    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
     {
-        return trackerAccessManager.canUpdate( user, programStageInstance, false );
+        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
+            "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found.", event );
     }
 }

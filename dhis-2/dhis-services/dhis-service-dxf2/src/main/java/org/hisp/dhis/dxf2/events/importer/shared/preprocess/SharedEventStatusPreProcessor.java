@@ -25,31 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.delete.validation;
+package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
-import static java.util.Collections.emptyList;
-
-import java.util.List;
-
-import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.event.EventStatus;
+import org.springframework.stereotype.Component;
 
 /**
- * @author maikel arabori
+ * This PreProcessor converts event's VISITED status to ACTIVE
+ *
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-public class ProgramStageInstanceAclCheck extends BaseEventAclCheck
+@Component
+public class SharedEventStatusPreProcessor implements Processor
 {
     @Override
-    public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
-        ProgramStageInstance programStageInstance )
+    public void process( Event event, WorkContext ctx )
     {
-        if ( programStageInstance != null )
+        if ( event.getStatus().equals( EventStatus.VISITED ) )
         {
-            return trackerAccessManager.canDelete( user, programStageInstance, true );
+            event.setStatus( EventStatus.ACTIVE );
         }
-
-        return emptyList();
     }
 }

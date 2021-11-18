@@ -112,9 +112,11 @@ public class EventCategoryOptValidationHook
                     i18nFormat.formatDate( option.getStartDate() ), option.getName() );
             }
 
-            if ( option.getEndDate() != null && eventDate.compareTo( option.getEndDate() ) > 0 )
+            if ( option.getEndDate() != null && eventDate.compareTo( option.getAdjustedEndDate( program ) ) > 0 )
             {
-                addError( reporter, E1057, eventDate, option.getEndDate(), categoryOptionCombo );
+                addError( reporter, E1057, i18nFormat.formatDate( eventDate ),
+                    i18nFormat.formatDate( option.getAdjustedEndDate( program ) ), option.getName(),
+                    program.getName() );
             }
         }
     }

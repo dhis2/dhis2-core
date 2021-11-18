@@ -36,6 +36,9 @@ import org.hisp.dhis.feedback.ErrorReport;
  * <p>
  * See {@link SchedulingManager} for more information about the scheduling.
  *
+ * @see <a href=
+ *      "https://github.com/dhis2/wow-backend/blob/master/docs/job_scheduling.md">Docs</a>
+ *
  * @author Henning Håkonsen
  */
 public interface Job
