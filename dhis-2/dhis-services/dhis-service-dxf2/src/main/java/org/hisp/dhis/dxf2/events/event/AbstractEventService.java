@@ -839,6 +839,11 @@ public abstract class AbstractEventService implements EventService
 
         if ( orgUnitSelectionMode == null )
         {
+            if ( params.getOrgUnit() != null )
+            {
+                return Arrays.asList( params.getOrgUnit() );
+            }
+
             return getAccessibleOrgUnits( params, user );
         }
 
@@ -847,7 +852,7 @@ public abstract class AbstractEventService implements EventService
         switch ( orgUnitSelectionMode )
         {
         case ALL:
-            organisationUnits = getAllOrgUnits( user );
+            organisationUnits = getAllOrgUnits( params, user );
             break;
         case CHILDREN:
             organisationUnits = getChildrenOrgUnits( params );
@@ -856,7 +861,7 @@ public abstract class AbstractEventService implements EventService
             organisationUnits = getDescendantOrgUnits( params );
             break;
         case CAPTURE:
-            organisationUnits = getCaptureOrgUnits( user );
+            organisationUnits = getCaptureOrgUnits( params, user );
             break;
         case SELECTED:
             organisationUnits = getSelectedOrgUnits( params );
@@ -869,8 +874,13 @@ public abstract class AbstractEventService implements EventService
         return organisationUnits;
     }
 
-    private List<OrganisationUnit> getAllOrgUnits( User user )
+    private List<OrganisationUnit> getAllOrgUnits( EventSearchParams params, User user )
     {
+        if ( params.getOrgUnit() != null )
+        {
+            return Arrays.asList( params.getOrgUnit() );
+        }
+
         if ( !userCanSearchOuModeALL( user ) )
         {
             throw new IllegalQueryException( "User is not authorized to use ALL organisation units. " );
@@ -912,8 +922,13 @@ public abstract class AbstractEventService implements EventService
         return organisationUnitService.getOrganisationUnitWithChildren( params.getOrgUnit().getUid() );
     }
 
-    private List<OrganisationUnit> getCaptureOrgUnits( User user )
+    private List<OrganisationUnit> getCaptureOrgUnits( EventSearchParams params, User user )
     {
+        if ( params.getOrgUnit() != null )
+        {
+            return Arrays.asList( params.getOrgUnit() );
+        }
+
         if ( user == null )
         {
             throw new IllegalQueryException( "User is required to use CAPTURE scope." );
@@ -925,6 +940,11 @@ public abstract class AbstractEventService implements EventService
 
     private List<OrganisationUnit> getAccessibleOrgUnits( EventSearchParams params, User user )
     {
+        if ( params.getOrgUnit() != null )
+        {
+            return Arrays.asList( params.getOrgUnit() );
+        }
+
         if ( user == null )
         {
             throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
@@ -1030,14 +1050,15 @@ public abstract class AbstractEventService implements EventService
             violation = "Duration is not valid: " + params.getLastUpdatedDuration();
         }
 
+        if ( params.getOrgUnit() != null
+            && !trackerAccessManager.canAccess( user, params.getProgram(), params.getOrgUnit() ) )
+        {
+            violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
+        }
+
         if ( params.getOrgUnitSelectionMode() != null )
         {
             violation = getOuModeViolation( params, user );
-        }
-
-        if ( params.getOrgUnit() != null && !isOrgUnitAccessible( params.getOrgUnit(), params.getProgram(), user ) )
-        {
-            violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
         }
 
         if ( violation != null )
@@ -1077,22 +1098,6 @@ public abstract class AbstractEventService implements EventService
         }
 
         return violation;
-    }
-
-    private boolean isOrgUnitAccessible( OrganisationUnit orgUnit, Program program, User user )
-    {
-        // always allow if these are null. Internal process?
-        if ( user == null || user.isSuper() || orgUnit == null )
-        {
-            return true;
-        }
-
-        if ( program != null && program.isClosed() )
-        {
-            return organisationUnitService.isInUserHierarchy( user, orgUnit );
-        }
-
-        return organisationUnitService.isInUserSearchHierarchy( user, orgUnit );
     }
 
     /**

@@ -235,7 +235,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         {
             OrganisationUnit ou = programInstance.getOrganisationUnit();
 
-            if ( !isOrgUnitAccessible( user, program, ou ) )
+            if ( !canAccess( user, program, ou ) )
             {
                 errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
@@ -433,7 +433,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         {
             OrganisationUnit ou = programStageInstance.getOrganisationUnit();
 
-            if ( !isOrgUnitAccessible( user, program, ou ) )
+            if ( !canAccess( user, program, ou ) )
             {
                 errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
@@ -798,20 +798,20 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         return errors;
     }
 
-    private boolean isNull( ProgramStage programStage )
+    @Override
+    public boolean canAccess( User user, Program program, OrganisationUnit orgUnit )
     {
-        return programStage == null || programStage.getProgram() == null;
-    }
+        if ( orgUnit == null )
+        {
+            return false;
+        }
 
-    private boolean isOrgUnitAccessible( User user, Program program, OrganisationUnit orgUnit )
-    {
-        // always allow if these are null. Internal process?
-        if ( user == null || user.isSuper() || orgUnit == null )
+        if ( user == null || user.isSuper() )
         {
             return true;
         }
 
-        if ( program != null && program.isClosed() )
+        if ( program == null || program.isClosed() )
         {
             return organisationUnitService.isInUserHierarchy( user, orgUnit );
         }
@@ -819,4 +819,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         return organisationUnitService.isInUserSearchHierarchy( user, orgUnit );
     }
 
+    private boolean isNull( ProgramStage programStage )
+    {
+        return programStage == null || programStage.getProgram() == null;
+    }
 }
