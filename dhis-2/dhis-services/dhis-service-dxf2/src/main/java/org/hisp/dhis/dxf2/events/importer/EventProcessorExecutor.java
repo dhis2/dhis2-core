@@ -25,40 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.delete.preprocess;
-
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
+package org.hisp.dhis.dxf2.events.importer;
 
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
-import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-@Getter
-@Component( "eventsPreDeleteProcessorFactory" )
 @RequiredArgsConstructor
-public class PreDeleteProcessorFactory extends AbstractProcessorFactory
+public class EventProcessorExecutor
 {
 
-    @NonNull
-    @Qualifier( "eventDeletePreProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
+    private final List<? extends Processor> processors;
 
-    private final ImportStrategy importStrategy = DELETE;
+    private final Predicate<ImportStrategy> importStrategyPredicate;
 
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isDelete;
+    public void execute( final WorkContext workContext, final List<Event> events )
+    {
+        if ( isApplicable( workContext.getImportOptions().getImportStrategy() ) )
+        {
+            events.forEach(
+                event -> processors.forEach(
+                    processor -> processor.process( event, workContext ) ) );
+        }
+    }
+
+    private boolean isApplicable( ImportStrategy importStrategy )
+    {
+        return importStrategyPredicate.test( importStrategy );
+    }
 
 }

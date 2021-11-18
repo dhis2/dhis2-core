@@ -35,12 +35,14 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
  */
 
 @Slf4j
+@Component
 public class NotificationProgramRuleActionValidator implements ProgramRuleActionValidator
 {
     @Override

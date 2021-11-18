@@ -25,40 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.delete.postprocess;
+package org.hisp.dhis.dxf2.events.importer;
 
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
-
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
-import lombok.Getter;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
-@Getter
-@Component( "eventsPostDeleteProcessorFactory" )
 @RequiredArgsConstructor
-public class PostDeleteProcessorFactory extends AbstractProcessorFactory
+public abstract class ValidatingEventChecker implements EventChecker
 {
 
-    @NonNull
-    @Qualifier( "eventDeletePostProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
+    private final List<? extends Checker> checkers;
 
-    private final ImportStrategy importStrategy = DELETE;
+    private final EventImporterValidationRunner validationRunner;
 
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isDelete;
+    @Override
+    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
+    {
+        if ( isSupported( ctx.getImportOptions().getImportStrategy() ) )
+        {
+            return validationRunner.run( ctx, events, checkers );
+        }
+        return Collections.emptyList();
+    }
+
+    private boolean isSupported( ImportStrategy importStrategy )
+    {
+        return getSupportedPredicate().test( importStrategy );
+    }
+
+    protected abstract Predicate<ImportStrategy> getSupportedPredicate();
 
 }

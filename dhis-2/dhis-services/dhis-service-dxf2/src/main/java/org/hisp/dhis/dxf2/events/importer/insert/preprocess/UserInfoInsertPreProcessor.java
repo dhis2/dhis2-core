@@ -32,7 +32,9 @@ import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePrePro
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.springframework.stereotype.Component;
 
+@Component
 public class UserInfoInsertPreProcessor extends UserInfoUpdatePreProcessor
 {
 

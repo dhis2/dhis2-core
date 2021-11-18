@@ -27,54 +27,12 @@
  */
 package org.hisp.dhis.dxf2.events.importer;
 
-import static org.apache.commons.logging.LogFactory.getLog;
-
-import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-
-/**
- * Simple interface that provides processing capabilities on events.
- *
- * @author maikel arabori
- */
-public interface EventProcessing
+public enum EventProcessorPhase
 {
-    void process( WorkContext workContext, List<Event> events );
-
-    Log log = getLog( EventProcessing.class );
-
-    class ProcessorRunner
-    {
-        private final WorkContext workContext;
-
-        private final List<Event> events;
-
-        public ProcessorRunner( WorkContext workContext, List<Event> events )
-        {
-            this.workContext = workContext;
-            this.events = events;
-        }
-
-        public void run( final List<Class<? extends Processor>> processors )
-        {
-            for ( final Event event : events )
-            {
-                for ( Class<? extends Processor> processor : processors )
-                {
-                    try
-                    {
-                        final Processor pre = processor.newInstance();
-                        pre.process( event, workContext );
-                    }
-                    catch ( InstantiationException | IllegalAccessException e )
-                    {
-                        log.error( "An error occurred during Event import processing", e );
-                    }
-                }
-            }
-        }
-    }
+    INSERT_PRE,
+    INSERT_POST,
+    UPDATE_PRE,
+    UPDATE_POST,
+    DELETE_PRE,
+    DELETE_POST
 }

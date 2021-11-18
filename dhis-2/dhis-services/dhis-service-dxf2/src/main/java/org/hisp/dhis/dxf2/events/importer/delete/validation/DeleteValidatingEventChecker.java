@@ -28,45 +28,35 @@
 package org.hisp.dhis.dxf2.events.importer.delete.validation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isDelete;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
-import org.hisp.dhis.dxf2.events.event.Event;
+import lombok.Getter;
+
 import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventChecking;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
+import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
+import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
 /**
  * @author maikel arabori
  */
-@Component( "eventsDeleteValidationFactory" )
-public class DeleteValidationFactory implements EventChecking
+@Component
+public class DeleteValidatingEventChecker extends ValidatingEventChecker
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap;
+    @Getter
+    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isDelete;
 
-    public DeleteValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventDeleteValidatorMap )
+    public DeleteValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
+        EventImporterValidationRunner validationRunner )
     {
-        checkNotNull( eventDeleteValidatorMap );
-        this.eventDeleteValidatorMap = eventDeleteValidatorMap;
+        super( checkNotNull(
+            checkNotNull( checkersByImportStrategy ).get( DELETE ) ), validationRunner );
     }
 
-    @Override
-    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
-    {
-        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
-
-        if ( isDelete( importStrategy ) )
-        {
-            return new ValidationRunner( ctx, events ).run( eventDeleteValidatorMap.get( DELETE ) );
-        }
-
-        return emptyList();
-    }
 }

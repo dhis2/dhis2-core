@@ -34,12 +34,14 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.springframework.stereotype.Component;
 
 /**
  * Sets the "storedBy" property on the event and on the event's Data Values
  *
  * @author Luciano Fiandesio
  */
+@Component
 public class EventStoredByPreProcessor implements Processor
 {
     @Override
