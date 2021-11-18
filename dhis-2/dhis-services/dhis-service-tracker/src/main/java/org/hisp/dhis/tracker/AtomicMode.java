@@ -39,6 +39,11 @@ public enum AtomicMode
     ALL,
 
     /**
+     * Import only if all pass the validation phase
+     */
+    VALIDATION,
+
+    /**
      * Legacy mode. Allow non-valid references when importing.
      */
     OBJECT

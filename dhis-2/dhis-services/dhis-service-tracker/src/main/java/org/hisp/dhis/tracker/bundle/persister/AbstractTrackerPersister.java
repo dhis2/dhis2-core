@@ -44,6 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -110,6 +111,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             final T trackerDto = dtos.get( idx );
 
             TrackerObjectReport objectReport = new TrackerObjectReport( getType(), trackerDto.getUid(), idx );
+            Transaction transaction = null;
+
+            if ( !bundle.getAtomicMode().equals( AtomicMode.ALL ) )
+            {
+                transaction = session.beginTransaction();
+            }
 
             try
             {
@@ -190,6 +197,18 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     log.warn( msg + "\nThe Import process will process remaining entities.", e );
 
                     typeReport.getStats().incIgnored();
+                }
+
+                if ( !bundle.getAtomicMode().equals( AtomicMode.ALL ) && transaction != null )
+                {
+                    transaction.rollback();
+                }
+            }
+            finally
+            {
+                if ( !bundle.getAtomicMode().equals( AtomicMode.ALL ) && transaction != null )
+                {
+                    transaction.commit();
                 }
             }
         }
