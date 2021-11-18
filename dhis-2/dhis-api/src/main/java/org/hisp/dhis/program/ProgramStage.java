@@ -562,4 +562,19 @@ public class ProgramStage
     {
         this.nextScheduleDate = nextScheduleDate;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDueDateLabel()
+    {
+        return getTranslation( TranslationProperty.DUE_DATE_LABEL, getDueDateLabel() );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayExecutionDateLabel()
+    {
+        return getTranslation( TranslationProperty.EXECUTION_DATE_LABEL, getExecutionDateLabel() );
+    }
+
 }

@@ -366,6 +366,42 @@ public class TranslationServiceTest
         assertEquals( "translated Name", template.getDisplayName() );
         assertEquals( "translated SUBJECT TEMPLATE", template.getDisplaySubjectTemplate() );
         assertEquals( "translated MESSAGE TEMPLATE", template.getDisplayMessageTemplate() );
+    }
 
+    @Test
+    public void testProgramLabels()
+    {
+        Program program = createProgram( 'A' );
+        manager.save( program );
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.INCIDENT_DATE_LABEL,
+            "translated INCIDENT_DATE_LABEL" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.ENROLLMENT_DATE_LABEL,
+            "translated ENROLLMENT_DATE_LABEL" ) );
+
+        manager.updateTranslations( program, translations );
+
+        program = manager.get( Program.class, program.getUid() );
+        assertEquals( "translated INCIDENT_DATE_LABEL", program.getDisplayIncidentDateLabel() );
+        assertEquals( "translated ENROLLMENT_DATE_LABEL", program.getDisplayEnrollmentDateLabel() );
+    }
+
+    @Test
+    public void testProgramStageLabels()
+    {
+        Program program = createProgram( 'A' );
+        manager.save( program );
+        ProgramStage programStage = createProgramStage( 'A', program );
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.EXECUTION_DATE_LABEL,
+            "translated EXECUTION_DATE_LABEL" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.DUE_DATE_LABEL,
+            "translated DUE_DATE_LABEL" ) );
+
+        manager.updateTranslations( programStage, translations );
+
+        programStage = manager.get( ProgramStage.class, programStage.getUid() );
+        assertEquals( "translated EXECUTION_DATE_LABEL", programStage.getDisplayExecutionDateLabel() );
+        assertEquals( "translated DUE_DATE_LABEL", programStage.getDisplayDueDateLabel() );
     }
 }
