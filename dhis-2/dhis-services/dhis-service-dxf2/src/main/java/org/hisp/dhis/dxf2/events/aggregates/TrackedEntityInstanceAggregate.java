@@ -307,7 +307,7 @@ public class TrackedEntityInstanceAggregate
     private boolean isAccessible( TrackedEntityAttribute trackedEntityAttribute,
         AggregateContext ctx )
     {
-        return ctx.getTrackedEntityAttributes().contains( trackedEntityAttribute.getId() );
+        return ctx.isSuperUser() || ctx.getTrackedEntityAttributes().contains( trackedEntityAttribute.getId() );
     }
 
     /**
