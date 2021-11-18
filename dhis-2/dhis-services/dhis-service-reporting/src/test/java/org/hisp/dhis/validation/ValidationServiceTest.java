@@ -43,6 +43,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -55,7 +57,12 @@ import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.*;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -97,6 +104,9 @@ public class ValidationServiceTest
 
     @Autowired
     private PeriodService periodService;
+
+    @Autowired
+    private IdentifiableObjectManager identifiableObjectManager;
 
     private DataElement dataElementA;
 
@@ -1521,5 +1531,38 @@ public class ValidationServiceTest
             .add( new ValidationResult( validationRule, periodA, sourceA, defaultCombo, 20.0, 10.0, dayInPeriodA ) );
 
         assertResultsEquals( reference, results );
+    }
+
+    @Test
+    public void testInstructionTranslation()
+    {
+        User user = createUserAndInjectSecurityContext( true );
+
+        Locale locale = Locale.FRENCH;
+        UserContext.setUser( user );
+        UserContext.setUserSetting( UserSettingKey.DB_LOCALE, locale );
+
+        useDataValue( dataElementA, periodA, sourceA, "10" );
+        useDataValue( dataElementB, periodA, sourceA, "20" );
+
+        Expression expressionLeft = new Expression(
+            "greatest( #{" + dataElementA.getUid() + "}, #{" + dataElementB.getUid() + "} )", "exprLeft" );
+        Expression expressionRight = new Expression(
+            "least( #{" + dataElementA.getUid() + "}, #{" + dataElementB.getUid() + "} )", "exprRight" );
+
+        ValidationRule rule = createValidationRule( "R", equal_to, expressionLeft, expressionRight, periodTypeMonthly );
+        rule.setInstruction( "Validation rule instruction" );
+
+        validationRuleService.saveValidationRule( rule );
+
+        String instructionTranslated = "Validation rule instruction translated";
+
+        Set<Translation> listObjectTranslation = new HashSet<>( rule.getTranslations() );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.INSTRUCTION, instructionTranslated ) );
+
+        identifiableObjectManager.updateTranslations( rule, listObjectTranslation );
+
+        Assert.assertEquals( instructionTranslated, rule.getDisplayInstruction() );
     }
 }
