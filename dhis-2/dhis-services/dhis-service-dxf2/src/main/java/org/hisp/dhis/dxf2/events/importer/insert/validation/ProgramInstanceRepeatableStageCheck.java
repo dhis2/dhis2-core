@@ -40,10 +40,12 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
+@Component
 public class ProgramInstanceRepeatableStageCheck implements Checker
 {
     @Override

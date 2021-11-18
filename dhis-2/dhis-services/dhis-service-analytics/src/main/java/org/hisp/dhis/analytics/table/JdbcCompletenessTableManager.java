@@ -28,18 +28,19 @@
 package org.hisp.dhis.analytics.table;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.analytics.ColumnDataType.*;
+import static org.hisp.dhis.analytics.ColumnDataType.BOOLEAN;
+import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
+import static org.hisp.dhis.analytics.ColumnDataType.DATE;
+import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
 
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -54,7 +55,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -66,7 +66,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -147,15 +146,9 @@ public class JdbcCompletenessTableManager
     }
 
     @Override
-    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
+    public void removeUpdatedData( List<AnalyticsTable> tables )
     {
-        if ( !params.isLatestUpdate() )
-        {
-            return;
-        }
-
-        AnalyticsTablePartition partition = PartitionUtils.getLatestTablePartition( tables );
-
+        AnalyticsTablePartition partition = getLatestTablePartition( tables );
         String sql = "delete from " + quote( getAnalyticsTableType().getTableName() ) + " ax " +
             "where ax.id in (" +
             "select (ds.uid || '-' || ps.iso || '-' || ou.uid || '-' || ao.uid) as id " +
@@ -309,21 +302,6 @@ public class JdbcCompletenessTableManager
         }
 
         return jdbcTemplate.queryForList( sql, Integer.class );
-    }
-
-    @Override
-    @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
-        Collection<String> dataElements, int aggregationLevel )
-    {
-        return ConcurrentUtils.getImmediateFuture();
-    }
-
-    @Override
-    @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
-    {
-        return ConcurrentUtils.getImmediateFuture();
     }
 
     @Override

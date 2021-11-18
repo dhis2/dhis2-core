@@ -33,6 +33,7 @@ import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportContr
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -47,12 +48,14 @@ import java.util.LinkedList;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -90,6 +93,9 @@ public class TrackerImportControllerTest
     private TrackerImportStrategyHandler importStrategy;
 
     @Mock
+    private CsvEventService<Event> csvEventService;
+
+    @Mock
     private Notifier notifier;
 
     @Rule
@@ -106,7 +112,7 @@ public class TrackerImportControllerTest
 
         // Controller under test
         final TrackerImportController controller = new TrackerImportController( importStrategy, trackerImportService,
-            new DefaultContextService(), notifier );
+            csvEventService, new DefaultContextService(), notifier );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
     }
@@ -124,6 +130,23 @@ public class TrackerImportControllerTest
             .andExpect( status().isOk() )
             .andExpect( jsonPath( "$.message" ).value( TRACKER_JOB_ADDED ) )
             .andExpect( content().contentType( "application/json" ) );
+    }
+
+    @Test
+    public void verifyAsyncForCsv()
+        throws Exception
+    {
+
+        // Then
+        mockMvc.perform( post( ENDPOINT )
+            .content( "{}" )
+            .contentType( "text/csv" ) )
+            .andExpect( status().isOk() )
+            .andExpect( jsonPath( "$.message" ).value( TRACKER_JOB_ADDED ) )
+            .andExpect( content().contentType( "application/json" ) );
+
+        verify( csvEventService ).readEvents( any(), eq( true ) );
+        verify( importStrategy ).importReport( any() );
     }
 
     @Test
@@ -166,6 +189,45 @@ public class TrackerImportControllerTest
     }
 
     @Test
+    public void verifySyncResponseForCsvShouldBeOkWhenImportReportStatusIsOk()
+        throws Exception
+    {
+        // When
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withImportCompleted(
+            TrackerStatus.OK,
+            TrackerBundleReport.builder()
+                .status( TrackerStatus.OK )
+                .build(),
+            TrackerValidationReport.builder()
+                .build(),
+            new TrackerTimingsStats(),
+            new HashMap<>() ) );
+
+        // Then
+        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false&skipFirst=true" )
+            .content( "{}" )
+            .contentType( "text/csv" ) )
+            .andExpect( status().isOk() )
+            .andExpect( jsonPath( "$.message" ).doesNotExist() )
+            .andExpect( content().contentType( "application/json" ) )
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        verify( csvEventService ).readEvents( any(), eq( true ) );
+        verify( importStrategy ).importReport( any() );
+
+        try
+        {
+            renderService.fromJson( contentAsString, TrackerImportReport.class );
+        }
+        catch ( Exception e )
+        {
+            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
+        }
+    }
+
+    @Test
     public void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError()
         throws Exception
     {
@@ -188,6 +250,41 @@ public class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
+        verify( importStrategy ).importReport( any() );
+
+        try
+        {
+            renderService.fromJson( contentAsString, TrackerImportReport.class );
+        }
+        catch ( Exception e )
+        {
+            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
+        }
+    }
+
+    @Test
+    public void verifySyncResponseForCsvShouldBeConflictWhenImportReportStatusIsError()
+        throws Exception
+    {
+        String errorMessage = "errorMessage";
+        // When
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withError( "errorMessage",
+            TrackerValidationReport.builder()
+                .build(),
+            new TrackerTimingsStats() ) );
+
+        // Then
+        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false&skipFirst=true" )
+            .content( "{}" )
+            .contentType( "text/csv" ) )
+            .andExpect( status().isConflict() )
+            .andExpect( jsonPath( "$.message" ).value( errorMessage ) )
+            .andExpect( content().contentType( "application/json" ) )
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        verify( csvEventService ).readEvents( any(), eq( true ) );
         verify( importStrategy ).importReport( any() );
 
         try

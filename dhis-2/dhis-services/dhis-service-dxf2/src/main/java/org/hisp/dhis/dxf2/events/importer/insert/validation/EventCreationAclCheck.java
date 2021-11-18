@@ -33,10 +33,12 @@ import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
+@Component
 public class EventCreationAclCheck
     extends
     BaseEventAclCheck

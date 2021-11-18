@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.List;
-import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHooks;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
@@ -62,7 +60,7 @@ public class ValidationFactory
 
     private final ObjectBundleHooks objectBundleHooks;
 
-    private final Map<ImportStrategy, List<Class<? extends ValidationCheck>>> validatorMap;
+    private final ValidationRunner validationRunner;
 
     /**
      * Run the validation checks against the bundle
@@ -78,8 +76,8 @@ public class ValidationFactory
         List<T> persistedObjects, List<T> nonPersistedObjects )
     {
         ValidationContext ctx = getContext();
-        TypeReport typeReport = new ValidationRunner( validatorMap.get( bundle.getImportMode() ) )
-            .executeValidationChain( bundle, klass, persistedObjects, nonPersistedObjects, ctx );
+        TypeReport typeReport = validationRunner.executeValidationChain( bundle, klass, persistedObjects,
+            nonPersistedObjects, ctx );
 
         // Remove invalid objects from the bundle
         removeFromBundle( klass, ctx, bundle );
@@ -136,34 +134,4 @@ public class ValidationFactory
             this.schemaService );
     }
 
-    static class ValidationRunner
-    {
-        private List<Class<? extends ValidationCheck>> validators;
-
-        public ValidationRunner( List<Class<? extends ValidationCheck>> validators )
-        {
-            this.validators = validators;
-        }
-
-        public <T extends IdentifiableObject> TypeReport executeValidationChain( ObjectBundle bundle, Class<T> klass,
-            List<T> persistedObjects, List<T> nonPersistedObjects,
-            ValidationContext ctx )
-        {
-            TypeReport typeReport = new TypeReport( klass );
-            for ( Class<? extends ValidationCheck> validator : validators )
-            {
-                try
-                {
-                    ValidationCheck validationCheck = validator.newInstance();
-                    typeReport.merge( validationCheck.check( bundle, klass, persistedObjects, nonPersistedObjects,
-                        bundle.getImportMode(), ctx ) );
-                }
-                catch ( InstantiationException | IllegalAccessException e )
-                {
-                    log.error( "An error occurred during metadata import validation", e );
-                }
-            }
-            return typeReport;
-        }
-    }
 }

@@ -39,10 +39,12 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleHook;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
+@Component
 public class ValidationHooksCheck implements ObjectValidationCheck
 {
 

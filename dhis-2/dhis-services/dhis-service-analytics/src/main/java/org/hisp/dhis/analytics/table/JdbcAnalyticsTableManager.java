@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
+import static org.hisp.dhis.analytics.table.PartitionUtils.getLatestTablePartition;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.dataapproval.DataApprovalLevelService.APPROVAL_LEVEL_UNAPPROVED;
@@ -44,8 +45,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -67,7 +66,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
-import org.hisp.dhis.commons.util.ConcurrentUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
@@ -83,7 +81,6 @@ import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -203,15 +200,9 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    public void removeUpdatedData( AnalyticsTableUpdateParams params, List<AnalyticsTable> tables )
+    public void removeUpdatedData( List<AnalyticsTable> tables )
     {
-        if ( !params.isLatestUpdate() )
-        {
-            return;
-        }
-
-        AnalyticsTablePartition partition = PartitionUtils.getLatestTablePartition( tables );
-
+        AnalyticsTablePartition partition = getLatestTablePartition( tables );
         String sql = "delete from " + quote( getAnalyticsTableType().getTableName() ) + " ax " +
             "where ax.id in (" +
             "select (de.uid || '-' || ps.iso || '-' || ou.uid || '-' || co.uid || '-' || ao.uid) as id " +
@@ -501,64 +492,38 @@ public class JdbcAnalyticsTableManager
     }
 
     @Override
-    @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
+    public void applyAggregationLevels( AnalyticsTablePartition partition,
         Collection<String> dataElements, int aggregationLevel )
     {
-        taskLoop: while ( true )
+        StringBuilder sql = new StringBuilder( "update " + partition.getTempTableName() + " set " );
+
+        for ( int i = 0; i < aggregationLevel; i++ )
         {
-            AnalyticsTablePartition partition = partitions.poll();
+            int level = i + 1;
 
-            if ( partition == null )
-            {
-                break taskLoop;
-            }
+            String column = quote( DataQueryParams.LEVEL_PREFIX + level );
 
-            StringBuilder sql = new StringBuilder( "update " + partition.getTempTableName() + " set " );
-
-            for ( int i = 0; i < aggregationLevel; i++ )
-            {
-                int level = i + 1;
-
-                String column = quote( DataQueryParams.LEVEL_PREFIX + level );
-
-                sql.append( column + " = null," );
-            }
-
-            sql.deleteCharAt( sql.length() - ",".length() );
-
-            sql.append( " where level > " + aggregationLevel );
-            sql.append( " and dx in (" + getQuotedCommaDelimitedString( dataElements ) + ")" );
-
-            log.debug( "Aggregation level SQL: " + sql.toString() );
-
-            jdbcTemplate.execute( sql.toString() );
+            sql.append( column + " = null," );
         }
 
-        return ConcurrentUtils.getImmediateFuture();
+        sql.deleteCharAt( sql.length() - ",".length() );
+
+        sql.append( " where level > " + aggregationLevel );
+        sql.append( " and dx in (" + getQuotedCommaDelimitedString( dataElements ) + ")" );
+
+        log.debug( "Aggregation level SQL: " + sql );
+
+        jdbcTemplate.execute( sql.toString() );
     }
 
     @Override
-    @Async
-    public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions )
+    public void vacuumTables( AnalyticsTablePartition partition )
     {
-        taskLoop: while ( true )
-        {
-            AnalyticsTablePartition partition = partitions.poll();
+        final String sql = statementBuilder.getVacuum( partition.getTempTableName() );
 
-            if ( partition == null )
-            {
-                break taskLoop;
-            }
+        log.debug( "Vacuum SQL: " + sql );
 
-            final String sql = statementBuilder.getVacuum( partition.getTempTableName() );
-
-            log.debug( "Vacuum SQL: " + sql );
-
-            jdbcTemplate.execute( sql );
-        }
-
-        return ConcurrentUtils.getImmediateFuture();
+        jdbcTemplate.execute( sql );
     }
 
     @Override

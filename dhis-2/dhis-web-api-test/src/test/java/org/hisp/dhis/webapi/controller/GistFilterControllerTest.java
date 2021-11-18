@@ -34,6 +34,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.Test;
 
@@ -141,7 +142,6 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     public void testFilter_Like()
     {
         assertEquals( 1, GET( "/users/gist?filter=surname:like:mi&headless=true" ).content().size() );
-        assertEquals( 1, GET( "/users/gist?filter=surname:ilike:mi&headless=true" ).content().size() );
         assertEquals( 1, GET( "/users/gist?filter=surname:like:?dmin&headless=true" ).content().size() );
         assertEquals( 1, GET( "/users/gist?filter=surname:like:ad*&headless=true" ).content().size() );
         assertEquals( 0, GET( "/users/gist?filter=surname:like:Zulu&headless=true" ).content().size() );
@@ -152,10 +152,28 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         assertEquals( 1,
             GET( "/users/gist?filter=userCredentials.username:!like:mike&headless=true" ).content().size() );
-        assertEquals( 1, GET( "/users/gist?filter=surname:!ilike:?min&headless=true" ).content().size() );
         assertEquals( 1, GET( "/users/gist?filter=surname:!like:?min&headless=true" ).content().size() );
         assertEquals( 1, GET( "/users/gist?filter=surname:!like:ap*&headless=true" ).content().size() );
         assertEquals( 0, GET( "/users/gist?filter=surname:!like:ad?in&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testFilter_ILike()
+    {
+        assertEquals( 1, GET( "/users/gist?filter=surname:ilike:Mi&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:ilike:?dmin&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:ilike:aD*&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=surname:ilike:Zulu&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testFilter_NotILike()
+    {
+        assertEquals( 1,
+            GET( "/users/gist?filter=userCredentials.username:!ilike:Mike&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:!ilike:?min&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=surname:!ilike:aP*&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=surname:!ilike:Ad?in&headless=true" ).content().size() );
     }
 
     @Test
@@ -164,9 +182,9 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
         assertEquals( 1,
             GET( "/users/gist?filter=userCredentials.username:$like:ad&headless=true" ).content().size() );
         assertEquals( 1,
-            GET( "/users/gist?filter=userCredentials.username:$ilike:adm&headless=true" ).content().size() );
+            GET( "/users/gist?filter=userCredentials.username:$ilike:Adm&headless=true" ).content().size() );
         assertEquals( 1,
-            GET( "/users/gist?filter=userCredentials.username:startsWith:admi&headless=true" ).content().size() );
+            GET( "/users/gist?filter=userCredentials.username:startsWith:Admi&headless=true" ).content().size() );
         assertEquals( 0,
             GET( "/users/gist?filter=userCredentials.username:startsWith:bat&headless=true" ).content().size() );
     }
@@ -185,7 +203,7 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         assertEquals( 1, GET( "/users/gist?filter=firstName:like$:dmin&headless=true" ).content().size() );
         assertEquals( 1, GET( "/users/gist?filter=firstName:ilike$:in&headless=true" ).content().size() );
-        assertEquals( 1, GET( "/users/gist?filter=firstName:endsWith:min&headless=true" ).content().size() );
+        assertEquals( 1, GET( "/users/gist?filter=firstName:endsWith:MIN&headless=true" ).content().size() );
         assertEquals( 0, GET( "/users/gist?filter=firstName:endsWith:bat&headless=true" ).content().size() );
     }
 
@@ -195,7 +213,7 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
         assertEquals( 1, GET( "/users/gist?filter=firstName:!like$:mike&headless=true" ).content().size() );
         assertEquals( 1, GET( "/users/gist?filter=firstName:!ilike$:bat&headless=true" ).content().size() );
         assertEquals( 1, GET( "/users/gist?filter=firstName:!endsWith:tic&headless=true" ).content().size() );
-        assertEquals( 0, GET( "/users/gist?filter=firstName:!endsWith:min&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=firstName:!endsWith:MiN&headless=true" ).content().size() );
     }
 
     @Test
@@ -313,5 +331,37 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
 
         assertTrue( users.has( "id", "userCredentials" ) );
         assertTrue( users.getObject( "userCredentials" ).has( "username", "twoFA" ) );
+    }
+
+    @Test
+    public void testFilter_GroupsOR()
+    {
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "alpha" );
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "beta" );
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "gamma" );
+
+        // both filters in group 2 are combined OR because root junction is
+        // implicitly AND
+        String url = "/dataSets/gist?filter=1:name:endsWith:3&filter=2:name:like:alpha&filter=2:name:like:beta&headless=true&order=name";
+        JsonArray matches = GET( url ).content();
+        assertEquals( 2, matches.size() );
+        assertEquals( "alpha3", matches.getObject( 0 ).getString( "name" ).string() );
+        assertEquals( "beta3", matches.getObject( 1 ).getString( "name" ).string() );
+    }
+
+    @Test
+    public void testFilter_GroupAND()
+    {
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "alpha" );
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "beta" );
+        createDataSetsForOrganisationUnit( 5, orgUnitId, "gamma" );
+
+        // both filters in group 2 are combined AND because the root junction is
+        // set to OR
+        String url = "/dataSets/gist?filter=1:name:eq:beta1&filter=2:name:like:alpha&filter=2:name:endsWith:4&headless=true&rootJunction=OR&order=name";
+        JsonArray matches = GET( url ).content();
+        assertEquals( 2, matches.size() );
+        assertEquals( "alpha4", matches.getObject( 0 ).getString( "name" ).string() );
+        assertEquals( "beta1", matches.getObject( 1 ).getString( "name" ).string() );
     }
 }
