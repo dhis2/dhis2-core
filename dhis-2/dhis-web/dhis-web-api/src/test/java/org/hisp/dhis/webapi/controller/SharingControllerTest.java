@@ -124,7 +124,8 @@ public class SharingControllerTest
 
         Mockito.doReturn( Category.class ).when( aclService ).classForType( Mockito.eq( "category" ) );
         Mockito.when( aclService.isShareable( Mockito.eq( Category.class ) ) ).thenReturn( true );
-        Mockito.when( manager.getNoAcl( Mockito.eq( Category.class ), Mockito.eq( "kkSjhdhks" ) ) ).thenReturn( category );
+        Mockito.when( manager.getNoAcl( Mockito.eq( Category.class ), Mockito.eq( "kkSjhdhks" ) ) )
+            .thenReturn( category );
 
         sharingController.setSharing( "category", "kkSjhdhks", response, request );
     }
@@ -138,7 +139,8 @@ public class SharingControllerTest
 
         Mockito.doReturn( Category.class ).when( aclService ).classForType( Mockito.eq( "category" ) );
         Mockito.when( aclService.isShareable( Mockito.eq( Category.class ) ) ).thenReturn( true );
-        Mockito.when( manager.getNoAcl( Mockito.eq( Category.class ), Mockito.eq( "kkSjhdhks" ) ) ).thenReturn( category );
+        Mockito.when( manager.getNoAcl( Mockito.eq( Category.class ), Mockito.eq( "kkSjhdhks" ) ) )
+            .thenReturn( category );
 
         try
         {
