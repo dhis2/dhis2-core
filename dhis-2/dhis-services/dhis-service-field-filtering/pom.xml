@@ -51,7 +51,7 @@
         <!-- Test -->
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-service-schema</artifactId>
+            <artifactId>dhis-support-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
