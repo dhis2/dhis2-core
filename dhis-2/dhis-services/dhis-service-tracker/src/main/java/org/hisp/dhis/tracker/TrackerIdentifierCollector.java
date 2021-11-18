@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -229,16 +234,28 @@ public class TrackerIdentifierCollector
     private <T> void addIdentifier( Map<Class<?>, Set<String>> map,
         Class<T> klass, TrackerIdScheme identifier, String str )
     {
-        if ( StringUtils.isEmpty( str ) || map == null || klass == null || identifier == null )
+        try
         {
-            return;
-        }
+            if ( StringUtils.isEmpty( str ) || map == null || klass == null || identifier == null )
+            {
+                return;
+            }
 
-        if ( !map.containsKey( klass ) )
+            if ( !map.containsKey( klass ) )
+            {
+                map.put( klass, new HashSet<>() );
+            }
+
+            map.get( klass ).add( str );
+        }
+        catch ( NullPointerException e )
         {
-            map.put( klass, new HashSet<>() );
+            System.err.println( "map: " + map );
+            System.err.println( "klass: " + klass );
+            System.err.println( "map.containsKey(klass): " + map.containsKey( klass ) );
+            System.err.println( "map.get(klass): " + map.get( klass ) );
+            System.err.println( "str: " + str );
+            throw e;
         }
-
-        map.get( klass ).add( str );
     }
 }
