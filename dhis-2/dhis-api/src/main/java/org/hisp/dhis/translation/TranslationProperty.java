@@ -53,7 +53,7 @@ public enum TranslationProperty
     INCIDENT_DATE_LABEL( "incidentDateLabel" ),
     ENROLLMENT_DATE_LABEL( "enrollmentDateLabel" ),
     EXECUTION_DATE_LABEL( "executionDateLabel" ),
-    DUE_DATE_LABEL( "dueDateLabel" ),;
+    DUE_DATE_LABEL( "dueDateLabel" );
 
     private String name;
 

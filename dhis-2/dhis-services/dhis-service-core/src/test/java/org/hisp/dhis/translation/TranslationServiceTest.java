@@ -392,6 +392,7 @@ public class TranslationServiceTest
         Program program = createProgram( 'A' );
         manager.save( program );
         ProgramStage programStage = createProgramStage( 'A', program );
+        manager.save( programStage );
         Set<Translation> translations = new HashSet<>();
         translations.add( new Translation( locale.getLanguage(), TranslationProperty.EXECUTION_DATE_LABEL,
             "translated EXECUTION_DATE_LABEL" ) );
