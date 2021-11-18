@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.sqlview;
 
-import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -46,7 +45,8 @@ import org.hisp.dhis.user.UserCredentials;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.*;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -304,13 +304,6 @@ public class SqlViewServiceTest
         sqlViewService.saveSqlView( sqlView );
 
         sqlViewService.getSqlViewGrid( sqlView, null, null, null, null );
-    }
-
-    @Test
-    public void testValidateSuccess_NonAsciiLetterVariableValues()
-    {
-        sqlViewService.validateSqlView( getSqlView( "select * from dataelement where valueType = '${valueType}'" ),
-            null, singletonMap( "valueType", "å" ) );
     }
 
     @Test
