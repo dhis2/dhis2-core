@@ -61,6 +61,7 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.junit.Assert;
 import org.junit.Test;
@@ -107,6 +108,9 @@ public class ValidationServiceTest
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
+
+    @Autowired
+    private UserService injectUserService;
 
     private DataElement dataElementA;
 
@@ -210,6 +214,8 @@ public class ValidationServiceTest
     public void setUpTest()
         throws Exception
     {
+        this.userService = injectUserService;
+
         CurrentUserService currentUserService = new MockCurrentUserService( allSources, null );
         setDependency( validationService, "currentUserService", currentUserService, CurrentUserService.class );
 
