@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -1588,11 +1589,12 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         trackedEntityInstance.setTrackedEntityType( daoTrackedEntityInstance.getTrackedEntityType().getUid() );
         trackedEntityInstance.setCreated( DateUtils.getIso8601NoTz( daoTrackedEntityInstance.getCreated() ) );
         trackedEntityInstance
-            .setCreatedAtClient( DateUtils.getIso8601NoTz( daoTrackedEntityInstance.getLastUpdatedAtClient() ) );
+            .setCreatedAtClient( DateUtils.getIso8601NoTz( daoTrackedEntityInstance.getCreatedAtClient() ) );
         trackedEntityInstance.setLastUpdated( DateUtils.getIso8601NoTz( daoTrackedEntityInstance.getLastUpdated() ) );
         trackedEntityInstance
             .setLastUpdatedAtClient( DateUtils.getIso8601NoTz( daoTrackedEntityInstance.getLastUpdatedAtClient() ) );
-        trackedEntityInstance.setInactive( daoTrackedEntityInstance.isInactive() );
+        trackedEntityInstance
+            .setInactive( Optional.ofNullable( daoTrackedEntityInstance.isInactive() ).orElse( false ) );
         trackedEntityInstance.setGeometry( daoTrackedEntityInstance.getGeometry() );
         trackedEntityInstance.setDeleted( daoTrackedEntityInstance.isDeleted() );
         trackedEntityInstance.setPotentialDuplicate( daoTrackedEntityInstance.isPotentialDuplicate() );
