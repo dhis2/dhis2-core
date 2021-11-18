@@ -121,11 +121,14 @@ public class HibernateUtils
                 {
                     PropertyDescriptor pd = BeanUtils.getPropertyDescriptor( proxy.getClass(), f.getName() );
 
-                    Object persistentObject = pd.getReadMethod().invoke( proxy );
-
-                    if ( PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
+                    if ( pd != null )
                     {
-                        Hibernate.initialize( persistentObject );
+                        Object persistentObject = pd.getReadMethod().invoke( proxy );
+
+                        if ( PersistentCollection.class.isAssignableFrom( persistentObject.getClass() ) )
+                        {
+                            Hibernate.initialize( persistentObject );
+                        }
                     }
                 }
                 catch ( IllegalAccessException | InvocationTargetException e )
