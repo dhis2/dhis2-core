@@ -811,7 +811,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             return true;
         }
 
-        if ( program == null || program.isClosed() )
+        if ( program != null && program.isClosed() )
         {
             return organisationUnitService.isInUserHierarchy( user, orgUnit );
         }

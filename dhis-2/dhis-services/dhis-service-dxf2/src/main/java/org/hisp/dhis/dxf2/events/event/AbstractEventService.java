@@ -1046,20 +1046,21 @@ public abstract class AbstractEventService implements EventService
             violation = "Last updated from and/or to and last updated duration cannot be specified simultaneously";
         }
 
-        if ( params.hasLastUpdatedDuration() && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
+        if ( violation == null && params.hasLastUpdatedDuration()
+            && DateUtils.getDuration( params.getLastUpdatedDuration() ) == null )
         {
             violation = "Duration is not valid: " + params.getLastUpdatedDuration();
         }
 
-        if ( params.getOrgUnitSelectionMode() != null )
-        {
-            violation = getOuModeViolation( params, user );
-        }
-
-        if ( params.getOrgUnit() != null
+        if ( violation == null && params.getOrgUnit() != null
             && !trackerAccessManager.canAccess( user, params.getProgram(), params.getOrgUnit() ) )
         {
             violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
+        }
+
+        if ( violation == null && params.getOrgUnitSelectionMode() != null )
+        {
+            violation = getOuModeViolation( params, user );
         }
 
         if ( violation != null )
