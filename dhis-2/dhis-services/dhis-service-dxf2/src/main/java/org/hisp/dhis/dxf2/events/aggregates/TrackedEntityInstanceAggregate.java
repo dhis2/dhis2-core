@@ -286,8 +286,8 @@ public class TrackedEntityInstanceAggregate
             .collect( Collectors.toSet() );
 
         return attributes.stream()
-                .filter(attribute -> allowedAttributeUids.contains(attribute.getAttribute()))
-                .collect(Collectors.toList());
+            .filter( attribute -> allowedAttributeUids.contains( attribute.getAttribute() ) )
+            .collect( Collectors.toList() );
     }
 
     private boolean isNotSyncQueryOrIsNotSkipSync( AggregateContext ctx, TrackedEntityAttribute att )
