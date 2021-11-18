@@ -25,47 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.dxf2.events.importer;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isInsert;
-
-import java.util.List;
-import java.util.Map;
-
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventChecking;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Luciano Fiandesio
- */
-@Component( "eventsInsertValidationFactory" )
-public class InsertValidationFactory implements EventChecking
+public enum EventProcessorPhase
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventInsertValidatorMap;
-
-    public InsertValidationFactory( Map<ImportStrategy, List<Class<? extends Checker>>> eventInsertValidatorMap )
-    {
-        checkNotNull( eventInsertValidatorMap );
-        this.eventInsertValidatorMap = eventInsertValidatorMap;
-    }
-
-    @Override
-    public List<ImportSummary> check( WorkContext ctx, List<Event> events )
-    {
-        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
-
-        if ( isInsert( importStrategy ) )
-        {
-            return new ValidationRunner( ctx, events ).run( eventInsertValidatorMap.get( ImportStrategy.CREATE ) );
-        }
-
-        return emptyList();
-    }
+    INSERT_PRE,
+    INSERT_POST,
+    UPDATE_PRE,
+    UPDATE_POST,
+    DELETE_PRE,
+    DELETE_POST
 }

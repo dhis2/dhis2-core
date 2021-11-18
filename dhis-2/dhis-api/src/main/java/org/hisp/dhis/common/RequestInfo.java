@@ -25,49 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Luciano Fiandesio
+ * Various information about the HTTP request made available to the system.
+ *
+ * @author Jan Bernitt
  */
-@Component
-public class EventDateCheck
-    implements
-    Checker
+@Getter
+@Builder
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public final class RequestInfo
 {
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() )
-                .incrementIgnored();
-        }
-
-        try
-        {
-            DateUtils.parseDate( event.getDueDate() );
-            DateUtils.parseDate( event.getEventDate() );
-            DateUtils.parseDate( event.getCompletedDate() );
-        }
-        catch ( Exception e )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Event date or Execution date format is not correct. " )
-                .setReference( event.getEvent() )
-                .incrementIgnored();
-        }
-
-        return success();
-    }
+    @JsonProperty
+    private final String headerXRequestID;
 }

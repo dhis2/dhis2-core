@@ -25,40 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.postprocess;
+package org.hisp.dhis.dxf2.events.importer.delete.validation;
 
-import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
+import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
 import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * @author maikel arabori
  */
-@Getter
-@Component( "eventsPostInsertProcessorFactory" )
-@RequiredArgsConstructor
-public class PostInsertProcessorFactory extends AbstractProcessorFactory
+@Component
+public class DeleteValidatingEventChecker extends ValidatingEventChecker
 {
+    @Getter
+    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isDelete;
 
-    @NonNull
-    @Qualifier( "eventInsertPostProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
-
-    private final ImportStrategy importStrategy = CREATE;
-
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isInsert;
+    public DeleteValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
+        EventImporterValidationRunner validationRunner )
+    {
+        super( checkNotNull(
+            checkNotNull( checkersByImportStrategy ).get( DELETE ) ), validationRunner );
+    }
 
 }

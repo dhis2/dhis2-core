@@ -25,43 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
+package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.event.EventStatus;
 import org.springframework.stereotype.Component;
 
-@Getter
-@RequiredArgsConstructor
+/**
+ * This PreProcessor converts event's VISITED status to ACTIVE
+ *
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ */
 @Component
-public class ProcessingManager
+public class SharedEventStatusPreProcessor implements Processor
 {
-
-    @NonNull
-    @Qualifier( "eventsPreInsertProcessorFactory" )
-    private final EventProcessing preInsertProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPostInsertProcessorFactory" )
-    private final EventProcessing postInsertProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPreUpdateProcessorFactory" )
-    private final EventProcessing preUpdateProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPostUpdateProcessorFactory" )
-    private final EventProcessing postUpdateProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPreDeleteProcessorFactory" )
-    private final EventProcessing preDeleteProcessorFactory;
-
-    @NonNull
-    @Qualifier( "eventsPostDeleteProcessorFactory" )
-    private final EventProcessing postDeleteProcessorFactory;
-
+    @Override
+    public void process( Event event, WorkContext ctx )
+    {
+        if ( event.getStatus().equals( EventStatus.VISITED ) )
+        {
+            event.setStatus( EventStatus.ACTIVE );
+        }
+    }
 }

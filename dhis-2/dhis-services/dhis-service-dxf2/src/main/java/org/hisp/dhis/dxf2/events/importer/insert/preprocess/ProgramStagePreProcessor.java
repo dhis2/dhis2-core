@@ -33,12 +33,14 @@ import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.springframework.stereotype.Component;
 
 /**
  * This PreProcessor tries to assign a ProgramStage to an event
  *
  * @author Luciano Fiandesio
  */
+@Component
 public class ProgramStagePreProcessor implements Processor
 {
     @Override

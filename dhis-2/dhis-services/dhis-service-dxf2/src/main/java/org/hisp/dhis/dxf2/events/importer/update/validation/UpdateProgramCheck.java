@@ -25,26 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
+package org.hisp.dhis.dxf2.events.importer.update.validation;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.springframework.stereotype.Component;
 
 /**
- * This PreProcessor converts event's VISITED status to ACTIVE
- *
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ * @author Luciano Fiandesio
  */
-public class EventStatusPreProcessor implements Processor
+@Component
+public class UpdateProgramCheck implements Checker
 {
     @Override
-    public void process( Event event, WorkContext ctx )
+    public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
     {
-        if ( event.getStatus().equals( EventStatus.VISITED ) )
-        {
-            event.setStatus( EventStatus.ACTIVE );
-        }
+        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
+            "Program '" + event.getProgram() + "' for event '" + event.getEvent() + "' was not found.", event );
     }
 }

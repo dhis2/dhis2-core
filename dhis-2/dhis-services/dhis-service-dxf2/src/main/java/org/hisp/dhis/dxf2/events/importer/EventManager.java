@@ -40,6 +40,7 @@ import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import lombok.NonNull;
@@ -51,12 +52,14 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.delete.validation.DeleteValidatingEventChecker;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.InsertValidatingEventChecker;
+import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateValidatingEventChecker;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
@@ -67,19 +70,16 @@ import com.google.common.collect.ImmutableList;
 public class EventManager
 {
     @NonNull
-    @Qualifier( "eventsInsertValidationFactory" )
-    private final EventChecking insertValidationFactory;
+    private final InsertValidatingEventChecker insertValidatingEventChecker;
 
     @NonNull
-    @Qualifier( "eventsUpdateValidationFactory" )
-    private final EventChecking updateValidationFactory;
+    private final UpdateValidatingEventChecker updateValidatingEventChecker;
 
     @NonNull
-    @Qualifier( "eventsDeleteValidationFactory" )
-    private final EventChecking deleteValidationFactory;
+    private final DeleteValidatingEventChecker deleteValidatingEventChecker;
 
     @NonNull
-    private final ProcessingManager processingManager;
+    private final Map<EventProcessorPhase, EventProcessorExecutor> executorsByPhase;
 
     @NonNull
     private final EventPersistenceService eventPersistenceService;
@@ -119,11 +119,11 @@ public class EventManager
         }
 
         // pre-process events
-        processingManager.getPreInsertProcessorFactory().process( workContext, validEvents );
+        executorsByPhase.get( EventProcessorPhase.INSERT_PRE ).execute( workContext, validEvents );
 
         importSummaries.addImportSummaries(
             // Run validation against the remaining "insertable" events //
-            insertValidationFactory.check( workContext, validEvents ) );
+            insertValidatingEventChecker.check( workContext, validEvents ) );
 
         // collect the UIDs of events that did not pass validation
         final List<String> invalidEvents = importSummaries.getImportSummaries().stream()
@@ -163,7 +163,7 @@ public class EventManager
             List<Event> savedEvents = events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
-            processingManager.getPostInsertProcessorFactory().process( workContext, savedEvents );
+            executorsByPhase.get( EventProcessorPhase.INSERT_POST ).execute( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, CREATE );
 
@@ -192,11 +192,11 @@ public class EventManager
         final ImportSummaries importSummaries = new ImportSummaries();
 
         // pre-process events
-        processingManager.getPreUpdateProcessorFactory().process( workContext, events );
+        executorsByPhase.get( EventProcessorPhase.UPDATE_PRE ).execute( workContext, events );
 
         importSummaries.addImportSummaries(
             // Run validation against the remaining "updatable" events //
-            updateValidationFactory.check( workContext, events ) );
+            updateValidatingEventChecker.check( workContext, events ) );
 
         // collect the UIDs of events that did not pass validation
         final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream()
@@ -232,7 +232,7 @@ public class EventManager
             List<Event> savedEvents = events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
-            processingManager.getPostUpdateProcessorFactory().process( workContext, savedEvents );
+            executorsByPhase.get( EventProcessorPhase.UPDATE_POST ).execute( workContext, savedEvents );
 
             incrementSummaryTotals( events, importSummaries, UPDATE );
 
@@ -246,11 +246,11 @@ public class EventManager
         final ImportSummaries importSummaries = new ImportSummaries();
 
         // pre-process events
-        processingManager.getPreDeleteProcessorFactory().process( workContext, events );
+        executorsByPhase.get( EventProcessorPhase.DELETE_PRE ).execute( workContext, events );
 
         importSummaries.addImportSummaries(
             // Run validation against the remaining "insertable" events //
-            deleteValidationFactory.check( workContext, events ) );
+            deleteValidatingEventChecker.check( workContext, events ) );
 
         // collect the UIDs of events that did not pass validation
         final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream()
@@ -283,7 +283,7 @@ public class EventManager
             // Post processing only the events that passed validation and were
             // persisted
             // correctly.
-            processingManager.getPostDeleteProcessorFactory().process( workContext, events.stream()
+            executorsByPhase.get( EventProcessorPhase.DELETE_POST ).execute( workContext, events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
 
             incrementSummaryTotals( events, importSummaries, DELETE );

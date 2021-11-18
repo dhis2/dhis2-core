@@ -33,10 +33,12 @@ import static org.hisp.dhis.system.util.GeoUtils.SRID;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.springframework.stereotype.Component;
 
 /**
  * @author maikel arabori
  */
+@Component
 public class ProgramInstanceGeometryPreProcessor implements Processor
 {
     @Override

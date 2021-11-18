@@ -25,48 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils.isUpdate;
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
+package org.hisp.dhis.dxf2.events.importer;
 
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventChecking;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
 
 /**
+ * Simple interface that provides checking capabilities on events.
+ *
  * @author maikel arabori
  */
-@Component( "eventsUpdateValidationFactory" )
-public class UpdateValidationFactory implements EventChecking
+public interface EventChecker
 {
-    private final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap;
-
-    public UpdateValidationFactory( final Map<ImportStrategy, List<Class<? extends Checker>>> eventUpdateValidatorMap )
-    {
-        checkNotNull( eventUpdateValidatorMap );
-        this.eventUpdateValidatorMap = eventUpdateValidatorMap;
-    }
-
-    @Override
-    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
-    {
-        final ImportStrategy importStrategy = ctx.getImportOptions().getImportStrategy();
-
-        if ( isUpdate( importStrategy ) )
-        {
-            return new ValidationRunner( ctx, events ).run( eventUpdateValidatorMap.get( UPDATE ) );
-        }
-
-        return emptyList();
-    }
+    List<ImportSummary> check( final WorkContext workContext, final List<Event> events );
 }
