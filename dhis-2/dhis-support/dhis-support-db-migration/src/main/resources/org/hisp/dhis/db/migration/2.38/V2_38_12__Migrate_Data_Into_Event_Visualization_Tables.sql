@@ -2,9 +2,6 @@
 -- It migrates all necessary data from Event Chart and Event Report tables
 -- into the new structure of Event Visualization tables.
 
--- TODO:
--- Migrate Hibernate int and boolean types if needed.
--- Check userroleauthorities, if it's possible to keep both authorities. I'm not convinced this is necessary actually.
 
 -- Migrate eventchart table into eventvisualization table.
 INSERT INTO eventvisualization
@@ -598,16 +595,6 @@ WHERE eventreportid IS NOT NULL;
 UPDATE interpretation
 SET eventvisualizationid = eventchartid
 WHERE eventchartid IS NOT NULL;
-
--- TODO: Review if this is really needed
--- Moving user authorities from eventchart to eventvisualization
---UPDATE userroleauthorities SET authority = 'F_EVENTVISUALIZATION_PUBLIC_ADD' WHERE authority = 'F_EVENTCHART_PUBLIC_ADD';
---UPDATE userroleauthorities SET authority = 'F_EVENTVISUALIZATION_EXTERNAL' WHERE authority = 'F_EVENTCHART_EXTERNAL';
-
-
--- Moving user authorities from eventreport to eventvisualization
---UPDATE userroleauthorities SET authority = 'F_EVENTVISUALIZATION_PUBLIC_ADD' WHERE authority = 'F_EVENTREPORT_PUBLIC_ADD';
---UPDATE userroleauthorities SET authority = 'F_EVENTVISUALIZATION_EXTERNAL' WHERE authority = 'F_EVENTREPORT_EXTERNAL';
 
 
 -- Populate the eventvisualizationviews based on existing metrics for report table and charts.

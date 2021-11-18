@@ -235,6 +235,36 @@ public class DashboardCascadeSharingTest
         assertFalse( aclService.canRead( userB, dataElementA ) );
     }
 
+    @Test
+    public void testCascadeShareEventVisualizationError()
+    {
+        DataElement dataElementA = createDataElement( 'A' );
+        dataElementA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
+        objectManager.save( dataElementA, false );
+
+        Program program = createProgram( 'Y', null, null );
+        objectManager.save( program );
+
+        EventVisualization eventVisualizationA = createEventVisualization( 'A', program );
+        eventVisualizationA.setSharing( Sharing.builder().publicAccess( DEFAULT ).build() );
+        eventVisualizationA.addDataDimensionItem( dataElementA );
+        objectManager.save( eventVisualizationA, false );
+
+        Sharing sharing = new Sharing();
+        sharing.setPublicAccess( DEFAULT );
+        sharing.addUserAccess( new UserAccess( userB, DEFAULT ) );
+        Dashboard dashboard = createDashboardWithItem( "A", sharing );
+        dashboard.getItems().get( 0 ).setEventVisualization( eventVisualizationA );
+        objectManager.save( dashboard, false );
+
+        CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
+            new CascadeSharingParameters() );
+        assertEquals( 0, report.getUpdateObjects().size() );
+
+        assertFalse( aclService.canRead( userB, eventVisualizationA ) );
+        assertFalse( aclService.canRead( userB, dataElementA ) );
+    }
+
     /**
      * Dashboard is shared to userA
      * <p>

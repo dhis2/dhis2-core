@@ -55,8 +55,8 @@ public class EventVisualizationSchemaDescriptor
         schema.setOrder( 2000 );
         schema.setShareable( true );
 
-        schema.add( new Authority( CREATE_PUBLIC, newArrayList( "F_EVENTVISUALIZATION_PUBLIC_ADD" ) ) );
-        schema.add( new Authority( EXTERNALIZE, newArrayList( "F_EVENTVISUALIZATION_EXTERNAL" ) ) );
+        schema.add( new Authority( CREATE_PUBLIC, newArrayList( "F_EVENT_VISUALIZATION_PUBLIC_ADD" ) ) );
+        schema.add( new Authority( EXTERNALIZE, newArrayList( "F_EVENT_VISUALIZATION_EXTERNAL" ) ) );
 
         return schema;
     }
