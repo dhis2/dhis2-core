@@ -154,11 +154,11 @@ public class DefaultDashboardService
             convertFromEventVisualization( objectManager.getBetweenLikeName( EventVisualization.class, words, 0,
                 getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) ) );
         result.setEventCharts( eventVisualizationStore.getChartsLikeName( words, 0,
-            getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) );
+            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0,
             getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
         result.setEventReports( eventVisualizationStore.getReportsLikeName( words, 0,
-            getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) );
+            getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0,
             getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0,
@@ -180,11 +180,11 @@ public class DefaultDashboardService
             convertFromEventVisualization( objectManager.getBetweenSorted( EventVisualization.class, 0,
                 getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) ) );
         result.setEventCharts( eventVisualizationStore.getCharts( 0,
-            getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) );
+            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
         result.setMaps( objectManager.getBetweenSorted( Map.class, 0,
             getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
         result.setEventReports( eventVisualizationStore.getReports( 0,
-            getMax( DashboardItemType.EVENT_VISUALIZATION, maxTypes, count, maxCount ) ) );
+            getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
         result.setReports( objectManager.getBetweenSorted( Report.class, 0,
             getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
         result.setResources( objectManager.getBetweenSorted( Document.class, 0,

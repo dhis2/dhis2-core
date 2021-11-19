@@ -309,6 +309,11 @@ public class DashboardServiceTest
         result = dashboardService.search( Sets.newHashSet( DashboardItemType.EVENT_VISUALIZATION ), 3, 29 );
 
         assertThat( result.getEventVisualizationCount(), is( 29 ) );
+        assertThat( result.getEventReportCount(), is( 0 ) );
+
+        result = dashboardService.search( Sets.newHashSet( DashboardItemType.EVENT_VISUALIZATION ), 3, 30 );
+
+        assertThat( result.getEventVisualizationCount(), is( 30 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
     }
 
