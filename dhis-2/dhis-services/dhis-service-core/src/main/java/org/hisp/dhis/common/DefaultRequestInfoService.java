@@ -25,14 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sharing;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.dashboard.Dashboard;
+import javax.annotation.PreDestroy;
 
-public interface CascadeSharingService
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
+
+/**
+ * @author Jan Bernitt
+ */
+@Slf4j
+@Service
+public class DefaultRequestInfoService implements RequestInfoService
 {
+    private final ThreadLocal<RequestInfo> currentInfo = new ThreadLocal<>();
+
     /**
-     * Cascade sharing form given {@link Dashboard} to all of its DashboardItems
+     * This method is by intention not part of the {@link RequestInfoService}
+     * interface as it should only be used in one place to update the info for
+     * the current thread at the beginning of a request.
+     *
+     * @param info the info to set
      */
-    CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters );
+    public void setCurrentInfo( RequestInfo info )
+    {
+        currentInfo.set( info );
+    }
+
+    @Override
+    public RequestInfo getCurrentInfo()
+    {
+        return currentInfo.get();
+    }
+
+    @PreDestroy
+    public void preDestroy()
+    {
+        currentInfo.remove();
+    }
 }

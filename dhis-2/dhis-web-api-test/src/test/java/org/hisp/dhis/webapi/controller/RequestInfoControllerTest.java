@@ -25,14 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sharing;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.dashboard.Dashboard;
+import static org.hisp.dhis.webapi.WebClient.Header;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-public interface CascadeSharingService
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.JsonResponse;
+import org.junit.Test;
+
+/**
+ * Tests the {@link RequestInfoController}.
+ *
+ * @author Jan Bernitt
+ */
+public class RequestInfoControllerTest extends DhisControllerConvenienceTest
 {
-    /**
-     * Cascade sharing form given {@link Dashboard} to all of its DashboardItems
-     */
-    CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters );
+    @Test
+    public void testGetCurrentInfo_NoHeader()
+    {
+        JsonObject info = GET( "/request" ).content();
+        assertTrue( info.isObject() );
+        assertTrue( info.isEmpty() );
+    }
+
+    @Test
+    public void testGetCurrentInfo_XRequestIdHeader()
+    {
+        JsonResponse info = GET( "/request", Header( "X-Request-ID", "abc" ) ).content();
+        assertTrue( info.isObject() );
+        assertEquals( "abc", info.getString( "headerXRequestID" ).string() );
+    }
 }
