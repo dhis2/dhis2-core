@@ -31,6 +31,7 @@ import java.util.List;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -99,4 +100,18 @@ public interface TrackerAccessManager
     List<String> canRead( User user, CategoryOptionCombo categoryOptionCombo );
 
     List<String> canWrite( User user, CategoryOptionCombo categoryOptionCombo );
+
+    /**
+     * Checks if user has access to organisation unit under defined tracker
+     * program protection level
+     *
+     * @param user the user to check access for
+     * @param program program to check against protection level
+     * @param orgUnit the org unit to be checked under user's scope and program
+     *        protection
+     *
+     * @return true if user has access to the org unit under the mentioned
+     *         program context, otherwise return false
+     */
+    boolean canAccess( User user, Program program, OrganisationUnit orgUnit );
 }
