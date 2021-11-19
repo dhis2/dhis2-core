@@ -48,8 +48,8 @@ import org.hisp.dhis.system.util.DhisHttpResponse;
 import org.hisp.dhis.system.util.HttpUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserCredentialsStore;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.hibernate.HibernateUserCredentialsStore;
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.http.HttpStatusCodes;
@@ -84,7 +84,7 @@ public class SystemUpdateService
     public static final String FIELD_NAME_URL = "url";
 
     @NonNull
-    private final HibernateUserCredentialsStore userCredentialsStore;
+    private final UserCredentialsStore userCredentialsStore;
 
     @NonNull
     private final UserService userService;
@@ -253,8 +253,7 @@ public class SystemUpdateService
     {
         Set<User> recipients = new HashSet<>();
 
-        List<UserCredentials> userCredentials = userCredentialsStore.getHasAuthority( "ALL",
-            MAX_NOTIFING_RECIPIENTS );
+        List<UserCredentials> userCredentials = userCredentialsStore.getHasAuthority( "ALL" );
 
         for ( UserCredentials credentials : userCredentials )
         {

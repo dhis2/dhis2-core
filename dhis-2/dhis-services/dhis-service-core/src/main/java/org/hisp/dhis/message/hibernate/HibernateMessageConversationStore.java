@@ -84,10 +84,7 @@ public class HibernateMessageConversationStore
     {
         String hql = "from MessageConversation mc WHERE mc.extMessageId = :extMessageId";
 
-        Query query = getQuery( hql );
-        query.setParameter( "extMessageId", extMessageId );
-
-        return query.list();
+        return getQuery( hql ).setParameter( "extMessageId", extMessageId ).list();
     }
 
     @Override

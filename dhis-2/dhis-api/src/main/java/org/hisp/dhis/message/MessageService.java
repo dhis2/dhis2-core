@@ -82,7 +82,7 @@ public interface MessageService
 
     List<MessageConversation> getMessageConversations( int first, int max );
 
-    List<MessageConversation> getMatchingExtId( String messageId );
+    List<MessageConversation> getMatchingExtId( String extId );
 
     List<MessageConversation> getMessageConversations( User user, Collection<String> uids );
 
