@@ -148,7 +148,7 @@ public class DataValidator
      *
      * @param uid the category option combo identifier.
      * @param requireCategoryOptionCombo flag used as part of the validation.
-     * @return the {@link CategoryOtionComb}.
+     * @return the {@link CategoryOptionCombo}.
      * @throws IllegalQueryException if the validation fails.
      */
     public CategoryOptionCombo getAndValidateCategoryOptionCombo( final String uid,
@@ -357,11 +357,14 @@ public class DataValidator
                     getMediumDateString( option.getStartDate() ), option.getUid() ) );
             }
 
-            if ( option.getEndDate() != null
-                && period.getStartDate().after( option.getAdjustedEndDate( dataSet, dataElement ) ) )
+            Date adjustedEndDate = (dataSet != null)
+                ? option.getAdjustedEndDate( dataSet )
+                : option.getAdjustedEndDate( dataElement );
+
+            if ( adjustedEndDate != null && period.getStartDate().after( adjustedEndDate ) )
             {
                 throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2024, period.getIsoDate(),
-                    getMediumDateString( option.getAdjustedEndDate( dataSet, dataElement ) ), option.getUid() ) );
+                    getMediumDateString( adjustedEndDate ), option.getUid() ) );
             }
         }
     }

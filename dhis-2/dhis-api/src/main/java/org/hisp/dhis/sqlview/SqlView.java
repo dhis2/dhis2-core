@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -76,7 +75,9 @@ public class SqlView
 
     private static final String REGEX_SEP = "|";
 
-    private static final String QUERY_VALUE_REGEX = "^[\\w\\s\\-]*$";
+    private static final String QUERY_VALUE_REGEX = "^[\\p{L}\\w\\s\\-]*$";
+
+    private static final String QUERY_NAME_REGEX = "^[-a-zA-Z0-9_]+$";
 
     // -------------------------------------------------------------------------
     // Properties
@@ -113,18 +114,16 @@ public class SqlView
     {
         final Pattern p = Pattern.compile( "\\W" );
 
-        String input = name;
+        String[] items = p.split( name.trim().replace( "_", "" ) );
 
-        String[] items = p.split( input.trim().replaceAll( "_", "" ) );
-
-        input = "";
+        StringBuilder input = new StringBuilder();
 
         for ( String s : items )
         {
-            input += s.isEmpty() ? "" : ("_" + s);
+            input.append( s.isEmpty() ? "" : ("_" + s) );
         }
 
-        return PREFIX_VIEWNAME + input.toLowerCase();
+        return PREFIX_VIEWNAME + input.toString().toLowerCase();
     }
 
     public static Map<String, String> getCriteria( Set<String> params )
@@ -169,7 +168,7 @@ public class SqlView
      */
     public static boolean isValidQueryParam( String param )
     {
-        return StringUtils.isAlphanumeric( param );
+        return param.matches( QUERY_NAME_REGEX );
     }
 
     public static Set<String> getInvalidQueryValues( Collection<String> values )
@@ -197,7 +196,7 @@ public class SqlView
 
     public static String getProtectedTablesRegex()
     {
-        StringBuffer regex = new StringBuffer( "^(.*\\W)?(" );
+        StringBuilder regex = new StringBuilder( "^(.*\\W)?(" );
 
         for ( String table : PROTECTED_TABLES )
         {
@@ -211,7 +210,7 @@ public class SqlView
 
     public static String getIllegalKeywordsRegex()
     {
-        StringBuffer regex = new StringBuffer( "^(.*\\W)?(" );
+        StringBuilder regex = new StringBuilder( "^(.*\\W)?(" );
 
         for ( String word : ILLEGAL_KEYWORDS )
         {

@@ -53,6 +53,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -178,15 +179,6 @@ public class RequestToSearchParamsMapper
             throw new IllegalQueryException( "Org unit is specified but does not exist: " + orgUnit );
         }
 
-        if ( ou != null && !organisationUnitService.isInUserHierarchy( ou ) )
-        {
-            if ( !userCredentials.isSuper()
-                && !userCredentials.isAuthorized( "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS" ) )
-            {
-                throw new IllegalQueryException( "User has no access to organisation unit: " + ou.getUid() );
-            }
-        }
-
         if ( pr != null && !userCredentials.isSuper() && !aclService.canDataRead( user, pr ) )
         {
             throw new IllegalQueryException( "User has no access to program: " + pr.getUid() );
@@ -212,7 +204,7 @@ public class RequestToSearchParamsMapper
                 "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
         }
 
-        if ( events != null && filters != null )
+        if ( !CollectionUtils.isEmpty( events ) && !CollectionUtils.isEmpty( filters ) )
         {
             throw new IllegalQueryException( "Event UIDs and filters can not be specified at the same time" );
         }

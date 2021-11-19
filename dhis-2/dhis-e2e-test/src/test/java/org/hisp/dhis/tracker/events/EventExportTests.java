@@ -148,9 +148,8 @@ public class EventExportTests
         return Stream.of(
             Arguments.of( "OU: root", "SELECTED", rootOu, false, null ),
             Arguments.of( "OU: capture", "SELECTED", captureOu, true, Arrays.asList( captureOu ) ),
-            // @todo enable when the bug is fixed. Right now the endpoint validates capture scope
-            //Arguments.of( "OU: search", "SELECTED", searchOu, true, Arrays.asList( searchOu ) ),
-            //Arguments.of( "OU: data read", "SELECTED", dataReadOu, true, Arrays.asList( dataReadOu ) ),
+            Arguments.of( "OU: search", "SELECTED", searchOu, true, Arrays.asList( searchOu ) ),
+            Arguments.of( "OU: data read", "SELECTED", dataReadOu, true, Arrays.asList( dataReadOu ) ),
             Arguments.of( "OU: data read ( DESCENDANTS ) ", "DESCENDANTS", captureOu, true, Arrays.asList( captureOu ) )
         );
     }
@@ -213,9 +212,8 @@ public class EventExportTests
                 Arrays.asList( searchOu, dataReadOu, captureOu ) ),
             Arguments.of( "PROGRAM: none, OU_MODE: ACCESSIBLE, EXPECTED: search scope", "ACCESSIBLE", null,
                 Arrays.asList( dataReadOu, captureOu, searchOu ) ),
-            Arguments.of( "PROGRAM: closed tracker, OU_MODE: ACCESSIBLE, EXPECTED: capture scope", "ACCESSIBLE", closedProgramId , Arrays.asList( captureOu ))
-            //@todo enable when the bug is fixed. Right now capture ouMode requires explicitly defined ou.
-            //Arguments.of( "PROGRAM: none, OU_MODE: CAPTURE", "CAPTURE", null, Arrays.asList( captureOu ) )
+            Arguments.of( "PROGRAM: closed tracker, OU_MODE: ACCESSIBLE, EXPECTED: capture scope", "ACCESSIBLE", closedProgramId , Arrays.asList( captureOu )),
+            Arguments.of( "PROGRAM: none, OU_MODE: CAPTURE", "CAPTURE", null, Arrays.asList( captureOu ) )
         } );
     }
 
@@ -240,13 +238,16 @@ public class EventExportTests
     private Stream<Arguments> shouldReturnSingleEvent()
     {
         return Stream.of( new Arguments[] {
-            Arguments.of( "PROGRAM: event, OU: search, shouldReturn: false", events.get( searchOu ), false ),
+            Arguments.of( "PROGRAM: event, OU: search, shouldReturn: true", events.get( searchOu ), true ),
             Arguments.of( "PROGRAM: tracker, OU: search, shouldReturn: true", trackerEvents.get( searchOu ), true ),
             Arguments.of( "PROGRAM: event, OU: dataRead, shouldReturn: true", events.get( dataReadOu ), true ),
             Arguments.of( "PROGRAM: event, OU: root, shouldReturn: false", events.get( rootOu ), false ),
-            Arguments.of( "PROGRAM: tracker, OU: dataRead, shouldReturn: true ", trackerEvents.get( dataReadOu ), true ),
-            Arguments.of( "PROGRAM: closed tracker, OU: dataRead, shouldReturn: false", closedProgramEvents.get( dataReadOu), false  ),
-            Arguments.of( "PROGRAM: closed tracker, OU: capture, shouldReturn: true", closedProgramEvents.get( captureOu), true  )
+            Arguments.of( "PROGRAM: tracker, OU: dataRead, shouldReturn: true ", trackerEvents.get( dataReadOu ),
+                true ),
+            Arguments.of( "PROGRAM: closed tracker, OU: dataRead, shouldReturn: false",
+                closedProgramEvents.get( dataReadOu ), false ),
+            Arguments.of( "PROGRAM: closed tracker, OU: capture, shouldReturn: true",
+                closedProgramEvents.get( captureOu ), true )
         } );
     }
 

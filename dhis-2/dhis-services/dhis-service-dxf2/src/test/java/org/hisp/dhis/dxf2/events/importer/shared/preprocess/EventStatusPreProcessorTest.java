@@ -45,12 +45,12 @@ import com.google.common.collect.Sets;
  */
 public class EventStatusPreProcessorTest
 {
-    private EventStatusPreProcessor preProcessor;
+    private SharedEventStatusPreProcessor preProcessor;
 
     @Before
     public void setUp()
     {
-        preProcessor = new EventStatusPreProcessor();
+        preProcessor = new SharedEventStatusPreProcessor();
     }
 
     @Test

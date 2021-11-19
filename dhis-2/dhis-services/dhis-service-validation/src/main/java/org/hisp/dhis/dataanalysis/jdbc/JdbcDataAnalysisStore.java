@@ -148,23 +148,29 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         String periodIds = getCommaDelimitedString( getIdentifiers( periods ) );
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
 
-        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
-            +
-            "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
-            "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
-            +
+        // @formatter:off
+        String sql =
+            "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
+                "dv.value, dv.storedby, dv.lastupdated, " +
+                "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
+                "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, " +
+                "mm.minimumvalue, mm.maximumvalue " +
             "from datavalue dv " +
-            "left join minmaxdataelement mm on dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid "
-            +
+            "left join minmaxdataelement mm on dv.dataelementid = mm.dataelementid " +
+                "and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid " +
             "inner join dataelement de on dv.dataelementid = de.dataelementid " +
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
             "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
             "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
-            "where dv.dataelementid in (" + dataElementIds + ") " + "and dv.categoryoptioncomboid in (" +
-            categoryOptionComboIds + ") " + "and dv.periodid in (" + periodIds + ") " + "and (" +
-            "cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") < mm.minimumvalue " +
-            "or cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") > mm.maximumvalue) " + "and (";
+            "where dv.dataelementid in (" + dataElementIds + ") " +
+            "and dv.categoryoptioncomboid in (" + categoryOptionComboIds + ") " +
+            "and dv.periodid in (" + periodIds + ") " +
+            "and (" +
+                "cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") < mm.minimumvalue " +
+                "or cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") > mm.maximumvalue) " +
+            "and (";
+        // @formatter:on
 
         for ( OrganisationUnit parent : parents )
         {
@@ -211,8 +217,9 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
     {
         String periodIds = TextUtils.getCommaDelimitedString( getIdentifiers( periods ) );
 
-        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
-            +
+        // @formatter:off
+        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, " +
+            "dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
             "dv.created, dv.comment, dv.followup, ou.name as sourcename, " +
             "? as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, " +
             "? as categoryoptioncomboname " +
@@ -223,6 +230,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             "where dv.dataelementid = " + dataElement.getId() + " " +
             "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
             "and dv.periodid in (" + periodIds + ") and (";
+        // @formatter:on
 
         for ( Long orgUnitUid : organisationUnits )
         {
@@ -258,14 +266,16 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         String periodIds = getCommaDelimitedString( getIdentifiers( periods ) );
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
 
-        String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
-            +
-            "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
-            "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
-            +
+        // @formatter:off
+        String sql =
+            "select dv.dataelementid, dv.periodid, dv.sourceid, " +
+                "dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, " +
+                "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
+            "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, " +
+            "mm.minimumvalue, mm.maximumvalue " +
             "from datavalue dv " +
-            "left join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid) "
-            +
+            "left join minmaxdataelement mm on dv.dataelementid = mm.dataelementid " +
+            "and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid " +
             "inner join dataelement de on dv.dataelementid = de.dataelementid " +
             "inner join period pe on dv.periodid = pe.periodid " +
             "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
@@ -274,6 +284,7 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             "where dv.dataelementid in (" + dataElementIds + ") " +
             "and dv.categoryoptioncomboid in (" + categoryOptionComboIds + ") " +
             "and dv.periodid in (" + periodIds + ") " + "and (";
+        // @formatter:on
 
         for ( OrganisationUnit parent : parents )
         {

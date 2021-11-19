@@ -31,7 +31,9 @@ import lombok.Getter;
 
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.dxf2.events.importer.audit.AbstractEventAuditPostProcessor;
+import org.springframework.stereotype.Component;
 
+@Component
 public class EventInsertAuditPostProcessor extends AbstractEventAuditPostProcessor
 {
 

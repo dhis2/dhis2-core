@@ -25,40 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.postprocess;
+package org.hisp.dhis.webapi.json.domain;
 
-import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * @author Luciano Fiandesio
+ * @author Morten Olav Hansen
  */
-@Getter
-@Component( "eventsPostInsertProcessorFactory" )
-@RequiredArgsConstructor
-public class PostInsertProcessorFactory extends AbstractProcessorFactory
+public interface JsonPeriodType extends JsonObject
 {
+    default String getName()
+    {
+        return getString( "name" ).string();
+    }
 
-    @NonNull
-    @Qualifier( "eventInsertPostProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
+    default String getIsoDuration()
+    {
+        return getString( "isoDuration" ).string();
+    }
 
-    private final ImportStrategy importStrategy = CREATE;
+    default String getIsoFormat()
+    {
+        return getString( "isoFormat" ).string();
+    }
 
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isInsert;
-
+    default Number getFrequencyOrder()
+    {
+        return getNumber( "frequencyOrder" ).number();
+    }
 }

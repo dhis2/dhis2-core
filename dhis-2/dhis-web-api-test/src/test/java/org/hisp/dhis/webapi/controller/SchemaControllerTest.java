@@ -27,7 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonSchema;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -52,6 +59,52 @@ public class SchemaControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Not Found", 404, "ERROR", "404 Type xyz does not exist.",
             POST( "/schemas/xyz", "{}" )
                 .content( HttpStatus.NOT_FOUND ) );
+    }
 
+    @Test
+    public void testFieldFilteringNameKlass()
+    {
+        var schema = GET( "/schemas/organisationUnit?fields=name,klass" ).content( HttpStatus.OK )
+            .as( JsonSchema.class );
+
+        assertNotNull( schema.getKlass() );
+        assertNotNull( schema.getName() );
+        assertNull( schema.getSingular() );
+        assertNull( schema.getPlural() );
+        assertFalse( schema.get( "properties" ).exists() );
+    }
+
+    @Test
+    public void testFieldFilteringDefaultPropertiesExpansion()
+    {
+        var schema = GET( "/schemas/organisationUnit?fields=name,klass,properties" ).content( HttpStatus.OK )
+            .as( JsonSchema.class );
+
+        assertNotNull( schema.getKlass() );
+        assertNotNull( schema.getName() );
+        assertNull( schema.getSingular() );
+        assertNull( schema.getPlural() );
+
+        assertTrue( schema.get( "properties" ).exists() );
+        assertFalse( schema.getProperties().isEmpty() );
+
+        assertNotNull( schema.getProperties().get( 0 ).getName() );
+        assertNotNull( schema.getProperties().get( 0 ).getKlass() );
+        assertNotNull( schema.getProperties().get( 0 ).getFieldName() );
+    }
+
+    @Test
+    public void testFieldFilteringAllSchemas()
+    {
+        var schemas = GET( "/schemas?fields=name,klass" ).content( HttpStatus.OK )
+            .as( JsonObject.class ).getList( "schemas", JsonSchema.class );
+
+        for ( JsonSchema schema : schemas )
+        {
+            assertNotNull( schema.getKlass() );
+            assertNotNull( schema.getName() );
+            assertNull( schema.getSingular() );
+            assertNull( schema.getPlural() );
+        }
     }
 }

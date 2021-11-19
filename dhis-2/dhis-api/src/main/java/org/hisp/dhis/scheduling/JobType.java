@@ -140,6 +140,11 @@ public enum JobType
         this.relativeApiElements = relativeApiElements;
     }
 
+    public boolean isUsingNotifications()
+    {
+        return this == RESOURCE_TABLE || this == ANALYTICS_TABLE || this == CONTINUOUS_ANALYTICS_TABLE;
+    }
+
     public boolean isCronSchedulingType()
     {
         return getSchedulingType() == SchedulingType.CRON;
