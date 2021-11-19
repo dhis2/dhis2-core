@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.sqlview;
 
+import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
@@ -323,6 +324,13 @@ public class SqlViewServiceTest
     }
 
     @Test
+    public void testValidateSuccess_NonAsciiLetterVariableValues()
+    {
+        sqlViewService.validateSqlView( getSqlView( "select * from dataelement where valueType = '${valueType}'" ),
+            null, singletonMap( "valueType", "å" ) );
+    }
+
+    @Test
     public void testValidateSuccessA()
     {
         SqlView sqlView = getSqlView( "select * from dataelement where valueType = '${valueType}'" );
@@ -377,6 +385,18 @@ public class SqlViewServiceTest
         variables.put( "timelyDays", "15" );
 
         sqlViewService.validateSqlView( sqlView, null, variables );
+    }
+
+    @Test
+    public void testValidate_InvalidVarName()
+    {
+        SqlView sqlView = getSqlView(
+            "select * from dataelement where valueType = '${typö}' and aggregationtype = '${aggregationType}'" );
+
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class,
+            () -> sqlViewService.validateSqlView( sqlView, null, null ) );
+        assertEquals( ErrorCode.E4313, ex.getErrorCode() );
+        assertEquals( "SQL query contains variable names that are invalid: `[typö]`", ex.getMessage() );
     }
 
     @Test

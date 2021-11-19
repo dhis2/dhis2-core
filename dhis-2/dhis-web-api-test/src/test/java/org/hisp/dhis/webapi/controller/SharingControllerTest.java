@@ -128,4 +128,18 @@ public class SharingControllerTest extends DhisControllerConvenienceTest
         assertEquals( 0, matches.getArray( "userGroups" ).size() );
         assertEquals( 0, matches.getArray( "users" ).size() );
     }
+
+    @Test
+    public void testSuperUserGetPrivateObject()
+    {
+        String dataSetId = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets", "{'name':'test','periodType':'Monthly','sharing':{'public':'--------'}}" ) );
+        GET( "/sharing?type=dataSet&id=" + dataSetId ).content( HttpStatus.OK );
+
+        switchToNewUser( "A", "test" );
+        GET( "/sharing?type=dataSet&id=" + dataSetId ).content( HttpStatus.FORBIDDEN );
+
+        switchToSuperuser();
+        GET( "/sharing?type=dataSet&id=" + dataSetId ).content( HttpStatus.OK );
+    }
 }
