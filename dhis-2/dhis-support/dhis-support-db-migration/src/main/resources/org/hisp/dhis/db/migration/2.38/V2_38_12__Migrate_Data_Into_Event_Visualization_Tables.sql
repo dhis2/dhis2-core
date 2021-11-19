@@ -699,15 +699,33 @@ SET toplimit = 0
 WHERE toplimit IS NULL;
 
 
--- update constraints in dashboard item table
+-- Update constraints in dashboard item table
 ALTER TABLE dashboarditem DROP CONSTRAINT IF EXISTS fk_dashboarditem_eventchartid;
 ALTER TABLE dashboarditem DROP CONSTRAINT IF EXISTS fk_dashboarditem_eventreportid;
 ALTER TABLE dashboarditem ADD CONSTRAINT fk_dashboarditem_eventchartid FOREIGN KEY (eventchartid) REFERENCES eventvisualization(eventvisualizationid);
 ALTER TABLE dashboarditem ADD CONSTRAINT fk_dashboarditem_eventreportid FOREIGN KEY (eventreport) REFERENCES eventvisualization(eventvisualizationid);
 
 
--- update constraints in interpretation table
+-- Update constraints in interpretation table
 ALTER TABLE interpretation DROP CONSTRAINT IF EXISTS fk_interpretation_eventreportid;
 ALTER TABLE interpretation DROP CONSTRAINT IF EXISTS fk_interpretation_eventchartid;
 ALTER TABLE interpretation ADD CONSTRAINT fk_interpretation_eventreportid FOREIGN KEY (eventchartid) REFERENCES eventvisualization(eventvisualizationid);
 ALTER TABLE interpretation ADD CONSTRAINT fk_interpretation_eventchartid FOREIGN KEY (eventreportid) REFERENCES eventvisualization(eventvisualizationid);
+
+
+-- Grant authorities for all users that can see Event Reports and Event Charts
+INSERT INTO userroleauthorities (userroleid, authority)
+SELECT userroleid, 'F_EVENT_VISUALIZATION_EXTERNAL'
+FROM userroleauthorities WHERE authority = 'F_EVENTREPORT_EXTERNAL';
+
+INSERT INTO userroleauthorities (userroleid, authority)
+SELECT userroleid, 'F_EVENT_VISUALIZATION_PUBLIC_ADD'
+FROM userroleauthorities WHERE authority = 'F_EVENTREPORT_PUBLIC_ADD';
+
+INSERT INTO userroleauthorities (userroleid, authority)
+SELECT userroleid, 'F_EVENT_VISUALIZATION_EXTERNAL'
+FROM userroleauthorities WHERE authority = 'F_EVENTCHART_EXTERNAL';
+
+INSERT INTO userroleauthorities (userroleid, authority)
+SELECT userroleid, 'F_EVENT_VISUALIZATION_PUBLIC_ADD'
+FROM userroleauthorities WHERE authority = 'F_EVENTCHART_PUBLIC_ADD';
