@@ -285,10 +285,7 @@
         <!-- Dynamic attribute values -->
         <property name="attributeValues" type="jsbAttributeValues"/>
 
-
-
         <!-- EventReport, removing overlapping attributes -->
-
         <property name="dataType" length="40">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.analytics.EventDataType</param>

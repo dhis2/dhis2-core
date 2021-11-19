@@ -28,8 +28,6 @@
 package org.hisp.dhis.pushanalysis;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -397,29 +395,13 @@ public class DefaultPushAnalysisService
             result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
             break;
         case VISUALIZATION:
-            result += getVisualizationLink( item.getVisualization() );
+            result += "/dhis-web-data-visualizer/index.html?id=" + item.getVisualization().getUid();
             break;
         default:
             break;
         }
 
         return result;
-    }
-
-    private String getVisualizationLink( final Visualization visualization )
-    {
-        if ( visualization != null )
-        {
-            if ( visualization.getType() == PIVOT_TABLE )
-            {
-                return "/dhis-web-pivot/index.html?id=" + visualization.getUid();
-            }
-            else
-            {
-                return "/dhis-web-data-visualizer/index.html?id=" + visualization.getUid();
-            }
-        }
-        return EMPTY;
     }
 
     /**

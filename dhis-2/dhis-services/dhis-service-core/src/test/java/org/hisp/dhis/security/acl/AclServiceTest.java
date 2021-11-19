@@ -224,8 +224,10 @@ public class AclServiceTest extends TransactionalIntegrationTest
     @Test
     public void testCanCreatePrivatePublicEventVisualization()
     {
+        // Given
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
+        // Then
         assertFalse( aclService.canMakeClassPublic( user, EventVisualization.class ) );
         assertTrue( aclService.canMakeClassPrivate( user, EventVisualization.class ) );
     }
@@ -233,6 +235,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     @Test
     public void testCanUpdatePrivateEventVisualization()
     {
+        // Given
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
 
         EventVisualization eventVisualization = new EventVisualization( "any" );
@@ -242,6 +245,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         eventVisualization.setType( EventVisualizationType.COLUMN );
         eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
 
+        // Then
         assertTrue( aclService.canUpdate( user, eventVisualization ) );
     }
 
@@ -398,6 +402,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     @Test
     public void testVerifyEventVisualizationCantExternalize()
     {
+        // Given
         User user = createAdminUser( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
 
         EventVisualization eventVisualization = new EventVisualization();
@@ -406,6 +411,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
         eventVisualization.setExternalAccess( true );
         eventVisualization.setType( EventVisualizationType.COLUMN );
 
+        // Then
         assertFalse( aclService.verifySharing( eventVisualization, user ).isEmpty() );
     }
 
@@ -433,6 +439,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     @Test
     public void testResetSharingEventVisualizationPropsPrivate()
     {
+        // Given
         User user = createAdminUser();
 
         EventVisualization eventVisualization = new EventVisualization();
@@ -443,8 +450,10 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         assertFalse( aclService.verifySharing( eventVisualization, user ).isEmpty() );
 
+        // When
         aclService.resetSharing( eventVisualization, user );
 
+        // Then
         assertEquals( AccessStringHelper.DEFAULT, eventVisualization.getPublicAccess() );
         assertFalse( eventVisualization.getExternalAccess() );
         assertTrue( eventVisualization.getUserAccesses().isEmpty() );
@@ -475,6 +484,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     @Test
     public void testResetSharingEventVisualizationPropsPublic()
     {
+        // Given
         User user = createAdminUser( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
 
         EventVisualization eventVisualization = new EventVisualization();
@@ -485,8 +495,10 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         assertFalse( aclService.verifySharing( eventVisualization, user ).isEmpty() );
 
+        // When
         aclService.resetSharing( eventVisualization, user );
 
+        // Then
         assertEquals( AccessStringHelper.READ_WRITE, eventVisualization.getPublicAccess() );
         assertFalse( eventVisualization.getExternalAccess() );
         assertTrue( eventVisualization.getUserAccesses().isEmpty() );
@@ -1233,6 +1245,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     @Test
     public void testUserBCanUpdateEventVisualizationWithAuthority()
     {
+        // Given
         User userA = createUser( 'A' );
         manager.save( userA );
 
@@ -1248,6 +1261,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         manager.save( eventVisualization );
 
+        // Then
         UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
         userAuthorityGroup.setAutoFields();
         userAuthorityGroup.setName( "UR" );
@@ -1302,6 +1316,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     @Test
     public void testUserBCanUpdateEventVisualizationWithAuthorityNoUserAccess()
     {
+        // Given
         User userA = createUser( 'A' );
         manager.save( userA );
 
@@ -1317,6 +1332,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         manager.save( eventVisualization );
 
+        // Then
         UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
         userAuthorityGroup.setAutoFields();
         userAuthorityGroup.setName( "UR" );
@@ -1363,6 +1379,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     @Test
     public void testUserBCanUpdateEventVisualizationWithoutAuthority()
     {
+        // Given
         User userA = createUser( 'A' );
         manager.save( userA );
 
@@ -1378,6 +1395,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
 
         manager.save( eventVisualization );
 
+        // Then
         User userB = createUser( 'B' );
         manager.save( userB );
 

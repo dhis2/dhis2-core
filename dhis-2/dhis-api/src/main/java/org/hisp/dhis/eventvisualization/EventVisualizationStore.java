@@ -33,6 +33,13 @@ import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
+/**
+ * @deprecated Needed to keep EventChart and EventReports backward compatible
+ *             with the new entity EventVisualization.
+ *
+ * @author maikel arabori
+ */
+@Deprecated
 public interface EventVisualizationStore extends
     IdentifiableObjectStore<EventVisualization>
 {

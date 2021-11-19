@@ -74,10 +74,6 @@ public class EventReport
     extends BaseAnalyticalObject
     implements EventAnalyticalObject, MetadataObject
 {
-    public static final String DATA_TYPE_AGGREGATED_VALUES = "aggregated_values";
-
-    public static final String DATA_TYPE_INDIVIDUAL_CASES = "individual_cases";
-
     /**
      * Program. Required.
      */
@@ -568,9 +564,12 @@ public class EventReport
 
     // -------------------------------------------------------------------------
     // BACKWARD compatible attributes.
-    // They are not exposed and should be always false for EventChart.
+    // They are not exposed and should be always be set.
     // Needed to enable backward compatibility with EventVisualization.
     // Cannot be removed until EventReport if fully deprecated.
+    // The rule to populate "type" is:
+    // if dataType == EVENTS then "type" = LINE_LIST
+    // if dataType == AGGREGATED_VALUES then "type" = PIVOT_TABLE
     // -------------------------------------------------------------------------
 
     @JsonProperty
