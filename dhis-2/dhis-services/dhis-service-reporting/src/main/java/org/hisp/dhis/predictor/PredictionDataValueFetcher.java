@@ -122,7 +122,11 @@ public class PredictionDataValueFetcher
 
     private String producerOrgUnitPath;
 
+    private List<String> producerOrgUnitPaths;
+
     private String consumerOrgUnitPath;
+
+    private List<String> consumerOrgUnitPaths;
 
     private RuntimeException producerException;
 
@@ -169,6 +173,8 @@ public class PredictionDataValueFetcher
         cocLookup = new CachingMap<>();
 
         consumerOrgUnitPath = BEFORE_PATHS;
+        consumerOrgUnitPaths = new ArrayList<>();
+        producerOrgUnitPaths = new ArrayList<>();
         producerException = null;
 
         blockingQueue = new ArrayBlockingQueue<>( DDV_BLOCKING_QUEUE_SIZE );
@@ -185,6 +191,8 @@ public class PredictionDataValueFetcher
         executor.shutdown();
 
         getNextDataValue(); // Prime the algorithm with the first data value.
+
+        producerOrgUnitPaths.add( producerOrgUnitPath );
     }
 
     /**
@@ -241,6 +249,8 @@ public class PredictionDataValueFetcher
 
         consumerOrgUnitPath = orgUnit.getPath();
 
+        consumerOrgUnitPaths.add( consumerOrgUnitPath );
+
         if ( consumerOrgUnitPath.compareTo( producerOrgUnitPath ) < 0 )
         {
             return Collections.emptyList(); // No data fetched for this orgUnit
@@ -248,8 +258,8 @@ public class PredictionDataValueFetcher
 
         if ( !consumerOrgUnitPath.equals( producerOrgUnitPath ) )
         {
-            throw new IllegalArgumentException( "getDataValues ready for " + producerOrgUnitPath
-                + " but called with " + orgUnit.toString() );
+            throw new IllegalArgumentException( "getDataValues ready for " + String.join( ",", producerOrgUnitPaths )
+                + " but called with " + String.join( ",", consumerOrgUnitPaths ) );
         }
 
         return getDataValuesForProducerOrgUnit();
@@ -306,6 +316,8 @@ public class PredictionDataValueFetcher
             getNextDataValue();
         }
         while ( producerOrgUnitPath.equals( startingOrgUnitPath ) );
+
+        producerOrgUnitPaths.add( producerOrgUnitPath );
 
         return dataValues;
     }

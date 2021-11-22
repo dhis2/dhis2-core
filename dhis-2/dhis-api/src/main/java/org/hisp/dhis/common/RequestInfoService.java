@@ -25,39 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.preprocess;
-
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.common;
 
 /**
- * @author maikel arabori
+ * Provides access to the {@link RequestInfo} within the ongoing request.
+ *
+ * @author Jan Bernitt
  */
-@Getter
-@Component( "eventsPreUpdateProcessorFactory" )
-@RequiredArgsConstructor
-public class PreUpdateProcessorFactory extends AbstractProcessorFactory
+public interface RequestInfoService
 {
-    @NonNull
-    @Qualifier( "eventUpdatePreProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
 
-    private final ImportStrategy importStrategy = UPDATE;
-
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isUpdate;
-
+    /**
+     * @return the info for the current request (thread)
+     */
+    RequestInfo getCurrentInfo();
 }

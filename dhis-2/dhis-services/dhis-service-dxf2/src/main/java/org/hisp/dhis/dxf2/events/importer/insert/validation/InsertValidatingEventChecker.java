@@ -25,24 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.dxf2.events.importer.insert.validation;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
-import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.user.User;
+import lombok.Getter;
+
+import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
+import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
+import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceAclCheck extends BaseEventAclCheck
+@Component
+public class InsertValidatingEventChecker extends ValidatingEventChecker
 {
-    @Override
-    public List<String> checkAcl( final TrackerAccessManager trackerAccessManager, final User user,
-        final ProgramStageInstance programStageInstance )
+    @Getter
+    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isInsert;
+
+    public InsertValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
+        EventImporterValidationRunner validationRunner )
     {
-        return trackerAccessManager.canUpdate( user, programStageInstance, false );
+        super( checkNotNull(
+            checkNotNull( checkersByImportStrategy ).get( CREATE ) ), validationRunner );
     }
 }

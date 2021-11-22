@@ -63,7 +63,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author Luciano Fiandesio
  */
-public class ValidationFactoryTest
+public class ValidatingEventCheckerTest
 {
     @Mock
     private SchemaValidator schemaValidator;
@@ -88,7 +88,8 @@ public class ValidationFactoryTest
         // Create a validation factory with a dummy check
         validationFactory = new ValidationFactory( schemaValidator, schemaService, aclService, userService,
             new ObjectBundleHooks( Collections.emptyList() ),
-            ImmutableMap.of( CREATE_AND_UPDATE, ListUtils.newList( DummyCheck.class ) ) );
+            new ValidationRunner(
+                ImmutableMap.of( CREATE_AND_UPDATE, ListUtils.newList( new DummyCheck() ) ) ) );
     }
 
     @Test

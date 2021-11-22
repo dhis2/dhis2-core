@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,11 @@ import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen
@@ -42,7 +45,7 @@ import org.apache.commons.lang3.StringUtils;
 @AllArgsConstructor
 public class FieldPath
 {
-    private static final String FIELD_PATH_SEPARATOR = ".";
+    public static final String FIELD_PATH_SEPARATOR = ".";
 
     /**
      * Name of field (excluding path).
@@ -55,14 +58,38 @@ public class FieldPath
     private final List<String> path;
 
     /**
+     * True if field path should be excluded (removed) from the set of paths to
+     * include. In the API this is exposed as "?fields=id,name,!do_not_include"
+     * where "!" marks the path as not to be included.
+     */
+    private final boolean exclude;
+
+    /**
+     * True if the field path should be handled as a preset path, which means we
+     * have to expand before going into the filtering process. For example
+     * ":owner" would be expanded to include all properties where
+     * "property.owner=true".
+     */
+    private final boolean preset;
+
+    /**
      * Transformers to apply to field, can be empty.
      */
     private final List<FieldPathTransformer> transformers;
+
+    /**
+     * Schema Property if present (added by {@link FieldPathHelper}).
+     */
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Property property;
 
     public FieldPath( String name, List<String> path )
     {
         this.name = name;
         this.path = path;
+        this.exclude = false;
+        this.preset = false;
         this.transformers = new ArrayList<>();
     }
 
@@ -71,6 +98,27 @@ public class FieldPath
      */
     public String toFullPath()
     {
-        return path.isEmpty() ? name : StringUtils.join( path, FIELD_PATH_SEPARATOR ) + FIELD_PATH_SEPARATOR + name;
+        return path.isEmpty() ? name : toPath() + FIELD_PATH_SEPARATOR + name;
+    }
+
+    public String toPath()
+    {
+        return StringUtils.join( path, FIELD_PATH_SEPARATOR );
+    }
+
+    /**
+     * @return true if we have at least one field path transformer
+     */
+    public boolean isTransformer()
+    {
+        return transformers != null && !transformers.isEmpty();
+    }
+
+    /**
+     * @return true if name is the root of the path
+     */
+    public boolean isRoot()
+    {
+        return path.isEmpty();
     }
 }

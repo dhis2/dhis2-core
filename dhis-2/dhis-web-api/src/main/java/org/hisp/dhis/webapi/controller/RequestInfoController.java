@@ -25,40 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.delete.postprocess;
+package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
+import lombok.AllArgsConstructor;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.RequestInfo;
+import org.hisp.dhis.common.RequestInfoService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * @author Luciano Fiandesio
+ * Exposes the {@link org.hisp.dhis.common.RequestInfo} information mainly for
+ * debugging and testing purposes.
+ *
+ * @author Jan Bernitt
  */
-@Getter
-@Component( "eventsPostDeleteProcessorFactory" )
-@RequiredArgsConstructor
-public class PostDeleteProcessorFactory extends AbstractProcessorFactory
+@Controller
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping( "/request" )
+@AllArgsConstructor
+public class RequestInfoController
 {
 
-    @NonNull
-    @Qualifier( "eventDeletePostProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
+    private final RequestInfoService requestInfoService;
 
-    private final ImportStrategy importStrategy = DELETE;
-
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isDelete;
-
+    @GetMapping
+    @ResponseBody
+    public RequestInfo getCurrentInfo()
+    {
+        return requestInfoService.getCurrentInfo();
+    }
 }

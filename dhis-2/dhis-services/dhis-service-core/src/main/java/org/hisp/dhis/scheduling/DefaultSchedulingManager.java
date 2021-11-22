@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -79,11 +80,11 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     private final AsyncTaskExecutor taskExecutor;
 
     public DefaultSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-        MessageService messageService,
+        MessageService messageService, Notifier notifier,
         LeaderManager leaderManager, @Qualifier( "taskScheduler" ) TaskScheduler jobScheduler,
         AsyncTaskExecutor taskExecutor )
     {
-        super( jobService, jobConfigurationService, messageService, leaderManager );
+        super( jobService, jobConfigurationService, messageService, leaderManager, notifier );
         checkNotNull( jobConfigurationService );
         checkNotNull( messageService );
         checkNotNull( leaderManager );

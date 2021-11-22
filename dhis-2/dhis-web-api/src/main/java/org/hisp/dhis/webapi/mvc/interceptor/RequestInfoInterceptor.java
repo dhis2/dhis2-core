@@ -25,40 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
-import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
+import lombok.AllArgsConstructor;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.dxf2.events.importer.AbstractProcessorFactory;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.hisp.dhis.common.DefaultRequestInfoService;
+import org.hisp.dhis.common.RequestInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
- * @author Luciano Fiandesio
+ * Maintains the information contained in {@code X-Request-ID} header as an
+ * information that is available in the request context.
+ *
+ * @author Jan Bernitt
  */
-@Getter
-@Component( "eventsPreInsertProcessorFactory" )
-@RequiredArgsConstructor
-public class PreInsertProcessorFactory extends AbstractProcessorFactory
+@Component
+@AllArgsConstructor
+public final class RequestInfoInterceptor implements HandlerInterceptor
 {
+    @Autowired
+    private final DefaultRequestInfoService requestInfoService;
 
-    @NonNull
-    @Qualifier( "eventInsertPreProcessorMap" )
-    private final Map<ImportStrategy, List<Class<? extends Processor>>> processorMap;
+    @Override
+    public boolean preHandle( HttpServletRequest request, HttpServletResponse response, Object handler )
+        throws Exception
+    {
+        requestInfoService.setCurrentInfo( RequestInfo.builder()
+            .headerXRequestID( request.getHeader( "X-Request-ID" ) )
+            .build() );
+        return true;
+    }
 
-    private final ImportStrategy importStrategy = CREATE;
-
-    private final Predicate<ImportStrategy> importStrategyPredicate = ImportStrategyUtils::isInsert;
+    @Override
+    public void postHandle( HttpServletRequest request, HttpServletResponse response, Object handler,
+        ModelAndView modelAndView )
+        throws Exception
+    {
+        requestInfoService.setCurrentInfo( null );
+    }
 
 }
