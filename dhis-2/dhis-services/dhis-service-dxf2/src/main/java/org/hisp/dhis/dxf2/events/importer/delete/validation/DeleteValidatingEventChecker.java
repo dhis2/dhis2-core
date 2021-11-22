@@ -25,50 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
+package org.hisp.dhis.dxf2.events.importer.delete.validation;
 
-import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Map;
+import java.util.function.Predicate;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.feedback.ObjectReport;
+import lombok.Getter;
+
+import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
+import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
+import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * @author maikel arabori
  */
 @Component
-public class UpdateCheck implements ObjectValidationCheck
+public class DeleteValidatingEventChecker extends ValidatingEventChecker
 {
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
+    @Getter
+    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isDelete;
+
+    public DeleteValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
+        EventImporterValidationRunner validationRunner )
     {
-        if ( nonPersistedObjects == null || nonPersistedObjects.isEmpty() )
-        {
-            return;
-        }
-
-        for ( T identifiableObject : nonPersistedObjects )
-        {
-            T object = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
-
-            if ( object == null || object.getId() == 0 )
-            {
-                ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
-                        .setErrorProperty( "id" ).setMainId( identifiableObject.getUid() );
-
-                addReports.accept( createObjectReport( errorReport, object, bundle ) );
-                ctx.markForRemoval( object );
-            }
-        }
+        super( checkNotNull(
+            checkNotNull( checkersByImportStrategy ).get( DELETE ) ), validationRunner );
     }
+
 }

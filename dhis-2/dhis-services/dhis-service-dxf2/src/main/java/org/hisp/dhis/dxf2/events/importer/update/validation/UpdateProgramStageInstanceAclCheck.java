@@ -25,42 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
+package org.hisp.dhis.dxf2.events.importer.update.validation;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Luciano Fiandesio
  */
-public abstract class AbstractProcessorFactory implements EventProcessing
+@Component
+public class UpdateProgramStageInstanceAclCheck extends BaseEventAclCheck
 {
-
     @Override
-    public void process( final WorkContext workContext, final List<Event> events )
+    public List<String> checkAcl( final TrackerAccessManager trackerAccessManager, final User user,
+        final ProgramStageInstance programStageInstance )
     {
-        final ImportStrategy importStrategy = workContext.getImportOptions().getImportStrategy();
-
-        if ( isApplicable( importStrategy ) )
-        {
-            new ProcessorRunner( workContext, events ).run( getProcessorMap().get( getImportStrategy() ) );
-        }
+        return trackerAccessManager.canUpdate( user, programStageInstance, false );
     }
-
-    protected abstract Predicate<ImportStrategy> getImportStrategyPredicate();
-
-    protected abstract ImportStrategy getImportStrategy();
-
-    protected abstract Map<ImportStrategy, List<Class<? extends Processor>>> getProcessorMap();
-
-    private boolean isApplicable( ImportStrategy importStrategy )
-    {
-        return getImportStrategyPredicate().test( importStrategy );
-    }
-
 }

@@ -259,7 +259,6 @@ public class JobProgressTest
         assertEquals( itemCount, enterCount.get() );
         assertEquals( itemCount, exitCount.get() );
         assertTrue( "too much parallel work", maxConcurrentCount.get() <= parallelism );
-        assertTrue( "too little parallel work", maxConcurrentCount.get() >= max( 1, parallelism - 2 ) );
         verify( progress, times( itemCount ) ).startingWorkItem( anyString() );
         verify( progress, times( itemCount ) ).completedWorkItem( null );
         verify( progress ).completedStage( null );

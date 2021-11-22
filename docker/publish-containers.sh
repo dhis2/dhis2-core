@@ -60,16 +60,8 @@ publish_debian_containers () {
     done
 }
 
-publish_alpine_containers () {
-    # publish the variants
-    for TOMCAT_TAG in "${TOMCAT_ALPINE_TAGS[@]}"; do
-        publish "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
-    done
-}
-
 main () {
     publish_debian_containers
-    publish_alpine_containers
 }
 
 

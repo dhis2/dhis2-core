@@ -32,23 +32,21 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.commons.jackson.domain.JsonRoot;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.PeriodType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,44 +54,28 @@ import com.google.common.collect.Lists;
 @RestController
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( value = "/periodTypes" )
+@RequiredArgsConstructor
 public class PeriodTypeController
 {
     private final PeriodService periodService;
 
-    private final ContextService contextService;
-
     private final FieldFilterService fieldFilterService;
 
-    public PeriodTypeController( PeriodService periodService, ContextService contextService,
-        FieldFilterService fieldFilterService )
-    {
-        this.periodService = periodService;
-        this.contextService = contextService;
-        this.fieldFilterService = fieldFilterService;
-    }
-
     @GetMapping
-    public RootNode getPeriodTypes()
+    public ResponseEntity<JsonRoot> getPeriodTypes( @RequestParam( defaultValue = "*" ) List<String> fields )
     {
-        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes().stream()
+        var periodTypes = periodService.getAllPeriodTypes().stream()
             .map( PeriodType::new )
             .collect( Collectors.toList() );
 
-        if ( fields.isEmpty() )
-        {
-            fields.addAll( Preset.ALL.getFields() );
-        }
+        var params = FieldFilterParams.of( periodTypes, fields );
+        var objectNodes = fieldFilterService.toObjectNodes( params );
 
-        RootNode rootNode = NodeUtils.createMetadata();
-        rootNode.addChild(
-            fieldFilterService.toCollectionNode( PeriodType.class, new FieldFilterParams( periodTypes, fields ) ) );
-
-        return rootNode;
+        return ResponseEntity.ok( JsonRoot.of( "periodTypes", objectNodes ) );
     }
 
     @GetMapping( value = "/relativePeriodTypes", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
-    public @ResponseBody RelativePeriodEnum[] getRelativePeriodTypes()
+    public RelativePeriodEnum[] getRelativePeriodTypes()
     {
         return RelativePeriodEnum.values();
     }

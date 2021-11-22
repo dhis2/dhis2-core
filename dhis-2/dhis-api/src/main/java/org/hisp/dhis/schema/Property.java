@@ -883,7 +883,12 @@ public class Property implements Ordered, Klass
 
     public boolean is( PropertyType propertyType )
     {
-        return propertyType != null && propertyType.equals( this.propertyType );
+        return propertyType == this.propertyType;
+    }
+
+    public boolean itemIs( PropertyType propertyType )
+    {
+        return propertyType == this.itemPropertyType;
     }
 
     public boolean is( PropertyType... anyOf )
@@ -891,6 +896,18 @@ public class Property implements Ordered, Klass
         for ( PropertyType type : anyOf )
         {
             if ( is( type ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean itemIs( PropertyType... anyOf )
+    {
+        for ( PropertyType type : anyOf )
+        {
+            if ( itemIs( type ) )
             {
                 return true;
             }

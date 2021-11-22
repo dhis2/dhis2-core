@@ -28,6 +28,10 @@
 package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import lombok.RequiredArgsConstructor;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
@@ -39,14 +43,12 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 /**
  * @author Morten Olav Hansen
  */
+@RequiredArgsConstructor
 public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilter
 {
     private final List<FieldPath> fieldPaths;
 
-    public FieldFilterSimpleBeanPropertyFilter( List<FieldPath> fieldPaths )
-    {
-        this.fieldPaths = fieldPaths;
-    }
+    private static final Map<FieldPath, String> FULL_PATH_CACHE = new ConcurrentHashMap<>();
 
     @Override
     protected boolean include( final BeanPropertyWriter writer )
@@ -62,11 +64,13 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
     protected boolean include( final PropertyWriter writer, final JsonGenerator jgen )
     {
+        String path = getPath( writer, jgen );
+
         for ( FieldPath fieldPath : fieldPaths )
         {
-            String path = fieldPath.toFullPath();
+            String fullPath = FULL_PATH_CACHE.computeIfAbsent( fieldPath, FieldPath::toFullPath );
 
-            if ( path.startsWith( getPath( writer, jgen ) ) || path.contains( "*" ) )
+            if ( fullPath.equals( path ) )
             {
                 return true;
             }
@@ -78,23 +82,23 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     private String getPath( PropertyWriter writer, JsonGenerator jgen )
     {
         StringBuilder nestedPath = new StringBuilder();
-        nestedPath.append( writer.getName() );
-        JsonStreamContext context = jgen.getOutputContext();
+        JsonStreamContext sc = jgen.getOutputContext();
 
-        if ( context != null )
+        if ( sc != null )
         {
-            context = context.getParent();
+            nestedPath.append( writer.getName() );
+            sc = sc.getParent();
         }
 
-        for ( ; context != null; context = context.getParent() )
+        while ( sc != null )
         {
-            String name = context.getCurrentName();
-
-            if ( name != null && context.inObject() )
+            if ( sc.getCurrentName() != null && sc.getCurrentValue() != null )
             {
                 nestedPath.insert( 0, "." );
-                nestedPath.insert( 0, name );
+                nestedPath.insert( 0, sc.getCurrentName() );
             }
+
+            sc = sc.getParent();
         }
 
         return nestedPath.toString();
