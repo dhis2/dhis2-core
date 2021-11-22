@@ -76,8 +76,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
+import org.hisp.dhis.jsonpatch.BulkPatchValidatorFactory;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
-import org.hisp.dhis.jsonpatch.SharingBulkPatchValidators;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -417,7 +417,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue( request.getInputStream(), BulkJsonPatch.class );
 
         BulkPatchParameters patchParams = BulkPatchParameters.builder()
-            .validators( SharingBulkPatchValidators.getInstance() )
+            .validators( BulkPatchValidatorFactory.SHARING )
             .build();
 
         List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( bulkJsonPatch, patchParams );

@@ -42,7 +42,7 @@ import org.hisp.dhis.jsonpatch.BulkJsonPatch;
 import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
-import org.hisp.dhis.jsonpatch.SharingBulkPatchValidators;
+import org.hisp.dhis.jsonpatch.BulkPatchValidatorFactory;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -129,7 +129,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
         final BulkJsonPatch bulkJsonPatch = loadPatch( "bulk_sharing_patch.json", BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( SharingBulkPatchValidators.getInstance() )
+            .validators( BulkPatchValidatorFactory.SHARING )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -148,7 +148,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
             BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( SharingBulkPatchValidators.getInstance() )
+            .validators( BulkPatchValidatorFactory.SHARING )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -165,7 +165,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
         final BulkJsonPatch bulkJsonPatch = loadPatch( "bulk_sharing_patch_invalid_uid.json", BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( SharingBulkPatchValidators.getInstance() )
+            .validators( BulkPatchValidatorFactory.SHARING )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -184,7 +184,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
         final BulkJsonPatch bulkJsonPatch = loadPatch( "bulk_sharing_patch_invalid_path.json", BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( SharingBulkPatchValidators.getInstance() )
+            .validators( BulkPatchValidatorFactory.SHARING )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -201,7 +201,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
         final BulkJsonPatch bulkJsonPatch = loadPatch( "bulk_sharing_patch_not_shareable.json", BulkJsonPatch.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( SharingBulkPatchValidators.getInstance() )
+            .validators( BulkPatchValidatorFactory.SHARING )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager
@@ -218,7 +218,7 @@ public class BulkPatchManagerTest extends DhisSpringTest
         final BulkJsonPatches bulkJsonPatch = loadPatch( "bulk_sharing_patches.json", BulkJsonPatches.class );
 
         BulkPatchParameters patchParameters = BulkPatchParameters.builder()
-            .validators( SharingBulkPatchValidators.getInstance() )
+            .validators( BulkPatchValidatorFactory.SHARING )
             .build();
 
         List<IdentifiableObject> patchedObjects = patchManager

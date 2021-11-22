@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
@@ -41,31 +42,10 @@ import org.hisp.dhis.schema.Schema;
  */
 public interface BulkPatchValidators
 {
-    List<ErrorReport> validateJsonPatch( JsonPatch jsonPatch );
+    boolean validateJsonPatch( JsonPatch jsonPatch, Consumer<List<ErrorReport>> errorReportConsumer );
 
-    List<ErrorReport> validateSchema( Schema schema );
+    boolean validateSchema( Schema schema, Consumer<List<ErrorReport>> errorReportConsumer );
 
-    static BulkPatchValidators empty()
-    {
-        return new EmptyBulkPatchValidators();
-    }
-
-    /**
-     * Empty validator to use when no instance of BulkPatchValidators provided
-     * to {@link BulkPatchParameters}
-     */
-    class EmptyBulkPatchValidators implements BulkPatchValidators
-    {
-        @Override
-        public List<ErrorReport> validateJsonPatch( JsonPatch jsonPatch )
-        {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public List<ErrorReport> validateSchema( Schema schema )
-        {
-            return Collections.emptyList();
-        }
-    }
+    boolean validatePatchEntity( Schema schema, JsonPatch jsonPatch, String id,
+        IdentifiableObject identifiableObject, Consumer<List<ErrorReport>> errorReportConsumer );
 }

@@ -27,44 +27,52 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
-import lombok.Builder;
-import lombok.Getter;
-
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.schema.Schema;
 
 /**
- * Contains all validators needed for the sharing json patch
+ * @author viet@dhis2.org
  */
-@Builder
-@Getter
-public class SharingBulkPatchValidators implements BulkPatchValidators
+public class PatchBundle
 {
-    private SchemaValidator schemaValidator;
+    /**
+     * Map contains validated entities for patching. Key is entity ID.
+     */
+    private final Map<String, IdentifiableObject> mapEntities = new HashMap<>();
 
-    private JsonPatchValidator jsonPatchValidator;
+    /**
+     * Map contains validated JsonPatch for patching. Key is entity ID that the
+     * patch will be applied to.
+     */
+    private final Map<String, JsonPatch> mapPatches = new HashMap<>();
 
-    private static final SharingBulkPatchValidators instance = SharingBulkPatchValidators.builder()
-        .schemaValidator( SchemaValidator.isShareable )
-        .jsonPatchValidator( JsonPatchValidator.isSharingPatch ).build();
-
-    public static SharingBulkPatchValidators getInstance()
+    public void addEntity( String id, IdentifiableObject entity, JsonPatch patch )
     {
-        return instance;
+        mapEntities.put( id, entity );
+        mapPatches.put( id, patch );
     }
 
-    @Override
-    public List<ErrorReport> validateJsonPatch( JsonPatch jsonPatch )
+    public boolean isEmpty()
     {
-        return jsonPatchValidator.apply( jsonPatch );
+        return mapEntities.isEmpty();
     }
 
-    @Override
-    public List<ErrorReport> validateSchema( Schema schema )
+    public Set<String> getIds()
     {
-        return schemaValidator.apply( schema );
+        return mapEntities.keySet();
+    }
+
+    public IdentifiableObject getEntity( String id )
+    {
+        return mapEntities.get( id );
+    }
+
+    public JsonPatch getJsonPatch( String id )
+    {
+        return mapPatches.get( id );
     }
 }

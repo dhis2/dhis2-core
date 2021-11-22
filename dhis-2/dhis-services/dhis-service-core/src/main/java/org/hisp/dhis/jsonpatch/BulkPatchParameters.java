@@ -62,7 +62,7 @@ public class BulkPatchParameters implements ErrorReportContainer
 
     public BulkPatchValidators getValidators()
     {
-        return validators == null ? BulkPatchValidators.empty() : validators;
+        return validators == null ? BulkPatchValidatorFactory.EMPTY : validators;
     }
 
     public Iterable<TypeReport> getTypeReports()

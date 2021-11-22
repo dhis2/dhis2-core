@@ -31,6 +31,7 @@ import static java.util.Collections.emptyList;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -47,7 +48,9 @@ import org.hisp.dhis.schema.Schema;
 @FunctionalInterface
 public interface SchemaValidator extends Function<Schema, List<ErrorReport>>
 {
-    SchemaValidator empty = $ -> emptyList();
+    SchemaValidator empty = $ -> Collections.emptyList();
+
+    SchemaValidator isExist = rule( Objects::isNull, ErrorCode.E6002 );
 
     /**
      * Validate if given schema is shareable.
