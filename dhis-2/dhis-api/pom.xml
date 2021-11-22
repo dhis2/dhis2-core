@@ -36,10 +36,6 @@
       <artifactId>jasperreports</artifactId>
     </dependency>
     <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-fonts</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
     </dependency>
@@ -54,22 +50,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-csv</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jdk8</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-hibernate5</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -104,24 +84,8 @@
       <artifactId>joda-time</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hibernate.validator</groupId>
-      <artifactId>hibernate-validator</artifactId>
-    </dependency>
-    <dependency>
       <groupId>javax.validation</groupId>
       <artifactId>validation-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml</groupId>
-      <artifactId>classmate</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-spatial</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.graphhopper.external</groupId>
-      <artifactId>jackson-datatype-jts</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
@@ -167,10 +131,6 @@
       <artifactId>rule-engine</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.cronutils</groupId>
-      <artifactId>cron-utils</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.jboss.aerogear</groupId>
       <artifactId>aerogear-otp-java</artifactId>
     </dependency>
@@ -211,19 +171,6 @@
     <dependency>
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.xml.ws</groupId>
-      <artifactId>jakarta.xml.ws-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.ws</groupId>
-      <artifactId>jaxws-ri</artifactId>
-      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>

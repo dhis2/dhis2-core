@@ -23,10 +23,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
@@ -53,15 +49,15 @@
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-support-test</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-schema</artifactId>
         </dependency>
 
         <!-- Test -->
-
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
