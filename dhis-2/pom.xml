@@ -349,6 +349,9 @@
         <!-- Default profile will run all unit-tests, but not the integration tests -->
         <profile>
             <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
