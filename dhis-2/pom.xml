@@ -46,12 +46,13 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <minimum-maven.version>3.6.0</minimum-maven.version>
-        <minimum-java.version>1.8</minimum-java.version>
+        <minimum-java.version>11</minimum-java.version>
+        <maven.compiler.release>11</maven.compiler.release>
 
         <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
         <sonar.organization>dhis2</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <surefireArgLine>-Xmx1024m</surefireArgLine>
+        <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
 
         <!-- *Dependencies* -->
 
@@ -344,24 +345,6 @@
     </reporting>
 
     <profiles>
-
-        <profile>
-            <!-- JDK 9+ -->
-            <id>jdk11</id>
-            <properties>
-                <maven.compiler.release>8</maven.compiler.release>
-                <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
-            </properties>
-        </profile>
-
-        <profile>
-            <!-- JDK 8 only -->
-            <id>jdk8</id>
-            <properties>
-                <maven.compiler.source>1.8</maven.compiler.source>
-                <maven.compiler.target>1.8</maven.compiler.target>
-            </properties>
-        </profile>
 
         <!-- Default profile will run all unit-tests, but not the integration tests -->
         <profile>

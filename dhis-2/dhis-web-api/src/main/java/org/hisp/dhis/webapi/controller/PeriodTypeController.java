@@ -48,8 +48,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -66,12 +64,12 @@ public class PeriodTypeController
     @GetMapping
     public ResponseEntity<JsonRoot> getPeriodTypes( @RequestParam( defaultValue = "*" ) List<String> fields )
     {
-        List<PeriodType> periodTypes = periodService.getAllPeriodTypes().stream()
+        var periodTypes = periodService.getAllPeriodTypes().stream()
             .map( PeriodType::new )
             .collect( Collectors.toList() );
 
-        FieldFilterParams<PeriodType> params = FieldFilterParams.of( periodTypes, fields );
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( params );
+        var params = FieldFilterParams.of( periodTypes, fields );
+        var objectNodes = fieldFilterService.toObjectNodes( params );
 
         return ResponseEntity.ok( JsonRoot.of( "periodTypes", objectNodes ) );
     }

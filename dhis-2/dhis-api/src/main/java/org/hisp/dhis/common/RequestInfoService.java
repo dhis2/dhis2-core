@@ -25,14 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sharing;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.dashboard.Dashboard;
-
-public interface CascadeSharingService
+/**
+ * Provides access to the {@link RequestInfo} within the ongoing request.
+ *
+ * @author Jan Bernitt
+ */
+public interface RequestInfoService
 {
+
     /**
-     * Cascade sharing form given {@link Dashboard} to all of its DashboardItems
+     * @return the info for the current request (thread)
      */
-    CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters );
+    RequestInfo getCurrentInfo();
 }

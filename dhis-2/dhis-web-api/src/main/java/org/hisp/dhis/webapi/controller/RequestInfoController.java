@@ -25,14 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sharing;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.dashboard.Dashboard;
+import lombok.AllArgsConstructor;
 
-public interface CascadeSharingService
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.RequestInfo;
+import org.hisp.dhis.common.RequestInfoService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+/**
+ * Exposes the {@link org.hisp.dhis.common.RequestInfo} information mainly for
+ * debugging and testing purposes.
+ *
+ * @author Jan Bernitt
+ */
+@Controller
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping( "/request" )
+@AllArgsConstructor
+public class RequestInfoController
 {
-    /**
-     * Cascade sharing form given {@link Dashboard} to all of its DashboardItems
-     */
-    CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters );
+
+    private final RequestInfoService requestInfoService;
+
+    @GetMapping
+    @ResponseBody
+    public RequestInfo getCurrentInfo()
+    {
+        return requestInfoService.getCurrentInfo();
+    }
 }

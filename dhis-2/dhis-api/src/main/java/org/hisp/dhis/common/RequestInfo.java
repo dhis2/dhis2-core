@@ -25,14 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.sharing;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.dashboard.Dashboard;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-public interface CascadeSharingService
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * Various information about the HTTP request made available to the system.
+ *
+ * @author Jan Bernitt
+ */
+@Getter
+@Builder
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public final class RequestInfo
 {
-    /**
-     * Cascade sharing form given {@link Dashboard} to all of its DashboardItems
-     */
-    CascadeSharingReport cascadeSharing( Dashboard dashboard, CascadeSharingParameters parameters );
+    @JsonProperty
+    private final String headerXRequestID;
 }
