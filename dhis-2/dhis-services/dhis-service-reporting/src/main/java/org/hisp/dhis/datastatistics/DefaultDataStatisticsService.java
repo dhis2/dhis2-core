@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.datastatistics;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -50,7 +52,6 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,29 +64,46 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDataStatisticsService
     implements DataStatisticsService
 {
-    @Autowired
-    private DataStatisticsStore dataStatisticsStore;
+    private final DataStatisticsStore dataStatisticsStore;
 
-    @Autowired
-    private DataStatisticsEventStore dataStatisticsEventStore;
+    private final DataStatisticsEventStore dataStatisticsEventStore;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
-    private StatisticsProvider statisticsProvider;
+    private final StatisticsProvider statisticsProvider;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private final ProgramStageInstanceService programStageInstanceService;
 
-    @Autowired
-    private EventVisualizationStore eventVisualizationStore;
+    private final EventVisualizationStore eventVisualizationStore;
+
+    public DefaultDataStatisticsService( final DataStatisticsStore dataStatisticsStore,
+        final DataStatisticsEventStore dataStatisticsEventStore, final UserService userService,
+        final IdentifiableObjectManager idObjectManager, final DataValueService dataValueService,
+        final StatisticsProvider statisticsProvider, final ProgramStageInstanceService programStageInstanceService,
+        final EventVisualizationStore eventVisualizationStore )
+    {
+        checkNotNull( dataStatisticsStore );
+        checkNotNull( dataStatisticsEventStore );
+        checkNotNull( userService );
+        checkNotNull( idObjectManager );
+        checkNotNull( dataValueService );
+        checkNotNull( statisticsProvider );
+        checkNotNull( programStageInstanceService );
+        checkNotNull( eventVisualizationStore );
+
+        this.dataStatisticsStore = dataStatisticsStore;
+        this.dataStatisticsEventStore = dataStatisticsEventStore;
+        this.userService = userService;
+        this.idObjectManager = idObjectManager;
+        this.dataValueService = dataValueService;
+        this.statisticsProvider = statisticsProvider;
+        this.programStageInstanceService = programStageInstanceService;
+        this.eventVisualizationStore = eventVisualizationStore;
+    }
 
     // -------------------------------------------------------------------------
     // DataStatisticsService implementation

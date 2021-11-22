@@ -27,15 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.analytics.EventDataType.AGGREGATED_VALUES;
-import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
-import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,7 +51,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
@@ -129,7 +124,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         preCreateBundle( params );
 
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
-        handleDeprecatedEventModels( bundleParams );
+        handleDeprecationIfEventReport( bundleParams );
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
         postCreateBundle( bundle, bundleParams );
@@ -188,55 +183,6 @@ public class DefaultMetadataImportService implements MetadataImportService
         } );
 
         return importReport;
-    }
-
-    /**
-     * @deprecated Needed to keep backward compatibility between the new
-     *             EventVisualization and EventReport entities.
-     *
-     * @param bundleParams
-     */
-    @Deprecated
-    private void handleDeprecatedEventModels( final ObjectBundleParams bundleParams )
-    {
-        final Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects = bundleParams
-            .getObjects();
-
-        for ( final Entry<Class<? extends IdentifiableObject>, List<IdentifiableObject>> entry : objects.entrySet() )
-        {
-            if ( entry.getKey().isAssignableFrom( EventReport.class ) )
-            {
-                final List<IdentifiableObject> eventReports = entry.getValue();
-                setEventReportType( eventReports );
-            }
-        }
-    }
-
-    /**
-     * @deprecated Needed to keep backward compatibility between the new
-     *             EventVisualization and EventReport entities.
-     *
-     * @param eventReports
-     */
-    @Deprecated
-    private void setEventReportType( final List<IdentifiableObject> eventReports )
-    {
-        if ( isNotEmpty( eventReports ) )
-        {
-            for ( final IdentifiableObject object : eventReports )
-            {
-                final EventReport eventReport = (EventReport) object;
-
-                if ( AGGREGATED_VALUES == eventReport.getDataType() )
-                {
-                    eventReport.setType( PIVOT_TABLE );
-                }
-                else
-                {
-                    eventReport.setType( LINE_LIST );
-                }
-            }
-        }
     }
 
     @Override
