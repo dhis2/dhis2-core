@@ -141,7 +141,6 @@ public class DefaultAnalyticsTableService
         tableUpdates += progress.runStage( 0, tableManager::invokeAnalyticsTableSqlHooks );
         clock.logTime( "Invoked analytics table hooks" );
 
-        // multi-stage, one for each level started within method...
         tableUpdates += applyAggregationLevels( tableType, partitions, progress );
         clock.logTime( "Applied aggregation levels" );
 
@@ -254,6 +253,7 @@ public class DefaultAnalyticsTableService
                 aggLevels += dataElements.size();
             }
         }
+
         return aggLevels;
     }
 
