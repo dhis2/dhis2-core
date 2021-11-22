@@ -208,7 +208,7 @@ public class TrackerIdentifierCollector
     private void collectRelationships(
         Map<Class<?>, Set<String>> map, List<Relationship> relationships )
     {
-        relationships.parallelStream().forEach( relationship -> {
+        relationships.forEach( relationship -> {
 
             RelationshipKey relationshipKey = RelationshipPreheatKeySupport.getRelationshipKey( relationship );
 
@@ -234,28 +234,16 @@ public class TrackerIdentifierCollector
     private <T> void addIdentifier( Map<Class<?>, Set<String>> map,
         Class<T> klass, TrackerIdScheme identifier, String str )
     {
-        try
+        if ( StringUtils.isEmpty( str ) || map == null || klass == null || identifier == null )
         {
-            if ( StringUtils.isEmpty( str ) || map == null || klass == null || identifier == null )
-            {
-                return;
-            }
-
-            if ( !map.containsKey( klass ) )
-            {
-                map.put( klass, new HashSet<>() );
-            }
-
-            map.get( klass ).add( str );
+            return;
         }
-        catch ( NullPointerException e )
+
+        if ( !map.containsKey( klass ) )
         {
-            System.err.println( "map: " + map );
-            System.err.println( "klass: " + klass );
-            System.err.println( "map.containsKey(klass): " + map.containsKey( klass ) );
-            System.err.println( "map.get(klass): " + map.get( klass ) );
-            System.err.println( "str: " + str );
-            throw e;
+            map.put( klass, new HashSet<>() );
         }
+
+        map.get( klass ).add( str );
     }
 }
