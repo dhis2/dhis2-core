@@ -152,7 +152,6 @@ public final class ImportConflict
     public ImportConflict( String object, String message )
     {
         this( getGroupingKey( object, message ), object, message, null, null, null, -1 );
-        requireNonNull( object );
         requireNonNull( message );
     }
 
