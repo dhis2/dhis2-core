@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.datastatistics;
 
-import java.util.*;
+import static java.util.Calendar.DATE;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.analytics.SortOrder;
@@ -107,7 +113,7 @@ public class DefaultDataStatisticsService
     {
         Calendar cal = Calendar.getInstance();
         cal.setTime( day );
-        cal.add( Calendar.DATE, -1 );
+        cal.add( DATE, -1 );
         Date startDate = cal.getTime();
         Date now = new Date();
         long diff = now.getTime() - startDate.getTime();
