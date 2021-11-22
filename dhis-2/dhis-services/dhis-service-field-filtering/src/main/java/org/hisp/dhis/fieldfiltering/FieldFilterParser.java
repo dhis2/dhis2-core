@@ -63,6 +63,9 @@ public class FieldFilterParser
 
         String[] fieldSplit = field.split( "" );
 
+        boolean isExclude = false; // token is !, which means do not include
+        boolean isPreset = false; // token is :, which means it's a preset
+
         for ( int idx = 0; idx < fieldSplit.length; idx++ )
         {
             String token = fieldSplit[idx];
@@ -142,26 +145,45 @@ public class FieldFilterParser
             }
             else if ( isFieldSeparator( token ) )
             {
-                fieldPaths.add( getFieldPath( tokenBuilder, path, fieldPathTransformers ) );
+                addFieldPath( tokenBuilder, path, isExclude, isPreset, fieldPathTransformers, fieldPaths );
 
                 fieldPathTransformers = new ArrayList<>();
                 tokenBuilder = new StringBuilder();
+                isExclude = false;
+                isPreset = false;
             }
             else if ( isBlockStart( token ) )
             {
-                fieldPaths.add( getFieldPath( tokenBuilder, path, fieldPathTransformers ) );
+                addFieldPath( tokenBuilder, path, isExclude, isPreset, fieldPathTransformers, fieldPaths );
                 path.push( tokenBuilder.toString() );
 
                 fieldPathTransformers = new ArrayList<>();
                 tokenBuilder = new StringBuilder();
+                isExclude = false;
+                isPreset = false;
             }
             else if ( isBlockEnd( token ) )
             {
-                fieldPaths.add( getFieldPath( tokenBuilder, path, fieldPathTransformers ) );
+                addFieldPath( tokenBuilder, path, isExclude, isPreset, fieldPathTransformers, fieldPaths );
                 path.pop();
 
                 fieldPathTransformers = new ArrayList<>();
                 tokenBuilder = new StringBuilder();
+                isExclude = false;
+                isPreset = false;
+            }
+            else if ( isExclude( token ) )
+            {
+                isExclude = true;
+            }
+            else if ( isPreset( token ) )
+            {
+                isPreset = true;
+            }
+            else if ( isAllAlias( token ) )
+            {
+                tokenBuilder.append( "all" );
+                isPreset = true;
             }
             else if ( isAlphanumericOrSpecial( token ) )
             {
@@ -171,16 +193,24 @@ public class FieldFilterParser
 
         if ( tokenBuilder.length() > 0 )
         {
-            fieldPaths.add( getFieldPath( tokenBuilder, path, fieldPathTransformers ) );
+            addFieldPath( tokenBuilder, path, isExclude, isPreset, fieldPathTransformers, fieldPaths );
         }
 
         return fieldPaths;
     }
 
-    private static FieldPath getFieldPath( StringBuilder fieldNameBuilder, Stack<String> path,
-        List<FieldPathTransformer> transformers )
+    private static void addFieldPath( StringBuilder fieldNameBuilder, Stack<String> path,
+        boolean isExclude, boolean isPreset, List<FieldPathTransformer> transformers, List<FieldPath> fieldPaths )
     {
-        return new FieldPath( fieldNameBuilder.toString(), new ArrayList<>( path ), transformers );
+        String name = fieldNameBuilder.toString();
+
+        if ( !StringUtils.isEmpty( name ) )
+        {
+            FieldPath fieldPath = new FieldPath( name, new ArrayList<>( path ), isExclude, isPreset, transformers,
+                null );
+
+            fieldPaths.add( fieldPath );
+        }
     }
 
     private static List<FieldPath> expandField( String field )
@@ -226,6 +256,22 @@ public class FieldFilterParser
     {
         return StringUtils.isAlphanumeric( token )
             || StringUtils.containsAny( token, "*", ":", "{", "}", "~", "!", "|" );
+    }
+
+    private static boolean isExclude( String token )
+    {
+        return StringUtils.containsAny( token, "!" );
+    }
+
+    private static boolean isPreset( String token )
+    {
+        return StringUtils.containsAny( token, ":" );
+    }
+
+    private static boolean isAllAlias( String token )
+    {
+        // special case, convert * to all (preset=true)
+        return StringUtils.containsAny( token, "*" );
     }
 
     private static boolean isTransformer( String[] fieldSplit, int idx )

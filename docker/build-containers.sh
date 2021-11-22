@@ -102,19 +102,12 @@ build_debian_containers () {
     done
 }
 
-build_alpine_containers () {
-    for TOMCAT_TAG in "${TOMCAT_ALPINE_TAGS[@]}"; do
-        build "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}" "$TOMCAT_TAG" "alpine"
-    done
-}
-
 main () {
     build_default_container
 
     # checks if ONLY_DEFAULT is unset
     if [ -z ${ONLY_DEFAULT+x} ]; then
         build_debian_containers
-        build_alpine_containers
     fi
 }
 

@@ -25,22 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.shared.validation;
+package org.hisp.dhis.dxf2.events.importer.delete.validation;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import static java.util.Collections.emptyList;
+
+import java.util.List;
+
+import org.hisp.dhis.dxf2.events.importer.shared.validation.BaseEventAclCheck;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * @author maikel arabori
  */
-public class ProgramCheck implements Checker
+@Component
+public class DeleteProgramStageInstanceAclCheck extends BaseEventAclCheck
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
+        ProgramStageInstance programStageInstance )
     {
-        return checkNull( ctx.getProgramsMap().get( event.getProgram() ),
-            "Event.program does not point to a valid program: " + event.getProgram(), event );
+        if ( programStageInstance != null )
+        {
+            return trackerAccessManager.canDelete( user, programStageInstance, true );
+        }
+
+        return emptyList();
     }
 }

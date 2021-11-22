@@ -25,49 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.common;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
+import javax.annotation.PreDestroy;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.util.DateUtils;
-import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
 
 /**
- * @author Luciano Fiandesio
+ * @author Jan Bernitt
  */
-@Component
-public class EventDateCheck
-    implements
-    Checker
+@Slf4j
+@Service
+public class DefaultRequestInfoService implements RequestInfoService
 {
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    private final ThreadLocal<RequestInfo> currentInfo = new ThreadLocal<>();
+
+    /**
+     * This method is by intention not part of the {@link RequestInfoService}
+     * interface as it should only be used in one place to update the info for
+     * the current thread at the beginning of a request.
+     *
+     * @param info the info to set
+     */
+    public void setCurrentInfo( RequestInfo info )
     {
-        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() )
-                .incrementIgnored();
-        }
+        currentInfo.set( info );
+    }
 
-        try
-        {
-            DateUtils.parseDate( event.getDueDate() );
-            DateUtils.parseDate( event.getEventDate() );
-            DateUtils.parseDate( event.getCompletedDate() );
-        }
-        catch ( Exception e )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Event date or Execution date format is not correct. " )
-                .setReference( event.getEvent() )
-                .incrementIgnored();
-        }
+    @Override
+    public RequestInfo getCurrentInfo()
+    {
+        return currentInfo.get();
+    }
 
-        return success();
+    @PreDestroy
+    public void preDestroy()
+    {
+        currentInfo.remove();
     }
 }

@@ -25,48 +25,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fieldfiltering;
+package org.hisp.dhis.webapi.controller;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonPeriodType;
 import org.junit.Test;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import org.springframework.http.HttpStatus;
 
 /**
+ * Tests the {@link PeriodTypeController} using (mocked) REST requests.
+ *
  * @author Morten Olav Hansen
  */
-public class FieldFilterParamsTest
+public class PeriodTypeControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    public void testBuilderWithObjectAndFilters()
+    public void testPeriodTypeDefaults()
     {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) )
-            .filters( Sets.newHashSet( "id", "name" ) )
-            .build();
+        JsonObject object = GET( "/periodTypes" ).content( HttpStatus.OK ).as( JsonObject.class );
+        JsonList<JsonPeriodType> periodTypes = object.getList( "periodTypes", JsonPeriodType.class );
 
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
+        assertTrue( periodTypes.exists() );
+        assertEquals( 18, periodTypes.size() );
 
-        assertTrue( params.getFilters().contains( "id" ) );
-        assertTrue( params.getFilters().contains( "name" ) );
+        JsonPeriodType periodType = periodTypes.get( 0 );
+
+        assertNotNull( periodType.getName() );
+        assertNotNull( periodType.getIsoDuration() );
+        assertNotNull( periodType.getIsoFormat() );
+        assertNotNull( periodType.getFrequencyOrder() );
     }
 
     @Test
-    public void testBuilderWithDefault()
+    public void testPeriodTypeNameIsoFormat()
     {
-        FieldFilterParams<String> params = FieldFilterParams.<String> builder()
-            .objects( Lists.newArrayList( "A", "B", "C" ) )
-            .build();
+        JsonList<JsonPeriodType> periodTypes = GET( "/periodTypes?fields=name,isoFormat" ).content( HttpStatus.OK )
+            .as( JsonObject.class ).getList( "periodTypes", JsonPeriodType.class );
 
-        assertTrue( params.getObjects().contains( "A" ) );
-        assertTrue( params.getObjects().contains( "B" ) );
-        assertTrue( params.getObjects().contains( "C" ) );
+        assertTrue( periodTypes.exists() );
+        assertEquals( 18, periodTypes.size() );
 
-        assertEquals( "*", params.getFilters().iterator().next() );
+        JsonPeriodType periodType = periodTypes.get( 0 );
+
+        assertNotNull( periodType.getName() );
+        assertNotNull( periodType.getIsoFormat() );
+
+        assertNull( periodType.getIsoDuration() );
+        assertNull( periodType.getFrequencyOrder() );
     }
 }
