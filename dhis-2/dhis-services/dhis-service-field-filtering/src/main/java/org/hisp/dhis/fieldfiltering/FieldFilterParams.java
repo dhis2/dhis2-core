@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.fieldfiltering;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import lombok.Builder;
 import lombok.Data;
 
-import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen
@@ -45,5 +46,23 @@ public class FieldFilterParams<T>
     private final List<T> objects;
 
     @Builder.Default
-    private final Set<String> filters = Sets.newHashSet( "*" );
+    private final Set<String> filters = Collections.singleton( "*" );
+
+    public static <O> FieldFilterParams<O> of( List<O> objects, List<String> filters )
+    {
+        return FieldFilterParams
+            .<O> builder()
+            .objects( objects )
+            .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
+            .build();
+    }
+
+    public static <O> FieldFilterParams<O> of( O object, List<String> filters )
+    {
+        return FieldFilterParams
+            .<O> builder()
+            .objects( Collections.singletonList( object ) )
+            .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
+            .build();
+    }
 }

@@ -27,54 +27,39 @@
  */
 package org.hisp.dhis.dxf2.events.importer;
 
-import static org.apache.commons.logging.LogFactory.getLog;
-
 import java.util.List;
+import java.util.function.Predicate;
 
-import org.apache.commons.logging.Log;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * Simple interface that provides processing capabilities on events.
- *
- * @author maikel arabori
+ * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public interface EventProcessing
+@RequiredArgsConstructor
+public class EventProcessorExecutor
 {
-    void process( WorkContext workContext, List<Event> events );
 
-    Log log = getLog( EventProcessing.class );
+    private final List<? extends Processor> processors;
 
-    class ProcessorRunner
+    private final Predicate<ImportStrategy> importStrategyPredicate;
+
+    public void execute( final WorkContext workContext, final List<Event> events )
     {
-        private final WorkContext workContext;
-
-        private final List<Event> events;
-
-        public ProcessorRunner( WorkContext workContext, List<Event> events )
+        if ( isApplicable( workContext.getImportOptions().getImportStrategy() ) )
         {
-            this.workContext = workContext;
-            this.events = events;
-        }
-
-        public void run( final List<Class<? extends Processor>> processors )
-        {
-            for ( final Event event : events )
-            {
-                for ( Class<? extends Processor> processor : processors )
-                {
-                    try
-                    {
-                        final Processor pre = processor.newInstance();
-                        pre.process( event, workContext );
-                    }
-                    catch ( InstantiationException | IllegalAccessException e )
-                    {
-                        log.error( "An error occurred during Event import processing", e );
-                    }
-                }
-            }
+            events.forEach(
+                event -> processors.forEach(
+                    processor -> processor.process( event, workContext ) ) );
         }
     }
+
+    private boolean isApplicable( ImportStrategy importStrategy )
+    {
+        return importStrategyPredicate.test( importStrategy );
+    }
+
 }
