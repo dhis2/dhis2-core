@@ -37,4 +37,10 @@ public class ImportConflictTest
     {
         new ImportConflict( null, "message" );
     }
+
+    @Test( expected = NullPointerException.class )
+    public void testImportConflictMessageCantBeNull()
+    {
+        new ImportConflict( "whatever", null );
+    }
 }
