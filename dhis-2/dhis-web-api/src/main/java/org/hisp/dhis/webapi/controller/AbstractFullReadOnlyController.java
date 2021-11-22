@@ -236,12 +236,11 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     public @ResponseBody RootNode getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
+        @CurrentUser User currentUser,
         HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = currentUserService.getCurrentUser();
-
-        if ( !aclService.canRead( user, getEntityClass() ) )
+        if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
             throw new ReadAccessDeniedException(
                 "You don't have the proper permissions to read objects of this type." );
@@ -257,7 +256,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         cachePrivate( response );
 
-        return getObjectInternal( pvUid, rpParameters, filters, fields, user );
+        return getObjectInternal( pvUid, rpParameters, filters, fields, currentUser );
     }
 
     @GetMapping( "/{uid}/{property}" )
@@ -265,14 +264,13 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
+        @CurrentUser User currentUser,
         HttpServletResponse response )
         throws Exception
     {
-        User user = currentUserService.getCurrentUser();
-
         if ( !"translations".equals( pvProperty ) )
         {
-            setUserContext( user, translateParams );
+            setUserContext( currentUser, translateParams );
         }
         else
         {
@@ -281,7 +279,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         try
         {
-            if ( !aclService.canRead( user, getEntityClass() ) )
+            if ( !aclService.canRead( currentUser, getEntityClass() ) )
             {
                 throw new ReadAccessDeniedException(
                     "You don't have the proper permissions to read objects of this type." );
@@ -299,7 +297,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
             cachePrivate( response );
 
             return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
-                Lists.newArrayList( pvProperty + fieldFilter ), user );
+                Lists.newArrayList( pvProperty + fieldFilter ), currentUser );
         }
         finally
         {
@@ -314,21 +312,21 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         @PathVariable( "itemId" ) String pvItemId,
         @RequestParam Map<String, String> parameters,
         TranslateParams translateParams,
-        HttpServletResponse response, @CurrentUser User user )
+        HttpServletResponse response, @CurrentUser User currentUser )
         throws Exception
     {
-        setUserContext( user, translateParams );
+        setUserContext( currentUser, translateParams );
 
         try
         {
-            if ( !aclService.canRead( user, getEntityClass() ) )
+            if ( !aclService.canRead( currentUser, getEntityClass() ) )
             {
                 throw new ReadAccessDeniedException(
                     "You don't have the proper permissions to read objects of this type." );
             }
 
             RootNode rootNode = getObjectInternal( pvUid, parameters, Lists.newArrayList(),
-                Lists.newArrayList( pvProperty + "[:all]" ), user );
+                Lists.newArrayList( pvProperty + "[:all]" ), currentUser );
 
             // TODO optimize this using field filter (collection filtering)
             if ( !rootNode.getChildren().isEmpty() && rootNode.getChildren().get( 0 ).isCollection() )
@@ -359,7 +357,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @SuppressWarnings( "unchecked" )
     private RootNode getObjectInternal( String uid, Map<String, String> parameters,
-        List<String> filters, List<String> fields, User user )
+        List<String> filters, List<String> fields, User currentUser )
         throws Exception
     {
         WebOptions options = new WebOptions( parameters );
@@ -372,7 +370,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
             getPaginationData( options ), options.getRootJunction() );
-        query.setUser( user );
+        query.setUser( currentUser );
         query.setObjects( entities );
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -389,7 +387,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         CollectionNode collectionNode = fieldFilterService.toCollectionNode( getEntityClass(),
             new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) )
-                .setUser( user ) );
+                .setUser( currentUser ) );
 
         if ( options.isTrue( "useWrapper" ) || entities.size() > 1 )
         {
