@@ -73,6 +73,11 @@ public class BulkPatchManager
     {
         PatchBundle bundle = validatorFactory.validate( bulkJsonPatch, patchParameters );
 
+        if ( bundle.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+
         return bundle.getIds().stream()
             .map( id -> applySafely( bundle.getJsonPatch( id ), bundle.getEntity( id ), patchParameters,
                 patched -> postApply( id, patched ) ) )
@@ -93,7 +98,7 @@ public class BulkPatchManager
     {
         PatchBundle bundle = validatorFactory.validate( patches, patchParameters );
 
-        if ( !bundle.isEmpty() )
+        if ( bundle.isEmpty() )
         {
             return Collections.emptyList();
         }

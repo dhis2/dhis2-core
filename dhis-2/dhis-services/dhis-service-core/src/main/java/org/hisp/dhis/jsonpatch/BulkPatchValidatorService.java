@@ -28,6 +28,7 @@
 package org.hisp.dhis.jsonpatch;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
@@ -69,8 +71,15 @@ public class BulkPatchValidatorService
         PatchBundle bundle = new PatchBundle();
         Schema schema = schemaService.getSchemaByPluralName( bulkJsonPatch.getClassName() );
 
+        if ( schema == null )
+        {
+            patchParameters.addTypeReport( createTypeReport( Collections.singletonList(
+                new ErrorReport( JsonPatchException.class, ErrorCode.E6002 ) ) ) );
+            return bundle;
+        }
+
         if ( !patchParameters.getValidators().validateSchema( schema, errorReports -> patchParameters
-            .addTypeReport( createTypeReport( JsonPatchException.class, errorReports ) ) ) )
+            .addTypeReport( createTypeReport( errorReports ) ) ) )
         {
             return bundle;
         }
@@ -79,6 +88,7 @@ public class BulkPatchValidatorService
 
         objectReports.addAll( bulkJsonPatch.getIds()
             .stream().map( id -> checkPatchObject( schema, id, bulkJsonPatch.getPatch(), patchParameters, bundle ) )
+            .filter( objectReport -> objectReport.hasErrorReports() )
             .collect( Collectors.toList() ) );
 
         if ( !objectReports.isEmpty() )
@@ -88,6 +98,7 @@ public class BulkPatchValidatorService
             patchParameters.addTypeReport( typeReport );
         }
 
+        System.out.println( "bundle = " + bundle );
         return bundle;
     }
 
@@ -109,7 +120,7 @@ public class BulkPatchValidatorService
             Schema schema = schemaService.getSchemaByPluralName( className );
 
             if ( !patchParameters.getValidators().validateSchema( schema,
-                errors -> patchParameters.addTypeReport( createTypeReport( JsonPatchException.class, errors ) ) ) )
+                errors -> patchParameters.addTypeReport( createTypeReport( errors ) ) ) )
             {
                 continue;
             }
@@ -118,8 +129,10 @@ public class BulkPatchValidatorService
 
             objectReports.addAll( patches.get( className ).entrySet().stream()
                 .map( entry -> checkPatchObject( schema, entry.getKey(), entry.getValue(), patchParameters, bundle ) )
+                .filter( objectReport -> objectReport.hasErrorReports() )
                 .collect( Collectors.toList() ) );
 
+            System.out.println( "objectReports = " + objectReports );
             if ( !objectReports.isEmpty() )
             {
                 TypeReport typeReport = new TypeReport( schema.getKlass() );
@@ -127,7 +140,7 @@ public class BulkPatchValidatorService
                 patchParameters.addTypeReport( typeReport );
             }
         }
-
+        System.out.println( "bundle = " + bundle.getIds() );
         return bundle;
     }
 
@@ -166,10 +179,10 @@ public class BulkPatchValidatorService
     /**
      * Util method to create TypeReport
      */
-    private static TypeReport createTypeReport( Class<?> klass, List<ErrorReport> errorReports )
+    private static TypeReport createTypeReport( List<ErrorReport> errorReports )
     {
-        TypeReport typeReport = new TypeReport( klass );
-        ObjectReport objectReport = new ObjectReport( klass, 0 );
+        TypeReport typeReport = new TypeReport( JsonPatchException.class );
+        ObjectReport objectReport = new ObjectReport( JsonPatchException.class, 0 );
         objectReport.addErrorReports( errorReports );
         typeReport.addObjectReport( objectReport );
         return typeReport;

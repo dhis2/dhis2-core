@@ -50,7 +50,7 @@ public interface SchemaValidator extends Function<Schema, List<ErrorReport>>
 {
     SchemaValidator empty = $ -> Collections.emptyList();
 
-    SchemaValidator isExist = rule( Objects::isNull, ErrorCode.E6002 );
+    SchemaValidator isExist = rule( Objects::nonNull, ErrorCode.E6002 );
 
     /**
      * Validate if given schema is shareable.

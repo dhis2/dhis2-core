@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.jsonpatch;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -63,23 +62,28 @@ public class BulkPatchValidatorFactory
     public boolean validateJsonPatch( JsonPatch jsonPatch, Consumer<List<ErrorReport>> errorReportConsumer )
     {
         List<ErrorReport> errors = jsonPatchValidator.apply( jsonPatch );
-        errorReportConsumer.accept( errors );
-        return errors.isEmpty();
+
+        if ( !errors.isEmpty() )
+        {
+            errorReportConsumer.accept( errors );
+            return false;
+        }
+
+        return true;
     }
 
     @Override
     public boolean validateSchema( Schema schema, Consumer<List<ErrorReport>> errorReportConsumer )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-        errorReports.addAll( SchemaValidator.isExist.apply( schema ) );
-        errorReports.addAll( schemaValidator.apply( schema ) );
+        List<ErrorReport> errorReports = schemaValidator.apply( schema );
 
         if ( !errorReports.isEmpty() )
         {
             errorReportConsumer.accept( errorReports );
+            return false;
         }
 
-        return errorReports.isEmpty();
+        return true;
     }
 
     @Override

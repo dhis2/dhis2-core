@@ -190,8 +190,8 @@ public class BulkPatchManagerTest extends DhisSpringTest
         List<IdentifiableObject> patchedObjects = patchManager
             .applyPatch( bulkJsonPatch, patchParameters );
         assertEquals( 0, patchedObjects.size() );
-        assertEquals( 2, patchParameters.getErrorReportsCount() );
-        assertEquals( 2, patchParameters.getErrorReportsCount( ErrorCode.E4032 ) );
+        assertEquals( 1, patchParameters.getErrorReportsCount() );
+        assertEquals( 1, patchParameters.getErrorReportsCount( ErrorCode.E4032 ) );
     }
 
     @Test
