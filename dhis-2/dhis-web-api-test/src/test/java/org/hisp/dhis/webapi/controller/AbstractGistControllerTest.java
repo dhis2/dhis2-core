@@ -81,6 +81,15 @@ abstract class AbstractGistControllerTest extends DhisControllerConvenienceTest
         }
     }
 
+    protected final void createDataSetsForOrganisationUnit( String organisationUnitId, String... names )
+    {
+        for ( String name : names )
+        {
+            assertStatus( HttpStatus.CREATED, POST( "/dataSets/", "{'name':'" + name
+                + "', 'organisationUnits': [{'id':'" + organisationUnitId + "'}], 'periodType':'Daily'}" ) );
+        }
+    }
+
     static void assertHasPager( JsonObject response, int page, int pageSize )
     {
         assertHasPager( response, page, pageSize, null );
