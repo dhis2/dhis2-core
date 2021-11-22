@@ -345,6 +345,30 @@ public class DefaultTrackedEntityAttributeService
         return programAttributeStore.get( program, trackedEntityAttribute );
     }
 
+    @Override
+    public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes()
+    {
+        return attributeStore.getAllSearchableAndUniqueTrackedEntityAttributes();
+    }
+
+    @Override
+    public boolean createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute )
+    {
+        return attributeStore.createTrigramIndexForAttribute( trackedEntityAttribute );
+    }
+
+    @Override
+    public boolean runAnalyze()
+    {
+        return attributeStore.runAnalyzeOnTrackerTables();
+    }
+
+    @Override
+    public boolean runVacuum()
+    {
+        return attributeStore.runVacuumOnTrackerTables();
+    }
+
     // -------------------------------------------------------------------------
     // ProgramTrackedEntityAttribute
     // -------------------------------------------------------------------------

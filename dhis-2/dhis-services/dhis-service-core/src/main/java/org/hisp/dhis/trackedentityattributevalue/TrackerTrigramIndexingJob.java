@@ -28,25 +28,33 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Ameen
  */
+@Slf4j
 @Component( "trackerTrigramIndexingJob" )
 public class TrackerTrigramIndexingJob implements Job
 {
-    private final TrackedEntityAttributeValueService trackedEntityAttributeValueService;
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    public TrackerTrigramIndexingJob( TrackedEntityAttributeValueService trackedEntityAttributeValueService )
+    public TrackerTrigramIndexingJob( TrackedEntityAttributeService trackedEntityAttributeService )
     {
-        checkNotNull( trackedEntityAttributeValueService );
-        this.trackedEntityAttributeValueService = trackedEntityAttributeValueService;
+        checkNotNull( trackedEntityAttributeService );
+        this.trackedEntityAttributeService = trackedEntityAttributeService;
     }
 
     // -------------------------------------------------------------------------
@@ -60,12 +68,49 @@ public class TrackerTrigramIndexingJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         TrackerTrigramIndexJobParameters parameters = (TrackerTrigramIndexJobParameters) jobConfiguration
             .getJobParameters();
 
-        trackedEntityAttributeValueService.runPushAnalysis( parameters.getPushAnalysis(), jobConfiguration );
+        progress.startingProcess( "Starting Trigram indexing process" );
+
+        if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) )
+        {
+            progress.startingStage( "Creating trigram indexes attributes", parameters.getAttributes().size() );
+            progress.runStage( parameters.getAttributes().stream(), TrackedEntityAttribute::getName,
+                tea -> trackedEntityAttributeService.createTrigramIndex( tea ),
+                TrackerTrigramIndexingJob::computeTrigramIndexingSummary );
+            progress.completedStage( "Trigram indexes created" );
+        }
+
+        if ( parameters.isRunVacuum() )
+        {
+            progress.startingStage( "Running VACUUM on tracker tables", 1 );
+            progress.runStage( () -> trackedEntityAttributeService.runVacuum() );
+            progress.completedStage( "VACUUM run completed" );
+        }
+
+        if ( parameters.isRunAnalyze() )
+        {
+            progress.startingStage( "Running ANALYZE on tracker tables", 1 );
+            progress.runStage( () -> trackedEntityAttributeService.runAnalyze() );
+            progress.completedStage( "ANALYZE run completed" );
+        }
+
+        progress.completedProcess( "Job completed" );
     }
 
+    private static String computeTrigramIndexingSummary( int successful, int failed )
+    {
+        log.info(
+            format( "%d trigram indexes have been created for corresponding trackedentityattributes", successful ) );
+        if ( failed == 0 )
+        {
+            return null;
+        }
+        String summary = format( "%d trigram index creation failed", failed );
+        log.warn( summary );
+        return summary;
+    }
 }

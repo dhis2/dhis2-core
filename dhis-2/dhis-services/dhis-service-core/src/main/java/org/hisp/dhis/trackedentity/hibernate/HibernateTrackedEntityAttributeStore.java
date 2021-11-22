@@ -69,6 +69,13 @@ public class HibernateTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityAttribute>
     implements TrackedEntityAttributeStore
 {
+    private static final String TRIGRAM_INDEX_QUERY = "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON "
+        + "trackedentityattributevalue USING gin (trackedentityinstanceid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d";
+
+    private static final String VACUUM_QUERY = "VACUUM trackedentityattributevalue";
+
+    private static final String ANALYZE_QUERY = "ANALYZE trackedentityattributevalue";
+
     private final StatementBuilder statementBuilder;
 
     public HibernateTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
@@ -174,6 +181,56 @@ public class HibernateTrackedEntityAttributeStore
         return trackedEntityTypeAttributes.stream()
             .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
             .collect( Collectors.toSet() );
+    }
+
+    @Override
+    public Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes()
+    {
+        Set<TrackedEntityAttribute> result = new HashSet<>();
+
+        Query programTeaQuery = sessionFactory.getCurrentSession()
+            .createQuery( "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true" );
+        Query tetypeAttributeQuery = sessionFactory.getCurrentSession()
+            .createQuery( "select attribute from TrackedEntityTypeAttribute teta where teta.searchable=true" );
+        Query uniqueAttributeQuery = sessionFactory.getCurrentSession()
+            .createQuery( "from TrackedEntityAttribute tea where tea.unique=true" );
+
+        List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
+        List<TrackedEntityAttribute> trackedEntityTypeSearchableAttributes = tetypeAttributeQuery.list();
+        List<TrackedEntityAttribute> uniqueAttributes = uniqueAttributeQuery.list();
+
+        result.addAll( programSearchableTrackedEntityAttributes );
+        result.addAll( trackedEntityTypeSearchableAttributes );
+        result.addAll( uniqueAttributes );
+
+        return result;
+    }
+
+    @Override
+    public boolean createTrigramIndexForAttribute( TrackedEntityAttribute trackedEntityAttribute )
+    {
+        String query = trigramIndexQuery( trackedEntityAttribute );
+        jdbcTemplate.execute( query );
+        return true;
+    }
+
+    @Override
+    public boolean runAnalyzeOnTrackerTables()
+    {
+        jdbcTemplate.execute( ANALYZE_QUERY );
+        return true;
+    }
+
+    @Override
+    public boolean runVacuumOnTrackerTables()
+    {
+        jdbcTemplate.execute( VACUUM_QUERY );
+        return true;
+    }
+
+    private String trigramIndexQuery( TrackedEntityAttribute trackedEntityAttribute )
+    {
+        return String.format( TRIGRAM_INDEX_QUERY, trackedEntityAttribute.getId(), trackedEntityAttribute.getId() );
     }
 
     @Override
