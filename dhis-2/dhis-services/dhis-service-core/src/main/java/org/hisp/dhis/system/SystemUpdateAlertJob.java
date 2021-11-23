@@ -37,6 +37,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
@@ -68,7 +69,7 @@ public class SystemUpdateAlertJob implements Job
     }
 
     @Override
-    public void execute( JobConfiguration jobConfiguration )
+    public void execute( JobConfiguration jobConfiguration, JobProgress progress )
     {
         boolean systemUpdateNotificationsEnabled = dhisConfig.isEnabled( SYSTEM_UPDATE_NOTIFICATIONS_ENABLED );
 
