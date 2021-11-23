@@ -64,7 +64,6 @@ updates:
       - dependency-name: "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" # later versions have failing tests
         versions:
           - ">= 2.13.0" 
-      - dependency-name: "org.eclipse.jetty:*" # later versions have failing tests
+      - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
         versions:
-          - ">= 9.4.41.v20210516"
-          
+          - ">= 11.0"
