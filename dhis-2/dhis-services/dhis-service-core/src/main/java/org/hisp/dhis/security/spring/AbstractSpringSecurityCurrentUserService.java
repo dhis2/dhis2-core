@@ -65,7 +65,7 @@ public abstract class AbstractSpringSecurityCurrentUserService implements Curren
             if ( !"anonymousUser".equals( principal ) )
             {
                 throw new RuntimeException(
-                    String.format( "Authentication is not authenticated! principal=%s", principal) );
+                    String.format( "Authentication is not authenticated! principal=%s", principal ) );
             }
 
             return (String) principal;
