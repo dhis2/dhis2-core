@@ -28,7 +28,6 @@
 package org.hisp.dhis.jsonpatch;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,12 +41,14 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.jsonpatch.validator.BulkPatchValidateParams;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;
 
 /**
- * Contains validation methods to be used in {@link BulkPatchManager}
+ * Contains validation methods to be used in
+ * {@link org.hisp.dhis.jsonpatch.BulkPatchManager}
  */
 @Service
 @AllArgsConstructor
@@ -58,29 +59,27 @@ public class BulkPatchValidatorService
     private final SchemaService schemaService;
 
     /**
-     * Validate {@link BulkJsonPatch} with by using validators from given
-     * {@link BulkPatchParameters}
+     * Validate {@link org.hisp.dhis.jsonpatch.BulkJsonPatch} with by using
+     * validators from given {@link org.hisp.dhis.jsonpatch.BulkPatchParameters}
      *
-     * @param bulkJsonPatch {@link BulkJsonPatch} for validating
-     * @param patchParameters {@link BulkPatchParameters} contains validators
-     * @return {@link PatchBundle} contains validated {@link IdentifiableObject}
-     *         and {@link JsonPatch}
+     * @param bulkJsonPatch {@link org.hisp.dhis.jsonpatch.BulkJsonPatch} for
+     *        validating
+     * @param patchParameters
+     *        {@link org.hisp.dhis.jsonpatch.BulkPatchParameters} contains
+     *        validators
+     * @return {@link org.hisp.dhis.jsonpatch.PatchBundle} contains validated
+     *         {@link IdentifiableObject} and {@link JsonPatch}
      */
     public PatchBundle validate( BulkJsonPatch bulkJsonPatch, BulkPatchParameters patchParameters )
     {
         PatchBundle bundle = new PatchBundle();
+
         Schema schema = schemaService.getSchemaByPluralName( bulkJsonPatch.getClassName() );
 
         if ( schema == null )
         {
-            patchParameters.addTypeReport( createTypeReport( Collections.singletonList(
-                new ErrorReport( JsonPatchException.class, ErrorCode.E6002 ) ) ) );
-            return bundle;
-        }
-
-        if ( !patchParameters.getValidators().validateSchema( schema, errorReports -> patchParameters
-            .addTypeReport( createTypeReport( errorReports ) ) ) )
-        {
+            patchParameters.addTypeReport( createTypeReport(
+                new ErrorReport( JsonPatchException.class, ErrorCode.E6002, bulkJsonPatch.getClassName() ) ) );
             return bundle;
         }
 
@@ -102,10 +101,11 @@ public class BulkPatchValidatorService
     }
 
     /**
-     * Validate {@link BulkJsonPatches} with by using validators from given
-     * {@link BulkPatchParameters}
+     * Validate {@link org.hisp.dhis.jsonpatch.BulkJsonPatches} with by using
+     * validators from given {@link BulkPatchParameters}
      *
-     * @param patches {@link BulkJsonPatches} for validating
+     * @param patches {@link org.hisp.dhis.jsonpatch.BulkJsonPatches} for
+     *        validating
      * @param patchParameters {@link BulkPatchParameters} contains validators
      * @return {@link PatchBundle} contains validated {@link IdentifiableObject}
      *         and {@link JsonPatch}
@@ -118,9 +118,10 @@ public class BulkPatchValidatorService
         {
             Schema schema = schemaService.getSchemaByPluralName( className );
 
-            if ( !patchParameters.getValidators().validateSchema( schema,
-                errors -> patchParameters.addTypeReport( createTypeReport( errors ) ) ) )
+            if ( schema == null )
             {
+                patchParameters.addTypeReport(
+                    createTypeReport( new ErrorReport( JsonPatchException.class, ErrorCode.E6002, className ) ) );
                 continue;
             }
 
@@ -143,7 +144,8 @@ public class BulkPatchValidatorService
 
     /**
      * Validate given ID and {@link JsonPatch} by using
-     * {@link BulkPatchValidators} from given {@link BulkPatchParameters}.
+     * {@link org.hisp.dhis.jsonpatch.validator.BulkPatchValidator} from given
+     * {@link BulkPatchParameters}.
      * <p>
      * The valid {@link IdentifiableObject} and {@link JsonPatch} will be added
      * to given {@link PatchBundle}
@@ -155,16 +157,19 @@ public class BulkPatchValidatorService
     {
         ObjectReport objectReport = new ObjectReport( schema.getKlass(), 0, id );
 
-        if ( !patchParams.getValidators()
-            .validateJsonPatch( jsonPatch, errors -> objectReport.addErrorReports( errors ) ) )
-        {
-            return objectReport;
-        }
-
         IdentifiableObject entity = manager.get( (Class<? extends IdentifiableObject>) schema.getKlass(), id );
 
-        if ( !patchParams.getValidators()
-            .validatePatchEntity( schema, jsonPatch, id, entity, err -> objectReport.addErrorReports( err ) ) )
+        BulkPatchValidateParams bulkPatchValidateParams = BulkPatchValidateParams.builder()
+            .schema( schema )
+            .jsonPatch( jsonPatch )
+            .id( id )
+            .entity( entity )
+            .build();
+
+        patchParams.getValidators().forEach(
+            validator -> validator.validate( bulkPatchValidateParams, error -> objectReport.addErrorReport( error ) ) );
+
+        if ( objectReport.hasErrorReports() )
         {
             return objectReport;
         }
@@ -173,14 +178,11 @@ public class BulkPatchValidatorService
         return objectReport;
     }
 
-    /**
-     * Util method to create TypeReport
-     */
-    private static TypeReport createTypeReport( List<ErrorReport> errorReports )
+    private TypeReport createTypeReport( ErrorReport errorReport )
     {
-        TypeReport typeReport = new TypeReport( JsonPatchException.class );
         ObjectReport objectReport = new ObjectReport( JsonPatchException.class, 0 );
-        objectReport.addErrorReports( errorReports );
+        objectReport.addErrorReport( errorReport );
+        TypeReport typeReport = new TypeReport( JsonPatchException.class );
         typeReport.addObjectReport( objectReport );
         return typeReport;
     }

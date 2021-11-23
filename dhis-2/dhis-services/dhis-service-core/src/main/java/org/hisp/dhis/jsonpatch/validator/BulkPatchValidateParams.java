@@ -25,27 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jsonpatch;
+package org.hisp.dhis.jsonpatch.validator;
 
-import java.util.List;
-import java.util.function.Consumer;
+import lombok.Builder;
+import lombok.Getter;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Schema;
 
 /**
- * Contains all validators needed for the json patch process
- *
- * @author viet@dhis2.org
+ * Contains all objects that will be validated before applying JsonPatch.
  */
-public interface BulkPatchValidators
+@Builder
+@Getter
+public class BulkPatchValidateParams
 {
-    boolean validateJsonPatch( JsonPatch jsonPatch, Consumer<List<ErrorReport>> errorReportConsumer );
+    /**
+     * Schema of current patch object.
+     */
+    private Schema schema;
 
-    boolean validateSchema( Schema schema, Consumer<List<ErrorReport>> errorReportConsumer );
+    /**
+     * The JsonPatch object used for patching.
+     */
+    private JsonPatch jsonPatch;
 
-    boolean validatePatchEntity( Schema schema, JsonPatch jsonPatch, String id,
-        IdentifiableObject identifiableObject, Consumer<List<ErrorReport>> errorReportConsumer );
+    /**
+     * UID of current {@link IdentifiableObject} that will be patched.
+     */
+    private String id;
+
+    /**
+     * The current entity that will be patched.
+     */
+    private IdentifiableObject entity;
 }

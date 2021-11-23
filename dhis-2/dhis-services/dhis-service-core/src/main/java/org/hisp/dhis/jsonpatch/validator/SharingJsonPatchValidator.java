@@ -25,41 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jsonpatch;
+package org.hisp.dhis.jsonpatch.validator;
 
-import static java.util.Collections.emptyList;
+import java.util.function.Consumer;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.schema.Schema;
 
 /**
- * Contains validation method that can be added to {@link BulkPatchParameters}
- * <p>
- * which then will be used in {@link BulkPatchManager}
+ * @author viet@dhis2.org
  */
-@FunctionalInterface
-public interface SchemaValidator extends Function<Schema, List<ErrorReport>>
+public class SharingJsonPatchValidator
+    implements BulkPatchValidator
 {
-    SchemaValidator empty = $ -> Collections.emptyList();
-
-    SchemaValidator isExist = rule( Objects::nonNull, ErrorCode.E6002 );
-
-    /**
-     * Validate if given schema is shareable.
-     */
-    SchemaValidator isShareable = rule( Schema::isShareable, ErrorCode.E3019 );
-
-    static SchemaValidator rule( final Predicate<Schema> predicate, ErrorCode errorCode )
+    @Override
+    public void validate( BulkPatchValidateParams params, Consumer<ErrorReport> addError )
     {
-        return schema -> !predicate.test( schema ) ? Collections
-            .singletonList( new ErrorReport( JsonPatchException.class, errorCode, schema.getName() ) ) : emptyList();
+        if ( params.getSchema() != null && params.getEntity() == null )
+        {
+            addError.accept( new ErrorReport( params.getSchema().getKlass(), ErrorCode.E4014, params.getId(),
+                params.getSchema().getName() ) );
+        }
+
+        JsonPatchCheck.isSharingPatch.apply( params.getJsonPatch() ).forEach( error -> addError.accept( error ) );
     }
 }

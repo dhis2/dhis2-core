@@ -28,6 +28,7 @@
 package org.hisp.dhis.jsonpatch;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -38,6 +39,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ErrorReportContainer;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.jsonpatch.validator.BulkPatchValidator;
+import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -54,15 +57,15 @@ public class BulkPatchParameters implements ErrorReportContainer
     /**
      * Contains all validators needed for the patch process.
      */
-    private BulkPatchValidators validators;
+    private List<BulkPatchValidator> validators;
 
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
 
-    public BulkPatchValidators getValidators()
+    public List<BulkPatchValidator> getValidators()
     {
-        return validators == null ? BulkPatchValidatorFactory.EMPTY : validators;
+        return validators == null ? BulkPatchValidatorFactory.DEFAULT : validators;
     }
 
     public Iterable<TypeReport> getTypeReports()

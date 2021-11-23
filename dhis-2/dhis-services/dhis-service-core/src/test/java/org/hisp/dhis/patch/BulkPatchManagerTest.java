@@ -42,7 +42,7 @@ import org.hisp.dhis.jsonpatch.BulkJsonPatch;
 import org.hisp.dhis.jsonpatch.BulkJsonPatches;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
 import org.hisp.dhis.jsonpatch.BulkPatchParameters;
-import org.hisp.dhis.jsonpatch.BulkPatchValidatorFactory;
+import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -207,8 +207,9 @@ public class BulkPatchManagerTest extends DhisSpringTest
         List<IdentifiableObject> patchedObjects = patchManager
             .applyPatch( bulkJsonPatch, patchParameters );
         assertEquals( 0, patchedObjects.size() );
-        assertEquals( 1, patchParameters.getErrorReportsCount() );
+        assertEquals( 2, patchParameters.getErrorReportsCount() );
         assertEquals( 1, patchParameters.getErrorReportsCount( ErrorCode.E3019 ) );
+        assertEquals( 1, patchParameters.getErrorReportsCount( ErrorCode.E4014 ) );
     }
 
     @Test
