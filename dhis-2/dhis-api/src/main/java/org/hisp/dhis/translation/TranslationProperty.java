@@ -49,7 +49,11 @@ public enum TranslationProperty
     title( "title" ),
     subtitle( "subtitle" ),
     SUBJECT_TEMPLATE( "notificationSubjectTemplate" ),
-    MESSAGE_TEMPLATE( "notificationMessageTemplate" );
+    MESSAGE_TEMPLATE( "notificationMessageTemplate" ),
+    INCIDENT_DATE_LABEL( "incidentDateLabel" ),
+    ENROLLMENT_DATE_LABEL( "enrollmentDateLabel" ),
+    EXECUTION_DATE_LABEL( "executionDateLabel" ),
+    DUE_DATE_LABEL( "dueDateLabel" );
 
     private String name;
 

@@ -39,6 +39,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -224,6 +225,13 @@ public class ValidationRule
     public String getInstruction()
     {
         return instruction;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayInstruction()
+    {
+        return getTranslation( TranslationProperty.INSTRUCTION, getInstruction() );
     }
 
     public void setInstruction( String instruction )
