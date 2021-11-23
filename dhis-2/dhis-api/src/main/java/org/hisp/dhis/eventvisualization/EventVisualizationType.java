@@ -27,7 +27,14 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-// TODO: Check with Jan the correct types in usage today.
+/**
+ * Representation of the event visualizations type available.
+ *
+ * NOTE: The BUBBLE type is there for backward compatibility reasons. This is
+ * not implemented at the moment.
+ *
+ * @author maikel arabori
+ */
 public enum EventVisualizationType
 {
     COLUMN,
