@@ -93,13 +93,11 @@ public class SystemUpdateService
     private final MessageService messageService;
 
     public static Map<Semver, Map<String, String>> getLatestNewerThanCurrent()
-        throws Exception
     {
         return getLatestNewerThan( getCurrentVersion() );
     }
 
     public static Map<Semver, Map<String, String>> getLatestNewerThan( Semver currentVersion )
-        throws Exception
     {
         JsonObject allVersions = fetchAllVersions();
 

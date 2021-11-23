@@ -29,6 +29,7 @@ package org.hisp.dhis.mock;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -420,6 +421,6 @@ public class MockUserService
     @Override
     public List<UserCredentials> getUsersWithAuthority( String authority )
     {
-        return null;
+        return Collections.emptyList();
     }
 }
