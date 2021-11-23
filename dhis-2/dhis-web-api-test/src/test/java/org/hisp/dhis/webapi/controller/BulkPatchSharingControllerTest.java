@@ -109,7 +109,7 @@ public class BulkPatchSharingControllerTest
 
         HttpResponse response = PATCH( "/dataElements/sharing", "patch/bulk_sharing_patch.json" );
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getFirstErrorMessage( response ) );
+        assertEquals( "Invalid UID `" + deAId + "` for property `dataElement`", getFirstErrorMessage( response ) );
 
         JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
@@ -137,7 +137,7 @@ public class BulkPatchSharingControllerTest
 
         HttpResponse response = PATCH( "/dataElements/sharing?atomic=true", "patch/bulk_sharing_patch.json" );
         assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "Invalid UID `" + deAId + "` for property `DataElement`", getFirstErrorMessage( response ) );
+        assertEquals( "Invalid UID `" + deAId + "` for property `dataElement`", getFirstErrorMessage( response ) );
 
         JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
