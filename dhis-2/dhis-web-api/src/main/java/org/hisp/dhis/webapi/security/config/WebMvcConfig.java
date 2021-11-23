@@ -44,8 +44,6 @@ import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
-import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
@@ -74,7 +72,6 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -211,13 +208,6 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         mapping.setOrder( 0 );
         mapping.setContentNegotiationManager( mvcContentNegotiationManager() );
         return mapping;
-    }
-
-    @Override
-    public void addInterceptors( InterceptorRegistry registry )
-    {
-        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
-        registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
     }
 
     private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()

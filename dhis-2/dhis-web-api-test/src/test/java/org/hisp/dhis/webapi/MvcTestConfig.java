@@ -45,8 +45,6 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
-import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
@@ -158,13 +156,6 @@ public class MvcTestConfig implements WebMvcConfigurer
     public NodeService nodeService()
     {
         return new DefaultNodeService();
-    }
-
-    @Override
-    public void addInterceptors( InterceptorRegistry registry )
-    {
-        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
-        registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
     }
 
     @Bean

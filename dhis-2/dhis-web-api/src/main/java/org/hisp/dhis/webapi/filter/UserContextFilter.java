@@ -25,26 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc.interceptor;
+package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.common.UserContext.reset;
 import static org.hisp.dhis.common.UserContext.setUser;
 import static org.hisp.dhis.common.UserContext.setUserSetting;
 import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 
+import java.io.IOException;
 import java.util.Locale;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * This interceptor is ONLY responsible for setting the current user and its
@@ -53,35 +58,28 @@ import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
  * evaluated outside (in another interceptor or filter).
  *
  * @author maikel arabori
+ * @author Morten Svanæs
  */
+@Slf4j
+@Component
 @AllArgsConstructor
-public class UserContextInterceptor extends HandlerInterceptorAdapter implements InitializingBean
+public class UserContextFilter extends OncePerRequestFilter
 {
-    private static UserContextInterceptor instance;
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private UserSettingService userSettingService;
 
     private static final String PARAM_TRANSLATE = "translate";
 
     private static final String PARAM_LOCALE = "locale";
 
-    private final CurrentUserService currentUserService;
-
-    private final UserSettingService userSettingService;
-
-    public static UserContextInterceptor get()
-    {
-        return instance;
-    }
-
     @Override
-    public void afterPropertiesSet()
-    {
-        instance = this;
-    }
-
-    @Override
-    public boolean preHandle( final HttpServletRequest request,
-        final HttpServletResponse response, final Object handler )
-        throws Exception
+    protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response,
+        FilterChain filterChain )
+        throws ServletException,
+        IOException
     {
         boolean translate = !"false".equals( request.getParameter( PARAM_TRANSLATE ) );
 
@@ -94,14 +92,14 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
             configureUserContext( user, new TranslateParams( translate, locale ) );
         }
 
-        return true;
-    }
-
-    @Override
-    public void afterCompletion( final HttpServletRequest request, final HttpServletResponse response,
-        final Object handler, final Exception ex )
-    {
-        reset();
+        try
+        {
+            filterChain.doFilter( request, response );
+        }
+        finally
+        {
+            reset();
+        }
     }
 
     private void configureUserContext( final User user, final TranslateParams translateParams )
@@ -119,4 +117,5 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
                 .getLocaleWithDefault( (Locale) userSettingService.getUserSetting( DB_LOCALE, user ) )
             : null;
     }
+
 }

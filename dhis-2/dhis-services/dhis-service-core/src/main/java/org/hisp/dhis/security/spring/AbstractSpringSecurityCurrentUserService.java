@@ -30,6 +30,8 @@ package org.hisp.dhis.security.spring;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.security.core.Authentication;
@@ -40,8 +42,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 /**
  * @author Torgeir Lorange Ostby
  */
+@Slf4j
 public abstract class AbstractSpringSecurityCurrentUserService implements CurrentUserService
 {
+
     @Override
     public String getCurrentUsername()
     {
@@ -60,7 +64,8 @@ public abstract class AbstractSpringSecurityCurrentUserService implements Curren
         {
             if ( !"anonymousUser".equals( principal ) )
             {
-                return null;
+                throw new RuntimeException(
+                    String.format( "Authentication is not authenticated! principal=%s", principal) );
             }
 
             return (String) principal;
