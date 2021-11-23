@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.schema.descriptors.LegendSetSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -56,17 +58,19 @@ public class LegendSetController
 
     @Override
     @PreAuthorize( "hasRole('F_LEGEND_SET_PUBLIC_ADD') or hasRole('F_LEGEND_SET_PRIVATE_ADD')  or hasRole('ALL')" )
-    public WebMessage putJsonObject( @PathVariable String uid, HttpServletRequest request )
+    public WebMessage putJsonObject( @PathVariable String uid, @CurrentUser User currentUser,
+        HttpServletRequest request )
         throws Exception
     {
-        return super.putJsonObject( uid, request );
+        return super.putJsonObject( uid, currentUser, request );
     }
 
     @Override
     @PreAuthorize( "hasRole('F_LEGEND_SET_DELETE') or hasRole('ALL')" )
-    public WebMessage deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+    public WebMessage deleteObject( @PathVariable String uid, @CurrentUser User currentUser, HttpServletRequest request,
+        HttpServletResponse response )
         throws Exception
     {
-        return super.deleteObject( uid, request, response );
+        return super.deleteObject( uid, currentUser, request, response );
     }
 }

@@ -58,6 +58,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitQuery;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.version.VersionService;
@@ -308,7 +309,7 @@ public class OrganisationUnitController
         @RequestParam( value = "level", required = false ) List<Integer> rpLevels,
         @RequestParam( value = "parent", required = false ) List<String> rpParents,
         @RequestParam( value = "properties", required = false, defaultValue = "true" ) boolean rpProperties,
-        User currentUser, HttpServletResponse response )
+        @CurrentUser User currentUser, HttpServletResponse response )
         throws IOException
     {
         rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();

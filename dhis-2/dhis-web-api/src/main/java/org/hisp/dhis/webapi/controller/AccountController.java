@@ -65,6 +65,7 @@ import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
@@ -464,7 +465,7 @@ public class AccountController
     public ResponseEntity<Map<String, String>> updatePassword(
         @RequestParam String oldPassword,
         @RequestParam String password,
-        User currentUser,
+        @CurrentUser User currentUser,
         HttpServletRequest request )
     {
         String username = currentUser.getUsername();

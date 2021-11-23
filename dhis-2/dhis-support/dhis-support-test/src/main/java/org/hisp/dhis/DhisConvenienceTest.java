@@ -2417,6 +2417,11 @@ public abstract class DhisConvenienceTest
 
     protected void injectSecurityContext( User user )
     {
+        if ( user == null )
+        {
+            clearSecurityContext();
+            return;
+        }
         UserCredentials credentials = user.getUserCredentials();
         switchCurrentUserTo(
             credentials.getUsername(),
