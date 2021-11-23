@@ -82,6 +82,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -151,7 +152,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseBody
     public WebMessage replaceTranslations(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request )
+        @CurrentUser User currentUser, HttpServletRequest request )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -164,9 +165,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         T persistedObject = entities.get( 0 );
 
-        User user = currentUserService.getCurrentUser();
-
-        if ( !aclService.canUpdate( user, persistedObject ) )
+        if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -226,7 +225,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request )
+        @CurrentUser User currentUser, HttpServletRequest request )
         throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
@@ -239,9 +238,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         T persistedObject = entities.get( 0 );
 
-        User user = currentUserService.getCurrentUser();
-
-        if ( !aclService.canUpdate( user, persistedObject ) )
+        if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -272,6 +269,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
+        @CurrentUser User currentUser,
         HttpServletRequest request )
         throws Exception
     {
@@ -293,8 +291,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         Property property = getSchema().getProperty( pvProperty );
         T persistedObject = entities.get( 0 );
 
-        User user = currentUserService.getCurrentUser();
-        if ( !aclService.canUpdate( user, persistedObject ) )
+        if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -316,7 +313,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         property.getSetterMethod().invoke( persistedObject, value );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
-        params.setUser( user )
+        params.setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( persistedObject );
 
@@ -348,6 +345,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     public WebMessage patchObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
+        @CurrentUser User currentUser,
         HttpServletRequest request )
         throws Exception
     {
@@ -361,9 +359,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         final T persistedObject = entities.get( 0 );
 
-        User user = currentUserService.getCurrentUser();
-
-        if ( !aclService.canUpdate( user, persistedObject ) )
+        if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -392,7 +388,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
 
-        params.setUser( user )
+        params.setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( patchedObject );
 
@@ -479,7 +475,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PostMapping( value = "/{uid}/favorite" )
     @ResponseBody
-    public WebMessage setAsFavorite( @PathVariable( "uid" ) String pvUid )
+    public WebMessage setAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
     {
         if ( !getSchema().isFavoritable() )
         {
@@ -494,17 +490,16 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         T object = entity.get( 0 );
-        User user = currentUserService.getCurrentUser();
 
-        object.setAsFavorite( user );
+        object.setAsFavorite( currentUser );
         manager.updateNoAcl( object );
 
-        return ok( String.format( "Object '%s' set as favorite for user '%s'", pvUid, user.getUsername() ) );
+        return ok( String.format( "Object '%s' set as favorite for user '%s'", pvUid, currentUser.getUsername() ) );
     }
 
     @PostMapping( value = "/{uid}/subscriber" )
     @ResponseBody
-    public WebMessage subscribe( @PathVariable( "uid" ) String pvUid )
+    public WebMessage subscribe( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
     {
         if ( !getSchema().isSubscribable() )
         {
@@ -519,12 +514,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         SubscribableObject object = entity.get( 0 );
-        User user = currentUserService.getCurrentUser();
 
-        object.subscribe( user );
+        object.subscribe( currentUser );
         manager.updateNoAcl( object );
 
-        return ok( String.format( "User '%s' subscribed to object '%s'", user.getUsername(), pvUid ) );
+        return ok( String.format( "User '%s' subscribed to object '%s'", currentUser.getUsername(), pvUid ) );
     }
 
     // --------------------------------------------------------------------------
@@ -533,7 +527,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request )
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+        HttpServletRequest request )
         throws Exception
     {
         List<T> objects = getEntity( pvUid );
@@ -543,9 +538,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             return notFound( getEntityClass(), pvUid );
         }
 
-        User user = currentUserService.getCurrentUser();
-
-        if ( !aclService.canUpdate( user, objects.get( 0 ) ) )
+        if ( !aclService.canUpdate( currentUser, objects.get( 0 ) ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -557,7 +550,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
-        params.setUser( user )
+        params.setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( parsed );
 
@@ -585,7 +578,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
     @ResponseBody
-    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+        HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
@@ -596,9 +590,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             return notFound( getEntityClass(), pvUid );
         }
 
-        User user = currentUserService.getCurrentUser();
-
-        if ( !aclService.canUpdate( user, objects.get( 0 ) ) )
+        if ( !aclService.canUpdate( currentUser, objects.get( 0 ) ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -610,7 +602,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
             .setImportReportMode( ImportReportMode.FULL )
-            .setUser( user )
+            .setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
             .addObject( parsed );
 
@@ -636,8 +628,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}" )
     @ResponseBody
-    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
-        HttpServletResponse response )
+    public WebMessage deleteObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+        HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         List<T> objects = getEntity( pvUid );
@@ -647,9 +639,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             return notFound( getEntityClass(), pvUid );
         }
 
-        User user = currentUserService.getCurrentUser();
-
-        if ( !aclService.canDelete( user, objects.get( 0 ) ) )
+        if ( !aclService.canDelete( currentUser, objects.get( 0 ) ) )
         {
             throw new DeleteAccessDeniedException( "You don't have the proper permissions to delete this object." );
         }
@@ -658,7 +648,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         MetadataImportParams params = new MetadataImportParams()
             .setImportReportMode( ImportReportMode.FULL )
-            .setUser( user )
+            .setUser( currentUser )
             .setImportStrategy( ImportStrategy.DELETE )
             .addObject( objects.get( 0 ) );
 
@@ -671,7 +661,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}/favorite" )
     @ResponseBody
-    public WebMessage removeAsFavorite( @PathVariable( "uid" ) String pvUid )
+    public WebMessage removeAsFavorite( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
     {
         if ( !getSchema().isFavoritable() )
         {
@@ -686,18 +676,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         T object = entity.get( 0 );
-        User user = currentUserService.getCurrentUser();
 
-        object.removeAsFavorite( user );
+        object.removeAsFavorite( currentUser );
         manager.updateNoAcl( object );
 
-        return ok( String.format( "Object '%s' removed as favorite for user '%s'", pvUid, user.getUsername() ) );
+        return ok( String.format( "Object '%s' removed as favorite for user '%s'", pvUid, currentUser.getUsername() ) );
     }
 
     @DeleteMapping( value = "/{uid}/subscriber" )
     @ResponseBody
     @SuppressWarnings( "unchecked" )
-    public WebMessage unsubscribe( @PathVariable( "uid" ) String pvUid )
+    public WebMessage unsubscribe( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser )
     {
         if ( !getSchema().isSubscribable() )
         {
@@ -712,12 +701,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         SubscribableObject object = entity.get( 0 );
-        User user = currentUserService.getCurrentUser();
 
-        object.unsubscribe( user );
+        object.unsubscribe( currentUser );
         manager.updateNoAcl( object );
 
-        return ok( String.format( "User '%s' removed as subscriber of object '%s'", user.getUsername(), pvUid ) );
+        return ok(
+            String.format( "User '%s' removed as subscriber of object '%s'", currentUser.getUsername(), pvUid ) );
     }
 
     // --------------------------------------------------------------------------
@@ -868,7 +857,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     @PutMapping( value = "/{uid}/sharing", consumes = APPLICATION_JSON_VALUE )
     @ResponseBody
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage setSharing( @PathVariable( "uid" ) String uid, HttpServletRequest request )
+    public WebMessage setSharing( @PathVariable( "uid" ) String uid, @CurrentUser User currentUser,
+        HttpServletRequest request )
         throws IOException
     {
         T entity = manager.get( getEntityClass(), uid );
@@ -878,9 +868,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             return notFound( getEntityClass(), uid );
         }
 
-        User user = currentUserService.getCurrentUser();
-
-        if ( !aclService.canUpdate( user, entity ) )
+        if ( !aclService.canUpdate( currentUser, entity ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }

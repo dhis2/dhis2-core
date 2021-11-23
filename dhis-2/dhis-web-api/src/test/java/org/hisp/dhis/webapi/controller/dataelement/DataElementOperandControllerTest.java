@@ -144,7 +144,7 @@ public class DataElementOperandControllerTest
         // Controller under test
         final DataElementOperandController controller = new DataElementOperandController( manager, queryService,
             fieldFilterService, linkService,
-            contextService, schemaService, dataElementCategoryService, currentUserService );
+            contextService, schemaService, dataElementCategoryService );
 
         // Set custom Node Message converter //
         NodeService nodeService = new DefaultNodeService();

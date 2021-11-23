@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
@@ -99,7 +100,8 @@ public class TrackerImportController
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser,
+    public WebMessage asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response,
+        @CurrentUser User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
     {
         String jobId = CodeGenerator.generateUid();
@@ -122,7 +124,7 @@ public class TrackerImportController
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
     public ResponseEntity<TrackerImportReport> syncPostJsonTracker(
-        @RequestParam( defaultValue = "errors", required = false ) String reportMode, User currentUser,
+        @RequestParam( defaultValue = "errors", required = false ) String reportMode, @CurrentUser User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
@@ -145,7 +147,7 @@ public class TrackerImportController
     @PostMapping( value = "", consumes = { "application/csv", "text/csv" }, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public WebMessage asyncPostCsvTracker( HttpServletRequest request,
-        User currentUser,
+        @CurrentUser User currentUser,
         @RequestParam( required = false, defaultValue = "true" ) boolean skipFirst )
         throws IOException,
         ParseException
@@ -180,7 +182,7 @@ public class TrackerImportController
     public ResponseEntity<TrackerImportReport> syncPostCsvTracker(
         HttpServletRequest request,
         @RequestParam( required = false, defaultValue = "true" ) boolean skipFirst,
-        @RequestParam( defaultValue = "errors", required = false ) String reportMode, User currentUser )
+        @RequestParam( defaultValue = "errors", required = false ) String reportMode, @CurrentUser User currentUser )
         throws IOException,
         ParseException
     {
