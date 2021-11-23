@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  */
 public class ApiResponse
 {
-    private Response raw;
+    protected Response raw;
 
     public ApiResponse( Response response )
     {
