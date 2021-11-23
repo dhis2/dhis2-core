@@ -98,7 +98,6 @@ public class BulkPatchValidatorService
             patchParameters.addTypeReport( typeReport );
         }
 
-        System.out.println( "bundle = " + bundle );
         return bundle;
     }
 
@@ -132,7 +131,6 @@ public class BulkPatchValidatorService
                 .filter( objectReport -> objectReport.hasErrorReports() )
                 .collect( Collectors.toList() ) );
 
-            System.out.println( "objectReports = " + objectReports );
             if ( !objectReports.isEmpty() )
             {
                 TypeReport typeReport = new TypeReport( schema.getKlass() );
@@ -140,7 +138,6 @@ public class BulkPatchValidatorService
                 patchParameters.addTypeReport( typeReport );
             }
         }
-        System.out.println( "bundle = " + bundle.getIds() );
         return bundle;
     }
 
