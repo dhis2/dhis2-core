@@ -89,7 +89,7 @@
         <!-- Keep in sync with Hibernate! -->
         <byte-buddy.version>1.12.2</byte-buddy.version>
         <!-- Keep in sync with Hibernate! -->
-        <javassist.version>3.27.0-GA</javassist.version>
+        <javassist.version>3.28.0-GA</javassist.version>
         <!-- Data sources,db pools and db drivers-->
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>4.0.3</HikariCP.version>
