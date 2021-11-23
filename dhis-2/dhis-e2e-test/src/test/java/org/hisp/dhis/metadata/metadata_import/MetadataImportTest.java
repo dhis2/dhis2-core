@@ -18,6 +18,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -53,6 +54,7 @@ public class MetadataImportTest
         new LoginActions().loginAsSuperUser();
     }
 
+    @Disabled("bug")
     @ParameterizedTest( name = "withImportStrategy[{0}]" )
     @CsvSource( { "CREATE, ignored", "CREATE_AND_UPDATE, updated" } )
     public void shouldUpdateExistingMetadata( String importStrategy, String expected )
