@@ -196,11 +196,11 @@ public class DbChangeEventHandler
 
         Serializable entityId = null;
 
-        if ( firstEntityClass.equals( DataValue.class ) )
+        if ( DataValue.class == firstEntityClass )
         {
             entityId = getDataValueId( sourceRecord );
         }
-        else if ( firstEntityClass.equals( TrackedEntityAttributeValue.class ) )
+        else if ( TrackedEntityAttributeValue.class == firstEntityClass )
         {
             entityId = getTrackedEntityAttributeValueId( sourceRecord );
         }
