@@ -44,6 +44,19 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
@@ -84,6 +97,21 @@ public class DbChangeEventHandler
 
     @Autowired
     private TableNameToEntityMapping tableNameToEntityMapping;
+
+    @Autowired
+    private IdentifiableObjectManager idObjectManager;
+
+    @Autowired
+    private TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Autowired
+    private TrackedEntityInstanceService trackedEntityInstanceService;
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private PeriodService periodService;
 
     /**
      * Called by the {@link io.debezium.embedded.EmbeddedEngine}'s event
@@ -164,29 +192,89 @@ public class DbChangeEventHandler
             return;
         }
 
-        Serializable entityId = getEntityId( sourceRecord );
-        Objects.requireNonNull( entityId, "Failed to extract entity id!" );
+        Class<?> firstEntityClass = (Class<?>) entityClasses.get( 0 )[0];
+
+        Serializable entityId = null;
+
+        if ( firstEntityClass.equals( DataValue.class ) )
+        {
+            entityId = getDataValueId( sourceRecord );
+        }
+        else if ( firstEntityClass.equals( TrackedEntityAttributeValue.class ) )
+        {
+            entityId = getTrackedEntityAttributeValueId( sourceRecord );
+        }
+        else
+        {
+            // If there is more than one id field, this is a composite key and
+            // needs special handling, if they are not handled above
+            // we must ignore this event.
+            Schema schema = sourceRecord.keySchema();
+            List<Field> allIdFields = schema.fields();
+            if ( allIdFields.size() > 1 )
+            {
+                log.warn( "More than one ID field found in the key schema, using the first one. sourceRecord="
+                    + sourceRecord );
+            }
+            else
+            {
+                entityId = getEntityIdFromFirstField( sourceRecord );
+            }
+        }
+
+        if ( entityId == null )
+        {
+            log.error( String.format( "No entity id for entity class=%s, operation=%s", firstEntityClass, operation ) );
+            throw new NullPointerException(
+                "Could not extract an entity id from the event, can not continue with cache eviction." );
+        }
 
         evictExternalEntityChanges( txId, operation, entityClasses, entityId );
     }
 
-    /**
-     * Tries to extract the entity ID from the source record.
-     *
-     * @param sourceRecord SourceRecord object containing info on the event.
-     *
-     * @return A Serializable object representing an entity ID.
-     */
-    private Serializable getEntityId( SourceRecord sourceRecord )
+    private Serializable getTrackedEntityAttributeValueId( SourceRecord sourceRecord )
     {
         Schema schema = sourceRecord.keySchema();
         List<Field> allIdFields = schema.fields();
-
-        Field firstIdField = allIdFields.get( 0 );
-        String idFieldName = firstIdField.name();
-
-        Schema.Type idType = firstIdField.schema().type();
         Struct keyStruct = (Struct) sourceRecord.key();
+
+        Long trackedEntityAttributeId = (Long) getIdFromField( keyStruct, allIdFields.get( 0 ) );
+        Long entityInstanceId = (Long) getIdFromField( keyStruct, allIdFields.get( 1 ) );
+
+        TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute(
+            trackedEntityAttributeId );
+        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance(
+            entityInstanceId );
+
+        return new TrackedEntityAttributeValue( trackedEntityAttribute, entityInstance );
+    }
+
+    private Serializable getDataValueId( SourceRecord sourceRecord )
+    {
+        Schema schema = sourceRecord.keySchema();
+        List<Field> allIdFields = schema.fields();
+        Struct keyStruct = (Struct) sourceRecord.key();
+
+        Long dataElementId = (Long) getIdFromField( keyStruct, allIdFields.get( 0 ) );
+        Long periodId = (Long) getIdFromField( keyStruct, allIdFields.get( 1 ) );
+        Long organisationUnitId = (Long) getIdFromField( keyStruct, allIdFields.get( 2 ) );
+        Long categoryOptionComboId = (Long) getIdFromField( keyStruct, allIdFields.get( 3 ) );
+        Long attributeOptionComboId = (Long) getIdFromField( keyStruct, allIdFields.get( 4 ) );
+
+        DataElement dataElement = idObjectManager.get( DataElement.class, dataElementId );
+        OrganisationUnit organisationUnit = idObjectManager.get( OrganisationUnit.class, organisationUnitId );
+        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptionComboId );
+        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( attributeOptionComboId );
+        Period period = periodService.getPeriod( periodId );
+
+        return new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
+            attributeOptionCombo );
+    }
+
+    private Serializable getIdFromField( Struct keyStruct, Field field )
+    {
+        String idFieldName = field.name();
+        Schema.Type idType = field.schema().type();
 
         Serializable entityId = null;
 
@@ -202,6 +290,24 @@ public class DbChangeEventHandler
         return entityId;
     }
 
+    /**
+     * Tries to extract the entity ID from the source record.
+     *
+     * @param sourceRecord SourceRecord object containing info on the event.
+     *
+     * @return A Serializable object representing an entity ID.
+     */
+    private Serializable getEntityIdFromFirstField( SourceRecord sourceRecord )
+    {
+        Schema schema = sourceRecord.keySchema();
+        List<Field> allIdFields = schema.fields();
+
+        Struct keyStruct = (Struct) sourceRecord.key();
+        Field firstIdField = allIdFields.get( 0 );
+
+        return getIdFromField( keyStruct, firstIdField );
+    }
+
     private void evictExternalEntityChanges( Long txId, Envelope.Operation operation, List<Object[]> entityClasses,
         Serializable entityId )
     {
@@ -213,33 +319,46 @@ public class DbChangeEventHandler
         }
 
         Class<?> firstEntityClass = (Class<?>) entityClasses.get( 0 )[0];
-        Objects.requireNonNull( firstEntityClass, "Entity can't be null!" );
+        Objects.requireNonNull( firstEntityClass, "Entity class can't be null!" );
 
         if ( operation == Envelope.Operation.CREATE )
         {
             // Make sure queries will re-fetch to capture the new object.
             queryCacheManager.evictQueryCache( sessionFactory.getCache(), firstEntityClass );
             paginationCacheManager.evictCache( firstEntityClass.getName() );
-
             evictCollections( entityClasses, entityId );
 
-            // Try to fetch the new entity so it might get cached.
-            try ( Session session = sessionFactory.openSession() )
-            {
-                session.get( firstEntityClass, entityId );
-            }
-            catch ( HibernateException e )
-            {
-                log.warn( "Failed to execute get query!", e );
-            }
+            // Try to fetch the new entity, so it might get cached.
+            tryFetchNewEntity( entityId, firstEntityClass );
         }
         else if ( operation == Envelope.Operation.UPDATE
             || operation == Envelope.Operation.DELETE
             || operation == Envelope.Operation.TRUNCATE )
         {
             sessionFactory.getCache().evict( firstEntityClass, entityId );
-
             evictCollections( entityClasses, entityId );
+        }
+    }
+
+    private void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
+    {
+        try ( Session session = sessionFactory.openSession() )
+        {
+            session.get( entityClass, entityId );
+        }
+        catch ( Exception e )
+        {
+            log.warn(
+                String.format( "Fetching new entity failed, failed to execute get query! entityId=%s, entityClass=%s",
+                    entityId, entityClass ),
+                e );
+            if ( e instanceof HibernateException )
+            {
+                // Ignore HibernateExceptions, as they are expected.
+                return;
+            }
+
+            throw e;
         }
     }
 
