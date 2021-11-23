@@ -35,9 +35,9 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
 import org.hisp.dhis.actions.tracker.EventActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.actions.tracker.RelationshipActions;
 import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -55,8 +55,6 @@ public class EventExportTests
 
     private String relationshipId;
 
-    private TrackerActions trackerActions;
-
     private EventActions eventActions;
 
     private String eventProgramId = Constants.EVENT_PROGRAM_ID;
@@ -65,11 +63,13 @@ public class EventExportTests
 
     private RelationshipTypeActions relationshipTypeActions;
 
+    private RelationshipActions relationshipActions;
+
     @BeforeAll
     public void beforeAll()
     {
+        relationshipActions = new RelationshipActions();
         relationshipTypeActions = new RelationshipTypeActions();
-        trackerActions = new TrackerActions();
         eventActions = new EventActions();
 
         new LoginActions().loginAsAdmin();
@@ -127,20 +127,19 @@ public class EventExportTests
 
     private String createEvent()
     {
-        return trackerActions
-            .postAndGetJobReport( trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, eventProgramStageID ) )
-            .validateSuccessfulImport()
-            .extractImportedEvents().get( 0 );
+        JsonObject obj = eventActions.createEventBody( Constants.ORG_UNIT_IDS[0], eventProgramId, eventProgramStageID );
+
+        ApiResponse response = eventActions.post( obj, new QueryParamsBuilder().add( "skipCache=true" ) );
+        response.validate().statusCode( 200 );
+
+        return response.extractUid();
     }
 
     private String createRelationship( String eventId, String event2Id, String relationshipTypeId )
     {
-        JsonObject relationships = new JsonObjectBuilder( trackerActions
-            .buildRelationship( "event", eventId, "event", event2Id, relationshipTypeId ) )
-            .wrapIntoArray( "relationships" );
+        JsonObject rel = relationshipActions.createRelationshipBody( relationshipTypeId, "event", eventId, "event", event2Id );
 
-        return trackerActions.postAndGetJobReport( relationships )
-            .validateSuccessfulImport().extractImportedRelationships().get( 0 );
+        return relationshipActions.create( rel );
     }
 
 }
