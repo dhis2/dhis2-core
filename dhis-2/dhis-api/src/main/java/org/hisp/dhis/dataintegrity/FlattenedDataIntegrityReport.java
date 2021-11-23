@@ -51,103 +51,103 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class FlattenedDataIntegrityReport
 {
     @JsonProperty
-    private List<String> dataElementsWithoutDataSet;
+    private final List<String> dataElementsWithoutDataSet;
 
     @JsonProperty
-    private List<String> dataElementsWithoutGroups;
+    private final List<String> dataElementsWithoutGroups;
 
     @JsonProperty
-    private Map<String, Collection<String>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
+    private final Map<String, Collection<String>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
 
     @JsonProperty
-    private SortedMap<String, Collection<String>> dataElementsViolatingExclusiveGroupSets;
+    private final SortedMap<String, Collection<String>> dataElementsViolatingExclusiveGroupSets;
 
     @JsonProperty
-    private SortedMap<String, Collection<String>> dataElementsInDataSetNotInForm;
+    private final SortedMap<String, Collection<String>> dataElementsInDataSetNotInForm;
 
     @JsonProperty
-    private List<String> invalidCategoryCombos;
+    private final List<String> invalidCategoryCombos;
 
     @JsonProperty
-    private List<String> dataSetsNotAssignedToOrganisationUnits;
+    private final List<String> dataSetsNotAssignedToOrganisationUnits;
 
     @JsonProperty
-    private Collection<Collection<String>> indicatorsWithIdenticalFormulas;
+    private final Collection<Collection<String>> indicatorsWithIdenticalFormulas;
 
     @JsonProperty
-    private List<String> indicatorsWithoutGroups;
+    private final List<String> indicatorsWithoutGroups;
 
     @JsonProperty
-    private Map<String, String> invalidIndicatorNumerators;
+    private final Map<String, String> invalidIndicatorNumerators;
 
     @JsonProperty
-    private Map<String, String> invalidIndicatorDenominators;
+    private final Map<String, String> invalidIndicatorDenominators;
 
     @JsonProperty
-    private SortedMap<String, Collection<String>> indicatorsViolatingExclusiveGroupSets;
+    private final SortedMap<String, Collection<String>> indicatorsViolatingExclusiveGroupSets;
 
     @JsonProperty
-    private List<String> duplicatePeriods;
+    private final List<String> duplicatePeriods;
 
     @JsonProperty
-    private List<String> organisationUnitsWithCyclicReferences;
+    private final List<String> organisationUnitsWithCyclicReferences;
 
     @JsonProperty
-    private List<String> orphanedOrganisationUnits;
+    private final List<String> orphanedOrganisationUnits;
 
     @JsonProperty
-    private List<String> organisationUnitsWithoutGroups;
+    private final List<String> organisationUnitsWithoutGroups;
 
     @JsonProperty
-    private SortedMap<String, Collection<String>> organisationUnitsViolatingExclusiveGroupSets;
+    private final SortedMap<String, Collection<String>> organisationUnitsViolatingExclusiveGroupSets;
 
     @JsonProperty
-    private List<String> organisationUnitGroupsWithoutGroupSets;
+    private final List<String> organisationUnitGroupsWithoutGroupSets;
 
     @JsonProperty
-    private List<String> validationRulesWithoutGroups;
+    private final List<String> validationRulesWithoutGroups;
 
     @JsonProperty
-    private Map<String, String> invalidValidationRuleLeftSideExpressions;
+    private final Map<String, String> invalidValidationRuleLeftSideExpressions;
 
     @JsonProperty
-    private Map<String, String> invalidValidationRuleRightSideExpressions;
+    private final Map<String, String> invalidValidationRuleRightSideExpressions;
 
     @JsonProperty
-    private Map<String, String> invalidProgramIndicatorExpressions;
+    private final Map<String, String> invalidProgramIndicatorExpressions;
 
     @JsonProperty
-    private List<String> programIndicatorsWithNoExpression;
+    private final List<String> programIndicatorsWithNoExpression;
 
     @JsonProperty
-    private Map<String, String> invalidProgramIndicatorFilters;
+    private final Map<String, String> invalidProgramIndicatorFilters;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRulesWithNoCondition;
+    private final Map<String, Collection<String>> programRulesWithNoCondition;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRulesWithNoPriority;
+    private final Map<String, Collection<String>> programRulesWithNoPriority;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRulesWithNoAction;
+    private final Map<String, Collection<String>> programRulesWithNoAction;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRuleVariablesWithNoDataElement;
+    private final Map<String, Collection<String>> programRuleVariablesWithNoDataElement;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRuleVariablesWithNoAttribute;
+    private final Map<String, Collection<String>> programRuleVariablesWithNoAttribute;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRuleActionsWithNoDataObject;
+    private final Map<String, Collection<String>> programRuleActionsWithNoDataObject;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRuleActionsWithNoNotification;
+    private final Map<String, Collection<String>> programRuleActionsWithNoNotification;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRuleActionsWithNoSectionId;
+    private final Map<String, Collection<String>> programRuleActionsWithNoSectionId;
 
     @JsonProperty
-    private Map<String, Collection<String>> programRuleActionsWithNoStageId;
+    private final Map<String, Collection<String>> programRuleActionsWithNoStageId;
 
     public FlattenedDataIntegrityReport( org.hisp.dhis.dataintegrity.DataIntegrityReport report )
     {
@@ -265,13 +265,9 @@ public class FlattenedDataIntegrityReport
     {
         HashMap<String, Collection<String>> newMap = new HashMap<>();
 
-        for ( Map.Entry<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> entry : map
-            .entrySet() )
+        for ( var entry : map.entrySet() )
         {
-            Collection<String> value = new HashSet<>();
-            value.addAll( transformCollection( entry.getValue() ) );
-
-            newMap.put( defaultIfNull( entry.getKey() ), value );
+            newMap.put( defaultIfNull( entry.getKey() ), new HashSet<>( transformCollection( entry.getValue() ) ) );
         }
 
         return newMap;
@@ -294,8 +290,7 @@ public class FlattenedDataIntegrityReport
     {
         SortedMap<String, Collection<String>> newMap = new TreeMap<>();
 
-        for ( Map.Entry<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> entry : map
-            .entrySet() )
+        for ( var entry : map.entrySet() )
         {
             newMap.put( defaultIfNull( entry.getKey() ), transformCollection( entry.getValue() ) );
         }

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
@@ -46,6 +45,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.antlr.ParserException;
@@ -97,14 +97,11 @@ import com.google.common.collect.Sets;
 @Slf4j
 @Service( "org.hisp.dhis.dataintegrity.DataIntegrityService" )
 @Transactional
+@AllArgsConstructor
 public class DefaultDataIntegrityService
     implements DataIntegrityService
 {
     private static final String FORMULA_SEPARATOR = "#";
-
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
 
     private final I18nManager i18nManager;
 
@@ -135,51 +132,6 @@ public class DefaultDataIntegrityService
     private final PeriodService periodService;
 
     private final ProgramIndicatorService programIndicatorService;
-
-    public DefaultDataIntegrityService( I18nManager i18nManager, DataElementService dataElementService,
-        IndicatorService indicatorService, DataSetService dataSetService,
-        OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
-        ValidationRuleService validationRuleService, ExpressionService expressionService,
-        DataEntryFormService dataEntryFormService, CategoryService categoryService, PeriodService periodService,
-        ProgramIndicatorService programIndicatorService,
-        ProgramRuleService programRuleService, ProgramRuleVariableService programRuleVariableService,
-        ProgramRuleActionService programRuleActionService )
-    {
-        checkNotNull( i18nManager );
-        checkNotNull( dataElementService );
-        checkNotNull( indicatorService );
-        checkNotNull( dataSetService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( organisationUnitGroupService );
-        checkNotNull( validationRuleService );
-        checkNotNull( dataEntryFormService );
-        checkNotNull( categoryService );
-        checkNotNull( periodService );
-        checkNotNull( programIndicatorService );
-        checkNotNull( programRuleService );
-        checkNotNull( programRuleVariableService );
-        checkNotNull( programRuleActionService );
-
-        this.i18nManager = i18nManager;
-        this.dataElementService = dataElementService;
-        this.indicatorService = indicatorService;
-        this.dataSetService = dataSetService;
-        this.organisationUnitService = organisationUnitService;
-        this.organisationUnitGroupService = organisationUnitGroupService;
-        this.validationRuleService = validationRuleService;
-        this.expressionService = expressionService;
-        this.dataEntryFormService = dataEntryFormService;
-        this.categoryService = categoryService;
-        this.periodService = periodService;
-        this.programIndicatorService = programIndicatorService;
-        this.programRuleService = programRuleService;
-        this.programRuleVariableService = programRuleVariableService;
-        this.programRuleActionService = programRuleActionService;
-    }
-
-    // -------------------------------------------------------------------------
-    // DataIntegrityService implementation
-    // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------
     // DataElement
@@ -611,27 +563,27 @@ public class DefaultDataIntegrityService
         return groupsByUnit;
     }
 
-    @Override
-    public FlattenedDataIntegrityReport getFlattenedDataIntegrityReport()
-    {
-        return new FlattenedDataIntegrityReport( getDataIntegrityReport() );
-    }
-
-    @Override
-    public List<ProgramIndicator> getProgramIndicatorsWithNoExpression()
+    /**
+     * Get all ProgramIndicators with no expression.
+     */
+    List<ProgramIndicator> getProgramIndicatorsWithNoExpression()
     {
         return programIndicatorService.getProgramIndicatorsWithNoExpression();
     }
 
-    @Override
-    public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
+    /**
+     * Get all ProgramIndicators with invalid expressions.
+     */
+    Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
     {
         return getInvalidProgramIndicators( ProgramIndicator::getExpression,
             pi -> !programIndicatorService.expressionIsValid( pi.getExpression() ) );
     }
 
-    @Override
-    public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
+    /**
+     * Get all ProgramIndicators with invalid filters.
+     */
+    Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
     {
         return getInvalidProgramIndicators( ProgramIndicator::getFilter,
             pi -> !programIndicatorService.filterIsValid( pi.getFilter() ) );
@@ -657,56 +609,81 @@ public class DefaultDataIntegrityService
         return invalids;
     }
 
-    @Override
-    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority()
+    /**
+     * Get all ProgramRules with no priority and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority()
     {
         return groupRulesByProgram( programRuleService.getProgramRulesWithNoPriority() );
     }
 
-    @Override
-    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction()
+    /**
+     * Get all ProgramRules with no action and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction()
     {
         return groupRulesByProgram( programRuleService.getProgramRulesWithNoAction() );
     }
 
-    @Override
-    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoCondition()
+    /**
+     * Get all ProgramRules with no condition expression and grouped them by
+     * {@link Program}
+     */
+    Map<Program, Collection<ProgramRule>> getProgramRulesWithNoCondition()
     {
         return groupRulesByProgram( programRuleService.getProgramRulesWithNoCondition() );
     }
 
-    @Override
-    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject()
+    /**
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         DataElement/TrackedEntityAttribute
+     */
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject()
     {
         return groupActionsByProgramRule( programRuleActionService.getProgramActionsWithNoLinkToDataObject() );
     }
 
-    @Override
-    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotificationTemplate()
+    /**
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         {@link org.hisp.dhis.notification.NotificationTemplate}
+     */
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotificationTemplate()
     {
         return groupActionsByProgramRule( programRuleActionService.getProgramActionsWithNoLinkToNotification() );
     }
 
-    @Override
-    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId()
+    /**
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         {@link org.hisp.dhis.program.ProgramStageSection}
+     */
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId()
     {
         return groupActionsByProgramRule( programRuleActionService.getProgramRuleActionsWithNoSectionId() );
     }
 
-    @Override
-    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoProgramStageId()
+    /**
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         {@link org.hisp.dhis.program.ProgramStage}
+     */
+    Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoProgramStageId()
     {
         return groupActionsByProgramRule( programRuleActionService.getProgramRuleActionsWithNoStageId() );
     }
 
-    @Override
-    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
+    /**
+     * @return all {@link ProgramRuleVariable} which are not linked to any
+     *         DataElement and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
     {
         return groupVariablesByProgram( programRuleVariableService.getVariablesWithNoDataElement() );
     }
 
-    @Override
-    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute()
+    /**
+     * @return all {@link ProgramRuleVariable} which are not linked to any
+     *         TrackedEntityAttribute and grouped them by {@link Program}
+     */
+    Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute()
     {
         return groupVariablesByProgram( programRuleVariableService.getVariablesWithNoAttribute() );
     }
