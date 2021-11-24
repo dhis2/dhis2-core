@@ -693,6 +693,11 @@
                         </goals>
                         <configuration>
                             <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>org.slf4j:slf4j-simple</exclude>
+                                    </excludes>
+                                </bannedDependencies>
                                 <banDuplicatePomDependencyVersions/>
                                 <requireMavenVersion>
                                     <version>${minimum-maven.version}</version>
