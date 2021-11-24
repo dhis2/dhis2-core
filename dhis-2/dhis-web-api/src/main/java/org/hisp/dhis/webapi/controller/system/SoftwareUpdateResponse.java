@@ -25,16 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.message;
+package org.hisp.dhis.webapi.controller.system;
+
+import java.util.Map;
+
+import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.vdurmont.semver4j.Semver;
 
 /**
- * @author Stian Sandvold
+ * @author Morten Svanaes
  */
-public enum MessageType
+public class SoftwareUpdateResponse extends AbstractWebMessageResponse
 {
-    PRIVATE,
-    SYSTEM,
-    VALIDATION_RESULT,
-    TICKET,
-    SYSTEM_VERSION_UPDATE,
+    private final Map<Semver, Map<String, String>> versionMetadata;
+
+    public SoftwareUpdateResponse( Map<Semver, Map<String, String>> versionMetadata )
+    {
+        this.versionMetadata = versionMetadata;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( isAttribute = true )
+    public Map<Semver, Map<String, String>> getVersionMetadata()
+    {
+        return versionMetadata;
+    }
 }

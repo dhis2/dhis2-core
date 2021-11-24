@@ -80,6 +80,14 @@ public class HibernateMessageConversationStore
     // -------------------------------------------------------------------------
 
     @Override
+    public List<MessageConversation> getMessagesConversationFromSenderMatchingExtMessageId( String extMessageId )
+    {
+        String hql = "from MessageConversation mc WHERE mc.extMessageId = :extMessageId";
+
+        return getQuery( hql ).setParameter( "extMessageId", extMessageId ).list();
+    }
+
+    @Override
     @SuppressWarnings( "unchecked" )
     public List<MessageConversation> getMessageConversations( User user, MessageConversationStatus status,
         boolean followUpOnly, boolean unreadOnly,

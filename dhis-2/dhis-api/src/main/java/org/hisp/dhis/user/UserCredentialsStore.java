@@ -93,4 +93,6 @@ public interface UserCredentialsStore
      * @return the UserCredentials.
      */
     UserCredentials getUserCredentialsByUuid( UUID uuid );
+
+    List<UserCredentials> getHasAuthority( String authority );
 }
