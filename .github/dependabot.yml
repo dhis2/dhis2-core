@@ -28,9 +28,6 @@ updates:
       - "java"
       - "run-api-tests"
     ignore:
-      - dependency-name: "com.zaxxer:HikariCP" # remove once we update minimum JDK to JDK11; https://github.com/brettwooldridge/HikariCP#artifacts
-        versions:
-          - ">= 5.0"
       - dependency-name: "org.hibernate:hibernate-core" # later versions have failing tests
         versions:
           - ">= 5.4.28.Final"

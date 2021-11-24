@@ -28,6 +28,7 @@
 package org.hisp.dhis.gist;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
@@ -115,13 +116,17 @@ final class GistLogic
 
     static boolean isCollectionSizeFilter( Filter filter, Property property )
     {
-        return filter.getOperator().isSizeCompare() ||
+        return filter.getOperator().isEmptinessCompare() ||
             (filter.getOperator().isNumericCompare() && property.isCollection());
     }
 
     static boolean isStringLengthFilter( Filter filter, Property property )
     {
-        return filter.getOperator().isSizeCompare() && property.isSimple() && property.getKlass() == String.class;
+        Comparison op = filter.getOperator();
+        return property.isSimple() && property.getKlass() == String.class &&
+            (op.isEmptinessCompare()
+                || (op.isOrderCompare() && filter.getValue().length == 1
+                    && filter.getValue()[0].matches( "[0-9]+" )));
     }
 
     static Transform effectiveTransform( Property property, Transform fallback, Transform target )
