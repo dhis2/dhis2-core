@@ -7,8 +7,6 @@ name: "CodeQL"
 env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-  # This is to quiet down maven logs on CI
-  MAVEN_CLI_OPTS: --batch-mode --no-transfer-progress
 
 on:
   pull_request:
@@ -58,9 +56,9 @@ jobs:
           config-file: ./.github/codeql/codeql-config.yml
 
       - name: Build core
-        run: mvn clean install -f ./dhis-2/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -V
+        run: mvn clean install -f ./dhis-2/pom.xml --batch-mode --no-transfer-progress -Pdev -DskipTests=true -Dmaven.javadoc.skip=true -V
       - name: Build web
-        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml -Pdev -Pjdk11 -DskipTests=true -Dmaven.javadoc.skip=true -V
+        run: mvn clean install -f ./dhis-2/dhis-web/pom.xml --batch-mode --no-transfer-progress -Pdev -DskipTests=true -Dmaven.javadoc.skip=true -V
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1

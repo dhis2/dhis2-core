@@ -63,6 +63,8 @@ public class MessageConversationParams
 
     private boolean forceNotification;
 
+    private String extMessageId;
+
     private MessageConversationParams()
     {
     }
@@ -70,17 +72,17 @@ public class MessageConversationParams
     private Set<FileResource> attachments;
 
     private MessageConversationParams( Collection<User> recipients, User sender, String subject, String text,
-        MessageType messageType )
+        MessageType messageType, String extMessageId )
     {
         this.recipients = new HashSet<>( recipients );
         this.sender = sender;
         this.subject = subject;
         this.text = text;
         this.messageType = messageType;
-
         this.priority = MessageConversationPriority.NONE;
         this.status = MessageConversationStatus.NONE;
         this.forceNotification = false;
+        this.extMessageId = extMessageId;
     }
 
     public Set<User> getRecipients()
@@ -138,6 +140,11 @@ public class MessageConversationParams
         return attachments;
     }
 
+    public String getExtMessageId()
+    {
+        return extMessageId;
+    }
+
     public MessageConversation createMessageConversation()
     {
         MessageConversation conversation = new MessageConversation( subject, sender, messageType );
@@ -145,6 +152,7 @@ public class MessageConversationParams
         conversation.setAssignee( assignee );
         conversation.setStatus( status );
         conversation.setPriority( priority );
+        conversation.setExtMessageId( extMessageId );
 
         return conversation;
     }
@@ -158,9 +166,10 @@ public class MessageConversationParams
             this.params = new MessageConversationParams();
         }
 
-        public Builder( Collection<User> recipients, User sender, String subject, String text, MessageType messageType )
+        public Builder( Collection<User> recipients, User sender, String subject, String text, MessageType messageType,
+            String extMessageId )
         {
-            this.params = new MessageConversationParams( recipients, sender, subject, text, messageType );
+            this.params = new MessageConversationParams( recipients, sender, subject, text, messageType, extMessageId );
         }
 
         public Builder withRecipients( Set<User> recipients )
@@ -226,6 +235,12 @@ public class MessageConversationParams
         public Builder withAttachments( Set<FileResource> attachments )
         {
             this.params.attachments = attachments;
+            return this;
+        }
+
+        public Builder withExtMessageId( String extMessageId )
+        {
+            this.params.extMessageId = extMessageId;
             return this;
         }
 

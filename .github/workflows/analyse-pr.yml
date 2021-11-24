@@ -2,8 +2,6 @@ name: SonarQube analysis
 env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-  # This is to quiet down maven logs on CI
-  MAVEN_CLI_OPTS: --batch-mode --no-transfer-progress
 
 on:
   push:
@@ -41,8 +39,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         if: github.event_name == 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11
-          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
+          mvn -f dhis-2/pom.xml clean install --batch-mode --no-transfer-progress -Psonarqube
+          mvn -f dhis-2/pom.xml sonar:sonar --batch-mode --no-transfer-progress -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
 
       - name: Analyse long-living branch
         env:
@@ -50,5 +48,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         if: github.event_name != 'pull_request'
         run: |
-          mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11
-          mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
+          mvn -f dhis-2/pom.xml clean install --batch-mode --no-transfer-progress -Psonarqube
+          mvn -f dhis-2/pom.xml sonar:sonar --batch-mode --no-transfer-progress -Dsonar.branch.name=${GITHUB_REF#refs/heads/} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')

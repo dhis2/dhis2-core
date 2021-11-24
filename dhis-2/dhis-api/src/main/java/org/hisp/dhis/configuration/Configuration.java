@@ -75,6 +75,8 @@ public class Configuration
 
     private UserGroup feedbackRecipients;
 
+    private UserGroup systemUpdateNotificationRecipients;
+
     private OrganisationUnitLevel offlineOrganisationUnitLevel;
 
     private IndicatorGroup infrastructuralIndicators;
@@ -152,6 +154,19 @@ public class Configuration
     public void setFeedbackRecipients( UserGroup feedbackRecipients )
     {
         this.feedbackRecipients = feedbackRecipients;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public UserGroup getSystemUpdateNotificationRecipients()
+    {
+        return systemUpdateNotificationRecipients;
+    }
+
+    public void setSystemUpdateNotificationRecipients( UserGroup systemUpdateNotificationRecipients )
+    {
+        this.systemUpdateNotificationRecipients = systemUpdateNotificationRecipients;
     }
 
     @JsonProperty

@@ -60,16 +60,8 @@ remove_debian_containers () {
     done
 }
 
-remove_alpine_containers () {
-    # cleanup the variants
-    for TOMCAT_TAG in "${TOMCAT_ALPINE_TAGS[@]}"; do
-        remove "${CORE_IMAGE}-${TOMCAT_IMAGE}-${TOMCAT_TAG}"
-    done
-}
-
 main () {
     remove_debian_containers
-    remove_alpine_containers
 }
 
 

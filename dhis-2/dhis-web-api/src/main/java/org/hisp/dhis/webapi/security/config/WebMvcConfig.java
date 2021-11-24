@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.Compression;
+import org.hisp.dhis.common.DefaultRequestInfoService;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -43,6 +44,7 @@ import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
+import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
@@ -92,6 +94,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
 
     @Autowired
     public CurrentUserInfoHandlerMethodArgumentResolver currentUserInfoHandlerMethodArgumentResolver;
+
+    @Autowired
+    public DefaultRequestInfoService requestInfoService;
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -212,6 +217,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     public void addInterceptors( InterceptorRegistry registry )
     {
         registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
+        registry.addInterceptor( new RequestInfoInterceptor( requestInfoService ) );
     }
 
     private Map<String, MediaType> mediaTypeMap = new ImmutableMap.Builder<String, MediaType>()

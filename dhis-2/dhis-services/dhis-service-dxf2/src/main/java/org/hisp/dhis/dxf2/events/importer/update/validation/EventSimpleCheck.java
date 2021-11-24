@@ -35,10 +35,12 @@ import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.springframework.stereotype.Component;
 
 /**
  * @author maikel arabori
  */
+@Component
 public class EventSimpleCheck implements Checker
 {
     @Override

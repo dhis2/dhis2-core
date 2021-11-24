@@ -46,12 +46,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <minimum-maven.version>3.6.0</minimum-maven.version>
-        <minimum-java.version>1.8</minimum-java.version>
+        <minimum-java.version>11</minimum-java.version>
 
         <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
         <sonar.organization>dhis2</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <surefireArgLine>-Xmx1024m</surefireArgLine>
+        <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
 
         <!-- *Dependencies* -->
 
@@ -85,13 +85,9 @@
         <flyway-core.version>8.0.4</flyway-core.version>
         <hibernate.version>5.4.28.Final</hibernate.version>
         <hibernate-types.version>2.10.4</hibernate-types.version>
-        <!-- Keep in sync with Hibernate! -->
-        <byte-buddy.version>1.10.17</byte-buddy.version>
-        <!-- Keep in sync with Hibernate! -->
-        <javassist.version>3.27.0-GA</javassist.version>
         <!-- Data sources,db pools and db drivers-->
         <c3p0.version>0.9.5.5</c3p0.version>
-        <HikariCP.version>4.0.3</HikariCP.version>
+        <HikariCP.version>5.0.0</HikariCP.version>
         <postgresql-driver.version>42.2.19</postgresql-driver.version>
         <postgis-jdbc.version>2.5.0</postgis-jdbc.version>
         <datasource-proxy.version>1.7</datasource-proxy.version>
@@ -117,7 +113,7 @@
         <jaxws-ri.version>2.3.2</jaxws-ri.version>
         <jakarta.xml.ws-api.version>2.3.3</jakarta.xml.ws-api.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
-        <xercesImpl.version>2.12.0</xercesImpl.version>
+        <xercesImpl.version>2.12.1</xercesImpl.version>
 
         <!--Reporting -->
         <jasperreports.version>6.3.1</jasperreports.version>
@@ -157,13 +153,10 @@
         <jsmpp-X.version>2.1.0-RELEASE</jsmpp-X.version>
         <jboss-logging.version>3.4.1.Final</jboss-logging.version>
         <jsoup.version>1.14.3</jsoup.version>
-
-        <!-- Embedded Jetty -->
-        <jetty.version>9.4.41.v20210516</jetty.version>
-        <maven-jetty-plugin.version>9.4.38.v20210224</maven-jetty-plugin.version>
+        <jetty.version>10.0.7</jetty.version>
 
         <!-- Div. utils -->
-        <version.debezium>1.5.2.Final</version.debezium>
+        <version.debezium>1.7.1.Final</version.debezium>
         <guava.version>31.0.1-jre</guava.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
         <google-api-client.version>1.32.2</google-api-client.version>
@@ -232,6 +225,7 @@
         <ow2.asm.version>9.0</ow2.asm.version>
         <jai-imageio.version>1.1.1</jai-imageio.version>
         <gson.version>2.8.2</gson.version>
+        <semver4j.version>3.1.0</semver4j.version>
     </properties>
 
     <distributionManagement>
@@ -345,27 +339,12 @@
 
     <profiles>
 
-        <profile>
-            <!-- JDK 9+ -->
-            <id>jdk11</id>
-            <properties>
-                <maven.compiler.release>8</maven.compiler.release>
-                <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
-            </properties>
-        </profile>
-
-        <profile>
-            <!-- JDK 8 only -->
-            <id>jdk8</id>
-            <properties>
-                <maven.compiler.source>1.8</maven.compiler.source>
-                <maven.compiler.target>1.8</maven.compiler.target>
-            </properties>
-        </profile>
-
         <!-- Default profile will run all unit-tests, but not the integration tests -->
         <profile>
             <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -522,8 +501,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <release>${minimum-java.version}</release>
                         <encoding>${project.build.sourceEncoding}</encoding>
                         <annotationProcessorPaths>
                             <path>
@@ -1444,10 +1422,6 @@
                 <version>${hibernate.version}</version>
                 <exclusions>
                     <exclusion>
-                        <groupId>org.javassist</groupId>
-                        <artifactId>javassist</artifactId>
-                    </exclusion>
-                    <exclusion>
                         <groupId>com.fasterxml</groupId>
                         <artifactId>classmate</artifactId>
                     </exclusion>
@@ -1479,16 +1453,6 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-ehcache</artifactId>
                 <version>${hibernate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.javassist</groupId>
-                <artifactId>javassist</artifactId>
-                <version>${javassist.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>net.bytebuddy</groupId>
-                <artifactId>byte-buddy</artifactId>
-                <version>${byte-buddy.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -2157,6 +2121,11 @@
                 <groupId>org.jsoup</groupId>
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.vdurmont</groupId>
+                <artifactId>semver4j</artifactId>
+                <version>${semver4j.version}</version>
             </dependency>
 
 

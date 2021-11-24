@@ -218,7 +218,8 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
     {
         if ( isAssignableFrom( klass, String.class )
             || isAssignableFrom( klass, Character.class )
-            || isAssignableFrom( klass, Byte.class ) )
+            || isAssignableFrom( klass, Byte.class )
+            || isAssignableFrom( klass, Class.class ) )
         {
             return PropertyType.TEXT;
         }

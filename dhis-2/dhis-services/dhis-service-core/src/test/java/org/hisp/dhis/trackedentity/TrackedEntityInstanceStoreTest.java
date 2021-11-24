@@ -36,6 +36,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -55,8 +57,11 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -301,6 +306,36 @@ public class TrackedEntityInstanceStoreTest
         assertEquals( 2, teis.size() );
         assertTrue( teis.contains( teiB ) );
         assertTrue( teis.contains( teiE ) );
+    }
+
+    @Test
+    public void testQueryOrderByIdInsteadOfCreatedDate()
+    {
+        LocalDate now = LocalDate.now();
+        Date today = Date.from( now.atStartOfDay().toInstant( ZoneOffset.UTC ) );
+        Date tomorrow = Date.from( now.plusDays( 1 ).atStartOfDay().toInstant( ZoneOffset.UTC ) );
+        teiA.setCreated( tomorrow );
+        teiB.setCreated( today );
+        teiStore.save( teiA );
+        teiStore.save( teiB );
+
+        programInstanceService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
+
+        // Get all
+
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        OrderParam orderParam = OrderParam.builder()
+            .field( TrackedEntityInstanceQueryParams.CREATED_ID )
+            .direction( OrderParam.SortDirection.ASC )
+            .build();
+        params.setOrders( Lists.newArrayList( orderParam ) );
+
+        List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
+
+        assertEquals( 2, teis.size() );
+
+        assertEquals( teiA.getUid(), teis.get( 0 ).getUid() );
+        assertEquals( teiB.getUid(), teis.get( 1 ).getUid() );
     }
 
     @Test
