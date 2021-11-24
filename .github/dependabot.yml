@@ -28,15 +28,18 @@ updates:
       - "java"
       - "run-api-tests"
     ignore:
-      - dependency-name: "org.hibernate:hibernate-core" # later versions have failing tests
+      - dependency-name: "org.hibernate:hibernate-core" # we cannot yet update to 5.6 or above due to https://github.com/vladmihalcea/hibernate-types#installation
         versions:
-          - ">= 5.4.28.Final"
-      - dependency-name: "org.hibernate:hibernate-validator" # later versions have failing tests
+          - ">= 5.6"
+      - dependency-name: "org.hibernate:hibernate-echache" # needs to stay in sync with hibernate-core, versions are kept in sync in pom via hibernate.version
         versions:
-          - ">= 5.4.28.Final"
-      - dependency-name: "org.hibernate:hibernate-echache" # later versions have failing tests
+          - ">= 5.6"
+      - dependency-name: "org.hibernate:hibernate-spatial" # needs to stay in sync with hibernate-core, versions are kept in sync in pom via hibernate.versions
         versions:
-          - ">= 5.4.28.Final"
+          - ">= 5.6"
+      - dependency-name: "org.hibernate:hibernate-validator" # requires more work due to package changes https://hibernate.org/validator/documentation/migration-guide/#7-0-x
+        versions:
+          - ">= 7.0"
       - dependency-name: "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5" # later versions have failing tests
         versions:
           - ">= 2.11.2"
