@@ -64,10 +64,10 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
     private final Map<String, Collection<String>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
 
     @JsonProperty
-    private final SortedMap<String, Collection<String>> dataElementsViolatingExclusiveGroupSets;
+    private final SortedMap<String, List<String>> dataElementsViolatingExclusiveGroupSets;
 
     @JsonProperty
-    private final SortedMap<String, Collection<String>> dataElementsInDataSetNotInForm;
+    private final SortedMap<String, List<String>> dataElementsInDataSetNotInForm;
 
     @JsonProperty
     private final List<String> invalidCategoryCombos;
@@ -88,7 +88,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
     private final Map<String, String> invalidIndicatorDenominators;
 
     @JsonProperty
-    private final SortedMap<String, Collection<String>> indicatorsViolatingExclusiveGroupSets;
+    private final SortedMap<String, List<String>> indicatorsViolatingExclusiveGroupSets;
 
     @JsonProperty
     private final List<String> duplicatePeriods;
@@ -103,7 +103,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
     private final List<String> organisationUnitsWithoutGroups;
 
     @JsonProperty
-    private final SortedMap<String, Collection<String>> organisationUnitsViolatingExclusiveGroupSets;
+    private final SortedMap<String, List<String>> organisationUnitsViolatingExclusiveGroupSets;
 
     @JsonProperty
     private final List<String> organisationUnitGroupsWithoutGroupSets;
@@ -278,7 +278,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
                 .collect( toUnmodifiableList() );
     }
 
-    private SortedMap<String, Collection<String>> mapToSortedDisplayNameOrUid(
+    private SortedMap<String, List<String>> mapToSortedDisplayNameOrUid(
         SortedMap<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> map )
     {
         return map == null
@@ -286,13 +286,21 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
             : map.entrySet().stream().collect( toMap(
                 e -> defaultIfNull( e.getKey() ),
                 e -> mapToListOfDisplayNameOrUid( e.getValue() ),
-                ( v1, v2 ) -> {
-                    Collection<String> both = new ArrayList<>();
-                    both.addAll( v1 );
-                    both.addAll( v2 );
-                    return both;
-                },
+                FlattenedDataIntegrityReport::concatLists,
                 TreeMap::new ) );
+    }
+
+    /**
+     * On a "collision" (key already exists/has a value) we do combine both
+     * lists. At this point we have to assume the passed {@link Collection}s are
+     * read-only.
+     */
+    private static List<String> concatLists( List<String> a, List<String> b )
+    {
+        List<String> both = new ArrayList<>();
+        both.addAll( a );
+        both.addAll( b );
+        return both;
     }
 
     private String defaultIfNull( IdentifiableObject object )
