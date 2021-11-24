@@ -615,6 +615,15 @@ public class DefaultDataIntegrityService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
+        JobProgress progress )
+    {
+        return new FlattenedDataIntegrityReport( getDataIntegrityReport( checks, progress ) );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public DataIntegrityReport getDataIntegrityReport( Set<DataIntegrityCheckType> checks, JobProgress progress )
     {
         progress.startingProcess( "Data Integrity check" );

@@ -46,10 +46,7 @@ public interface DataIntegrityService
     /**
      * Returns a FlattenedDataIntegrityReport.
      */
-    default FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress )
-    {
-        return new FlattenedDataIntegrityReport( getDataIntegrityReport( checks, progress ) );
-    }
+    FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
+        JobProgress progress );
 
 }
