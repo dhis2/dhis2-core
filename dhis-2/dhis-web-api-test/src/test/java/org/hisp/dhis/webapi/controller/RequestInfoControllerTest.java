@@ -32,9 +32,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.filter.RequestInfoFilter;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Tests the {@link RequestInfoController}.
@@ -43,6 +47,16 @@ import org.junit.Test;
  */
 public class RequestInfoControllerTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    private RequestInfoFilter requestInfoFilter;
+
+    @Override
+    protected void setupMvc( WebApplicationContext webApplicationContext )
+    {
+        this.mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
+            .addFilter( requestInfoFilter ).build();
+    }
+
     @Test
     public void testGetCurrentInfo_NoHeader()
     {

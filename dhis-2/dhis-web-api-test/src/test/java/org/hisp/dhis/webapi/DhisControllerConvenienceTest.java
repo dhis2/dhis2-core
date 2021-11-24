@@ -35,6 +35,7 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
+import org.hisp.dhis.webapi.controller.RequestInfoControllerTest;
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.Before;
@@ -73,7 +74,7 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
     @Autowired
     private UserService _userService;
 
-    private MockMvc mvc;
+    protected MockMvc mvc;
 
     private MockHttpSession session;
 
@@ -89,9 +90,20 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
+        setupMvc( webApplicationContext );
         TestUtils.executeStartupRoutines( webApplicationContext );
         superUser = switchToNewUser( null, "ALL" );
+    }
+
+    /**
+     * Sets up the {@link MockMvc} instance. This can be overridden to add
+     * additional filters.
+     *
+     * See {@link RequestInfoControllerTest} for more an example.
+     */
+    protected void setupMvc( WebApplicationContext webApplicationContext )
+    {
+        this.mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
     }
 
     protected final String getSuperuserUid()
