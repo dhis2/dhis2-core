@@ -25,31 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
+package org.hisp.dhis.scheduling.parameters;
 
+import java.util.Optional;
 import java.util.Set;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import lombok.Getter;
+import lombok.Setter;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.parameters.jackson.DataIntegrityJobParametersDeserializer;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Fredrik Fjeld
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+@Getter
+@Setter
+@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+@JsonDeserialize( using = DataIntegrityJobParametersDeserializer.class )
+public class DataIntegrityJobParameters implements JobParameters
 {
-    String ID = DataIntegrityService.class.getName();
+    private static final long serialVersionUID = 1073997854310838296L;
 
-    /**
-     * Returns a DataIntegrityReport.
-     */
-    DataIntegrityReport getDataIntegrityReport( Set<DataIntegrityCheckType> checks, JobProgress progress );
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    private Set<DataIntegrityCheckType> checks;
 
-    /**
-     * Returns a FlattenedDataIntegrityReport.
-     */
-    default FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress )
+    @Override
+    public Optional<ErrorReport> validate()
     {
-        return new FlattenedDataIntegrityReport( getDataIntegrityReport( checks, progress ) );
+        return Optional.empty();
     }
 
 }

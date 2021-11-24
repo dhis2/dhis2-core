@@ -25,31 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import java.util.Set;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
- * @author Fredrik Fjeld
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+public class DataIntegrityJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<DataIntegrityJobParameters>
 {
-    String ID = DataIntegrityService.class.getName();
-
-    /**
-     * Returns a DataIntegrityReport.
-     */
-    DataIntegrityReport getDataIntegrityReport( Set<DataIntegrityCheckType> checks, JobProgress progress );
-
-    /**
-     * Returns a FlattenedDataIntegrityReport.
-     */
-    default FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress )
+    public DataIntegrityJobParametersDeserializer()
     {
-        return new FlattenedDataIntegrityReport( getDataIntegrityReport( checks, progress ) );
+        super( DataIntegrityJobParameters.class, CustomJobParameters.class );
     }
 
+    @JsonDeserialize
+    public static class CustomJobParameters extends DataIntegrityJobParameters
+    {
+    }
 }

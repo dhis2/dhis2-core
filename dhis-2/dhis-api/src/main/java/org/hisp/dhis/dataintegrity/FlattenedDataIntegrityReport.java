@@ -38,6 +38,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -48,7 +49,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-public class FlattenedDataIntegrityReport
+public class FlattenedDataIntegrityReport implements WebMessageResponse
 {
     @JsonProperty
     private final List<String> dataElementsWithoutDataSet;

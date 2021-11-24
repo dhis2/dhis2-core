@@ -42,10 +42,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
+
+import javax.annotation.PostConstruct;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.antlr.ParserException;
@@ -84,6 +90,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.stereotype.Service;
@@ -137,20 +144,27 @@ public class DefaultDataIntegrityService
     // DataElement
     // -------------------------------------------------------------------------
 
-    @Override
-    public List<DataElement> getDataElementsWithoutDataSet()
+    /**
+     * Gets all data elements which are not assigned to any data set.
+     */
+    List<DataElement> getDataElementsWithoutDataSet()
     {
-        return dataElementService.getDataElementsWithoutDataSets();
+        return sorted( new ArrayList<>( dataElementService.getDataElementsWithoutDataSets() ) );
     }
 
-    @Override
-    public List<DataElement> getDataElementsWithoutGroups()
+    /**
+     * Gets all data elements which are not members of any groups.
+     */
+    List<DataElement> getDataElementsWithoutGroups()
     {
-        return dataElementService.getDataElementsWithoutGroups();
+        return sorted( new ArrayList<>( dataElementService.getDataElementsWithoutGroups() ) );
     }
 
-    @Override
-    public SortedMap<DataElement, Collection<DataSet>> getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
+    /**
+     * Returns all data elements which are members of data sets with different
+     * period types.
+     */
+    SortedMap<DataElement, Collection<DataSet>> getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
     {
         Collection<DataElement> dataElements = dataElementService.getAllDataElements();
 
@@ -181,8 +195,11 @@ public class DefaultDataIntegrityService
         return targets;
     }
 
-    @Override
-    public SortedMap<DataElement, Collection<DataElementGroup>> getDataElementsViolatingExclusiveGroupSets()
+    /**
+     * Gets all data elements units which are members of more than one group
+     * which enter into an exclusive group set.
+     */
+    SortedMap<DataElement, Collection<DataElementGroup>> getDataElementsViolatingExclusiveGroupSets()
     {
         Collection<DataElementGroupSet> groupSets = dataElementService.getAllDataElementGroupSets();
 
@@ -202,8 +219,11 @@ public class DefaultDataIntegrityService
         return targets;
     }
 
-    @Override
-    public SortedMap<DataSet, Collection<DataElement>> getDataElementsInDataSetNotInForm()
+    /**
+     * Returns all data elements which are member of a data set but not part of
+     * either the custom form or sections of the data set.
+     */
+    SortedMap<DataSet, Collection<DataElement>> getDataElementsInDataSetNotInForm()
     {
         SortedMap<DataSet, Collection<DataElement>> map = new TreeMap<>();
 
@@ -238,8 +258,10 @@ public class DefaultDataIntegrityService
         return map;
     }
 
-    @Override
-    public List<CategoryCombo> getInvalidCategoryCombos()
+    /**
+     * Returns all invalid category combinations.
+     */
+    List<CategoryCombo> getInvalidCategoryCombos()
     {
         List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
 
@@ -250,18 +272,19 @@ public class DefaultDataIntegrityService
     // DataSet
     // -------------------------------------------------------------------------
 
-    @Override
-    public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
+    List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
     {
-        return dataSetService.getDataSetsNotAssignedToOrganisationUnits();
+        return sorted( new ArrayList<>( dataSetService.getDataSetsNotAssignedToOrganisationUnits() ) );
     }
 
     // -------------------------------------------------------------------------
     // Indicator
     // -------------------------------------------------------------------------
 
-    @Override
-    public Set<Set<Indicator>> getIndicatorsWithIdenticalFormulas()
+    /**
+     * Gets all indicators with identical numerator and denominator.
+     */
+    Set<Set<Indicator>> getIndicatorsWithIdenticalFormulas()
     {
         Map<String, Indicator> formulas = new HashMap<>();
 
@@ -299,20 +322,26 @@ public class DefaultDataIntegrityService
         return Sets.newHashSet( targets.values() );
     }
 
-    @Override
-    public List<Indicator> getIndicatorsWithoutGroups()
+    /**
+     * Gets all indicators which are not assigned to any groups.
+     */
+    List<Indicator> getIndicatorsWithoutGroups()
     {
-        return indicatorService.getIndicatorsWithoutGroups();
+        return sorted( new ArrayList<>( indicatorService.getIndicatorsWithoutGroups() ) );
     }
 
-    @Override
-    public SortedMap<Indicator, String> getInvalidIndicatorNumerators()
+    /**
+     * Gets all indicators with invalid indicator numerators.
+     */
+    SortedMap<Indicator, String> getInvalidIndicatorNumerators()
     {
         return getInvalidIndicators( Indicator::getNumerator );
     }
 
-    @Override
-    public SortedMap<Indicator, String> getInvalidIndicatorDenominators()
+    /**
+     * Gets all indicators with invalid indicator denominators.
+     */
+    SortedMap<Indicator, String> getInvalidIndicatorDenominators()
     {
         return getInvalidIndicators( Indicator::getDenominator );
     }
@@ -336,8 +365,11 @@ public class DefaultDataIntegrityService
         return invalids;
     }
 
-    @Override
-    public SortedMap<Indicator, Collection<IndicatorGroup>> getIndicatorsViolatingExclusiveGroupSets()
+    /**
+     * Gets all indicators units which are members of more than one group which
+     * enter into an exclusive group set.
+     */
+    SortedMap<Indicator, Collection<IndicatorGroup>> getIndicatorsViolatingExclusiveGroupSets()
     {
         Collection<IndicatorGroupSet> groupSets = indicatorService.getAllIndicatorGroupSets();
 
@@ -361,8 +393,11 @@ public class DefaultDataIntegrityService
     // Period
     // -------------------------------------------------------------------------
 
-    @Override
-    public List<Period> getDuplicatePeriods()
+    /**
+     * Lists all Periods which are duplicates, based on the period type and
+     * start date.
+     */
+    List<Period> getDuplicatePeriods()
     {
         Collection<Period> periods = periodService.getAllPeriods();
 
@@ -394,54 +429,52 @@ public class DefaultDataIntegrityService
     // OrganisationUnit
     // -------------------------------------------------------------------------
 
-    @Override
-    public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
+    List<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
     {
-        return organisationUnitService.getOrganisationUnitsWithCyclicReferences();
+        return sorted( new ArrayList<>( organisationUnitService.getOrganisationUnitsWithCyclicReferences() ) );
     }
 
-    @Override
-    public List<OrganisationUnit> getOrphanedOrganisationUnits()
+    List<OrganisationUnit> getOrphanedOrganisationUnits()
     {
-        return organisationUnitService.getOrphanedOrganisationUnits();
+        return sorted( new ArrayList<>( organisationUnitService.getOrphanedOrganisationUnits() ) );
     }
 
-    @Override
-    public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
+    List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
     {
-        return organisationUnitService.getOrganisationUnitsWithoutGroups();
+        return sorted( new ArrayList<>( organisationUnitService.getOrganisationUnitsWithoutGroups() ) );
     }
 
-    @Override
-    public List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets()
+    SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets()
     {
-        return organisationUnitService.getOrganisationUnitsViolatingExclusiveGroupSets();
+        return groupsByUnit( organisationUnitService.getOrganisationUnitsViolatingExclusiveGroupSets() );
     }
 
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
+    List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
     {
-        return organisationUnitGroupService.getOrganisationUnitGroupsWithoutGroupSets();
+        return sorted( new ArrayList<>( organisationUnitGroupService.getOrganisationUnitGroupsWithoutGroupSets() ) );
     }
 
     // -------------------------------------------------------------------------
     // ValidationRule
     // -------------------------------------------------------------------------
 
-    @Override
-    public List<ValidationRule> getValidationRulesWithoutGroups()
+    List<ValidationRule> getValidationRulesWithoutGroups()
     {
-        return validationRuleService.getValidationRulesWithoutGroups();
+        return sorted( new ArrayList<>( validationRuleService.getValidationRulesWithoutGroups() ) );
     }
 
-    @Override
-    public SortedMap<ValidationRule, String> getInvalidValidationRuleLeftSideExpressions()
+    /**
+     * Gets all ValidationRules with invalid left side expressions.
+     */
+    SortedMap<ValidationRule, String> getInvalidValidationRuleLeftSideExpressions()
     {
         return getInvalidValidationRuleExpressions( ValidationRule::getLeftSide );
     }
 
-    @Override
-    public SortedMap<ValidationRule, String> getInvalidValidationRuleRightSideExpressions()
+    /**
+     * Gets all ValidationRules with invalid right side expressions.
+     */
+    SortedMap<ValidationRule, String> getInvalidValidationRuleRightSideExpressions()
     {
         return getInvalidValidationRuleExpressions( ValidationRule::getRightSide );
     }
@@ -466,90 +499,145 @@ public class DefaultDataIntegrityService
         return invalids;
     }
 
-    @Override
-    public DataIntegrityReport getDataIntegrityReport()
+    @Getter
+    @AllArgsConstructor
+    private static class DataIntegrityCheck<T>
     {
+        private final DataIntegrityCheckType type;
+
+        private final Supplier<T> check;
+
+        private final BiConsumer<DataIntegrityReport, T> setter;
+    }
+
+    private final Map<DataIntegrityCheckType, DataIntegrityCheck<?>> integrityChecks = new ConcurrentHashMap<>();
+
+    private <T> void registerIntegrityCheck( DataIntegrityCheckType type, Supplier<T> check,
+        BiConsumer<DataIntegrityReport, T> setter )
+    {
+        integrityChecks.put( type, new DataIntegrityCheck<>( type, check, setter ) );
+    }
+
+    /**
+     * Maps all {@link DataIntegrityCheck}s to their implementation and the
+     * report field to set with the result.
+     */
+    @PostConstruct
+    public void initIntegrityChecks()
+    {
+        registerIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS,
+            this::getDataElementsWithoutDataSet, DataIntegrityReport::setDataElementsWithoutDataSet );
+        registerIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS, this::getDataElementsWithoutGroups,
+            DataIntegrityReport::setDataElementsWithoutGroups );
+        registerIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES,
+            this::getDataElementsAssignedToDataSetsWithDifferentPeriodTypes,
+            DataIntegrityReport::setDataElementsAssignedToDataSetsWithDifferentPeriodTypes );
+        registerIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
+            this::getDataElementsViolatingExclusiveGroupSets,
+            DataIntegrityReport::setDataElementsViolatingExclusiveGroupSets );
+        registerIntegrityCheck( DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM,
+            this::getDataElementsInDataSetNotInForm, DataIntegrityReport::setDataElementsInDataSetNotInForm );
+
+        registerIntegrityCheck( DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID, this::getInvalidCategoryCombos,
+            DataIntegrityReport::setInvalidCategoryCombos );
+
+        registerIntegrityCheck( DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS,
+            this::getDataSetsNotAssignedToOrganisationUnits,
+            DataIntegrityReport::setDataSetsNotAssignedToOrganisationUnits );
+
+        registerIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITH_IDENTICAL_FORMULAS,
+            this::getIndicatorsWithIdenticalFormulas, DataIntegrityReport::setIndicatorsWithIdenticalFormulas );
+        registerIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS, this::getIndicatorsWithoutGroups,
+            DataIntegrityReport::setIndicatorsWithoutGroups );
+        registerIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITH_INVALID_NUMERATOR,
+            this::getInvalidIndicatorNumerators, DataIntegrityReport::setInvalidIndicatorNumerators );
+        registerIntegrityCheck( DataIntegrityCheckType.INDICATORS_WITH_INVALID_DENOMINATOR,
+            this::getInvalidIndicatorDenominators, DataIntegrityReport::setInvalidIndicatorDenominators );
+        registerIntegrityCheck( DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS,
+            this::getIndicatorsViolatingExclusiveGroupSets,
+            DataIntegrityReport::setIndicatorsViolatingExclusiveGroupSets );
+
+        registerIntegrityCheck( DataIntegrityCheckType.PERIODS_DUPLICATES, this::getDuplicatePeriods,
+            DataIntegrityReport::setDuplicatePeriods );
+
+        registerIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES,
+            this::getOrganisationUnitsWithCyclicReferences,
+            DataIntegrityReport::setOrganisationUnitsWithCyclicReferences );
+        registerIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED, this::getOrphanedOrganisationUnits,
+            DataIntegrityReport::setOrphanedOrganisationUnits );
+        registerIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_WITHOUT_GROUPS,
+            this::getOrganisationUnitsWithoutGroups, DataIntegrityReport::setOrganisationUnitsWithoutGroups );
+        registerIntegrityCheck( DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS,
+            this::getOrganisationUnitsViolatingExclusiveGroupSets,
+            DataIntegrityReport::setOrganisationUnitsViolatingExclusiveGroupSets );
+        registerIntegrityCheck( DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS,
+            this::getOrganisationUnitGroupsWithoutGroupSets,
+            DataIntegrityReport::setOrganisationUnitGroupsWithoutGroupSets );
+
+        registerIntegrityCheck( DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS,
+            this::getValidationRulesWithoutGroups, DataIntegrityReport::setValidationRulesWithoutGroups );
+        registerIntegrityCheck( DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION,
+            this::getInvalidValidationRuleLeftSideExpressions,
+            DataIntegrityReport::setInvalidValidationRuleLeftSideExpressions );
+        registerIntegrityCheck( DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_RIGHT_SIDE_EXPRESSION,
+            this::getInvalidValidationRuleRightSideExpressions,
+            DataIntegrityReport::setInvalidValidationRuleRightSideExpressions );
+
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS,
+            this::getInvalidProgramIndicatorExpressions, DataIntegrityReport::setInvalidProgramIndicatorExpressions );
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS,
+            this::getInvalidProgramIndicatorFilters, DataIntegrityReport::setInvalidProgramIndicatorFilters );
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION,
+            this::getProgramIndicatorsWithNoExpression, DataIntegrityReport::setProgramIndicatorsWithNoExpression );
+
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION,
+            this::getProgramRulesWithNoCondition, DataIntegrityReport::setProgramRulesWithoutCondition );
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY,
+            this::getProgramRulesWithNoPriority, DataIntegrityReport::setProgramRulesWithNoPriority );
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_ACTION, this::getProgramRulesWithNoAction,
+            DataIntegrityReport::setProgramRulesWithNoAction );
+
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_DATA_ELEMENT,
+            this::getProgramRuleVariablesWithNoDataElement,
+            DataIntegrityReport::setProgramRuleVariablesWithNoDataElement );
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_ATTRIBUTE,
+            this::getProgramRuleVariablesWithNoAttribute, DataIntegrityReport::setProgramRuleVariablesWithNoAttribute );
+
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_DATA_OBJECT,
+            this::getProgramRuleActionsWithNoDataObject, DataIntegrityReport::setProgramRuleActionsWithNoDataObject );
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_NOTIFICATION,
+            this::getProgramRuleActionsWithNoNotificationTemplate,
+            DataIntegrityReport::setProgramRuleActionsWithNoNotification );
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_SECTION,
+            this::getProgramRuleActionsWithNoSectionId, DataIntegrityReport::setProgramRuleActionsWithNoSectionId );
+        registerIntegrityCheck( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE,
+            this::getProgramRuleActionsWithNoProgramStageId, DataIntegrityReport::setProgramRuleActionsWithNoStageId );
+    }
+
+    @Override
+    public DataIntegrityReport getDataIntegrityReport( Set<DataIntegrityCheckType> checks, JobProgress progress )
+    {
+        progress.startingProcess( "Data Integrity check" );
         DataIntegrityReport report = new DataIntegrityReport();
-
-        report.setDataElementsWithoutDataSet( new ArrayList<>( getDataElementsWithoutDataSet() ) );
-        report.setDataElementsWithoutGroups( new ArrayList<>( getDataElementsWithoutGroups() ) );
-        report.setDataElementsAssignedToDataSetsWithDifferentPeriodTypes(
-            getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
-        report.setDataElementsViolatingExclusiveGroupSets( getDataElementsViolatingExclusiveGroupSets() );
-        report.setDataElementsInDataSetNotInForm( getDataElementsInDataSetNotInForm() );
-        report.setInvalidCategoryCombos( getInvalidCategoryCombos() );
-
-        log.info( "Checked data elements" );
-
-        report.setDataSetsNotAssignedToOrganisationUnits(
-            new ArrayList<>( getDataSetsNotAssignedToOrganisationUnits() ) );
-
-        log.info( "Checked data sets" );
-
-        report.setIndicatorsWithIdenticalFormulas( getIndicatorsWithIdenticalFormulas() );
-        report.setIndicatorsWithoutGroups( new ArrayList<>( getIndicatorsWithoutGroups() ) );
-        report.setInvalidIndicatorNumerators( getInvalidIndicatorNumerators() );
-        report.setInvalidIndicatorDenominators( getInvalidIndicatorDenominators() );
-        report.setIndicatorsViolatingExclusiveGroupSets( getIndicatorsViolatingExclusiveGroupSets() );
-
-        log.info( "Checked indicators" );
-
-        report.setDuplicatePeriods( getDuplicatePeriods() );
-
-        log.info( "Checked periods" );
-
-        report
-            .setOrganisationUnitsWithCyclicReferences( new ArrayList<>( getOrganisationUnitsWithCyclicReferences() ) );
-        report.setOrphanedOrganisationUnits( new ArrayList<>( getOrphanedOrganisationUnits() ) );
-        report.setOrganisationUnitsWithoutGroups( new ArrayList<>( getOrganisationUnitsWithoutGroups() ) );
-        report.setOrganisationUnitsViolatingExclusiveGroupSets(
-            groupsByUnit( getOrganisationUnitsViolatingExclusiveGroupSets() ) );
-        report.setOrganisationUnitGroupsWithoutGroupSets(
-            new ArrayList<>( getOrganisationUnitGroupsWithoutGroupSets() ) );
-        report.setValidationRulesWithoutGroups( new ArrayList<>( getValidationRulesWithoutGroups() ) );
-
-        log.info( "Checked organisation units" );
-
-        report.setInvalidValidationRuleLeftSideExpressions( getInvalidValidationRuleLeftSideExpressions() );
-        report.setInvalidValidationRuleRightSideExpressions( getInvalidValidationRuleRightSideExpressions() );
-
-        log.info( "Checked validation rules" );
-
-        report.setInvalidProgramIndicatorExpressions( getInvalidProgramIndicatorExpressions() );
-        report.setInvalidProgramIndicatorFilters( getInvalidProgramIndicatorFilters() );
-        report.setProgramIndicatorsWithNoExpression( getProgramIndicatorsWithNoExpression() );
-
-        log.info( "Checked ProgramIndicators" );
-
-        report.setProgramRulesWithoutCondition( getProgramRulesWithNoCondition() );
-        report.setProgramRulesWithNoPriority( getProgramRulesWithNoPriority() );
-        report.setProgramRulesWithNoAction( getProgramRulesWithNoAction() );
-
-        log.info( "Checked ProgramRules" );
-
-        report.setProgramRuleVariablesWithNoDataElement( getProgramRuleVariablesWithNoDataElement() );
-        report.setProgramRuleVariablesWithNoAttribute( getProgramRuleVariablesWithNoAttribute() );
-
-        log.info( "Checked ProgramRuleVariables" );
-
-        report.setProgramRuleActionsWithNoDataObject( getProgramRuleActionsWithNoDataObject() );
-        report.setProgramRuleActionsWithNoNotification( getProgramRuleActionsWithNoNotificationTemplate() );
-        report.setProgramRuleActionsWithNoSectionId( getProgramRuleActionsWithNoSectionId() );
-        report.setProgramRuleActionsWithNoStageId( getProgramRuleActionsWithNoProgramStageId() );
-
-        log.info( "Checked ProgramRuleActions" );
-
-        Collections.sort( report.getDataElementsWithoutDataSet() );
-        Collections.sort( report.getDataElementsWithoutGroups() );
-        Collections.sort( report.getDataSetsNotAssignedToOrganisationUnits() );
-        Collections.sort( report.getIndicatorsWithoutGroups() );
-        Collections.sort( report.getOrganisationUnitsWithCyclicReferences() );
-        Collections.sort( report.getOrphanedOrganisationUnits() );
-        Collections.sort( report.getOrganisationUnitsWithoutGroups() );
-        Collections.sort( report.getOrganisationUnitGroupsWithoutGroupSets() );
-        Collections.sort( report.getValidationRulesWithoutGroups() );
-
+        for ( DataIntegrityCheckType type : checks )
+        {
+            performDataIntegrityCheck( integrityChecks.get( type ), report, progress );
+        }
+        progress.completedProcess( null );
         return report;
+    }
+
+    private <T> void performDataIntegrityCheck( DataIntegrityCheck<T> check, DataIntegrityReport report,
+        JobProgress progress )
+    {
+        progress.startingStage( check.getType().name().toLowerCase().replace( '_', ' ' ) );
+        progress.runStage( () -> check.getSetter().accept( report, check.getCheck().get() ) );
+    }
+
+    private static <T extends Comparable<? super T>> List<T> sorted( List<T> list )
+    {
+        Collections.sort( list );
+        return list;
     }
 
     private static SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> groupsByUnit(
