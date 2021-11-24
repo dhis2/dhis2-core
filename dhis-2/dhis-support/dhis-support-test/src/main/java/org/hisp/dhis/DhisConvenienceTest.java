@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -2340,17 +2341,22 @@ public abstract class DhisConvenienceTest
         injectSecurityContext( user );
     }
 
+    protected User createUserWithId( String username, String uid, String... authorities )
+    {
+        return _createUser( username, Optional.of( uid ), null, authorities );
+    }
+
     protected User createUser( String username, String... authorities )
     {
-        return _createUser( username, null, authorities );
+        return _createUser( username, Optional.empty(), null, authorities );
     }
 
     protected User createOpenIDUser( String username, String openIDIdentifier )
     {
-        return _createUser( username, openIDIdentifier );
+        return _createUser( username, Optional.empty(), openIDIdentifier );
     }
 
-    private User _createUser( String username, String openIDIdentifier, String... authorities )
+    private User _createUser( String username, Optional<String> uid, String openIDIdentifier, String... authorities )
     {
         checkUserServiceWasInjected();
 
@@ -2358,7 +2364,7 @@ public abstract class DhisConvenienceTest
 
         userService.addUserAuthorityGroup( group );
 
-        User user = createUser( username );
+        User user = uid.isPresent() ? createUser( username, uid.get() ) : createUser( username );
 
         userService.addUser( user );
 
@@ -2501,6 +2507,16 @@ public abstract class DhisConvenienceTest
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication( authentication );
         SecurityContextHolder.setContext( context );
+    }
+
+    private static User createUser( String username, String uid )
+    {
+        User user = new User();
+        user.setCode( username );
+        user.setFirstName( username );
+        user.setSurname( username );
+        user.setUid( uid );
+        return user;
     }
 
     private static User createUser( String username )

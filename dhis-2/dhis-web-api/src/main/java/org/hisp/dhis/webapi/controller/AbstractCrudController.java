@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
@@ -72,7 +73,11 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsonpatch.BulkJsonPatch;
+import org.hisp.dhis.jsonpatch.BulkPatchManager;
+import org.hisp.dhis.jsonpatch.BulkPatchParameters;
 import org.hisp.dhis.jsonpatch.JsonPatchManager;
+import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -146,6 +151,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @Autowired
     protected SharingService sharingService;
+
+    @Autowired
+    protected BulkPatchManager bulkPatchManager;
 
     @PutMapping( value = "/{uid}/translations" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
@@ -250,18 +258,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
-    }
-
-    private Patch diff( HttpServletRequest request )
-        throws IOException,
-        WebMessageException
-    {
-        ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
-        if ( mapper == null )
-        {
-            throw new WebMessageException( badRequest( "Unknown payload format." ) );
-        }
-        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
 
     @PatchMapping( "/{uid}/{property}" )
@@ -374,10 +370,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
-        prePatchEntity( persistedObject, patchedObject );
-
         // Only supports new Sharing format
         ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
+
+        prePatchEntity( persistedObject, patchedObject );
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
 
@@ -406,6 +402,47 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         }
 
         return webMessage;
+    }
+
+    @ResponseBody
+    @PatchMapping( path = "/sharing", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
+    public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
+        HttpServletRequest request )
+        throws Exception
+    {
+        final BulkJsonPatch bulkJsonPatch = jsonMapper.readValue( request.getInputStream(), BulkJsonPatch.class );
+
+        BulkPatchParameters patchParams = BulkPatchParameters.builder()
+            .validators( BulkPatchValidatorFactory.SHARING )
+            .build();
+
+        List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatch( bulkJsonPatch, patchParams );
+
+        if ( patchedObjects.isEmpty() || (atomic && patchParams.hasErrorReports()) )
+        {
+            ImportReport importReport = new ImportReport();
+            importReport.addTypeReports( patchParams.getTypeReports() );
+            importReport.setStatus( Status.ERROR );
+            return importReport( importReport );
+        }
+
+        Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
+
+        MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
+
+        params.setUser( currentUserService.getCurrentUser() )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObjects( patchedObjects );
+
+        ImportReport importReport = importService.importMetadata( params );
+
+        if ( patchParams.hasErrorReports() )
+        {
+            importReport.addTypeReports( patchParams.getTypeReports() );
+            importReport.setStatus( importReport.getStatus() == Status.OK ? Status.WARNING : importReport.getStatus() );
+        }
+
+        return importReport( importReport );
     }
 
     // --------------------------------------------------------------------------
@@ -1043,4 +1080,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         return false;
     }
 
+    private Patch diff( HttpServletRequest request )
+        throws IOException,
+        WebMessageException
+    {
+        ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
+        if ( mapper == null )
+        {
+            throw new WebMessageException( badRequest( "Unknown payload format." ) );
+        }
+        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
+    }
 }
