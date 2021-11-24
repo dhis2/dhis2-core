@@ -239,12 +239,7 @@ public class SystemUpdateService
 
         // Fallback to fetching all users with ALL authority for our recipient
         // list.
-        if ( recipients.isEmpty() )
-        {
-            recipients = getUsersWithAllAuthority();
-        }
-
-        return recipients;
+        return !recipients.isEmpty() ? recipients : getUsersWithAllAuthority();
     }
 
     private Set<User> getUsersWithAllAuthority()
