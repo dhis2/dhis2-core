@@ -886,6 +886,10 @@
                         <groupId>org.hisp.dhis.parser</groupId>
                         <artifactId>dhis-antlr-expression-parser</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-simple</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
 
