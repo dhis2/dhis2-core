@@ -153,10 +153,7 @@
         <jsmpp-X.version>2.1.0-RELEASE</jsmpp-X.version>
         <jboss-logging.version>3.4.1.Final</jboss-logging.version>
         <jsoup.version>1.14.3</jsoup.version>
-
-        <!-- Embedded Jetty -->
-        <jetty.version>9.4.41.v20210516</jetty.version>
-        <maven-jetty-plugin.version>9.4.38.v20210224</maven-jetty-plugin.version>
+        <jetty.version>10.0.7</jetty.version>
 
         <!-- Div. utils -->
         <version.debezium>1.7.1.Final</version.debezium>
@@ -2124,7 +2121,6 @@
                 <artifactId>jsoup</artifactId>
                 <version>${jsoup.version}</version>
             </dependency>
-
 
             <dependency>
                 <groupId>org.eclipse.jetty</groupId>
