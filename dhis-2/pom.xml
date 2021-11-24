@@ -47,7 +47,6 @@
 
         <minimum-maven.version>3.6.0</minimum-maven.version>
         <minimum-java.version>11</minimum-java.version>
-        <maven.compiler.release>11</maven.compiler.release>
 
         <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
         <sonar.organization>dhis2</sonar.organization>
@@ -504,8 +503,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <source>1.8</source>
-                        <target>1.8</target>
+                        <release>${minimum-java.version}</release>
                         <encoding>${project.build.sourceEncoding}</encoding>
                         <annotationProcessorPaths>
                             <path>
