@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -203,7 +208,7 @@ public class TrackerIdentifierCollector
     private void collectRelationships(
         Map<Class<?>, Set<String>> map, List<Relationship> relationships )
     {
-        relationships.parallelStream().forEach( relationship -> {
+        relationships.forEach( relationship -> {
 
             RelationshipKey relationshipKey = RelationshipPreheatKeySupport.getRelationshipKey( relationship );
 

@@ -111,6 +111,12 @@ public class ObjectReport implements ErrorReportContainer
         this.displayName = objectReport.getDisplayName();
     }
 
+    public ObjectReport( Class<?> klass, int index, List<ErrorReport> errorReports )
+    {
+        this( klass, index );
+        errorReports.forEach( this::addErrorReport );
+    }
+
     // -----------------------------------------------------------------------------------
     // Utility Methods
     // -----------------------------------------------------------------------------------
