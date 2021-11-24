@@ -130,6 +130,7 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -249,47 +250,54 @@ public class ServiceConfig
      */
 
     @Bean
-    public Map<ImportStrategy, List<Checker>> checkersByImportStrategy()
+    public List<Checker> checkersRunOnInsert()
     {
-        return ImmutableMap.of(
-            CREATE, newArrayList(
-                getCheckerByClass( EventDateCheck.class ),
-                getCheckerByClass( OrgUnitCheck.class ),
-                getCheckerByClass( SharedProgramCheck.class ),
-                getCheckerByClass( ProgramStageCheck.class ),
-                getCheckerByClass( TrackedEntityInstanceCheck.class ),
-                getCheckerByClass( ProgramInstanceCheck.class ),
-                getCheckerByClass( ProgramInstanceRepeatableStageCheck.class ),
-                getCheckerByClass( ProgramOrgUnitCheck.class ),
-                getCheckerByClass( EventGeometryCheck.class ),
-                getCheckerByClass( EventCreationAclCheck.class ),
-                getCheckerByClass( EventBaseCheck.class ),
-                getCheckerByClass( AttributeOptionComboCheck.class ),
-                getCheckerByClass( AttributeOptionComboDateCheck.class ),
-                getCheckerByClass( AttributeOptionComboAclCheck.class ),
-                getCheckerByClass( DataValueCheck.class ),
-                getCheckerByClass( FilteredDataValueCheck.class ),
-                getCheckerByClass( DataValueAclCheck.class ),
-                getCheckerByClass( ExpirationDaysCheck.class ) ),
-            UPDATE, newArrayList(
-                getCheckerByClass( EventSimpleCheck.class ),
-                getCheckerByClass( EventBaseCheck.class ),
-                getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
-                getCheckerByClass( UpdateProgramStageInstanceAclCheck.class ),
-                getCheckerByClass( SharedProgramCheck.class ),
-                getCheckerByClass( ProgramInstanceCheck.class ),
-                getCheckerByClass( ProgramStageInstanceAuthCheck.class ),
-                getCheckerByClass( AttributeOptionComboCheck.class ),
-                getCheckerByClass( AttributeOptionComboDateCheck.class ),
-                getCheckerByClass( EventGeometryCheck.class ),
-                getCheckerByClass( DataValueCheck.class ),
-                getCheckerByClass( FilteredDataValueCheck.class ),
-                getCheckerByClass( ExpirationDaysCheck.class ) ),
-            DELETE, newArrayList(
-                getCheckerByClass(
-                    DeleteProgramStageInstanceAclCheck.class ) )
+        return ImmutableList.of(
+            getCheckerByClass( EventDateCheck.class ),
+            getCheckerByClass( OrgUnitCheck.class ),
+            getCheckerByClass( SharedProgramCheck.class ),
+            getCheckerByClass( ProgramStageCheck.class ),
+            getCheckerByClass( TrackedEntityInstanceCheck.class ),
+            getCheckerByClass( ProgramInstanceCheck.class ),
+            getCheckerByClass( ProgramInstanceRepeatableStageCheck.class ),
+            getCheckerByClass( ProgramOrgUnitCheck.class ),
+            getCheckerByClass( EventGeometryCheck.class ),
+            getCheckerByClass( EventCreationAclCheck.class ),
+            getCheckerByClass( EventBaseCheck.class ),
+            getCheckerByClass( AttributeOptionComboCheck.class ),
+            getCheckerByClass( AttributeOptionComboDateCheck.class ),
+            getCheckerByClass( AttributeOptionComboAclCheck.class ),
+            getCheckerByClass( DataValueCheck.class ),
+            getCheckerByClass( FilteredDataValueCheck.class ),
+            getCheckerByClass( DataValueAclCheck.class ),
+            getCheckerByClass( ExpirationDaysCheck.class ) );
+    }
 
-        );
+    @Bean
+    public List<Checker> checkersRunOnUpdate()
+    {
+        return ImmutableList.of(
+            getCheckerByClass( EventSimpleCheck.class ),
+            getCheckerByClass( EventBaseCheck.class ),
+            getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
+            getCheckerByClass( UpdateProgramStageInstanceAclCheck.class ),
+            getCheckerByClass( SharedProgramCheck.class ),
+            getCheckerByClass( ProgramInstanceCheck.class ),
+            getCheckerByClass( ProgramStageInstanceAuthCheck.class ),
+            getCheckerByClass( AttributeOptionComboCheck.class ),
+            getCheckerByClass( AttributeOptionComboDateCheck.class ),
+            getCheckerByClass( EventGeometryCheck.class ),
+            getCheckerByClass( DataValueCheck.class ),
+            getCheckerByClass( FilteredDataValueCheck.class ),
+            getCheckerByClass( ExpirationDaysCheck.class ) );
+    }
+
+    @Bean
+    public List<Checker> checkersRunOnDelete()
+    {
+        return ImmutableList.of(
+            getCheckerByClass(
+                DeleteProgramStageInstanceAclCheck.class ) );
     }
 
     private Checker getCheckerByClass( Class<? extends Checker> checkerClass )

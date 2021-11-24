@@ -38,6 +38,7 @@ import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,14 +53,12 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.delete.validation.DeleteValidatingEventChecker;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.InsertValidatingEventChecker;
-import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateValidatingEventChecker;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
@@ -70,13 +69,19 @@ import com.google.common.collect.ImmutableList;
 public class EventManager
 {
     @NonNull
-    private final InsertValidatingEventChecker insertValidatingEventChecker;
+    private final EventImporterValidationRunner eventImporterValidationRunner;
 
     @NonNull
-    private final UpdateValidatingEventChecker updateValidatingEventChecker;
+    @Qualifier( "checkersRunOnInsert" )
+    private final List<Checker> checkersRunOnInsert;
 
     @NonNull
-    private final DeleteValidatingEventChecker deleteValidatingEventChecker;
+    @Qualifier( "checkersRunOnUpdate" )
+    private final List<Checker> checkersRunOnUpdate;
+
+    @NonNull
+    @Qualifier( "checkersRunOnDelete" )
+    private final List<Checker> checkersRunOnDelete;
 
     @NonNull
     private final Map<EventProcessorPhase, EventProcessorExecutor> executorsByPhase;
@@ -121,9 +126,15 @@ public class EventManager
         // pre-process events
         executorsByPhase.get( EventProcessorPhase.INSERT_PRE ).execute( workContext, validEvents );
 
-        importSummaries.addImportSummaries(
-            // Run validation against the remaining "insertable" events //
-            insertValidatingEventChecker.check( workContext, validEvents ) );
+        if ( ImportStrategyUtils.isInsert( workContext.getImportOptions().getImportStrategy() ) )
+        {
+            importSummaries.addImportSummaries(
+                eventImporterValidationRunner.run( workContext, validEvents, checkersRunOnInsert ) );
+        }
+        else
+        {
+            importSummaries.addImportSummaries( Collections.emptyList() );
+        }
 
         // collect the UIDs of events that did not pass validation
         final List<String> invalidEvents = importSummaries.getImportSummaries().stream()
@@ -194,9 +205,15 @@ public class EventManager
         // pre-process events
         executorsByPhase.get( EventProcessorPhase.UPDATE_PRE ).execute( workContext, events );
 
-        importSummaries.addImportSummaries(
-            // Run validation against the remaining "updatable" events //
-            updateValidatingEventChecker.check( workContext, events ) );
+        if ( ImportStrategyUtils.isUpdate( workContext.getImportOptions().getImportStrategy() ) )
+        {
+            importSummaries.addImportSummaries(
+                eventImporterValidationRunner.run( workContext, events, checkersRunOnUpdate ) );
+        }
+        else
+        {
+            importSummaries.addImportSummaries( Collections.emptyList() );
+        }
 
         // collect the UIDs of events that did not pass validation
         final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream()
@@ -248,9 +265,15 @@ public class EventManager
         // pre-process events
         executorsByPhase.get( EventProcessorPhase.DELETE_PRE ).execute( workContext, events );
 
-        importSummaries.addImportSummaries(
-            // Run validation against the remaining "insertable" events //
-            deleteValidatingEventChecker.check( workContext, events ) );
+        if ( ImportStrategyUtils.isDelete( workContext.getImportOptions().getImportStrategy() ) )
+        {
+            importSummaries.addImportSummaries(
+                eventImporterValidationRunner.run( workContext, events, checkersRunOnDelete ) );
+        }
+        else
+        {
+            importSummaries.addImportSummaries( Collections.emptyList() );
+        }
 
         // collect the UIDs of events that did not pass validation
         final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream()
