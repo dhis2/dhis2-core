@@ -47,6 +47,10 @@
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
 
     <!-- Other -->
 
@@ -54,7 +58,6 @@
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
     </dependency>
-
     <dependency>
       <groupId>com.google.api-client</groupId>
       <artifactId>google-api-client</artifactId>
@@ -67,6 +70,14 @@
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
     </dependency>
 
     <!-- Test -->
