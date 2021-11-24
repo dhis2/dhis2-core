@@ -86,6 +86,12 @@
     <dependency>
       <groupId>org.hisp.dhis.rules</groupId>
       <artifactId>rule-engine</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-simple</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.jboss.aerogear</groupId>
