@@ -34,7 +34,8 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,9 +53,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class DataIntegrityController
 {
     @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
     private SchedulingManager schedulingManager;
 
     public static final String RESOURCE_PATH = "/dataIntegrity";
@@ -66,11 +64,11 @@ public class DataIntegrityController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @PostMapping( DataIntegrityController.RESOURCE_PATH )
     @ResponseBody
-    public WebMessage runAsyncDataIntegrity()
+    public WebMessage runAsyncDataIntegrity( @CurrentUser User currentUser )
     {
         JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null,
             true );
-        jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
+        jobConfiguration.setUserUid( currentUser.getUid() );
         jobConfiguration.setAutoFields();
 
         schedulingManager.executeNow( jobConfiguration );
