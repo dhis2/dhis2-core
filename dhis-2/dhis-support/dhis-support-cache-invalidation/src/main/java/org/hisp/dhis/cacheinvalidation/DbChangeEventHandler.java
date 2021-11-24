@@ -45,7 +45,6 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
@@ -106,9 +105,6 @@ public class DbChangeEventHandler
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Autowired
-    private CategoryService categoryService;
 
     @Autowired
     private PeriodService periodService;
@@ -263,8 +259,10 @@ public class DbChangeEventHandler
 
         DataElement dataElement = idObjectManager.get( DataElement.class, dataElementId );
         OrganisationUnit organisationUnit = idObjectManager.get( OrganisationUnit.class, organisationUnitId );
-        CategoryOptionCombo categoryOptionCombo = categoryService.getCategoryOptionCombo( categoryOptionComboId );
-        CategoryOptionCombo attributeOptionCombo = categoryService.getCategoryOptionCombo( attributeOptionComboId );
+        CategoryOptionCombo categoryOptionCombo = idObjectManager.get( CategoryOptionCombo.class,
+            categoryOptionComboId );
+        CategoryOptionCombo attributeOptionCombo = idObjectManager.get( CategoryOptionCombo.class,
+            attributeOptionComboId );
         Period period = periodService.getPeriod( periodId );
 
         return new DataValue( dataElement, period, organisationUnit, categoryOptionCombo,
