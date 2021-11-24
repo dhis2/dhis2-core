@@ -204,7 +204,7 @@
         <powermock.version>2.0.4</powermock.version>
         <hamcrest-core.version>1.3</hamcrest-core.version>
         <hamcrest-date.version>2.0.7</hamcrest-date.version>
-        <hamcrest-library.version>1.3</hamcrest-library.version>
+        <hamcrest-library.version>2.2</hamcrest-library.version>
         <testcontainers.version>1.15.1</testcontainers.version>
         <objenesis.version>3.2</objenesis.version>
         <jsonassert.version>1.5.0</jsonassert.version>
