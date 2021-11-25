@@ -91,8 +91,8 @@ public class MetadataImportTest
     }
 
     @ParameterizedTest( name = "withImportStrategy[{0}]" )
-    @CsvSource( { "CREATE, ignored", "CREATE_AND_UPDATE, updated" } )
-    public void shouldUpdateExistingMetadata( String importStrategy, String expected )
+    @CsvSource( { "CREATE, ignored, 200", "CREATE_AND_UPDATE, updated, 409" } )
+    public void shouldUpdateExistingMetadata( String importStrategy, String expected, int expectedStatusCode )
     {
         // arrange
         JsonObject exported = metadataActions.get().getBody();
@@ -105,7 +105,7 @@ public class MetadataImportTest
 
         // assert
         response.validate()
-            .statusCode( 200 )
+            .statusCode( expectedStatusCode )
             .rootPath( "response" )
             .body( "stats", notNullValue() )
             .rootPath( "response.stats" )
