@@ -112,8 +112,8 @@ public class UserMetadataOrgUnitMergeHandlerTest
         assertFalse( userB.getDataViewOrganisationUnits().contains( ouB ) );
         assertFalse( userB.getTeiSearchOrganisationUnits().contains( ouB ) );
 
-        assertContainsOnly( ouC.getUsers(), userA );
-        assertContainsOnly( ouC.getUsers(), userB );
+        assertTrue( ouC.getUsers().contains( userA ) );
+        assertTrue( ouC.getUsers().contains( userB ) );
         assertContainsOnly( userA.getOrganisationUnits(), ouC );
         assertContainsOnly( userA.getDataViewOrganisationUnits(), ouC );
         assertContainsOnly( userA.getTeiSearchOrganisationUnits(), ouC );
