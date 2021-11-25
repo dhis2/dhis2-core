@@ -53,6 +53,10 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <surefireArgLine>-Xmx1024m --illegal-access=permit</surefireArgLine>
 
+        <!-- Needed so we can disable running tests when the default profile is used (activated by default). It does not
+          honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
+        <skipTests>false</skipTests>
+
         <!-- *Dependencies* -->
 
         <!-- DHIS2 Rule Engine-->
@@ -352,7 +356,7 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>${maven-surefire-plugin.version}</version>
                         <configuration>
-                            <skipTests>false</skipTests>
+                            <skipTests>${skipTests}</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
                             <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
