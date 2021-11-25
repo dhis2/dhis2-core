@@ -91,7 +91,7 @@ public class MetadataImportTest
     }
 
     @ParameterizedTest( name = "withImportStrategy[{0}]" )
-    @CsvSource( { "CREATE, ignored, 200", "CREATE_AND_UPDATE, updated, 409" } )
+    @CsvSource( { "CREATE, ignored, 409", "CREATE_AND_UPDATE, updated, 200" } )
     public void shouldUpdateExistingMetadata( String importStrategy, String expected, int expectedStatusCode )
     {
         // arrange
