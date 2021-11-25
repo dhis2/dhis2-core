@@ -623,7 +623,7 @@ public class DefaultProgramNotificationService
     {
         messages.forEach( m -> messageService.sendMessage(
             new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(),
-                MessageType.SYSTEM )
+                MessageType.SYSTEM, null )
                     .withForceNotification( true )
                     .build() ) );
     }

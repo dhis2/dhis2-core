@@ -17,8 +17,8 @@ WORKDIR /src
 COPY . .
 
 # TODO: We should be able to achieve much faster incremental builds and cached dependencies using
-RUN mvn clean install -Pdev -f dhis-2/pom.xml -DskipTests -pl -dhis-web-embedded-jetty
-RUN mvn clean install -Pdev -U -f dhis-2/dhis-web/pom.xml -DskipTests
+RUN mvn clean install --batch-mode --no-transfer-progress -Pdev -f dhis-2/pom.xml -DskipTests -pl -dhis-web-embedded-jetty
+RUN mvn clean install --batch-mode --no-transfer-progress -Pdev -U -f dhis-2/dhis-web/pom.xml -DskipTests
 
 RUN cp dhis-2/dhis-web/dhis-web-portal/target/dhis.war /dhis.war && \
     cd / && \

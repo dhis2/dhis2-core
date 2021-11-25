@@ -35,7 +35,9 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.objectReference;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.objectReferences;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -66,7 +68,52 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     {
         // if the report does not have any strings in the JSON tree there are no
         // errors since all collection/maps have string values
-        assertEquals( 0, getDataIntegrityReport().node().count( JsonNodeType.STRING ) );
+        JsonDataIntegrityReport report = getDataIntegrityReport();
+        assertEquals( 0, report.node().count( JsonNodeType.STRING ) );
+    }
+
+    @Test
+    public void testDataIntegrity_DataElementChecksOnly()
+    {
+        JsonDataIntegrityReport report = getDataIntegrityReport( "/dataIntegrity?checks=data-element*",
+            DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS,
+            DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS,
+            DataIntegrityCheckType.DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES,
+            DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
+            DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM );
+
+        assertEquals( 5, report.size() );
+        assertTrue( report.has(
+            "dataElementsWithoutDataSet",
+            "dataElementsWithoutGroups",
+            "dataElementsAssignedToDataSetsWithDifferentPeriodTypes",
+            "dataElementsViolatingExclusiveGroupSets",
+            "dataElementsInDataSetNotInForm" ) );
+    }
+
+    @Test
+    public void testDataIntegrity_ExclusiveGroupsChecksOnly()
+    {
+        JsonDataIntegrityReport report = getDataIntegrityReport( "/dataIntegrity?checks=*exclusive-group*",
+            DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS,
+            DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS,
+            DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS );
+
+        assertEquals( 3, report.size() );
+        assertTrue( report.has(
+            "dataElementsViolatingExclusiveGroupSets",
+            "indicatorsViolatingExclusiveGroupSets",
+            "organisationUnitsViolatingExclusiveGroupSets" ) );
+    }
+
+    @Test
+    public void testDataIntegrity_PeriodsDuplicatesOnly()
+    {
+        JsonDataIntegrityReport report = getDataIntegrityReport( "/dataIntegrity?checks=PERIODS_DUPLICATES",
+            DataIntegrityCheckType.PERIODS_DUPLICATES );
+
+        assertEquals( 1, report.size() );
+        assertTrue( report.getArray( "duplicatePeriods" ).exists() );
     }
 
     @Test
@@ -165,7 +212,16 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
 
     private JsonDataIntegrityReport getDataIntegrityReport()
     {
-        JsonObject response = POST( "/dataIntegrity" ).content().getObject( "response" );
+        return getDataIntegrityReport( "/dataIntegrity", DataIntegrityCheckType.values() );
+    }
+
+    private JsonDataIntegrityReport getDataIntegrityReport( String url, DataIntegrityCheckType... expectedChecks )
+    {
+        JsonObject response = POST( url ).content().getObject( "response" );
+
+        assertContainsOnly(
+            response.getObject( "jobParameters" ).getArray( "checks" ).values( DataIntegrityCheckType::valueOf ),
+            expectedChecks );
 
         String id = response.getString( "id" ).string();
         String jobType = response.getString( "jobType" ).string();

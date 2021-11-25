@@ -28,8 +28,11 @@
 package org.hisp.dhis.user;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -42,6 +45,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class UserCredentialsStoreTest
     extends DhisSpringTest
 {
+
+    public static final String AUTH_A = "AuthA";
+
+    public static final String AUTH_B = "AuthB";
+
+    public static final String AUTH_C = "AuthC";
+
+    public static final String AUTH_D = "AuthD";
+
     @Autowired
     private UserCredentialsStore userCredentialsStore;
 
@@ -58,19 +70,21 @@ public class UserCredentialsStoreTest
     public void setUpTest()
         throws Exception
     {
+        super.userService = userService;
+
         roleA = createUserAuthorityGroup( 'A' );
         roleB = createUserAuthorityGroup( 'B' );
         roleC = createUserAuthorityGroup( 'C' );
 
-        roleA.getAuthorities().add( "AuthA" );
-        roleA.getAuthorities().add( "AuthB" );
-        roleA.getAuthorities().add( "AuthC" );
-        roleA.getAuthorities().add( "AuthD" );
+        roleA.getAuthorities().add( AUTH_A );
+        roleA.getAuthorities().add( AUTH_B );
+        roleA.getAuthorities().add( AUTH_C );
+        roleA.getAuthorities().add( AUTH_D );
 
-        roleB.getAuthorities().add( "AuthA" );
-        roleB.getAuthorities().add( "AuthB" );
+        roleB.getAuthorities().add( AUTH_A );
+        roleB.getAuthorities().add( AUTH_B );
 
-        roleC.getAuthorities().add( "AuthC" );
+        roleC.getAuthorities().add( AUTH_C );
 
         userService.addUserAuthorityGroup( roleA );
         userService.addUserAuthorityGroup( roleB );
@@ -118,5 +132,18 @@ public class UserCredentialsStoreTest
 
         assertEquals( uuidA, ucA.getUuid() );
         assertEquals( uuidB, ucB.getUuid() );
+    }
+
+    @Test
+    public void testGetUserWithAuthority()
+    {
+        User userA = addUser( 'A', roleA );
+        User userB = addUser( 'B', roleB, roleC );
+
+        List<UserCredentials> usersWithAuthorityA = userService.getUsersWithAuthority( AUTH_D );
+        assertTrue( usersWithAuthorityA.contains( userA.getUserCredentials() ) );
+
+        List<UserCredentials> usersWithAuthorityB = userService.getUsersWithAuthority( AUTH_D );
+        assertFalse( usersWithAuthorityB.contains( userB.getUserCredentials() ) );
     }
 }

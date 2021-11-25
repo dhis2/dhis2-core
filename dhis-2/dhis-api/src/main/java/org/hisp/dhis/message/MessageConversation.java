@@ -79,6 +79,8 @@ public class MessageConversation
 
     private User assignee;
 
+    private String extMessageId;
+
     // -------------------------------------------------------------------------
     // Transient fields
     // -------------------------------------------------------------------------
@@ -546,5 +548,17 @@ public class MessageConversation
     public void setMessageType( MessageType messageType )
     {
         this.messageType = messageType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getExtMessageId()
+    {
+        return extMessageId;
+    }
+
+    public void setExtMessageId( String messageId )
+    {
+        this.extMessageId = messageId;
     }
 }
