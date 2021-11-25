@@ -20,10 +20,6 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
     </dependency>
@@ -34,10 +30,6 @@
     <dependency>
       <groupId>net.sf.jasperreports</groupId>
       <artifactId>jasperreports</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>net.sf.jasperreports</groupId>
-      <artifactId>jasperreports-fonts</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -54,22 +46,6 @@
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-csv</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jdk8</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-hibernate5</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.datatype</groupId>
-      <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -100,40 +76,6 @@
       <artifactId>cache2k-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>joda-time</groupId>
-      <artifactId>joda-time</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate.validator</groupId>
-      <artifactId>hibernate-validator</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml</groupId>
-      <artifactId>classmate</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-spatial</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.graphhopper.external</groupId>
-      <artifactId>jackson-datatype-jts</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.geotools</groupId>
-      <artifactId>gt-opengis</artifactId>
-    </dependency>
-
-    <!-- SMPP -->
-    <dependency>
-      <groupId>org.jsmpp</groupId>
-      <artifactId>jsmpp</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
     </dependency>
@@ -145,30 +87,17 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
     </dependency>
-    <!-- Test -->
-
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.awaitility</groupId>
-      <artifactId>awaitility</artifactId>
-      <scope>test</scope>
+      <groupId>javax.validation</groupId>
+      <artifactId>validation-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis.rules</groupId>
       <artifactId>rule-engine</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.cronutils</groupId>
-      <artifactId>cron-utils</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jboss.aerogear</groupId>
@@ -191,16 +120,6 @@
       <artifactId>jts-io-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-library</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.github.benas</groupId>
-      <artifactId>random-beans</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-geojson</artifactId>
     </dependency>
@@ -213,19 +132,6 @@
       <artifactId>jaxb-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>jakarta.xml.ws</groupId>
-      <artifactId>jakarta.xml.ws-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.xml.ws</groupId>
-      <artifactId>jaxws-ri</artifactId>
-      <type>pom</type>
-    </dependency>
-    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
@@ -233,6 +139,45 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
+    </dependency>
+
+    <!-- SMPP -->
+    <dependency>
+      <groupId>org.jsmpp</groupId>
+      <artifactId>jsmpp</artifactId>
+    </dependency>
+
+    <!-- Test -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-library</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.github.benas</groupId>
+      <artifactId>random-beans</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

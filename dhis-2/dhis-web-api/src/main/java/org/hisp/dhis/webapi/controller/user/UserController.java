@@ -80,6 +80,7 @@ import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroupService;
@@ -258,12 +259,13 @@ public class UserController
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
+        @CurrentUser User currentUser,
         HttpServletResponse response )
         throws Exception
     {
         if ( !"dataApprovalWorkflows".equals( pvProperty ) )
         {
-            return super.getObjectProperty( pvUid, pvProperty, rpParameters, translateParams, response );
+            return super.getObjectProperty( pvUid, pvProperty, rpParameters, translateParams, currentUser, response );
         }
 
         User user = userService.getUser( pvUid );
@@ -272,8 +274,6 @@ public class UserController
         {
             throw new WebMessageException( conflict( "User not found: " + pvUid ) );
         }
-
-        User currentUser = currentUserService.getCurrentUser();
 
         if ( !aclService.canRead( currentUser, user ) )
         {
@@ -572,7 +572,8 @@ public class UserController
     @PutMapping( value = "/{uid}", consumes = { APPLICATION_XML_VALUE,
         TEXT_XML_VALUE }, produces = APPLICATION_XML_VALUE )
     @ResponseBody
-    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+    public WebMessage putXmlObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+        HttpServletRequest request,
         HttpServletResponse response )
         throws Exception
     {
@@ -585,7 +586,8 @@ public class UserController
     @Override
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request )
+    public WebMessage putJsonObject( @PathVariable( "uid" ) String pvUid, @CurrentUser User currentUser,
+        HttpServletRequest request )
         throws Exception
     {
         User parsed = renderService.fromJson( request.getInputStream(), getEntityClass() );

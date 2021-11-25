@@ -39,6 +39,7 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.UserRoleSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
@@ -84,7 +85,7 @@ public class UserRoleController
     @RequestMapping( value = "/{id}/users/{userId}", method = { RequestMethod.POST, RequestMethod.PUT } )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addUserToRole( @PathVariable( value = "id" ) String pvId, @PathVariable( "userId" ) String pvUserId,
-        HttpServletResponse response )
+        @CurrentUser User currentUser, HttpServletResponse response )
         throws WebMessageException
     {
         UserAuthorityGroup userAuthorityGroup = userService.getUserAuthorityGroup( pvId );
@@ -101,7 +102,7 @@ public class UserRoleController
             throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
         }
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), userAuthorityGroup ) )
+        if ( !aclService.canUpdate( currentUser, userAuthorityGroup ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
@@ -116,7 +117,7 @@ public class UserRoleController
     @DeleteMapping( "/{id}/users/{userId}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeUserFromRole( @PathVariable( value = "id" ) String pvId,
-        @PathVariable( "userId" ) String pvUserId, HttpServletResponse response )
+        @PathVariable( "userId" ) String pvUserId, @CurrentUser User currentUser, HttpServletResponse response )
         throws WebMessageException
     {
         UserAuthorityGroup userAuthorityGroup = userService.getUserAuthorityGroup( pvId );
@@ -133,7 +134,7 @@ public class UserRoleController
             throw new WebMessageException( notFound( "User does not exist: " + pvId ) );
         }
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), userAuthorityGroup ) )
+        if ( !aclService.canUpdate( currentUser, userAuthorityGroup ) )
         {
             throw new DeleteAccessDeniedException( "You don't have the proper permissions to delete this object." );
         }

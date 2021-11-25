@@ -27,15 +27,14 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.TreeMap;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,429 +55,74 @@ import org.hisp.dhis.validation.ValidationRule;
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
+@Getter
+@Setter
 public class DataIntegrityReport
 {
-    private List<DataElement> dataElementsWithoutDataSet = new ArrayList<>();
+    private List<DataElement> dataElementsWithoutDataSet;
 
-    private List<DataElement> dataElementsWithoutGroups = new ArrayList<>();
+    private List<DataElement> dataElementsWithoutGroups;
 
-    private Map<DataElement, Collection<DataSet>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes = new HashMap<>();
+    private Map<DataElement, Collection<DataSet>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
 
-    private SortedMap<DataElement, Collection<DataElementGroup>> dataElementsViolatingExclusiveGroupSets = new TreeMap<>();
+    private SortedMap<DataElement, Collection<DataElementGroup>> dataElementsViolatingExclusiveGroupSets;
 
-    private SortedMap<DataSet, Collection<DataElement>> dataElementsInDataSetNotInForm = new TreeMap<>();
+    private SortedMap<DataSet, Collection<DataElement>> dataElementsInDataSetNotInForm;
 
-    private List<CategoryCombo> invalidCategoryCombos = new ArrayList<>();
+    private List<CategoryCombo> invalidCategoryCombos;
 
-    private List<DataSet> dataSetsNotAssignedToOrganisationUnits = new ArrayList<>();
+    private List<DataSet> dataSetsNotAssignedToOrganisationUnits;
 
-    private Set<Set<Indicator>> indicatorsWithIdenticalFormulas = new HashSet<>();
+    private Set<Set<Indicator>> indicatorsWithIdenticalFormulas;
 
-    private List<Indicator> indicatorsWithoutGroups = new ArrayList<>();
+    private List<Indicator> indicatorsWithoutGroups;
 
-    private Map<Indicator, String> invalidIndicatorNumerators = new HashMap<>();
+    private Map<Indicator, String> invalidIndicatorNumerators;
 
-    private Map<Indicator, String> invalidIndicatorDenominators = new HashMap<>();
+    private Map<Indicator, String> invalidIndicatorDenominators;
 
-    private SortedMap<Indicator, Collection<IndicatorGroup>> indicatorsViolatingExclusiveGroupSets = new TreeMap<>();
+    private SortedMap<Indicator, Collection<IndicatorGroup>> indicatorsViolatingExclusiveGroupSets;
 
-    private List<Period> duplicatePeriods = new ArrayList<>();
+    private List<Period> duplicatePeriods;
 
-    private List<OrganisationUnit> organisationUnitsWithCyclicReferences = new ArrayList<>();
+    private List<OrganisationUnit> organisationUnitsWithCyclicReferences;
 
-    private List<OrganisationUnit> orphanedOrganisationUnits = new ArrayList<>();
+    private List<OrganisationUnit> orphanedOrganisationUnits;
 
-    private List<OrganisationUnit> organisationUnitsWithoutGroups = new ArrayList<>();
+    private List<OrganisationUnit> organisationUnitsWithoutGroups;
 
-    private SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> organisationUnitsViolatingExclusiveGroupSets = new TreeMap<>();
+    private SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> organisationUnitsViolatingExclusiveGroupSets;
 
-    private List<OrganisationUnitGroup> organisationUnitGroupsWithoutGroupSets = new ArrayList<>();
+    private List<OrganisationUnitGroup> organisationUnitGroupsWithoutGroupSets;
 
-    private List<ValidationRule> validationRulesWithoutGroups = new ArrayList<>();
+    private List<ValidationRule> validationRulesWithoutGroups;
 
-    private Map<ValidationRule, String> invalidValidationRuleLeftSideExpressions = new HashMap<>();
+    private Map<ValidationRule, String> invalidValidationRuleLeftSideExpressions;
 
-    private Map<ValidationRule, String> invalidValidationRuleRightSideExpressions = new HashMap<>();
+    private Map<ValidationRule, String> invalidValidationRuleRightSideExpressions;
 
-    private Map<ProgramIndicator, String> invalidProgramIndicatorExpressions = new HashMap<>();
+    private Map<ProgramIndicator, String> invalidProgramIndicatorExpressions;
 
-    private Map<ProgramIndicator, String> invalidProgramIndicatorFilters = new HashMap<>();
+    private Map<ProgramIndicator, String> invalidProgramIndicatorFilters;
 
-    private List<ProgramIndicator> programIndicatorsWithNoExpression = new ArrayList<>();
+    private List<ProgramIndicator> programIndicatorsWithNoExpression;
 
-    private Map<Program, Collection<ProgramRule>> programRulesWithoutCondition = new HashMap<>();
+    private Map<Program, Collection<ProgramRule>> programRulesWithoutCondition;
 
-    private Map<Program, Collection<ProgramRule>> programRulesWithNoPriority = new HashMap<>();
+    private Map<Program, Collection<ProgramRule>> programRulesWithNoPriority;
 
-    private Map<Program, Collection<ProgramRule>> programRulesWithNoAction = new HashMap<>();
+    private Map<Program, Collection<ProgramRule>> programRulesWithNoAction;
 
-    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement = new HashMap<>();
+    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement;
 
-    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute = new HashMap<>();
+    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute;
 
-    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject = new HashMap<>();
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject;
 
-    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification = new HashMap<>();
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification;
 
-    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId = new HashMap<>();
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId;
 
-    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId = new HashMap<>();
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public DataIntegrityReport()
-    {
-
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public List<DataElement> getDataElementsWithoutDataSet()
-    {
-        return dataElementsWithoutDataSet;
-    }
-
-    public void setDataElementsWithoutDataSet( List<DataElement> dataElementsWithoutDataSet )
-    {
-        this.dataElementsWithoutDataSet = dataElementsWithoutDataSet;
-    }
-
-    public List<DataElement> getDataElementsWithoutGroups()
-    {
-        return dataElementsWithoutGroups;
-    }
-
-    public void setDataElementsWithoutGroups( List<DataElement> dataElementsWithoutGroups )
-    {
-        this.dataElementsWithoutGroups = dataElementsWithoutGroups;
-    }
-
-    public Map<DataElement, Collection<DataSet>> getDataElementsAssignedToDataSetsWithDifferentPeriodTypes()
-    {
-        return dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
-    }
-
-    public void setDataElementsAssignedToDataSetsWithDifferentPeriodTypes(
-        Map<DataElement, Collection<DataSet>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes )
-    {
-        this.dataElementsAssignedToDataSetsWithDifferentPeriodTypes = dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
-    }
-
-    public SortedMap<DataElement, Collection<DataElementGroup>> getDataElementsViolatingExclusiveGroupSets()
-    {
-        return dataElementsViolatingExclusiveGroupSets;
-    }
-
-    public void setDataElementsViolatingExclusiveGroupSets(
-        SortedMap<DataElement, Collection<DataElementGroup>> dataElementsViolatingExclusiveGroupSets )
-    {
-        this.dataElementsViolatingExclusiveGroupSets = dataElementsViolatingExclusiveGroupSets;
-    }
-
-    public SortedMap<DataSet, Collection<DataElement>> getDataElementsInDataSetNotInForm()
-    {
-        return dataElementsInDataSetNotInForm;
-    }
-
-    public void setDataElementsInDataSetNotInForm(
-        SortedMap<DataSet, Collection<DataElement>> dataElementsInDataSetNotInForm )
-    {
-        this.dataElementsInDataSetNotInForm = dataElementsInDataSetNotInForm;
-    }
-
-    public List<CategoryCombo> getInvalidCategoryCombos()
-    {
-        return invalidCategoryCombos;
-    }
-
-    public void setInvalidCategoryCombos( List<CategoryCombo> invalidCategoryCombos )
-    {
-        this.invalidCategoryCombos = invalidCategoryCombos;
-    }
-
-    public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
-    {
-        return dataSetsNotAssignedToOrganisationUnits;
-    }
-
-    public void setDataSetsNotAssignedToOrganisationUnits( List<DataSet> dataSetsNotAssignedToOrganisationUnits )
-    {
-        this.dataSetsNotAssignedToOrganisationUnits = dataSetsNotAssignedToOrganisationUnits;
-    }
-
-    public Set<Set<Indicator>> getIndicatorsWithIdenticalFormulas()
-    {
-        return indicatorsWithIdenticalFormulas;
-    }
-
-    public void setIndicatorsWithIdenticalFormulas( Set<Set<Indicator>> indicatorsWithIdenticalFormulas )
-    {
-        this.indicatorsWithIdenticalFormulas = indicatorsWithIdenticalFormulas;
-    }
-
-    public List<Indicator> getIndicatorsWithoutGroups()
-    {
-        return indicatorsWithoutGroups;
-    }
-
-    public void setIndicatorsWithoutGroups( List<Indicator> indicatorsWithoutGroups )
-    {
-        this.indicatorsWithoutGroups = indicatorsWithoutGroups;
-    }
-
-    public Map<Indicator, String> getInvalidIndicatorNumerators()
-    {
-        return invalidIndicatorNumerators;
-    }
-
-    public void setInvalidIndicatorNumerators( Map<Indicator, String> invalidIndicatorNumerators )
-    {
-        this.invalidIndicatorNumerators = invalidIndicatorNumerators;
-    }
-
-    public Map<Indicator, String> getInvalidIndicatorDenominators()
-    {
-        return invalidIndicatorDenominators;
-    }
-
-    public void setInvalidIndicatorDenominators( Map<Indicator, String> invalidIndicatorDenominators )
-    {
-        this.invalidIndicatorDenominators = invalidIndicatorDenominators;
-    }
-
-    public SortedMap<Indicator, Collection<IndicatorGroup>> getIndicatorsViolatingExclusiveGroupSets()
-    {
-        return indicatorsViolatingExclusiveGroupSets;
-    }
-
-    public void setIndicatorsViolatingExclusiveGroupSets(
-        SortedMap<Indicator, Collection<IndicatorGroup>> indicatorsViolatingExclusiveGroupSets )
-    {
-        this.indicatorsViolatingExclusiveGroupSets = indicatorsViolatingExclusiveGroupSets;
-    }
-
-    public List<Period> getDuplicatePeriods()
-    {
-        return duplicatePeriods;
-    }
-
-    public void setDuplicatePeriods( List<Period> duplicatePeriods )
-    {
-        this.duplicatePeriods = duplicatePeriods;
-    }
-
-    public List<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
-    {
-        return organisationUnitsWithCyclicReferences;
-    }
-
-    public void setOrganisationUnitsWithCyclicReferences( List<OrganisationUnit> organisationUnitsWithCyclicReferences )
-    {
-        this.organisationUnitsWithCyclicReferences = organisationUnitsWithCyclicReferences;
-    }
-
-    public List<OrganisationUnit> getOrphanedOrganisationUnits()
-    {
-        return orphanedOrganisationUnits;
-    }
-
-    public void setOrphanedOrganisationUnits( List<OrganisationUnit> orphanedOrganisationUnits )
-    {
-        this.orphanedOrganisationUnits = orphanedOrganisationUnits;
-    }
-
-    public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
-    {
-        return organisationUnitsWithoutGroups;
-    }
-
-    public void setOrganisationUnitsWithoutGroups( List<OrganisationUnit> organisationUnitsWithoutGroups )
-    {
-        this.organisationUnitsWithoutGroups = organisationUnitsWithoutGroups;
-    }
-
-    public SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets()
-    {
-        return organisationUnitsViolatingExclusiveGroupSets;
-    }
-
-    public void setOrganisationUnitsViolatingExclusiveGroupSets(
-        SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> organisationUnitsViolatingExclusiveGroupSets )
-    {
-        this.organisationUnitsViolatingExclusiveGroupSets = organisationUnitsViolatingExclusiveGroupSets;
-    }
-
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
-    {
-        return organisationUnitGroupsWithoutGroupSets;
-    }
-
-    public void setOrganisationUnitGroupsWithoutGroupSets(
-        List<OrganisationUnitGroup> organisationUnitGroupsWithoutGroupSets )
-    {
-        this.organisationUnitGroupsWithoutGroupSets = organisationUnitGroupsWithoutGroupSets;
-    }
-
-    public List<ValidationRule> getValidationRulesWithoutGroups()
-    {
-        return validationRulesWithoutGroups;
-    }
-
-    public void setValidationRulesWithoutGroups( List<ValidationRule> validationRulesWithoutGroups )
-    {
-        this.validationRulesWithoutGroups = validationRulesWithoutGroups;
-    }
-
-    public Map<ValidationRule, String> getInvalidValidationRuleLeftSideExpressions()
-    {
-        return invalidValidationRuleLeftSideExpressions;
-    }
-
-    public void setInvalidValidationRuleLeftSideExpressions(
-        Map<ValidationRule, String> invalidValidationRuleLeftSideExpressions )
-    {
-        this.invalidValidationRuleLeftSideExpressions = invalidValidationRuleLeftSideExpressions;
-    }
-
-    public Map<ValidationRule, String> getInvalidValidationRuleRightSideExpressions()
-    {
-        return invalidValidationRuleRightSideExpressions;
-    }
-
-    public void setInvalidValidationRuleRightSideExpressions(
-        Map<ValidationRule, String> invalidValidationRuleRightSideExpressions )
-    {
-        this.invalidValidationRuleRightSideExpressions = invalidValidationRuleRightSideExpressions;
-    }
-
-    public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
-    {
-        return invalidProgramIndicatorFilters;
-    }
-
-    public void setInvalidProgramIndicatorFilters( Map<ProgramIndicator, String> invalidProgramIndicatorFilters )
-    {
-        this.invalidProgramIndicatorFilters = invalidProgramIndicatorFilters;
-    }
-
-    public List<ProgramIndicator> getProgramIndicatorsWithNoExpression()
-    {
-        return programIndicatorsWithNoExpression;
-    }
-
-    public void setProgramIndicatorsWithNoExpression( List<ProgramIndicator> programIndicatorsWithNoExpression )
-    {
-        this.programIndicatorsWithNoExpression = programIndicatorsWithNoExpression;
-    }
-
-    public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
-    {
-        return invalidProgramIndicatorExpressions;
-    }
-
-    public void setInvalidProgramIndicatorExpressions(
-        Map<ProgramIndicator, String> invalidProgramIndicatorExpressions )
-    {
-        this.invalidProgramIndicatorExpressions = invalidProgramIndicatorExpressions;
-    }
-
-    public Map<Program, Collection<ProgramRule>> getProgramRulesWithoutCondition()
-    {
-        return programRulesWithoutCondition;
-    }
-
-    public void setProgramRulesWithoutCondition( Map<Program, Collection<ProgramRule>> programRulesWithoutCondition )
-    {
-        this.programRulesWithoutCondition = programRulesWithoutCondition;
-    }
-
-    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority()
-    {
-        return programRulesWithNoPriority;
-    }
-
-    public void setProgramRulesWithNoPriority( Map<Program, Collection<ProgramRule>> programRulesWithNoPriority )
-    {
-        this.programRulesWithNoPriority = programRulesWithNoPriority;
-    }
-
-    public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction()
-    {
-        return programRulesWithNoAction;
-    }
-
-    public void setProgramRulesWithNoAction( Map<Program, Collection<ProgramRule>> programRulesWithNoAction )
-    {
-        this.programRulesWithNoAction = programRulesWithNoAction;
-    }
-
-    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
-    {
-        return programRuleVariablesWithNoDataElement;
-    }
-
-    public void setProgramRuleVariablesWithNoDataElement(
-        Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement )
-    {
-        this.programRuleVariablesWithNoDataElement = programRuleVariablesWithNoDataElement;
-    }
-
-    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute()
-    {
-        return programRuleVariablesWithNoAttribute;
-    }
-
-    public void setProgramRuleVariablesWithNoAttribute(
-        Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute )
-    {
-        this.programRuleVariablesWithNoAttribute = programRuleVariablesWithNoAttribute;
-    }
-
-    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject()
-    {
-        return programRuleActionsWithNoDataObject;
-    }
-
-    public void setProgramRuleActionsWithNoDataObject(
-        Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject )
-    {
-        this.programRuleActionsWithNoDataObject = programRuleActionsWithNoDataObject;
-    }
-
-    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotification()
-    {
-        return programRuleActionsWithNoNotification;
-    }
-
-    public void setProgramRuleActionsWithNoNotification(
-        Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification )
-    {
-        this.programRuleActionsWithNoNotification = programRuleActionsWithNoNotification;
-    }
-
-    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId()
-    {
-        return programRuleActionsWithNoSectionId;
-    }
-
-    public void setProgramRuleActionsWithNoSectionId(
-        Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId )
-    {
-        this.programRuleActionsWithNoSectionId = programRuleActionsWithNoSectionId;
-    }
-
-    public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoStageId()
-    {
-        return programRuleActionsWithNoStageId;
-    }
-
-    public void setProgramRuleActionsWithNoStageId(
-        Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId )
-    {
-        this.programRuleActionsWithNoStageId = programRuleActionsWithNoStageId;
-    }
 }

@@ -24,6 +24,14 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test-json</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-external</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-commons</artifactId>
+    </dependency>
 
     <!-- Other -->
     <dependency>
@@ -79,10 +87,6 @@
       <artifactId>quick</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-external</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
       <exclusions>
@@ -94,7 +98,11 @@
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
-      <artifactId>postgresql </artifactId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
     </dependency>
     <dependency>
       <groupId>io.github.benas</groupId>
@@ -109,6 +117,22 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
     </dependency>
   </dependencies>
   <properties>
