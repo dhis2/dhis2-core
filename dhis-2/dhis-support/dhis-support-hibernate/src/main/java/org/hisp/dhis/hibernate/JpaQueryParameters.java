@@ -46,21 +46,23 @@ public class JpaQueryParameters<T> implements Serializable
 {
     private static final long serialVersionUID = 1L;
 
-    // pagination
+    // Pagination
+
     private int maxResults;
 
     private int firstResult;
 
     private int pageSize;
 
-    // query properties
+    // Query properties
+
     private boolean caseSensitive = true;
 
     private boolean useDistinct = false;
 
     private Boolean cacheable;
 
-    // select attributes
+    // Select attributes
 
     private List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
