@@ -27,15 +27,11 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.TreeMap;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -63,70 +59,70 @@ import org.hisp.dhis.validation.ValidationRule;
 @Setter
 public class DataIntegrityReport
 {
-    private List<DataElement> dataElementsWithoutDataSet = new ArrayList<>();
+    private List<DataElement> dataElementsWithoutDataSet;
 
-    private List<DataElement> dataElementsWithoutGroups = new ArrayList<>();
+    private List<DataElement> dataElementsWithoutGroups;
 
-    private Map<DataElement, Collection<DataSet>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes = new HashMap<>();
+    private Map<DataElement, Collection<DataSet>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
 
-    private SortedMap<DataElement, Collection<DataElementGroup>> dataElementsViolatingExclusiveGroupSets = new TreeMap<>();
+    private SortedMap<DataElement, Collection<DataElementGroup>> dataElementsViolatingExclusiveGroupSets;
 
-    private SortedMap<DataSet, Collection<DataElement>> dataElementsInDataSetNotInForm = new TreeMap<>();
+    private SortedMap<DataSet, Collection<DataElement>> dataElementsInDataSetNotInForm;
 
-    private List<CategoryCombo> invalidCategoryCombos = new ArrayList<>();
+    private List<CategoryCombo> invalidCategoryCombos;
 
-    private List<DataSet> dataSetsNotAssignedToOrganisationUnits = new ArrayList<>();
+    private List<DataSet> dataSetsNotAssignedToOrganisationUnits;
 
-    private Set<Set<Indicator>> indicatorsWithIdenticalFormulas = new HashSet<>();
+    private Set<Set<Indicator>> indicatorsWithIdenticalFormulas;
 
-    private List<Indicator> indicatorsWithoutGroups = new ArrayList<>();
+    private List<Indicator> indicatorsWithoutGroups;
 
-    private Map<Indicator, String> invalidIndicatorNumerators = new HashMap<>();
+    private Map<Indicator, String> invalidIndicatorNumerators;
 
-    private Map<Indicator, String> invalidIndicatorDenominators = new HashMap<>();
+    private Map<Indicator, String> invalidIndicatorDenominators;
 
-    private SortedMap<Indicator, Collection<IndicatorGroup>> indicatorsViolatingExclusiveGroupSets = new TreeMap<>();
+    private SortedMap<Indicator, Collection<IndicatorGroup>> indicatorsViolatingExclusiveGroupSets;
 
-    private List<Period> duplicatePeriods = new ArrayList<>();
+    private List<Period> duplicatePeriods;
 
-    private List<OrganisationUnit> organisationUnitsWithCyclicReferences = new ArrayList<>();
+    private List<OrganisationUnit> organisationUnitsWithCyclicReferences;
 
-    private List<OrganisationUnit> orphanedOrganisationUnits = new ArrayList<>();
+    private List<OrganisationUnit> orphanedOrganisationUnits;
 
-    private List<OrganisationUnit> organisationUnitsWithoutGroups = new ArrayList<>();
+    private List<OrganisationUnit> organisationUnitsWithoutGroups;
 
-    private SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> organisationUnitsViolatingExclusiveGroupSets = new TreeMap<>();
+    private SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> organisationUnitsViolatingExclusiveGroupSets;
 
-    private List<OrganisationUnitGroup> organisationUnitGroupsWithoutGroupSets = new ArrayList<>();
+    private List<OrganisationUnitGroup> organisationUnitGroupsWithoutGroupSets;
 
-    private List<ValidationRule> validationRulesWithoutGroups = new ArrayList<>();
+    private List<ValidationRule> validationRulesWithoutGroups;
 
-    private Map<ValidationRule, String> invalidValidationRuleLeftSideExpressions = new HashMap<>();
+    private Map<ValidationRule, String> invalidValidationRuleLeftSideExpressions;
 
-    private Map<ValidationRule, String> invalidValidationRuleRightSideExpressions = new HashMap<>();
+    private Map<ValidationRule, String> invalidValidationRuleRightSideExpressions;
 
-    private Map<ProgramIndicator, String> invalidProgramIndicatorExpressions = new HashMap<>();
+    private Map<ProgramIndicator, String> invalidProgramIndicatorExpressions;
 
-    private Map<ProgramIndicator, String> invalidProgramIndicatorFilters = new HashMap<>();
+    private Map<ProgramIndicator, String> invalidProgramIndicatorFilters;
 
-    private List<ProgramIndicator> programIndicatorsWithNoExpression = new ArrayList<>();
+    private List<ProgramIndicator> programIndicatorsWithNoExpression;
 
-    private Map<Program, Collection<ProgramRule>> programRulesWithoutCondition = new HashMap<>();
+    private Map<Program, Collection<ProgramRule>> programRulesWithoutCondition;
 
-    private Map<Program, Collection<ProgramRule>> programRulesWithNoPriority = new HashMap<>();
+    private Map<Program, Collection<ProgramRule>> programRulesWithNoPriority;
 
-    private Map<Program, Collection<ProgramRule>> programRulesWithNoAction = new HashMap<>();
+    private Map<Program, Collection<ProgramRule>> programRulesWithNoAction;
 
-    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement = new HashMap<>();
+    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoDataElement;
 
-    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute = new HashMap<>();
+    private Map<Program, Collection<ProgramRuleVariable>> programRuleVariablesWithNoAttribute;
 
-    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject = new HashMap<>();
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoDataObject;
 
-    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification = new HashMap<>();
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoNotification;
 
-    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId = new HashMap<>();
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoSectionId;
 
-    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId = new HashMap<>();
+    private Map<ProgramRule, Collection<ProgramRuleAction>> programRuleActionsWithNoStageId;
 
 }

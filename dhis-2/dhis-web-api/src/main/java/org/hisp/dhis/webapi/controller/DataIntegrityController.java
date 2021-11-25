@@ -27,21 +27,29 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -50,29 +58,34 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RequestMapping
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class DataIntegrityController
 {
-    @Autowired
-    private SchedulingManager schedulingManager;
+    private final SchedulingManager schedulingManager;
+
+    private final Notifier notifier;
 
     public static final String RESOURCE_PATH = "/dataIntegrity";
-
-    // --------------------------------------------------------------------------
-    // Start asynchronous data integrity task
-    // --------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @PostMapping( DataIntegrityController.RESOURCE_PATH )
     @ResponseBody
-    public WebMessage runAsyncDataIntegrity( @CurrentUser User currentUser )
+    public WebMessage runDataIntegrity(
+        @RequestParam( required = false ) List<String> checks,
+        @CurrentUser User currentUser )
     {
-        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null,
-            true );
-        jobConfiguration.setUserUid( currentUser.getUid() );
-        jobConfiguration.setAutoFields();
+        DataIntegrityJobParameters params = new DataIntegrityJobParameters();
+        params.setChecks( DataIntegrityCheckType.parse( checks ) );
+        JobConfiguration config = new JobConfiguration( "runDataIntegrity", JobType.DATA_INTEGRITY, null,
+            params, true, true );
+        config.setUserUid( currentUser.getUid() );
+        config.setAutoFields();
 
-        schedulingManager.executeNow( jobConfiguration );
-
-        return jobConfigurationReport( jobConfiguration );
+        if ( !schedulingManager.executeNow( config ) )
+        {
+            return conflict( "Data integrity check is already running" );
+        }
+        return jobConfigurationReport( config );
     }
+
 }

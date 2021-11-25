@@ -25,46 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import org.hisp.dhis.webmessage.WebMessageResponse;
+import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-public class AbstractWebMessageResponse implements WebMessageResponse
+public class DataIntegrityJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<DataIntegrityJobParameters>
 {
-    /**
-     * Optional type property. Since we are using the somewhat generic name
-     * 'response' for the data part of the message, this can be used to signal
-     * what kind of response this is.
-     * <p/>
-     * Some examples might be 'ImportCount', 'ImportSummary', etc.
-     */
-    private String responseType;
-
-    public AbstractWebMessageResponse()
+    public DataIntegrityJobParametersDeserializer()
     {
-        this.responseType = getClass().getSimpleName().replaceFirst( "WebMessageResponse", "" );
+        super( DataIntegrityJobParameters.class, CustomJobParameters.class );
     }
 
-    public AbstractWebMessageResponse( String responseType )
+    @JsonDeserialize
+    public static class CustomJobParameters extends DataIntegrityJobParameters
     {
-        this.responseType = responseType;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    public String getResponseType()
-    {
-        return responseType;
-    }
-
-    public void setResponseType( String responseType )
-    {
-        this.responseType = responseType;
     }
 }
