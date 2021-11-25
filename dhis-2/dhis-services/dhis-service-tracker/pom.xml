@@ -33,10 +33,6 @@
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-support-test</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-support-artemis</artifactId>
         </dependency>
         <dependency>
@@ -50,11 +46,6 @@
         <dependency>
             <groupId>org.hisp.dhis.rules</groupId>
             <artifactId>rule-engine</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
@@ -87,10 +78,31 @@
             <artifactId>guava</artifactId>
         </dependency>
         <!-- Test -->
-
+        <!-- hamcrest, hamcrest-library and junit order matters. Can be removed once we are on Junit 5 as it does not depend
+        on hamcrest anymore See http://hamcrest.org/JavaHamcrest/distributables Maven Upgrade Example -->
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-library</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
