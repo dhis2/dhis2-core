@@ -176,11 +176,6 @@ public class AnalyticsCache
 
     private Optional<Grid> getGridClone( Optional<Grid> grid )
     {
-        if ( grid != null && grid.isPresent() )
-        {
-            return Optional.of( (Grid) SerializationUtils.clone( grid.get() ) );
-        }
-
-        return grid;
+        return grid.map( value -> (Grid) SerializationUtils.clone( value ) );
     }
 }
