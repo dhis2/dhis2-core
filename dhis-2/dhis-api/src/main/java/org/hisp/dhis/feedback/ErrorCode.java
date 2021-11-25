@@ -50,6 +50,7 @@ public enum ErrorCode
     E1501( "Target org unit must be specified" ),
     E1502( "Target org unit cannot be a source org unit" ),
     E1503( "Source org unit does not exist: `{0}`" ),
+    E1504( "Target org units cannot be a descendant of the source org unit" ),
 
     /* Org unit split */
     E1510( "Source org unit must be specified" ),
@@ -58,6 +59,7 @@ public enum ErrorCode
     E1513( "Primary target must be specified" ),
     E1514( "Primary target must be a target org unit" ),
     E1515( "Target org unit does not exist: `{0}`" ),
+    E1516( "Target org unit cannot be a descendant of the source org unit: `{0}`" ),
 
     /* Org unit move */
     E1520( "User `{0}` is not allowed to move organisation units" ),
