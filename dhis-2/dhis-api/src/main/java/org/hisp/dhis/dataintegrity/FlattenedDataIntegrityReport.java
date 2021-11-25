@@ -27,17 +27,21 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toUnmodifiableList;
+import static java.util.stream.Collectors.toUnmodifiableMap;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.webmessage.WebMessageResponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -48,7 +52,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
-public class FlattenedDataIntegrityReport
+public class FlattenedDataIntegrityReport implements WebMessageResponse
 {
     @JsonProperty
     private final List<String> dataElementsWithoutDataSet;
@@ -60,10 +64,10 @@ public class FlattenedDataIntegrityReport
     private final Map<String, Collection<String>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
 
     @JsonProperty
-    private final SortedMap<String, Collection<String>> dataElementsViolatingExclusiveGroupSets;
+    private final SortedMap<String, List<String>> dataElementsViolatingExclusiveGroupSets;
 
     @JsonProperty
-    private final SortedMap<String, Collection<String>> dataElementsInDataSetNotInForm;
+    private final SortedMap<String, List<String>> dataElementsInDataSetNotInForm;
 
     @JsonProperty
     private final List<String> invalidCategoryCombos;
@@ -72,7 +76,7 @@ public class FlattenedDataIntegrityReport
     private final List<String> dataSetsNotAssignedToOrganisationUnits;
 
     @JsonProperty
-    private final Collection<Collection<String>> indicatorsWithIdenticalFormulas;
+    private final List<List<String>> indicatorsWithIdenticalFormulas;
 
     @JsonProperty
     private final List<String> indicatorsWithoutGroups;
@@ -84,7 +88,7 @@ public class FlattenedDataIntegrityReport
     private final Map<String, String> invalidIndicatorDenominators;
 
     @JsonProperty
-    private final SortedMap<String, Collection<String>> indicatorsViolatingExclusiveGroupSets;
+    private final SortedMap<String, List<String>> indicatorsViolatingExclusiveGroupSets;
 
     @JsonProperty
     private final List<String> duplicatePeriods;
@@ -99,7 +103,7 @@ public class FlattenedDataIntegrityReport
     private final List<String> organisationUnitsWithoutGroups;
 
     @JsonProperty
-    private final SortedMap<String, Collection<String>> organisationUnitsViolatingExclusiveGroupSets;
+    private final SortedMap<String, List<String>> organisationUnitsViolatingExclusiveGroupSets;
 
     @JsonProperty
     private final List<String> organisationUnitGroupsWithoutGroupSets;
@@ -151,151 +155,152 @@ public class FlattenedDataIntegrityReport
 
     public FlattenedDataIntegrityReport( org.hisp.dhis.dataintegrity.DataIntegrityReport report )
     {
-        dataElementsWithoutDataSet = transformCollection( report.getDataElementsWithoutDataSet() );
+        dataElementsWithoutDataSet = mapToListOfDisplayNameOrUid( report.getDataElementsWithoutDataSet() );
 
-        dataElementsWithoutGroups = transformCollection( report.getDataElementsWithoutGroups() );
+        dataElementsWithoutGroups = mapToListOfDisplayNameOrUid( report.getDataElementsWithoutGroups() );
 
-        dataElementsAssignedToDataSetsWithDifferentPeriodTypes = transformMapOfCollections(
+        dataElementsAssignedToDataSetsWithDifferentPeriodTypes = mapToDisplayNameOrId(
             report.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
 
-        dataElementsViolatingExclusiveGroupSets = transformSortedMap(
+        dataElementsViolatingExclusiveGroupSets = mapToSortedDisplayNameOrUid(
             report.getDataElementsViolatingExclusiveGroupSets() );
 
-        dataElementsInDataSetNotInForm = transformSortedMap( report.getDataElementsInDataSetNotInForm() );
+        dataElementsInDataSetNotInForm = mapToSortedDisplayNameOrUid( report.getDataElementsInDataSetNotInForm() );
 
-        invalidCategoryCombos = transformCollection( report.getInvalidCategoryCombos() );
+        invalidCategoryCombos = mapToListOfDisplayNameOrUid( report.getInvalidCategoryCombos() );
 
-        dataSetsNotAssignedToOrganisationUnits = transformCollection(
+        dataSetsNotAssignedToOrganisationUnits = mapToListOfDisplayNameOrUid(
             report.getDataSetsNotAssignedToOrganisationUnits() );
 
-        indicatorsWithIdenticalFormulas = transformCollectionOfCollections(
+        indicatorsWithIdenticalFormulas = mapToListOfListOfDisplayNameOrUid(
             report.getIndicatorsWithIdenticalFormulas() );
 
-        indicatorsWithoutGroups = transformCollection( report.getIndicatorsWithoutGroups() );
+        indicatorsWithoutGroups = mapToListOfDisplayNameOrUid( report.getIndicatorsWithoutGroups() );
 
-        invalidIndicatorNumerators = transformMapOfStrings( report.getInvalidIndicatorNumerators() );
+        invalidIndicatorNumerators = mapKeyToDisplayNameOrUid( report.getInvalidIndicatorNumerators() );
 
-        invalidIndicatorDenominators = transformMapOfStrings( report.getInvalidIndicatorDenominators() );
+        invalidIndicatorDenominators = mapKeyToDisplayNameOrUid( report.getInvalidIndicatorDenominators() );
 
-        indicatorsViolatingExclusiveGroupSets = transformSortedMap( report.getIndicatorsViolatingExclusiveGroupSets() );
+        indicatorsViolatingExclusiveGroupSets = mapToSortedDisplayNameOrUid(
+            report.getIndicatorsViolatingExclusiveGroupSets() );
 
-        duplicatePeriods = transformCollection( report.getDuplicatePeriods() );
+        duplicatePeriods = mapToListOfDisplayNameOrUid( report.getDuplicatePeriods() );
 
-        organisationUnitsWithCyclicReferences = transformCollection(
+        organisationUnitsWithCyclicReferences = mapToListOfDisplayNameOrUid(
             report.getOrganisationUnitsWithCyclicReferences() );
 
-        orphanedOrganisationUnits = transformCollection( report.getOrphanedOrganisationUnits() );
+        orphanedOrganisationUnits = mapToListOfDisplayNameOrUid( report.getOrphanedOrganisationUnits() );
 
-        organisationUnitsWithoutGroups = transformCollection( report.getOrganisationUnitsWithoutGroups() );
+        organisationUnitsWithoutGroups = mapToListOfDisplayNameOrUid(
+            report.getOrganisationUnitsWithoutGroups() );
 
-        organisationUnitsViolatingExclusiveGroupSets = transformSortedMap(
+        organisationUnitsViolatingExclusiveGroupSets = mapToSortedDisplayNameOrUid(
             report.getOrganisationUnitsViolatingExclusiveGroupSets() );
 
-        organisationUnitGroupsWithoutGroupSets = transformCollection(
+        organisationUnitGroupsWithoutGroupSets = mapToListOfDisplayNameOrUid(
             report.getOrganisationUnitGroupsWithoutGroupSets() );
 
-        validationRulesWithoutGroups = transformCollection( report.getValidationRulesWithoutGroups() );
+        validationRulesWithoutGroups = mapToListOfDisplayNameOrUid(
+            report.getValidationRulesWithoutGroups() );
 
-        invalidValidationRuleLeftSideExpressions = transformMapOfStrings(
+        invalidValidationRuleLeftSideExpressions = mapKeyToDisplayNameOrUid(
             report.getInvalidValidationRuleLeftSideExpressions() );
 
-        invalidValidationRuleRightSideExpressions = transformMapOfStrings(
+        invalidValidationRuleRightSideExpressions = mapKeyToDisplayNameOrUid(
             report.getInvalidValidationRuleRightSideExpressions() );
 
-        programIndicatorsWithNoExpression = transformCollection( report.getProgramIndicatorsWithNoExpression() );
+        programIndicatorsWithNoExpression = mapToListOfDisplayNameOrUid(
+            report.getProgramIndicatorsWithNoExpression() );
 
-        invalidProgramIndicatorExpressions = transformMapOfStrings( report.getInvalidProgramIndicatorExpressions() );
+        invalidProgramIndicatorExpressions = mapKeyToDisplayNameOrUid( report.getInvalidProgramIndicatorExpressions() );
 
-        invalidProgramIndicatorFilters = transformMapOfStrings( report.getInvalidProgramIndicatorFilters() );
+        invalidProgramIndicatorFilters = mapKeyToDisplayNameOrUid( report.getInvalidProgramIndicatorFilters() );
 
-        programRulesWithNoCondition = transformMapOfCollections( report.getProgramRulesWithoutCondition() );
+        programRulesWithNoCondition = mapToDisplayNameOrId( report.getProgramRulesWithoutCondition() );
 
-        programRulesWithNoPriority = transformMapOfCollections( report.getProgramRulesWithNoPriority() );
+        programRulesWithNoPriority = mapToDisplayNameOrId( report.getProgramRulesWithNoPriority() );
 
-        programRulesWithNoAction = transformMapOfCollections( report.getProgramRulesWithNoAction() );
+        programRulesWithNoAction = mapToDisplayNameOrId( report.getProgramRulesWithNoAction() );
 
-        programRuleVariablesWithNoDataElement = transformMapOfCollections(
+        programRuleVariablesWithNoDataElement = mapToDisplayNameOrId(
             report.getProgramRuleVariablesWithNoDataElement() );
 
-        programRuleVariablesWithNoAttribute = transformMapOfCollections(
+        programRuleVariablesWithNoAttribute = mapToDisplayNameOrId(
             report.getProgramRuleVariablesWithNoAttribute() );
 
-        programRuleActionsWithNoDataObject = transformMapOfCollections(
+        programRuleActionsWithNoDataObject = mapToDisplayNameOrId(
             report.getProgramRuleActionsWithNoDataObject() );
 
-        programRuleActionsWithNoNotification = transformMapOfCollections(
+        programRuleActionsWithNoNotification = mapToDisplayNameOrId(
             report.getProgramRuleActionsWithNoNotification() );
 
-        programRuleActionsWithNoSectionId = transformMapOfCollections( report.getProgramRuleActionsWithNoSectionId() );
+        programRuleActionsWithNoSectionId = mapToDisplayNameOrId( report.getProgramRuleActionsWithNoSectionId() );
 
-        programRuleActionsWithNoStageId = transformMapOfCollections( report.getProgramRuleActionsWithNoStageId() );
+        programRuleActionsWithNoStageId = mapToDisplayNameOrId( report.getProgramRuleActionsWithNoStageId() );
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Collection<Collection<String>> transformCollectionOfCollections(
+    private List<List<String>> mapToListOfListOfDisplayNameOrUid(
         Collection<? extends Collection<? extends IdentifiableObject>> collection )
     {
-        Collection<Collection<String>> newCollection = new HashSet<>();
-
-        for ( Collection<? extends IdentifiableObject> c : collection )
-        {
-            newCollection.add( transformCollection( c ) );
-        }
-
-        return newCollection;
+        return collection == null
+            ? null
+            : collection.stream().map( this::mapToListOfDisplayNameOrUid ).collect( toUnmodifiableList() );
     }
 
-    private Map<String, String> transformMapOfStrings( Map<? extends IdentifiableObject, String> map )
+    private Map<String, String> mapKeyToDisplayNameOrUid( Map<? extends IdentifiableObject, String> map )
     {
-        HashMap<String, String> newMap = new HashMap<>( map.size() );
-
-        for ( Map.Entry<? extends IdentifiableObject, String> entry : map.entrySet() )
-        {
-            newMap.put( defaultIfNull( entry.getKey() ), entry.getValue() );
-        }
-
-        return newMap;
+        return map == null
+            ? null
+            : map.entrySet().stream().collect( toUnmodifiableMap(
+                e -> defaultIfNull( e.getKey() ), Entry::getValue ) );
     }
 
-    private Map<String, Collection<String>> transformMapOfCollections(
+    private Map<String, Collection<String>> mapToDisplayNameOrId(
         Map<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> map )
     {
-        HashMap<String, Collection<String>> newMap = new HashMap<>();
-
-        for ( var entry : map.entrySet() )
-        {
-            newMap.put( defaultIfNull( entry.getKey() ), new HashSet<>( transformCollection( entry.getValue() ) ) );
-        }
-
-        return newMap;
+        return map == null
+            ? null
+            : map.entrySet().stream().collect( toUnmodifiableMap(
+                e -> defaultIfNull( e.getKey() ),
+                e -> mapToListOfDisplayNameOrUid( e.getValue() ) ) );
     }
 
-    private List<String> transformCollection( Collection<? extends IdentifiableObject> collection )
+    private List<String> mapToListOfDisplayNameOrUid( Collection<? extends IdentifiableObject> collection )
     {
-        List<String> newCollection = new ArrayList<>( collection.size() );
-
-        for ( IdentifiableObject o : collection )
-        {
-            newCollection.add( StringUtils.defaultIfBlank( o.getDisplayName(), o.getUid() ) );
-        }
-
-        return newCollection;
+        return collection == null
+            ? null
+            : collection.stream()
+                .map( o -> defaultIfBlank( o.getDisplayName(), o.getUid() ) )
+                .collect( toUnmodifiableList() );
     }
 
-    private SortedMap<String, Collection<String>> transformSortedMap(
+    private SortedMap<String, List<String>> mapToSortedDisplayNameOrUid(
         SortedMap<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> map )
     {
-        SortedMap<String, Collection<String>> newMap = new TreeMap<>();
+        return map == null
+            ? null
+            : map.entrySet().stream().collect( toMap(
+                e -> defaultIfNull( e.getKey() ),
+                e -> mapToListOfDisplayNameOrUid( e.getValue() ),
+                FlattenedDataIntegrityReport::concatLists,
+                TreeMap::new ) );
+    }
 
-        for ( var entry : map.entrySet() )
-        {
-            newMap.put( defaultIfNull( entry.getKey() ), transformCollection( entry.getValue() ) );
-        }
-
-        return newMap;
+    /**
+     * On a "collision" (key already exists/has a value) we do combine both
+     * lists. At this point we have to assume the passed {@link Collection}s are
+     * read-only.
+     */
+    private static List<String> concatLists( List<String> a, List<String> b )
+    {
+        List<String> both = new ArrayList<>();
+        both.addAll( a );
+        both.addAll( b );
+        return both;
     }
 
     private String defaultIfNull( IdentifiableObject object )
