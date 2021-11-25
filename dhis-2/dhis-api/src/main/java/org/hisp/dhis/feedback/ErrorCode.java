@@ -50,7 +50,7 @@ public enum ErrorCode
     E1501( "Target org unit must be specified" ),
     E1502( "Target org unit cannot be a source org unit" ),
     E1503( "Source org unit does not exist: `{0}`" ),
-    E1504( "Target org units cannot be a descendant of the source org unit" ),
+    E1504( "Target org unit cannot be a descendant of a source org unit" ),
 
     /* Org unit split */
     E1510( "Source org unit must be specified" ),
