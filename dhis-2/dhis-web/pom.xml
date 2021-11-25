@@ -135,13 +135,6 @@
         <artifactId>jetty-maven-plugin</artifactId>
         <version>${jetty.version}</version>
         <configuration>
-          <requestLog implementation="org.eclipse.jetty.server.NCSARequestLog">
-            <filename>/tmp/request.log</filename>
-            <retainDays>2</retainDays>
-            <append>true</append>
-            <extended>false</extended>
-            <logTimeZone>GMT</logTimeZone>
-          </requestLog>
           <systemProperties>
             <systemProperty>
               <name>org.eclipse.jetty.server.Request.maxFormContentSize</name>
