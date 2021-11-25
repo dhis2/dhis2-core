@@ -27,55 +27,36 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.interpretation.Interpretation;
-import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * @author Lars Helge Overland
- */
-public class InterpretationMigrateTest
+public class UserMetadataOrgUnitMergeHandlerTest
     extends DhisSpringTest
 {
     @Autowired
-    private VisualizationService visualizationService;
+    private UserService userService;
 
     @Autowired
-    private InterpretationService interpretationService;
+    private IdentifiableObjectManager idObjectManager;
 
     @Autowired
-    private IdentifiableObjectManager manager;
-
-    @Autowired
-    private DataOrgUnitMergeHandler mergeHandler;
-
-    @Autowired
-    private SessionFactory sessionFactory;
+    private MetadataOrgUnitMergeHandler handler;
 
     private OrganisationUnit ouA;
 
     private OrganisationUnit ouB;
 
     private OrganisationUnit ouC;
-
-    private Visualization vzA;
-
-    private Interpretation ipA;
-
-    private Interpretation ipB;
-
-    private Interpretation ipC;
 
     @Before
     public void beforeTest()
@@ -84,28 +65,33 @@ public class InterpretationMigrateTest
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
 
-        manager.save( ouA );
-        manager.save( ouB );
-        manager.save( ouC );
-
-        vzA = createVisualization( 'A' );
-        visualizationService.save( vzA );
-
-        ipA = new Interpretation( vzA, ouA, "Interpration of visualization A" );
-        ipB = new Interpretation( vzA, ouB, "Interpration of visualization B" );
-        ipC = new Interpretation( vzA, ouC, "Interpration of visualization C" );
+        idObjectManager.save( ouA );
+        idObjectManager.save( ouB );
+        idObjectManager.save( ouC );
     }
 
     @Test
-    public void testMigrate()
+    public void testMergeUsers()
     {
-        interpretationService.saveInterpretation( ipA );
-        interpretationService.saveInterpretation( ipB );
-        interpretationService.saveInterpretation( ipC );
+        User userA = createUser( 'A' );
+        userA.addOrganisationUnit( ouA );
+        userA.getDataViewOrganisationUnits().add( ouA );
+        userA.getTeiSearchOrganisationUnits().add( ouA );
 
-        assertEquals( 1, getInterpretationCount( ouA ) );
-        assertEquals( 1, getInterpretationCount( ouB ) );
-        assertEquals( 1, getInterpretationCount( ouC ) );
+        User userB = createUser( 'B' );
+        userB.addOrganisationUnit( ouB );
+        userB.getDataViewOrganisationUnits().add( ouB );
+        userB.getTeiSearchOrganisationUnits().add( ouB );
+
+        userService.addUserCredentials( userA.getUserCredentials() );
+        userService.addUser( userA );
+        userService.addUserCredentials( userB.getUserCredentials() );
+        userService.addUser( userB );
+
+        assertTrue( ouA.getUsers().contains( userA ) );
+        assertTrue( userA.getOrganisationUnits().contains( ouA ) );
+        assertTrue( ouB.getUsers().contains( userB ) );
+        assertTrue( userB.getOrganisationUnits().contains( ouB ) );
 
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
             .addSource( ouA )
@@ -113,25 +99,25 @@ public class InterpretationMigrateTest
             .withTarget( ouC )
             .build();
 
-        mergeHandler.mergeInterpretations( request );
+        handler.mergeUsers( request );
 
-        assertEquals( 0, getInterpretationCount( ouA ) );
-        assertEquals( 0, getInterpretationCount( ouB ) );
-        assertEquals( 3, getInterpretationCount( ouC ) );
-    }
+        assertTrue( ouA.getUsers().isEmpty() );
+        assertFalse( userA.getOrganisationUnits().contains( ouA ) );
+        assertFalse( userA.getDataViewOrganisationUnits().contains( ouA ) );
+        assertFalse( userA.getTeiSearchOrganisationUnits().contains( ouA ) );
 
-    /**
-     * Test migrate HQL update statement with an HQL select statement to ensure
-     * the updated rows are visible by the current transaction.
-     *
-     * @param target the {@link OrganisationUnit}
-     * @return the count of interpretations.
-     */
-    private long getInterpretationCount( OrganisationUnit target )
-    {
-        return (Long) sessionFactory.getCurrentSession()
-            .createQuery( "select count(*) from Interpretation i where i.organisationUnit = :target" )
-            .setParameter( "target", target )
-            .uniqueResult();
+        assertTrue( ouB.getUsers().isEmpty() );
+        assertFalse( userB.getOrganisationUnits().contains( ouB ) );
+        assertFalse( userB.getDataViewOrganisationUnits().contains( ouB ) );
+        assertFalse( userB.getTeiSearchOrganisationUnits().contains( ouB ) );
+
+        assertTrue( ouC.getUsers().contains( userA ) );
+        assertTrue( ouC.getUsers().contains( userB ) );
+        assertTrue( userA.getOrganisationUnits().contains( ouC ) );
+        assertTrue( userA.getDataViewOrganisationUnits().contains( ouC ) );
+        assertTrue( userA.getTeiSearchOrganisationUnits().contains( ouC ) );
+        assertTrue( userB.getOrganisationUnits().contains( ouC ) );
+        assertTrue( userB.getDataViewOrganisationUnits().contains( ouC ) );
+        assertTrue( userB.getTeiSearchOrganisationUnits().contains( ouC ) );
     }
 }
