@@ -313,7 +313,6 @@ public class JdbcAnalyticsTableManager
             "inner join _categorystructure acs on dv.attributeoptioncomboid=acs.categoryoptioncomboid " +
             "inner join _categoryoptioncomboname aon on dv.attributeoptioncomboid=aon.categoryoptioncomboid " +
             "inner join _categoryoptioncomboname con on dv.categoryoptioncomboid=con.categoryoptioncomboid " +
-
             approvalClause +
             "where de.valuetype in (" + valTypes + ") " +
             "and de.domaintype = 'AGGREGATE' " +
@@ -351,8 +350,8 @@ public class JdbcAnalyticsTableManager
         if ( isApprovalEnabled( year ) )
         {
             String sql = "left join _dataapprovalminlevel da " +
-                "on des.workflowid=da.workflowid and da.periodid=dv.periodid and da.attributeoptioncomboid=dv.attributeoptioncomboid "
-                +
+                "on des.workflowid=da.workflowid and da.periodid=dv.periodid " +
+                "and da.attributeoptioncomboid=dv.attributeoptioncomboid " +
                 "and (";
 
             Set<OrganisationUnitLevel> levels = dataApprovalLevelService.getOrganisationUnitApprovalLevels();
