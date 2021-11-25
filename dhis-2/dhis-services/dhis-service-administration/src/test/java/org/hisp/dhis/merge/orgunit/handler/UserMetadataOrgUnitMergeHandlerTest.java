@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -111,13 +112,13 @@ public class UserMetadataOrgUnitMergeHandlerTest
         assertFalse( userB.getDataViewOrganisationUnits().contains( ouB ) );
         assertFalse( userB.getTeiSearchOrganisationUnits().contains( ouB ) );
 
-        assertTrue( ouC.getUsers().contains( userA ) );
-        assertTrue( ouC.getUsers().contains( userB ) );
-        assertTrue( userA.getOrganisationUnits().contains( ouC ) );
-        assertTrue( userA.getDataViewOrganisationUnits().contains( ouC ) );
-        assertTrue( userA.getTeiSearchOrganisationUnits().contains( ouC ) );
-        assertTrue( userB.getOrganisationUnits().contains( ouC ) );
-        assertTrue( userB.getDataViewOrganisationUnits().contains( ouC ) );
-        assertTrue( userB.getTeiSearchOrganisationUnits().contains( ouC ) );
+        assertContainsOnly( ouC.getUsers(), userA );
+        assertContainsOnly( ouC.getUsers(), userB );
+        assertContainsOnly( userA.getOrganisationUnits(), ouC );
+        assertContainsOnly( userA.getDataViewOrganisationUnits(), ouC );
+        assertContainsOnly( userA.getTeiSearchOrganisationUnits(), ouC );
+        assertContainsOnly( userB.getOrganisationUnits(), ouC );
+        assertContainsOnly( userB.getDataViewOrganisationUnits(), ouC );
+        assertContainsOnly( userB.getTeiSearchOrganisationUnits(), ouC );
     }
 }
