@@ -105,7 +105,7 @@ public class MetadataImportTest
 
         // assert
         response.validate()
-            .statusCode( 409 )
+            .statusCode( 200 )
             .rootPath( "response" )
             .body( "stats", notNullValue() )
             .rootPath( "response.stats" )
