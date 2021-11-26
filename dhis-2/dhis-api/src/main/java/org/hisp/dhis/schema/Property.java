@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.schema;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
@@ -294,6 +297,11 @@ public class Property implements Ordered, Klass
     private String i18nTranslationKey;
 
     private GistPreferences gistPreferences = GistPreferences.DEFAULT;
+
+    /**
+     * All annotations present on this property (either through field or method)
+     */
+    private Map<Class<? extends Annotation>, ? extends Annotation> annotationMap = new HashMap<>();
 
     public Property()
     {
@@ -874,6 +882,27 @@ public class Property implements Ordered, Klass
     public void setGistPreferences( GistPreferences gistPreferences )
     {
         this.gistPreferences = gistPreferences == null ? GistPreferences.DEFAULT : gistPreferences;
+    }
+
+    public Map<Class<? extends Annotation>, ? extends Annotation> getAnnotationMap()
+    {
+        return annotationMap;
+    }
+
+    public void setAnnotationMap( Map<Class<? extends Annotation>, ? extends Annotation> annotationMap )
+    {
+        this.annotationMap = annotationMap;
+    }
+
+    @SuppressWarnings( "unchecked" )
+    public <A extends Annotation> A getAnnotation( Class<? extends Annotation> annotationType )
+    {
+        if ( annotationMap.containsKey( annotationType ) )
+        {
+            return (A) annotationMap.get( annotationType );
+        }
+
+        return null;
     }
 
     public String key()

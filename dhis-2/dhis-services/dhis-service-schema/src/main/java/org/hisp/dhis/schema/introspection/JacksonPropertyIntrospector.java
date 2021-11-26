@@ -31,11 +31,13 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
 import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -289,7 +293,8 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
     private static Property createSchemaProperty( Class<?> klass )
     {
-        Property self = new Property();
+        Property schemaProperty = new Property();
+        schemaProperty.setAnnotationMap( getAnnotationMap( klass.getAnnotations() ) );
 
         if ( isAnnotationPresent( klass, JsonRootName.class ) )
         {
@@ -297,12 +302,12 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
             if ( !isEmpty( jsonRootName.value() ) )
             {
-                self.setName( jsonRootName.value() );
+                schemaProperty.setName( jsonRootName.value() );
             }
 
             if ( !isEmpty( jsonRootName.namespace() ) )
             {
-                self.setNamespace( jsonRootName.namespace() );
+                schemaProperty.setNamespace( jsonRootName.namespace() );
             }
         }
         else if ( isAnnotationPresent( klass, JacksonXmlRootElement.class ) )
@@ -312,16 +317,16 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
             if ( !isEmpty( jacksonXmlRootElement.localName() ) )
             {
-                self.setName( jacksonXmlRootElement.localName() );
+                schemaProperty.setName( jacksonXmlRootElement.localName() );
             }
 
             if ( !isEmpty( jacksonXmlRootElement.namespace() ) )
             {
-                self.setNamespace( jacksonXmlRootElement.namespace() );
+                schemaProperty.setNamespace( jacksonXmlRootElement.namespace() );
             }
         }
 
-        return self;
+        return schemaProperty;
     }
 
     private static List<Property> collectProperties( Class<?> klass )
@@ -346,6 +351,8 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         for ( var field : fields )
         {
             Property property = new Property( klass, null, null );
+            property.setAnnotationMap( getAnnotationMap( field.getAnnotations() ) );
+
             JsonProperty jsonProperty = field.getAnnotation( JsonProperty.class );
 
             String fieldName = field.getName();
@@ -378,6 +385,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             }
 
             Property property = new Property( klass, method, null );
+            property.setAnnotationMap( getAnnotationMap( method.getAnnotations() ) );
 
             property.setName( name );
             property.setFieldName( fieldName );
@@ -396,5 +404,10 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         }
 
         return new ArrayList<>( propertyMap.values() );
+    }
+
+    private static Map<Class<? extends Annotation>, ? extends Annotation> getAnnotationMap( Annotation[] annotations )
+    {
+        return Arrays.stream( annotations ).collect( Collectors.toMap( Annotation::getClass, Function.identity() ) );
     }
 }
