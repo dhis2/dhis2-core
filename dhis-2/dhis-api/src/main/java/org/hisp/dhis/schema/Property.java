@@ -884,7 +884,7 @@ public class Property implements Ordered, Klass
         this.gistPreferences = gistPreferences == null ? GistPreferences.DEFAULT : gistPreferences;
     }
 
-    public Map<Class<? extends Annotation>, ? extends Annotation> getAnnotationMap()
+    public Map<Class<? extends Annotation>, Annotation> getAnnotationMap()
     {
         return annotationMap;
     }
