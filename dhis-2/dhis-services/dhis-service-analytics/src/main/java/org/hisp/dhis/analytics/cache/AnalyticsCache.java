@@ -146,7 +146,7 @@ public class AnalyticsCache
      */
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
-        queryCache.put( key, grid, ttlInSeconds );
+        queryCache.put( key, getGridClone( grid ), ttlInSeconds );
     }
 
     /**
