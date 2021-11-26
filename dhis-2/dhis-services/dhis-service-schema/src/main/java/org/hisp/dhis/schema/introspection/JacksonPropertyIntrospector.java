@@ -152,10 +152,10 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
     private static void initFromDescription( Property property )
     {
-        if ( isAnnotationPresent( property.getGetterMethod(), Description.class ) )
+        Description description = property.getAnnotation( Description.class );
+
+        if ( description != null )
         {
-            Description description = getAnnotation( property.getGetterMethod(),
-                Description.class );
             property.setDescription( description.value() );
         }
     }
@@ -177,16 +177,15 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
     private static void initFromJacksonXmlElementWrapper( Property property )
     {
-        if ( !property.isCollection()
-            || !isAnnotationPresent( property.getGetterMethod(), JacksonXmlElementWrapper.class ) )
+        JacksonXmlElementWrapper jacksonXmlElementWrapper = property.getAnnotation( JacksonXmlElementWrapper.class );
+
+        if ( !property.isCollection() || jacksonXmlElementWrapper == null )
         {
             return;
         }
-        JacksonXmlElementWrapper jacksonXmlElementWrapper = getAnnotation( property.getGetterMethod(),
-            JacksonXmlElementWrapper.class );
+
         property.setCollectionWrapping( jacksonXmlElementWrapper.useWrapping() );
 
-        // TODO what if element-wrapper have different namespace?
         if ( !isEmpty( jacksonXmlElementWrapper.localName() ) )
         {
             property.setCollectionName( jacksonXmlElementWrapper.localName() );
@@ -195,13 +194,12 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
     private static void initFromJacksonXmlProperty( Property property )
     {
-        if ( !isAnnotationPresent( property.getGetterMethod(), JacksonXmlProperty.class ) )
+        JacksonXmlProperty jacksonXmlProperty = property.getAnnotation( JacksonXmlProperty.class );
+
+        if ( jacksonXmlProperty == null )
         {
             return;
         }
-
-        JacksonXmlProperty jacksonXmlProperty = getAnnotation( property.getGetterMethod(),
-            JacksonXmlProperty.class );
 
         if ( isEmpty( jacksonXmlProperty.localName() ) )
         {
@@ -226,6 +224,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         {
             return;
         }
+
         Object[] enumConstants = property.getKlass().getEnumConstants();
         List<String> enumValues = new ArrayList<>();
 
