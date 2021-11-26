@@ -31,6 +31,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.stereotype.Service;
 
 /**
@@ -87,6 +88,13 @@ public class OrgUnitSplitValidator
         if ( !request.getTargets().contains( request.getPrimaryTarget() ) )
         {
             return new ErrorMessage( ErrorCode.E1514 );
+        }
+        for ( OrganisationUnit target : request.getTargets() )
+        {
+            if ( target.isDescendant( request.getSource() ) )
+            {
+                return new ErrorMessage( ErrorCode.E1516, target.getUid() );
+            }
         }
 
         return null;
