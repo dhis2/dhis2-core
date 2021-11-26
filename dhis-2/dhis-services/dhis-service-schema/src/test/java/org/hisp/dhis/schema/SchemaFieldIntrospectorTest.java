@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.schema;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import lombok.Data;
@@ -36,6 +37,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 
 /**
  * @author Morten Olav Hansen
@@ -61,6 +63,30 @@ public class SchemaFieldIntrospectorTest extends DhisSpringTest
 
         assertNotNull( schema.getProperty( "x" ) );
         assertNotNull( schema.getProperty( "y" ) );
+    }
+
+    @Test
+    public void testFieldMethodScan()
+    {
+        Schema schema = schemaService.getDynamicSchema( SimpleWithFieldAndMethod.class );
+
+        assertNotNull( schema.getProperty( "x" ) );
+        assertNotNull( schema.getProperty( "y" ) );
+    }
+
+    @Test
+    public void testNamespaces()
+    {
+        Schema schema = schemaService.getDynamicSchema( SimpleWithFieldAndMethodWithNamespace.class );
+
+        assertEquals( "simple", schema.getName() );
+        assertEquals( "https://simple.com", schema.getNamespace() );
+
+        assertNotNull( schema.getProperty( "x" ) );
+        assertNotNull( schema.getProperty( "y" ) );
+
+        assertEquals( "https://x.simple.com", schema.getProperty( "x" ).getNamespace() );
+        assertEquals( "https://y.simple.com", schema.getProperty( "y" ).getNamespace() );
     }
 }
 
@@ -92,4 +118,35 @@ class SimpleWithFields
 
     @JsonProperty
     private String y;
+}
+
+@Data
+class SimpleWithFieldAndMethod
+{
+    @JsonProperty
+    private String x;
+
+    private String y;
+
+    @JsonProperty
+    public String getY()
+    {
+        return y;
+    }
+}
+
+@Data
+@JsonRootName( value = "simple", namespace = "https://simple.com" )
+class SimpleWithFieldAndMethodWithNamespace
+{
+    @JsonProperty( namespace = "https://x.simple.com" )
+    private String x;
+
+    private String y;
+
+    @JsonProperty( namespace = "https://y.simple.com" )
+    public String getY()
+    {
+        return y;
+    }
 }
