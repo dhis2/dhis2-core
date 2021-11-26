@@ -588,14 +588,15 @@ public class HibernateUserStore
     }
 
     @Override
-    public Set<String> findUsersInactiveSince( Date inactiveSince )
+    public Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
         String hql = "select u.email " +
             "from User u inner join u.userCredentials uc " +
-            "where u.email is not null and uc.disabled = false and uc.lastLogin <= :since";
+            "where u.email is not null and uc.disabled = false and uc.lastLogin >= :from and uc.lastLogin < :to";
         return getSession().createQuery( hql, String.class )
-            .setParameter( "since", inactiveSince ).stream()
-            .collect( toSet() );
+            .setParameter( "from", from )
+            .setParameter( "to", to )
+            .stream().collect( toSet() );
     }
 
     @Override

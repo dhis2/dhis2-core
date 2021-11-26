@@ -28,6 +28,7 @@
 package org.hisp.dhis.merge.orgunit.handler;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,8 +46,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Merge handler for metadata entities.
@@ -126,21 +125,31 @@ public class MetadataOrgUnitMergeHandler
 
     public void mergeUsers( OrgUnitMergeRequest request )
     {
-        Set<User> users = ImmutableSet.<User> builder()
-            .addAll( userService.getUsers( new UserQueryParams()
-                .setCanSeeOwnUserAuthorityGroups( true )
-                .setOrganisationUnits( request.getSources() ) ) )
-            .addAll( userService.getUsers( new UserQueryParams()
-                .setCanSeeOwnUserAuthorityGroups( true )
-                .setDataViewOrganisationUnits( request.getSources() ) ) )
-            .addAll( userService.getUsers( new UserQueryParams()
-                .setCanSeeOwnUserAuthorityGroups( true )
-                .setTeiSearchOrganisationUnits( request.getSources() ) ) )
-            .build();
+        List<User> dataCaptureUsers = userService.getUsers( new UserQueryParams()
+            .setCanSeeOwnUserAuthorityGroups( true )
+            .setOrganisationUnits( request.getSources() ) );
 
-        users.forEach( u -> {
+        dataCaptureUsers.forEach( u -> {
             u.addOrganisationUnit( request.getTarget() );
             u.removeOrganisationUnits( request.getSources() );
+        } );
+
+        List<User> dataViewUsers = userService.getUsers( new UserQueryParams()
+            .setCanSeeOwnUserAuthorityGroups( true )
+            .setDataViewOrganisationUnits( request.getSources() ) );
+
+        dataViewUsers.forEach( u -> {
+            u.getDataViewOrganisationUnits().add( request.getTarget() );
+            u.getDataViewOrganisationUnits().removeAll( request.getSources() );
+        } );
+
+        List<User> teiSearchOrgUnits = userService.getUsers( new UserQueryParams()
+            .setCanSeeOwnUserAuthorityGroups( true )
+            .setTeiSearchOrganisationUnits( request.getSources() ) );
+
+        teiSearchOrgUnits.forEach( u -> {
+            u.getTeiSearchOrganisationUnits().add( request.getTarget() );
+            u.getTeiSearchOrganisationUnits().removeAll( request.getSources() );
         } );
     }
 

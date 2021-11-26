@@ -406,7 +406,7 @@ public class MockUserService
     }
 
     @Override
-    public Set<String> findUsersInactiveSince( Date inactiveSince )
+    public Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
         return null;
     }
