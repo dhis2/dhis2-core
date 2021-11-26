@@ -1293,8 +1293,9 @@ public class TrackedEntityInstanceQueryParams
     public enum OrderColumn
     {
         TRACKEDENTITY( "trackedEntity", "tei.uid" ),
-        CREATED( CREATED_ID, "tei.created" ),
-        CREATED_AT( "createdAt", "tei.created" ),
+        // Ordering by id is the same as ordering by created date
+        CREATED( CREATED_ID, "tei.trackedentityinstanceid" ),
+        CREATED_AT( "createdAt", "tei.trackedentityinstanceid" ),
         CREATED_AT_CLIENT( "createdAtClient", "tei.createdAtClient" ),
         UPDATED_AT( "updatedAt", "tei.lastUpdated" ),
         UPDATED_AT_CLIENT( "updatedAtClient", "tei.lastUpdatedAtClient" ),

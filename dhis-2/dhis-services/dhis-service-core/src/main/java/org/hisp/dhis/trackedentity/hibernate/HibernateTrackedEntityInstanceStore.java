@@ -28,6 +28,7 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Comparator.*;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -166,18 +167,24 @@ public class HibernateTrackedEntityInstanceStore
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
         List<Long> teiIds = getTrackedEntityInstanceIds( params );
-        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+        List<TrackedEntityInstance> sortedTeis = new ArrayList<>();
         List<List<Long>> idsPartitions = Lists.partition( Lists.newArrayList( teiIds ), 20000 );
 
         for ( List<Long> idsPartition : idsPartitions )
         {
             if ( !idsPartition.isEmpty() )
             {
-                trackedEntityInstances.addAll( getSession().createQuery( TEI_HQL_BY_IDS, TrackedEntityInstance.class )
-                    .setParameter( "ids", idsPartition ).list() );
+                List<TrackedEntityInstance> teis = getSession()
+                    .createQuery( TEI_HQL_BY_IDS, TrackedEntityInstance.class )
+                    .setParameter( "ids", idsPartition ).list();
+
+                teis.sort( comparing( tei -> idsPartition.indexOf( tei.getId() ) ) );
+
+                sortedTeis.addAll( teis );
             }
         }
-        return trackedEntityInstances;
+
+        return sortedTeis;
     }
 
     @Override
