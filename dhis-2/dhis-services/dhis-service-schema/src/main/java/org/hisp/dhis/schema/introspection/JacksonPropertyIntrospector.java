@@ -192,6 +192,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         {
             return;
         }
+
         JacksonXmlProperty jacksonXmlProperty = getAnnotation( property.getGetterMethod(),
             JacksonXmlProperty.class );
 
@@ -342,12 +343,14 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         {
             Property property = new Property( klass, null, null );
             JsonProperty jsonProperty = field.getAnnotation( JsonProperty.class );
-            String name = StringUtils.isEmpty( jsonProperty.value() ) ? field.getName() : jsonProperty.value();
+
+            String fieldName = field.getName();
+            String name = StringUtils.isEmpty( jsonProperty.value() ) ? fieldName : jsonProperty.value();
 
             property.setName( name );
-            property.setFieldName( field.getName() );
-            property.setSetterMethod( ReflectionUtils.findSetterMethod( name, klass ) );
-            property.setGetterMethod( ReflectionUtils.findGetterMethod( name, klass ) );
+            property.setFieldName( fieldName );
+            property.setSetterMethod( ReflectionUtils.findSetterMethod( fieldName, klass ) );
+            property.setGetterMethod( ReflectionUtils.findGetterMethod( fieldName, klass ) );
 
             propertyMap.put( name, property );
         }
