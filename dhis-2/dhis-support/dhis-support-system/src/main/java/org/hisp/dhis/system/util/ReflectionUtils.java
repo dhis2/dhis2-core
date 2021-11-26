@@ -546,4 +546,35 @@ public class ReflectionUtils
             .filter( predicate )
             .collect( Collectors.toList() );
     }
+
+    public static String getFieldName( Method method )
+    {
+        String name;
+
+        String[] getters = new String[] { "is", "has", "get" };
+
+        name = method.getName();
+
+        for ( String getter : getters )
+        {
+            if ( name.startsWith( getter ) )
+            {
+                name = name.substring( getter.length() );
+            }
+        }
+
+        return org.apache.commons.lang3.StringUtils.uncapitalize( name );
+    }
+
+    public static Type getInnerType( ParameterizedType parameterizedType )
+    {
+        ParameterizedType innerType = parameterizedType;
+
+        while ( innerType.getActualTypeArguments()[0] instanceof ParameterizedType )
+        {
+            innerType = (ParameterizedType) parameterizedType.getActualTypeArguments()[0];
+        }
+
+        return innerType.getActualTypeArguments()[0];
+    }
 }

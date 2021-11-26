@@ -58,6 +58,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -95,20 +96,21 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
     private static final Map<Class<?>, Boolean> HAS_PROPERTIES = new ConcurrentHashMap<>();
 
     @Override
-    public void introspect( Class<?> clazz, Map<String, Property> properties )
+    public void introspect( Class<?> klass, Map<String, Property> properties )
     {
         Map<String, Property> persistedProperties = new HashMap<>( properties );
         properties.clear();
-        Set<String> classFieldNames = ReflectionUtils.getAllFieldNames( clazz );
+        Set<String> classFieldNames = ReflectionUtils.getAllFieldNames( klass );
 
         // TODO this is quite nasty, should find a better way of exposing
         // properties at class-level
-        if ( isAnnotationPresent( clazz, JacksonXmlRootElement.class ) )
+        if ( isAnnotationPresent( klass, JacksonXmlRootElement.class )
+            || isAnnotationPresent( klass, JsonRootName.class ) )
         {
-            properties.put( "__self__", createSelfProperty( clazz ) );
+            properties.put( "__self__", createSelfProperty( klass ) );
         }
 
-        for ( Property property : collectProperties( clazz ) )
+        for ( Property property : collectProperties( klass ) )
         {
             String fieldName = initFromJsonProperty( property );
 
@@ -267,7 +269,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
         if ( type instanceof ParameterizedType )
         {
-            Class<?> klass = (Class<?>) getInnerType( (ParameterizedType) type );
+            Class<?> klass = (Class<?>) ReflectionUtils.getInnerType( (ParameterizedType) type );
             property.setItemKlass( Primitives.wrap( klass ) );
 
             if ( !hasProperties( klass ) )
@@ -282,42 +284,41 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         }
     }
 
-    private static Property createSelfProperty( Class<?> clazz )
+    private static Property createSelfProperty( Class<?> klass )
     {
         Property self = new Property();
 
-        JacksonXmlRootElement jacksonXmlRootElement = getAnnotation( clazz,
-            JacksonXmlRootElement.class );
-
-        if ( !isEmpty( jacksonXmlRootElement.localName() ) )
+        if ( isAnnotationPresent( klass, JsonRootName.class ) )
         {
-            self.setName( jacksonXmlRootElement.localName() );
-        }
+            JsonRootName jsonRootName = getAnnotation( klass, JsonRootName.class );
 
-        if ( !isEmpty( jacksonXmlRootElement.namespace() ) )
-        {
-            self.setNamespace( jacksonXmlRootElement.namespace() );
-        }
-        return self;
-    }
-
-    private static String getFieldName( Method method )
-    {
-        String name;
-
-        String[] getters = new String[] { "is", "has", "get" };
-
-        name = method.getName();
-
-        for ( String getter : getters )
-        {
-            if ( name.startsWith( getter ) )
+            if ( !isEmpty( jsonRootName.value() ) )
             {
-                name = name.substring( getter.length() );
+                self.setName( jsonRootName.value() );
+            }
+
+            if ( !isEmpty( jsonRootName.namespace() ) )
+            {
+                self.setNamespace( jsonRootName.namespace() );
+            }
+        }
+        else if ( isAnnotationPresent( klass, JacksonXmlRootElement.class ) )
+        {
+            JacksonXmlRootElement jacksonXmlRootElement = getAnnotation( klass,
+                JacksonXmlRootElement.class );
+
+            if ( !isEmpty( jacksonXmlRootElement.localName() ) )
+            {
+                self.setName( jacksonXmlRootElement.localName() );
+            }
+
+            if ( !isEmpty( jacksonXmlRootElement.namespace() ) )
+            {
+                self.setNamespace( jacksonXmlRootElement.namespace() );
             }
         }
 
-        return StringUtils.uncapitalize( name );
+        return self;
     }
 
     private static List<Property> collectProperties( Class<?> klass )
@@ -351,6 +352,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             property.setFieldName( fieldName );
             property.setSetterMethod( ReflectionUtils.findSetterMethod( fieldName, klass ) );
             property.setGetterMethod( ReflectionUtils.findGetterMethod( fieldName, klass ) );
+            property.setNamespace( jsonProperty.namespace() );
 
             propertyMap.put( name, property );
         }
@@ -364,7 +366,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
                 continue;
             }
 
-            String fieldName = getFieldName( method );
+            String fieldName = ReflectionUtils.getFieldName( method );
             String name = StringUtils.isEmpty( jsonProperty.value() ) ? fieldName : jsonProperty.value();
 
             if ( propertyMap.containsKey( name ) )
@@ -376,6 +378,8 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
             property.setName( name );
             property.setFieldName( fieldName );
+            property.setNamespace( jsonProperty.namespace() );
+
             propertyMap.put( name, property );
 
             String setterName = "set" + StringUtils.capitalize( fieldName );
@@ -389,17 +393,5 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         }
 
         return new ArrayList<>( propertyMap.values() );
-    }
-
-    private static Type getInnerType( ParameterizedType parameterizedType )
-    {
-        ParameterizedType innerType = parameterizedType;
-
-        while ( innerType.getActualTypeArguments()[0] instanceof ParameterizedType )
-        {
-            innerType = (ParameterizedType) parameterizedType.getActualTypeArguments()[0];
-        }
-
-        return innerType.getActualTypeArguments()[0];
     }
 }
