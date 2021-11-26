@@ -533,14 +533,14 @@ public class ReflectionUtils
         return "translations".equals( property.getName() ) || "translations".equals( property.getCollectionName() );
     }
 
-    public static <A extends Annotation> List<Field> findFields( Class<?> klass, Predicate<Field> predicate )
+    public static List<Field> findFields( Class<?> klass, Predicate<Field> predicate )
     {
         return getAllFields( klass ).stream()
             .filter( predicate )
             .collect( Collectors.toList() );
     }
 
-    public static <A extends Annotation> List<Method> findMethods( Class<?> klass, Predicate<Method> predicate )
+    public static List<Method> findMethods( Class<?> klass, Predicate<Method> predicate )
     {
         return getMethods( klass ).stream()
             .filter( predicate )

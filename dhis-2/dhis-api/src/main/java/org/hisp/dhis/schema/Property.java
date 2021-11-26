@@ -301,7 +301,7 @@ public class Property implements Ordered, Klass
     /**
      * All annotations present on this property (either through field or method)
      */
-    private Map<Class<? extends Annotation>, ? extends Annotation> annotationMap = new HashMap<>();
+    private Map<Class<? extends Annotation>, Annotation> annotationMap = new HashMap<>();
 
     public Property()
     {
@@ -889,7 +889,7 @@ public class Property implements Ordered, Klass
         return annotationMap;
     }
 
-    public void setAnnotationMap( Map<Class<? extends Annotation>, ? extends Annotation> annotationMap )
+    public void setAnnotationMap( Map<Class<? extends Annotation>, Annotation> annotationMap )
     {
         this.annotationMap = annotationMap;
     }

@@ -406,7 +406,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         return new ArrayList<>( propertyMap.values() );
     }
 
-    private static Map<Class<? extends Annotation>, ? extends Annotation> getAnnotationMap( Annotation[] annotations )
+    private static Map<Class<? extends Annotation>, Annotation> getAnnotationMap( Annotation[] annotations )
     {
         return Arrays.stream( annotations )
             .collect( Collectors.toMap( Annotation::annotationType, Function.identity() ) );
