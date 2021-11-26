@@ -52,6 +52,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.schema.DefaultSchemaService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -107,7 +108,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         if ( isAnnotationPresent( klass, JacksonXmlRootElement.class )
             || isAnnotationPresent( klass, JsonRootName.class ) )
         {
-            properties.put( "__self__", createSelfProperty( klass ) );
+            properties.put( DefaultSchemaService.PROPERTY_SCHEMA, createSchemaProperty( klass ) );
         }
 
         for ( Property property : collectProperties( klass ) )
@@ -256,11 +257,13 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
     private static void initCollectionProperty( Property property )
     {
         Class<?> returnType = property.getGetterMethod().getReturnType();
+
         if ( !Collection.class.isAssignableFrom( returnType ) )
         {
             property.setCollection( false );
             return;
         }
+
         property.setCollection( true );
         property.setCollectionName( property.getName() );
         property.setOrdered( List.class.isAssignableFrom( returnType ) );
@@ -284,7 +287,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         }
     }
 
-    private static Property createSelfProperty( Class<?> klass )
+    private static Property createSchemaProperty( Class<?> klass )
     {
         Property self = new Property();
 
