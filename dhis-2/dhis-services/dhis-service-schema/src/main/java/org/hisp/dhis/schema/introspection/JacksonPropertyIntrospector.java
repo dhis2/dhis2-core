@@ -52,8 +52,8 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.annotation.Description;
-import org.hisp.dhis.schema.DefaultSchemaService;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ClassUtils;
@@ -108,7 +108,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         if ( isAnnotationPresent( klass, JacksonXmlRootElement.class )
             || isAnnotationPresent( klass, JsonRootName.class ) )
         {
-            properties.put( DefaultSchemaService.PROPERTY_SCHEMA, createSchemaProperty( klass ) );
+            properties.put( SchemaService.PROPERTY_SCHEMA, createSchemaProperty( klass ) );
         }
 
         for ( Property property : collectProperties( klass ) )
