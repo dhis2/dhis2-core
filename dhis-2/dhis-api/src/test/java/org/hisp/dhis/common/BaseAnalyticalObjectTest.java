@@ -27,12 +27,16 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.MapView;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.junit.Test;
@@ -48,6 +52,8 @@ public class BaseAnalyticalObjectTest
     {
         TrackedEntityAttribute tea = new TrackedEntityAttribute();
         tea.setAutoFields();
+        tea.setValueType( ValueType.TEXT );
+        tea.setOptionSet( new OptionSet( "name", ValueType.BOOLEAN ) );
 
         TrackedEntityAttributeDimension tead = new TrackedEntityAttributeDimension( tea, null, "EQ:10" );
 
@@ -66,6 +72,8 @@ public class BaseAnalyticalObjectTest
         assertEquals( DimensionType.PROGRAM_ATTRIBUTE, dim.getDimensionType() );
         assertEquals( AnalyticsType.EVENT, dim.getAnalyticsType() );
         assertEquals( tead.getFilter(), dim.getFilter() );
+        assertEquals( tead.getAttribute().getValueType(), dim.getValueType() );
+        assertEquals( tead.getAttribute().getOptionSet(), dim.getOptionSet() );
     }
 
     @Test
