@@ -124,8 +124,8 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
             initFromDescription( property );
             initFromJacksonXmlProperty( property );
-
             initCollectionProperty( property );
+
             if ( !property.isCollection() && !hasProperties( property.getGetterMethod().getReturnType() ) )
             {
                 property.setSimple( true );
@@ -361,7 +361,8 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
                 continue;
             }
 
-            String name = StringUtils.isEmpty( jsonProperty.value() ) ? getFieldName( method ) : jsonProperty.value();
+            String fieldName = getFieldName( method );
+            String name = StringUtils.isEmpty( jsonProperty.value() ) ? fieldName : jsonProperty.value();
 
             if ( propertyMap.containsKey( name ) )
             {
@@ -371,10 +372,10 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             Property property = new Property( klass, method, null );
 
             property.setName( name );
-            property.setFieldName( name );
+            property.setFieldName( fieldName );
             propertyMap.put( name, property );
 
-            String setterName = "set" + StringUtils.capitalize( name );
+            String setterName = "set" + StringUtils.capitalize( fieldName );
 
             if ( multimap.containsKey( setterName ) )
             {
