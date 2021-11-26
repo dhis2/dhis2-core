@@ -130,6 +130,23 @@ public class OrgUnitSplitValidatorTest
     }
 
     @Test
+    public void validateTargetIsDescendantOfSource()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        OrganisationUnit ouC = createOrganisationUnit( 'C', ouA );
+
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
+            .withSource( ouA )
+            .addTarget( ouB )
+            .addTarget( ouC )
+            .withPrimaryTarget( ouB )
+            .build();
+
+        assertEquals( ErrorCode.E1516, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
     public void validateSuccess()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );

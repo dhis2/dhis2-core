@@ -180,7 +180,7 @@ public class ObjectUtils
      * @param <T> the object type.
      * @param <U> the runtime exception type.
      * @param object the object.
-     * @param ex the {@link RuntimeException}.
+     * @param ex the supplier of {@link RuntimeException}.
      * @throws RuntimeException
      */
     public static <T, U extends RuntimeException> T throwIfNull( T object, Supplier<U> ex )
