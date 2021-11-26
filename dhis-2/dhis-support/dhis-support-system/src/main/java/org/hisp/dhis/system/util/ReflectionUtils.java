@@ -296,6 +296,11 @@ public class ReflectionUtils
 
     public static Method findSetterMethod( String fieldName, Object target )
     {
+        return findSetterMethod( fieldName, target.getClass() );
+    }
+
+    public static Method findSetterMethod( String fieldName, Class<?> target )
+    {
         if ( target == null || !StringUtils.hasLength( fieldName ) )
         {
             return null;
@@ -305,14 +310,14 @@ public class ReflectionUtils
             "set"
         };
 
-        Field field = _findField( target.getClass(), StringUtils.uncapitalize( fieldName ) );
+        Field field = _findField( target, StringUtils.uncapitalize( fieldName ) );
         Method method;
 
         if ( field != null )
         {
             for ( String setterName : setterNames )
             {
-                method = _findMethod( target.getClass(), setterName + StringUtils.capitalize( field.getName() ),
+                method = _findMethod( target, setterName + StringUtils.capitalize( field.getName() ),
                     field.getType() );
 
                 if ( method != null )
@@ -526,5 +531,19 @@ public class ReflectionUtils
     public static boolean isTranslationProperty( Property property )
     {
         return "translations".equals( property.getName() ) || "translations".equals( property.getCollectionName() );
+    }
+
+    public static <A extends Annotation> List<Field> findFields( Class<?> klass, Predicate<Field> predicate )
+    {
+        return getAllFields( klass ).stream()
+            .filter( predicate )
+            .collect( Collectors.toList() );
+    }
+
+    public static <A extends Annotation> List<Method> findMethods( Class<?> klass, Predicate<Method> predicate )
+    {
+        return getMethods( klass ).stream()
+            .filter( predicate )
+            .collect( Collectors.toList() );
     }
 }

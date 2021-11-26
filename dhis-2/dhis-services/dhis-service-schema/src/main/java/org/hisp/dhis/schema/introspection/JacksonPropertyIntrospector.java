@@ -39,13 +39,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +54,7 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -158,16 +156,16 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
     private static String initFromJsonProperty( Property property )
     {
         Method getter = property.getGetterMethod();
-        JsonProperty jsonProperty = getAnnotation( getter, JsonProperty.class );
-        String fieldName = getFieldName( getter );
-        property.setName( !isEmpty( jsonProperty.value() ) ? jsonProperty.value() : fieldName );
+
         property.setKlass( Primitives.wrap( getter.getReturnType() ) );
         property.setReadable( true );
+
         if ( property.getSetterMethod() != null )
         {
             property.setWritable( true );
         }
-        return fieldName;
+
+        return property.getFieldName();
     }
 
     private static void initFromJacksonXmlElementWrapper( Property property )
@@ -330,57 +328,63 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             return Collections.emptyList();
         }
 
+        List<Field> fields = ReflectionUtils.findFields( klass,
+            f -> f.isAnnotationPresent( JsonProperty.class ) );
+
+        List<Method> methods = ReflectionUtils.findMethods( klass,
+            m -> AnnotationUtils.findAnnotation( m, JsonProperty.class ) != null && m.getParameterTypes().length == 0 );
+
         Multimap<String, Method> multimap = ReflectionUtils.getMethodsMultimap( klass );
-        List<String> fieldNames = ReflectionUtils.getAllFields( klass ).stream().map( Field::getName )
-            .collect( Collectors.toList() );
-        List<Property> properties = new ArrayList<>();
 
-        Map<String, Method> methodMap = multimap.keySet().stream().filter( key -> {
-            List<Method> methods = multimap.get( key ).stream()
-                .filter( method -> isAnnotationPresent( method, JsonProperty.class )
-                    && method.getParameterTypes().length == 0 )
-                .collect( Collectors.toList() );
+        Map<String, Property> propertyMap = new HashMap<>();
 
-            if ( methods.size() > 1 )
+        for ( var field : fields )
+        {
+            Property property = new Property( klass, null, null );
+            JsonProperty jsonProperty = field.getAnnotation( JsonProperty.class );
+            String name = StringUtils.isEmpty( jsonProperty.value() ) ? field.getName() : jsonProperty.value();
+
+            property.setName( name );
+            property.setFieldName( field.getName() );
+            property.setSetterMethod( ReflectionUtils.findSetterMethod( name, klass ) );
+            property.setGetterMethod( ReflectionUtils.findGetterMethod( name, klass ) );
+
+            propertyMap.put( name, property );
+        }
+
+        for ( var method : methods )
+        {
+            JsonProperty jsonProperty = AnnotationUtils.findAnnotation( method, JsonProperty.class );
+
+            if ( jsonProperty == null )
             {
-                log.error( "More than one web-api exposed method with name '" + key + "' found on class '"
-                    + klass.getName() + "' please fix as this is known to cause issues with Schema / Query services." );
-
-                log.debug( "Methods found: " + methods );
+                continue;
             }
 
-            return methods.size() == 1;
-        } ).collect( Collectors.toMap( Function.identity(), key -> {
-            List<Method> collect = multimap.get( key ).stream()
-                .filter( method -> isAnnotationPresent( method, JsonProperty.class )
-                    && method.getParameterTypes().length == 0 )
-                .collect( Collectors.toList() );
+            String name = StringUtils.isEmpty( jsonProperty.value() ) ? getFieldName( method ) : jsonProperty.value();
 
-            return collect.get( 0 );
-        } ) );
-
-        methodMap.keySet().forEach( key -> {
-            String fieldName = getFieldName( methodMap.get( key ) );
-            String setterName = "set" + StringUtils.capitalize( fieldName );
-
-            Property property = new Property( klass, methodMap.get( key ), null );
-
-            if ( fieldNames.contains( fieldName ) )
+            if ( propertyMap.containsKey( name ) )
             {
-                property.setFieldName( fieldName );
+                continue;
             }
 
-            Iterator<Method> methodIterator = multimap.get( setterName ).iterator();
+            Property property = new Property( klass, method, null );
 
-            if ( methodIterator.hasNext() )
+            property.setName( name );
+            property.setFieldName( name );
+            propertyMap.put( name, property );
+
+            String setterName = "set" + StringUtils.capitalize( name );
+
+            if ( multimap.containsKey( setterName ) )
             {
-                property.setSetterMethod( methodIterator.next() );
+                property.setSetterMethod( multimap.get( setterName ).iterator().next() );
             }
 
-            properties.add( property );
-        } );
+            propertyMap.put( name, property );
+        }
 
-        return properties;
+        return new ArrayList<>( propertyMap.values() );
     }
 
     private static Type getInnerType( ParameterizedType parameterizedType )
