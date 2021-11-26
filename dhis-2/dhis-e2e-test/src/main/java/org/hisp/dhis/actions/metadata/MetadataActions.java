@@ -78,8 +78,8 @@ public class MetadataActions
     {
         ApiResponse response = importMetadata( object, queryParams );
 
-        response.validate().body( "stats.ignored", not(
-            equalTo( response.extract( "stats.total" ) ) ) );
+        response.validate().body( "response.stats.ignored", not(
+            equalTo( response.extract( "response.stats.total" ) ) ) );
 
         return new MetadataApiResponse( response );
     }
@@ -88,8 +88,8 @@ public class MetadataActions
     {
         ApiResponse response = importMetadata( file, queryParams );
 
-        response.validate().body( "stats.ignored", not(
-            equalTo( response.extract( "stats.total" ) ) ) );
+        response.validate().body( "response.stats.ignored", not(
+            equalTo( response.extract( "response.stats.total" ) ) ) );
 
         return new MetadataApiResponse( response );
     }

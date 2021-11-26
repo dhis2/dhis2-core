@@ -54,6 +54,7 @@ import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.gml.GmlImportService;
+import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -61,6 +62,12 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsonpatch.BulkJsonPatches;
+import org.hisp.dhis.jsonpatch.BulkPatchManager;
+import org.hisp.dhis.jsonpatch.BulkPatchParameters;
+import org.hisp.dhis.jsonpatch.validator.BulkPatchValidatorFactory;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -76,10 +83,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -124,6 +134,12 @@ public class MetadataImportExportController
 
     @Autowired
     private ObjectFactory<GmlAsyncImporter> gmlAsyncImporterFactory;
+
+    @Autowired
+    private ObjectMapper jsonMapper;
+
+    @Autowired
+    private BulkPatchManager bulkPatchManager;
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE )
     @ResponseBody
@@ -231,6 +247,48 @@ public class MetadataImportExportController
         RootNode rootNode = metadataExportService.getMetadataAsNode( params );
 
         return MetadataExportControllerUtils.createResponseEntity( rootNode, download );
+    }
+
+    @ResponseBody
+    @PatchMapping( value = "sharing", consumes = "application/json-patch+json", produces = APPLICATION_JSON_VALUE )
+    public WebMessage bulkSharing( @RequestParam( required = false, defaultValue = "false" ) boolean atomic,
+        HttpServletRequest request )
+        throws IOException
+    {
+        final BulkJsonPatches bulkJsonPatches = jsonMapper.readValue( request.getInputStream(), BulkJsonPatches.class );
+
+        BulkPatchParameters patchParams = BulkPatchParameters.builder()
+            .validators( BulkPatchValidatorFactory.SHARING )
+            .build();
+
+        List<IdentifiableObject> patchedObjects = bulkPatchManager.applyPatches( bulkJsonPatches, patchParams );
+
+        if ( patchedObjects.isEmpty() || (atomic && !patchParams.hasErrorReports()) )
+        {
+            ImportReport importReport = new ImportReport();
+            importReport.addTypeReports( patchParams.getTypeReports() );
+            importReport.setStatus( Status.ERROR );
+            return importReport( importReport );
+        }
+
+        Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
+
+        MetadataImportParams importParams = metadataImportService.getParamsFromMap( parameterValuesMap );
+
+        importParams.setUser( currentUserService.getCurrentUser() )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .setAtomicMode( atomic ? AtomicMode.ALL : AtomicMode.NONE )
+            .addObjects( patchedObjects );
+
+        ImportReport importReport = metadataImportService.importMetadata( importParams );
+
+        if ( patchParams.hasErrorReports() )
+        {
+            importReport.addTypeReports( patchParams.getTypeReports() );
+            importReport.setStatus( importReport.getStatus() == Status.OK ? Status.WARNING : importReport.getStatus() );
+        }
+
+        return importReport( importReport );
     }
 
     // ----------------------------------------------------------------------------------------------------------------------------------------

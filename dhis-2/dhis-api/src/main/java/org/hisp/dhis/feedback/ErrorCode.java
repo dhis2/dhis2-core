@@ -50,6 +50,7 @@ public enum ErrorCode
     E1501( "Target org unit must be specified" ),
     E1502( "Target org unit cannot be a source org unit" ),
     E1503( "Source org unit does not exist: `{0}`" ),
+    E1504( "Target org unit cannot be a descendant of a source org unit" ),
 
     /* Org unit split */
     E1510( "Source org unit must be specified" ),
@@ -58,6 +59,7 @@ public enum ErrorCode
     E1513( "Primary target must be specified" ),
     E1514( "Primary target must be a target org unit" ),
     E1515( "Target org unit does not exist: `{0}`" ),
+    E1516( "Target org unit cannot be a descendant of the source org unit: `{0}`" ),
 
     /* Org unit move */
     E1520( "User `{0}` is not allowed to move organisation units" ),
@@ -140,6 +142,7 @@ public enum ErrorCode
     E3016( "Data sharing is not enabled for this object" ),
     E3017( "Invalid user group access string: `{0}`" ),
     E3018( "Invalid user access string: `{0}`" ),
+    E3019( "Sharing is not enabled for this object `{0}`" ),
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),
@@ -174,6 +177,7 @@ public enum ErrorCode
     E4029( "Job parameters cannot be null for job type: {0}" ),
     E4030( "Object could not be deleted because it is associated with another object: {0}" ),
     E4031( "Property `{0}` requires a valid JSON payload, was given `{1}`." ),
+    E4032( "Patch path `{0}` is not supported." ),
 
     /* ProgramRuleAction validation */
     E4033( "A program rule action of type `{0}` associated with program rule name `{1}` is invalid" ),
@@ -227,6 +231,8 @@ public enum ErrorCode
     E6000( "Program `{0}` has more than one Program Instances" ),
     E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. " +
         "This property need to be data element of value type date and belong the program stage." ),
+    E6002( "Class name {0} is not supported." ),
+    E6003( "Could not patch object with id {0}." ),
 
     /* File resource */
     E6100( "Filename not present" ),

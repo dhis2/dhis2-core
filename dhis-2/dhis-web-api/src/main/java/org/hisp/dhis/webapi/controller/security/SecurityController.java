@@ -38,15 +38,16 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.security.SecurityUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,23 +63,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RestController
 @RequestMapping( value = "/2fa" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@AllArgsConstructor
 public class SecurityController
 {
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private ObjectMapper jsonMapper;
+    private final ObjectMapper jsonMapper;
 
     @GetMapping( value = "/qr", produces = APPLICATION_JSON_VALUE )
-    public void getQrCode( HttpServletRequest request, HttpServletResponse response )
+    public void getQrCode( HttpServletRequest request, HttpServletResponse response, @CurrentUser User currentUser )
         throws IOException
     {
-        User currentUser = currentUserService.getCurrentUser();
-
         if ( currentUser == null )
         {
             throw new BadCredentialsException( "No current user" );
@@ -98,10 +93,8 @@ public class SecurityController
 
     @GetMapping( value = "/authenticate", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage authenticate2FA( @RequestParam String code )
+    public WebMessage authenticate2FA( @RequestParam String code, @CurrentUser User currentUser )
     {
-        User currentUser = currentUserService.getCurrentUser();
-
         if ( currentUser == null )
         {
             throw new BadCredentialsException( "No current user" );

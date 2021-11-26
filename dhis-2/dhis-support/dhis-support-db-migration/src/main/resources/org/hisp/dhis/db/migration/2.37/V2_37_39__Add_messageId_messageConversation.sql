@@ -1,0 +1,2 @@
+alter table "messageconversation" add column if not exists "extmessageid" varchar(64) null;
+create index if not exists in_messageconversation_extmessageid on messageconversation using hash (extmessageid);

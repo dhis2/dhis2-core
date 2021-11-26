@@ -63,6 +63,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.descriptors.InterpretationSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -136,10 +137,11 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     @PostMapping( value = "/visualization/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
-    public WebMessage writeVisualizationInterpretation( @PathVariable( "uid" )
-    final String uid, @RequestParam( value = "ou", required = false )
-    final String orgUnitUid, @RequestBody
-    final String text )
+    public WebMessage writeVisualizationInterpretation(
+        @PathVariable( "uid" ) String uid,
+        @RequestParam( value = "ou", required = false ) String orgUnitUid,
+        @CurrentUser User currentUser,
+        @RequestBody String text )
         throws WebMessageException
     {
         final Visualization visualization = idObjectManager.get( Visualization.class, uid );
@@ -149,8 +151,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             return conflict( "Visualization does not exist or is not accessible: " + uid );
         }
 
-        final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization,
-            currentUserService.getCurrentUser() );
+        final OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, visualization, currentUser );
 
         return createInterpretation( new Interpretation( visualization, orgUnit, text ) );
     }
@@ -193,7 +194,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     @PostMapping( value = "/eventReport/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
     public WebMessage writeEventReportInterpretation( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text )
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @CurrentUser User currentUser,
+        @RequestBody String text )
         throws WebMessageException
     {
         EventReport eventReport = idObjectManager.get( EventReport.class, uid );
@@ -203,8 +205,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             return conflict( "Event report does not exist or is not accessible: " + uid );
         }
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventReport,
-            currentUserService.getCurrentUser() );
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventReport, currentUser );
 
         return createInterpretation( new Interpretation( eventReport, orgUnit, text ) );
     }
@@ -212,7 +213,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
     @PostMapping( value = "/eventChart/{uid}", consumes = { "text/html", "text/plain" } )
     @ResponseBody
     public WebMessage writeEventChartInterpretation( @PathVariable( "uid" ) String uid,
-        @RequestParam( value = "ou", required = false ) String orgUnitUid, @RequestBody String text )
+        @RequestParam( value = "ou", required = false ) String orgUnitUid, @CurrentUser User currentUser,
+        @RequestBody String text )
         throws WebMessageException
     {
         EventChart eventChart = idObjectManager.get( EventChart.class, uid );
@@ -222,8 +224,7 @@ public class InterpretationController extends AbstractCrudController<Interpretat
             return conflict( "Event chart does not exist or is not accessible: " + uid );
         }
 
-        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventChart,
-            currentUserService.getCurrentUser() );
+        OrganisationUnit orgUnit = getUserOrganisationUnit( orgUnitUid, eventChart, currentUser );
 
         return createInterpretation( new Interpretation( eventChart, orgUnit, text ) );
     }
@@ -327,8 +328,8 @@ public class InterpretationController extends AbstractCrudController<Interpretat
 
     @Override
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public WebMessage deleteObject( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+    public WebMessage deleteObject( @PathVariable String uid, @CurrentUser User currentUser, HttpServletRequest request,
+        HttpServletResponse response )
     {
         Interpretation interpretation = interpretationService.getInterpretation( uid );
 

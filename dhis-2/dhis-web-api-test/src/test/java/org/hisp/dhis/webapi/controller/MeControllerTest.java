@@ -135,6 +135,15 @@ public class MeControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void testChangePassword_NoUser()
+    {
+        switchContextToUser( null );
+        assertEquals( "User object is null, user is not authenticated.",
+            PUT( "/me/changePassword", "{'oldPassword':'district','newPassword':'$ecrEt42'}" )
+                .error( Series.CLIENT_ERROR ).getMessage() );
+    }
+
+    @Test
     public void testVerifyPasswordText()
     {
         assertTrue( POST( "/me/verifyPassword", "text/plain:district" )
