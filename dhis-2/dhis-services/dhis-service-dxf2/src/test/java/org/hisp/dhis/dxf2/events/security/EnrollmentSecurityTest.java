@@ -532,8 +532,6 @@ public class EnrollmentSecurityTest
         organisationUnitB.setAttributeValues( Collections.singleton( av ) );
         manager.updateNoAcl( organisationUnitB );
 
-        OrganisationUnit ou = manager.getObject( OrganisationUnit.class, IdScheme.UID, organisationUnitB.getUid() );
-
         en.setOrgUnit( av.getValue() );
         ImportOptions importOptions = new ImportOptions();
         importOptions.getIdSchemes().setOrgUnitIdScheme( "ATTRIBUTE" );
