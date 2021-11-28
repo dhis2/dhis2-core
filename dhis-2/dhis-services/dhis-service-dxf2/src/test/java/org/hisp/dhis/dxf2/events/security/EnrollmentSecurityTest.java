@@ -513,7 +513,7 @@ public class EnrollmentSecurityTest
     @Test
     public void testAddEnrollmentWithOrgUnitIdSchemeToOrgUnitWithoutProgramAccess()
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        programA.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( programA );
         Enrollment en = createEnrollment( programA.getUid(), maleA.getUid() );
         Attribute attribute = new Attribute();
@@ -541,7 +541,7 @@ public class EnrollmentSecurityTest
         assertEquals( "Program is not assigned to this Organisation Unit: " + av.getValue(),
             importSummary.getDescription() );
 
-        programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
+        programA.setPublicAccess( AccessStringHelper.DEFAULT );
         programA.getOrganisationUnits().add( organisationUnitB );
         manager.updateNoAcl( programA );
 
