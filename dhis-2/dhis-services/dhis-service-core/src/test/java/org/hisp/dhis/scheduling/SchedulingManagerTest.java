@@ -53,6 +53,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.TestCache;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
@@ -98,9 +99,14 @@ public class SchedulingManagerTest
     {
         when( applicationContext.getBeansOfType( any() ) ).thenReturn( Collections.singletonMap( "test", job ) );
 
+        CacheProvider cacheProvider = mock( CacheProvider.class );
+        when( cacheProvider.createJobCancelRequestedCache() ).thenReturn( new TestCache<>() );
+        when( cacheProvider.createRunningJobsInfoCache() ).thenReturn( new TestCache<>() );
+        when( cacheProvider.createCompletedJobsInfoCache() ).thenReturn( new TestCache<>() );
+
         schedulingManager = new DefaultSchedulingManager( new DefaultJobService( applicationContext ),
             jobConfigurationService, mock( MessageService.class ), mock( Notifier.class ),
-            mock( LeaderManager.class ), taskScheduler, mock( AsyncTaskExecutor.class ), mock( CacheProvider.class ) );
+            mock( LeaderManager.class ), taskScheduler, mock( AsyncTaskExecutor.class ), cacheProvider );
     }
 
     @Test
