@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.cache;
 
+import static java.util.Collections.emptySet;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.springframework.util.Assert.hasText;
 
@@ -137,9 +139,15 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Stream<V> getAll()
     {
-        Set<String> keySet = redisTemplate.keys( cacheRegion + "*" );
-        List<V> values = redisTemplate.opsForValue().multiGet( keySet );
+        List<V> values = redisTemplate.opsForValue().multiGet( keys() );
         return values == null ? Stream.empty() : values.stream();
+    }
+
+    @Override
+    public Set<String> keys()
+    {
+        var keys = redisTemplate.keys( cacheRegion + "*" );
+        return keys == null ? emptySet() : unmodifiableSet( keys );
     }
 
     @Override
@@ -151,7 +159,6 @@ public class RedisCache<V> implements Cache<V>
         }
 
         String redisKey = generateKey( key );
-
         if ( expiryEnabled )
         {
             redisTemplate.boundValueOps( redisKey ).set( value, expiryInSeconds, SECONDS );
@@ -167,9 +174,29 @@ public class RedisCache<V> implements Cache<V>
     {
         hasText( key, "Value cannot be null" );
 
-        final String redisKey = generateKey( key );
+        String redisKey = generateKey( key );
 
         redisTemplate.boundValueOps( redisKey ).set( value, ttlInSeconds, SECONDS );
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( "Value cannot be null" );
+        }
+        String redisKey = generateKey( key );
+
+        var ops = redisTemplate.boundValueOps( redisKey );
+        if ( expiryEnabled )
+        {
+            return ops.setIfAbsent( value, expiryInSeconds, SECONDS ) == Boolean.TRUE;
+        }
+        else
+        {
+            return ops.setIfAbsent( value ) == Boolean.TRUE;
+        }
     }
 
     @Override

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.cache;
 
+import static java.util.Collections.emptySet;
 import static org.springframework.util.Assert.hasText;
 
 import java.util.Optional;
@@ -88,6 +89,12 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
+    public Iterable<String> keys()
+    {
+        return emptySet();
+    }
+
+    @Override
     public void put( String key, V value )
     {
         if ( null == value )
@@ -102,6 +109,17 @@ public class NoOpCache<V> implements Cache<V>
     {
         hasText( key, "Value cannot be null" );
         // No operation
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( "Value cannot be null" );
+        }
+        // No operation
+        return false;
     }
 
     @Override

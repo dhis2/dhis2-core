@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.cache;
 
+import static java.util.Collections.unmodifiableSet;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -72,6 +74,12 @@ public class TestCache<V> implements Cache<V>
     }
 
     @Override
+    public Iterable<String> keys()
+    {
+        return unmodifiableSet( mapCache.keySet() );
+    }
+
+    @Override
     public void put( String key, V value )
     {
         mapCache.put( key, value );
@@ -82,6 +90,12 @@ public class TestCache<V> implements Cache<V>
     {
         // Ignoring ttl for this testing cache
         mapCache.put( key, value );
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        return mapCache.putIfAbsent( key, value ) != value;
     }
 
     @Override

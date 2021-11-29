@@ -129,6 +129,12 @@ public class LocalCache<V> implements Cache<V>
     }
 
     @Override
+    public Iterable<String> keys()
+    {
+        return cache2kInstance.keys();
+    }
+
+    @Override
     public void put( String key, V value )
     {
         if ( null == value )
@@ -144,6 +150,16 @@ public class LocalCache<V> implements Cache<V>
         hasText( key, "Value cannot be null" );
         cache2kInstance.invoke( key,
             e -> e.setValue( value ).setExpiryTime( currentTimeMillis() + SECONDS.toMillis( ttlInSeconds ) ) );
+    }
+
+    @Override
+    public boolean putIfAbsent( String key, V value )
+    {
+        if ( null == value )
+        {
+            throw new IllegalArgumentException( "Value cannot be null" );
+        }
+        return cache2kInstance.putIfAbsent( key, value );
     }
 
     @Override

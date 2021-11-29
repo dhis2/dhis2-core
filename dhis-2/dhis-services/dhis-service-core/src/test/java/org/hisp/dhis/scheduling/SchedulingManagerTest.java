@@ -52,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
@@ -99,7 +100,7 @@ public class SchedulingManagerTest
 
         schedulingManager = new DefaultSchedulingManager( new DefaultJobService( applicationContext ),
             jobConfigurationService, mock( MessageService.class ), mock( Notifier.class ),
-            mock( LeaderManager.class ), taskScheduler, mock( AsyncTaskExecutor.class ) );
+            mock( LeaderManager.class ), taskScheduler, mock( AsyncTaskExecutor.class ), mock( CacheProvider.class ) );
     }
 
     @Test

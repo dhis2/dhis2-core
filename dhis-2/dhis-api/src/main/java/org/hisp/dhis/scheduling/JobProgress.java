@@ -30,6 +30,7 @@ package org.hisp.dhis.scheduling;
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
@@ -455,7 +456,7 @@ public interface JobProgress
     }
 
     @Getter
-    abstract class Node
+    abstract class Node implements Serializable
     {
         @JsonProperty
         private String error;
@@ -508,6 +509,16 @@ public interface JobProgress
     @RequiredArgsConstructor
     final class Process extends Node
     {
+        public static Date completedTime( Collection<Process> job, Date defaultValue )
+        {
+            return job.isEmpty() ? defaultValue
+                : job instanceof Deque
+                    ? ((Deque<Process>) job).getLast().getCompletedTime()
+                    : job.stream().reduce( ( first, second ) -> second )
+                        .map( Process::getCancelledTime )
+                        .orElse( defaultValue );
+        }
+
         private final Date startedTime = new Date();
 
         @JsonProperty

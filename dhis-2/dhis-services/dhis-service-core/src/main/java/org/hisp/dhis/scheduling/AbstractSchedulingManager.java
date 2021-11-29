@@ -36,6 +36,7 @@ import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -83,9 +84,9 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
      * {@link Map#putIfAbsent(Object, Object)} to "atomically" start or abort
      * execution.
      */
-    private final Map<JobType, ControlledJobProgress> runningJobProgress = new ConcurrentHashMap<>();
+    protected final Map<JobType, ControlledJobProgress> runningJobProgress = new ConcurrentHashMap<>();
 
-    private final Map<JobType, ControlledJobProgress> completedJobProgress = new ConcurrentHashMap<>();
+    protected final Map<JobType, ControlledJobProgress> completedJobProgress = new ConcurrentHashMap<>();
 
     /**
      * Check if this job configuration is currently running
@@ -160,6 +161,12 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             whenAlreadyRunning( configuration );
             return;
         }
+        if ( !canRunInCluster( type, progress.getProcesses() ) )
+        {
+            runningJobProgress.remove( type );
+            whenAlreadyRunning( configuration );
+            return;
+        }
 
         Clock clock = new Clock().startClock();
         try
@@ -191,6 +198,11 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
 
             whenRunIsDone( configuration, clock );
         }
+    }
+
+    protected boolean canRunInCluster( JobType type, Deque<Process> initialState )
+    {
+        return true;
     }
 
     private ControlledJobProgress createJobProgress( JobConfiguration configuration )
