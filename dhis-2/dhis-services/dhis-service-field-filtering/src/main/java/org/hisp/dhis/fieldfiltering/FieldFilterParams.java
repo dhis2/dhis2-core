@@ -31,10 +31,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.Builder;
 import lombok.Data;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author Morten Olav Hansen
@@ -64,5 +64,10 @@ public class FieldFilterParams<T>
             .objects( Collections.singletonList( object ) )
             .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
             .build();
+    }
+
+    public FieldFilterParams<T> copy()
+    {
+        return new FieldFilterParams<T>( objects, filters );
     }
 }

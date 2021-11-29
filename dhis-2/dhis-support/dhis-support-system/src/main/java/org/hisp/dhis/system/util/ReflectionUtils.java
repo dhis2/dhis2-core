@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.system.util;
 
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -43,14 +45,14 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.schema.Property;
 import org.springframework.util.StringUtils;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -549,21 +551,18 @@ public class ReflectionUtils
 
     public static String getFieldName( Method method )
     {
-        String name;
+        String name = method.getName();
 
-        String[] getters = new String[] { "is", "has", "get" };
-
-        name = method.getName();
-
-        for ( String getter : getters )
+        if ( name.startsWith( "is" ) )
         {
-            if ( name.startsWith( getter ) )
-            {
-                name = name.substring( getter.length() );
-            }
+            return uncapitalize( name.substring( 2 ) );
+        }
+        else if ( name.startsWith( "has" ) || name.startsWith( "get" ) )
+        {
+            return uncapitalize( name.substring( 3 ) );
         }
 
-        return org.apache.commons.lang3.StringUtils.uncapitalize( name );
+        return null;
     }
 
     public static Type getInnerType( ParameterizedType parameterizedType )

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.schema.introspection;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
 import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
@@ -48,8 +49,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -69,6 +68,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Primitives;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A {@link PropertyIntrospector} that adds or retains those {@link Property}
@@ -293,7 +294,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
     private static Property createSchemaProperty( Class<?> klass )
     {
         Property schemaProperty = new Property();
-        schemaProperty.setAnnotationMap( getAnnotationMap( klass.getAnnotations() ) );
+        schemaProperty.setAnnotations( getAnnotations( klass.getAnnotations() ) );
 
         if ( isAnnotationPresent( klass, JsonRootName.class ) )
         {
@@ -350,12 +351,13 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         for ( var field : fields )
         {
             Property property = new Property( klass, null, null );
-            property.setAnnotationMap( getAnnotationMap( field.getAnnotations() ) );
+            property.setAnnotations( getAnnotations( field.getAnnotations() ) );
 
             JsonProperty jsonProperty = field.getAnnotation( JsonProperty.class );
 
             String fieldName = field.getName();
-            String name = StringUtils.isEmpty( jsonProperty.value() ) ? fieldName : jsonProperty.value();
+            String name = StringUtils.isEmpty( requireNonNull( jsonProperty ).value() ) ? fieldName
+                : jsonProperty.value();
 
             property.setName( name );
             property.setFieldName( fieldName );
@@ -370,13 +372,9 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         {
             JsonProperty jsonProperty = AnnotationUtils.findAnnotation( method, JsonProperty.class );
 
-            if ( jsonProperty == null )
-            {
-                continue;
-            }
-
             String fieldName = ReflectionUtils.getFieldName( method );
-            String name = StringUtils.isEmpty( jsonProperty.value() ) ? fieldName : jsonProperty.value();
+            String name = StringUtils.isEmpty( requireNonNull( jsonProperty ).value() ) ? fieldName
+                : jsonProperty.value();
 
             if ( propertyMap.containsKey( name ) )
             {
@@ -384,7 +382,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             }
 
             Property property = new Property( klass, method, null );
-            property.setAnnotationMap( getAnnotationMap( method.getAnnotations() ) );
+            property.setAnnotations( getAnnotations( method.getAnnotations() ) );
 
             property.setName( name );
             property.setFieldName( fieldName );
@@ -405,7 +403,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         return new ArrayList<>( propertyMap.values() );
     }
 
-    private static Map<Class<? extends Annotation>, Annotation> getAnnotationMap( Annotation[] annotations )
+    private static Map<Class<? extends Annotation>, Annotation> getAnnotations( Annotation[] annotations )
     {
         return Arrays.stream( annotations )
             .collect( Collectors.toMap( Annotation::annotationType, Function.identity() ) );

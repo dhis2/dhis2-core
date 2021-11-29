@@ -301,7 +301,7 @@ public class Property implements Ordered, Klass
     /**
      * All annotations present on this property (either through field or method)
      */
-    private Map<Class<? extends Annotation>, Annotation> annotationMap = new HashMap<>();
+    private Map<Class<? extends Annotation>, Annotation> annotations = new HashMap<>();
 
     public Property()
     {
@@ -884,25 +884,20 @@ public class Property implements Ordered, Klass
         this.gistPreferences = gistPreferences == null ? GistPreferences.DEFAULT : gistPreferences;
     }
 
-    public Map<Class<? extends Annotation>, Annotation> getAnnotationMap()
+    public Map<Class<? extends Annotation>, Annotation> getAnnotations()
     {
-        return annotationMap;
+        return annotations;
     }
 
-    public void setAnnotationMap( Map<Class<? extends Annotation>, Annotation> annotationMap )
+    public void setAnnotations( Map<Class<? extends Annotation>, Annotation> annotations )
     {
-        this.annotationMap = annotationMap;
+        this.annotations = annotations;
     }
 
     @SuppressWarnings( "unchecked" )
     public <A extends Annotation> A getAnnotation( Class<? extends Annotation> annotationType )
     {
-        if ( annotationMap.containsKey( annotationType ) )
-        {
-            return (A) annotationMap.get( annotationType );
-        }
-
-        return null;
+        return (A) annotations.get( annotationType );
     }
 
     public String key()
