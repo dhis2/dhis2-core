@@ -28,6 +28,7 @@
 package org.hisp.dhis.schema.introspection;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.commons.lang3.StringUtils.capitalize;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
@@ -391,7 +392,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
             propertyMap.put( name, property );
 
-            String setterName = "set" + StringUtils.capitalize( fieldName );
+            String setterName = "set" + capitalize( fieldName );
 
             if ( multimap.containsKey( setterName ) )
             {
