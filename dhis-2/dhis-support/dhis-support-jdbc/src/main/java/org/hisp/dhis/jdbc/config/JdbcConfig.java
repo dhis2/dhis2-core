@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.jdbc.config;
 
+import javax.sql.DataSource;
+
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.dialect.StatementDialectFactoryBean;
 import org.hisp.dhis.jdbc.statementbuilder.StatementBuilderFactoryBean;
 import org.hisp.quick.StatementDialect;
@@ -40,7 +41,6 @@ import org.hisp.quick.statement.JdbcStatementManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 import com.google.common.collect.Lists;
 
@@ -48,11 +48,10 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @Configuration
-@DependsOn( "dataSource" )
 public class JdbcConfig
 {
     @Autowired
-    private HibernateConfigurationProvider hibernateConfigurationProvider;
+    private DataSource dataSource;
 
     @Autowired
     private DhisConfigurationProvider dhisConfigurationProvider;
@@ -79,10 +78,7 @@ public class JdbcConfig
         JdbcConfigurationFactoryBean jdbcConf = new JdbcConfigurationFactoryBean();
         StatementDialect statementDialect = statementDialect().getObject();
         jdbcConf.setDialect( statementDialect );
-        jdbcConf.setDriverClass( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ) );
-        jdbcConf.setConnectionUrl( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_URL ) );
-        jdbcConf.setUsername( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ) );
-        jdbcConf.setPassword( dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ) );
+        jdbcConf.setDataSource( dataSource );
 
         return jdbcConf;
     }
