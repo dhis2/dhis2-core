@@ -1335,10 +1335,9 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( hlp.whereAnd() ).append( eventDataValuesWhereSql ).append( " " );
         }
 
-        if ( organisationUnits != null && !organisationUnits.isEmpty() )
+        if ( !organisationUnits.isEmpty() || params.getOrgUnit() != null )
         {
-            sqlBuilder.append( hlp.whereAnd() ).append( " psi.organisationunitid in (" )
-                .append( getCommaDelimitedString( getIdentifiers( organisationUnits ) ) ).append( ") " );
+            sqlBuilder.append( hlp.whereAnd() ).append( getOrgUnitSql( hlp, params, organisationUnits ) );
         }
 
         if ( params.getProgramStage() != null )
