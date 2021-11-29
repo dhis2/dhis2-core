@@ -36,9 +36,11 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.event.EventAnalyticsDataDimensionService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventsAnalyticsDimensions;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
@@ -71,6 +73,9 @@ public class EventAnalyticsController
 
     @NonNull
     private final ContextUtils contextUtils;
+
+    @NonNull
+    private final EventAnalyticsDataDimensionService eventAnalyticsDataDimensionService;
 
     // -------------------------------------------------------------------------
     // Aggregate
@@ -151,6 +156,16 @@ public class EventAnalyticsController
     {
         GridUtils.toHtmlCss( getAggregatedGridWithAttachment( criteria, program, apiVersion,
             ContextUtils.CONTENT_TYPE_HTML, "events.html", response ), response.getWriter() );
+    }
+
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/dimensions", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
+    public @ResponseBody EventsAnalyticsDimensions getAggregateDimensions(
+        @RequestParam String programStageId,
+        HttpServletResponse response )
+    {
+        configResponseForJson( response );
+        return eventAnalyticsDataDimensionService.getAggregateDimensionsByProgramStageId( programStageId );
     }
 
     // -------------------------------------------------------------------------
@@ -277,6 +292,16 @@ public class EventAnalyticsController
     {
         GridUtils.toHtmlCss( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
             "events.html", response ), response.getWriter() );
+    }
+
+    @GetMapping( value = RESOURCE_PATH + "/query/dimensions", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
+    public @ResponseBody EventsAnalyticsDimensions getQueryDimensions(
+        @RequestParam String programStageId,
+        HttpServletResponse response )
+    {
+        configResponseForJson( response );
+        return eventAnalyticsDataDimensionService.getQueryDimensionsByProgramStageId( programStageId );
     }
 
     private Grid getAggregatedGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,
