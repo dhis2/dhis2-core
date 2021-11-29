@@ -595,6 +595,7 @@ public class DefaultCacheProvider
     public <V> Cache<V> createJobCancelRequestedCache()
     {
         return registerCache( this.<V> newBuilder()
-            .forRegion( Region.jobCancelRequested.name() ) );
+            .forRegion( Region.jobCancelRequested.name() )
+            .expireAfterWrite( 60, SECONDS ) );
     }
 }
