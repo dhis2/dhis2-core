@@ -468,15 +468,16 @@ public abstract class AbstractEnrollmentService
 
         Program program = getProgram( importOptions.getIdSchemes(), enrollment.getProgram() );
 
-        ImportSummary importSummary = validateRequest( program, daoTrackedEntityInstance, enrollment, importOptions );
+        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(),
+            enrollment.getOrgUnit() );
+
+        ImportSummary importSummary = validateRequest( program, daoTrackedEntityInstance, enrollment, organisationUnit,
+            importOptions );
 
         if ( importSummary.getStatus() != ImportStatus.SUCCESS )
         {
             return importSummary;
         }
-
-        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(),
-            enrollment.getOrgUnit() );
 
         List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
             new ProgramInstance( program, daoTrackedEntityInstance, organisationUnit ), false );
@@ -639,11 +640,11 @@ public abstract class AbstractEnrollmentService
 
     private ImportSummary validateRequest( Program program,
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
-        Enrollment enrollment, ImportOptions importOptions )
+        Enrollment enrollment, OrganisationUnit organisationUnit, ImportOptions importOptions )
     {
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
-        String error = validateProgramForEnrollment( program, enrollment );
+        String error = validateProgramForEnrollment( program, enrollment, organisationUnit, importOptions );
         if ( !StringUtils.isEmpty( error ) )
         {
             importSummary.setStatus( ImportStatus.ERROR );
@@ -720,11 +721,17 @@ public abstract class AbstractEnrollmentService
         return importSummary;
     }
 
-    private String validateProgramForEnrollment( Program program, Enrollment enrollment )
+    private String validateProgramForEnrollment( Program program, Enrollment enrollment, OrganisationUnit orgUnit,
+        ImportOptions importOptions )
     {
         if ( program == null )
         {
             return "Program can not be null";
+        }
+
+        if ( orgUnit == null )
+        {
+            return "OrganisationUnit can not be null";
         }
 
         if ( !program.isRegistration() )
@@ -735,9 +742,10 @@ public abstract class AbstractEnrollmentService
 
         SetValuedMap<String, String> programAssociations = programService
             .getProgramOrganisationUnitsAssociations( Collections.singleton( program.getUid() ) );
+
         if ( !CollectionUtils.isEmpty( programAssociations.get( program.getUid() ) ) )
         {
-            if ( !programAssociations.get( program.getUid() ).contains( enrollment.getOrgUnit() ) )
+            if ( !programAssociations.get( program.getUid() ).contains( orgUnit.getUid() ) )
             {
                 return "Program is not assigned to this Organisation Unit: " + enrollment.getOrgUnit();
             }
