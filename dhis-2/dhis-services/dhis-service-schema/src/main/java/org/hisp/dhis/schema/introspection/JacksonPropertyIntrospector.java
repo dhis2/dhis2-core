@@ -29,6 +29,7 @@ package org.hisp.dhis.schema.introspection;
 
 import static java.util.Objects.requireNonNull;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
 import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
 
@@ -363,7 +364,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             property.setFieldName( fieldName );
             property.setSetterMethod( ReflectionUtils.findSetterMethod( fieldName, klass ) );
             property.setGetterMethod( ReflectionUtils.findGetterMethod( fieldName, klass ) );
-            property.setNamespace( jsonProperty.namespace() );
+            property.setNamespace( trimToNull( jsonProperty.namespace() ) );
 
             propertyMap.put( name, property );
         }
@@ -386,7 +387,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
 
             property.setName( name );
             property.setFieldName( fieldName );
-            property.setNamespace( jsonProperty.namespace() );
+            property.setNamespace( trimToNull( jsonProperty.namespace() ) );
 
             propertyMap.put( name, property );
 

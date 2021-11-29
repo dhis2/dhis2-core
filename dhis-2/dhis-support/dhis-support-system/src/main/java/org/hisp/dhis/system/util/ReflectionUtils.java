@@ -562,7 +562,7 @@ public class ReflectionUtils
             return uncapitalize( name.substring( 3 ) );
         }
 
-        return null;
+        return uncapitalize( name );
     }
 
     public static Type getInnerType( ParameterizedType parameterizedType )
