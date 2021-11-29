@@ -68,6 +68,6 @@ public class FieldFilterParams<T>
 
     public FieldFilterParams<T> copy()
     {
-        return new FieldFilterParams<T>( objects, filters );
+        return new FieldFilterParams<>( objects, filters );
     }
 }
