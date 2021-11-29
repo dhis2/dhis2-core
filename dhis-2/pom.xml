@@ -155,7 +155,7 @@
         <rxtx.version>2.1.7</rxtx.version>
         <json-path.version>2.6.0</json-path.version>
         <jsmpp-X.version>2.1.0-RELEASE</jsmpp-X.version>
-        <jboss-logging.version>3.4.1.Final</jboss-logging.version>
+        <jboss-logging.version>3.4.2.Final</jboss-logging.version>
         <jsoup.version>1.14.3</jsoup.version>
         <jetty.version>10.0.7</jetty.version>
 
@@ -180,7 +180,7 @@
         <commons-text.version>1.8</commons-text.version>
         <commons-fileupload.version>1.4</commons-fileupload.version>
         <commons-math3.version>3.6.1</commons-math3.version>
-        <commons-validator.version>1.6</commons-validator.version>
+        <commons-validator.version>1.7</commons-validator.version>
         <commons-io.version>2.11.0</commons-io.version>
         <commons-codec.version>1.14</commons-codec.version>
         <commons-jexl.version>2.1.1</commons-jexl.version>
@@ -205,7 +205,7 @@
         <objenesis.version>3.2</objenesis.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <awaitility.version>4.0.2</awaitility.version>
-        <random-beans.version>3.7.0</random-beans.version>
+        <random-beans.version>3.9.0</random-beans.version>
         <tree.version>0.2.5</tree.version>
         <h2.version>1.4.200</h2.version>
         <hsqldb.version>2.3.2</hsqldb.version>
