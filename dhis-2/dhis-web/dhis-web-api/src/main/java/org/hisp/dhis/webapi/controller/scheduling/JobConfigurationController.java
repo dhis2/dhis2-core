@@ -88,8 +88,8 @@ public class JobConfigurationController
         return new JobTypes( jobConfigurationService.getJobTypeInfo() );
     }
 
-    @RequestMapping( value = "{uid}/execute", method = RequestMethod.GET, produces = { "application/json",
-        "application/javascript" } )
+    @RequestMapping( value = "{uid}/execute", method = { RequestMethod.GET, RequestMethod.POST }, produces = {
+        "application/json", "application/javascript" } )
     public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
         throws WebMessageException
     {

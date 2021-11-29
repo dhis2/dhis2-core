@@ -234,12 +234,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         else // this branch will only happen if coming from /events
         {
             OrganisationUnit ou = programInstance.getOrganisationUnit();
-            if ( ou != null )
+
+            if ( ou != null && !canAccess( user, program, ou ) )
             {
-                if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
-                {
-                    errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-                }
+                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
         }
 
@@ -434,12 +432,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         else
         {
             OrganisationUnit ou = programStageInstance.getOrganisationUnit();
-            if ( ou != null )
+
+            if ( ou != null && !canAccess( user, program, ou ) )
             {
-                if ( !organisationUnitService.isInUserSearchHierarchyCached( user, ou ) )
-                {
-                    errors.add( "User has no read access to organisation unit: " + ou.getUid() );
-                }
+                errors.add( "User has no read access to organisation unit: " + ou.getUid() );
             }
         }
 
@@ -800,6 +796,27 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
 
         return errors;
+    }
+
+    @Override
+    public boolean canAccess( User user, Program program, OrganisationUnit orgUnit )
+    {
+        if ( orgUnit == null )
+        {
+            return false;
+        }
+
+        if ( user == null || user.isSuper() )
+        {
+            return true;
+        }
+
+        if ( program == null || program.isClosed() )
+        {
+            return organisationUnitService.isInUserHierarchy( user, orgUnit );
+        }
+
+        return organisationUnitService.isInUserSearchHierarchy( user, orgUnit );
     }
 
     private boolean isNull( ProgramStage programStage )

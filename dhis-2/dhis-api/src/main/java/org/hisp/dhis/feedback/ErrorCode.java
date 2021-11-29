@@ -167,6 +167,7 @@ public enum ErrorCode
     E4310( "SQL query contains references to protected tables" ),
     E4311( "SQL query contains illegal keywords" ),
     E4312( "Current user is not authorised to read data from SQL view: `{0}`" ),
+    E4313( "SQL query contains variable names that are invalid: `{0}`" ),
 
     /* Preheat */
     E5000(

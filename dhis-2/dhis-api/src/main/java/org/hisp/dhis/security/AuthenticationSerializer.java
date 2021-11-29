@@ -25,19 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.security;
 
-/**
- * A class that can consume a deflated data value.
- *
- * @author Jim Grace
- */
-public interface DeflatedDataValueConsumer
+import javax.xml.bind.DatatypeConverter;
+
+import org.apache.commons.lang.SerializationUtils;
+import org.springframework.security.core.Authentication;
+
+public class AuthenticationSerializer
 {
-    /**
-     * Consumes a deflated data value.
-     *
-     * @param deflatedDataValue the DeflatedDataValue to consume.
-     */
-    void consume( DeflatedDataValue deflatedDataValue );
+
+    public static String serialize( Authentication authentication )
+    {
+        byte[] bytes = SerializationUtils.serialize( authentication );
+        return DatatypeConverter.printBase64Binary( bytes );
+    }
+
+    public static Authentication deserialize( String authentication )
+    {
+        byte[] decoded = DatatypeConverter.parseBase64Binary( authentication );
+        Authentication auth = (Authentication) SerializationUtils.deserialize( decoded );
+        return auth;
+    }
 }

@@ -130,7 +130,7 @@ public class SharingController
         }
 
         Class<? extends IdentifiableObject> klass = aclService.classForType( type );
-        IdentifiableObject object = manager.get( klass, id );
+        IdentifiableObject object = manager.getNoAcl( klass, id );
 
         if ( object == null )
         {
@@ -240,7 +240,7 @@ public class SharingController
             throw new WebMessageException( WebMessageUtils.conflict( "Type " + type + " is not supported." ) );
         }
 
-        BaseIdentifiableObject object = (BaseIdentifiableObject) manager.get( sharingClass, id );
+        BaseIdentifiableObject object = (BaseIdentifiableObject) manager.getNoAcl( sharingClass, id );
 
         if ( object == null )
         {

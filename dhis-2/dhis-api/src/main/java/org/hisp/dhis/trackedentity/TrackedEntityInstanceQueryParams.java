@@ -270,12 +270,6 @@ public class TrackedEntityInstanceQueryParams
     private boolean synchronizationQuery;
 
     /**
-     * Indicates to use legacy fetching mechanism in case the tei result count
-     * is high
-     */
-    private boolean useLegacy;
-
-    /**
      * Indicates a point in the time used to decide the data that should not be
      * synchronized
      */
@@ -1200,17 +1194,6 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
-    public boolean isUseLegacy()
-    {
-        return useLegacy;
-    }
-
-    public TrackedEntityInstanceQueryParams setUseLegacy( boolean useLegacy )
-    {
-        this.useLegacy = useLegacy;
-        return this;
-    }
-
     public boolean isSynchronizationQuery()
     {
         return synchronizationQuery;
@@ -1308,8 +1291,9 @@ public class TrackedEntityInstanceQueryParams
     public enum OrderColumn
     {
         TRACKEDENTITY( "trackedEntity", "tei.uid" ),
-        CREATED( CREATED_ID, "tei.created" ),
-        CREATED_AT( "createdAt", "tei.created" ),
+        // Ordering by id is the same as ordering by created date
+        CREATED( CREATED_ID, "tei.trackedentityinstanceid" ),
+        CREATED_AT( "createdAt", "tei.trackedentityinstanceid" ),
         UPDATED_AT( "updatedAt", "tei.lastUpdated" ),
         // this works only for the new endpoint
         // ORGUNIT_NAME( "orgUnitName", "tei.organisationUnit.name" ),

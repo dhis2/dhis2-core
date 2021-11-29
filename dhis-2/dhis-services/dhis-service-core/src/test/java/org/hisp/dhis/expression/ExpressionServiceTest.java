@@ -1029,7 +1029,7 @@ public class ExpressionServiceTest
 
         // Unary not before comparison
 
-        assertNull( error( "if( ! 5 > 3, 1, 0)" ) );
+        assertNull( error( "if( ! A > 3, 1, 0)" ) );
         assertEquals( "0", eval( "if( ! (5 > 3), 1, 0)" ) );
 
         // Comparison
@@ -1082,7 +1082,7 @@ public class ExpressionServiceTest
         // && (and) after Equality
 
         assertEquals( "1", eval( "if( true && 1 == 1, 1, 0)" ) );
-        assertNull( error( "if( ( true && 1 ) == 1, 1, 0)" ) );
+        assertNull( error( "if( ( true && A ) == 1, 1, 0)" ) );
 
         // || (or)
 
@@ -1290,7 +1290,6 @@ public class ExpressionServiceTest
         assertNull( error( "1) + 2" ) );
         assertNull( error( "abc" ) );
         assertNull( error( "'abc'" ) );
-        assertNull( error( "if(0, 1, 0)" ) );
         assertNull( error( "1 && true" ) );
         assertNull( error( "true && 2" ) );
         assertNull( error( "!5" ) );
@@ -1298,6 +1297,7 @@ public class ExpressionServiceTest
         assertNull( error( "#{dataElemenF}" ) );
         assertNull( error( "#{dataElemenG}" ) );
         assertNull( error( "#{dataElemenH}" ) );
+        assertNull( error( "if(A, 1, 0)" ) );
     }
 
     // -------------------------------------------------------------------------

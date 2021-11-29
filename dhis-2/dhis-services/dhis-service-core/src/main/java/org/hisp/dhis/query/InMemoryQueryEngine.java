@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.singletonList;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -44,7 +46,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -53,6 +54,7 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Component( "org.hisp.dhis.query.InMemoryQueryEngine" )
+@AllArgsConstructor
 public class InMemoryQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
@@ -61,19 +63,6 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     private final AclService aclService;
 
     private final CurrentUserService currentUserService;
-
-    @Autowired
-    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService,
-        CurrentUserService currentUserService )
-    {
-        checkNotNull( schemaService );
-        checkNotNull( aclService );
-        checkNotNull( currentUserService );
-
-        this.schemaService = schemaService;
-        this.aclService = aclService;
-        this.currentUserService = currentUserService;
-    }
 
     @Override
     public List<T> query( Query query )
@@ -146,20 +135,20 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
 
         for ( Criterion criterion : query.getCriterions() )
         {
-            Boolean testResult = false;
+            boolean testResult = false;
 
             // normal Restriction, just assume Conjunction
-            if ( Restriction.class.isInstance( criterion ) )
+            if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
-                testResult = testAnd( query, object, Lists.newArrayList( restriction ) );
+                testResult = testAnd( query, object, singletonList( restriction ) );
             }
-            else if ( Conjunction.class.isInstance( criterion ) )
+            else if ( criterion instanceof Conjunction )
             {
                 Conjunction conjunction = (Conjunction) criterion;
                 testResult = testAnd( query, object, conjunction.getCriterions() );
             }
-            else if ( Disjunction.class.isInstance( criterion ) )
+            else if ( criterion instanceof Disjunction )
             {
                 Disjunction disjunction = (Disjunction) criterion;
                 testResult = testOr( query, object, disjunction.getCriterions() );
@@ -176,16 +165,16 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
         return !testResults.contains( Boolean.FALSE );
     }
 
-    private boolean testAnd( Query query, T object, List<Criterion> criterions )
+    private boolean testAnd( Query query, T object, List<? extends Criterion> criterions )
     {
         for ( Criterion criterion : criterions )
         {
-            if ( Restriction.class.isInstance( criterion ) )
+            if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
                 Object value = getValue( query, object, restriction.getPath() );
 
-                if ( !Collection.class.isInstance( value ) )
+                if ( !(value instanceof Collection) )
                 {
                     if ( !restriction.getOperator().test( value ) )
                     {
@@ -212,16 +201,16 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
         return true;
     }
 
-    private boolean testOr( Query query, T object, List<Criterion> criterions )
+    private boolean testOr( Query query, T object, List<? extends Criterion> criterions )
     {
         for ( Criterion criterion : criterions )
         {
-            if ( Restriction.class.isInstance( criterion ) )
+            if ( criterion instanceof Restriction )
             {
                 Restriction restriction = (Restriction) criterion;
                 Object value = getValue( query, object, restriction.getPath() );
 
-                if ( !Collection.class.isInstance( value ) )
+                if ( !(value instanceof Collection) )
                 {
                     if ( restriction.getOperator().test( value ) )
                     {

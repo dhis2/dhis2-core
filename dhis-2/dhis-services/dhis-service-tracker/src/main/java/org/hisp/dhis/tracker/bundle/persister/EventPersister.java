@@ -46,6 +46,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -77,9 +79,12 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     public EventPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService,
-        TrackerSideEffectConverterService sideEffectConverterService )
+        TrackerSideEffectConverterService sideEffectConverterService,
+        TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
+        TrackedEntityAttributeValueService attributeValueService )
     {
-        super( bundleHooks, reservedValueService );
+        super( bundleHooks, reservedValueService, trackedEntityAttributeValueAuditService, attributeValueService );
+
         this.eventConverter = eventConverter;
         this.trackedEntityCommentService = trackedEntityCommentService;
         this.sideEffectConverterService = sideEffectConverterService;
@@ -160,7 +165,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     protected void updateAttributes( Session session, TrackerPreheat preheat,
         Event event, ProgramStageInstance programStageInstance )
     {
-        // DO NOTHING - TEI HAVE NO ATTRIBUTES
+        // DO NOTHING - EVENT HAVE NO ATTRIBUTES
     }
 
     @Override
@@ -230,5 +235,12 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     protected void persistOwnership( TrackerPreheat preheat, ProgramStageInstance entity )
     {
         // DO NOTHING. Event creation does not create ownership records.
+    }
+
+    @Override
+    protected String getUpdatedTrackedEntity( ProgramStageInstance entity )
+    {
+        return Optional.ofNullable( entity.getProgramInstance() ).filter( pi -> pi.getEntityInstance() != null )
+            .map( pi -> pi.getEntityInstance().getUid() ).orElse( null );
     }
 }

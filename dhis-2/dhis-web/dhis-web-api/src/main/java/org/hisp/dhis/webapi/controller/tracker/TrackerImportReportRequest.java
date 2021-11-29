@@ -33,11 +33,14 @@ import lombok.Data;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.springframework.security.core.Authentication;
 
 @Data
 @Builder
 public class TrackerImportReportRequest
 {
+    Authentication authentication;
+
     String uid;
 
     String userUid;

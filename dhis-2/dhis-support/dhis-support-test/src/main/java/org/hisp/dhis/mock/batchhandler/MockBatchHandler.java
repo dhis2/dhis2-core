@@ -47,6 +47,8 @@ public class MockBatchHandler<T>
 
     private boolean findSelf = false;
 
+    private int addObjectCount = 0;
+
     public MockBatchHandler()
     {
     }
@@ -60,6 +62,7 @@ public class MockBatchHandler<T>
     @Override
     public BatchHandler<T> init()
     {
+        this.addObjectCount = 0;
         return this;
     }
 
@@ -72,6 +75,7 @@ public class MockBatchHandler<T>
     @Override
     public boolean addObject( T object )
     {
+        addObjectCount++;
         return inserts.add( object );
     }
 
@@ -113,6 +117,7 @@ public class MockBatchHandler<T>
     @Override
     public void flush()
     {
+        addObjectCount = 0;
     }
 
     public List<T> getInserts()
@@ -128,5 +133,11 @@ public class MockBatchHandler<T>
     public List<T> getDeletes()
     {
         return deletes;
+    }
+
+    @Override
+    public int getAddObjectCount()
+    {
+        return addObjectCount;
     }
 }

@@ -93,6 +93,8 @@ public class EnrollmentAttributeValidationHookTest
 
     private final static String trackedAttribute1 = "attribute1";
 
+    private final static String invalidTrackedAttribute = "invalidAttribute";
+
     private TrackedEntityAttribute trackedEntityAttribute;
 
     private TrackedEntityAttribute trackedEntityAttribute1;
@@ -205,6 +207,32 @@ public class EnrollmentAttributeValidationHookTest
             .anyMatch( rl -> rl.getErrorCode().equals( TrackerErrorCode.E1076 ) ) );
         assertTrue( validationErrorReporter.getReportList().stream()
             .anyMatch( rl -> rl.getErrorCode().equals( TrackerErrorCode.E1018 ) ) );
+    }
+
+    @Test
+    public void shouldFailValidationWhenAttributeIsNotPresentInDB()
+    {
+        Attribute attribute = Attribute.builder()
+            .attribute( "invalidAttribute" )
+            .valueType( ValueType.TEXT )
+            .value( "value" )
+            .build();
+
+        when( program.getProgramAttributes() ).thenReturn( Arrays.asList() );
+
+        when( enrollment.getAttributes() ).thenReturn( Arrays.asList( attribute ) );
+        when( trackedEntityInstance.getTrackedEntityAttributeValues() )
+            .thenReturn( new HashSet<>( Collections
+                .singletonList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ) ) ) );
+        when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
+            .thenReturn( trackedEntityInstance );
+
+        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
+        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+
+        assertThat( validationErrorReporter.getReportList(), hasSize( 1 ) );
+        assertTrue( validationErrorReporter.getReportList().stream()
+            .anyMatch( rl -> rl.getErrorCode().equals( TrackerErrorCode.E1006 ) ) );
     }
 
 }
