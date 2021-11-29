@@ -1466,41 +1466,43 @@ public class JdbcEventStore
     private String getOrgUnitSql( SqlHelper hlp, EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
         StringBuilder orgUnitSql = new StringBuilder();
+        orgUnitSql.append( hlp.whereAnd() );
 
         if ( params.getOrgUnit() != null && !params.isPathOrganisationUnitMode() )
         {
             orgUnitSql.append( " ou.organisationunitid = " + params.getOrgUnit().getId() + " " );
         }
-
         else
         {
             SqlHelper orHlp = new SqlHelper( true );
+            StringBuilder subOrgUnitSql = new StringBuilder();
             String path = "ou.path LIKE '";
             for ( OrganisationUnit organisationUnit : organisationUnits )
             {
                 if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
                 {
-                    orgUnitSql.append( orHlp.or() ).append( path )
+                    subOrgUnitSql.append( orHlp.or() ).append( path )
                         .append( organisationUnit.getPath() ).append( "%' " )
                         .append( hlp.whereAnd() ).append( " ou.hierarchylevel > " + organisationUnit.getLevel() );
                 }
                 else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
                 {
-                    orgUnitSql.append( orHlp.or() ).append( path )
+                    subOrgUnitSql.append( orHlp.or() ).append( path )
                         .append( organisationUnit.getPath() ).append( "%' " )
                         .append( hlp.whereAnd() ).append( " ou.hierarchylevel = " + (organisationUnit.getLevel() + 1) );
                 }
                 else
                 {
-                    orgUnitSql.append( orHlp.or() ).append( path )
+                    subOrgUnitSql.append( orHlp.or() ).append( path )
                         .append( organisationUnit.getPath() ).append( "%' " );
                 }
             }
 
             if ( !organisationUnits.isEmpty() )
             {
-                orgUnitSql.insert( 0, " (" );
-                orgUnitSql.append( ") " );
+                subOrgUnitSql.insert( 0, " (" );
+                subOrgUnitSql.append( ") " );
+                orgUnitSql.append( subOrgUnitSql );
             }
         }
 
