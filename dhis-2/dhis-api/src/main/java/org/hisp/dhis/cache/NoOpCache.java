@@ -109,7 +109,7 @@ public class NoOpCache<V> implements Cache<V>
     @Override
     public void put( String key, V value, long ttlInSeconds )
     {
-        hasText( key, "Value cannot be null" );
+        hasText( key, VALUE_CANNOT_BE_NULL );
         // No operation
     }
 
@@ -118,7 +118,7 @@ public class NoOpCache<V> implements Cache<V>
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Value cannot be null" );
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
         }
         // No operation
         return false;
