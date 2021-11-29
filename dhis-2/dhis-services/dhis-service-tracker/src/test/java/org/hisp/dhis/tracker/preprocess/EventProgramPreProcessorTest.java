@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.startsWith;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
@@ -137,6 +142,29 @@ public class EventProgramPreProcessorTest
         verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITH_REGISTRATION );
         assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
         assertEquals( PROGRAM_STAGE_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
+    }
+
+    @Test
+    public void testProgramStageHasNoReferenceToProgram()
+    {
+        // Given
+        ProgramStage programStage = new ProgramStage();
+        programStage.setUid( "LGSWs20XFvy" );
+        when( preheat.get( ProgramStage.class, "LGSWs20XFvy" ) )
+            .thenReturn( programStage );
+        Event event = new Event();
+        event.setProgramStage( programStage.getUid() );
+
+        TrackerBundle bundle = TrackerBundle.builder()
+            .events( Collections.singletonList( event ) )
+            .preheat( preheat )
+            .build();
+
+        // When
+        IllegalStateException thrown = assertThrows( IllegalStateException.class,
+            () -> preProcessorToTest.process( bundle ) );
+
+        assertThat( thrown.getMessage(), startsWith( "Program stage `LGSWs20XFvy` has no reference to a program" ) );
     }
 
     @Test
