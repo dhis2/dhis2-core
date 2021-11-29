@@ -69,8 +69,6 @@ public class ProgramIndicatorSubqueryBuilderTest
 
     private Date endDate;
 
-    private BeanRandomizer beanRandomizer;
-
     private DefaultProgramIndicatorSubqueryBuilder subject;
 
     @Before
@@ -79,7 +77,6 @@ public class ProgramIndicatorSubqueryBuilderTest
         program = createProgram( 'A' );
         startDate = getDate( 2018, 1, 1 );
         endDate = getDate( 2018, 6, 30 );
-        beanRandomizer = new BeanRandomizer();
         subject = new DefaultProgramIndicatorSubqueryBuilder( programIndicatorService );
     }
 
@@ -136,7 +133,7 @@ public class ProgramIndicatorSubqueryBuilderTest
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
         // Create a TEI to TEI relationship
-        RelationshipType relationshipType = beanRandomizer.randomObject( RelationshipType.class );
+        RelationshipType relationshipType = BeanRandomizer.create().nextObject( RelationshipType.class );
         relationshipType.getFromConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
 

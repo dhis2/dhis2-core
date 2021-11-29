@@ -45,6 +45,7 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,7 +73,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private EasyRandom rnd = BeanRandomizer.create();
 
     private List<ProgramInstance> programInstances;
 
@@ -93,7 +94,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
         params = TrackerImportParams.builder().build();
 
-        programInstances = rnd.randomObjects( ProgramInstance.class, 2 );
+        programInstances = rnd.objects( ProgramInstance.class, 2 ).collect( Collectors.toList() );
         // set the OrgUnit parent to null to avoid recursive errors when mapping
         programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
         programInstances.get( 0 ).setProgram( programWithRegistration );
@@ -130,7 +131,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
         // given
         TrackerPreheat preheat = new TrackerPreheat();
         when( programStore.getByType( WITHOUT_REGISTRATION ) ).thenReturn( List.of( programWithoutRegistration ) );
-        programInstances = rnd.randomObjects( ProgramInstance.class, 1 );
+        programInstances = rnd.objects( ProgramInstance.class, 1 ).collect( Collectors.toList() );
         // set the OrgUnit parent to null to avoid recursive errors when mapping
         programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
         programInstances.get( 0 ).setProgram( programWithoutRegistration );

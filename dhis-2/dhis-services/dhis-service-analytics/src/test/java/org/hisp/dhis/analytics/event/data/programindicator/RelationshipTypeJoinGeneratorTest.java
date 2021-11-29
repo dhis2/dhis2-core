@@ -27,14 +27,17 @@
  */
 package org.hisp.dhis.analytics.event.data.programindicator;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
-import static org.junit.Assert.*;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.junit.Assert.assertEquals;
 
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,7 +48,7 @@ import com.google.common.collect.ImmutableMap;
  */
 public class RelationshipTypeJoinGeneratorTest
 {
-    private BeanRandomizer beanRandomizer;
+    private EasyRandom rnd;
 
     private final static String ALIAS = "subax";
 
@@ -56,7 +59,7 @@ public class RelationshipTypeJoinGeneratorTest
     @Before
     public void setUp()
     {
-        beanRandomizer = new BeanRandomizer();
+        rnd = BeanRandomizer.create();
     }
 
     private final static String TEI_JOIN_START = ALIAS
@@ -168,7 +171,7 @@ public class RelationshipTypeJoinGeneratorTest
 
     private RelationshipType createRelationshipType( String fromConstraint, String toConstraint )
     {
-        RelationshipType relationshipType = beanRandomizer.randomObject( RelationshipType.class );
+        RelationshipType relationshipType = rnd.nextObject( RelationshipType.class );
         relationshipType.getFromConstraint().setRelationshipEntity( RelationshipEntity.get( fromConstraint ) );
         relationshipType.getToConstraint().setRelationshipEntity( RelationshipEntity.get( toConstraint ) );
 

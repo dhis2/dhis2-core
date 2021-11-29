@@ -98,6 +98,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.jeasy.random.EasyRandom;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -143,7 +144,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
     private JdbcEventAnalyticsTableManager subject;
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private EasyRandom rnd = BeanRandomizer.create();
 
     private Date today;
 
@@ -342,7 +343,7 @@ public class JdbcEventAnalyticsTableManagerTest
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program program = createProgram( 'A' );
 
-        TrackedEntityAttribute tea1 = rnd.randomObject( TrackedEntityAttribute.class );
+        TrackedEntityAttribute tea1 = rnd.nextObject( TrackedEntityAttribute.class );
         tea1.setValueType( ValueType.ORGANISATION_UNIT );
 
         ProgramTrackedEntityAttribute tea = new ProgramTrackedEntityAttribute( program, tea1 );
@@ -462,8 +463,9 @@ public class JdbcEventAnalyticsTableManagerTest
     @Test
     public void verifyGetAnalyticsTableWithOuLevels()
     {
-        List<OrganisationUnitLevel> ouLevels = rnd.randomObjects( OrganisationUnitLevel.class, 2 );
-        Program programA = rnd.randomObject( Program.class );
+        List<OrganisationUnitLevel> ouLevels = rnd.objects( OrganisationUnitLevel.class, 2 )
+            .collect( Collectors.toList() );
+        Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
@@ -491,8 +493,9 @@ public class JdbcEventAnalyticsTableManagerTest
     @Test
     public void verifyGetAnalyticsTableWithOuGroupSet()
     {
-        List<OrganisationUnitGroupSet> ouGroupSet = rnd.randomObjects( OrganisationUnitGroupSet.class, 2 );
-        Program programA = rnd.randomObject( Program.class );
+        List<OrganisationUnitGroupSet> ouGroupSet = rnd.objects( OrganisationUnitGroupSet.class, 2 )
+            .collect( Collectors.toList() );
+        Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );
@@ -519,8 +522,9 @@ public class JdbcEventAnalyticsTableManagerTest
     @Test
     public void verifyGetAnalyticsTableWithOptionGroupSets()
     {
-        List<CategoryOptionGroupSet> cogs = rnd.randomObjects( CategoryOptionGroupSet.class, 2 );
-        Program programA = rnd.randomObject( Program.class );
+        List<CategoryOptionGroupSet> cogs = rnd.objects( CategoryOptionGroupSet.class, 2 )
+            .collect( Collectors.toList() );
+        Program programA = rnd.nextObject( Program.class );
         programA.setId( 0 );
 
         when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( Collections.singletonList( programA ) );

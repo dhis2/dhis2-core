@@ -57,6 +57,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -117,7 +118,7 @@ public class JacksonRelationshipServiceTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private EasyRandom rnd = BeanRandomizer.create();
 
     private Relationship relationship;
 
@@ -138,7 +139,7 @@ public class JacksonRelationshipServiceTest
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
                 .thenReturn( Optional.empty() );
 
-        ImportSummary importSummary = subject.addRelationship( relationship, rnd.randomObject( ImportOptions.class ) );
+        ImportSummary importSummary = subject.addRelationship( relationship, rnd.nextObject( ImportOptions.class ) );
 
         assertThat( importSummary.getStatus(), is( ImportStatus.SUCCESS ) );
         assertThat( importSummary.getImportCount().getImported(), is( 1 ) );
@@ -150,11 +151,16 @@ public class JacksonRelationshipServiceTest
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
         daoRelationship.setUid( "12345" );
 
+        // TODO the relationship references itself and is therefore failing the
+        // import. weird. is that desired?
+        // it says it not imported when does exist. the reason might be a
+        // different one than we want.
+
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
                 .thenReturn( Optional.of( daoRelationship ) );
 
-        ImportSummary importSummary = subject.addRelationship( relationship, rnd.randomObject( ImportOptions.class ) );
+        ImportSummary importSummary = subject.addRelationship( relationship, rnd.nextObject( ImportOptions.class ) );
 
         assertThat( importSummary.getStatus(), is( ImportStatus.ERROR ) );
         assertThat( importSummary.getImportCount().getImported(), is( 0 ) );
@@ -198,11 +204,11 @@ public class JacksonRelationshipServiceTest
 
         RelationshipItem from = new RelationshipItem();
         from.setTrackedEntityInstance(
-            rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
+            rnd.nextObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
 
         RelationshipItem to = new RelationshipItem();
         to.setTrackedEntityInstance(
-            rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
+            rnd.nextObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
 
         relationship.setFrom( from );
         relationship.setTo( to );
@@ -218,7 +224,7 @@ public class JacksonRelationshipServiceTest
         RelationshipConstraint from = new RelationshipConstraint();
         from.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         from.setTrackedEntityType( new TrackedEntityType( "a", "b" ) );
-        RelationshipConstraint to = rnd.randomObject( RelationshipConstraint.class );
+        RelationshipConstraint to = rnd.nextObject( RelationshipConstraint.class );
         to.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         to.setTrackedEntityType( new TrackedEntityType( "b", "c" ) );
         relationshipType.setFromConstraint( from );

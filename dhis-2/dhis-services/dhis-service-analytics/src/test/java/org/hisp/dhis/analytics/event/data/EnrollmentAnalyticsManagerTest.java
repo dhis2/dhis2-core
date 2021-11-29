@@ -32,7 +32,9 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -67,6 +69,7 @@ import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -109,6 +112,8 @@ public class EnrollmentAnalyticsManagerTest
 
     private final String TABLE_NAME = "analytics_enrollment";
 
+    private EasyRandom rnd;
+
     @Before
     public void setUp()
     {
@@ -120,6 +125,8 @@ public class EnrollmentAnalyticsManagerTest
 
         subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
             programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ) );
+
+        rnd = BeanRandomizer.create();
     }
 
     @Test
@@ -413,7 +420,7 @@ public class EnrollmentAnalyticsManagerTest
     private RelationshipType createRelationshipType( RelationshipEntity fromConstraint,
         RelationshipEntity toConstraint )
     {
-        RelationshipType relationshipTypeA = new BeanRandomizer().randomObject( RelationshipType.class );
+        RelationshipType relationshipTypeA = rnd.nextObject( RelationshipType.class );
 
         RelationshipConstraint from = new RelationshipConstraint();
         from.setRelationshipEntity( fromConstraint );

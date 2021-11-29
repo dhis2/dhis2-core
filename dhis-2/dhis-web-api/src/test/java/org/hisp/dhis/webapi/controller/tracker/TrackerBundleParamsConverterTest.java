@@ -36,6 +36,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.random.BeanRandomizer;
@@ -43,7 +45,9 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -56,7 +60,16 @@ public class TrackerBundleParamsConverterTest
 {
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private static EasyRandom rnd;
+
+    @BeforeClass
+    public static void beforeClass()
+    {
+        rnd = BeanRandomizer.create( Map.of(
+            TrackedEntity.class, Set.of( "enrollments" ),
+            Enrollment.class, Set.of( "events" ),
+            Event.class, Set.of( "relationships" ) ) );
+    }
 
     @Before
     public void setUp()
@@ -187,7 +200,7 @@ public class TrackerBundleParamsConverterTest
 
     private TrackedEntity createTrackedEntity( String uid, List<Enrollment> enrollments )
     {
-        TrackedEntity trackedEntity = rnd.randomObject( TrackedEntity.class, "enrollments" );
+        TrackedEntity trackedEntity = rnd.nextObject( TrackedEntity.class );
         trackedEntity.setGeometry( null );
         trackedEntity.setTrackedEntity( uid );
         trackedEntity.setEnrollments( enrollments );
@@ -202,7 +215,7 @@ public class TrackerBundleParamsConverterTest
 
     private Enrollment createEnrollment( String uid, String parent, List<Event> events )
     {
-        Enrollment enrollment = rnd.randomObject( Enrollment.class, "events" );
+        Enrollment enrollment = rnd.nextObject( Enrollment.class );
         enrollment.setGeometry( null );
         enrollment.setEnrollment( uid );
         enrollment.setTrackedEntity( parent );
@@ -215,7 +228,7 @@ public class TrackerBundleParamsConverterTest
         List<Event> events = new ArrayList<>();
         for ( int i = 0; i < size; i++ )
         {
-            Event event = rnd.randomObject( Event.class, "relationships" );
+            Event event = rnd.nextObject( Event.class );
             event.setGeometry( null );
             event.setEvent( uid + i );
             event.setEnrollment( parent );
@@ -230,7 +243,7 @@ public class TrackerBundleParamsConverterTest
         List<Relationship> relationships = new ArrayList<>();
         for ( int i = 0; i < size; i++ )
         {
-            Relationship relationship = rnd.randomObject( Relationship.class );
+            Relationship relationship = rnd.nextObject( Relationship.class );
             relationship.setRelationship( uid + i );
             relationships.add( relationship );
         }

@@ -34,6 +34,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.system.notification.Notifier;
@@ -47,6 +48,7 @@ import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.User;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -79,7 +81,7 @@ public class TrackerImporterServiceTest
 
     private DefaultTrackerImportService subject;
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private EasyRandom rnd = BeanRandomizer.create();
 
     private TrackerImportParams params = null;
 
@@ -90,7 +92,7 @@ public class TrackerImporterServiceTest
             trackerPreprocessService,
             trackerUserService, notifier );
 
-        final List<Event> events = rnd.randomObjects( Event.class, 3 );
+        final List<Event> events = rnd.objects( Event.class, 3 ).collect( Collectors.toList() );
 
         params = TrackerImportParams.builder()
             .events( events )

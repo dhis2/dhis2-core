@@ -33,9 +33,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerType;
+import org.jeasy.random.EasyRandom;
 import org.junit.Test;
 
 /**
@@ -44,7 +46,7 @@ import org.junit.Test;
 public class TrackerImportReportTest
 {
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private EasyRandom rnd = BeanRandomizer.create();
 
     @Test
     public void testImportCalculatesIgnoredValues()
@@ -57,7 +59,7 @@ public class TrackerImportReportTest
 
         // Create validation report with 3 objects
         TrackerValidationReport validationReport = TrackerValidationReport.builder()
-            .errorReports( rnd.randomObjects( TrackerErrorReport.class, 3 ) )
+            .errorReports( rnd.objects( TrackerErrorReport.class, 3 ).collect( Collectors.toList() ) )
             .build();
 
         // Create empty Timing Stats report

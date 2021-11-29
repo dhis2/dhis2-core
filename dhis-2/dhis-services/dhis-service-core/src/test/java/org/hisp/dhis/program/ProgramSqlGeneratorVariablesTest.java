@@ -55,6 +55,7 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,7 +69,7 @@ import org.mockito.junit.MockitoRule;
 public class ProgramSqlGeneratorVariablesTest
     extends DhisConvenienceTest
 {
-    private BeanRandomizer beanRandomizer = new BeanRandomizer();
+    private EasyRandom rnd = BeanRandomizer.create();
 
     private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
 
@@ -336,7 +337,7 @@ public class ProgramSqlGeneratorVariablesTest
 
     private ProgramIndicator makeEnrollmentProgramIndicator()
     {
-        Program program = beanRandomizer.randomObject( Program.class );
+        Program program = rnd.nextObject( Program.class );
         ProgramIndicator programIndicator = createProgramIndicator( 'A', AnalyticsType.ENROLLMENT, program, "", "" );
 
         programIndicator.setProgram( program );

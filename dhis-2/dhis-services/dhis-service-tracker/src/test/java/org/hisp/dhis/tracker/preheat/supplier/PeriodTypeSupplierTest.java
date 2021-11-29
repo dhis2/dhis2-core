@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.period.Period;
@@ -41,6 +42,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.DefaultPreheatCacheService;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,7 +70,7 @@ public class PeriodTypeSupplierTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private EasyRandom rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
@@ -81,7 +83,7 @@ public class PeriodTypeSupplierTest
     @Test
     public void verifySupplier()
     {
-        final List<Period> periods = rnd.randomObjects( Period.class, 20 );
+        final List<Period> periods = rnd.objects( Period.class, 20 ).collect( Collectors.toList() );
         when( periodStore.getAll() ).thenReturn( periods );
 
         final TrackerImportParams params = TrackerImportParams.builder().build();

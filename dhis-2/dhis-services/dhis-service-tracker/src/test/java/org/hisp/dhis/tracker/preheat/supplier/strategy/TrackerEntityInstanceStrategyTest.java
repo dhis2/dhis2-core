@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
+import org.jeasy.random.EasyRandom;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -65,13 +66,14 @@ public class TrackerEntityInstanceStrategyTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private EasyRandom rnd = BeanRandomizer.create();
 
     @Test
     public void verifyStrategyFiltersOutNonRootTei()
     {
         // Create preheat params
-        final List<TrackedEntity> trackedEntities = rnd.randomObjects( TrackedEntity.class, 2 );
+        final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )
+            .collect( Collectors.toList() );
         final TrackerImportParams params = TrackerImportParams.builder().trackedEntities( trackedEntities ).build();
 
         // Preheat
@@ -98,7 +100,8 @@ public class TrackerEntityInstanceStrategyTest
     public void verifyStrategyIgnoresPersistedTei()
     {
         // Create preheat params
-        final List<TrackedEntity> trackedEntities = rnd.randomObjects( TrackedEntity.class, 2 );
+        final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )
+            .collect( Collectors.toList() );
         final TrackerImportParams params = TrackerImportParams.builder().trackedEntities( trackedEntities ).build();
 
         // Preheat

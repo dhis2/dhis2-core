@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.random.BeanRandomizer;
@@ -42,6 +43,7 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,7 +58,7 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
 
     private TrackerPreheat preheat;
 
-    private BeanRandomizer rnd;
+    private EasyRandom rnd;
 
     @Before
     public void setUp()
@@ -65,13 +67,13 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
         User user = createUser( 'A' );
         this.preheat = new TrackerPreheat();
         preheat.setUser( user );
-        rnd = new BeanRandomizer();
+        rnd = BeanRandomizer.create();
     }
 
     @Test
     public void verifyConvertCommentToNote()
     {
-        Note note = rnd.randomObject( Note.class );
+        Note note = rnd.nextObject( Note.class );
 
         final TrackedEntityComment comment = notesConverterService.from( preheat, note );
         assertNoteValues( comment, note );
@@ -80,7 +82,7 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
     @Test
     public void verifyConvertCommentToNoteWithNoStoredByDefined()
     {
-        Note note = rnd.randomObject( Note.class );
+        Note note = rnd.nextObject( Note.class );
         note.setStoredBy( null );
 
         final TrackedEntityComment comment = notesConverterService.from( preheat, note );
@@ -90,7 +92,7 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
     @Test
     public void verifyConvertCommentsToNotes()
     {
-        List<Note> notes = rnd.randomObjects( Note.class, 10 );
+        List<Note> notes = rnd.objects( Note.class, 10 ).collect( Collectors.toList() );
 
         final List<TrackedEntityComment> comments = notesConverterService.from( preheat, notes );
 
@@ -105,7 +107,7 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
     @Test
     public void verifyConvertNoteToComment()
     {
-        TrackedEntityComment comment = rnd.randomObject( TrackedEntityComment.class );
+        TrackedEntityComment comment = rnd.nextObject( TrackedEntityComment.class );
 
         final Note note = notesConverterService.to( comment );
 
@@ -115,7 +117,8 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
     @Test
     public void verifyConvertNotesToComments()
     {
-        List<TrackedEntityComment> comments = rnd.randomObjects( TrackedEntityComment.class, 10 );
+        List<TrackedEntityComment> comments = rnd.objects( TrackedEntityComment.class, 10 )
+            .collect( Collectors.toList() );
 
         final List<Note> notes = notesConverterService.to( comments );
 

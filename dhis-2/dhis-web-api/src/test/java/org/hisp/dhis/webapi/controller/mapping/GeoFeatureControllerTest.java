@@ -47,6 +47,7 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,7 +74,7 @@ public class GeoFeatureControllerTest
     @Mock
     private CurrentUserService currentUserService;
 
-    private BeanRandomizer beanRandomizer = new BeanRandomizer();
+    private EasyRandom rnd = BeanRandomizer.create( OrganisationUnit.class, "parent", "geometry" );
 
     private final static String POINT = "{" +
         "\"type\": \"Point\"," +
@@ -104,7 +105,7 @@ public class GeoFeatureControllerTest
         // This ou should be filtered out since it has no Coordinates
         OrganisationUnit ouD = createOrgUnitWithoutCoordinates();
 
-        User user = beanRandomizer.randomObject( User.class );
+        User user = rnd.nextObject( User.class );
         DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
             .build();
 
@@ -120,7 +121,7 @@ public class GeoFeatureControllerTest
 
     private OrganisationUnit createOrgUnitWithoutCoordinates()
     {
-        return beanRandomizer.randomObject( OrganisationUnit.class, "parent", "geometry" );
+        return rnd.nextObject( OrganisationUnit.class );
     }
 
     private OrganisationUnit createOrgUnitWithCoordinates()

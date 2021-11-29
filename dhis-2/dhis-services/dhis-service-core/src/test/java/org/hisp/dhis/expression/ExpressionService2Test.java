@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
@@ -94,6 +93,7 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.random.BeanRandomizer;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -244,7 +244,7 @@ public class ExpressionService2Test extends DhisSpringTest
 
     private String expressionR;
 
-    private BeanRandomizer rnd;
+    private EasyRandom rnd;
 
     private static final double DELTA = 0.01;
 
@@ -254,7 +254,7 @@ public class ExpressionService2Test extends DhisSpringTest
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
             organisationUnitService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
 
-        rnd = new BeanRandomizer();
+        rnd = BeanRandomizer.create();
 
         categoryOptionA = new CategoryOption( "Under 5" );
         categoryOptionB = new CategoryOption( "Over 5" );
@@ -287,7 +287,7 @@ public class ExpressionService2Test extends DhisSpringTest
         deD = createDataElement( 'D' );
         deE = createDataElement( 'E', categoryCombo );
 
-        coc = rnd.randomObject( CategoryOptionCombo.class );
+        coc = rnd.nextObject( CategoryOptionCombo.class );
         coc.setName( DEFAULT_CATEGORY_COMBO_NAME );
 
         optionCombos.add( coc );
@@ -301,19 +301,19 @@ public class ExpressionService2Test extends DhisSpringTest
 
         period = createPeriod( getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
 
-        pteaA = rnd.randomObject( ProgramTrackedEntityAttributeDimensionItem.class );
-        pdeA = rnd.randomObject( ProgramDataElementDimensionItem.class );
-        piA = rnd.randomObject( ProgramIndicator.class );
+        pteaA = rnd.nextObject( ProgramTrackedEntityAttributeDimensionItem.class );
+        pdeA = rnd.nextObject( ProgramDataElementDimensionItem.class );
+        piA = rnd.nextObject( ProgramIndicator.class );
 
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C' );
 
-        constantA = rnd.randomObject( Constant.class );
+        constantA = rnd.nextObject( Constant.class );
         constantA.setName( "ConstantA" );
         constantA.setValue( 2.0 );
 
-        constantB = rnd.randomObject( Constant.class );
+        constantB = rnd.nextObject( Constant.class );
         constantB.setName( "ConstantB" );
         constantB.setValue( 5.0 );
 
@@ -867,7 +867,7 @@ public class ExpressionService2Test extends DhisSpringTest
     @Test
     public void verifyExpressionIsUpdated()
     {
-        Expression expression = rnd.randomObject( Expression.class );
+        Expression expression = rnd.nextObject( Expression.class );
         target.updateExpression( expression );
         verify( hibernateGenericStore ).update( expression );
     }
@@ -875,7 +875,7 @@ public class ExpressionService2Test extends DhisSpringTest
     @Test
     public void verifyExpressionIsDeleted()
     {
-        Expression expression = rnd.randomObject( Expression.class );
+        Expression expression = rnd.nextObject( Expression.class );
         target.deleteExpression( expression );
         verify( hibernateGenericStore ).delete( expression );
     }
@@ -883,7 +883,7 @@ public class ExpressionService2Test extends DhisSpringTest
     @Test
     public void verifyExpressionIsAdded()
     {
-        Expression expression = rnd.randomObject( Expression.class );
+        Expression expression = rnd.nextObject( Expression.class );
         long id = target.addExpression( expression );
         assertThat( id, is( expression.getId() ) );
         verify( hibernateGenericStore ).save( expression );
@@ -892,7 +892,7 @@ public class ExpressionService2Test extends DhisSpringTest
     @Test
     public void verifyAllExpressionsCanBeFetched()
     {
-        when( hibernateGenericStore.getAll() ).thenReturn( Lists.newArrayList( rnd.randomObject( Expression.class ) ) );
+        when( hibernateGenericStore.getAll() ).thenReturn( Lists.newArrayList( rnd.nextObject( Expression.class ) ) );
         List<Expression> expressions = target.getAllExpressions();
         assertThat( expressions, hasSize( 1 ) );
         verify( hibernateGenericStore ).getAll();

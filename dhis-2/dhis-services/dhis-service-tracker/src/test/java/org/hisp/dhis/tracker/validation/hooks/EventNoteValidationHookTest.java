@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -49,6 +50,7 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,7 +68,7 @@ public class EventNoteValidationHookTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BeanRandomizer rnd;
+    private EasyRandom rnd;
 
     private Event event;
 
@@ -74,15 +76,15 @@ public class EventNoteValidationHookTest
     public void setUp()
     {
         this.hook = new EventNoteValidationHook();
-        rnd = new BeanRandomizer();
-        event = rnd.randomObject( Event.class );
+        rnd = BeanRandomizer.create();
+        event = rnd.nextObject( Event.class );
     }
 
     @Test
     public void testNoteWithExistingUidWarnings()
     {
         // Given
-        final Note note = rnd.randomObject( Note.class );
+        final Note note = rnd.nextObject( Note.class );
 
         TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
@@ -108,7 +110,7 @@ public class EventNoteValidationHookTest
     public void testNoteWithExistingUidAndNoTextIsIgnored()
     {
         // Given
-        final Note note = rnd.randomObject( Note.class );
+        final Note note = rnd.nextObject( Note.class );
         note.setValue( null );
         TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
@@ -132,7 +134,7 @@ public class EventNoteValidationHookTest
     public void testNotesAreValidWhenUidDoesNotExist()
     {
         // Given
-        final List<Note> notes = rnd.randomObjects( Note.class, 5 );
+        final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
         TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
