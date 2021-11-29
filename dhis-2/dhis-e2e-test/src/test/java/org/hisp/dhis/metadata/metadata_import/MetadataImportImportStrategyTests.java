@@ -95,12 +95,12 @@ public class MetadataImportImportStrategyTests
 
         response
             .validate().statusCode( 200 )
-            .body( "stats.created", equalTo( 1 ) );
+            .body( "response.stats.created", equalTo( 1 ) );
 
         response = metadataActions.importMetadata( object, "identifier=CODE" );
 
         response
             .validate().statusCode( 200 )
-            .body( "stats.updated", equalTo( 1 ) );
+            .body( "response.stats.updated", equalTo( 1 ) );
     }
 }

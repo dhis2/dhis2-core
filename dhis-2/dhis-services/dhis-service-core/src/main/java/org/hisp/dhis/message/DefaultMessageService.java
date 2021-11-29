@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -407,6 +408,13 @@ public class DefaultMessageService
 
     @Override
     @Transactional( readOnly = true )
+    public List<MessageConversation> getMatchingExtId( String extMessageId )
+    {
+        return messageConversationStore.getMessagesConversationFromSenderMatchingExtMessageId( extMessageId );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public List<MessageConversation> getMessageConversations( User user, Collection<String> uid )
     {
         List<MessageConversation> conversations = messageConversationStore
@@ -452,7 +460,9 @@ public class DefaultMessageService
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Set<User> getFeedbackRecipients()
+    @Override
+    @Transactional( readOnly = true )
+    public Set<User> getFeedbackRecipients()
     {
         UserGroup feedbackRecipients = configurationService.getConfiguration().getFeedbackRecipients();
 
@@ -462,6 +472,20 @@ public class DefaultMessageService
         }
 
         return new HashSet<>();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Set<User> getSystemUpdateNotificationRecipients()
+    {
+        UserGroup feedbackRecipients = configurationService.getConfiguration().getSystemUpdateNotificationRecipients();
+
+        if ( feedbackRecipients == null )
+        {
+            return Collections.emptySet();
+        }
+
+        return feedbackRecipients.getMembers();
     }
 
     private void invokeMessageSenders( String subject, String text, String footer, User sender, Set<User> users,

@@ -25,11 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.webmessage;
+package org.hisp.dhis.jsonpatch.validator;
+
+import java.util.List;
+import java.util.function.Consumer;
+
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author viet@dhis2.org
  */
-public interface WebMessageResponse
+public class SharingSchemaValidator
+    implements BulkPatchValidator
 {
+    @Override
+    public void validate( BulkPatchValidateParams params, Consumer<ErrorReport> addError )
+    {
+        List<ErrorReport> errors = SchemaCheck.isExist.apply( params.getSchema() );
+
+        if ( !errors.isEmpty() )
+        {
+            errors.forEach( error -> addError.accept( error ) );
+            return;
+        }
+
+        SchemaCheck.isShareable.apply( params.getSchema() ).forEach( error -> addError.accept( error ) );
+    }
 }

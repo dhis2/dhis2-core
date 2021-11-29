@@ -127,7 +127,7 @@ public class DhisMessageAlertListener
 
                 Set<User> receivers = new HashSet<>( userGroup.getMembers() );
                 messageService.sendMessage( new MessageConversationParams.Builder( receivers, sender,
-                    smsCommand.getName(), message, MessageType.SYSTEM ).build() );
+                    smsCommand.getName(), message, MessageType.SYSTEM, null ).build() );
 
                 Set<User> feedbackList = new HashSet<>();
                 feedbackList.add( sender );

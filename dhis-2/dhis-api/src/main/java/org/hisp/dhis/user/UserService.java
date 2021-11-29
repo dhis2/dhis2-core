@@ -490,4 +490,10 @@ public interface UserService
      * User doesn't exist
      */
     String getDisplayName( String userUid );
+
+    /**
+     * Given an Authorities's name, retrieves a list of users that has that
+     * authority.
+     */
+    List<UserCredentials> getUsersWithAuthority( String authority );
 }

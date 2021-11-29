@@ -139,7 +139,7 @@ public class UnregisteredSMSListener
             }
 
             messageService.sendMessage( new MessageConversationParams.Builder( userGroup.getMembers(),
-                anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM ).build() );
+                anonymousUser.getUserInfo(), smsCommand.getName(), sms.getText(), MessageType.SYSTEM, null ).build() );
 
             sendFeedback( smsCommand.getReceivedMessage(), sms.getOriginator(), INFO );
 

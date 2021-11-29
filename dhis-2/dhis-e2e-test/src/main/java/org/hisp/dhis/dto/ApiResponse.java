@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.dto;
 
-import com.google.gson.JsonObject;
-import io.restassured.path.json.config.JsonParserType;
-import io.restassured.path.json.config.JsonPathConfig;
-import io.restassured.response.Response;
-import io.restassured.response.ValidatableResponse;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.google.gson.JsonObject;
+
+import io.restassured.path.json.config.JsonParserType;
+import io.restassured.path.json.config.JsonPathConfig;
+import io.restassured.response.Response;
+import io.restassured.response.ValidatableResponse;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -174,11 +175,14 @@ public class ApiResponse
 
     public List<TypeReport> getTypeReports()
     {
+        if ( this.extractList( "response.typeReports" ) != null )
+        {
+            return this.extractList( "response.typeReports", TypeReport.class );
+        }
         if ( this.extractList( "typeReports" ) != null )
         {
             return this.extractList( "typeReports", TypeReport.class );
         }
-
         return null;
     }
 
