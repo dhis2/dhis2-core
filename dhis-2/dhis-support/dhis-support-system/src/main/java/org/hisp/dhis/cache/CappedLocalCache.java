@@ -242,7 +242,7 @@ public class CappedLocalCache
         {
             long entrySize = emptyEntrySize + sizeof.sizeof( key ) + sizeof.sizeof( value );
             long now = currentTimeMillis();
-            CacheEntry<V> newEntry = new CacheEntry<V>( region, key, value, now, now + (defaultTtlInSeconds * 1000L),
+            CacheEntry<V> newEntry = new CacheEntry<>( region, key, value, now, now + (defaultTtlInSeconds * 1000L),
                 entrySize );
             var oldEntry = entries.putIfAbsent( key, newEntry );
             long sizeDelta = entrySize - (oldEntry == null ? 0L : oldEntry.size);

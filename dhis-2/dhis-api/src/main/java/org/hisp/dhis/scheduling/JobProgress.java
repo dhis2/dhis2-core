@@ -511,12 +511,15 @@ public interface JobProgress
     {
         public static Date completedTime( Collection<Process> job, Date defaultValue )
         {
-            return job.isEmpty() ? defaultValue
-                : job instanceof Deque
-                    ? ((Deque<Process>) job).getLast().getCompletedTime()
-                    : job.stream().reduce( ( first, second ) -> second )
-                        .map( Process::getCancelledTime )
-                        .orElse( defaultValue );
+            if ( job.isEmpty() )
+            {
+                return defaultValue;
+            }
+            return job instanceof Deque
+                ? ((Deque<Process>) job).getLast().getCompletedTime()
+                : job.stream().reduce( ( first, second ) -> second )
+                    .map( Process::getCancelledTime )
+                    .orElse( defaultValue );
         }
 
         private final Date startedTime = new Date();

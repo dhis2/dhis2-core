@@ -43,6 +43,8 @@ import java.util.stream.Stream;
  */
 public class NoOpCache<V> implements Cache<V>
 {
+    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+
     private final V defaultValue;
 
     public NoOpCache( CacheBuilder<V> cacheBuilder )
@@ -99,7 +101,7 @@ public class NoOpCache<V> implements Cache<V>
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Value cannot be null" );
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
         }
         // No operation
     }

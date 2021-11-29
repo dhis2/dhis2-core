@@ -45,6 +45,8 @@ import org.cache2k.Cache2kBuilder;
  */
 public class LocalCache<V> implements Cache<V>
 {
+    private static final String VALUE_CANNOT_BE_NULL = "Value cannot be null";
+
     private org.cache2k.Cache<String, V> cache2kInstance;
 
     private V defaultValue;
@@ -139,7 +141,7 @@ public class LocalCache<V> implements Cache<V>
     {
         if ( null == value )
         {
-            throw new IllegalArgumentException( "Value cannot be null" );
+            throw new IllegalArgumentException( VALUE_CANNOT_BE_NULL );
         }
         cache2kInstance.put( key, value );
     }
