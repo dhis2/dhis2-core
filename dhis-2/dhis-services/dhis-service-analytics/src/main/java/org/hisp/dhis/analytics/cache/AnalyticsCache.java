@@ -34,6 +34,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
@@ -75,7 +76,7 @@ public class AnalyticsCache
 
     public Optional<Grid> get( final String key )
     {
-        return queryCache.get( key );
+        return getGridClone( queryCache.get( key ) );
     }
 
     /**
@@ -98,7 +99,7 @@ public class AnalyticsCache
 
         if ( cachedGrid.isPresent() )
         {
-            return cachedGrid.get();
+            return getGridClone( cachedGrid.get() );
         }
         else
         {
@@ -106,7 +107,7 @@ public class AnalyticsCache
 
             put( params, grid );
 
-            return grid;
+            return getGridClone( grid );
         }
     }
 
@@ -145,7 +146,7 @@ public class AnalyticsCache
      */
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
-        queryCache.put( key, grid, ttlInSeconds );
+        queryCache.put( key, getGridClone( grid ), ttlInSeconds );
     }
 
     /**
@@ -161,5 +162,20 @@ public class AnalyticsCache
     public boolean isEnabled()
     {
         return analyticsCacheSettings.isCachingEnabled();
+    }
+
+    private Grid getGridClone( Grid grid )
+    {
+        if ( grid != null )
+        {
+            return SerializationUtils.clone( grid );
+        }
+
+        return null;
+    }
+
+    private Optional<Grid> getGridClone( Optional<Grid> grid )
+    {
+        return grid.map( SerializationUtils::clone );
     }
 }
