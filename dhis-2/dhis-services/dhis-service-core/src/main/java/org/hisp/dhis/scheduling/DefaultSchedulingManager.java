@@ -124,7 +124,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
             String key = info.getKey().name();
             if ( cancelRequested.getIfPresent( key ).isPresent() )
             {
-                cancel( info.getKey() );
+                super.cancel( info.getKey() );
                 cancelRequested.invalidate( key );
             }
             else
@@ -139,9 +139,8 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
             String key = localInfo.getKey().name();
             Optional<Deque<Process>> clusterInfo = completedJobsInfo.getIfPresent( key );
             Date now = new Date();
-            if ( clusterInfo.isEmpty()
-                || Process.completedTime( clusterInfo.get(), now )
-                    .before( Process.completedTime( localInfo.getValue().getProcesses(), now ) ) )
+            if ( clusterInfo.isEmpty() || Process.startedTime( clusterInfo.get(), now )
+                .before( Process.startedTime( localInfo.getValue().getProcesses(), now ) ) )
             {
                 completedJobsInfo.put( key, localInfo.getValue().getProcesses() );
             }
@@ -151,7 +150,8 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     @Override
     public Collection<JobType> getRunningTypes()
     {
-        EnumSet<JobType> inCluster = EnumSet.copyOf( super.getRunningTypes() );
+        EnumSet<JobType> inCluster = EnumSet.noneOf( JobType.class );
+        inCluster.addAll( super.getRunningTypes() );
         runningJobsInfo.keys().forEach( key -> inCluster.add( JobType.valueOf( key ) ) );
         return inCluster;
     }
@@ -159,7 +159,8 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     @Override
     public Collection<JobType> getCompletedTypes()
     {
-        EnumSet<JobType> inCluster = EnumSet.copyOf( super.getCompletedTypes() );
+        EnumSet<JobType> inCluster = EnumSet.noneOf( JobType.class );
+        inCluster.addAll( super.getCompletedTypes() );
         completedJobsInfo.keys().forEach( key -> inCluster.add( JobType.valueOf( key ) ) );
         return inCluster;
     }
@@ -167,7 +168,6 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     @Override
     public Collection<Process> getRunningProgress( JobType type )
     {
-
         Collection<Process> localInfo = super.getRunningProgress( type );
         if ( !localInfo.isEmpty() )
         {
@@ -188,8 +188,8 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
         }
         Date now = new Date();
         return localInfo.isEmpty()
-            || Process.completedTime( clusterInfo.get(), now ).after( Process.completedTime( localInfo, now ) )
-                ? clusterInfo.get()
+            || Process.startedTime( clusterInfo.get(), now ).after( Process.startedTime( localInfo, now ) )
+                ? unmodifiableCollection( clusterInfo.get() )
                 : localInfo;
     }
 
@@ -201,9 +201,15 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     }
 
     @Override
-    protected boolean canRunInCluster( JobType type, Deque<Process> initialState )
+    protected boolean clusterCanRun( JobType type, Deque<Process> initialState )
     {
         return runningJobsInfo.putIfAbsent( type.name(), initialState );
+    }
+
+    @Override
+    protected void clusterRunDone( JobType type )
+    {
+        runningJobsInfo.invalidate( type.name() );
     }
 
     @Override

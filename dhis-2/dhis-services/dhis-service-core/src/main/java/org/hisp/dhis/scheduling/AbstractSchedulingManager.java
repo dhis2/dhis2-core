@@ -161,7 +161,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             whenAlreadyRunning( configuration );
             return;
         }
-        if ( !canRunInCluster( type, progress.getProcesses() ) )
+        if ( !clusterCanRun( type, progress.getProcesses() ) )
         {
             runningJobProgress.remove( type );
             whenAlreadyRunning( configuration );
@@ -195,14 +195,19 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         finally
         {
             completedJobProgress.put( type, runningJobProgress.remove( type ) );
-
+            clusterRunDone( type );
             whenRunIsDone( configuration, clock );
         }
     }
 
-    protected boolean canRunInCluster( JobType type, Deque<Process> initialState )
+    protected boolean clusterCanRun( JobType type, Deque<Process> initialState )
     {
         return true;
+    }
+
+    protected void clusterRunDone( JobType type )
+    {
+        // noop by default
     }
 
     private ControlledJobProgress createJobProgress( JobConfiguration configuration )

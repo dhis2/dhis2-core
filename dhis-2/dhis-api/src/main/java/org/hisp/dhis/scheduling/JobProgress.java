@@ -509,17 +509,9 @@ public interface JobProgress
     @RequiredArgsConstructor
     final class Process extends Node
     {
-        public static Date completedTime( Collection<Process> job, Date defaultValue )
+        public static Date startedTime( Collection<Process> job, Date defaultValue )
         {
-            if ( job.isEmpty() )
-            {
-                return defaultValue;
-            }
-            return job instanceof Deque
-                ? ((Deque<Process>) job).getLast().getCompletedTime()
-                : job.stream().reduce( ( first, second ) -> second )
-                    .map( Process::getCancelledTime )
-                    .orElse( defaultValue );
+            return job.isEmpty() ? defaultValue : job.iterator().next().getStartedTime();
         }
 
         private final Date startedTime = new Date();
