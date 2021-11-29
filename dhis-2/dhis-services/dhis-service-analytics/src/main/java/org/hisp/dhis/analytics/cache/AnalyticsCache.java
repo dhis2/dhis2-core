@@ -176,6 +176,6 @@ public class AnalyticsCache
 
     private Optional<Grid> getGridClone( Optional<Grid> grid )
     {
-        return grid.map( value -> SerializationUtils.clone( value ) );
+        return grid.map( SerializationUtils::clone );
     }
 }
