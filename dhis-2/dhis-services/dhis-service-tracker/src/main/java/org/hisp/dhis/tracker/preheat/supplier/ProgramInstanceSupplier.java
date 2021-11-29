@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.DetachUtils;
@@ -53,6 +54,9 @@ public class ProgramInstanceSupplier extends AbstractPreheatSupplier
     @NonNull
     private final ProgramInstanceStore programInstanceStore;
 
+    @NonNull
+    private final ProgramStore programStore;
+
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
@@ -60,7 +64,10 @@ public class ProgramInstanceSupplier extends AbstractPreheatSupplier
             .stream()
             .filter( program -> program.getProgramType().equals( ProgramType.WITHOUT_REGISTRATION ) )
             .collect( Collectors.toList() );
-
+        if ( programsWithoutRegistration.isEmpty() )
+        {
+            programsWithoutRegistration = programStore.getByType( ProgramType.WITHOUT_REGISTRATION );
+        }
         if ( !programsWithoutRegistration.isEmpty() )
         {
             List<ProgramInstance> programInstances = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
