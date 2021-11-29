@@ -37,7 +37,11 @@ import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
+import java.util.EnumSet;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
@@ -45,6 +49,8 @@ import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
@@ -73,20 +79,70 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
 
     private final Notifier notifier;
 
+    /**
+     * Set of currently running jobs. We use a map to use CAS operation
+     * {@link Map#putIfAbsent(Object, Object)} to "atomically" start or abort
+     * execution.
+     */
+    private final Map<JobType, ControlledJobProgress> runningLocally = new ConcurrentHashMap<>();
+
+    private final Map<JobType, ControlledJobProgress> completedLocally = new ConcurrentHashMap<>();
+
+    private final Cache<Deque<Process>> runningRemotely;
+
+    private final Cache<Deque<Process>> completedRemotely;
+
+    private final Cache<Boolean> cancelledRemotely;
+
+    protected AbstractSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
+        MessageService messageService, LeaderManager leaderManager, Notifier notifier, CacheProvider cacheProvider )
+    {
+        this.jobService = jobService;
+        this.jobConfigurationService = jobConfigurationService;
+        this.messageService = messageService;
+        this.leaderManager = leaderManager;
+        this.notifier = notifier;
+
+        this.runningRemotely = cacheProvider.createRunningJobsInfoCache();
+        this.completedRemotely = cacheProvider.createCompletedJobsInfoCache();
+        this.cancelledRemotely = cacheProvider.createJobCancelRequestedCache();
+    }
+
     @PostConstruct
     public void init()
     {
         leaderManager.setSchedulingManager( this );
     }
 
-    /**
-     * Set of currently running jobs. We use a map to use CAS operation
-     * {@link Map#putIfAbsent(Object, Object)} to "atomically" start or abort
-     * execution.
-     */
-    protected final Map<JobType, ControlledJobProgress> runningJobProgress = new ConcurrentHashMap<>();
-
-    protected final Map<JobType, ControlledJobProgress> completedJobProgress = new ConcurrentHashMap<>();
+    protected final void clusterHeartbeat()
+    {
+        for ( Entry<JobType, ControlledJobProgress> info : runningLocally.entrySet() )
+        {
+            String key = info.getKey().name();
+            if ( cancelledRemotely.getIfPresent( key ).isPresent() )
+            {
+                cancel( info.getKey() );
+                cancelledRemotely.invalidate( key );
+            }
+            else
+            {
+                // heart beat update so the entry does not expire
+                runningRemotely.put( key, info.getValue().getProcesses() );
+            }
+        }
+        // always use most recent local in the cache
+        for ( Entry<JobType, ControlledJobProgress> localInfo : completedLocally.entrySet() )
+        {
+            String key = localInfo.getKey().name();
+            Optional<Deque<Process>> remoteInfo = completedRemotely.getIfPresent( key );
+            Date now = new Date();
+            if ( remoteInfo.isEmpty() || Process.startedTime( remoteInfo.get(), now )
+                .before( Process.startedTime( localInfo.getValue().getProcesses(), now ) ) )
+            {
+                completedRemotely.put( key, localInfo.getValue().getProcesses() );
+            }
+        }
+    }
 
     /**
      * Check if this job configuration is currently running
@@ -94,44 +150,76 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
      * @param type type of job to check
      * @return true/false
      */
-    boolean isRunning( JobType type )
+    final boolean isRunning( JobType type )
     {
-        return runningJobProgress.containsKey( type );
+        return isRunningLocally( type ) || isRunningRemotely( type );
+    }
+
+    final boolean isRunningLocally( JobType type )
+    {
+        return runningLocally.containsKey( type );
+    }
+
+    final boolean isRunningRemotely( JobType type )
+    {
+        return runningRemotely.getIfPresent( type.name() ).isPresent();
     }
 
     @Override
-    public Collection<JobType> getRunningTypes()
+    public final Collection<JobType> getRunningTypes()
     {
-        return unmodifiableSet( runningJobProgress.keySet() );
+        return unmodifiableUnionOf( runningRemotely, runningLocally );
     }
 
     @Override
-    public Collection<JobType> getCompletedTypes()
+    public final Collection<JobType> getCompletedTypes()
     {
-        return unmodifiableSet( completedJobProgress.keySet() );
+        return unmodifiableUnionOf( completedRemotely, completedLocally );
     }
 
     @Override
-    public Collection<Process> getRunningProgress( JobType type )
+    public final Collection<Process> getRunningProgress( JobType type )
     {
-        ControlledJobProgress progress = runningJobProgress.get( type );
-        return progress == null ? emptyList() : unmodifiableCollection( progress.getProcesses() );
-    }
-
-    @Override
-    public Collection<Process> getCompletedProgress( JobType type )
-    {
-        ControlledJobProgress progress = completedJobProgress.get( type );
-        return progress == null ? emptyList() : unmodifiableCollection( progress.getProcesses() );
-    }
-
-    @Override
-    public void cancel( JobType type )
-    {
-        ControlledJobProgress progress = runningJobProgress.get( type );
-        if ( progress != null )
+        ControlledJobProgress local = runningLocally.get( type );
+        if ( local != null )
         {
-            progress.requestCancellation();
+            return unmodifiableCollection( local.getProcesses() );
+        }
+        var remoteInfo = runningRemotely.getIfPresent( type.name() );
+        return remoteInfo.isEmpty() ? emptyList() : unmodifiableCollection( remoteInfo.get() );
+    }
+
+    @Override
+    public final Collection<Process> getCompletedProgress( JobType type )
+    {
+        ControlledJobProgress local = completedLocally.get( type );
+        Collection<Process> localInfo = local == null
+            ? emptyList()
+            : unmodifiableCollection( local.getProcesses() );
+        var remoteInfo = completedRemotely.getIfPresent( type.name() );
+        if ( remoteInfo.isEmpty() )
+        {
+            return localInfo;
+        }
+        Date now = new Date();
+        return localInfo.isEmpty()
+            || Process.startedTime( remoteInfo.get(), now ).after( Process.startedTime( localInfo, now ) )
+                ? unmodifiableCollection( remoteInfo.get() )
+                : localInfo;
+    }
+
+    @Override
+    public final void cancel( JobType type )
+    {
+        ControlledJobProgress local = runningLocally.get( type );
+        if ( local != null )
+        {
+            local.requestCancellation();
+        }
+        else
+        {
+            // no matter which node received the cancel this is shared
+            cancelledRemotely.put( type.name(), true );
         }
     }
 
@@ -156,14 +244,14 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         // OBS: we cannot use computeIfAbsent since we have no way of
         // atomically create and find out if there was a value before
         // so we need to pay the price of creating the progress up front
-        if ( runningJobProgress.putIfAbsent( type, progress ) != null )
+        if ( runningLocally.putIfAbsent( type, progress ) != null )
         {
             whenAlreadyRunning( configuration );
             return;
         }
-        if ( !clusterCanRun( type, progress.getProcesses() ) )
+        if ( !runningRemotely.putIfAbsent( type.name(), progress.getProcesses() ) )
         {
-            runningJobProgress.remove( type );
+            runningLocally.remove( type );
             whenAlreadyRunning( configuration );
             return;
         }
@@ -194,20 +282,10 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
         finally
         {
-            completedJobProgress.put( type, runningJobProgress.remove( type ) );
-            clusterRunDone( type );
+            completedLocally.put( type, runningLocally.remove( type ) );
+            runningRemotely.invalidate( type.name() );
             whenRunIsDone( configuration, clock );
         }
-    }
-
-    protected boolean clusterCanRun( JobType type, Deque<Process> initialState )
-    {
-        return true;
-    }
-
-    protected void clusterRunDone( JobType type )
-    {
-        // noop by default
     }
 
     private ControlledJobProgress createJobProgress( JobConfiguration configuration )
@@ -282,5 +360,14 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             messageService.sendSystemErrorNotification( message, new RuntimeException( message ) );
         }
+    }
+
+    private static Set<JobType> unmodifiableUnionOf( Cache<Deque<Process>> cluster,
+        Map<JobType, ControlledJobProgress> local )
+    {
+        EnumSet<JobType> all = EnumSet.noneOf( JobType.class );
+        cluster.keys().forEach( key -> all.add( JobType.valueOf( key ) ) );
+        all.addAll( local.keySet() );
+        return unmodifiableSet( all );
     }
 }

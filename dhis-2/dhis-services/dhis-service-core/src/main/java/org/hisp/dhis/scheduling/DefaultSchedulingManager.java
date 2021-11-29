@@ -28,20 +28,13 @@
 package org.hisp.dhis.scheduling;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableCollection;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Deque;
-import java.util.EnumSet;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -49,12 +42,10 @@ import java.util.function.Function;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.scheduling.JobProgress.Process;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
@@ -65,9 +56,8 @@ import org.springframework.stereotype.Service;
  * A {@link SchedulingManager} that runs {@link #schedule(JobConfiguration)} and
  * {@link #executeNow(JobConfiguration)} asynchronously.
  *
- * Whether or not a job can run is solely determined by
- * {@link #isRunning(JobType)} which makes sure only one asynchronous task can
- * run at a time.
+ * Whether a job can run is solely determined by {@link #isRunning(JobType)}
+ * which makes sure only one asynchronous task can run at a time.
  *
  * The {@link DefaultSchedulingManager} manages its private state with the sole
  * goal of being able to cancel asynchronously running tasks.
@@ -89,18 +79,12 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
 
     private final AsyncTaskExecutor taskExecutor;
 
-    private final Cache<Deque<Process>> runningJobsInfo;
-
-    private final Cache<Deque<Process>> completedJobsInfo;
-
-    private final Cache<Boolean> cancelRequested;
-
     public DefaultSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
         MessageService messageService, Notifier notifier,
         LeaderManager leaderManager, @Qualifier( "taskScheduler" ) TaskScheduler jobScheduler,
         AsyncTaskExecutor taskExecutor, CacheProvider cacheProvider )
     {
-        super( jobService, jobConfigurationService, messageService, leaderManager, notifier );
+        super( jobService, jobConfigurationService, messageService, leaderManager, notifier, cacheProvider );
         checkNotNull( jobConfigurationService );
         checkNotNull( messageService );
         checkNotNull( leaderManager );
@@ -110,106 +94,8 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
 
         this.jobScheduler = jobScheduler;
         this.taskExecutor = taskExecutor;
-        this.runningJobsInfo = cacheProvider.createRunningJobsInfoCache();
-        this.completedJobsInfo = cacheProvider.createCompletedJobsInfoCache();
-        this.cancelRequested = cacheProvider.createJobCancelRequestedCache();
 
         jobScheduler.scheduleWithFixedDelay( this::clusterHeartbeat, Duration.ofSeconds( 30 ) );
-    }
-
-    private void clusterHeartbeat()
-    {
-        for ( Entry<JobType, ControlledJobProgress> info : runningJobProgress.entrySet() )
-        {
-            String key = info.getKey().name();
-            if ( cancelRequested.getIfPresent( key ).isPresent() )
-            {
-                super.cancel( info.getKey() );
-                cancelRequested.invalidate( key );
-            }
-            else
-            {
-                // heart beat update so the entry does not expire
-                runningJobsInfo.put( key, info.getValue().getProcesses() );
-            }
-        }
-        // always use most recent local in the cache
-        for ( Entry<JobType, ControlledJobProgress> localInfo : completedJobProgress.entrySet() )
-        {
-            String key = localInfo.getKey().name();
-            Optional<Deque<Process>> clusterInfo = completedJobsInfo.getIfPresent( key );
-            Date now = new Date();
-            if ( clusterInfo.isEmpty() || Process.startedTime( clusterInfo.get(), now )
-                .before( Process.startedTime( localInfo.getValue().getProcesses(), now ) ) )
-            {
-                completedJobsInfo.put( key, localInfo.getValue().getProcesses() );
-            }
-        }
-    }
-
-    @Override
-    public Collection<JobType> getRunningTypes()
-    {
-        EnumSet<JobType> inCluster = EnumSet.noneOf( JobType.class );
-        inCluster.addAll( super.getRunningTypes() );
-        runningJobsInfo.keys().forEach( key -> inCluster.add( JobType.valueOf( key ) ) );
-        return inCluster;
-    }
-
-    @Override
-    public Collection<JobType> getCompletedTypes()
-    {
-        EnumSet<JobType> inCluster = EnumSet.noneOf( JobType.class );
-        inCluster.addAll( super.getCompletedTypes() );
-        completedJobsInfo.keys().forEach( key -> inCluster.add( JobType.valueOf( key ) ) );
-        return inCluster;
-    }
-
-    @Override
-    public Collection<Process> getRunningProgress( JobType type )
-    {
-        Collection<Process> localInfo = super.getRunningProgress( type );
-        if ( !localInfo.isEmpty() )
-        {
-            return localInfo;
-        }
-        var clusterInfo = runningJobsInfo.getIfPresent( type.name() );
-        return clusterInfo.isEmpty() ? emptyList() : unmodifiableCollection( clusterInfo.get() );
-    }
-
-    @Override
-    public Collection<Process> getCompletedProgress( JobType type )
-    {
-        Collection<Process> localInfo = super.getCompletedProgress( type );
-        var clusterInfo = completedJobsInfo.getIfPresent( type.name() );
-        if ( clusterInfo.isEmpty() )
-        {
-            return localInfo;
-        }
-        Date now = new Date();
-        return localInfo.isEmpty()
-            || Process.startedTime( clusterInfo.get(), now ).after( Process.startedTime( localInfo, now ) )
-                ? unmodifiableCollection( clusterInfo.get() )
-                : localInfo;
-    }
-
-    @Override
-    public void cancel( JobType type )
-    {
-        cancelRequested.put( type.name(), true );
-        super.cancel( type );
-    }
-
-    @Override
-    protected boolean clusterCanRun( JobType type, Deque<Process> initialState )
-    {
-        return runningJobsInfo.putIfAbsent( type.name(), initialState );
-    }
-
-    @Override
-    protected void clusterRunDone( JobType type )
-    {
-        runningJobsInfo.invalidate( type.name() );
     }
 
     @Override
@@ -275,7 +161,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     public void stop( JobConfiguration configuration )
     {
         JobType type = configuration.getJobType();
-        if ( type != null && isRunning( type ) )
+        if ( type != null && isRunningLocally( type ) )
         {
             stoppedSuccessful( type );
         }
@@ -316,7 +202,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
                 return;
             }
             scheduled.remove( type, cancelable );
-            if ( type == null || isRunning( type ) && !stoppedSuccessful( type ) )
+            if ( type == null || isRunningLocally( type ) && !stoppedSuccessful( type ) || isRunningRemotely( type ) )
             {
                 return;
             }
