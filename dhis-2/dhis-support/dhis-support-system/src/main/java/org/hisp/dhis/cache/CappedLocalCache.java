@@ -214,6 +214,12 @@ public class CappedLocalCache
         }
 
         @Override
+        public Iterable<String> keys()
+        {
+            return entries.keySet();
+        }
+
+        @Override
         public void put( String key, V value )
         {
             put( key, value, defaultTtlInSeconds );
@@ -229,6 +235,20 @@ public class CappedLocalCache
             long sizeDelta = entrySize - (oldEntry == null ? 0L : oldEntry.size);
             totalRegionSize.addAndGet( sizeDelta );
             sizeDeltaListener.accept( sizeDelta );
+        }
+
+        @Override
+        public boolean putIfAbsent( String key, V value )
+        {
+            long entrySize = emptyEntrySize + sizeof.sizeof( key ) + sizeof.sizeof( value );
+            long now = currentTimeMillis();
+            CacheEntry<V> newEntry = new CacheEntry<V>( region, key, value, now, now + (defaultTtlInSeconds * 1000L),
+                entrySize );
+            var oldEntry = entries.putIfAbsent( key, newEntry );
+            long sizeDelta = entrySize - (oldEntry == null ? 0L : oldEntry.size);
+            totalRegionSize.addAndGet( sizeDelta );
+            sizeDeltaListener.accept( sizeDelta );
+            return oldEntry != newEntry;
         }
 
         @Override
