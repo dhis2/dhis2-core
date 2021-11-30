@@ -58,16 +58,4 @@ public final class GistPreferences
      */
     @JsonProperty
     private final Gist.Transform transformation;
-
-    @JsonProperty
-    public Include getIncluded()
-    {
-        return included;
-    }
-
-    @JsonProperty
-    public Gist.Transform getTransformation()
-    {
-        return transformation;
-    }
 }
