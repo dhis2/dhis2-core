@@ -29,39 +29,45 @@ package org.hisp.dhis.analytics.event;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.Builder;
 import lombok.Data;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @Builder( toBuilder = true )
-public class EventsAnalyticsDimensions
+public class EventsAnalyticsDimensionalItems implements Supplier<Collection<BaseDimensionalItemObject>>
 {
 
-    public final static EventsAnalyticsDimensions EMPTY_QUERY_EVENT_ANALYTICS_DIMENSIONS = EventsAnalyticsDimensions
+    public final static EventsAnalyticsDimensionalItems EMPTY_ANALYTICS_DIMENSIONAL_ITEMS = EventsAnalyticsDimensionalItems
         .builder()
         .build();
 
-    public final static EventsAnalyticsDimensions EMPTY_AGGREGATE_EVENT_ANALYTICS_DIMENSIONS = EMPTY_QUERY_EVENT_ANALYTICS_DIMENSIONS
-        .toBuilder()
-        .programIndicators( null )
-        .build();
+    @JsonProperty
+    @Builder.Default
+    private final Collection<? extends BaseDimensionalItemObject> programIndicators = Collections.emptyList();
 
     @JsonProperty
     @Builder.Default
-    private final Collection<ProgramIndicator> programIndicators = Collections.emptyList();
+    private final Collection<? extends BaseDimensionalItemObject> dataElements = Collections.emptyList();
 
     @JsonProperty
     @Builder.Default
-    private final Collection<DataElement> dataElements = Collections.emptyList();
+    private final Collection<? extends BaseDimensionalItemObject> trackedEntityAttributes = Collections.emptyList();
 
-    @JsonProperty
-    @Builder.Default
-    private final Collection<TrackedEntityAttribute> trackedEntityAttributes = Collections.emptyList();
+    @Override
+    public Collection<BaseDimensionalItemObject> get()
+    {
+        return Stream.of( programIndicators, dataElements, trackedEntityAttributes )
+            .map( CollectionUtils::emptyIfNull )
+            .flatMap( Collection::stream )
+            .collect( Collectors.toList() );
+    }
 }

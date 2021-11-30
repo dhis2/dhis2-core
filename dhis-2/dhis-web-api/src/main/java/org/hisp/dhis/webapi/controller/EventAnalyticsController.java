@@ -35,18 +35,21 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
+import org.hisp.dhis.analytics.DimensionalItemHolder;
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.event.EventAnalyticsDataDimensionService;
+import org.hisp.dhis.analytics.dataitem.DimensionalItemFilteringAndPagingService;
+import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.EventsAnalyticsDimensions;
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.DimensionalItemCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.stereotype.Controller;
@@ -75,7 +78,10 @@ public class EventAnalyticsController
     private final ContextUtils contextUtils;
 
     @NonNull
-    private final EventAnalyticsDataDimensionService eventAnalyticsDataDimensionService;
+    private final DimensionalItemFilteringAndPagingService dimensionalItemFilteringAndPagingService;
+
+    @NonNull
+    private final EventAnalyticsDimensionalItemService eventAnalyticsDimensionalItemService;
 
     // -------------------------------------------------------------------------
     // Aggregate
@@ -160,12 +166,16 @@ public class EventAnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + "/aggregate/dimensions", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
-    public @ResponseBody EventsAnalyticsDimensions getAggregateDimensions(
+    public @ResponseBody PagingWrapper<DimensionalItemHolder<?>> getAggregateDimensions(
         @RequestParam String programStageId,
+        DimensionalItemCriteria dimensionalItemCriteria,
         HttpServletResponse response )
     {
         configResponseForJson( response );
-        return eventAnalyticsDataDimensionService.getAggregateDimensionsByProgramStageId( programStageId );
+        return dimensionalItemFilteringAndPagingService
+            .pageAndFilter(
+                eventAnalyticsDimensionalItemService.getAggregateDimensionalItemsByProgramStageId( programStageId ),
+                dimensionalItemCriteria );
     }
 
     // -------------------------------------------------------------------------
@@ -296,12 +306,16 @@ public class EventAnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + "/query/dimensions", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
-    public @ResponseBody EventsAnalyticsDimensions getQueryDimensions(
+    public @ResponseBody PagingWrapper<DimensionalItemHolder<?>> getQueryDimensions(
         @RequestParam String programStageId,
+        DimensionalItemCriteria dimensionalItemCriteria,
         HttpServletResponse response )
     {
         configResponseForJson( response );
-        return eventAnalyticsDataDimensionService.getQueryDimensionsByProgramStageId( programStageId );
+        return dimensionalItemFilteringAndPagingService
+            .pageAndFilter(
+                eventAnalyticsDimensionalItemService.getQueryDimensionalItemsByProgramStageId( programStageId ),
+                dimensionalItemCriteria );
     }
 
     private Grid getAggregatedGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,

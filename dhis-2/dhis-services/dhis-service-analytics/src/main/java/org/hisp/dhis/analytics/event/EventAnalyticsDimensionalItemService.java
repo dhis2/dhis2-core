@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.analytics.event;
 
-public interface EventAnalyticsDataDimensionService
+public interface EventAnalyticsDimensionalItemService
 {
-    EventsAnalyticsDimensions getQueryDimensionsByProgramStageId( String programStageId );
+    EventsAnalyticsDimensionalItems getQueryDimensionalItemsByProgramStageId( String programStageId );
 
-    EventsAnalyticsDimensions getAggregateDimensionsByProgramStageId( String programStageId );
+    EventsAnalyticsDimensionalItems getAggregateDimensionalItemsByProgramStageId( String programStageId );
 }

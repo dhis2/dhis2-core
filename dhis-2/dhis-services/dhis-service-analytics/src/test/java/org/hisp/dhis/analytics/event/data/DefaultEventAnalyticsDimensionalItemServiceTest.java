@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsDataDimensionService.AGGREGATE_ALLOWED_VALUE_TYPES;
-import static org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsDataDimensionService.QUERY_DISALLOWED_VALUE_TYPES;
+import static org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsDimensionalItemService.AGGREGATE_ALLOWED_VALUE_TYPES;
+import static org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsDimensionalItemService.QUERY_DISALLOWED_VALUE_TYPES;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -42,8 +42,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.analytics.event.EventAnalyticsDataDimensionService;
-import org.hisp.dhis.analytics.event.EventsAnalyticsDimensions;
+import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
+import org.hisp.dhis.analytics.event.EventsAnalyticsDimensionalItems;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -53,22 +53,18 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
 
-public class DefaultEventAnalyticsDataDimensionServiceTest
+public class DefaultEventAnalyticsDimensionalItemServiceTest
 {
 
-    private EventAnalyticsDataDimensionService eventAnalyticsDataDimensionService;
-
-    private Program program;
-
-    private ProgramStage programStage;
+    private EventAnalyticsDimensionalItemService eventAnalyticsDimensionalItemService;
 
     @Before
     public void setup()
     {
         ProgramStageService programStageService = mock( ProgramStageService.class );
 
-        program = mock( Program.class );
-        programStage = mock( ProgramStage.class );
+        Program program = mock( Program.class );
+        ProgramStage programStage = mock( ProgramStage.class );
 
         when( programStageService.getProgramStage( any() ) ).thenReturn( programStage );
         when( programStage.getProgram() ).thenReturn( program );
@@ -76,28 +72,28 @@ public class DefaultEventAnalyticsDataDimensionServiceTest
         when( program.getProgramIndicators() ).thenReturn( Collections.emptySet() );
         when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
 
-        eventAnalyticsDataDimensionService = new DefaultEventAnalyticsDataDimensionService( programStageService );
+        eventAnalyticsDimensionalItemService = new DefaultEventAnalyticsDimensionalItemService( programStageService );
 
     }
 
     @Test
     public void testAggregateOnlyContainsAllowedValueTypes()
     {
-        EventsAnalyticsDimensions eventsAnalyticsDimensions = eventAnalyticsDataDimensionService
-            .getQueryDimensionsByProgramStageId( "anUid" );
+        EventsAnalyticsDimensionalItems eventsAnalyticsDimensionalItems = eventAnalyticsDimensionalItemService
+            .getQueryDimensionalItemsByProgramStageId( "anUid" );
 
         assertTrue(
-            eventsAnalyticsDimensions
+            eventsAnalyticsDimensionalItems
                 .getDataElements()
                 .stream()
-                .map( DataElement::getValueType )
+                .map( de -> ((DataElement) de).getValueType() )
                 .noneMatch(
                     QUERY_DISALLOWED_VALUE_TYPES::contains ) );
         assertTrue(
-            eventsAnalyticsDimensions
+            eventsAnalyticsDimensionalItems
                 .getTrackedEntityAttributes()
                 .stream()
-                .map( TrackedEntityAttribute::getValueType )
+                .map( tea -> ((TrackedEntityAttribute) tea).getValueType() )
                 .noneMatch(
                     QUERY_DISALLOWED_VALUE_TYPES::contains ) );
     }
@@ -105,21 +101,21 @@ public class DefaultEventAnalyticsDataDimensionServiceTest
     @Test
     public void testQueryDoesntContainDisallowedValueTypes()
     {
-        EventsAnalyticsDimensions eventsAnalyticsDimensions = eventAnalyticsDataDimensionService
-            .getAggregateDimensionsByProgramStageId( "anUid" );
+        EventsAnalyticsDimensionalItems eventsAnalyticsDimensionalItems = eventAnalyticsDimensionalItemService
+            .getAggregateDimensionalItemsByProgramStageId( "anUid" );
 
         assertTrue(
-            eventsAnalyticsDimensions
+            eventsAnalyticsDimensionalItems
                 .getDataElements()
                 .stream()
-                .map( DataElement::getValueType )
+                .map( de -> ((DataElement) de).getValueType() )
                 .allMatch(
                     AGGREGATE_ALLOWED_VALUE_TYPES::contains ) );
         assertTrue(
-            eventsAnalyticsDimensions
+            eventsAnalyticsDimensionalItems
                 .getTrackedEntityAttributes()
                 .stream()
-                .map( TrackedEntityAttribute::getValueType )
+                .map( tea -> ((TrackedEntityAttribute) tea).getValueType() )
                 .allMatch(
                     AGGREGATE_ALLOWED_VALUE_TYPES::contains ) );
     }

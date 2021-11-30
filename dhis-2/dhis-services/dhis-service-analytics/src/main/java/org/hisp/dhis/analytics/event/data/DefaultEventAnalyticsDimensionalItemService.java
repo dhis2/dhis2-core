@@ -28,8 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.function.Predicate.not;
-import static org.hisp.dhis.analytics.event.EventsAnalyticsDimensions.EMPTY_AGGREGATE_EVENT_ANALYTICS_DIMENSIONS;
-import static org.hisp.dhis.analytics.event.EventsAnalyticsDimensions.EMPTY_QUERY_EVENT_ANALYTICS_DIMENSIONS;
+import static org.hisp.dhis.analytics.event.EventsAnalyticsDimensionalItems.EMPTY_ANALYTICS_DIMENSIONAL_ITEMS;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.FILE_RESOURCE;
 import static org.hisp.dhis.common.ValueType.IMAGE;
@@ -53,8 +52,9 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.event.EventAnalyticsDataDimensionService;
-import org.hisp.dhis.analytics.event.EventsAnalyticsDimensions;
+import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
+import org.hisp.dhis.analytics.event.EventsAnalyticsDimensionalItems;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
@@ -67,7 +67,7 @@ import com.google.common.collect.ImmutableMap;
 
 @Service
 @RequiredArgsConstructor
-class DefaultEventAnalyticsDataDimensionService implements EventAnalyticsDataDimensionService
+class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimensionalItemService
 {
 
     final static Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = ImmutableList.of(
@@ -94,12 +94,12 @@ class DefaultEventAnalyticsDataDimensionService implements EventAnalyticsDataDim
     private final ProgramStageService programStageService;
 
     @Override
-    public EventsAnalyticsDimensions getQueryDimensionsByProgramStageId( String programStageId )
+    public EventsAnalyticsDimensionalItems getQueryDimensionalItemsByProgramStageId( String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
             .map( ProgramStage::getProgram )
-            .map( program -> EventsAnalyticsDimensions.builder()
+            .map( program -> EventsAnalyticsDimensionalItems.builder()
                 .programIndicators( program.getProgramIndicators() )
                 .dataElements(
                     filterByValueType(
@@ -112,11 +112,11 @@ class DefaultEventAnalyticsDataDimensionService implements EventAnalyticsDataDim
                         program.getTrackedEntityAttributes(),
                         TrackedEntityAttribute::getValueType ) )
                 .build() )
-            .orElse( EMPTY_QUERY_EVENT_ANALYTICS_DIMENSIONS );
+            .orElse( EMPTY_ANALYTICS_DIMENSIONAL_ITEMS );
     }
 
-    private <T> Collection<T> filterByValueType( OperationType operationType, Collection<T> elements,
-        Function<T, ValueType> valueTypeProvider )
+    private <T extends BaseDimensionalItemObject> Collection<T> filterByValueType( OperationType operationType,
+        Collection<T> elements, Function<T, ValueType> valueTypeProvider )
     {
         return elements.stream()
             .filter( t -> OPERATION_FILTER.get( operationType ).test( valueTypeProvider.apply( t ) ) )
@@ -124,11 +124,11 @@ class DefaultEventAnalyticsDataDimensionService implements EventAnalyticsDataDim
     }
 
     @Override
-    public EventsAnalyticsDimensions getAggregateDimensionsByProgramStageId( String programStageId )
+    public EventsAnalyticsDimensionalItems getAggregateDimensionalItemsByProgramStageId( String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
-            .map( programStage -> EventsAnalyticsDimensions.builder()
+            .map( programStage -> EventsAnalyticsDimensionalItems.builder()
                 .programIndicators( null )
                 .dataElements(
                     filterByValueType( OperationType.AGGREGATE,
@@ -139,7 +139,7 @@ class DefaultEventAnalyticsDataDimensionService implements EventAnalyticsDataDim
                         programStage.getProgram().getTrackedEntityAttributes(),
                         TrackedEntityAttribute::getValueType ) )
                 .build() )
-            .orElse( EMPTY_AGGREGATE_EVENT_ANALYTICS_DIMENSIONS );
+            .orElse( EMPTY_ANALYTICS_DIMENSIONAL_ITEMS );
     }
 
     private enum OperationType

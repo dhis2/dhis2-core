@@ -28,27 +28,62 @@
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
+import lombok.Getter;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
-@Data
-@With
-@AllArgsConstructor
-@NoArgsConstructor
+@Getter
 public class PagingWrapper<T>
 {
-    @JsonProperty
-    private Collection<T> instances;
+    @JsonIgnore
+    private String identifier;
+
+    @JsonIgnore
+    private Map<String, Collection<T>> elements = new LinkedHashMap<>();
 
     @JsonUnwrapped
     private Pager pager;
+
+    public PagingWrapper()
+    {
+        this( "instances" );
+        this.identifier = "instances";
+    }
+
+    public PagingWrapper( String identifier )
+    {
+        this.identifier = identifier;
+    }
+
+    public PagingWrapper<T> withPager( Pager pager )
+    {
+        PagingWrapper<T> pagingWrapper = new PagingWrapper<>( identifier );
+        pagingWrapper.pager = pager;
+        pagingWrapper.elements = elements;
+        return pagingWrapper;
+    }
+
+    public PagingWrapper<T> withInstances( Collection<T> elements )
+    {
+        PagingWrapper<T> pagingWrapper = new PagingWrapper<>( identifier );
+        pagingWrapper.pager = pager;
+        pagingWrapper.elements.put( identifier, elements );
+        return pagingWrapper;
+    }
+
+    @JsonAnyGetter
+    public Map<String, ?> any()
+    {
+        return this.elements;
+    }
 
     @Data
     @Builder
