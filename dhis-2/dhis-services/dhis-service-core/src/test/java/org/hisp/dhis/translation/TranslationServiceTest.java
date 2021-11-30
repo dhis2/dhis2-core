@@ -442,11 +442,9 @@ public class TranslationServiceTest
 
         manager.updateTranslations( predictor,
             Sets.newHashSet( new Translation( locale.getLanguage(), TranslationProperty.NAME,
-                "translated Predictor Name" ) ) );
-
-        manager.updateTranslations( predictor,
-            Sets.newHashSet( new Translation( locale.getLanguage(), TranslationProperty.DESCRIPTION,
-                "translated Predictor description" ) ) );
+                "translated Predictor Name" ),
+                new Translation( locale.getLanguage(), TranslationProperty.DESCRIPTION,
+                    "translated Predictor description" ) ) );
 
         predictor = manager.get( Predictor.class, predictor.getUid() );
 
