@@ -1249,6 +1249,7 @@ public abstract class DhisConvenienceTest
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
         predictor.setOrganisationUnitLevels( organisationUnitLevels );
+        predictor.setIncludeDescendantOrgUnits( true );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );

@@ -39,6 +39,8 @@
         foreign-key="fk_predictororgunitlevels_orgunitlevelid" />
     </set>
 
+    <property name="includeDescendantOrgUnits" column="includedescendantorgunits" />
+
     <property name="sequentialSampleCount" column="sequentialsamplecount" not-null="true" />
 
     <property name="annualSampleCount" column="annualsamplecount" not-null="true" />

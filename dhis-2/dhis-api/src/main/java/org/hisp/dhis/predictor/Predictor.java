@@ -91,6 +91,11 @@ public class Predictor
     private Set<OrganisationUnitLevel> organisationUnitLevels;
 
     /**
+     * Whether data for descendant organisation units should be included
+     */
+    private boolean includeDescendantOrgUnits;
+
+    /**
      * The number of sequential periods from which to collect samples to average
      * (Monitoring-type rules only). Sequential periods are those immediately
      * preceding (or immediately following in previous years) the selected
@@ -215,6 +220,18 @@ public class Predictor
     public void setOrganisationUnitLevels( Set<OrganisationUnitLevel> organisationUnitLevels )
     {
         this.organisationUnitLevels = organisationUnitLevels;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isIncludeDescendantOrgUnits()
+    {
+        return includeDescendantOrgUnits;
+    }
+
+    public void setIncludeDescendantOrgUnits( boolean includeDescendantOrgUnits )
+    {
+        this.includeDescendantOrgUnits = includeDescendantOrgUnits;
     }
 
     @JsonProperty

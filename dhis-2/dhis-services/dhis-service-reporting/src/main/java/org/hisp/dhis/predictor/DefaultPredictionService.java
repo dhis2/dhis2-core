@@ -342,7 +342,7 @@ public class DefaultPredictionService
         PredictionDataValueFetcher oldPredictionFetcher = new PredictionDataValueFetcher(
             dataValueService, categoryService ).setIncludeDeleted( true );
         PredictionDataValueFetcher dataValueFetcher = new PredictionDataValueFetcher(
-            dataValueService, categoryService ).setIncludeChildren( true );
+            dataValueService, categoryService ).setIncludeChildren( predictor.isIncludeDescendantOrgUnits() );
         PredictionAnalyticsDataFetcher analyticsFetcher = new PredictionAnalyticsDataFetcher( analyticsService );
         PredictionWriter predictionWriter = new PredictionWriter( dataValueService, batchHandlerFactory );
 
