@@ -35,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.UserSettingKey;
 
@@ -68,7 +67,6 @@ public class TranslatableObject
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @Gist( included = Gist.Include.FALSE )
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "translation", namespace = DxfNamespaces.DXF_2_0 )
