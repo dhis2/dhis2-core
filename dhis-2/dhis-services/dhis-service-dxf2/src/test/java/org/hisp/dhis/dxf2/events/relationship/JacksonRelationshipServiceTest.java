@@ -57,7 +57,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -118,9 +117,9 @@ public class JacksonRelationshipServiceTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private EasyRandom rnd = BeanRandomizer.create();
-
     private Relationship relationship;
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
@@ -150,11 +149,6 @@ public class JacksonRelationshipServiceTest
     {
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
         daoRelationship.setUid( "12345" );
-
-        // TODO the relationship references itself and is therefore failing the
-        // import. weird. is that desired?
-        // it says it not imported when does exist. the reason might be a
-        // different one than we want.
 
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )

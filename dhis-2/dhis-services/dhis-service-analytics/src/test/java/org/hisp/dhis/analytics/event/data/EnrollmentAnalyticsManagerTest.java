@@ -69,7 +69,6 @@ import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -112,7 +111,7 @@ public class EnrollmentAnalyticsManagerTest
 
     private final String TABLE_NAME = "analytics_enrollment";
 
-    private EasyRandom rnd;
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
@@ -125,8 +124,6 @@ public class EnrollmentAnalyticsManagerTest
 
         subject = new JdbcEnrollmentAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
             programIndicatorSubqueryBuilder, new EnrollmentTimeFieldSqlRenderer( statementBuilder ) );
-
-        rnd = BeanRandomizer.create();
     }
 
     @Test

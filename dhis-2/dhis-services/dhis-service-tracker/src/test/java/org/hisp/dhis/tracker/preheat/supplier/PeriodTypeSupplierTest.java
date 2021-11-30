@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.DefaultPreheatCacheService;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,7 +69,7 @@ public class PeriodTypeSupplierTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private EasyRandom rnd = BeanRandomizer.create();
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()

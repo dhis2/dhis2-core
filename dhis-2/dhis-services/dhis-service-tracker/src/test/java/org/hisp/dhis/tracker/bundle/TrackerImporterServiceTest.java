@@ -30,7 +30,10 @@ package org.hisp.dhis.tracker.bundle;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +51,6 @@ import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.User;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,9 +83,9 @@ public class TrackerImporterServiceTest
 
     private DefaultTrackerImportService subject;
 
-    private EasyRandom rnd = BeanRandomizer.create();
-
     private TrackerImportParams params = null;
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()

@@ -50,7 +50,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,15 +67,14 @@ public class EventNoteValidationHookTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private EasyRandom rnd;
-
     private Event event;
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
     {
         this.hook = new EventNoteValidationHook();
-        rnd = BeanRandomizer.create();
         event = rnd.nextObject( Event.class );
     }
 

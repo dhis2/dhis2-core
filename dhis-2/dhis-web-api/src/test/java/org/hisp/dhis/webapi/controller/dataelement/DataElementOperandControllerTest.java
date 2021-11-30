@@ -77,7 +77,6 @@ import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.hisp.dhis.webapi.service.LinkService;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -123,15 +122,13 @@ public class DataElementOperandControllerTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private EasyRandom rnd;
-
     private final static String ENDPOINT = "/dataElementOperands";
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
     {
-        rnd = BeanRandomizer.create();
-
         ContextService contextService = new DefaultContextService();
 
         QueryService _queryService = new DefaultQueryService(

@@ -42,7 +42,6 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
-import org.jeasy.random.EasyRandom;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -66,7 +65,7 @@ public class TrackerEntityInstanceStrategyTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private EasyRandom rnd = BeanRandomizer.create();
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Test
     public void verifyStrategyFiltersOutNonRootTei()

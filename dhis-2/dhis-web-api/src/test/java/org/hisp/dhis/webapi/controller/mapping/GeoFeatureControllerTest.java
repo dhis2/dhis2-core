@@ -47,7 +47,6 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -74,8 +73,6 @@ public class GeoFeatureControllerTest
     @Mock
     private CurrentUserService currentUserService;
 
-    private EasyRandom rnd = BeanRandomizer.create( OrganisationUnit.class, "parent", "geometry" );
-
     private final static String POINT = "{" +
         "\"type\": \"Point\"," +
         "\"coordinates\": [" +
@@ -88,6 +85,8 @@ public class GeoFeatureControllerTest
     private GeoFeatureController geoFeatureController;
 
     private final static String ENDPOINT = "/geoFeatures";
+
+    private final BeanRandomizer rnd = BeanRandomizer.create( OrganisationUnit.class, "parent", "geometry" );
 
     @Before
     public void setUp()

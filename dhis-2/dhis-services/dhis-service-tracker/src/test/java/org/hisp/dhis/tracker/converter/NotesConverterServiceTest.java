@@ -43,7 +43,6 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -58,7 +57,7 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
 
     private TrackerPreheat preheat;
 
-    private EasyRandom rnd;
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
@@ -67,7 +66,6 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
         User user = createUser( 'A' );
         this.preheat = new TrackerPreheat();
         preheat.setUser( user );
-        rnd = BeanRandomizer.create();
     }
 
     @Test

@@ -45,7 +45,6 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -73,8 +72,6 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private EasyRandom rnd = BeanRandomizer.create();
-
     private List<ProgramInstance> programInstances;
 
     private Program programWithRegistration;
@@ -82,6 +79,8 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     private Program programWithoutRegistration;
 
     private TrackerImportParams params;
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()

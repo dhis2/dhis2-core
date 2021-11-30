@@ -267,10 +267,8 @@ public abstract class AbstractRelationshipService
         Optional<org.hisp.dhis.relationship.Relationship> existing = relationshipService
             .getRelationshipByRelationship( daoRelationship );
 
-        System.out.println( "foo" );
         if ( existing.isPresent() )
         {
-            System.out.println( existing );
             String message = "Relationship " + existing.get().getUid() + " already exists";
             return new ImportSummary( ImportStatus.ERROR, message ).setReference( existing.get().getUid() )
                 .incrementIgnored();

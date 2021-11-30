@@ -29,6 +29,7 @@ package org.hisp.dhis.random;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueTypeOptions;
@@ -41,19 +42,19 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Luciano Fiandesio
  */
-public final class BeanRandomizer
+public class BeanRandomizer
 {
+    private final EasyRandom rnd;
 
-    private BeanRandomizer()
+    private BeanRandomizer( EasyRandom rnd )
     {
-        // so BeanRandomizer cannot be instantiated and factory methods have to
-        // be used
+        this.rnd = rnd;
     }
 
-    private static EasyRandomParameters parameters()
+    private static EasyRandomParameters baseParameters()
     {
         return new EasyRandomParameters()
-            .randomize( ValueTypeOptions.class, () -> new FileTypeValueOptions() )
+            .randomize( ValueTypeOptions.class, FileTypeValueOptions::new )
             .randomize( PeriodType.class, new PeriodTypeRandomizer() )
             .randomize( Geometry.class, new GeometryRandomizer() )
             .randomize( FieldPredicates.named( "uid" ).and( FieldPredicates.ofType( String.class ) ),
@@ -62,49 +63,49 @@ public final class BeanRandomizer
     }
 
     /**
-     * Generates an EasyRandom instance for you to generate random Java beans.
+     * Creates a BeanRandomizer instance for you to generate random Java beans.
      * It will be pre-configured with DHIS2 specific randomizers (for uid, id,
      * ... fields).
      *
-     * @return an instance of EasyRandom
+     * @return an instance of BeanRandomizer
      */
-    public static EasyRandom create()
+    public static BeanRandomizer create()
     {
-        return new EasyRandom( parameters() );
+        return new BeanRandomizer( new EasyRandom( baseParameters() ) );
     }
 
     /**
-     * Generates an EasyRandom instance for you to generate random Java beans.
+     * Creates a BeanRandomizer instance for you to generate random Java beans.
      * It will be pre-configured with DHIS2 specific randomizers (for uid, id,
      * ... fields).
      *
      * @param inClass exclude fields in given class
      * @param excludeFields exclude fields from being filled with random data
-     * @return an instance of EasyRandom
+     * @return an instance of BeanRandomizer
      */
-    public static EasyRandom create( final Class inClass, final String... excludeFields )
+    public static BeanRandomizer create( final Class<?> inClass, final String... excludeFields )
     {
-        EasyRandomParameters params = parameters();
+        EasyRandomParameters params = baseParameters();
         for ( String field : excludeFields )
         {
             params.excludeField( FieldPredicates.named( field ).and( FieldPredicates.inClass( inClass ) ) );
         }
-        return new EasyRandom( params );
+        return new BeanRandomizer( new EasyRandom( params ) );
     }
 
     /**
-     * Generates an EasyRandom instance for you to generate random Java beans.
+     * Creates a BeanRandomizer instance for you to generate random Java beans.
      * It will be pre-configured with DHIS2 specific randomizers (for uid, id,
      * ... fields).
      *
      * @param excludeFields exclude fields in given class from being filled with
      *        random data
-     * @return an instance of EasyRandom
+     * @return an instance of BeanRandomizer
      */
-    public static EasyRandom create( Map<Class, Set<String>> excludeFields )
+    public static BeanRandomizer create( final Map<Class<?>, Set<String>> excludeFields )
     {
-        EasyRandomParameters params = parameters();
-        for ( Map.Entry<Class, Set<String>> field : excludeFields.entrySet() )
+        EasyRandomParameters params = baseParameters();
+        for ( Map.Entry<Class<?>, Set<String>> field : excludeFields.entrySet() )
         {
             for ( String name : field.getValue() )
             {
@@ -112,6 +113,16 @@ public final class BeanRandomizer
                     .and( FieldPredicates.inClass( field.getKey() ) ) );
             }
         }
-        return new EasyRandom( params );
+        return new BeanRandomizer( new EasyRandom( params ) );
+    }
+
+    public <T> T nextObject( final Class<T> type )
+    {
+        return rnd.nextObject( type );
+    }
+
+    public <T> Stream<T> objects( final Class<T> type, final int streamSize )
+    {
+        return rnd.objects( type, streamSize );
     }
 }

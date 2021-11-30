@@ -76,11 +76,6 @@
     <!-- Test -->
 
     <dependency>
-      <groupId>org.jeasy</groupId>
-      <artifactId>easy-random-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-administration</artifactId>
       <scope>test</scope>

@@ -29,7 +29,9 @@ package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -56,6 +58,8 @@ public class ProgramIndicatorSubqueryBuilderTest
     private final static String DUMMY_EXPRESSION = "#{1234567}";
 
     private final static String DUMMY_FILTER_EXPRESSION = "#{1234567.filter}";
+
+    private final static BeanRandomizer rnd = BeanRandomizer.create();
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -133,7 +137,7 @@ public class ProgramIndicatorSubqueryBuilderTest
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
         // Create a TEI to TEI relationship
-        RelationshipType relationshipType = BeanRandomizer.create().nextObject( RelationshipType.class );
+        RelationshipType relationshipType = rnd.nextObject( RelationshipType.class );
         relationshipType.getFromConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
 

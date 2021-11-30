@@ -31,8 +31,13 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.tracker.TrackerIdentifierCollector.ID_WILDCARD;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,7 +61,6 @@ import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.preheat.mappers.ProgramMapper;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -86,13 +90,12 @@ public class AbstractSchemaStrategyCachingTest
 
     private TrackerPreheat preheat;
 
-    private EasyRandom rnd;
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
     {
         preheat = new TrackerPreheat();
-        rnd = BeanRandomizer.create();
     }
 
     @Test

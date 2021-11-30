@@ -93,7 +93,6 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -244,17 +243,15 @@ public class ExpressionService2Test extends DhisSpringTest
 
     private String expressionR;
 
-    private EasyRandom rnd;
-
     private static final double DELTA = 0.01;
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
             organisationUnitService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
-
-        rnd = BeanRandomizer.create();
 
         categoryOptionA = new CategoryOption( "Under 5" );
         categoryOptionB = new CategoryOption( "Over 5" );

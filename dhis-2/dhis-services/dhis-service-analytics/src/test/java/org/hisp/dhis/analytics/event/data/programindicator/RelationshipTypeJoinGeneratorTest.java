@@ -37,8 +37,6 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.jeasy.random.EasyRandom;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
@@ -48,19 +46,11 @@ import com.google.common.collect.ImmutableMap;
  */
 public class RelationshipTypeJoinGeneratorTest
 {
-    private EasyRandom rnd;
-
     private final static String ALIAS = "subax";
 
     private final static String RELATIONSHIP_JOIN = " LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid "
         + "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid "
         + "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid ";
-
-    @Before
-    public void setUp()
-    {
-        rnd = BeanRandomizer.create();
-    }
 
     private final static String TEI_JOIN_START = ALIAS
         + ".tei in (select tei.uid from trackedentityinstance tei LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid ";
@@ -76,6 +66,8 @@ public class RelationshipTypeJoinGeneratorTest
     private final static String PI_RELTO_JOIN = "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid";
 
     private final static String PSI_RELTO_JOIN = "LEFT JOIN programstageinstance psi on psi.programstageinstanceid = ri2.programstageinstanceid";
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Test
     public void verifyTeiToTei()

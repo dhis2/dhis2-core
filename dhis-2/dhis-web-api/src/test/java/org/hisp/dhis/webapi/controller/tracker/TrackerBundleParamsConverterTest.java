@@ -45,9 +45,7 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -58,18 +56,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class TrackerBundleParamsConverterTest
 {
+    private final BeanRandomizer rnd = BeanRandomizer.create( Map.of(
+        TrackedEntity.class, Set.of( "enrollments" ),
+        Enrollment.class, Set.of( "events" ),
+        Event.class, Set.of( "relationships" ) ) );
+
     private ObjectMapper objectMapper = new ObjectMapper();
-
-    private static EasyRandom rnd;
-
-    @BeforeClass
-    public static void beforeClass()
-    {
-        rnd = BeanRandomizer.create( Map.of(
-            TrackedEntity.class, Set.of( "enrollments" ),
-            Enrollment.class, Set.of( "events" ),
-            Event.class, Set.of( "relationships" ) ) );
-    }
 
     @Before
     public void setUp()

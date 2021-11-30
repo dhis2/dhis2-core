@@ -70,9 +70,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -133,15 +131,9 @@ public class DataQueryServiceDimensionItemKeywordTest
 
     private OrganisationUnit rootOu;
 
-    private static EasyRandom rnd;
-
-    @BeforeClass
-    public static void beforeClass()
-    {
-        rnd = BeanRandomizer.create( Map.of(
-            OrganisationUnitGroup.class, Set.of( "geometry" ),
-            OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
-    }
+    private final BeanRandomizer rnd = BeanRandomizer.create( Map.of(
+        OrganisationUnitGroup.class, Set.of( "geometry" ),
+        OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
 
     @Before
     public void setUp()

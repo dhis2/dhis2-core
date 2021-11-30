@@ -98,7 +98,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.jeasy.random.EasyRandom;
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Rule;
@@ -144,8 +143,6 @@ public class JdbcEventAnalyticsTableManagerTest
 
     private JdbcEventAnalyticsTableManager subject;
 
-    private EasyRandom rnd = BeanRandomizer.create();
-
     private Date today;
 
     private static final Date START_TIME = new DateTime( 2019, 8, 1, 0, 0 ).toDate();
@@ -158,6 +155,8 @@ public class JdbcEventAnalyticsTableManagerTest
         String column = quote( pt.getName().toLowerCase() );
         return new AnalyticsTableColumn( column, TEXT, "dps" + "." + column );
     } ).collect( Collectors.toList() );
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()

@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerType;
-import org.jeasy.random.EasyRandom;
 import org.junit.Test;
 
 /**
@@ -46,7 +45,7 @@ import org.junit.Test;
 public class TrackerImportReportTest
 {
 
-    private EasyRandom rnd = BeanRandomizer.create();
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Test
     public void testImportCalculatesIgnoredValues()

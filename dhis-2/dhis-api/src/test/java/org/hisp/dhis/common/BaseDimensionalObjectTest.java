@@ -37,7 +37,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.jeasy.random.EasyRandom;
-import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
@@ -48,14 +47,7 @@ import com.google.common.collect.Sets;
  */
 public class BaseDimensionalObjectTest
 {
-
-    private EasyRandom rnd;
-
-    @Before
-    public void setUp()
-    {
-        rnd = new EasyRandom();
-    }
+    private static final EasyRandom rnd = new EasyRandom();
 
     @Test
     @SuppressWarnings( "unchecked" )

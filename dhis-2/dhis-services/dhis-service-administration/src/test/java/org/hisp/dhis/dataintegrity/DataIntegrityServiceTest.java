@@ -100,7 +100,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.jeasy.random.EasyRandom;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -215,7 +214,7 @@ public class DataIntegrityServiceTest
 
     private ProgramRuleAction programRuleActionA;
 
-    private EasyRandom rnd;
+    private final BeanRandomizer rnd = BeanRandomizer.create( DataSet.class, "periodType", "workflow" );
 
     @Before
     public void setUp()
@@ -225,8 +224,6 @@ public class DataIntegrityServiceTest
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
             dataEntryFormService, categoryService, periodService, programIndicatorService );
         setUpFixtures();
-
-        rnd = BeanRandomizer.create( DataSet.class, "periodType", "workflow" );
     }
 
     // -------------------------------------------------------------------------
