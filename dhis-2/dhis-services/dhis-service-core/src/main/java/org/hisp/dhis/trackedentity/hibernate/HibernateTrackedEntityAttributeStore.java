@@ -191,7 +191,8 @@ public class HibernateTrackedEntityAttributeStore
         Query programTeaQuery = sessionFactory.getCurrentSession()
             .createQuery( "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true" );
         Query tetypeAttributeQuery = sessionFactory.getCurrentSession()
-            .createQuery( "select attribute from TrackedEntityTypeAttribute teta where teta.searchable=true" );
+            .createQuery(
+                "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true" );
         Query uniqueAttributeQuery = sessionFactory.getCurrentSession()
             .createQuery( "from TrackedEntityAttribute tea where tea.unique=true" );
 

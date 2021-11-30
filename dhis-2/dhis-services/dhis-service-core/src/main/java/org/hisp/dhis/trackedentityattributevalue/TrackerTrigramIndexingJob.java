@@ -30,6 +30,9 @@ package org.hisp.dhis.trackedentityattributevalue;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -73,12 +76,18 @@ public class TrackerTrigramIndexingJob implements Job
         TrackerTrigramIndexJobParameters parameters = (TrackerTrigramIndexJobParameters) jobConfiguration
             .getJobParameters();
 
+        log.info( "Starting Trigram Indexing Job. Attributes Provided to Index: {}", parameters.getAttributes() );
         progress.startingProcess( "Starting Trigram indexing process" );
 
         if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) )
         {
+            log.debug( "Fetching all indexable attributes from db" );
+            Set<TrackedEntityAttribute> indexableAttributes = trackedEntityAttributeService
+                .getAllTrigramIndexableTrackedEntityAttributes();
+            indexableAttributes = indexableAttributes.stream()
+                .filter( itea -> parameters.getAttributes().contains( itea.getUid() ) ).collect( Collectors.toSet() );
             progress.startingStage( "Creating trigram indexes attributes", parameters.getAttributes().size() );
-            progress.runStage( parameters.getAttributes().stream(), TrackedEntityAttribute::getName,
+            progress.runStage( indexableAttributes.stream(), TrackedEntityAttribute::getName,
                 tea -> trackedEntityAttributeService.createTrigramIndex( tea ),
                 TrackerTrigramIndexingJob::computeTrigramIndexingSummary );
             progress.completedStage( "Trigram indexes created" );

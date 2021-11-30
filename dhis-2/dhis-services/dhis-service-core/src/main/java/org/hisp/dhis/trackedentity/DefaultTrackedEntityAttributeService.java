@@ -346,6 +346,7 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes()
     {
         return attributeStore.getAllSearchableAndUniqueTrackedEntityAttributes();

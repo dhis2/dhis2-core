@@ -83,6 +83,16 @@ public class HibernateDatabaseInfoProviderTest
             jdbcTemplate.queryForObject( Mockito.eq( "select postgis_full_version();" ), Mockito.eq( String.class ) ) )
             .thenReturn( "2" );
 
+        Mockito.when(
+            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='pg_trgm';" ),
+                Mockito.eq( String.class ) ) )
+            .thenReturn( "pg_trgm" );
+
+        Mockito.when(
+            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='btree_gin';" ),
+                Mockito.eq( String.class ) ) )
+            .thenReturn( "btree_gin" );
+
         Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_URL ) ) )
             .thenReturn( "jdbc:postgresql:dhisx" );
         Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_USERNAME ) ) ).thenReturn( "dhisy" );

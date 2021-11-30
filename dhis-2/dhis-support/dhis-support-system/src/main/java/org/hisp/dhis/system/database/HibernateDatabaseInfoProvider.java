@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
 public class HibernateDatabaseInfoProvider
     implements DatabaseInfoProvider
 {
-    private static final String EXTENSION_MISSING_ERROR = "{} extension is not installed. Execute \"CREATE EXTENSION {};\" as a superuser and restart the application.";
+    private static final String EXTENSION_MISSING_ERROR = "%s extension is not installed. Execute \"CREATE EXTENSION %s;\" as a superuser and restart the application.";
 
     private static final String POSTGIS_EXTENSION = "postgis";
 
@@ -100,33 +100,34 @@ public class HibernateDatabaseInfoProvider
 
         boolean btreeGinSupport = false;
 
-        // Check if postgis is installed, fail startup if not
-
         if ( !SystemUtils.isTestRun( environment.getActiveProfiles() ) )
         {
+            // Check if postgis extension is installed, fail startup if not
             spatialSupport = isSpatialSupport();
 
             if ( !spatialSupport )
             {
-                log.error( EXTENSION_MISSING_ERROR, POSTGIS_EXTENSION, POSTGIS_EXTENSION );
+                log.error( String.format( EXTENSION_MISSING_ERROR, POSTGIS_EXTENSION, POSTGIS_EXTENSION ) );
                 throw new IllegalStateException(
                     String.format( EXTENSION_MISSING_ERROR, POSTGIS_EXTENSION, POSTGIS_EXTENSION ) );
             }
 
+            // Check if pg_trgm extension is installed, fail startup if not
             trigramSupport = isTrigramExtensionCreated();
 
             if ( !trigramSupport )
             {
-                log.error( EXTENSION_MISSING_ERROR, PG_TRIGRAM_EXTENSION, PG_TRIGRAM_EXTENSION );
+                log.error( String.format( EXTENSION_MISSING_ERROR, PG_TRIGRAM_EXTENSION, PG_TRIGRAM_EXTENSION ) );
                 throw new IllegalStateException(
                     String.format( EXTENSION_MISSING_ERROR, PG_TRIGRAM_EXTENSION, PG_TRIGRAM_EXTENSION ) );
             }
 
+            // Check if btree_gin extension is installed, fail startup if not
             btreeGinSupport = isBtreeGinExtensionCreated();
 
             if ( !btreeGinSupport )
             {
-                log.error( EXTENSION_MISSING_ERROR, BTREE_GIN_EXTENSION, BTREE_GIN_EXTENSION );
+                log.error( String.format( EXTENSION_MISSING_ERROR, BTREE_GIN_EXTENSION, BTREE_GIN_EXTENSION ) );
                 throw new IllegalStateException(
                     String.format( EXTENSION_MISSING_ERROR, BTREE_GIN_EXTENSION, BTREE_GIN_EXTENSION ) );
             }

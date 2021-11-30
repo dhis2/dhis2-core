@@ -37,8 +37,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.scheduling.parameters.jackson.AnalyticsJobParametersDeserializer;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.scheduling.parameters.jackson.TrackerTrigramIndexJobParametersDeserializer;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -50,7 +49,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Ameen
  */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-@JsonDeserialize( using = AnalyticsJobParametersDeserializer.class )
+@JsonDeserialize( using = TrackerTrigramIndexJobParametersDeserializer.class )
 @AllArgsConstructor
 @NoArgsConstructor
 public class TrackerTrigramIndexJobParameters
@@ -58,7 +57,7 @@ public class TrackerTrigramIndexJobParameters
 {
     private static final long serialVersionUID = 8705929982703731451L;
 
-    private Set<TrackedEntityAttribute> attributes = new HashSet<>();
+    private Set<String> attributes = new HashSet<>();
 
     private boolean skipIndexDeletion = false;
 
@@ -69,12 +68,12 @@ public class TrackerTrigramIndexJobParameters
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "attributes", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<TrackedEntityAttribute> getAttributes()
+    public Set<String> getAttributes()
     {
         return attributes;
     }
 
-    public void setAttributes( Set<TrackedEntityAttribute> attributes )
+    public void setAttributes( Set<String> attributes )
     {
         this.attributes = attributes;
     }
