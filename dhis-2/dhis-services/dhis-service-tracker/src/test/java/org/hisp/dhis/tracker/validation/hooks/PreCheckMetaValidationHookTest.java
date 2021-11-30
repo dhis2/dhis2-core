@@ -253,12 +253,14 @@ public class PreCheckMetaValidationHookTest
 
         // when
         when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
-        when( ctx.getProgram( PROGRAM_UID ) ).thenReturn( new Program() );
-        when( ctx.getProgramStage( PROGRAM_STAGE_UID ) ).thenReturn( new ProgramStage() );
+        Program program = new Program();
+        when( ctx.getProgram( PROGRAM_UID ) ).thenReturn( program );
+        ProgramStage programStage = new ProgramStage();
+        programStage.setProgram( program );
+        when( ctx.getProgramStage( PROGRAM_STAGE_UID ) ).thenReturn( programStage );
 
         validatorToTest.validateEvent( reporter, event );
 
-        // then
         // then
         assertFalse( reporter.hasErrors() );
     }
@@ -299,6 +301,26 @@ public class PreCheckMetaValidationHookTest
         // then
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1013 ) );
+    }
+
+    @Test
+    public void verifyEventValidationFailsWhenProgramStageInDbHasNoReferenceToAProgram()
+    {
+        // given
+        Event event = validEvent();
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+
+        // when
+        when( ctx.getOrganisationUnit( ORG_UNIT_UID ) ).thenReturn( new OrganisationUnit() );
+        when( ctx.getProgram( PROGRAM_UID ) ).thenReturn( new Program() );
+        when( ctx.getProgramStage( PROGRAM_STAGE_UID ) ).thenReturn( new ProgramStage() );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        // then
+        assertTrue( reporter.hasErrors() );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1008 ) );
     }
 
     @Test
