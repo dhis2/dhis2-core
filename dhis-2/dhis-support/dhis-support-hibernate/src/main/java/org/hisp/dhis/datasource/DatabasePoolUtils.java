@@ -173,10 +173,8 @@ public class DatabasePoolUtils
         final int minPoolSize = Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE ) );
         final int initialSize = Integer
             .parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE ) );
-        boolean testOnCheckIn = Boolean
-            .parseBoolean( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN ) );
-        boolean testOnCheckOut = Boolean
-            .parseBoolean( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ) );
+        boolean testOnCheckIn = dhisConfig.isEnabled( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN );
+        boolean testOnCheckOut = dhisConfig.isEnabled( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT );
         final int maxIdleTimeExcessConnections = Integer
             .parseInt( dhisConfig.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON ) );
         final int idleConnectionTestPeriod = Integer

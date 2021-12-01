@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
-import java.text.MessageFormat;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -67,20 +66,25 @@ public class EventProgramPreProcessor
                 ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
                 if ( Objects.nonNull( programStage ) )
                 {
-                    // Program stages should always have a program! Due to how
-                    // metadata import is currently implemented
-                    // it's possible that users run into the edge case that a
-                    // program stage does not have an associated
-                    // program. Tell the user it's an issue with the metadata
-                    // and not the event itself. This should be
-                    // fixed in the metadata import. For more see
-                    // https://jira.dhis2.org/browse/DHIS2-12123
+                    // TODO remove if once metadata import is fixed
                     if ( programStage.getProgram() == null )
                     {
-                        throw new IllegalStateException(
-                            MessageFormat.format(
-                                "Program stage `{0}` has no reference to a program. Check the program stage configuration",
-                                programStage.getUid() ) );
+                        // Program stages should always have a program! Due to
+                        // how metadata
+                        // import is currently implemented
+                        // it's possible that users run into the edge case that
+                        // a program
+                        // stage does not have an associated
+                        // program. Tell the user it's an issue with the
+                        // metadata and not
+                        // the event itself. This should be
+                        // fixed in the metadata import. For more see
+                        // https://jira.dhis2.org/browse/DHIS2-12123
+                        //
+                        // PreCheckMandatoryFieldsValidationHook.validateEvent
+                        // will create
+                        // a validation error for this edge case
+                        return;
                     }
                     event.setProgram( programStage.getProgram().getUid() );
                     bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
