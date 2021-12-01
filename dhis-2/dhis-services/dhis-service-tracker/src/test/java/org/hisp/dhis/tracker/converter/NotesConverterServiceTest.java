@@ -50,7 +50,7 @@ import org.junit.Test;
  */
 public class NotesConverterServiceTest extends DhisConvenienceTest
 {
-    private static final String CURRENT_USER = "usernameA";
+    private static final String CURRENT_USER = "usernamea";
 
     private NotesConverterService notesConverterService;
 
