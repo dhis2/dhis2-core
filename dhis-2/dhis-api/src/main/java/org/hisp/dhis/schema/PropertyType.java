@@ -42,6 +42,7 @@ public enum PropertyType
     NUMBER,
     INTEGER,
     BOOLEAN,
+    USERNAME,
     EMAIL,
     PASSWORD,
     URL,
@@ -58,7 +59,7 @@ public enum PropertyType
     public boolean isSimple()
     {
         return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this
-            || PASSWORD == this || URL == this
-            || DATE == this || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
+            || USERNAME == this || PASSWORD == this || URL == this || DATE == this || PHONENUMBER == this
+            || GEOLOCATION == this || COLOR == this || CONSTANT == this;
     }
 }

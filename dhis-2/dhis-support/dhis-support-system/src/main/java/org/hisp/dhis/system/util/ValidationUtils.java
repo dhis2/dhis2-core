@@ -53,7 +53,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
-import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.util.DateUtils;
 
 import com.google.common.collect.ImmutableSet;
@@ -64,6 +63,8 @@ import com.google.common.collect.Sets;
  */
 public class ValidationUtils
 {
+    private static final Pattern USERNAME_PATTERN = Pattern.compile(
+        "^[a-z0-9]([._-](?![._-])|[a-z0-9]){4,255}[a-z0-9]$" );
 
     private static final String NUM_PAT = "((-?[0-9]+)(\\.[0-9]+)?)";
 
@@ -222,7 +223,12 @@ public class ValidationUtils
      */
     public static boolean usernameIsValid( String username )
     {
-        return username != null && username.length() <= UserCredentials.USERNAME_MAX_LENGTH;
+        if ( username == null )
+        {
+            return false;
+        }
+        Matcher matcher = USERNAME_PATTERN.matcher( username );
+        return matcher.matches();
     }
 
     /**

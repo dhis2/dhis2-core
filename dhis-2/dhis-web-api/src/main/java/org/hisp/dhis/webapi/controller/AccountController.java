@@ -559,14 +559,28 @@ public class AccountController
 
     private Map<String, String> validateUserName( String username )
     {
-        boolean valid = username != null && userService.getUserCredentialsByUsername( username ) == null;
+        boolean isNull = username == null;
+        boolean usernameNotTaken = userService.getUserCredentialsByUsername( username ) == null;
+        boolean isValidSyntax = ValidationUtils.usernameIsValid( username );
+        boolean isValid = !isNull && usernameNotTaken && isValidSyntax;
 
         // Custom code required because of our hacked jQuery validation
-
         Map<String, String> result = new HashMap<>();
 
-        result.put( "response", valid ? "success" : "error" );
-        result.put( "message", valid ? "" : "Username is already taken" );
+        result.put( "response", isValid ? "success" : "error" );
+
+        if ( isNull )
+        {
+            result.put( "message", "Username is null" );
+        }
+        else if ( !isValidSyntax )
+        {
+            result.put( "message", "Username is not valid" );
+        }
+        else if ( !usernameNotTaken )
+        {
+            result.put( "message", "Username is already taken" );
+        }
 
         return result;
     }

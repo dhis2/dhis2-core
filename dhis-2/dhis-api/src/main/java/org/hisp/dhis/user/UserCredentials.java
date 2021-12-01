@@ -713,6 +713,7 @@ public class UserCredentials
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.USERNAME )
     public String getUsername()
     {
         return username;
