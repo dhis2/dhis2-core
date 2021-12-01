@@ -113,12 +113,14 @@ public class DefaultProgramIndicatorSubqueryBuilder
         aggregateSql += getFrom( programIndicator );
 
         // Determine JOIN
-        aggregateSql += getWhere( outerSqlEntity, programIndicator, relationshipType );
+        String where = getWhere( outerSqlEntity, programIndicator, relationshipType );
+
+        aggregateSql += where;
 
         // Get WHERE condition from Program indicator filter
         if ( !Strings.isNullOrEmpty( programIndicator.getFilter() ) )
         {
-            aggregateSql += " AND "
+            aggregateSql += (where.isBlank() ? " WHERE " : " AND ")
                 + getPrgIndSql( programIndicator.getFilter(), programIndicator, earliestStartDate, latestDate );
         }
 

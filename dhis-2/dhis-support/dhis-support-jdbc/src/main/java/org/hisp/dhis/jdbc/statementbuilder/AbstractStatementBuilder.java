@@ -377,7 +377,28 @@ public abstract class AbstractStatementBuilder
                     reportingEndDate )
                 +
                 " ") : "")
-            + programStageCondition + "order by executiondate " + "desc offset " + stageOffset + " limit 1 )";
+            + programStageCondition + "order by executiondate " + createOrderTypeAndOffset( stageOffset )
+            + " limit 1 )";
+    }
+
+    private String createOrderTypeAndOffset( String stageOffset )
+    {
+        try
+        {
+            int offset = Integer.parseInt( stageOffset );
+            if ( offset <= 0 )
+            {
+                return "desc offset " + (-1 * offset);
+            }
+            else
+            {
+                return "asc offset " + (offset - 1);
+            }
+        }
+        catch ( NumberFormatException ex )
+        {
+            return "desc";
+        }
     }
 
     private String getBoundaryElementColumnSql( AnalyticsPeriodBoundary boundary, Date reportingStartDate,

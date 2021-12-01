@@ -89,7 +89,9 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String ANALYTICS_EVENT = "analytics_event_";
 
-    private static final String ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 = "order by executiondate desc limit 1";
+    private static final String ORDER_BY_EXECUTION_DATE = "order by executiondate ";
+
+    private static final String LIMIT_1 = "limit 1";
 
     private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
         "storedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
@@ -412,7 +414,8 @@ public class JdbcEnrollmentAnalyticsManager
                 + stCentroidFunction + "(" + colName + "))::numeric, 6) || ']' as " + colName
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
-                "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+                "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE +
+                createOrderTypeAndOffset( item.getProgramStage().getStageOffset() ) + " " + LIMIT_1 + " )";
         }
 
         return StringUtils.EMPTY;
@@ -447,7 +450,8 @@ public class JdbcEnrollmentAnalyticsManager
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStage().getStageOffset() )
+                + " " + LIMIT_1 + " )";
         }
         else
         {
@@ -478,7 +482,8 @@ public class JdbcEnrollmentAnalyticsManager
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 + " )";
+                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStage().getStageOffset() )
+                + " " + LIMIT_1 + " )";
         }
         else
         {
@@ -496,5 +501,17 @@ public class JdbcEnrollmentAnalyticsManager
     protected AnalyticsType getAnalyticsType()
     {
         return AnalyticsType.ENROLLMENT;
+    }
+
+    private String createOrderTypeAndOffset( int offset )
+    {
+        if ( offset <= 0 )
+        {
+            return "desc offset " + (-1 * offset);
+        }
+        else
+        {
+            return "asc offset " + (offset - 1);
+        }
     }
 }

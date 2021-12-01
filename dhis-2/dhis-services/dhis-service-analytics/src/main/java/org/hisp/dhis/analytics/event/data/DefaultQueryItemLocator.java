@@ -35,6 +35,8 @@ import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -79,6 +81,8 @@ public class DefaultQueryItemLocator
     private final LegendSetService legendSetService;
 
     private final RelationshipTypeService relationshipTypeService;
+
+    private final static String INDEX_REGEX = "\\[-?\\d+\\]";
 
     public DefaultQueryItemLocator( ProgramStageService programStageService, DataElementService dataElementService,
         TrackedEntityAttributeService attributeService, ProgramIndicatorService programIndicatorService,
@@ -141,7 +145,7 @@ public class DefaultQueryItemLocator
 
         ProgramStage programStage = getProgramStageOrFail( dimension );
 
-        DataElement de = dataElementService.getDataElement( getSecondElement( dimension ) );
+        DataElement de = dataElementService.getDataElement( getSecondElement( removeOffset( dimension ) ) );
 
         if ( de != null && program.containsDataElement( de ) )
         {
@@ -211,8 +215,50 @@ public class DefaultQueryItemLocator
 
     private ProgramStage getProgramStageOrFail( String dimension )
     {
-        BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail( dimension );
-        return (baseIdentifiableObject instanceof ProgramStage ? (ProgramStage) baseIdentifiableObject : null);
+        int stageOffset = getStageOffset( dimension );
+
+        BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail( removeOffset( dimension ) );
+
+        ProgramStage programStage = (baseIdentifiableObject instanceof ProgramStage
+            ? (ProgramStage) baseIdentifiableObject
+            : null);
+
+        if ( programStage != null && programStage.getRepeatable() && stageOffset != 0 )
+        {
+            programStage.setStageOffset( stageOffset );
+        }
+
+        return programStage;
+    }
+
+    private String removeOffset( String dimension )
+    {
+        final Pattern pattern = Pattern.compile( INDEX_REGEX );
+
+        final Matcher matcher = pattern.matcher( dimension );
+
+        if ( matcher.find() )
+        {
+            return dimension.replace( matcher.group( 0 ), "" );
+        }
+
+        return dimension;
+    }
+
+    private int getStageOffset( String dimension )
+    {
+        final Pattern pattern = Pattern.compile( INDEX_REGEX );
+
+        final Matcher matcher = pattern.matcher( dimension );
+
+        if ( matcher.find() )
+        {
+            return Integer.parseInt( matcher.group( 0 )
+                .replace( "[", "" )
+                .replace( "]", "" ) );
+        }
+
+        return 0;
     }
 
     private RelationshipType getRelationshipTypeOrFail( String dimension )
@@ -231,7 +277,7 @@ public class DefaultQueryItemLocator
 
         Optional<BaseIdentifiableObject> found = fetchers.map( Supplier::get ).filter( Objects::nonNull ).findFirst();
 
-        if ( requiresIdObject && !found.isPresent() )
+        if ( requiresIdObject && found.isEmpty() )
         {
             throwIllegalQueryEx( ErrorCode.E7226, dimension );
         }

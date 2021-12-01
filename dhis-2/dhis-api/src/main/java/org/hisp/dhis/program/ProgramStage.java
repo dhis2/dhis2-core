@@ -109,6 +109,11 @@ public class ProgramStage
     private ObjectStyle style;
 
     /**
+     * Valid only for repeatable stages, must not be persisted.
+     */
+    private transient int offset;
+
+    /**
      * Enabled this property to show a pop-up for confirming Complete a program
      * after to complete a program-stage
      */
@@ -167,6 +172,16 @@ public class ProgramStage
         element.setAutoFields();
 
         return this.programStageDataElements.add( element );
+    }
+
+    public int getStageOffset()
+    {
+        return offset;
+    }
+
+    public void setStageOffset( int offset )
+    {
+        this.offset = offset;
     }
 
     @JsonProperty

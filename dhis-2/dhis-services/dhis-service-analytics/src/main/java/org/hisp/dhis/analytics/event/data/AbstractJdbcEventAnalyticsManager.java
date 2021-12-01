@@ -354,7 +354,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         try
         {
-            log.info( sql );
             getAggregatedEventData( grid, params, sql );
         }
         catch ( BadSqlGrammarException ex )
