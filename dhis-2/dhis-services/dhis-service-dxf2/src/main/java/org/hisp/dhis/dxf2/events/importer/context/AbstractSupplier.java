@@ -27,17 +27,39 @@
  */
 package org.hisp.dhis.dxf2.events.importer.context;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractSupplier<T> implements WorkContextSupplier<T>
+public abstract class AbstractSupplier<T>
 {
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
     public AbstractSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public Sharing toSharing( String json )
+    {
+        if ( StringUtils.isEmpty( json ) )
+            return null;
+
+        try
+        {
+            return JacksonObjectMapperConfig.staticJsonMapper().readValue( json, Sharing.class );
+        }
+        catch ( JsonProcessingException e )
+        {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

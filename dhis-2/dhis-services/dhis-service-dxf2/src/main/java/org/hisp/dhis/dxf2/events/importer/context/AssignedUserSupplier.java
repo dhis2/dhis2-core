@@ -56,7 +56,6 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
         super( namedParameterJdbcTemplate );
     }
 
-    @Override
     public Map<String, User> get( ImportOptions importOptions, List<Event> events )
     {
         // @formatter:off

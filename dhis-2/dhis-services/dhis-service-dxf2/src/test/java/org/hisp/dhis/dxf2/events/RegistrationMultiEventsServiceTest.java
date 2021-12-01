@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 
@@ -224,7 +225,10 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
     {
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, false )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -262,11 +266,14 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         enrollment.setEvents( Lists.newArrayList( event ) );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, true )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-        Enrollment retrievedEnrlollment = enrollmentService
+        Enrollment retrievedEnrollment = enrollmentService
             .getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() );
 
         EventSearchParams params = new EventSearchParams();
@@ -276,10 +283,10 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
 
         Event retrievedEvent = enrollment.getEvents().get( 0 );
 
-        assertNotNull( retrievedEnrlollment );
+        assertNotNull( retrievedEnrollment );
         assertNotNull( retrievedEvent );
 
-        enrollmentService.deleteEnrollment( retrievedEnrlollment.getEnrollment() );
+        enrollmentService.deleteEnrollment( retrievedEnrollment.getEnrollment() );
 
         assertNull( enrollmentService.getEnrollment( tei.getEnrollments().get( 0 ).getEnrollment() ) );
         assertEquals( 1, eventService.getEvents( params ).getEvents().size() );
@@ -293,7 +300,10 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
 
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, true )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -345,7 +355,10 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
         enrollment.setEnrollmentDate( new DateTime( 2019, 1, 1, 0, 0, 0, 0 ).toDate() );
         enrollment.setIncidentDate( new DateTime( 2019, 1, 1, 0, 0, 0, 0 ).toDate() );
 
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, true )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
@@ -360,8 +373,8 @@ public class RegistrationMultiEventsServiceTest extends TransactionalIntegration
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         enrollment.setCompletedDate( new DateTime( 2019, 8, 20, 0, 0, 0, 0 ).toDate() );
 
-        enrollmentService.updateEnrollment( enrollment, null );
-        importSummary = enrollmentService.updateEnrollment( enrollment, null );
+        enrollmentService.updateEnrollment( enrollment, ImportOptions.getDefaultImportOptions() );
+        importSummary = enrollmentService.updateEnrollment( enrollment, ImportOptions.getDefaultImportOptions() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment() );

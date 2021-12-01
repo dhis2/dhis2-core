@@ -74,6 +74,18 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
 
     private ImportSummaries events;
 
+    public String getUpdatedTei()
+    {
+        return updatedTei;
+    }
+
+    public void setUpdatedTei( String updatedTei )
+    {
+        this.updatedTei = updatedTei;
+    }
+
+    private String updatedTei;
+
     public ImportSummary()
     {
     }

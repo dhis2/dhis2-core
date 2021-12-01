@@ -34,12 +34,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -50,7 +49,8 @@ import org.mockito.Mock;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<TrackedEntityInstance>
+public class TrackedEntityInstanceSupplierTest
+    extends AbstractSupplierTest<TrackedEntityInstance, Set<TrackedEntityInstance>>
 {
     private TrackedEntityInstanceSupplier subject;
 
@@ -60,13 +60,13 @@ public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<Trac
     @Before
     public void setUp()
     {
-        this.subject = new TrackedEntityInstanceSupplier( jdbcTemplate, aclService );
+        this.subject = new TrackedEntityInstanceSupplier( jdbcTemplate );
     }
 
     @Test
     public void handleNullEvents()
     {
-        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
+        assertNotNull( subject.get( null ) );
     }
 
     @Override
@@ -86,10 +86,10 @@ public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<Trac
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
-        Map<String, Pair<TrackedEntityInstance, Boolean>> map = subject.get( ImportOptions.getDefaultImportOptions(),
-            Collections.singletonList( event ) );
+        Set<TrackedEntityInstance> map = subject.get(
+            new HashSet<>( Arrays.asList( event.getUid() ) ) );
 
-        TrackedEntityInstance trackedEntityInstance = map.get( event.getUid() ).getKey();
+        TrackedEntityInstance trackedEntityInstance = map.iterator().next();
         assertThat( trackedEntityInstance, is( notNullValue() ) );
         assertThat( trackedEntityInstance.getId(), is( 100L ) );
         assertThat( trackedEntityInstance.getUid(), is( "abcded" ) );

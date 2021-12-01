@@ -50,9 +50,9 @@ import org.junit.runners.Parameterized;
 import org.mockito.Mock;
 
 @RunWith( Parameterized.class )
-public class ProgramSupplierTest extends AbstractSupplierTest<Program>
+public class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<String, Program>>
 {
-    private ProgramSupplier subject;
+    private ProgramEventSupplier subject;
 
     @Mock
     private CacheProvider cacheProvider;
@@ -74,7 +74,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     {
         when( cacheProvider.createProgramCache() ).thenReturn( cache );
         when( cache.get( anyString() ) ).thenReturn( Optional.empty() );
-        this.subject = new ProgramSupplier( jdbcTemplate, cacheProvider );
+        this.subject = new ProgramEventSupplier( jdbcTemplate, cacheProvider );
     }
 
     @Override

@@ -64,7 +64,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private ProgramSupplier programSupplier;
+    private ProgramEventSupplier programSupplier;
 
     @Autowired
     private UserService _userService;

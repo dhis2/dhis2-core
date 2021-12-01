@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -93,7 +94,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class TrackerTest extends IntegrationTestBase
+public abstract class TrackerBaseIntegrationTest extends IntegrationTestBase
 {
     @Autowired
     protected IdentifiableObjectManager manager;
@@ -307,15 +308,16 @@ public abstract class TrackerTest extends IntegrationTestBase
     {
         TrackedEntityInstance entityInstance = persistTrackedEntityInstance();
 
-        final ImportSummary importSummary = enrollmentService.addEnrollment(
-            createEnrollmentWithEvents( this.programA, entityInstance, eventSize, enrollmentValues ),
-            ImportOptions.getDefaultImportOptions() );
+        final ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList(
+                createEnrollmentWithEvents( this.programA, entityInstance, eventSize, enrollmentValues ) ),
+            ImportOptions.getDefaultImportOptions(), null, true ).getImportSummaries().get( 0 );
 
         assertEquals( 0, importSummary.getConflictCount() );
 
         assertThat( importSummary.getEvents().getImported(), is( eventSize ) );
 
-        return entityInstance;
+        return trackedEntityInstanceService.getTrackedEntityInstance( entityInstance.getUid() );
     }
 
     private Enrollment createEnrollmentWithEvents( Program program, TrackedEntityInstance trackedEntityInstance,

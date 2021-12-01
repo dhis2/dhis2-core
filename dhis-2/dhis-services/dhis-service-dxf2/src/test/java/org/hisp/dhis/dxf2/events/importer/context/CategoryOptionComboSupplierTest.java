@@ -53,12 +53,13 @@ import org.mockito.Mock;
 /**
  * @author Luciano Fiandesio
  */
-public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<CategoryOptionCombo>
+public class CategoryOptionComboSupplierTest
+    extends AbstractSupplierTest<CategoryOptionCombo, Map<String, CategoryOptionCombo>>
 {
     private CategoryOptionComboSupplier subject;
 
     @Mock
-    private ProgramSupplier programSupplier;
+    private ProgramEventSupplier programSupplier;
 
     @Mock
     private AttributeOptionComboLoader attributeOptionComboLoader;

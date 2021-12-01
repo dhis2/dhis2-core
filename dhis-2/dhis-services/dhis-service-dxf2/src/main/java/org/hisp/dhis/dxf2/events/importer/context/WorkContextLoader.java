@@ -27,33 +27,53 @@
  */
 package org.hisp.dhis.dxf2.events.importer.context;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 /**
  * @author Luciano Fiandesio
  */
 @Component
+@RequiredArgsConstructor
 public class WorkContextLoader
 {
+    private final ProgramEventSupplier programEventSupplier;
+
     private final ProgramSupplier programSupplier;
 
     private final OrganisationUnitSupplier organisationUnitSupplier;
 
     private final TrackedEntityInstanceSupplier trackedEntityInstanceSupplier;
+
+    private final ProgramInstanceEventSupplier programInstanceEventSupplier;
 
     private final ProgramInstanceSupplier programInstanceSupplier;
 
@@ -75,48 +95,16 @@ public class WorkContextLoader
 
     private final SessionFactory sessionFactory;
 
-    public WorkContextLoader(
-    // @formatter:off
-        ProgramSupplier programSupplier,
-        OrganisationUnitSupplier organisationUnitSupplier,
-        TrackedEntityInstanceSupplier trackedEntityInstanceSupplier,
-        ProgramInstanceSupplier programInstanceSupplier,
-        ProgramStageInstanceSupplier programStageInstanceSupplier,
-        CategoryOptionComboSupplier categoryOptionComboSupplier,
-        DataElementSupplier dataElementSupplier,
-        NoteSupplier noteSupplier,
-        AssignedUserSupplier assignedUserSupplier,
-        ServiceDelegatorSupplier serviceDelegatorSupplier,
-        ProgramOrgUnitSupplier programOrgUnitSupplier,
-        SessionFactory sessionFactory
-    // @formatter:on
-    )
-    {
-        this.programSupplier = programSupplier;
-        this.organisationUnitSupplier = organisationUnitSupplier;
-        this.trackedEntityInstanceSupplier = trackedEntityInstanceSupplier;
-        this.programInstanceSupplier = programInstanceSupplier;
-        this.programStageInstanceSupplier = programStageInstanceSupplier;
-        this.categoryOptionComboSupplier = categoryOptionComboSupplier;
-        this.dataElementSupplier = dataElementSupplier;
-        this.noteSupplier = noteSupplier;
-        this.assignedUserSupplier = assignedUserSupplier;
-        this.programOrgUnitSupplier = programOrgUnitSupplier;
-        this.serviceDelegatorSupplier = serviceDelegatorSupplier;
-        this.sessionFactory = sessionFactory;
-    }
+    private final AclService aclService;
 
     @Transactional( readOnly = true )
     public WorkContext load( ImportOptions importOptions, List<Event> events )
     {
         sessionFactory.getCurrentSession().flush();
 
-        ImportOptions localImportOptions = importOptions;
         // API allows a null Import Options
-        if ( localImportOptions == null )
-        {
-            localImportOptions = ImportOptions.getDefaultImportOptions();
-        }
+        ImportOptions localImportOptions = Optional.ofNullable( importOptions )
+            .orElse( ImportOptions.getDefaultImportOptions() );
 
         initializeUser( localImportOptions );
 
@@ -126,27 +114,99 @@ public class WorkContextLoader
         final Map<String, ProgramStageInstance> programStageInstanceMap = programStageInstanceSupplier
             .get( localImportOptions, events );
 
-        final Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = trackedEntityInstanceSupplier
-            .get( localImportOptions, events );
+        final Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = getTeiMap( localImportOptions, events );
 
-        final Map<String, OrganisationUnit> orgUniMap = organisationUnitSupplier.get( localImportOptions, events );
+        Multimap<String, String> orgUnitToEvent = HashMultimap.create();
+
+        events.forEach( ev -> orgUnitToEvent.put( ev.getOrgUnit(), ev.getUid() ) );
+
+        final Map<String, OrganisationUnit> organisationUnitMap = getOrganisationUnitMap( localImportOptions,
+            events.stream()
+                .map( Event::getOrgUnit ).filter( Objects::nonNull )
+                .collect( Collectors.toSet() ),
+            orgUnitToEvent );
 
         return WorkContext.builder()
             .importOptions( localImportOptions )
-            .programsMap( programSupplier.get( localImportOptions, events ) )
+            .programsMap( programEventSupplier.get( localImportOptions, events ) )
             .programStageInstanceMap( programStageInstanceMap )
-            .organisationUnitMap( orgUniMap )
+            .organisationUnitMap( organisationUnitMap )
             .trackedEntityInstanceMap( teiMap )
-            .programInstanceMap( programInstanceSupplier.get( localImportOptions, teiMap, events ) )
+            .programInstanceMap( programInstanceEventSupplier.get( localImportOptions, teiMap, events ) )
             .categoryOptionComboMap( categoryOptionComboSupplier.get( localImportOptions, events ) )
             .dataElementMap( dataElementSupplier.get( localImportOptions, events ) )
             .notesMap( noteSupplier.get( localImportOptions, events ) )
             .assignedUserMap( assignedUserSupplier.get( localImportOptions, events ) )
             .eventDataValueMap( new EventDataValueAggregator().aggregateDataValues( events, programStageInstanceMap,
                 localImportOptions ) )
-            .programWithOrgUnitsMap( programOrgUnitSupplier.get( localImportOptions, events, orgUniMap ) )
+            .programWithOrgUnitsMap( programOrgUnitSupplier.get( events, organisationUnitMap ) )
             .serviceDelegator( serviceDelegatorSupplier.get() )
             .build();
+    }
+
+    private Map<String, Pair<TrackedEntityInstance, Boolean>> getTeiMap( ImportOptions importOptions,
+        List<Event> events )
+    {
+        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
+
+        Multimap<String, String> teiToEvent = HashMultimap.create();
+
+        for ( Event event : events )
+        {
+            teiToEvent.put( event.getTrackedEntityInstance(), event.getUid() );
+        }
+
+        Set<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceSupplier
+            .get( events.stream()
+                .map( Event::getTrackedEntityInstance )
+                .filter( Objects::nonNull ).collect( Collectors.toSet() ) );
+
+        for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
+        {
+            boolean canUpdate = aclService.canUpdate( importOptions.getUser(), trackedEntityInstance );
+            for ( String event : teiToEvent.get( trackedEntityInstance.getUid() ) )
+            {
+                teiMap.put( event,
+                    Pair.of( trackedEntityInstance,
+                        !importOptions.isSkipLastUpdated()
+                            ? canUpdate
+                            : null ) );
+            }
+        }
+
+        return teiMap;
+    }
+
+    private Map<String, OrganisationUnit> getOrganisationUnitMap( ImportOptions importOptions, Set<String> uids,
+        Multimap<String, String> orgUnitToEntity )
+    {
+        Map<String, OrganisationUnit> organisationUnitMap = new HashMap<>();
+
+        IdScheme idScheme = importOptions.getIdSchemes().getOrgUnitIdScheme();
+
+        Set<OrganisationUnit> orgUniMap = organisationUnitSupplier.get( importOptions, uids );
+
+        for ( OrganisationUnit organisationUnit : orgUniMap )
+        {
+            if ( idScheme.isAttribute() )
+            {
+                orgUnitToEntity.entries().stream()
+                    .filter(
+                        e -> e.getKey().equals( organisationUnit.getAttributeValues().iterator().next().getValue() ) )
+                    .forEach( entry -> organisationUnitMap.put( entry.getValue(),
+                        organisationUnit ) );
+            }
+            else
+            {
+                orgUnitToEntity.entries().stream()
+                    .filter(
+                        e -> e.getKey().equals( getIdentifierBasedOnIdScheme( organisationUnit, idScheme ) ) )
+                    .map( Map.Entry::getValue ).collect( Collectors.toSet() )
+                    .forEach( o -> organisationUnitMap.put( o, organisationUnit ) );
+            }
+        }
+
+        return organisationUnitMap;
     }
 
     /**
@@ -180,16 +240,77 @@ public class WorkContextLoader
         }
     }
 
-    /**
-     * Force Hibernate to pre-load all collections for the
-     * {@see UserCredentials} object and fetch the "isSuper()" data. This is
-     * required to avoid an Hibernate error later, when this object becomes
-     * detached from the Hibernate Session.
-     */
     private void initUserCredentials( UserCredentials userCredentials )
     {
         userCredentials = HibernateProxyUtils.unproxy( userCredentials );
 
         userCredentials.isSuper();
+    }
+
+    @Transactional( readOnly = true )
+    public WorkContext loadForTei( ImportOptions importOptions,
+        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntityInstances )
+    {
+        sessionFactory.getCurrentSession().flush();
+
+        Set<TrackedEntityInstance> teis = trackedEntityInstanceSupplier
+            .get( trackedEntityInstances.stream()
+                .map( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance::getTrackedEntityInstance )
+                .filter( Objects::nonNull ).collect( Collectors.toSet() ) );
+
+        final Map<String, TrackedEntityInstance> teiMap = new HashMap<>();
+
+        teis.forEach( tei -> teiMap.put( tei.getUid(), tei ) );
+
+        Multimap<String, String> orgUnitToTei = HashMultimap.create();
+
+        trackedEntityInstances.forEach( ev -> orgUnitToTei.put( ev.getOrgUnit(), ev.getTrackedEntityInstance() ) );
+
+        final Map<String, OrganisationUnit> organisationUnitMap = getOrganisationUnitMap( importOptions,
+            trackedEntityInstances.stream()
+                .map( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance::getOrgUnit )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toSet() ),
+            orgUnitToTei );
+
+        return WorkContext.builder().importOptions( importOptions ).trackedEntityInstanceMap1( teiMap )
+            .organisationUnitMap( organisationUnitMap )
+            .build();
+    }
+
+    @Transactional( readOnly = true )
+    public WorkContext loadForEnrollment( ImportOptions importOptions,
+        List<Enrollment> enrollments )
+    {
+        sessionFactory.getCurrentSession().flush();
+
+        Set<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceSupplier
+            .get( enrollments.stream()
+                .map( Enrollment::getTrackedEntityInstance )
+                .filter( Objects::nonNull ).collect( Collectors.toSet() ) );
+
+        final Map<String, TrackedEntityInstance> teiMap = new HashMap<>();
+
+        trackedEntityInstances.forEach( tei -> teiMap.put( tei.getUid(), tei ) );
+
+        Multimap<String, String> orgUnitToTei = HashMultimap.create();
+
+        enrollments.forEach( enrollment -> orgUnitToTei.put( enrollment.getOrgUnit(), enrollment.getEnrollment() ) );
+
+        final Map<String, OrganisationUnit> organisationUnitMap = getOrganisationUnitMap( importOptions,
+            enrollments.stream()
+                .map( Enrollment::getOrgUnit )
+                .filter( Objects::nonNull )
+                .collect( Collectors.toSet() ),
+            orgUnitToTei );
+
+        return WorkContext.builder().importOptions( importOptions )
+            .programInstanceMap( programInstanceSupplier.get( enrollments ) )
+            .programsMap( programSupplier.get( importOptions, enrollments.stream()
+                .map( Enrollment::getProgram )
+                .filter( Objects::nonNull ).collect( Collectors.toSet() ) ) )
+            .trackedEntityInstanceMap1( teiMap )
+            .organisationUnitMap( organisationUnitMap )
+            .build();
     }
 }

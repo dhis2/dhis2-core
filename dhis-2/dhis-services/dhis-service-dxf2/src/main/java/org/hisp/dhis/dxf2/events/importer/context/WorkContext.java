@@ -90,6 +90,8 @@ public class WorkContext
      */
     private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
 
+    private final Map<String, TrackedEntityInstance> trackedEntityInstanceMap1;
+
     /**
      * Holds a Map of all {@see ProgramInstance} associated to the Events to
      * import.

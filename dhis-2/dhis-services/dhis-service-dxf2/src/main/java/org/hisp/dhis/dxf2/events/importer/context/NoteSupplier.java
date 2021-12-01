@@ -58,7 +58,6 @@ public class NoteSupplier extends AbstractSupplier<Map<String, Note>>
         super( jdbcTemplate );
     }
 
-    @Override
     public Map<String, Note> get( ImportOptions importOptions, List<Event> events )
     {
         Map<String, Note> persistableNotes = new HashMap<>();

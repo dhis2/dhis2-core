@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
@@ -48,7 +47,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
+public class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long, Map<Long, List<Long>>>
 {
     private ProgramOrgUnitSupplier subject;
 
@@ -92,7 +91,7 @@ public class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
         // mock result-set extraction
         mockResultSetExtractor( mockResultSet );
 
-        final Map<Long, List<Long>> longListMap = subject.get( ImportOptions.getDefaultImportOptions(),
+        final Map<Long, List<Long>> longListMap = subject.get(
             ImmutableList.of( event, event2 ), organisationUnitMap );
 
         assertThat( longListMap.keySet(), hasSize( 1 ) );

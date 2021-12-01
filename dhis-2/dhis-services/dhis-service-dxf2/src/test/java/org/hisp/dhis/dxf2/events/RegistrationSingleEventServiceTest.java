@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 
@@ -40,6 +41,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -190,7 +192,10 @@ public class RegistrationSingleEventServiceTest
     {
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, false )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -205,7 +210,10 @@ public class RegistrationSingleEventServiceTest
     {
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, false )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
@@ -227,7 +235,10 @@ public class RegistrationSingleEventServiceTest
     {
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, true )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
@@ -245,7 +256,10 @@ public class RegistrationSingleEventServiceTest
     {
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, false )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),

@@ -36,11 +36,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -63,7 +65,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -75,7 +76,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Service( "org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService" )
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
-@Transactional
 public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityInstanceService
 {
     private final RelationshipTypeService relationshipTypeService;
@@ -105,7 +105,9 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackedEntityTypeService trackedEntityTypeService,
         Notifier notifier,
         ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper,
+        WorkContextLoader workContextLoader,
+        SessionFactory sessionFactory )
     {
         checkNotNull( teiService );
         checkNotNull( trackedEntityAttributeService );
@@ -157,6 +159,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         this.notifier = notifier;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
+        this.workContextLoader = workContextLoader;
+        this.sessionFactory = sessionFactory;
     }
 
     // -------------------------------------------------------------------------
@@ -280,6 +284,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     {
         trackedEntityInstance.setTrackedEntityInstance( id );
         setTeiRelationshipsBidirectionalFlag( trackedEntityInstance );
+
         return updateTrackedEntityInstance( trackedEntityInstance, programId, updateImportOptions( importOptions ),
             true );
     }

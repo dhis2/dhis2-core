@@ -27,104 +27,59 @@
  */
 package org.hisp.dhis.dxf2.events.importer.context;
 
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
-
-import java.sql.ResultSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import java.sql.ResultSet;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
- * @author Luciano Fiandesio
+ * @author Cambi Luca
  */
 @Component( "workContextTrackedEntityInstancesSupplier" )
-public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, Pair<TrackedEntityInstance, Boolean>>>
+public class TrackedEntityInstanceSupplier extends AbstractSupplier<Set<TrackedEntityInstance>>
 {
-    private final AclService aclService;
 
-    public TrackedEntityInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate,
-        AclService aclService )
+    public TrackedEntityInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
-        this.aclService = aclService;
     }
 
-    @Override
-    public Map<String, Pair<TrackedEntityInstance, Boolean>> get( ImportOptions importOptions, List<Event> events )
+    public Set<TrackedEntityInstance> get( Set<String> teiUids )
     {
-
-        if ( events == null )
-        {
-            return new HashMap<>();
-        }
-        // @formatter:off
-        // Collect all the org unit uids to pass as SQL query argument
-        Set<String> teiUids = events.stream()
-                .filter( e -> e.getTrackedEntityInstance() != null )
-                .map( Event::getTrackedEntityInstance ).collect( Collectors.toSet() );
-        // @formatter:on
-
         if ( isEmpty( teiUids ) )
         {
-            return new HashMap<>();
+            return new HashSet<>();
         }
 
-        // Create a map: tei uid -> List [event uid]
-        Multimap<String, String> teiToEvent = HashMultimap.create();
-        for ( Event event : events )
-        {
-            teiToEvent.put( event.getTrackedEntityInstance(), event.getUid() );
-        }
-
-        //
-        // Get all TEI associated to the events
-        //
-        Map<String, TrackedEntityInstance> teiMap = getTrackedEntityInstances( teiUids, teiToEvent );
-
-        Map<String, Pair<TrackedEntityInstance, Boolean>> result = new HashMap<>();
-
-        //
-        // Return a map containing a Pair where key is the Tei and value is the
-        // boolean, can the TEI be updated
-        // by current user
-        //
-        for ( String event : teiMap.keySet() )
-        {
-            TrackedEntityInstance tei = teiMap.get( event );
-            result.put( event,
-                Pair.of( tei, !importOptions.isSkipLastUpdated() ? aclService.canUpdate( importOptions.getUser(), tei )
-                    : null ) );
-
-        }
-
-        return result;
+        return getTrackedEntityInstances( teiUids );
     }
 
-    private Map<String, TrackedEntityInstance> getTrackedEntityInstances( Set<String> teiUids,
-        Multimap<String, String> teiToEvent )
+    private Set<TrackedEntityInstance> getTrackedEntityInstances( Set<String> teiUids )
     {
-        final String sql = "select tei.trackedentityinstanceid, tei.uid, tei.code " +
-            "from trackedentityinstance tei where tei.uid in (:ids)";
+        final String sql = "select tei.trackedentityinstanceid, tei.uid, tei.code, tei.deleted, tei.created, tei.createdatclient, tei.lastupdatedatclient, tei.lastupdated"
+            +
+            ", tet.trackedentitytypeid, tet.uid as tet_uid, tet.code as tet_code, tet.name as tet_name, tet.description as tet_description, ou.organisationunitid as ou_id, ou.uid as ou_uid, ou.path as ou_path "
+            +
+            "from trackedentityinstance tei  join organisationunit ou on tei.organisationunitid = ou.organisationunitid "
+            +
+            "left join trackedentitytype tet on tei.trackedentitytypeid = tet.trackedentitytypeid where tei.uid in (:ids)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", teiUids );
 
+        Set<TrackedEntityInstance> trackedEntityInstances = new HashSet<>();
         return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, TrackedEntityInstance> results = new HashMap<>();
 
             while ( rs.next() )
             {
@@ -132,13 +87,73 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
                 tei.setId( rs.getLong( "trackedentityinstanceid" ) );
                 tei.setUid( rs.getString( "uid" ) );
                 tei.setCode( rs.getString( "code" ) );
-                for ( String event : teiToEvent.get( tei.getUid() ) )
+                tei.setDeleted( Boolean.parseBoolean( rs.getString( "deleted" ) ) );
+                tei.setCreated( rs.getTimestamp( "created" ) );
+                tei.setCreatedAtClient( rs.getTimestamp( "createdatclient" ) );
+                tei.setLastUpdatedAtClient( rs.getTimestamp( "lastupdatedatclient" ) );
+                tei.setLastUpdated( rs.getTimestamp( "lastupdated" ) );
+
+                TrackedEntityType trackedEntityType = new TrackedEntityType();
+                trackedEntityType.setId( rs.getLong( "trackedentitytypeid" ) );
+                trackedEntityType.setUid( rs.getString( "tet_uid" ) );
+                trackedEntityType.setCode( rs.getString( "tet_code" ) );
+                trackedEntityType.setName( rs.getString( "tet_name" ) );
+                trackedEntityType.setDescription( rs.getString( "tet_description" ) );
+
+                tei.setTrackedEntityType( trackedEntityType );
+                String teiOuUid = rs.getString( "ou_uid" );
+                if ( teiOuUid != null )
                 {
-                    results.put( event, tei );
+                    OrganisationUnit organisationUnit = new OrganisationUnit();
+                    organisationUnit.setId( rs.getLong( "ou_id" ) );
+                    organisationUnit.setUid( teiOuUid );
+                    organisationUnit
+                        .setParent(
+                            SupplierUtils.getParentHierarchy( organisationUnit, rs.getString( "ou_path" ) ) );
+                    tei.setOrganisationUnit( organisationUnit );
                 }
 
+                tei.setTrackedEntityAttributeValues( getTrackedEntityAttrValue( tei.getId() ) );
+                trackedEntityInstances.add( tei );
             }
-            return results;
+            return trackedEntityInstances;
+        } );
+    }
+
+    private Set<TrackedEntityAttributeValue> getTrackedEntityAttrValue(Long teiId )
+    {
+        final String sql = "select teav.trackedentityinstanceid, teav.trackedentityattributeid, teav.value, tea.uid as tea_uid, tea.code as tea_code, tea.name as tea_name, tea.description as tea_description, tea.valuetype  from trackedentityattributevalue teav "
+            +
+            "join trackedentityattribute tea on teav.trackedentityattributeid  = tea.trackedentityattributeid where trackedentityinstanceid = :id";
+
+        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        parameters.addValue( "id", teiId );
+
+        Set<TrackedEntityAttributeValue> trackedEntityInstances = new HashSet<>();
+        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+
+            while ( rs.next() )
+            {
+                TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
+                trackedEntityAttributeValue.setValue( rs.getString( "tea_uid" ) );
+                TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+                trackedEntityInstance.setId( rs.getLong( "trackedentityinstanceid" ) );
+
+                trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
+
+                TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+                trackedEntityAttribute.setId( rs.getLong( "trackedentityattributeid" ) );
+                trackedEntityAttribute.setUid( rs.getString( "tea_uid" ) );
+                trackedEntityAttribute.setCode( rs.getString( "tea_code" ) );
+                trackedEntityAttribute.setName( rs.getString( "tea_name" ) );
+                trackedEntityAttribute.setDescription( rs.getString( "tea_description" ) );
+                trackedEntityAttribute.setValueType( ValueType.valueOf( rs.getString( "valuetype" ) ) );
+
+                trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
+
+                trackedEntityInstances.add( trackedEntityAttributeValue );
+            }
+            return trackedEntityInstances;
         } );
     }
 }

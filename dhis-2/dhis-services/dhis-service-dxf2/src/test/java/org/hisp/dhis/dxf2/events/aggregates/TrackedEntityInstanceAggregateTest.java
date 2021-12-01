@@ -54,7 +54,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dxf2.TrackerTest;
+import org.hisp.dhis.dxf2.TrackerBaseIntegrationTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
@@ -81,7 +81,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceAggregateTest extends TrackerTest
+public class TrackedEntityInstanceAggregateTest extends TrackerBaseIntegrationTest
 {
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;

@@ -35,8 +35,9 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -49,7 +50,7 @@ import org.junit.Test;
 /**
  * @author Luciano Fiandesio
  */
-public class OrganisationUnitSupplierTest extends AbstractSupplierTest<OrganisationUnit>
+public class OrganisationUnitSupplierTest extends AbstractSupplierTest<OrganisationUnit, Set<OrganisationUnit>>
 {
     private OrganisationUnitSupplier subject;
 
@@ -93,10 +94,10 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
-        Map<String, OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
-            Collections.singletonList( event ) );
+        Set<OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
+            new HashSet<>( Arrays.asList( event.getUid() ) ) );
 
-        OrganisationUnit organisationUnit = map.get( event.getUid() );
+        OrganisationUnit organisationUnit = map.iterator().next();
         assertThat( organisationUnit, is( notNullValue() ) );
         assertThat( organisationUnit.getId(), is( 100L ) );
         assertThat( organisationUnit.getUid(), is( "abcded" ) );
@@ -124,10 +125,11 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
-        Map<String, OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
-            Collections.singletonList( event ) );
+        Set<OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
+            new HashSet<>( Arrays.asList( event.getUid() ) ) );
 
-        OrganisationUnit organisationUnit = map.get( event.getUid() );
+        OrganisationUnit organisationUnit = map.iterator().next();
+
         assertThat( organisationUnit, is( notNullValue() ) );
         assertThat( organisationUnit.getId(), is( 100L ) );
         assertThat( organisationUnit.getUid(), is( "abcded" ) );
@@ -158,10 +160,11 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
 
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( IdScheme.CODE.name() );
-        Map<String, OrganisationUnit> map = subject.get( importOptions,
-            Collections.singletonList( event ) );
 
-        OrganisationUnit organisationUnit = map.get( event.getUid() );
+        Set<OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
+            new HashSet<>( Arrays.asList( event.getUid() ) ) );
+
+        OrganisationUnit organisationUnit = map.iterator().next();
         assertThat( organisationUnit, is( notNullValue() ) );
         assertThat( organisationUnit.getId(), is( 100L ) );
         assertThat( organisationUnit.getUid(), is( "abcded" ) );
@@ -193,12 +196,12 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + attributeId );
 
-        Map<String, OrganisationUnit> map = subject.get( importOptions,
-            Collections.singletonList( event ) );
+        Set<OrganisationUnit> map = subject.get( importOptions,
+            new HashSet<>( Arrays.asList( event.getUid() ) ) );
 
         final String executedSql = sql.getValue();
 
-        OrganisationUnit organisationUnit = map.get( event.getUid() );
+        OrganisationUnit organisationUnit = map.iterator().next();
         assertThat( organisationUnit, is( notNullValue() ) );
         assertThat( organisationUnit.getId(), is( 100L ) );
         assertThat( organisationUnit.getUid(), is( "abcded" ) );

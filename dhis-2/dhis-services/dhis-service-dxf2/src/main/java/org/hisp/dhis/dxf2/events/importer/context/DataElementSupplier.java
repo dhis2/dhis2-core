@@ -61,7 +61,6 @@ public class DataElementSupplier extends AbstractSupplier<Map<String, DataElemen
         this.manager = manager;
     }
 
-    @Override
     public Map<String, DataElement> get( ImportOptions importOptions, List<Event> events )
     {
         Map<String, DataElement> dataElementsMap;
