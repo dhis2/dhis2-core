@@ -187,7 +187,7 @@
         <commons-email.version>1.5</commons-email.version>
 
         <!-- Monitoring -->
-        <micrometer-spring-legacy.version>1.3.5</micrometer-spring-legacy.version>
+        <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
         <micrometer-registry-prometheus.version>1.3.5</micrometer-registry-prometheus.version>
 
         <!-- Logging-->
