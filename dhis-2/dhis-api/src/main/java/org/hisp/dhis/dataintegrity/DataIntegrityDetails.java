@@ -27,32 +27,43 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * The result data of a {@link DataIntegrityCheck#getRunDetailsCheck()} run.
+ *
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+@Getter
+@AllArgsConstructor
+public class DataIntegrityDetails
 {
-    /*
-     * Old API
-     */
+    @JsonUnwrapped
+    private final DataIntegrityCheck source;
 
-    @Deprecated
-    FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress );
+    @JsonProperty
+    private final List<DataIntegrityIssue> issues;
 
-    /*
-     * New generic API
-     */
+    @Getter
+    @AllArgsConstructor
+    public static final class DataIntegrityIssue
+    {
+        @JsonProperty
+        private final String id;
 
-    Set<String> getDataIntegrityNames();
+        @JsonProperty
+        private final String name;
 
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress );
+        @JsonProperty
+        private final String comment;
 
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress );
+        @JsonProperty
+        private final String[] refs;
+    }
 }

@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
+import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
@@ -37,12 +40,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -54,6 +59,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -63,6 +69,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
+import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.Expression;
@@ -139,6 +146,8 @@ public class DefaultDataIntegrityService
     private final PeriodService periodService;
 
     private final ProgramIndicatorService programIndicatorService;
+
+    private final SessionFactory sessionFactory;
 
     // -------------------------------------------------------------------------
     // DataElement
@@ -501,7 +510,7 @@ public class DefaultDataIntegrityService
 
     @Getter
     @AllArgsConstructor
-    private static class DataIntegrityCheck<T>
+    private static class LegacyDataIntegrityCheck<T>
     {
         private final DataIntegrityCheckType type;
 
@@ -510,17 +519,17 @@ public class DefaultDataIntegrityService
         private final BiConsumer<DataIntegrityReport, T> setter;
     }
 
-    private final Map<DataIntegrityCheckType, DataIntegrityCheck<?>> integrityChecks = new ConcurrentHashMap<>();
+    private final Map<DataIntegrityCheckType, LegacyDataIntegrityCheck<?>> integrityChecks = new ConcurrentHashMap<>();
 
     private <T> void registerIntegrityCheck( DataIntegrityCheckType type, Supplier<T> check,
         BiConsumer<DataIntegrityReport, T> setter )
     {
-        integrityChecks.put( type, new DataIntegrityCheck<>( type, check, setter ) );
+        integrityChecks.put( type, new LegacyDataIntegrityCheck<>( type, check, setter ) );
     }
 
     /**
-     * Maps all {@link DataIntegrityCheck}s to their implementation and the
-     * report field to set with the result.
+     * Maps all {@link LegacyDataIntegrityCheck}s to their implementation and
+     * the report field to set with the result.
      */
     @PostConstruct
     public void initIntegrityChecks()
@@ -622,9 +631,7 @@ public class DefaultDataIntegrityService
         return new FlattenedDataIntegrityReport( getDataIntegrityReport( checks, progress ) );
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataIntegrityReport getDataIntegrityReport( Set<DataIntegrityCheckType> checks, JobProgress progress )
+    private DataIntegrityReport getDataIntegrityReport( Set<DataIntegrityCheckType> checks, JobProgress progress )
     {
         progress.startingProcess( "Data Integrity check" );
         DataIntegrityReport report = new DataIntegrityReport();
@@ -636,7 +643,7 @@ public class DefaultDataIntegrityService
         return report;
     }
 
-    private <T> void performDataIntegrityCheck( DataIntegrityCheck<T> check, DataIntegrityReport report,
+    private <T> void performDataIntegrityCheck( LegacyDataIntegrityCheck<T> check, DataIntegrityReport report,
         JobProgress progress )
     {
         progress.startingStage( check.getType().name().toLowerCase().replace( '_', ' ' ) );
@@ -825,5 +832,88 @@ public class DefaultDataIntegrityService
             res.computeIfAbsent( property.apply( value ), key -> Sets.newHashSet() ).add( value );
         }
         return res;
+    }
+
+    /*
+     * Configuration based data integrity checks
+     */
+
+    private final Map<String, DataIntegrityCheck> checksByName = new ConcurrentHashMap<>();
+
+    private final AtomicBoolean configurationsAreLoaded = new AtomicBoolean( false );
+
+    @Override
+    public Set<String> getDataIntegrityNames()
+    {
+        return unmodifiableSet( checksByName.keySet() );
+    }
+
+    @Override
+    public Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress )
+    {
+        ensureConfigurationsAreLoaded();
+        checks = allChecksIfNoSpecificOnes( checks );
+        progress.startingProcess( "Data Integrity check" );
+        progress.startingStage( "Data Integrity summary checks", checks.size() );
+        Map<String, DataIntegritySummary> summaries = new LinkedHashMap<>();
+        progress.runStage( checks.stream().map( checksByName::get ), DataIntegrityCheck::getDescription,
+            check -> summaries.put( check.getName(), check.getRunSummaryCheck().apply( check ) ) );
+        progress.completedProcess( null );
+        return summaries;
+    }
+
+    @Override
+    public Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress )
+    {
+        ensureConfigurationsAreLoaded();
+        checks = allChecksIfNoSpecificOnes( checks );
+        progress.startingProcess( "Data Integrity check" );
+        progress.startingStage( "Data Integrity details checks", checks.size() );
+        Map<String, DataIntegrityDetails> details = new LinkedHashMap<>();
+        progress.runStage( checks.stream().map( checksByName::get ), DataIntegrityCheck::getDescription,
+            check -> details.put( check.getName(), check.getRunDetailsCheck().apply( check ) ) );
+        progress.completedProcess( null );
+        return details;
+    }
+
+    private Set<String> allChecksIfNoSpecificOnes( Set<String> checks )
+    {
+        if ( checks == null || checks.isEmpty() )
+        {
+            checks = checksByName.keySet();
+        }
+        return checks;
+    }
+
+    private void ensureConfigurationsAreLoaded()
+    {
+        if ( configurationsAreLoaded.compareAndSet( false, true ) )
+        {
+            readDataIntegrityYaml( "data-integrity-checks.yaml",
+                check -> checksByName.put( check.getName(), check ), this::querySummary, this::queryDetails );
+        }
+    }
+
+    private Function<DataIntegrityCheck, DataIntegritySummary> querySummary( String sql )
+    {
+        return check -> {
+            Object[] summary = (Object[]) sessionFactory.getCurrentSession()
+                .createNativeQuery( sql ).getSingleResult();
+            return new DataIntegritySummary( check,
+                ((Number) summary[0]).intValue(),
+                summary[1] == null ? null : ((Number) summary[1]).doubleValue() );
+        };
+    }
+
+    private Function<DataIntegrityCheck, DataIntegrityDetails> queryDetails( String sql )
+    {
+        return check -> {
+            @SuppressWarnings( "unchecked" )
+            List<Object[]> rows = sessionFactory.getCurrentSession().createNativeQuery( sql ).list();
+            return new DataIntegrityDetails( check, rows.stream()
+                .map( row -> new DataIntegrityIssue( (String) row[0],
+                    (String) row[1], row.length == 2 ? null : (String) row[2], null ) )
+                .collect( toUnmodifiableList() ) );
+        };
     }
 }

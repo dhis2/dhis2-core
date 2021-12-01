@@ -31,22 +31,28 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
+import org.hisp.dhis.dataintegrity.DataIntegrityService;
+import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -56,19 +62,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 @Controller
-@RequestMapping
+@RequestMapping( "/dataIntegrity" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @AllArgsConstructor
 public class DataIntegrityController
 {
     private final SchedulingManager schedulingManager;
 
-    private final Notifier notifier;
-
-    public static final String RESOURCE_PATH = "/dataIntegrity";
+    private final DataIntegrityService dataIntegrityService;
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @PostMapping( DataIntegrityController.RESOURCE_PATH )
+    @PostMapping
     @ResponseBody
     public WebMessage runDataIntegrity(
         @RequestParam( required = false ) List<String> checks,
@@ -86,6 +90,22 @@ public class DataIntegrityController
             return conflict( "Data integrity check is already running" );
         }
         return jobConfigurationReport( config );
+    }
+
+    @GetMapping( "/summary" )
+    @ResponseBody
+    public Map<String, DataIntegritySummary> runAndGetSummaries(
+        @RequestParam( required = false ) Set<String> checks )
+    {
+        return dataIntegrityService.getSummaries( checks, NoopJobProgress.INSTANCE );
+    }
+
+    @GetMapping( "/details" )
+    @ResponseBody
+    public Map<String, DataIntegrityDetails> runAndGetDetails(
+        @RequestParam( required = false ) Set<String> checks )
+    {
+        return dataIntegrityService.getDetails( checks, NoopJobProgress.INSTANCE );
     }
 
 }

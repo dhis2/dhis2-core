@@ -27,32 +27,28 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.Map;
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * The result data of a {@link DataIntegrityCheck#getRunSummaryCheck()} run.
+ *
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+@Getter
+@AllArgsConstructor
+public class DataIntegritySummary
 {
-    /*
-     * Old API
-     */
+    @JsonUnwrapped
+    private final DataIntegrityCheck source;
 
-    @Deprecated
-    FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress );
+    @JsonProperty
+    private int count;
 
-    /*
-     * New generic API
-     */
+    @JsonProperty
+    private Double percentage;
 
-    Set<String> getDataIntegrityNames();
-
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress );
-
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress );
 }
