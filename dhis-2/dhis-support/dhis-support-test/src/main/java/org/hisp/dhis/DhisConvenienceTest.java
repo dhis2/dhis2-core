@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -245,7 +246,7 @@ public abstract class DhisConvenienceTest
 
     protected static CategoryService categoryService;
 
-    private char nextUserName = 'a';
+    private char nextUserName = 'k';
 
     @PostConstruct
     protected void initServices()
@@ -2535,7 +2536,7 @@ public abstract class DhisConvenienceTest
         credentials.setCode( username );
         credentials.setCreatedBy( user );
         credentials.setUserInfo( user );
-        credentials.setUsername( username );
+        credentials.setUsername( username.toLowerCase() );
         credentials.getUserAuthorityGroups().add( group );
 
         if ( !Strings.isNullOrEmpty( openIDIdentifier ) )
