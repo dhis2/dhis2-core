@@ -45,6 +45,6 @@ public class PeriodOffset
     {
         int offset = ctx.period != null ? Integer.valueOf( ctx.period.getText() ) : 0;
 
-        return visitor.visitWithOffset( ctx.expr( 0 ), offset );
+        return visitor.visitWithPeriodOffset( ctx.expr( 0 ), offset );
     }
 }

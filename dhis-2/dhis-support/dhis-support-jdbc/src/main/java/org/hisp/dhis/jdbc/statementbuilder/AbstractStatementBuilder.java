@@ -327,7 +327,32 @@ public abstract class AbstractStatementBuilder
         }
     }
 
+    @Override
+    public String getProgramIndicatorEventColumnSql( String programStageUid, String stageOffset, String columnName,
+        Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        if ( programIndicator.getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) )
+        {
+            return getProgramIndicatorEventInEnrollmentSelectSql( columnName, stageOffset, programStageUid,
+                reportingStartDate, reportingEndDate, programIndicator );
+        }
+        else
+        {
+            return columnName;
+        }
+    }
+
     private String getProgramIndicatorEventInEnrollmentSelectSql( String columnName, String programStageUid,
+        Date reportingStartDate,
+        Date reportingEndDate, ProgramIndicator programIndicator )
+    {
+        return getProgramIndicatorEventInEnrollmentSelectSql( columnName, "0", programStageUid, reportingStartDate,
+            reportingEndDate, programIndicator );
+    }
+
+    private String getProgramIndicatorEventInEnrollmentSelectSql( String columnName, String stageOffset,
+        String programStageUid,
         Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator )
     {
@@ -352,7 +377,7 @@ public abstract class AbstractStatementBuilder
                     reportingEndDate )
                 +
                 " ") : "")
-            + programStageCondition + "order by executiondate " + "desc limit 1 )";
+            + programStageCondition + "order by executiondate " + "desc offset " + stageOffset + " limit 1 )";
     }
 
     private String getBoundaryElementColumnSql( AnalyticsPeriodBoundary boundary, Date reportingStartDate,

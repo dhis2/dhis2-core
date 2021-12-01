@@ -58,6 +58,7 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PS_EVENTDATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STAGE_OFFSET;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VARIANCE;
@@ -84,6 +85,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
+import org.hisp.dhis.parser.expression.function.StageOffset;
 import org.hisp.dhis.parser.expression.function.VectorAvg;
 import org.hisp.dhis.parser.expression.function.VectorCount;
 import org.hisp.dhis.parser.expression.function.VectorMax;
@@ -225,6 +227,9 @@ public class DefaultProgramIndicatorService
         // Program variables
 
         .put( V_BRACE, new ProgramVariableItem() )
+
+        // . functions
+        .put( STAGE_OFFSET, new StageOffset() )
 
         .build();
 

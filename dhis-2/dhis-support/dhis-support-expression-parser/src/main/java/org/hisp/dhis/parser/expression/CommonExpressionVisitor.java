@@ -116,6 +116,8 @@ public class CommonExpressionVisitor
      */
     private int periodOffset = 0;
 
+    private int stageOffset = 0;
+
     /**
      * Used to collect the string replacements to build a description.
      */
@@ -313,7 +315,7 @@ public class CommonExpressionVisitor
      * @param ctx any context
      * @return the value with the applied offset
      */
-    public Object visitWithOffset( ParserRuleContext ctx, int offset )
+    public Object visitWithPeriodOffset( ParserRuleContext ctx, int offset )
     {
         int savedPeriodOffset = periodOffset;
 
@@ -525,6 +527,16 @@ public class CommonExpressionVisitor
     public int getPeriodOffset()
     {
         return periodOffset;
+    }
+
+    public int getStageOffset()
+    {
+        return stageOffset;
+    }
+
+    public void setStageOffset( int stageOffset )
+    {
+        this.stageOffset = stageOffset;
     }
 
     public Set<DimensionalItemId> getItemIds()
