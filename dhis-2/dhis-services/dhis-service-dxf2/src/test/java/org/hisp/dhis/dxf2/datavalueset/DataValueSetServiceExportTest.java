@@ -404,7 +404,7 @@ public class DataValueSetServiceExportTest
         DataExportParams params = new DataExportParams()
             .setDataSets( Sets.newHashSet( dsA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) )
-            .setIncludeChildren( true )
+            .setIncludeDescendants( true )
             .setPeriods( Sets.newHashSet( peA ) );
 
         dataValueSetService.writeDataValueSetJson( params, out );
@@ -668,7 +668,7 @@ public class DataValueSetServiceExportTest
             .setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA, peB ) )
             .setOrganisationUnitGroups( Sets.newHashSet( ogA ) )
-            .setIncludeChildren( true );
+            .setIncludeDescendants( true );
 
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),

@@ -39,7 +39,13 @@
         foreign-key="fk_predictororgunitlevels_orgunitlevelid" />
     </set>
 
-    <property name="includeDescendantOrgUnits" column="includedescendantorgunits" />
+    <property name="organisationUnitDescendants" column="organisationunitdescendants" length="100" not-null="true">
+      <type name="org.hibernate.type.EnumType">
+        <param name="enumClass">org.hisp.dhis.common.OrganisationUnitDescendants</param>
+        <param name="useNamed">true</param>
+        <param name="type">12</param>
+      </type>
+    </property>
 
     <property name="sequentialSampleCount" column="sequentialsamplecount" not-null="true" />
 

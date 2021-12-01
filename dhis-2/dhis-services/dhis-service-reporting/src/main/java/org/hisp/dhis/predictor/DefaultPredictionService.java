@@ -29,6 +29,7 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
@@ -66,6 +67,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
+import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.Constant;
@@ -339,10 +341,10 @@ public class DefaultPredictionService
             storedBy = currentUser.getUsername();
         }
 
-        PredictionDataValueFetcher oldPredictionFetcher = new PredictionDataValueFetcher(
-            dataValueService, categoryService ).setIncludeDeleted( true );
-        PredictionDataValueFetcher dataValueFetcher = new PredictionDataValueFetcher(
-            dataValueService, categoryService ).setIncludeChildren( predictor.isIncludeDescendantOrgUnits() );
+        PredictionDataValueFetcher oldPredictionFetcher = new PredictionDataValueFetcher( dataValueService,
+            categoryService ).setIncludeDeleted( true );
+        PredictionDataValueFetcher dataValueFetcher = new PredictionDataValueFetcher( dataValueService,
+            categoryService ).setIncludeDescendants( predictor.getOrganisationUnitDescendants().equals( DESCENDANTS ) );
         PredictionAnalyticsDataFetcher analyticsFetcher = new PredictionAnalyticsDataFetcher( analyticsService );
         PredictionWriter predictionWriter = new PredictionWriter( dataValueService, batchHandlerFactory );
 

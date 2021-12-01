@@ -181,7 +181,7 @@ public class DefaultAdxDataService
                 .addAll( getByUidOrCode( CategoryOptionCombo.class, urlParams.getAttributeOptionCombo() ) );
         }
 
-        params.setIncludeChildren( urlParams.isChildren() );
+        params.setIncludeDescendants( urlParams.isChildren() );
         params.setIncludeDeleted( urlParams.isIncludeDeleted() );
         params.setLastUpdated( urlParams.getLastUpdated() );
         params.setLastUpdatedDuration( urlParams.getLastUpdatedDuration() );
@@ -224,7 +224,7 @@ public class DefaultAdxDataService
                     DataExportParams queryParams = new DataExportParams()
                         .setDataElements( dataSet.getDataElements() )
                         .setOrganisationUnits( Sets.newHashSet( orgUnit ) )
-                        .setIncludeChildren( params.isIncludeChildren() )
+                        .setIncludeDescendants( params.isIncludeDescendants() )
                         .setIncludeDeleted( params.isIncludeDeleted() )
                         .setLastUpdated( params.getLastUpdated() )
                         .setLastUpdatedDuration( params.getLastUpdatedDuration() )

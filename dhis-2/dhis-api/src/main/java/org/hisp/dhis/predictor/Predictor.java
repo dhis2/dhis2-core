@@ -35,6 +35,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -91,9 +92,9 @@ public class Predictor
     private Set<OrganisationUnitLevel> organisationUnitLevels;
 
     /**
-     * Whether data for descendant organisation units should be included
+     * Mode for including organisation unit descendants
      */
-    private boolean includeDescendantOrgUnits;
+    private OrganisationUnitDescendants organisationUnitDescendants;
 
     /**
      * The number of sequential periods from which to collect samples to average
@@ -224,14 +225,14 @@ public class Predictor
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isIncludeDescendantOrgUnits()
+    public OrganisationUnitDescendants getOrganisationUnitDescendants()
     {
-        return includeDescendantOrgUnits;
+        return organisationUnitDescendants;
     }
 
-    public void setIncludeDescendantOrgUnits( boolean includeDescendantOrgUnits )
+    public void setOrganisationUnitDescendants( OrganisationUnitDescendants organisationUnitDescendants )
     {
-        this.includeDescendantOrgUnits = includeDescendantOrgUnits;
+        this.organisationUnitDescendants = organisationUnitDescendants;
     }
 
     @JsonProperty

@@ -28,6 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.hisp.dhis.common.OrganisationUnitDescendants.SELECTED;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.junit.Assert.assertEquals;
 
@@ -43,6 +44,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -561,7 +563,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    public void testPredictSequentialWithChildren()
+    public void testPredictSequentialWithDescendants()
     {
         setupTestData();
 
@@ -592,14 +594,14 @@ public class PredictionServiceTest
     }
 
     @Test
-    public void testPredictSequentialWithoutChildren()
+    public void testPredictSequentialWithoutDescendants()
     {
         setupTestData();
 
         Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential",
             expressionA, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
 
-        p.setIncludeDescendantOrgUnits( false );
+        p.setOrganisationUnitDescendants( SELECTED );
 
         predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );
 

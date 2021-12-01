@@ -291,7 +291,7 @@ public class SpringDataValueSetStore
 
         sql += "where de.dataelementid in (" + dataElements + ") ";
 
-        if ( params.isIncludeChildren() )
+        if ( params.isIncludeDescendants() )
         {
             sql += "and (";
 

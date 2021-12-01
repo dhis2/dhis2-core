@@ -310,12 +310,12 @@ public class DefaultDataValueService
             error = new ErrorMessage( ErrorCode.E2006 );
         }
 
-        if ( params.isIncludeChildren() && params.hasOrganisationUnitGroups() )
+        if ( params.isIncludeDescendants() && params.hasOrganisationUnitGroups() )
         {
             error = new ErrorMessage( ErrorCode.E2007 );
         }
 
-        if ( params.isIncludeChildren() && !params.hasOrganisationUnits() )
+        if ( params.isIncludeDescendants() && !params.hasOrganisationUnits() )
         {
             error = new ErrorMessage( ErrorCode.E2008 );
         }

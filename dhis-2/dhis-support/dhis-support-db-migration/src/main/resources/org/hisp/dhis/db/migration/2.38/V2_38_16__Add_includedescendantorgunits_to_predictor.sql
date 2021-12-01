@@ -1,5 +1,5 @@
--- For legacy predictors, set includedescendantorgunits to true
-ALTER TABLE predictor ADD COLUMN IF NOT EXISTS includedescendantorgunits BOOLEAN DEFAULT true;
+-- For legacy predictors, include descendants for backwards compatibility
+ALTER TABLE predictor ADD COLUMN IF NOT EXISTS organisationUnitDescendants VARCHAR(100) DEFAULT 'DESCENDANTS';
 
--- For future predictors, includedescendantorgunits defaults to false
-ALTER TABLE predictor ALTER COLUMN includedescendantorgunits DROP DEFAULT;
+-- For future predictors, selected only is a better default
+ALTER TABLE predictor ALTER COLUMN organisationUnitDescendants SET DEFAULT 'SELECTED';

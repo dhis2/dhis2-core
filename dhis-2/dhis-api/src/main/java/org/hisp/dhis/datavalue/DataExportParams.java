@@ -81,7 +81,7 @@ public class DataExportParams
 
     private Integer orgUnitLevel;
 
-    private boolean includeChildren;
+    private boolean includeDescendants;
 
     private boolean orderByOrgUnitPath;
 
@@ -193,9 +193,9 @@ public class DataExportParams
         return organisationUnits != null && !organisationUnits.isEmpty();
     }
 
-    public boolean isIncludeChildrenForOrganisationUnits()
+    public boolean isIncludeDescendantsForOrganisationUnits()
     {
-        return includeChildren && hasOrganisationUnits();
+        return includeDescendants && hasOrganisationUnits();
     }
 
     public boolean hasOrgUnitLevel()
@@ -275,7 +275,7 @@ public class DataExportParams
             .add( "org units", organisationUnits )
             .add( "org unit selection mode", ouMode )
             .add( "org unit level", orgUnitLevel )
-            .add( "children", includeChildren )
+            .add( "descendants", includeDescendants )
             .add( "order by org unit path", orderByOrgUnitPath )
             .add( "order by period", orderByPeriod )
             .add( "org unit groups", organisationUnitGroups )
@@ -427,14 +427,14 @@ public class DataExportParams
         return this;
     }
 
-    public boolean isIncludeChildren()
+    public boolean isIncludeDescendants()
     {
-        return includeChildren;
+        return includeDescendants;
     }
 
-    public DataExportParams setIncludeChildren( boolean includeChildren )
+    public DataExportParams setIncludeDescendants( boolean includeDescendants )
     {
-        this.includeChildren = includeChildren;
+        this.includeDescendants = includeDescendants;
         return this;
     }
 

@@ -112,7 +112,8 @@ public class PredictorControllerTest extends DhisControllerConvenienceTest
                     "'periodType': 'Monthly'," +
                     "'sequentialSampleCount':4," +
                     "'annualSampleCount':3," +
-                    "'organisationUnitLevels': []" +
+                    "'organisationUnitLevels': []," +
+                    "'organisationUnitDescendants': 'SELECTED'" +
                     " }" ) );
     }
 }
