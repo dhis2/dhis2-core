@@ -684,7 +684,9 @@ public enum ConfigurationKey
     /**
      * System update notifications system. Enable or disable the feature.
      */
-    SYSTEM_UPDATE_NOTIFICATIONS_ENABLED( "system.update_notifications_enabled", Constants.ON, false );
+    SYSTEM_UPDATE_NOTIFICATIONS_ENABLED( "system.update_notifications_enabled", Constants.ON, false ),
+
+    MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false );
 
     private final String key;
 
