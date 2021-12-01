@@ -236,10 +236,8 @@ public class ArtemisConfig
         artemisConfigData.setPassword( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_PASSWORD ) );
 
         ArtemisEmbeddedConfig artemisEmbeddedConfig = new ArtemisEmbeddedConfig();
-        artemisEmbeddedConfig.setSecurity(
-            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY ) ) );
-        artemisEmbeddedConfig.setPersistence(
-            Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE ) ) );
+        artemisEmbeddedConfig.setSecurity( dhisConfig.isEnabled( ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY ) );
+        artemisEmbeddedConfig.setPersistence( dhisConfig.isEnabled( ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE ) );
         artemisEmbeddedConfig.setNioRemotingThreads(
             Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_THREADS ) ) );
 
