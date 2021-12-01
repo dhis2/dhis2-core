@@ -68,7 +68,7 @@ public class UserTest extends ApiTest
         loginActions = new LoginActions();
         meActions = new RestApiActions( "/me" );
 
-        username = "user-tests-" + DataGenerator.randomString();
+        username = ("user-tests-" + DataGenerator.randomString()).toLowerCase();
         loginActions.loginAsSuperUser();
         userActions.addUser( username, password );
         loginActions.loginAsUser( username, password );
