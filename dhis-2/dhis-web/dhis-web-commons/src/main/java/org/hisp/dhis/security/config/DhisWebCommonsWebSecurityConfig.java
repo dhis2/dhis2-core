@@ -103,6 +103,9 @@ public class DhisWebCommonsWebSecurityConfig
     @Order( 3300 )
     public static class SessionWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter
     {
+        @Autowired
+        private DhisConfigurationProvider dhisConfig;
+
         @Bean
         public static SessionRegistryImpl sessionRegistry()
         {
@@ -118,7 +121,7 @@ public class DhisWebCommonsWebSecurityConfig
                 .sessionFixation().migrateSession()
                 .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                 .enableSessionUrlRewriting( false )
-                .maximumSessions( 10 )
+                .maximumSessions( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
                 .expiredUrl( "/dhis-web-commons-security/logout.action" )
                 .sessionRegistry( sessionRegistry() );
         }
