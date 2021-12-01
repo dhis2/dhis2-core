@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -1334,7 +1335,7 @@ public abstract class DhisConvenienceTest
         credentials.setCreatedBy( user );
         user.setUserCredentials( credentials );
 
-        credentials.setUsername( "username" + uniqueCharacter );
+        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
         credentials.setPassword( "password" + uniqueCharacter );
 
         if ( auths != null && !auths.isEmpty() )
@@ -1346,7 +1347,7 @@ public abstract class DhisConvenienceTest
 
         user.setFirstName( "FirstName" + uniqueCharacter );
         user.setSurname( "Surname" + uniqueCharacter );
-        user.setEmail( "Email" + uniqueCharacter );
+        user.setEmail( ("Email" + uniqueCharacter).toLowerCase() );
         user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
         user.setCode( "UserCode" + uniqueCharacter );
         user.setAutoFields();
@@ -1375,7 +1376,7 @@ public abstract class DhisConvenienceTest
     {
         UserCredentials credentials = new UserCredentials();
         credentials.setName( "UserCredentials" + uniqueCharacter );
-        credentials.setUsername( "Username" + uniqueCharacter );
+        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
         credentials.setPassword( "Password" + uniqueCharacter );
         credentials.setUserInfo( user );
         user.setUserCredentials( credentials );
