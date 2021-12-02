@@ -772,4 +772,15 @@ public class EventSearchParams
         this.includeRelationships = includeRelationships;
         return this;
     }
+
+    public boolean isOrganisationUnitMode( OrganisationUnitSelectionMode mode )
+    {
+        return orgUnitSelectionMode != null && orgUnitSelectionMode.equals( mode );
+    }
+
+    public boolean isPathOrganisationUnitMode()
+    {
+        return orgUnitSelectionMode != null && (orgUnitSelectionMode.equals( OrganisationUnitSelectionMode.DESCENDANTS )
+            || orgUnitSelectionMode.equals( OrganisationUnitSelectionMode.CHILDREN ));
+    }
 }
