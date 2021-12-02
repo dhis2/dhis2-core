@@ -581,6 +581,10 @@ public class AccountController
         {
             result.put( "message", "Username is already taken" );
         }
+        else
+        {
+            result.put( "message", "" );
+        }
 
         return result;
     }

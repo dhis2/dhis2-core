@@ -79,7 +79,7 @@ public class AccountControllerTest extends DhisControllerConvenienceTest
     public void testValidateUserNameGet_UserNameAvailable()
     {
         assertMessage( "response", "success", "",
-            GET( "/account/username?username=abc" ).content( HttpStatus.OK ) );
+            GET( "/account/username?username=abcd" ).content( HttpStatus.OK ) );
     }
 
     @Test
@@ -93,7 +93,7 @@ public class AccountControllerTest extends DhisControllerConvenienceTest
     public void testValidateUserNamePost_UserNameAvailable()
     {
         assertMessage( "response", "success", "",
-            POST( "/account/validateUsername?username=abc" ).content( HttpStatus.OK ) );
+            POST( "/account/validateUsername?username=abcd" ).content( HttpStatus.OK ) );
     }
 
     @Test

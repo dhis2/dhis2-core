@@ -71,9 +71,9 @@ public class BulkPatchSharingControllerTest
     public void testApplyPatchOk()
         throws IOException
     {
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userA", userAId ) ) );
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userB", userBId ) ) );
-        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "usera", userAId ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userb", userBId ) ) );
+        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userc" ) ) );
 
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'A', deAId, userCId ) ) ) );
@@ -100,9 +100,9 @@ public class BulkPatchSharingControllerTest
     public void testApplyPatchWithInvalidUid()
         throws IOException
     {
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userA", userAId ) ) );
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userB", userBId ) ) );
-        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "usera", userAId ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userb", userBId ) ) );
+        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userc" ) ) );
 
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", toJsonString( createDataElement( 'B', deBId, userCId ) ) ) );
@@ -128,9 +128,9 @@ public class BulkPatchSharingControllerTest
     public void testApplyPatchWithInvalidUidAtomic()
         throws IOException
     {
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userA", userAId ) ) );
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userB", userBId ) ) );
-        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "usera", userAId ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userb", userBId ) ) );
+        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userc" ) ) );
 
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
@@ -148,9 +148,9 @@ public class BulkPatchSharingControllerTest
     public void testApplyPatches()
         throws IOException
     {
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userA", userAId ) ) );
-        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userB", userBId ) ) );
-        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userC" ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "usera", userAId ) ) );
+        assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userb", userBId ) ) );
+        userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userc" ) ) );
 
         assertStatus( HttpStatus.CREATED,
             POST( "/dataSets", jsonMapper.writeValueAsString( createDataSet( 'A', dsIdA, userCId ) ) ) );
