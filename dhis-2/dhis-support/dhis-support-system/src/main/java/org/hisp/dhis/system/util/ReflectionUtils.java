@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.system.util;
 
+import static org.apache.commons.lang3.StringUtils.uncapitalize;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -296,6 +298,11 @@ public class ReflectionUtils
 
     public static Method findSetterMethod( String fieldName, Object target )
     {
+        return findSetterMethod( fieldName, target.getClass() );
+    }
+
+    public static Method findSetterMethod( String fieldName, Class<?> target )
+    {
         if ( target == null || !StringUtils.hasLength( fieldName ) )
         {
             return null;
@@ -305,14 +312,14 @@ public class ReflectionUtils
             "set"
         };
 
-        Field field = _findField( target.getClass(), StringUtils.uncapitalize( fieldName ) );
+        Field field = _findField( target, StringUtils.uncapitalize( fieldName ) );
         Method method;
 
         if ( field != null )
         {
             for ( String setterName : setterNames )
             {
-                method = _findMethod( target.getClass(), setterName + StringUtils.capitalize( field.getName() ),
+                method = _findMethod( target, setterName + StringUtils.capitalize( field.getName() ),
                     field.getType() );
 
                 if ( method != null )
@@ -526,5 +533,47 @@ public class ReflectionUtils
     public static boolean isTranslationProperty( Property property )
     {
         return "translations".equals( property.getName() ) || "translations".equals( property.getCollectionName() );
+    }
+
+    public static List<Field> findFields( Class<?> klass, Predicate<Field> predicate )
+    {
+        return getAllFields( klass ).stream()
+            .filter( predicate )
+            .collect( Collectors.toList() );
+    }
+
+    public static List<Method> findMethods( Class<?> klass, Predicate<Method> predicate )
+    {
+        return getMethods( klass ).stream()
+            .filter( predicate )
+            .collect( Collectors.toList() );
+    }
+
+    public static String getFieldName( Method method )
+    {
+        String name = method.getName();
+
+        if ( name.startsWith( "is" ) )
+        {
+            return uncapitalize( name.substring( 2 ) );
+        }
+        else if ( name.startsWith( "has" ) || name.startsWith( "get" ) )
+        {
+            return uncapitalize( name.substring( 3 ) );
+        }
+
+        return uncapitalize( name );
+    }
+
+    public static Type getInnerType( ParameterizedType parameterizedType )
+    {
+        ParameterizedType innerType = parameterizedType;
+
+        while ( innerType.getActualTypeArguments()[0] instanceof ParameterizedType )
+        {
+            innerType = (ParameterizedType) parameterizedType.getActualTypeArguments()[0];
+        }
+
+        return innerType.getActualTypeArguments()[0];
     }
 }
