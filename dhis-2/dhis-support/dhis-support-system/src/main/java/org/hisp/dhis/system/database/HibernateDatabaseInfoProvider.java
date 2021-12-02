@@ -256,7 +256,7 @@ public class HibernateDatabaseInfoProvider
             String pg_trgm_ext_name = jdbcTemplate
                 .queryForObject( "SELECT extname from pg_extension where extname='pg_trgm';", String.class );
 
-            return pg_trgm_ext_name.equals( PG_TRIGRAM_EXTENSION );
+            return PG_TRIGRAM_EXTENSION.equals( pg_trgm_ext_name );
         }
         catch ( Exception ex )
         {
@@ -281,10 +281,10 @@ public class HibernateDatabaseInfoProvider
 
         try
         {
-            String pg_trgm_ext_name = jdbcTemplate
+            String btree_ext_name = jdbcTemplate
                 .queryForObject( "SELECT extname from pg_extension where extname='btree_gin';", String.class );
 
-            return pg_trgm_ext_name.equals( BTREE_GIN_EXTENSION );
+            return BTREE_GIN_EXTENSION.equals( btree_ext_name );
         }
         catch ( Exception ex )
         {

@@ -29,10 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +46,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.BadSqlGrammarException;
 
 /**
  * @author Chau Thu Tran
@@ -197,6 +195,35 @@ public class TrackedEntityAttributeStoreTest
             indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'S' ) ) );
         assertTrue(
             indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'T' ) ) );
+    }
+
+    @Test
+    public void testCreateTrigramIndex()
+    {
+        long idA = attributeService.addTrackedEntityAttribute( attributeW );
+        Exception exception = assertThrows( BadSqlGrammarException.class,
+            () -> attributeService.createTrigramIndex( attributeW ) );
+        assertTrue( exception.getMessage().contains( String.format(
+            "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON trackedentityattributevalue USING gin (trackedentityinstanceid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d",
+            idA, idA ) ) );
+    }
+
+    @Test
+    public void testRunAnalyze()
+    {
+        Exception exception = assertThrows( BadSqlGrammarException.class,
+            () -> attributeService.runAnalyze() );
+        assertTrue( exception.getMessage().contains(
+            "ANALYZE trackedentityattributevalue" ) );
+    }
+
+    @Test
+    public void testRunVacuum()
+    {
+        Exception exception = assertThrows( BadSqlGrammarException.class,
+            () -> attributeService.runVacuum() );
+        assertTrue( exception.getMessage().contains(
+            "VACUUM trackedentityattributevalue" ) );
     }
 
     @Test
