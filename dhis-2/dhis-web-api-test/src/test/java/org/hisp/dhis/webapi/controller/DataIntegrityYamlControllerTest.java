@@ -29,10 +29,15 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Optional;
+
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.Test;
@@ -45,11 +50,25 @@ import org.springframework.http.HttpStatus;
 public class DataIntegrityYamlControllerTest extends DhisControllerConvenienceTest
 {
     @Test
+    public void testGetAvailableChecks()
+    {
+        JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity" ).content()
+            .asList( JsonDataIntegrityCheck.class );
+
+        assertFalse( checks.isEmpty() );
+        Optional<JsonDataIntegrityCheck> categories_no_options = checks.stream()
+            .filter( check -> check.getName().equals( "categories_no_options" ) ).findFirst();
+        assertTrue( categories_no_options.isPresent() );
+    }
+
+    @Test
     public void testSummaries_categories_no_options()
     {
         assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+
         JsonObject content = GET( "/dataIntegrity/summary?checks=categories-no-options" ).content();
+
         JsonDataIntegritySummary summary = content.get( "categories_no_options", JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
         assertEquals( 1, summary.getCount() );
@@ -61,7 +80,9 @@ public class DataIntegrityYamlControllerTest extends DhisControllerConvenienceTe
     {
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
+
         JsonObject content = GET( "/dataIntegrity/details?checks=categories-no-options" ).content();
+
         JsonDataIntegrityDetails details = content.get( "categories_no_options", JsonDataIntegrityDetails.class );
         assertTrue( details.exists() );
         assertEquals( 1, details.getIssues().size() );

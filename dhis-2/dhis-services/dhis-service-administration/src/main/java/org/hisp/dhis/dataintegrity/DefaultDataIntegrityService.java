@@ -511,7 +511,7 @@ public class DefaultDataIntegrityService
 
     @Getter
     @AllArgsConstructor
-    private static class LegacyDataIntegrityCheck<T>
+    private static class ReportDataIntegrityCheck<T>
     {
         private final DataIntegrityCheckType type;
 
@@ -520,16 +520,25 @@ public class DefaultDataIntegrityService
         private final BiConsumer<DataIntegrityReport, T> setter;
     }
 
-    private final Map<DataIntegrityCheckType, LegacyDataIntegrityCheck<?>> integrityChecks = new ConcurrentHashMap<>();
+    private final Map<DataIntegrityCheckType, ReportDataIntegrityCheck<?>> integrityChecks = new ConcurrentHashMap<>();
 
     private <T> void registerIntegrityCheck( DataIntegrityCheckType type, Supplier<T> check,
         BiConsumer<DataIntegrityReport, T> setter )
     {
-        integrityChecks.put( type, new LegacyDataIntegrityCheck<>( type, check, setter ) );
+        integrityChecks.put( type, new ReportDataIntegrityCheck<>( type, check, setter ) );
+        String name = type.name().toLowerCase();
+        checksByName.put( name, DataIntegrityCheck.builder()
+            .name( name )
+            .severity( DataIntegritySeverity.WARNING )
+            .section( "Legacy" )
+            .description( name.replace( '_', ' ' ) )
+            .runDetailsCheck( c -> null ) // TODO
+            .runSummaryCheck( c -> null ) // not supported
+            .build() );
     }
 
     /**
-     * Maps all {@link LegacyDataIntegrityCheck}s to their implementation and
+     * Maps all {@link ReportDataIntegrityCheck}s to their implementation and
      * the report field to set with the result.
      */
     @PostConstruct
@@ -644,7 +653,7 @@ public class DefaultDataIntegrityService
         return report;
     }
 
-    private <T> void performDataIntegrityCheck( LegacyDataIntegrityCheck<T> check, DataIntegrityReport report,
+    private <T> void performDataIntegrityCheck( ReportDataIntegrityCheck<T> check, DataIntegrityReport report,
         JobProgress progress )
     {
         progress.startingStage( check.getType().name().toLowerCase().replace( '_', ' ' ) );
@@ -872,7 +881,13 @@ public class DefaultDataIntegrityService
         Map<String, T> checkResults = new LinkedHashMap<>();
         progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
             DataIntegrityCheck::getDescription,
-            check -> checkResults.put( check.getName(), runCheck.apply( check ) ) );
+            check -> {
+                T res = runCheck.apply( check );
+                if ( res != null )
+                {
+                    checkResults.put( check.getName(), res );
+                }
+            } );
         progress.completedProcess( null );
         return checkResults;
     }
