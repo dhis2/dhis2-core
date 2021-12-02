@@ -85,6 +85,7 @@ CREATE TABLE IF NOT EXISTS eventvisualization
     showdimensionlabels               bool         NULL,
     rowsubtotals                      bool         NULL,
     colsubtotals                      bool         NULL,
+    legacy                            bool         NULL,
 
     -- CONTRAINTS
     CONSTRAINT eventvisualization_pkey PRIMARY KEY (eventvisualizationid),

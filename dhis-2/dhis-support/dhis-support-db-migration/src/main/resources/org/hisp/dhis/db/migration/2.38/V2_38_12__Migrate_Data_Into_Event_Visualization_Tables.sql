@@ -692,6 +692,9 @@ UPDATE eventvisualization
 SET colsubtotals = false
 WHERE colsubtotals IS NULL;
 
+UPDATE eventvisualization
+SET legacy = true
+WHERE legacy IS NULL;
 
 -- Set all NULL boolean columns to 0. Hibernate are primitive int's.
 UPDATE eventvisualization
