@@ -47,6 +47,7 @@ public class PagingWrapper<T>
     private String identifier;
 
     @JsonIgnore
+    @JsonAnyGetter
     private Map<String, Collection<T>> elements = new LinkedHashMap<>();
 
     @JsonUnwrapped
@@ -77,12 +78,6 @@ public class PagingWrapper<T>
         pagingWrapper.pager = pager;
         pagingWrapper.elements.put( identifier, elements );
         return pagingWrapper;
-    }
-
-    @JsonAnyGetter
-    public Map<String, ?> any()
-    {
-        return this.elements;
     }
 
     @Data
