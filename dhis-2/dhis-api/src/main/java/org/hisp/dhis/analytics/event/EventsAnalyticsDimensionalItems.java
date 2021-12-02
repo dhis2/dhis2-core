@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.event;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -38,12 +37,13 @@ import lombok.Data;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @Builder( toBuilder = true )
-public class EventsAnalyticsDimensionalItems implements Supplier<Collection<BaseDimensionalItemObject>>
+public class EventsAnalyticsDimensionalItems
 {
 
     public final static EventsAnalyticsDimensionalItems EMPTY_ANALYTICS_DIMENSIONAL_ITEMS = EventsAnalyticsDimensionalItems
@@ -62,12 +62,12 @@ public class EventsAnalyticsDimensionalItems implements Supplier<Collection<Base
     @Builder.Default
     private final Collection<? extends BaseDimensionalItemObject> trackedEntityAttributes = Collections.emptyList();
 
-    @Override
-    public Collection<BaseDimensionalItemObject> get()
+    public Collection<BaseDimensionalItemObject> getDimensionalItems()
     {
         return Stream.of( programIndicators, dataElements, trackedEntityAttributes )
             .map( CollectionUtils::emptyIfNull )
             .flatMap( Collection::stream )
+            .map( HibernateProxyUtils::unproxy )
             .collect( Collectors.toList() );
     }
 }

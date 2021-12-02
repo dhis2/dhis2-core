@@ -30,12 +30,13 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
-import org.hisp.dhis.analytics.DimensionalItemHolder;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.dataitem.DimensionalItemFilteringAndPagingService;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
@@ -57,6 +58,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Lars Helge Overland
@@ -166,16 +169,19 @@ public class EventAnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + "/aggregate/dimensions", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
-    public @ResponseBody PagingWrapper<DimensionalItemHolder<?>> getAggregateDimensions(
+    public @ResponseBody PagingWrapper<ObjectNode> getAggregateDimensions(
         @RequestParam String programStageId,
+        @RequestParam( defaultValue = "*" ) List<String> fields,
         DimensionalItemCriteria dimensionalItemCriteria,
         HttpServletResponse response )
     {
         configResponseForJson( response );
         return dimensionalItemFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionalItemService.getAggregateDimensionalItemsByProgramStageId( programStageId ),
-                dimensionalItemCriteria );
+                eventAnalyticsDimensionalItemService.getAggregateDimensionalItemsByProgramStageId( programStageId )
+                    .getDimensionalItems(),
+                dimensionalItemCriteria,
+                fields );
     }
 
     // -------------------------------------------------------------------------
@@ -306,16 +312,19 @@ public class EventAnalyticsController
 
     @GetMapping( value = RESOURCE_PATH + "/query/dimensions", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
-    public @ResponseBody PagingWrapper<DimensionalItemHolder<?>> getQueryDimensions(
+    public @ResponseBody PagingWrapper<ObjectNode> getQueryDimensions(
         @RequestParam String programStageId,
+        @RequestParam( defaultValue = "*" ) List<String> fields,
         DimensionalItemCriteria dimensionalItemCriteria,
         HttpServletResponse response )
     {
         configResponseForJson( response );
         return dimensionalItemFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionalItemService.getQueryDimensionalItemsByProgramStageId( programStageId ),
-                dimensionalItemCriteria );
+                eventAnalyticsDimensionalItemService.getQueryDimensionalItemsByProgramStageId( programStageId )
+                    .getDimensionalItems(),
+                dimensionalItemCriteria,
+                fields );
     }
 
     private Grid getAggregatedGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,

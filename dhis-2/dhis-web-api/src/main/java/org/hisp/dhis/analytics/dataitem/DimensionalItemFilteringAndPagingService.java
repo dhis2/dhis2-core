@@ -29,27 +29,37 @@ package org.hisp.dhis.analytics.dataitem;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.hisp.dhis.analytics.DimensionalItemHolder;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemCriteria;
+import org.hisp.dhis.fieldfiltering.FieldFilterParams;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 
 @Service
+@RequiredArgsConstructor
 public class DimensionalItemFilteringAndPagingService
 {
+
+    @NonNull
+    private final FieldFilterService fieldFilterService;
+
     private final static Comparator<BaseDimensionalItemObject> DEFAULT_COMPARATOR = Comparator
         .comparing( BaseIdentifiableObject::getCreated );
 
@@ -59,21 +69,24 @@ public class DimensionalItemFilteringAndPagingService
         "uid", Comparator.comparing( BaseIdentifiableObject::getUid ),
         "name", Comparator.comparing( BaseIdentifiableObject::getName ) );
 
-    public PagingWrapper<DimensionalItemHolder<?>> pageAndFilter(
-        Supplier<Collection<BaseDimensionalItemObject>> dimensionalItems,
-        DimensionalItemCriteria dimensionalItemCriteria )
+    public PagingWrapper<ObjectNode> pageAndFilter(
+        Collection<BaseDimensionalItemObject> dimensionalItems,
+        DimensionalItemCriteria dimensionalItemCriteria,
+        List<String> fields )
     {
 
-        PagingWrapper<DimensionalItemHolder<?>> pagingWrapper = new PagingWrapper<>( "dimensions" );
+        PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "dimensions" );
 
-        Collection<BaseDimensionalItemObject> filteredItems = filterStream( dimensionalItems.get().stream(),
+        Collection<BaseDimensionalItemObject> filteredItems = filterStream( dimensionalItems.stream(),
             dimensionalItemCriteria )
                 .collect( Collectors.toList() );
 
-        pagingWrapper = pagingWrapper.withInstances(
-            sortedAndPagedStream( filteredItems.stream(), dimensionalItemCriteria )
-                .map( this::asDimensionalItemHolder )
-                .collect( Collectors.toList() ) );
+        var params = FieldFilterParams.of( sortedAndPagedStream( filteredItems.stream(), dimensionalItemCriteria )
+            .collect( Collectors.toList() ), fields );
+
+        var objectNodes = fieldFilterService.toObjectNodes( params );
+
+        pagingWrapper = pagingWrapper.withInstances( objectNodes );
 
         if ( dimensionalItemCriteria.isPagingRequest() )
         {
@@ -85,15 +98,6 @@ public class DimensionalItemFilteringAndPagingService
         }
 
         return pagingWrapper;
-    }
-
-    private DimensionalItemHolder<BaseDimensionalItemObject> asDimensionalItemHolder(
-        BaseDimensionalItemObject dimensionalItem )
-    {
-        return DimensionalItemHolder.<BaseDimensionalItemObject> builder()
-            .item( dimensionalItem )
-            .dimensionItemType( dimensionalItem.getDimensionItemType() )
-            .build();
     }
 
     private Stream<BaseDimensionalItemObject> filterStream(
