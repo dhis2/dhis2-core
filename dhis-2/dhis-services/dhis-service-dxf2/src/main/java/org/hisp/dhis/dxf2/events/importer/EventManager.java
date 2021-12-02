@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.SUCCESS;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.WARNING;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
@@ -53,6 +54,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -68,9 +70,6 @@ import com.google.common.collect.ImmutableList;
 @RequiredArgsConstructor
 public class EventManager
 {
-    @NonNull
-    private final EventImporterValidationRunner eventImporterValidationRunner;
-
     @NonNull
     @Qualifier( "checkersRunOnInsert" )
     private final List<Checker> checkersRunOnInsert;
@@ -128,8 +127,7 @@ public class EventManager
 
         if ( ImportStrategyUtils.isInsert( workContext.getImportOptions().getImportStrategy() ) )
         {
-            importSummaries.addImportSummaries(
-                eventImporterValidationRunner.run( workContext, validEvents, checkersRunOnInsert ) );
+            importSummaries.addImportSummaries( run( workContext, validEvents, checkersRunOnInsert ) );
         }
         else
         {
@@ -207,8 +205,7 @@ public class EventManager
 
         if ( ImportStrategyUtils.isUpdate( workContext.getImportOptions().getImportStrategy() ) )
         {
-            importSummaries.addImportSummaries(
-                eventImporterValidationRunner.run( workContext, events, checkersRunOnUpdate ) );
+            importSummaries.addImportSummaries( run( workContext, events, checkersRunOnUpdate ) );
         }
         else
         {
@@ -267,8 +264,7 @@ public class EventManager
 
         if ( ImportStrategyUtils.isDelete( workContext.getImportOptions().getImportStrategy() ) )
         {
-            importSummaries.addImportSummaries(
-                eventImporterValidationRunner.run( workContext, events, checkersRunOnDelete ) );
+            importSummaries.addImportSummaries( run( workContext, events, checkersRunOnDelete ) );
         }
         else
         {
@@ -451,5 +447,35 @@ public class EventManager
         }
 
         return failedEvents;
+    }
+
+    /**
+     * Validates the events using the supplied list of validators.
+     * <p>
+     * Only returns the ImportSummary for Events that *did* not pass validation
+     *
+     */
+    private List<ImportSummary> run( WorkContext workContext, List<Event> events, List<? extends Checker> checkers )
+    {
+        final List<ImportSummary> importSummaries = new ArrayList<>( 0 );
+
+        for ( final Event event : events )
+        {
+            for ( Checker checker : checkers )
+            {
+                final ImportSummary importSummary = checker.check( new ImmutableEvent( event ), workContext );
+
+                if ( importSummary.isStatus( ERROR ) || importSummary.isStatus( WARNING ) )
+                {
+                    importSummaries.add( importSummary );
+                    if ( importSummary.isStatus( ERROR ) )
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return importSummaries;
     }
 }
