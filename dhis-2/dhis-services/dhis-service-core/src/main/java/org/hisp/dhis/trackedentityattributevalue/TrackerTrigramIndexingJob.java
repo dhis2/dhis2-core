@@ -84,30 +84,46 @@ public class TrackerTrigramIndexingJob implements Job
             log.debug( "Fetching all indexable attributes from db" );
             Set<TrackedEntityAttribute> indexableAttributes = trackedEntityAttributeService
                 .getAllTrigramIndexableTrackedEntityAttributes();
+
+            log.debug( "Found total {} indexable attributes", indexableAttributes.size() );
             indexableAttributes = indexableAttributes.stream()
                 .filter( itea -> parameters.getAttributes().contains( itea.getUid() ) ).collect( Collectors.toSet() );
-            progress.startingStage( "Creating trigram indexes attributes", parameters.getAttributes().size() );
-            progress.runStage( indexableAttributes.stream(), TrackedEntityAttribute::getName,
-                tea -> trackedEntityAttributeService.createTrigramIndex( tea ),
-                TrackerTrigramIndexingJob::computeTrigramIndexingSummary );
-            progress.completedStage( "Trigram indexes created" );
+
+            log.debug( "Number of Attributes provided in jobparameters that are indexable: {}",
+                indexableAttributes.size() );
+
+            if ( !indexableAttributes.isEmpty() )
+            {
+                log.debug( "Creating {} trigram indexes", indexableAttributes.size() );
+                progress.startingStage( "Creating trigram indexes for attributes", indexableAttributes.size() );
+                progress.runStage( indexableAttributes.stream(), TrackedEntityAttribute::getName,
+                    tea -> trackedEntityAttributeService.createTrigramIndex( tea ),
+                    TrackerTrigramIndexingJob::computeTrigramIndexingSummary );
+                progress.completedStage( "Trigram indexes created" );
+                log.debug( "Created {} trigram indexes", indexableAttributes.size() );
+            }
         }
 
         if ( parameters.isRunVacuum() )
         {
+            log.debug( "Running VACUUM" );
             progress.startingStage( "Running VACUUM on tracker tables", 1 );
             progress.runStage( () -> trackedEntityAttributeService.runVacuum() );
             progress.completedStage( "VACUUM run completed" );
+            log.debug( "VACUUM completed" );
         }
 
         if ( parameters.isRunAnalyze() )
         {
+            log.debug( "Running ANALYZE" );
             progress.startingStage( "Running ANALYZE on tracker tables", 1 );
             progress.runStage( () -> trackedEntityAttributeService.runAnalyze() );
             progress.completedStage( "ANALYZE run completed" );
+            log.debug( "ANALYZE completed" );
         }
 
         progress.completedProcess( "Job completed" );
+        log.info( "Trigram Indexing Job completed" );
     }
 
     private static String computeTrigramIndexingSummary( int successful, int failed )

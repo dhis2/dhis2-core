@@ -83,7 +83,9 @@ public class TrackedEntityAttributeStoreTest
     {
 
         attributeW = createTrackedEntityAttribute( 'W' );
+        attributeW.setUnique( true );
         attributeY = createTrackedEntityAttribute( 'Y' );
+        attributeY.setUnique( true );
         attributeZ = createTrackedEntityAttribute( 'Z', ValueType.NUMBER );
 
         List<TrackedEntityAttribute> attributesA = new ArrayList<>();
@@ -113,6 +115,18 @@ public class TrackedEntityAttributeStoreTest
                 attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
             .collect( Collectors.toList() );
 
+        // Setting searchable to true for 5 tracked entity type attributes
+        TrackedEntityTypeAttribute teta = teatList.get( 0 );
+        teta.setSearchable( true );
+        teta = teatList.get( 4 );
+        teta.setSearchable( true );
+        teta = teatList.get( 9 );
+        teta.setSearchable( true );
+        teta = teatList.get( 14 );
+        teta.setSearchable( true );
+        teta = teatList.get( 19 );
+        teta.setSearchable( true );
+
         // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type A
         trackedEntityTypeA.setTrackedEntityTypeAttributes( teatList.subList( 0, 10 ) );
         trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeA );
@@ -129,6 +143,18 @@ public class TrackedEntityAttributeStoreTest
                 attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
             .collect( Collectors.toList() );
 
+        // Setting searchable to true for 5 program tracked entity attributes
+        ProgramTrackedEntityAttribute ptea = pteaList.get( 0 );
+        ptea.setSearchable( true );
+        ptea = pteaList.get( 4 );
+        ptea.setSearchable( true );
+        ptea = pteaList.get( 9 );
+        ptea.setSearchable( true );
+        ptea = pteaList.get( 13 );
+        ptea.setSearchable( true );
+        ptea = pteaList.get( 18 );
+        ptea.setSearchable( true );
+
         programB.setProgramAttributes( pteaList );
         programService.updateProgram( programB );
 
@@ -142,6 +168,35 @@ public class TrackedEntityAttributeStoreTest
 
         assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
         assertNotNull( attributeService.getTrackedEntityAttribute( idB ) );
+    }
+
+    @Test
+    public void testGetAllIndexableAttributes()
+    {
+        long idA = attributeService.addTrackedEntityAttribute( attributeW );
+        long idB = attributeService.addTrackedEntityAttribute( attributeY );
+
+        Set<TrackedEntityAttribute> indexableAttributes = attributeService
+            .getAllTrigramIndexableTrackedEntityAttributes();
+
+        assertNotNull( indexableAttributes );
+        assertEquals( indexableAttributes.size(), 9 );
+        assertTrue( indexableAttributes.contains( attributeW ) );
+        assertTrue( indexableAttributes.contains( attributeY ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'A' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'E' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'J' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'N' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'O' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'S' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'T' ) ) );
     }
 
     @Test
