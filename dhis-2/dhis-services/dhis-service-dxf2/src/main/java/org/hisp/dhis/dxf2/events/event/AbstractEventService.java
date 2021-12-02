@@ -309,18 +309,7 @@ public abstract class AbstractEventService implements EventService
 
         List<Event> eventList = eventStore.getEvents( params, organisationUnits, Collections.emptyMap() );
 
-        for ( Event event : eventList )
-        {
-            boolean canSkipCheck = event.getTrackedEntityInstance() == null ||
-                trackerOwnershipAccessManager.canSkipOwnershipCheck( user, event.getProgramType() );
-
-            if ( canSkipCheck || trackerOwnershipAccessManager.hasAccess( user,
-                entityInstanceService.getTrackedEntityInstance( event.getTrackedEntityInstance() ),
-                programService.getProgram( event.getProgram() ) ) )
-            {
-                events.getEvents().add( event );
-            }
-        }
+        events.setEvents( eventList );
 
         return events;
     }
@@ -402,23 +391,6 @@ public abstract class AbstractEventService implements EventService
         for ( Map<String, String> event : events )
         {
             grid.addRow();
-
-            Program program = params.getProgramStage().getProgram();
-
-            if ( !trackerOwnershipAccessManager.canSkipOwnershipCheck( user, program ) )
-            {
-                ProgramInstance enrollment = programInstanceService
-                    .getProgramInstance( event.get( EVENT_ENROLLMENT_ID ) );
-
-                if ( enrollment != null && enrollment.getEntityInstance() != null )
-                {
-                    if ( !trackerOwnershipAccessManager.hasAccess( user,
-                        enrollment.getEntityInstance(), program ) )
-                    {
-                        continue;
-                    }
-                }
-            }
 
             for ( String col : STATIC_EVENT_COLUMNS )
             {
@@ -945,21 +917,14 @@ public abstract class AbstractEventService implements EventService
             throw new IllegalQueryException( "User is required to use ACCESSIBLE scope." );
         }
 
-        Set<OrganisationUnit> orgUnits = user.getOrganisationUnits();
-
-        if ( params.getProgram() != null )
-        {
-            orgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
-
-            if ( params.getProgram().isClosed() )
-            {
-                orgUnits = user.getOrganisationUnits();
-            }
-        }
-
         params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE );
 
-        return orgUnits.stream().collect( Collectors.toList() );
+        if ( params.getProgram() == null || params.getProgram().isClosed() || params.getProgram().isProtected() )
+        {
+            return user.getOrganisationUnits().stream().collect( Collectors.toList() );
+        }
+
+        return user.getTeiSearchOrganisationUnitsWithFallback().stream().collect( Collectors.toList() );
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user,
