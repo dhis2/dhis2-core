@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import static java.util.Collections.unmodifiableSet;
+import static java.util.Collections.unmodifiableCollection;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -843,41 +844,42 @@ public class DefaultDataIntegrityService
     private final AtomicBoolean configurationsAreLoaded = new AtomicBoolean( false );
 
     @Override
-    public Set<String> getDataIntegrityNames()
+    public Collection<DataIntegrityCheck> getDataIntegrityChecks()
     {
-        return unmodifiableSet( checksByName.keySet() );
+        ensureConfigurationsAreLoaded();
+        return unmodifiableCollection( checksByName.values() );
     }
 
     @Override
     public Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress )
     {
-        ensureConfigurationsAreLoaded();
-        checks = allChecksIfNoSpecificOnes( checks );
-        progress.startingProcess( "Data Integrity check" );
-        progress.startingStage( "Data Integrity summary checks", checks.size() );
-        Map<String, DataIntegritySummary> summaries = new LinkedHashMap<>();
-        progress.runStage( checks.stream().map( checksByName::get ), DataIntegrityCheck::getDescription,
-            check -> summaries.put( check.getName(), check.getRunSummaryCheck().apply( check ) ) );
-        progress.completedProcess( null );
-        return summaries;
+        return runDataIntegrityChecks( "Data Integrity summary checks", allChecksIfNoSpecificOnes( checks ), progress,
+            check -> check.getRunSummaryCheck().apply( check ) );
     }
 
     @Override
     public Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress )
     {
-        ensureConfigurationsAreLoaded();
-        checks = allChecksIfNoSpecificOnes( checks );
+        return runDataIntegrityChecks( "Data Integrity details checks", allChecksIfNoSpecificOnes( checks ), progress,
+            check -> check.getRunDetailsCheck().apply( check ) );
+    }
+
+    private <T> Map<String, T> runDataIntegrityChecks( String stageDesc, Set<String> checks, JobProgress progress,
+        Function<DataIntegrityCheck, T> runCheck )
+    {
         progress.startingProcess( "Data Integrity check" );
-        progress.startingStage( "Data Integrity details checks", checks.size() );
-        Map<String, DataIntegrityDetails> details = new LinkedHashMap<>();
-        progress.runStage( checks.stream().map( checksByName::get ), DataIntegrityCheck::getDescription,
-            check -> details.put( check.getName(), check.getRunDetailsCheck().apply( check ) ) );
+        progress.startingStage( stageDesc, checks.size() );
+        Map<String, T> checkResults = new LinkedHashMap<>();
+        progress.runStage( checks.stream().map( checksByName::get ).filter( Objects::nonNull ),
+            DataIntegrityCheck::getDescription,
+            check -> checkResults.put( check.getName(), runCheck.apply( check ) ) );
         progress.completedProcess( null );
-        return details;
+        return checkResults;
     }
 
     private Set<String> allChecksIfNoSpecificOnes( Set<String> checks )
     {
+        ensureConfigurationsAreLoaded();
         if ( checks == null || checks.isEmpty() )
         {
             checks = checksByName.keySet();
@@ -899,9 +901,7 @@ public class DefaultDataIntegrityService
         return check -> {
             Object[] summary = (Object[]) sessionFactory.getCurrentSession()
                 .createNativeQuery( sql ).getSingleResult();
-            return new DataIntegritySummary( check,
-                ((Number) summary[0]).intValue(),
-                summary[1] == null ? null : ((Number) summary[1]).doubleValue() );
+            return new DataIntegritySummary( check, parseCount( summary[0] ), parsePercentage( summary[1] ) );
         };
     }
 
@@ -915,5 +915,23 @@ public class DefaultDataIntegrityService
                     (String) row[1], row.length == 2 ? null : (String) row[2], null ) )
                 .collect( toUnmodifiableList() ) );
         };
+    }
+
+    private static Double parsePercentage( Object value )
+    {
+        if ( value == null )
+        {
+            return null;
+        }
+        if ( value instanceof String )
+        {
+            return Double.parseDouble( value.toString().replace( "%", "" ) );
+        }
+        return ((Number) value).doubleValue();
+    }
+
+    private static int parseCount( Object value )
+    {
+        return value == null ? 0 : ((Number) value).intValue();
     }
 }

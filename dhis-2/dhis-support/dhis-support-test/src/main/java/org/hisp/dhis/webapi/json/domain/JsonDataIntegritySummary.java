@@ -25,40 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
-
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
-import org.hisp.dhis.scheduling.JobProgress;
+package org.hisp.dhis.webapi.json.domain;
 
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * JSON API equivalent of
+ * {@link org.hisp.dhis.dataintegrity.DataIntegritySummary}.
+ *
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+public interface JsonDataIntegritySummary extends JsonDataIntegrityCheck
 {
-    /*
-     * Old API
-     */
 
-    /**
-     * @deprecated Replaced by {@link #getSummaries(Set, JobProgress)} and
-     *             {@link #getDetails(Set, JobProgress)}, kept for backwards
-     *             compatibility until new UI exists
-     */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress );
+    default int getCount()
+    {
+        return getNumber( "count" ).intValue();
+    }
 
-    /*
-     * New generic API
-     */
-
-    Collection<DataIntegrityCheck> getDataIntegrityChecks();
-
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress );
-
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress );
+    default Number getPercentage()
+    {
+        return getNumber( "percentage" ).number();
+    }
 }

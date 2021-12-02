@@ -120,8 +120,8 @@ class DataIntegrityYamlReader
                     .recommendation( trim( e.recommendation ) )
                     .section( trim( e.section ) )
                     .severity( e.severity )
-                    .runSummaryCheck( sqlToSummary.apply( trim( e.summarySql ) ) )
-                    .runDetailsCheck( sqlToDetails.apply( trim( e.detailsSql ) ) )
+                    .runSummaryCheck( sqlToSummary.apply( sanitiseSQL( e.summarySql ) ) )
+                    .runDetailsCheck( sqlToDetails.apply( sanitiseSQL( e.detailsSql ) ) )
                     .build() );
             }
             catch ( Exception ex )
@@ -135,4 +135,20 @@ class DataIntegrityYamlReader
     {
         return str == null ? null : str.trim();
     }
+
+    /**
+     * The purpose of this method is to strip some details from the SQL queries
+     * that are present for their 2nd use case scenario but are not needed here
+     * and might confuse the database (even if this is just in unit tests).
+     */
+    private static String sanitiseSQL( String sql )
+    {
+        return trim( sql
+            .replaceAll( "select '[^']+' as [^,]+,", "select " )
+            .replaceAll( "'[^']+' as description", "" )
+            .replace( "::varchar", "" )
+            .replace( "|| '%'", "" )
+            .replaceAll( " as [^,]+,", "," ) );
+    }
+
 }

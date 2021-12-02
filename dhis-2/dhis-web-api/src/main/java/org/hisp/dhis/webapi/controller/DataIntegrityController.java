@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,6 +39,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
@@ -92,12 +95,19 @@ public class DataIntegrityController
         return jobConfigurationReport( config );
     }
 
+    @GetMapping
+    @ResponseBody
+    public Collection<DataIntegrityCheck> getAvailableChecks()
+    {
+        return dataIntegrityService.getDataIntegrityChecks();
+    }
+
     @GetMapping( "/summary" )
     @ResponseBody
     public Map<String, DataIntegritySummary> runAndGetSummaries(
         @RequestParam( required = false ) Set<String> checks )
     {
-        return dataIntegrityService.getSummaries( checks, NoopJobProgress.INSTANCE );
+        return dataIntegrityService.getSummaries( toUniformCheckNames( checks ), NoopJobProgress.INSTANCE );
     }
 
     @GetMapping( "/details" )
@@ -105,7 +115,15 @@ public class DataIntegrityController
     public Map<String, DataIntegrityDetails> runAndGetDetails(
         @RequestParam( required = false ) Set<String> checks )
     {
-        return dataIntegrityService.getDetails( checks, NoopJobProgress.INSTANCE );
+        return dataIntegrityService.getDetails( toUniformCheckNames( checks ), NoopJobProgress.INSTANCE );
+    }
+
+    /**
+     * Allow both dash or underscore in the API
+     */
+    private static Set<String> toUniformCheckNames( Set<String> checks )
+    {
+        return checks.stream().map( check -> check.replace( '-', '_' ) ).collect( toUnmodifiableSet() );
     }
 
 }

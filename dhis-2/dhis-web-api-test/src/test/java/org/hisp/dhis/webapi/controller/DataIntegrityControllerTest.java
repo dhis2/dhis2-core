@@ -43,7 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
 import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.json.JsonString;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
 import org.junit.Test;
@@ -180,24 +179,6 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
         assertEquals( singletonMap( "B:" + ouIdB, asList( "B1", "B2" ) ),
             getDataIntegrityReport().getOrganisationUnitsViolatingExclusiveGroupSets()
                 .toMap( JsonString::string, String::compareTo ) );
-    }
-
-    @Test
-    public void testRunAndGetSummaries()
-    {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
-        JsonResponse content = GET( "/dataIntegrity/summary" ).content();
-        System.out.println( content );
-    }
-
-    @Test
-    public void testRunAndGetDetails()
-    {
-        assertStatus( HttpStatus.CREATED,
-            POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
-        JsonResponse content = GET( "/dataIntegrity/details" ).content();
-        System.out.println( content );
     }
 
     private String addOrganisationUnit( String name )

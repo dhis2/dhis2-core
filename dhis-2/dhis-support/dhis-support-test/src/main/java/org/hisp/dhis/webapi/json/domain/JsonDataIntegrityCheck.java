@@ -25,40 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataintegrity;
+package org.hisp.dhis.webapi.json.domain;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
-import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * JSON API equivalent of the
+ * {@link org.hisp.dhis.dataintegrity.DataIntegrityCheck}.
+ *
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+public interface JsonDataIntegrityCheck extends JsonObject
 {
-    /*
-     * Old API
-     */
-
-    /**
-     * @deprecated Replaced by {@link #getSummaries(Set, JobProgress)} and
-     *             {@link #getDetails(Set, JobProgress)}, kept for backwards
-     *             compatibility until new UI exists
-     */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress );
-
-    /*
-     * New generic API
-     */
-
-    Collection<DataIntegrityCheck> getDataIntegrityChecks();
-
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress );
-
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress );
 }

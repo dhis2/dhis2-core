@@ -62,8 +62,8 @@ public class DataIntegrityYamlReaderTest
         assertEquals( "Categories", check.getSection() );
         assertEquals( DataIntegritySeverity.WARNING, check.getSeverity() );
         assertEquals( "Categories should always have at least a single category options.", check.getIntroduction() );
-        assertEquals( "Any categories without category options should either be removed from the "
-            + "system if they are not in use. Otherwise, appropriate category options "
+        assertEquals( "Any categories without category options should either be removed from the\n"
+            + "system if they are not in use. Otherwise, appropriate category options\n"
             + "should be added to the category.", check.getRecommendation() );
         assertTrue( check.getRunDetailsCheck().apply( check ).getIssues().get( 0 ).getComment()
             .startsWith( "SELECT uid,name from dataelementcategory" ) );
