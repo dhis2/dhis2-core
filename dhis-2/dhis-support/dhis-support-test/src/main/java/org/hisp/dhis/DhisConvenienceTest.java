@@ -32,7 +32,6 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.io.File;
@@ -1251,7 +1250,7 @@ public abstract class DhisConvenienceTest
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
         predictor.setOrganisationUnitLevels( organisationUnitLevels );
-        predictor.setOrganisationUnitDescendants( DESCENDANTS );
+        predictor.setOrganisationUnitDescendants( OrganisationUnitDescendants.DESCENDANTS );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
