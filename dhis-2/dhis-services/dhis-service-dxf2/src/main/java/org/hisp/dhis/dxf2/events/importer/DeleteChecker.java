@@ -25,40 +25,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.dxf2.events.importer;
 
-import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
-
-import java.util.Optional;
-
-import org.hisp.dhis.dxf2.events.importer.InsertChecker;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * @author Luciano Fiandesio
+ * Checkers implementing this interface will be run on event deletion based on
+ * {@link ImportStrategyUtils#isDelete(ImportStrategy)}.
  */
-@Component
-public class TrackedEntityInstanceCheck implements InsertChecker
+public interface DeleteChecker extends Checker
 {
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
-
-        if ( program.isRegistration() && !trackedEntityInstance.isPresent() )
-        {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
-                    + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
-        }
-
-        return success();
-    }
 }

@@ -31,7 +31,7 @@ import java.util.List;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.InsertChecker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AttributeOptionComboAclCheck
     implements
-    Checker
+    InsertChecker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )

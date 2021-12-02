@@ -32,7 +32,8 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 import java.util.Objects;
 
 import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.InsertChecker;
+import org.hisp.dhis.dxf2.events.importer.UpdateChecker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -45,7 +46,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventGeometryCheck implements Checker
+public class EventGeometryCheck implements InsertChecker, UpdateChecker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )

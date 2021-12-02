@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.InsertChecker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class OrgUnitCheck implements Checker
+public class OrgUnitCheck implements InsertChecker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )

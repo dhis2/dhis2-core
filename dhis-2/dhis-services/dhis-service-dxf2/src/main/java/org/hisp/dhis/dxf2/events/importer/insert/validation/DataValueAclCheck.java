@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.InsertChecker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class DataValueAclCheck implements Checker
+public class DataValueAclCheck implements InsertChecker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )

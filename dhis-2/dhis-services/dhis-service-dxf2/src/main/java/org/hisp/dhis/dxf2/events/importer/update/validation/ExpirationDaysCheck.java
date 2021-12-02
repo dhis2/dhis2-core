@@ -33,7 +33,8 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 import java.util.Date;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.InsertChecker;
+import org.hisp.dhis.dxf2.events.importer.UpdateChecker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -51,7 +52,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class ExpirationDaysCheck implements Checker
+public class ExpirationDaysCheck implements InsertChecker, UpdateChecker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )

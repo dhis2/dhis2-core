@@ -38,7 +38,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.InsertChecker;
+import org.hisp.dhis.dxf2.events.importer.UpdateChecker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Component;
  * @author Giuseppe Nespolino
  */
 @Component
-public class FilteredDataValueCheck implements Checker
+public class FilteredDataValueCheck implements InsertChecker, UpdateChecker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )

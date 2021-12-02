@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.InsertChecker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventDateCheck
     implements
-    Checker
+    InsertChecker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )

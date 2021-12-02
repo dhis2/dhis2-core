@@ -55,44 +55,21 @@ import org.hisp.dhis.dxf2.events.importer.EventProcessorPhase;
 import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.delete.postprocess.EventDeleteAuditPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.delete.validation.DeleteProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.postprocess.EventInsertAuditPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramStagePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.UserInfoInsertPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.DataValueAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.EventCreationAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.EventDateCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.OrgUnitCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepeatableStageCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.SharedEventStatusPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboDateCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.DataValueCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.EventBaseCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.FilteredDataValueCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.SharedProgramCheck;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePreProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ExpirationDaysCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DuplicateIdsCheck;
@@ -130,7 +107,6 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import com.google.common.base.Functions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -147,8 +123,6 @@ public class ServiceConfig
     @Qualifier( "maxAttempts" )
     private ConfigurationPropertyFactoryBean maxAttempts;
 
-    private final Map<Class<? extends Checker>, Checker> checkersByClass;
-
     private final Map<Class<? extends ValidationCheck>, ValidationCheck> validationCheckByClass;
 
     private final Map<Class<? extends Processor>, Processor> processorsByClass;
@@ -160,7 +134,6 @@ public class ServiceConfig
     public ServiceConfig( Collection<Checker> checkers, Collection<ValidationCheck> validationChecks,
         Collection<Processor> processors, Collection<ProgramRuleActionValidator> programRuleActionValidators )
     {
-        checkersByClass = byClass( checkers );
         validationCheckByClass = byClass( validationChecks );
         processorsByClass = byClass( processors );
         programRuleActionValidatorsByClass = byClass( programRuleActionValidators );
@@ -248,62 +221,6 @@ public class ServiceConfig
     /*
      * TRACKER EVENT IMPORT VALIDATION
      */
-
-    @Bean
-    public List<Checker> checkersRunOnInsert()
-    {
-        return ImmutableList.of(
-            getCheckerByClass( EventDateCheck.class ),
-            getCheckerByClass( OrgUnitCheck.class ),
-            getCheckerByClass( SharedProgramCheck.class ),
-            getCheckerByClass( ProgramStageCheck.class ),
-            getCheckerByClass( TrackedEntityInstanceCheck.class ),
-            getCheckerByClass( ProgramInstanceCheck.class ),
-            getCheckerByClass( ProgramInstanceRepeatableStageCheck.class ),
-            getCheckerByClass( ProgramOrgUnitCheck.class ),
-            getCheckerByClass( EventGeometryCheck.class ),
-            getCheckerByClass( EventCreationAclCheck.class ),
-            getCheckerByClass( EventBaseCheck.class ),
-            getCheckerByClass( AttributeOptionComboCheck.class ),
-            getCheckerByClass( AttributeOptionComboDateCheck.class ),
-            getCheckerByClass( AttributeOptionComboAclCheck.class ),
-            getCheckerByClass( DataValueCheck.class ),
-            getCheckerByClass( FilteredDataValueCheck.class ),
-            getCheckerByClass( DataValueAclCheck.class ),
-            getCheckerByClass( ExpirationDaysCheck.class ) );
-    }
-
-    @Bean
-    public List<Checker> checkersRunOnUpdate()
-    {
-        return ImmutableList.of(
-            getCheckerByClass( EventSimpleCheck.class ),
-            getCheckerByClass( EventBaseCheck.class ),
-            getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
-            getCheckerByClass( UpdateProgramStageInstanceAclCheck.class ),
-            getCheckerByClass( SharedProgramCheck.class ),
-            getCheckerByClass( ProgramInstanceCheck.class ),
-            getCheckerByClass( ProgramStageInstanceAuthCheck.class ),
-            getCheckerByClass( AttributeOptionComboCheck.class ),
-            getCheckerByClass( AttributeOptionComboDateCheck.class ),
-            getCheckerByClass( EventGeometryCheck.class ),
-            getCheckerByClass( DataValueCheck.class ),
-            getCheckerByClass( FilteredDataValueCheck.class ),
-            getCheckerByClass( ExpirationDaysCheck.class ) );
-    }
-
-    @Bean
-    public List<Checker> checkersRunOnDelete()
-    {
-        return ImmutableList.of(
-            getCheckerByClass(
-                DeleteProgramStageInstanceAclCheck.class ) );
-    }
-
-    private Checker getCheckerByClass( Class<? extends Checker> checkerClass )
-    {
-        return getByClass( checkersByClass, checkerClass );
-    }
 
     private ValidationCheck getValidationCheckByClass( Class<? extends ValidationCheck> validationCheckClass )
     {

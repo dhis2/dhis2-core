@@ -41,7 +41,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.importer.Checker;
+import org.hisp.dhis.dxf2.events.importer.InsertChecker;
+import org.hisp.dhis.dxf2.events.importer.UpdateChecker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
@@ -64,7 +65,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  * @author Luciano Fiandesio
  */
 @Component
-public class DataValueCheck implements Checker
+public class DataValueCheck implements InsertChecker, UpdateChecker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
