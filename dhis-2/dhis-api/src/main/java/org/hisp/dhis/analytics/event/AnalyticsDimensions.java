@@ -42,10 +42,10 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
 @Data
 @Builder( toBuilder = true )
-public class EventsAnalyticsDimensionalItems
+public class AnalyticsDimensions
 {
 
-    public final static EventsAnalyticsDimensionalItems EMPTY_ANALYTICS_DIMENSIONAL_ITEMS = EventsAnalyticsDimensionalItems
+    public final static AnalyticsDimensions EMPTY_ANALYTICS_DIMENSIONS = AnalyticsDimensions
         .builder()
         .build();
 
@@ -65,7 +65,7 @@ public class EventsAnalyticsDimensionalItems
     private final Collection<? extends BaseDimensionalObject> attributeCategoryOptionGroupSets = Collections
         .emptyList();
 
-    public Collection<DimensionWrapper> getDimensionalItems()
+    public Collection<DimensionWrapper> getDimensions()
     {
         return Stream.of(
             programIndicators,

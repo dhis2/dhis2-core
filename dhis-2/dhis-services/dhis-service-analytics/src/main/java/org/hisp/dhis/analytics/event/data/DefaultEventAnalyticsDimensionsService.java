@@ -28,7 +28,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static java.util.function.Predicate.not;
-import static org.hisp.dhis.analytics.event.EventsAnalyticsDimensionalItems.EMPTY_ANALYTICS_DIMENSIONAL_ITEMS;
+import static org.hisp.dhis.analytics.event.AnalyticsDimensions.EMPTY_ANALYTICS_DIMENSIONS;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.FILE_RESOURCE;
 import static org.hisp.dhis.common.ValueType.IMAGE;
@@ -54,8 +54,8 @@ import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
-import org.hisp.dhis.analytics.event.EventsAnalyticsDimensionalItems;
+import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
+import org.hisp.dhis.analytics.event.AnalyticsDimensions;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -75,7 +75,7 @@ import com.google.common.collect.ImmutableSet;
 
 @Service
 @RequiredArgsConstructor
-class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimensionalItemService
+class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensionsService
 {
 
     final static Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = ImmutableSet.of(
@@ -105,12 +105,12 @@ class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimen
     private final CategoryService categoryService;
 
     @Override
-    public EventsAnalyticsDimensionalItems getQueryDimensionalItemsByProgramStageId( String programStageId )
+    public AnalyticsDimensions getQueryDimensionsByProgramStageId(String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
             .map( ProgramStage::getProgram )
-            .map( p -> EventsAnalyticsDimensionalItems.builder()
+            .map( p -> AnalyticsDimensions.builder()
                 .programIndicators( p.getProgramIndicators() )
                 .dataElements(
                     filterByValueType(
@@ -125,15 +125,15 @@ class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimen
                 .comboCategories( getCategoriesIfNeeded( p ) )
                 .attributeCategoryOptionGroupSets( getAttributeCategoryOptionGroupSetsIfNeeded( p ) )
                 .build() )
-            .orElse( EMPTY_ANALYTICS_DIMENSIONAL_ITEMS );
+            .orElse(EMPTY_ANALYTICS_DIMENSIONS);
     }
 
     @Override
-    public EventsAnalyticsDimensionalItems getAggregateDimensionalItemsByProgramStageId( String programStageId )
+    public AnalyticsDimensions getAggregateDimensionsByProgramStageId(String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
-            .map( ps -> EventsAnalyticsDimensionalItems.builder()
+            .map( ps -> AnalyticsDimensions.builder()
                 .programIndicators( null )
                 .dataElements(
                     filterByValueType( OperationType.AGGREGATE,
@@ -146,7 +146,7 @@ class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimen
                 .comboCategories( getCategoriesIfNeeded( ps.getProgram() ) )
                 .attributeCategoryOptionGroupSets( getAttributeCategoryOptionGroupSetsIfNeeded( ps.getProgram() ) )
                 .build() )
-            .orElse( EMPTY_ANALYTICS_DIMENSIONAL_ITEMS );
+            .orElse(EMPTY_ANALYTICS_DIMENSIONS);
     }
 
     private List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsIfNeeded( Program program )

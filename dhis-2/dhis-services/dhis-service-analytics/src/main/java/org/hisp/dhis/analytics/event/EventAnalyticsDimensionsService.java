@@ -25,16 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.event;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-
-@Data
-@NoArgsConstructor
-public class DimensionalItemCriteria extends PagingAndSortingCriteriaAdapter
+public interface EventAnalyticsDimensionsService
 {
-    private String filter;
+    AnalyticsDimensions getQueryDimensionsByProgramStageId(String programStageId );
+
+    AnalyticsDimensions getAggregateDimensionsByProgramStageId(String programStageId );
 }

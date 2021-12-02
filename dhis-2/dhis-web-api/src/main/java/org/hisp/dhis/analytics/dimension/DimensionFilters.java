@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dataitem;
+package org.hisp.dhis.analytics.dimension;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,13 +51,13 @@ import com.google.common.collect.ImmutableMap;
 @Getter
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DimensionalItemFilters implements Predicate<DimensionWrapper>
+public class DimensionFilters implements Predicate<DimensionWrapper>
 {
 
-    public static final DimensionalItemFilters EMPTY_DATA_DIMENSION_FILTER = new DimensionalItemFilters()
+    public static final DimensionFilters EMPTY_DATA_DIMENSION_FILTER = new DimensionFilters()
     {
         @Override
-        public boolean test( DimensionWrapper dimensionalItem )
+        public boolean test( DimensionWrapper dimemsion)
         {
             return true;
         }
@@ -65,7 +65,7 @@ public class DimensionalItemFilters implements Predicate<DimensionWrapper>
 
     private Collection<SingleFilter> filters;
 
-    public static DimensionalItemFilters of( String filterString )
+    public static DimensionFilters of(String filterString )
     {
         if ( Objects.isNull( filterString ) || filterString.trim().equals( "" ) )
         {
@@ -81,13 +81,13 @@ public class DimensionalItemFilters implements Predicate<DimensionWrapper>
         {
             return EMPTY_DATA_DIMENSION_FILTER;
         }
-        return new DimensionalItemFilters( filters );
+        return new DimensionFilters( filters );
     }
 
     @Override
-    public boolean test( DimensionWrapper dimensionalItem )
+    public boolean test( DimensionWrapper dimemsion )
     {
-        return filters.stream().allMatch( filter -> filter.test( dimensionalItem ) );
+        return filters.stream().allMatch( filter -> filter.test( dimemsion ) );
     }
 
     @Getter
@@ -125,10 +125,10 @@ public class DimensionalItemFilters implements Predicate<DimensionWrapper>
         }
 
         @Override
-        public boolean test( DimensionWrapper dimensionalItem )
+        public boolean test( DimensionWrapper dimension )
         {
             return Optional.ofNullable( FIELD_EXTRACTORS.get( field ) )
-                .map( baseDimensionalItemObjectFunction -> baseDimensionalItemObjectFunction.apply( dimensionalItem ) )
+                .map( baseDimensionalItemObjectFunction -> baseDimensionalItemObjectFunction.apply( dimension ) )
                 .map( Object::toString )
                 .map( this::applyOperator )
                 .orElse( false );

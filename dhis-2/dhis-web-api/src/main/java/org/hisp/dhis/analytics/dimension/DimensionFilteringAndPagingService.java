@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dataitem;
+package org.hisp.dhis.analytics.dimension;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -40,7 +40,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.event.DimensionWrapper;
-import org.hisp.dhis.common.DimensionalItemCriteria;
+import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -53,7 +53,7 @@ import com.google.common.collect.ImmutableMap;
 
 @Service
 @RequiredArgsConstructor
-public class DimensionalItemFilteringAndPagingService
+public class DimensionFilteringAndPagingService
 {
 
     @NonNull
@@ -70,30 +70,30 @@ public class DimensionalItemFilteringAndPagingService
         "name", Comparator.comparing( DimensionWrapper::getName ) );
 
     public PagingWrapper<ObjectNode> pageAndFilter(
-        Collection<DimensionWrapper> dimensionalItems,
-        DimensionalItemCriteria dimensionalItemCriteria,
+        Collection<DimensionWrapper> dimensions,
+        DimensionsCriteria dimensionsCriteria,
         List<String> fields )
     {
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "dimensions" );
 
-        Collection<DimensionWrapper> filteredItems = filterStream( dimensionalItems.stream(),
-            dimensionalItemCriteria )
+        Collection<DimensionWrapper> filteredDimensions = filterStream( dimensions.stream(),
+            dimensionsCriteria )
                 .collect( Collectors.toList() );
 
-        var params = FieldFilterParams.of( sortedAndPagedStream( filteredItems.stream(), dimensionalItemCriteria )
+        var params = FieldFilterParams.of( sortedAndPagedStream( filteredDimensions.stream(), dimensionsCriteria )
             .collect( Collectors.toList() ), fields );
 
         var objectNodes = fieldFilterService.toObjectNodes( params );
 
         pagingWrapper = pagingWrapper.withInstances( objectNodes );
 
-        if ( dimensionalItemCriteria.isPagingRequest() )
+        if ( dimensionsCriteria.isPagingRequest() )
         {
             pagingWrapper = pagingWrapper.withPager( PagingWrapper.Pager.builder()
-                .page( Optional.ofNullable( dimensionalItemCriteria.getPage() ).orElse( 1 ) )
-                .pageSize( dimensionalItemCriteria.getPageSize() )
-                .total( (long) filteredItems.size() )
+                .page( Optional.ofNullable( dimensionsCriteria.getPage() ).orElse( 1 ) )
+                .pageSize( dimensionsCriteria.getPageSize() )
+                .total( (long) filteredDimensions.size() )
                 .build() );
         }
 
@@ -101,19 +101,19 @@ public class DimensionalItemFilteringAndPagingService
     }
 
     private Stream<DimensionWrapper> filterStream(
-        Stream<DimensionWrapper> dimensionalItems,
-        DimensionalItemCriteria criteria )
+        Stream<DimensionWrapper> dimensions,
+        DimensionsCriteria criteria )
     {
-        DimensionalItemFilters dimensionalItemFilters = Optional.of( criteria )
-            .map( DimensionalItemCriteria::getFilter )
-            .map( DimensionalItemFilters::of )
-            .orElse( DimensionalItemFilters.EMPTY_DATA_DIMENSION_FILTER );
+        DimensionFilters dimensionFilters = Optional.of( criteria )
+            .map( DimensionsCriteria::getFilter )
+            .map( DimensionFilters::of )
+            .orElse( DimensionFilters.EMPTY_DATA_DIMENSION_FILTER );
 
-        return dimensionalItems.filter( dimensionalItemFilters );
+        return dimensions.filter(dimensionFilters);
     }
 
     private Stream<DimensionWrapper> sortedAndPagedStream(
-        Stream<DimensionWrapper> dimensionalItems,
+        Stream<DimensionWrapper> dimensions,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
     {
 
@@ -128,31 +128,31 @@ public class DimensionalItemFilteringAndPagingService
                 .findFirst()
                 .orElse( DEFAULT_COMPARATOR );
 
-            dimensionalItems = dimensionalItems.sorted( comparator );
+            dimensions = dimensions.sorted( comparator );
 
             if ( Objects.nonNull( orderCriteria.getDirection() ) && !orderCriteria.getDirection().isAscending() )
             {
-                dimensionalItems = dimensionalItems.sorted( comparator.reversed() );
+                dimensions = dimensions.sorted( comparator.reversed() );
             }
             else
             {
-                dimensionalItems = dimensionalItems.sorted( comparator );
+                dimensions = dimensions.sorted( comparator );
             }
 
         }
         else
         {
-            dimensionalItems = dimensionalItems.sorted( DEFAULT_COMPARATOR );
+            dimensions = dimensions.sorted( DEFAULT_COMPARATOR );
         }
 
         if ( pagingAndSortingCriteria.isPagingRequest() )
         {
-            dimensionalItems = dimensionalItems
+            dimensions = dimensions
                 .skip( pagingAndSortingCriteria.getFirstResult() )
                 .limit( pagingAndSortingCriteria.getPageSize() );
         }
 
-        return dimensionalItems;
+        return dimensions;
     }
 
 }

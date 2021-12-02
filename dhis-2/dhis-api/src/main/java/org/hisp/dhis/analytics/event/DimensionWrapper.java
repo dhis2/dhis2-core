@@ -41,19 +41,19 @@ public class DimensionWrapper
 {
 
     @JsonIgnore
-    private final BaseNameableObject item;
+    private final BaseNameableObject baseNameableObject;
 
-    public DimensionWrapper( BaseNameableObject item )
+    public DimensionWrapper( BaseNameableObject baseNameableObject)
     {
-        this.item = item;
+        this.baseNameableObject = baseNameableObject;
     }
 
     @JsonProperty
     public String getValueType()
     {
-        if ( item instanceof ValueTypedDimensionalItemObject )
+        if ( baseNameableObject instanceof ValueTypedDimensionalItemObject )
         {
-            return ((ValueTypedDimensionalItemObject) item).getValueType().name();
+            return ((ValueTypedDimensionalItemObject) baseNameableObject).getValueType().name();
         }
         return null;
     }
@@ -61,13 +61,13 @@ public class DimensionWrapper
     @JsonProperty
     public String getDimensionType()
     {
-        if ( item instanceof BaseDimensionalItemObject )
+        if ( baseNameableObject instanceof BaseDimensionalItemObject )
         {
-            return ((BaseDimensionalItemObject) item).getDimensionItemType().name();
+            return ((BaseDimensionalItemObject) baseNameableObject).getDimensionItemType().name();
         }
-        if ( item instanceof BaseDimensionalObject )
+        if ( baseNameableObject instanceof BaseDimensionalObject )
         {
-            return ((BaseDimensionalObject) item).getDimensionType().name();
+            return ((BaseDimensionalObject) baseNameableObject).getDimensionType().name();
         }
         return null;
     }
@@ -75,43 +75,43 @@ public class DimensionWrapper
     @JsonProperty
     public Date getCreated()
     {
-        return item.getCreated();
+        return baseNameableObject.getCreated();
     }
 
     @JsonProperty
     public Date getLastUpdated()
     {
-        return item.getLastUpdated();
+        return baseNameableObject.getLastUpdated();
     }
 
     @JsonProperty
     public String getName()
     {
-        return item.getName();
+        return baseNameableObject.getName();
     }
 
     @JsonProperty
     public String getDisplayName()
     {
-        return item.getDisplayName();
+        return baseNameableObject.getDisplayName();
     }
 
     @JsonProperty
     public String getId()
     {
-        return item.getUid();
+        return baseNameableObject.getUid();
     }
 
     @JsonProperty
     public String getCode()
     {
-        return item.getCode();
+        return baseNameableObject.getCode();
     }
 
     @JsonProperty
     public String getDisplayShortName()
     {
-        return item.getDisplayShortName();
+        return baseNameableObject.getDisplayShortName();
     }
 
 }
