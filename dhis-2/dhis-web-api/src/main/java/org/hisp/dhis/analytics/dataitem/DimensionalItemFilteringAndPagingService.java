@@ -39,8 +39,7 @@ import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.analytics.event.DimensionWrapper;
 import org.hisp.dhis.common.DimensionalItemCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -60,24 +59,25 @@ public class DimensionalItemFilteringAndPagingService
     @NonNull
     private final FieldFilterService fieldFilterService;
 
-    private final static Comparator<BaseDimensionalItemObject> DEFAULT_COMPARATOR = Comparator
-        .comparing( BaseIdentifiableObject::getCreated );
+    private final static Comparator<DimensionWrapper> DEFAULT_COMPARATOR = Comparator
+        .comparing( DimensionWrapper::getCreated );
 
-    private final static Map<String, Comparator<BaseDimensionalItemObject>> ORDERING_MAP = ImmutableMap.of(
-        "lastUpdated", Comparator.comparing( BaseIdentifiableObject::getLastUpdated ),
-        "code", Comparator.comparing( BaseIdentifiableObject::getCode ),
-        "uid", Comparator.comparing( BaseIdentifiableObject::getUid ),
-        "name", Comparator.comparing( BaseIdentifiableObject::getName ) );
+    private final static Map<String, Comparator<DimensionWrapper>> ORDERING_MAP = ImmutableMap.of(
+        "lastUpdated", Comparator.comparing( DimensionWrapper::getLastUpdated ),
+        "code", Comparator.comparing( DimensionWrapper::getCode ),
+        "uid", Comparator.comparing( DimensionWrapper::getId ),
+        "id", Comparator.comparing( DimensionWrapper::getId ),
+        "name", Comparator.comparing( DimensionWrapper::getName ) );
 
     public PagingWrapper<ObjectNode> pageAndFilter(
-        Collection<BaseDimensionalItemObject> dimensionalItems,
+        Collection<DimensionWrapper> dimensionalItems,
         DimensionalItemCriteria dimensionalItemCriteria,
         List<String> fields )
     {
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "dimensions" );
 
-        Collection<BaseDimensionalItemObject> filteredItems = filterStream( dimensionalItems.stream(),
+        Collection<DimensionWrapper> filteredItems = filterStream( dimensionalItems.stream(),
             dimensionalItemCriteria )
                 .collect( Collectors.toList() );
 
@@ -100,8 +100,8 @@ public class DimensionalItemFilteringAndPagingService
         return pagingWrapper;
     }
 
-    private Stream<BaseDimensionalItemObject> filterStream(
-        Stream<BaseDimensionalItemObject> dimensionalItems,
+    private Stream<DimensionWrapper> filterStream(
+        Stream<DimensionWrapper> dimensionalItems,
         DimensionalItemCriteria criteria )
     {
         DimensionalItemFilters dimensionalItemFilters = Optional.of( criteria )
@@ -112,8 +112,8 @@ public class DimensionalItemFilteringAndPagingService
         return dimensionalItems.filter( dimensionalItemFilters );
     }
 
-    private Stream<BaseDimensionalItemObject> sortedAndPagedStream(
-        Stream<BaseDimensionalItemObject> dimensionalItems,
+    private Stream<DimensionWrapper> sortedAndPagedStream(
+        Stream<DimensionWrapper> dimensionalItems,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
     {
 
@@ -122,7 +122,7 @@ public class DimensionalItemFilteringAndPagingService
 
             OrderCriteria orderCriteria = pagingAndSortingCriteria.getOrder().get( 0 );
 
-            Comparator<BaseDimensionalItemObject> comparator = ORDERING_MAP.keySet().stream()
+            Comparator<DimensionWrapper> comparator = ORDERING_MAP.keySet().stream()
                 .filter( key -> key.equalsIgnoreCase( orderCriteria.getField() ) )
                 .map( ORDERING_MAP::get )
                 .findFirst()
@@ -132,9 +132,13 @@ public class DimensionalItemFilteringAndPagingService
 
             if ( Objects.nonNull( orderCriteria.getDirection() ) && !orderCriteria.getDirection().isAscending() )
             {
-                dimensionalItems = dimensionalItems
-                    .sorted( Comparator.reverseOrder() );
+                dimensionalItems = dimensionalItems.sorted( comparator.reversed() );
             }
+            else
+            {
+                dimensionalItems = dimensionalItems.sorted( comparator );
+            }
+
         }
         else
         {

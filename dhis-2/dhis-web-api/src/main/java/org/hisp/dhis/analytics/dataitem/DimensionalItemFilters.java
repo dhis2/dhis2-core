@@ -44,21 +44,20 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.analytics.event.DimensionWrapper;
 
 import com.google.common.collect.ImmutableMap;
 
 @Getter
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DimensionalItemFilters implements Predicate<BaseDimensionalItemObject>
+public class DimensionalItemFilters implements Predicate<DimensionWrapper>
 {
 
     public static final DimensionalItemFilters EMPTY_DATA_DIMENSION_FILTER = new DimensionalItemFilters()
     {
         @Override
-        public boolean test( BaseDimensionalItemObject dimensionalItem )
+        public boolean test( DimensionWrapper dimensionalItem )
         {
             return true;
         }
@@ -85,20 +84,21 @@ public class DimensionalItemFilters implements Predicate<BaseDimensionalItemObje
         return new DimensionalItemFilters( filters );
     }
 
-    public boolean test( BaseDimensionalItemObject dimensionalItem )
+    @Override
+    public boolean test( DimensionWrapper dimensionalItem )
     {
         return filters.stream().allMatch( filter -> filter.test( dimensionalItem ) );
     }
 
     @Getter
     @AllArgsConstructor( access = AccessLevel.PRIVATE )
-    private static class SingleFilter implements Predicate<BaseDimensionalItemObject>
+    private static class SingleFilter implements Predicate<DimensionWrapper>
     {
-        private static final Map<String, Function<BaseDimensionalItemObject, ?>> FIELD_EXTRACTORS = ImmutableMap.of(
-            "name", BaseIdentifiableObject::getName,
-            "dimensionItemType", BaseDimensionalItemObject::getDimensionItemType,
-            "displayName", BaseDimensionalItemObject::getDisplayName,
-            "displayShortName", BaseDimensionalItemObject::getDisplayShortName );
+        private static final Map<String, Function<DimensionWrapper, ?>> FIELD_EXTRACTORS = ImmutableMap.of(
+            "name", DimensionWrapper::getName,
+            "dimensionType", DimensionWrapper::getDimensionType,
+            "displayName", DimensionWrapper::getDisplayName,
+            "displayShortName", DimensionWrapper::getDisplayShortName );
 
         private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP = ImmutableMap.of(
             "eq", String::equalsIgnoreCase,
@@ -124,7 +124,8 @@ public class DimensionalItemFilters implements Predicate<BaseDimensionalItemObje
             return null;
         }
 
-        public boolean test( BaseDimensionalItemObject dimensionalItem )
+        @Override
+        public boolean test( DimensionWrapper dimensionalItem )
         {
             return Optional.ofNullable( FIELD_EXTRACTORS.get( field ) )
                 .map( baseDimensionalItemObjectFunction -> baseDimensionalItemObjectFunction.apply( dimensionalItem ) )

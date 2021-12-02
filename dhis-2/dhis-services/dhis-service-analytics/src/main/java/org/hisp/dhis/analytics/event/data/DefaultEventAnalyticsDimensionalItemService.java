@@ -43,6 +43,8 @@ import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
 import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -54,28 +56,34 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
 import org.hisp.dhis.analytics.event.EventsAnalyticsDimensionalItems;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 @Service
 @RequiredArgsConstructor
 class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimensionalItemService
 {
 
-    final static Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = ImmutableList.of(
+    final static Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = ImmutableSet.of(
         IMAGE,
         FILE_RESOURCE,
         TRACKER_ASSOCIATE );
 
-    final static Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = ImmutableList.of(
+    final static Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = ImmutableSet.of(
         NUMBER,
         UNIT_INTERVAL,
         PERCENTAGE,
@@ -93,26 +101,92 @@ class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimen
     @NonNull
     private final ProgramStageService programStageService;
 
+    @NonNull
+    private final CategoryService categoryService;
+
     @Override
     public EventsAnalyticsDimensionalItems getQueryDimensionalItemsByProgramStageId( String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
             .map( ProgramStage::getProgram )
-            .map( program -> EventsAnalyticsDimensionalItems.builder()
-                .programIndicators( program.getProgramIndicators() )
+            .map( p -> EventsAnalyticsDimensionalItems.builder()
+                .programIndicators( p.getProgramIndicators() )
                 .dataElements(
                     filterByValueType(
                         OperationType.QUERY,
-                        program.getDataElements(),
+                        p.getDataElements(),
                         DataElement::getValueType ) )
                 .trackedEntityAttributes(
                     filterByValueType(
                         OperationType.QUERY,
-                        program.getTrackedEntityAttributes(),
+                        getTeasIfRegistrationAndNotConfidential( p ),
                         TrackedEntityAttribute::getValueType ) )
+                .comboCategories( getCategoriesIfNeeded( p ) )
+                .attributeCategoryOptionGroupSets( getAttributeCategoryOptionGroupSetsIfNeeded( p ) )
                 .build() )
             .orElse( EMPTY_ANALYTICS_DIMENSIONAL_ITEMS );
+    }
+
+    @Override
+    public EventsAnalyticsDimensionalItems getAggregateDimensionalItemsByProgramStageId( String programStageId )
+    {
+        return Optional.of( programStageId )
+            .map( programStageService::getProgramStage )
+            .map( ps -> EventsAnalyticsDimensionalItems.builder()
+                .programIndicators( null )
+                .dataElements(
+                    filterByValueType( OperationType.AGGREGATE,
+                        ps.getDataElements(),
+                        DataElement::getValueType ) )
+                .trackedEntityAttributes(
+                    filterByValueType( OperationType.AGGREGATE,
+                        ps.getProgram().getTrackedEntityAttributes(),
+                        TrackedEntityAttribute::getValueType ) )
+                .comboCategories( getCategoriesIfNeeded( ps.getProgram() ) )
+                .attributeCategoryOptionGroupSets( getAttributeCategoryOptionGroupSetsIfNeeded( ps.getProgram() ) )
+                .build() )
+            .orElse( EMPTY_ANALYTICS_DIMENSIONAL_ITEMS );
+    }
+
+    private List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsIfNeeded( Program program )
+    {
+        return Optional.of( program )
+            .filter( Program::hasCategoryCombo )
+            .map( unused -> categoryService.getAllCategoryOptionGroupSets().stream()
+                .filter( this::isTypeAttribute )
+                .collect( Collectors.toList() ) )
+            .orElse( Collections.emptyList() );
+    }
+
+    private boolean isTypeAttribute( CategoryOptionGroupSet categoryOptionGroupSet )
+    {
+        return categoryOptionGroupSet.getDataDimensionType().equals( DataDimensionType.ATTRIBUTE );
+    }
+
+    private Collection<Category> getCategoriesIfNeeded( Program program )
+    {
+        return Optional.of( program )
+            .filter( Program::hasCategoryCombo )
+            .map( Program::getCategoryCombo )
+            .map( CategoryCombo::getCategories )
+            .orElse( Collections.emptyList() );
+    }
+
+    private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential( Program program )
+    {
+        return Optional.of( program )
+            .filter( Program::isRegistration )
+            .map( Program::getTrackedEntityAttributes )
+            .orElse( Collections.emptyList() )
+            .stream()
+            .filter( this::isNotConfidential )
+            .collect( Collectors.toList() );
+    }
+
+    private boolean isNotConfidential( TrackedEntityAttribute trackedEntityAttribute )
+    {
+        return !trackedEntityAttribute.isConfidentialBool();
     }
 
     private <T extends BaseDimensionalItemObject> Collection<T> filterByValueType( OperationType operationType,
@@ -121,25 +195,6 @@ class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimen
         return elements.stream()
             .filter( t -> OPERATION_FILTER.get( operationType ).test( valueTypeProvider.apply( t ) ) )
             .collect( Collectors.toList() );
-    }
-
-    @Override
-    public EventsAnalyticsDimensionalItems getAggregateDimensionalItemsByProgramStageId( String programStageId )
-    {
-        return Optional.of( programStageId )
-            .map( programStageService::getProgramStage )
-            .map( programStage -> EventsAnalyticsDimensionalItems.builder()
-                .programIndicators( null )
-                .dataElements(
-                    filterByValueType( OperationType.AGGREGATE,
-                        programStage.getDataElements(),
-                        DataElement::getValueType ) )
-                .trackedEntityAttributes(
-                    filterByValueType( OperationType.AGGREGATE,
-                        programStage.getProgram().getTrackedEntityAttributes(),
-                        TrackedEntityAttribute::getValueType ) )
-                .build() )
-            .orElse( EMPTY_ANALYTICS_DIMENSIONAL_ITEMS );
     }
 
     private enum OperationType

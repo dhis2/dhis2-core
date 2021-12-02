@@ -44,6 +44,7 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
 import org.hisp.dhis.analytics.event.EventsAnalyticsDimensionalItems;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -62,6 +63,7 @@ public class DefaultEventAnalyticsDimensionalItemServiceTest
     public void setup()
     {
         ProgramStageService programStageService = mock( ProgramStageService.class );
+        CategoryService categoryService = mock( CategoryService.class );
 
         Program program = mock( Program.class );
         ProgramStage programStage = mock( ProgramStage.class );
@@ -72,7 +74,8 @@ public class DefaultEventAnalyticsDimensionalItemServiceTest
         when( program.getProgramIndicators() ).thenReturn( Collections.emptySet() );
         when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
 
-        eventAnalyticsDimensionalItemService = new DefaultEventAnalyticsDimensionalItemService( programStageService );
+        eventAnalyticsDimensionalItemService = new DefaultEventAnalyticsDimensionalItemService( programStageService,
+            categoryService );
 
     }
 

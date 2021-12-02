@@ -37,9 +37,8 @@ import lombok.Data;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @Builder( toBuilder = true )
@@ -50,24 +49,34 @@ public class EventsAnalyticsDimensionalItems
         .builder()
         .build();
 
-    @JsonProperty
     @Builder.Default
     private final Collection<? extends BaseDimensionalItemObject> programIndicators = Collections.emptyList();
 
-    @JsonProperty
     @Builder.Default
     private final Collection<? extends BaseDimensionalItemObject> dataElements = Collections.emptyList();
 
-    @JsonProperty
     @Builder.Default
     private final Collection<? extends BaseDimensionalItemObject> trackedEntityAttributes = Collections.emptyList();
 
-    public Collection<BaseDimensionalItemObject> getDimensionalItems()
+    @Builder.Default
+    private final Collection<? extends BaseDimensionalObject> comboCategories = Collections.emptyList();
+
+    @Builder.Default
+    private final Collection<? extends BaseDimensionalObject> attributeCategoryOptionGroupSets = Collections
+        .emptyList();
+
+    public Collection<DimensionWrapper> getDimensionalItems()
     {
-        return Stream.of( programIndicators, dataElements, trackedEntityAttributes )
+        return Stream.of(
+            programIndicators,
+            dataElements,
+            trackedEntityAttributes,
+            comboCategories,
+            attributeCategoryOptionGroupSets )
             .map( CollectionUtils::emptyIfNull )
             .flatMap( Collection::stream )
             .map( HibernateProxyUtils::unproxy )
+            .map( DimensionWrapper::new )
             .collect( Collectors.toList() );
     }
 }
