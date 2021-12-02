@@ -67,7 +67,7 @@ public class UsersRemovalTests
 
         loginActions.loginAsSuperUser();
 
-        userId = userActions.addUser( "johnny", "bravo", userName, password );
+        userId = userActions.addUser( "johnny", "bravo", userName.toLowerCase(), password );
     }
 
     @Test

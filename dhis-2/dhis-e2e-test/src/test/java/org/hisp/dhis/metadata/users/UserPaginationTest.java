@@ -72,7 +72,7 @@ public class UserPaginationTest
         {
             userActions
                 .addUser( DataGenerator.randomString() + i, DataGenerator.randomString() + i,
-                    DataGenerator.randomString() + i,
+                    (DataGenerator.randomString() + i).toLowerCase(),
                     DataGenerator.randomString() + "Abcd1234!" + i );
         }
     }

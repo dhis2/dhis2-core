@@ -68,7 +68,7 @@ public class OrgUnitsTest
     @Test
     public void shouldNotCreateWithoutPermissions()
     {
-        String userName = DataGenerator.randomString();
+        String userName = (DataGenerator.randomString()).toLowerCase();
         String psw = "!XPTOqwerty1";
 
         userActions.addUser( userName, psw );

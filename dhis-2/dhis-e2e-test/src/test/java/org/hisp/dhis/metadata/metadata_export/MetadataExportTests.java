@@ -47,7 +47,7 @@ import org.junit.jupiter.api.Test;
 public class MetadataExportTests
     extends ApiTest
 {
-    private String userWithoutAccessUsername = "MetadataExportTestsUser" + DataGenerator.randomString();
+    private String userWithoutAccessUsername = ("MetadataExportTestsUser" + DataGenerator.randomString()).toLowerCase();
 
     private String userWithoutAccessPassword = Constants.USER_PASSWORD;
 

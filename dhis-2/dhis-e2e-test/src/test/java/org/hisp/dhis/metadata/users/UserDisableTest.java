@@ -59,7 +59,7 @@ public class UserDisableTest
         userActions = new UserActions();
         loginActions = new LoginActions();
 
-        userName = DataGenerator.randomString();
+        userName = (DataGenerator.randomString()).toLowerCase();
 
         loginActions.loginAsSuperUser();
 

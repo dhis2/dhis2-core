@@ -83,7 +83,7 @@ public class EventExportTests
 
     private final String withRegistrationProgramStage = "nlXNK4b7LVr";
 
-    private final String userName = "TA_EVENTS_ACL_USER" + DataGenerator.randomString();
+    private final String userName = ("TA_EVENTS_ACL_USER" + DataGenerator.randomString()).toLowerCase();
 
     private final String password = Constants.USER_PASSWORD;
 
