@@ -63,11 +63,11 @@ public class UsersRemovalTests
         optionActions = new OptionActions();
         loginActions = new LoginActions();
 
-        userName = DataGenerator.randomString();
+        userName = (DataGenerator.randomString()).toLowerCase();
 
         loginActions.loginAsSuperUser();
 
-        userId = userActions.addUser( "johnny", "bravo", userName.toLowerCase(), password );
+        userId = userActions.addUser( "johnny", "bravo", userName, password );
     }
 
     @Test
