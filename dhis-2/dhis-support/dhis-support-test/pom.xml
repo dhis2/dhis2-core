@@ -105,8 +105,9 @@
       <artifactId>postgresql</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.github.benas</groupId>
-      <artifactId>random-beans</artifactId>
+      <groupId>org.jeasy</groupId>
+      <artifactId>easy-random-core</artifactId>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>

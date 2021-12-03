@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -130,7 +131,9 @@ public class DataQueryServiceDimensionItemKeywordTest
 
     private OrganisationUnit rootOu;
 
-    private BeanRandomizer beanRandomizer;
+    private final BeanRandomizer rnd = BeanRandomizer.create( Map.of(
+        OrganisationUnitGroup.class, Set.of( "geometry" ),
+        OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
 
     @Before
     public void setUp()
@@ -146,8 +149,6 @@ public class DataQueryServiceDimensionItemKeywordTest
         rootOu = new OrganisationUnit( "Sierra Leone" );
         rootOu.setUid( CodeGenerator.generateUid() );
         rootOu.setCode( "OU_525" );
-
-        beanRandomizer = new BeanRandomizer();
     }
 
     private void mockDimensionService()
@@ -354,7 +355,7 @@ public class DataQueryServiceDimensionItemKeywordTest
         OrganisationUnit ou1Group = new OrganisationUnit( "ou1-group" );
         OrganisationUnit ou2Group = new OrganisationUnit( "ou2-group" );
 
-        OrganisationUnitGroup groupOu = beanRandomizer.randomObject( OrganisationUnitGroup.class, "geometry" );
+        OrganisationUnitGroup groupOu = rnd.nextObject( OrganisationUnitGroup.class );
 
         mockDimensionService();
 
@@ -554,9 +555,8 @@ public class DataQueryServiceDimensionItemKeywordTest
         int orgUnitSize = 10;
         User user = new User();
 
-        Set<OrganisationUnit> orgUnits = new HashSet<>(
-            beanRandomizer.randomObjects( OrganisationUnit.class, orgUnitSize, "geometry", "parent", "groups",
-                "children" ) );
+        Set<OrganisationUnit> orgUnits = rnd.objects( OrganisationUnit.class, orgUnitSize )
+            .collect( Collectors.toSet() );
 
         switch ( userOrgUnitType )
         {

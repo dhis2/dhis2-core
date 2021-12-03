@@ -28,8 +28,7 @@
 package org.hisp.dhis.random;
 
 import org.apache.commons.lang3.RandomUtils;
-
-import io.github.benas.randombeans.api.Randomizer;
+import org.jeasy.random.api.Randomizer;
 
 /**
  * @author Luciano Fiandesio

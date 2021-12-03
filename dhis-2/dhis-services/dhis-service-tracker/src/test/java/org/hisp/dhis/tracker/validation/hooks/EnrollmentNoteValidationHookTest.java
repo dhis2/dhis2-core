@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -66,23 +67,22 @@ public class EnrollmentNoteValidationHookTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BeanRandomizer rnd;
-
     private Enrollment enrollment;
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
     {
         this.hook = new EnrollmentNoteValidationHook();
-        rnd = new BeanRandomizer();
-        enrollment = rnd.randomObject( Enrollment.class );
+        enrollment = rnd.nextObject( Enrollment.class );
     }
 
     @Test
     public void testNoteWithExistingUidWarnings()
     {
         // Given
-        final Note note = rnd.randomObject( Note.class );
+        final Note note = rnd.nextObject( Note.class );
 
         TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
@@ -108,7 +108,7 @@ public class EnrollmentNoteValidationHookTest
     public void testNoteWithExistingUidAndNoTextIsIgnored()
     {
         // Given
-        final Note note = rnd.randomObject( Note.class );
+        final Note note = rnd.nextObject( Note.class );
         note.setValue( null );
         TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
@@ -132,7 +132,7 @@ public class EnrollmentNoteValidationHookTest
     public void testNotesAreValidWhenUidDoesNotExist()
     {
         // Given
-        final List<Note> notes = rnd.randomObjects( Note.class, 5 );
+        final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
         TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
