@@ -162,6 +162,7 @@
         <!-- Div. utils -->
         <version.debezium>1.7.1.Final</version.debezium>
         <guava.version>31.0.1-jre</guava.version>
+        <jsr305.version>3.0.2</jsr305.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
         <google-api-client.version>1.32.2</google-api-client.version>
         <lombok.version>1.18.20</lombok.version>
@@ -895,10 +896,6 @@
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>jsr305</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>org.hisp.dhis.parser</groupId>
@@ -2107,6 +2104,11 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${jsr305.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>
