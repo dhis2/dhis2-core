@@ -40,6 +40,7 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -63,12 +64,13 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     private ProgramInstanceSupplier supplier;
 
     @Mock
-    private ProgramInstanceStore store;
+    private ProgramInstanceStore programInstanceStore;
+
+    @Mock
+    private ProgramStore programStore;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    private BeanRandomizer rnd = new BeanRandomizer();
 
     private List<ProgramInstance> programInstances;
 
@@ -77,6 +79,8 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     private Program programWithoutRegistration;
 
     private TrackerImportParams params;
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
@@ -89,14 +93,14 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
         params = TrackerImportParams.builder().build();
 
-        programInstances = rnd.randomObjects( ProgramInstance.class, 2 );
+        programInstances = rnd.objects( ProgramInstance.class, 2 ).collect( Collectors.toList() );
         // set the OrgUnit parent to null to avoid recursive errors when mapping
         programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
         programInstances.get( 0 ).setProgram( programWithRegistration );
         programInstances.get( 1 ).setProgram( programWithoutRegistration );
 
-        when( store.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) ).thenReturn( programInstances );
-
+        when( programInstanceStore.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) )
+            .thenReturn( programInstances );
     }
 
     @Test
@@ -118,6 +122,26 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
         {
             assertNull( preheat.getProgramInstancesWithoutRegistration( programUid ) );
         }
+    }
+
+    @Test
+    public void verifySupplierWhenNoProgramsArePresent()
+    {
+        // given
+        TrackerPreheat preheat = new TrackerPreheat();
+        when( programStore.getByType( WITHOUT_REGISTRATION ) ).thenReturn( List.of( programWithoutRegistration ) );
+        programInstances = rnd.objects( ProgramInstance.class, 1 ).collect( Collectors.toList() );
+        // set the OrgUnit parent to null to avoid recursive errors when mapping
+        programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
+        programInstances.get( 0 ).setProgram( programWithoutRegistration );
+        when( programInstanceStore.getByPrograms( List.of( programWithoutRegistration ) ) )
+            .thenReturn( programInstances );
+
+        // when
+        this.supplier.preheatAdd( params, preheat );
+
+        // then
+        assertNotNull( preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
     @Test

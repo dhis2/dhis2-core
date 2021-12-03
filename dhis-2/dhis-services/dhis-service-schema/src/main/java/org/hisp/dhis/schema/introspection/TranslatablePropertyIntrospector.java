@@ -65,6 +65,16 @@ public class TranslatablePropertyIntrospector implements PropertyIntrospector
                 String i18nKey = CaseFormat.LOWER_CAMEL.to( CaseFormat.LOWER_UNDERSCORE, property.getFieldName() );
                 property.setI18nTranslationKey( i18nKey );
             }
+
+            /**
+             * Embedded objects can have their own translatable properties.
+             */
+            if ( property.isEmbeddedObject()
+                && !AnnotationUtils.getTranslatableAnnotatedFields( property.getKlass() ).isEmpty() )
+            {
+                property.setTranslatable( true );
+            }
         }
+
     }
 }

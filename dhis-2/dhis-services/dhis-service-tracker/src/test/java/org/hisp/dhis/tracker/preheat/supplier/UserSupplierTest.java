@@ -68,14 +68,14 @@ public class UserSupplierTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private final BeanRandomizer rnd = BeanRandomizer.create( Event.class, "assignedUser" );
 
     @Test
     public void verifySupplier()
     {
-        final List<Event> events = rnd.randomObjects( Event.class, 5, "assignedUser" );
+        final List<Event> events = rnd.objects( Event.class, 5 ).collect( Collectors.toList() );
         events.forEach( e -> e.setAssignedUser( CodeGenerator.generateUid() ) );
-        final List<User> users = rnd.randomObjects( User.class, 5 );
+        final List<User> users = rnd.objects( User.class, 5 ).collect( Collectors.toList() );
         final List<String> userIds = events.stream().map( Event::getAssignedUser )
             .collect( Collectors.toList() );
 
