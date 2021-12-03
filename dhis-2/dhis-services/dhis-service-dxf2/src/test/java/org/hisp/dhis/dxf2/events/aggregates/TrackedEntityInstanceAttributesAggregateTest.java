@@ -43,7 +43,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dxf2.TrackerTest;
+import org.hisp.dhis.dxf2.TrackerBaseIntegrationTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -75,7 +75,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
+public class TrackedEntityInstanceAttributesAggregateTest extends TrackerBaseIntegrationTest
 {
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;

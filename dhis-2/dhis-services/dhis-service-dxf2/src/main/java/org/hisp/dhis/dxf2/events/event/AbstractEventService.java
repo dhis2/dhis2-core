@@ -227,7 +227,7 @@ public abstract class AbstractEventService implements EventService
     @Override
     public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
     {
-        final WorkContext workContext = workContextLoader.load( importOptions, events );
+        final WorkContext workContext = workContextLoader.loadForEvent( importOptions, events );
         return eventManager.addEvents( events, workContext );
     }
 
@@ -241,7 +241,7 @@ public abstract class AbstractEventService implements EventService
 
         try
         {
-            final WorkContext workContext = workContextLoader.load( importOptions, events );
+            final WorkContext workContext = workContextLoader.loadForEvent( importOptions, events );
 
             final ImportSummaries importSummaries = eventManager.addEvents( events, workContext );
 
@@ -266,7 +266,8 @@ public abstract class AbstractEventService implements EventService
     @Override
     public ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport )
     {
-        final WorkContext workContext = workContextLoader.load( importOptions, Collections.singletonList( event ) );
+        final WorkContext workContext = workContextLoader.loadForEvent( importOptions,
+            Collections.singletonList( event ) );
 
         return eventManager.addEvent( event, workContext );
     }
@@ -689,7 +690,7 @@ public abstract class AbstractEventService implements EventService
         localImportOptions.setMergeDataValues( singleValue );
 
         return eventManager.updateEvent( event,
-            workContextLoader.load( localImportOptions, Collections.singletonList( event ) ) );
+            workContextLoader.loadForEvent( localImportOptions, Collections.singletonList( event ) ) );
     }
 
     @Transactional

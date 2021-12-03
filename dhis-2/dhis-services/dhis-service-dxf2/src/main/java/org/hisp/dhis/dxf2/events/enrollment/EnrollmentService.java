@@ -38,7 +38,6 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
 /**
@@ -75,6 +74,9 @@ public interface EnrollmentService
     // CREATE
     // -------------------------------------------------------------------------
 
+    ImportSummaries mergeOrDeleteEnrollments( List<Enrollment> trackedEntityInstances,
+        ImportOptions importOptions, JobConfiguration jobId, boolean clearSession );
+
     ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions );
 
     ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions )
@@ -82,13 +84,6 @@ public interface EnrollmentService
 
     ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions )
         throws IOException;
-
-    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
-
-    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, JobConfiguration jobId );
-
-    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
-        TrackedEntityInstance trackedEntityInstance, boolean clearSession );
 
     // -------------------------------------------------------------------------
     // UPDATE
@@ -102,14 +97,6 @@ public interface EnrollmentService
 
     ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions )
         throws IOException;
-
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
-
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions,
-        TrackedEntityInstance daoTrackedEntityInstance );
-
-    ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
-        boolean clearSession );
 
     ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions );
 
@@ -126,7 +113,4 @@ public interface EnrollmentService
     // -------------------------------------------------------------------------
 
     ImportSummary deleteEnrollment( String uid );
-
-    ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
-        boolean clearSession );
 }

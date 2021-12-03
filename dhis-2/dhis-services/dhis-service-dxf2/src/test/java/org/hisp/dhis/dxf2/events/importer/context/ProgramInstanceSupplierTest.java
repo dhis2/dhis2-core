@@ -50,17 +50,17 @@ import org.mockito.Mock;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance>
+public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance, Map<String, ProgramInstance>>
 {
-    private ProgramInstanceSupplier subject;
+    private ProgramInstanceEventSupplier subject;
 
     @Mock
-    private ProgramSupplier programSupplier;
+    private ProgramEventSupplier programSupplier;
 
     @Before
     public void setUp()
     {
-        this.subject = new ProgramInstanceSupplier( jdbcTemplate, programSupplier );
+        this.subject = new ProgramInstanceEventSupplier( jdbcTemplate, programSupplier );
     }
 
     @Test
