@@ -158,6 +158,11 @@ public class EventChart
 
     private boolean showDimensionLabels;
 
+    /**
+     * Default to true, as this entity is always legacy.
+     */
+    private boolean legacy = true;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------

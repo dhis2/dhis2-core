@@ -291,6 +291,7 @@
         <property name="showData" access="field"/>
         <property name="percentStackedValues" access="field"/>
         <property name="cumulativeValues" access="field"/>
+        <property name="legacy" access="field"/>
         <property name="type" length="40" not-null="true">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.eventvisualization.EventVisualizationType</param>

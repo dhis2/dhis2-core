@@ -211,6 +211,11 @@ public class EventReport
 
     private boolean cumulativeValues;
 
+    /**
+     * Default to true, as this entity is always legacy.
+     */
+    private boolean legacy = true;
+
     private EventVisualizationType type;
 
     // -------------------------------------------------------------------------

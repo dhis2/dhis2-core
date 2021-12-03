@@ -196,6 +196,11 @@ public class EventVisualization extends BaseAnalyticalObject
     private boolean hideNaData;
 
     /**
+     * Indicates whether this is a legacy row (EventChart or EventReport).
+     */
+    private boolean legacy;
+
+    /**
      * The program status.
      */
     private ProgramStatus programStatus;
@@ -1025,5 +1030,15 @@ public class EventVisualization extends BaseAnalyticalObject
     public void setShowDimensionLabels( boolean showDimensionLabels )
     {
         this.showDimensionLabels = showDimensionLabels;
+    }
+
+    public boolean isLegacy()
+    {
+        return legacy;
+    }
+
+    public void setLegacy( final boolean legacy )
+    {
+        this.legacy = legacy;
     }
 }

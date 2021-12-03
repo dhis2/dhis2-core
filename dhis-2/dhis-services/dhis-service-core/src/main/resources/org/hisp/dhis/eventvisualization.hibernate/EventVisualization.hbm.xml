@@ -308,6 +308,8 @@
 
         <property name="showDimensionLabels" />
 
+        <property name="legacy" />
+
         <property name="digitGroupSeparator" length="40">
             <type name="org.hibernate.type.EnumType">
                 <param name="enumClass">org.hisp.dhis.common.DigitGroupSeparator</param>

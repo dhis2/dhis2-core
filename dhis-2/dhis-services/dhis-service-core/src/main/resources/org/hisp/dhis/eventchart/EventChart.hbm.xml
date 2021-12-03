@@ -298,6 +298,7 @@
         <property name="hideEmptyRows" access="field"/>
         <property name="showHierarchy" access="field"/>
         <property name="showDimensionLabels" access="field"/>
+        <property name="legacy" access="field"/>
         <property name="topLimit" access="field"/>
     </class>
 </hibernate-mapping>
