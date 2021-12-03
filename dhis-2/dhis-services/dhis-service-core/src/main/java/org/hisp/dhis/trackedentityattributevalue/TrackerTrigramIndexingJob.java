@@ -102,6 +102,10 @@ public class TrackerTrigramIndexingJob implements Job
                 progress.completedStage( "Trigram indexes created" );
                 log.debug( "Created {} trigram indexes", indexableAttributes.size() );
             }
+            else
+            {
+                log.warn( "No indexable attributes provided in jobParameters. Skipping trigram index creation step" );
+            }
         }
 
         if ( parameters.isRunVacuum() )
