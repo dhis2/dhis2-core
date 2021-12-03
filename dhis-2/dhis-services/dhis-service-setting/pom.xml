@@ -98,6 +98,7 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <properties>

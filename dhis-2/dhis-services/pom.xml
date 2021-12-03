@@ -49,6 +49,8 @@
 
   <dependencies>
 
+    <!-- TODO Remove following dependencies once all above services pom.xml's are cleaned up; since this parent has no
+    dependencies -->
     <!-- DHIS -->
 
     <dependency>
