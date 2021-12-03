@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.random;
 
+import org.jeasy.random.api.Randomizer;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.shape.random.RandomPointsInGridBuilder;
-
-import io.github.benas.randombeans.api.Randomizer;
 
 /**
  * @author Luciano Fiandesio

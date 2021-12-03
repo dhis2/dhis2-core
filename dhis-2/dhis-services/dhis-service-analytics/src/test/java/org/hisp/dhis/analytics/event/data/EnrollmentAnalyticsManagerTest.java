@@ -32,7 +32,9 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -108,6 +110,8 @@ public class EnrollmentAnalyticsManagerTest
     private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode";
 
     private final String TABLE_NAME = "analytics_enrollment";
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
@@ -413,7 +417,7 @@ public class EnrollmentAnalyticsManagerTest
     private RelationshipType createRelationshipType( RelationshipEntity fromConstraint,
         RelationshipEntity toConstraint )
     {
-        RelationshipType relationshipTypeA = new BeanRandomizer().randomObject( RelationshipType.class );
+        RelationshipType relationshipTypeA = rnd.nextObject( RelationshipType.class );
 
         RelationshipConstraint from = new RelationshipConstraint();
         from.setRelationshipEntity( fromConstraint );

@@ -32,8 +32,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.hisp.dhis.period.PeriodType;
-
-import io.github.benas.randombeans.api.Randomizer;
+import org.jeasy.random.api.Randomizer;
 
 /**
  * @author Luciano Fiandesio

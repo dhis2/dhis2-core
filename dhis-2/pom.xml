@@ -205,7 +205,7 @@
         <objenesis.version>3.2</objenesis.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <awaitility.version>4.0.2</awaitility.version>
-        <random-beans.version>3.7.0</random-beans.version>
+        <easy-random.version>5.0.0</easy-random.version>
         <tree.version>0.2.5</tree.version>
         <h2.version>1.4.200</h2.version>
         <hsqldb.version>2.3.2</hsqldb.version>
@@ -2265,16 +2265,11 @@
                 <version>${awaitility.version}</version>
                 <scope>test</scope>
             </dependency>
-            <dependency> <!-- can't be test scope, because we have separate library dhis-support-test -->
-                <groupId>io.github.benas</groupId>
-                <artifactId>random-beans</artifactId>
-                <version>${random-beans.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.objenesis</groupId>
-                        <artifactId>objenesis</artifactId>
-                    </exclusion>
-                </exclusions>
+            <dependency>
+                <groupId>org.jeasy</groupId>
+                <artifactId>easy-random-core</artifactId>
+                <version>${easy-random.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.scalified</groupId>
