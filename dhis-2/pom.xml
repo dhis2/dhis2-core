@@ -209,6 +209,7 @@
         <tree.version>0.2.5</tree.version>
         <h2.version>1.4.200</h2.version>
         <hsqldb.version>2.3.2</hsqldb.version>
+        <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
         <!-- Maven plugin versions -->
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
@@ -1477,6 +1478,11 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-ehcache</artifactId>
                 <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.persistence</groupId>
+                <artifactId>javax.persistence-api</artifactId>
+                <version>${javax.persistence-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
