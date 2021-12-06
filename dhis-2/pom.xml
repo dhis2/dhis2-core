@@ -1245,11 +1245,6 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>stax</groupId>
-                <artifactId>stax-api</artifactId>
-                <version>${stax-api.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>com.lowagie</groupId>
                 <artifactId>itext</artifactId>
                 <version>${itext.version}</version>
