@@ -65,7 +65,6 @@
         <!-- HISP Quick and Staxwax -->
         <dhis-hisp-quick.version>1.4.0</dhis-hisp-quick.version>
         <dhis-hisp-staxwax.version>1.4</dhis-hisp-staxwax.version>
-        <stax-api.version>1.0.1</stax-api.version>
 
         <!-- Security-->
         <spring-security.version>5.6.0</spring-security.version>
