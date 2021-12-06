@@ -27,34 +27,24 @@
  */
 package org.hisp.dhis.dxf2.events.importer.context;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 
 /**
  * @author Luciano Fiandesio
@@ -62,193 +52,38 @@ import com.google.common.collect.Multimap;
 @Component( "workContextProgramInstancesSupplier" )
 public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, ProgramInstance>>
 {
-    private final ProgramSupplier programSupplier;
-
-    public ProgramInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramSupplier programSupplier )
+    public ProgramInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
-        this.programSupplier = programSupplier;
     }
 
-    public Map<String, ProgramInstance> get( ImportOptions importOptions,
-        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap, List<Event> events )
+    public Map<String, ProgramInstance> get( List<Enrollment> events )
     {
-        if ( events == null )
+        if ( isEmpty( events ) )
         {
             return new HashMap<>();
         }
 
-        // Collect all the program instance UIDs to pass as SQL query argument
         Set<String> programInstanceUids = events.stream()
-            .filter( e -> StringUtils.isNotEmpty( e.getEnrollment() ) )
-            .map( Event::getEnrollment ).collect( Collectors.toSet() );
+            .map( Enrollment::getEnrollment )
+            .filter( StringUtils::isNotEmpty ).collect( Collectors.toSet() );
 
-        Map<String, ProgramInstance> programInstances = new HashMap<>();
-
-        if ( !programInstanceUids.isEmpty() )
-        {
-            // Create a bi-directional map enrollment uid -> event uid
-            Multimap<String, String> programInstanceToEvent = HashMultimap.create();
-            for ( Event event : events )
-            {
-                programInstanceToEvent.put( event.getEnrollment(), event.getUid() );
-            }
-
-            // Collect all the Program Stage Instances specified in the Events
-            // (enrollment
-            // property)
-            programInstances = getProgramInstancesByUid( importOptions, events, programInstanceToEvent,
-                programInstanceUids );
-        }
-
-        mapExistingEventsToProgramInstances( importOptions, events, programInstances );
-
-        mapEventsToProgramInstanceByTei( importOptions, events, programInstances, teiMap );
-
-        return programInstances;
+        return getProgramInstancesByUid(
+            programInstanceUids );
     }
 
-    /**
-     * Loop through the events and check if there is any event left without a
-     * Program Instance: for each Event without a PI, try to fetch the Program
-     * Instance by Program and Tracked Entity Instance
-     */
-    private void mapEventsToProgramInstanceByTei( ImportOptions importOptions, List<Event> events,
-        Map<String, ProgramInstance> programInstances, Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap )
+    private Map<String, ProgramInstance> getProgramInstancesByUid(
+        Set<String> uids )
     {
-        for ( Event event : events )
-        {
-            if ( !programInstances.containsKey( event.getUid() ) )
-            {
-                Pair<TrackedEntityInstance, Boolean> teiPair = teiMap.get( event.getUid() );
-                Program program = getProgramByUid( event.getProgram(),
-                    programSupplier.get( importOptions, events ).values() );
-                if ( teiPair != null && program != null )
-                {
-                    TrackedEntityInstance tei = teiPair.getKey();
-
-                    ProgramInstance programInstance = getByTeiAndProgram( importOptions, tei.getId(), program.getId(),
-                        event );
-                    if ( programInstance != null )
-                    {
-                        programInstances.put( event.getUid(), programInstance );
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * This method is only used if the Event already exist in the db (update) If
-     * the Event does not have the "enrollment" property set OR enrollment is
-     * pointing to an invalid UID, use the Program Instance already connected to
-     * the Event.
-     *
-     */
-    private void mapExistingEventsToProgramInstances( ImportOptions importOptions, List<Event> events,
-        Map<String, ProgramInstance> programInstances )
-    {
-        // Collect all the Program Instances by event uid
-        final Map<String, ProgramInstance> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events );
-
-        if ( !programInstancesByEvent.isEmpty() )
-        {
-            for ( Event event : events )
-            {
-                if ( !programInstances.containsKey( event.getUid() ) )
-                {
-                    if ( programInstancesByEvent.containsKey( event.getUid() ) )
-                    {
-                        programInstances.put( event.getUid(), programInstancesByEvent.get( event.getUid() ) );
-                    }
-                }
-            }
-        }
-    }
-
-    private Program getProgramById( long id, Collection<Program> programs )
-    {
-        return programs.stream().filter( p -> p.getId() == id ).findFirst().orElse( null );
-    }
-
-    private Program getProgramByUid( String uid, Collection<Program> programs )
-    {
-        return programs.stream().filter( p -> p.getUid().equals( uid ) ).findFirst().orElse( null );
-    }
-
-    private ProgramInstance getByTeiAndProgram( ImportOptions importOptions, Long teiId, Long programId, Event event )
-    {
-        final String sql = "select pi.programinstanceid, pi.programid, pi.uid , t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
-            +
-            "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi " +
-            "join trackedentityinstance t on t.trackedentityinstanceid = pi.trackedentityinstanceid " +
-            "join organisationunit ou on t.organisationunitid = ou.organisationunitid " +
-            "where pi.programid = :programid " +
-            "and pi.status = 'ACTIVE' " +
-            "and pi.trackedentityinstanceid = :teiid";
-
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "programid", programId );
-        parameters.addValue( "teiid", teiId );
-
-        List<ProgramInstance> query = jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-
-            List<ProgramInstance> results = new ArrayList<>();
-
-            while ( rs.next() )
-            {
-                results.add( mapFromResultset( rs, importOptions, Collections.singletonList( event ) ) );
-            }
-            return results;
-        } );
-
-        if ( query != null && query.size() == 1 )
-        {
-            return query.get( 0 );
-        }
-        else
-        {
-            return null;
-        }
-    }
-
-    private Map<String, ProgramInstance> getProgramInstanceByEvent( ImportOptions importOptions, List<Event> events )
-    {
-        final Set<String> eventUids = events.stream().map( Event::getUid ).collect( Collectors.toSet() );
-        if ( isEmpty( eventUids ) )
+        if ( isEmpty( uids ) )
         {
             return new HashMap<>();
         }
 
-        final String sql = "select psi.uid as psi_uid, pi.programinstanceid, pi.programid, pi.uid , t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
-            + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi "
-            + "left outer join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
-            + "left join organisationunit ou on t.organisationunitid = ou.organisationunitid "
-            + "join programstageinstance psi on pi.programinstanceid = psi.programinstanceid "
-            + "where psi.uid in (:ids)";
-
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
-        parameters.addValue( "ids", eventUids );
-
-        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, ProgramInstance> results = new HashMap<>();
-
-            while ( rs.next() )
-            {
-                results.put( rs.getString( "psi_uid" ), mapFromResultset( rs, importOptions, events ) );
-            }
-            return results;
-        } );
-    }
-
-    private Map<String, ProgramInstance> getProgramInstancesByUid( ImportOptions importOptions, List<Event> events,
-        Multimap<String, String> programInstanceToEvent, Set<String> uids )
-    {
-
-        final String sql = "select pi.programinstanceid, pi.programid, pi.uid, t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
-            + "ou.uid as tei_ou_uid, ou.path as tei_ou_path "
+        final String sql = "select pi.programinstanceid, pi.status, pi.uid as programinstance_uid, pi.programid, pi.uid, pi.created, t.trackedentityinstanceid as tei_id, t.uid as tei_uid,  p.uid as program_uid "
             + "from programinstance pi join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
-            + "join organisationunit ou on t.organisationunitid = ou.organisationunitid where pi.uid in (:ids)";
+            + "join program p on p.programid = pi.programid "
+            + "where pi.uid in (:ids)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", uids );
@@ -258,26 +93,22 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
 
             while ( rs.next() )
             {
-                ProgramInstance pi = mapFromResultset( rs, importOptions, events );
-
-                for ( String event : programInstanceToEvent.get( pi.getUid() ) )
-                {
-                    results.put( event, pi );
-                }
+                ProgramInstance pi = mapFromResultset( rs );
+                results.put( pi.getUid(), pi );
             }
             return results;
         } );
 
     }
 
-    private ProgramInstance mapFromResultset( ResultSet rs, ImportOptions importOptions, List<Event> events )
+    private ProgramInstance mapFromResultset( ResultSet rs )
         throws SQLException
     {
         ProgramInstance pi = new ProgramInstance();
+        pi.setUid( rs.getString( "programinstance_uid" ) );
         pi.setId( rs.getLong( "programinstanceid" ) );
-        pi.setUid( rs.getString( "uid" ) );
-        pi.setProgram(
-            getProgramById( rs.getLong( "programid" ), programSupplier.get( importOptions, events ).values() ) );
+        pi.setCreated( rs.getDate( "created" ) );
+        pi.setStatus( ProgramStatus.valueOf( rs.getString( "status" ) ) );
 
         String teiUid = rs.getString( "tei_uid" );
 
@@ -285,26 +116,11 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         {
             TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
             trackedEntityInstance.setId( rs.getLong( "tei_id" ) );
-            String teiOuUid = rs.getString( "tei_ou_uid" );
-            if ( teiOuUid != null )
-            {
-                OrganisationUnit organisationUnit = new OrganisationUnit();
-                organisationUnit.setUid( teiOuUid );
-                organisationUnit
-                    .setParent( SupplierUtils.getParentHierarchy( organisationUnit, rs.getString( "tei_ou_path" ) ) );
-                trackedEntityInstance.setOrganisationUnit( organisationUnit );
-            }
             trackedEntityInstance.setUid( teiUid );
 
             pi.setEntityInstance( trackedEntityInstance );
         }
 
         return pi;
-    }
-
-    @Override
-    public Map<String, ProgramInstance> get( ImportOptions importOptions, List<Event> events )
-    {
-        throw new NotImplementedException( "Use other get method" );
     }
 }

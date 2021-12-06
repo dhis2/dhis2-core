@@ -89,7 +89,7 @@ public class EventImporter
 
         long now = nanoTime();
 
-        final WorkContext context = workContextLoader.load( importOptions, events );
+        final WorkContext context = workContextLoader.loadForEvent( importOptions, events );
 
         log.debug( "::: event tracker import context load took : " + (nanoTime() - now) );
 

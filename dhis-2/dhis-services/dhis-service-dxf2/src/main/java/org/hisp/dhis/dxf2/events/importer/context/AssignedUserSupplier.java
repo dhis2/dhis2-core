@@ -35,7 +35,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -56,8 +55,7 @@ public class AssignedUserSupplier extends AbstractSupplier<Map<String, User>>
         super( namedParameterJdbcTemplate );
     }
 
-    @Override
-    public Map<String, User> get( ImportOptions importOptions, List<Event> events )
+    public Map<String, User> get( List<Event> events )
     {
         // @formatter:off
         // Collect all the "assigned user" uids to pass as SQL query argument

@@ -51,12 +51,13 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<ProgramStageInstance>
+public class ProgramStageInstanceSupplierTest
+    extends AbstractSupplierTest<ProgramStageInstance, Map<String, ProgramStageInstance>>
 {
     private ProgramStageInstanceSupplier subject;
 
     @Mock
-    private ProgramSupplier programSupplier;
+    private ProgramEventSupplier programSupplier;
 
     @Before
     public void setUp()

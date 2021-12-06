@@ -34,6 +34,7 @@ import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -98,11 +99,6 @@ public interface TrackedEntityInstanceService
     ImportSummaries mergeOrDeleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
         ImportOptions importOptions, JobConfiguration jobId );
 
-    ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions );
-
-    ImportSummary addTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions );
-
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
@@ -127,5 +123,5 @@ public interface TrackedEntityInstanceService
     ImportSummary deleteTrackedEntityInstance( String uid );
 
     ImportSummaries deleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions );
+        WorkContext workContext );
 }

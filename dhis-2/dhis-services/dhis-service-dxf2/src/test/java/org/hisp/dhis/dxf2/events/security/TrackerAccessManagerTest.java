@@ -33,6 +33,7 @@ import static org.junit.Assert.assertTrue;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -209,8 +210,9 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.save( femaleA );
         manager.save( femaleB );
 
-        enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
-            ImportOptions.getDefaultImportOptions() );
+        enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(), null, false );
 
         // this is required because the event import takes place through JDBC
         // and

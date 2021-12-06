@@ -36,9 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -56,7 +54,7 @@ public class ProgramOrgUnitSupplier extends AbstractSupplier<Map<Long, List<Long
         super( jdbcTemplate );
     }
 
-    public Map<Long, List<Long>> get( ImportOptions importOptions, List<Event> events,
+    public Map<Long, List<Long>> get( List<Event> events,
         Map<String, OrganisationUnit> orgUniMap )
     {
         if ( events == null )
@@ -104,11 +102,5 @@ public class ProgramOrgUnitSupplier extends AbstractSupplier<Map<Long, List<Long
             return map;
         } );
 
-    }
-
-    @Override
-    public Map<Long, List<Long>> get( ImportOptions importOptions, List<Event> events )
-    {
-        throw new NotImplementedException( "Use other get method" );
     }
 }

@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -359,7 +360,10 @@ public class EventImportTest
 
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, true )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         InputStream is = createEventJsonInputStream( programA.getUid(), programStageA.getUid(),
             organisationUnitA.getUid(),
@@ -421,7 +425,10 @@ public class EventImportTest
     {
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, false )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         InputStream is = createEventJsonInputStream( programA.getUid(), programStageA2.getUid(),
             organisationUnitA.getUid(),
@@ -458,7 +465,10 @@ public class EventImportTest
         invalidEvent.setOrgUnit( "INVALID" );
         enrollment.setEvents( Lists.newArrayList( validEvent, invalidEvent ) );
 
-        ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
+        ImportSummary importSummary = enrollmentService
+            .mergeOrDeleteEnrollments( Collections.singletonList( enrollment ), ImportOptions.getDefaultImportOptions(),
+                null, true )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         assertEquals( 1, importSummary.getImportCount().getImported() );
