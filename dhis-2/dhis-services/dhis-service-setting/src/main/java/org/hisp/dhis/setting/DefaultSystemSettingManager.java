@@ -71,7 +71,7 @@ public class DefaultSystemSettingManager
      * Cache for system settings. Does not accept nulls. Disabled during test
      * phase.
      */
-    private final Cache<SerializableOptional> settingCache;
+    private final Cache<String, SerializableOptional> settingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies

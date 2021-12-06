@@ -206,7 +206,7 @@ public class DataElementOperandController
             // fetch the count for the current query from a short-lived cache
             long cachedCountTotal = paginationCountCache.computeIfAbsent(
                 calculatePaginationCountKey( currentUserService.getCurrentUser(), filters, options ),
-                () -> countTotal );
+                ( x ) -> countTotal );
             pager = new Pager( options.getPage(), cachedCountTotal, options.getPageSize() );
             linkService.generatePagerLinks( pager, DataElementOperand.class );
         }

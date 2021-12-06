@@ -29,16 +29,20 @@ package org.hisp.dhis.cache;
 
 import java.util.concurrent.TimeUnit;
 
+import org.hisp.dhis.cache.loader.BulkCacheLoader;
+import org.hisp.dhis.cache.loader.CacheLoader;
+
 /**
  * A Builder class that helps in building Cache instances. Sensible defaults are
  * in place which can be modified with a fluent builder api.
  *
- * @author Ameen Mohamed
- *
  * @param <V> The Value type to be stored in cache
+ * @author Ameen Mohamed
  */
-public interface CacheBuilder<V>
+public interface CacheBuilder<T, V>
 {
+    CacheBuilder<T, V> withRefreshAhead( boolean refreshAhead );
+
     /**
      * Set the maximum size for the cache instance to be built. If set to 0, no
      * caching will take place. Cannot be a negative value.
@@ -48,7 +52,7 @@ public interface CacheBuilder<V>
      * @throws IllegalArgumentException if specified maximumSize is a negative
      *         value.
      */
-    CacheBuilder<V> withMaximumSize( long maximumSize );
+    CacheBuilder<T, V> withMaximumSize( long maximumSize );
 
     /**
      * Sets the minimum total size for the internal data structures.
@@ -58,7 +62,7 @@ public interface CacheBuilder<V>
      * @return this {@code CacheBuilder} instance (for chaining)
      * @throws IllegalArgumentException if {@code initialCapacity} is negative
      */
-    CacheBuilder<V> withInitialCapacity( int initialCapacity );
+    CacheBuilder<T, V> withInitialCapacity( int initialCapacity );
 
     /**
      * Set the cacheRegion for the cache instance to be built. If not specified
@@ -68,7 +72,7 @@ public interface CacheBuilder<V>
      * @return The builder instance.
      * @throws IllegalArgumentException if specified region is null.
      */
-    CacheBuilder<V> forRegion( String region );
+    CacheBuilder<T, V> forRegion( String region );
 
     /**
      * Configure the cache instance to expire the keys, if the expiry duration
@@ -79,7 +83,7 @@ public interface CacheBuilder<V>
      * @return The builder instance.
      * @throws IllegalArgumentException if specified timeUnit is null.
      */
-    CacheBuilder<V> expireAfterAccess( long duration, TimeUnit timeUnit );
+    CacheBuilder<T, V> expireAfterAccess( long duration, TimeUnit timeUnit );
 
     /**
      * Configure the cache instance to expire the keys, if the expiry duration
@@ -90,7 +94,11 @@ public interface CacheBuilder<V>
      * @return The builder instance.
      * @throws IllegalArgumentException if specified timeUnit is null.
      */
-    CacheBuilder<V> expireAfterWrite( long duration, TimeUnit timeUnit );
+    CacheBuilder<T, V> expireAfterWrite( long duration, TimeUnit timeUnit );
+
+    CacheBuilder<T, V> withLoader( CacheLoader<T, V> loader );
+
+    CacheBuilder<T, V> withBulkLoader( BulkCacheLoader<T, V> bulkLoader );
 
     /**
      * Configure the cache instance to have a default value if the key does not
@@ -100,7 +108,7 @@ public interface CacheBuilder<V>
      * @param defaultValue The default value
      * @return The builder instance.
      */
-    CacheBuilder<V> withDefaultValue( V defaultValue );
+    CacheBuilder<T, V> withDefaultValue( V defaultValue );
 
     /**
      * Configure the cache instance to use local inmemory storage even in
@@ -109,21 +117,21 @@ public interface CacheBuilder<V>
      *
      * @return The builder instance.
      */
-    CacheBuilder<V> forceInMemory();
+    CacheBuilder<T, V> forceInMemory();
 
     /**
      * Configure the cache instance to disable caching.
      *
      * @return The builder instance.
      */
-    CacheBuilder<V> disabled();
+    CacheBuilder<T, V> disabled();
 
     /**
      * Construct the cache instance based on the input parameters and return it.
      *
      * @return The cache instance created.
      */
-    Cache<V> build();
+    Cache<T, V> build();
 
     /**
      * Getter for maximumSize
@@ -173,4 +181,11 @@ public interface CacheBuilder<V>
      * @return the defaultvalue value set in the builder
      */
     V getDefaultValue();
+
+    CacheLoader<T, V> getLoader();
+
+    BulkCacheLoader<T, V> getBulkLoader();
+
+    boolean isRefreshAhead();
+
 }

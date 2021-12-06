@@ -87,7 +87,7 @@ public class TrackedEntityProgramAttributeFileResourceTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_fileresource_data.json" );
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

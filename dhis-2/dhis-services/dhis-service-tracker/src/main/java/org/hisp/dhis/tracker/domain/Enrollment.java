@@ -31,7 +31,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.locationtech.jts.geom.Geometry;
@@ -48,6 +51,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Enrollment
     implements TrackerDto
 {
+    private boolean invalid = false;
+
     @JsonProperty
     private String enrollment;
 
@@ -134,5 +139,17 @@ public class Enrollment
     public TrackerType getTrackerType()
     {
         return TrackerType.ENROLLMENT;
+    }
+
+    @Override
+    public void invalidate( boolean cascade )
+    {
+        setInvalid( true );
+
+        if ( cascade )
+        {
+            events.forEach( e -> e.invalidate( true ) );
+            relationships.forEach( r -> r.invalidate( true ) );
+        }
     }
 }

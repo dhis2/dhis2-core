@@ -94,7 +94,7 @@ public class TrackedEntityAttributeTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_with_tea_data.json" );
         TrackerBundle bundle = trackerBundleService.create( trackerImportParams );
-        trackerBundleService.commit( bundle );
+        trackerBundleService.commitAtomicModeAll( bundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

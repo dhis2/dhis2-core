@@ -42,10 +42,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
@@ -60,6 +58,7 @@ import org.hisp.dhis.tracker.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
@@ -140,33 +139,33 @@ public class DefaultTrackerBundleService
     }
 
     @Override
-    public TrackerBundleReport commit( TrackerBundle bundle )
+    public TrackerBundleReport commitAtomicModeNotAll( TrackerBundle bundle )
     {
         TrackerBundleReport bundleReport = new TrackerBundleReport();
         Session session = sessionFactory.getCurrentSession();
-        Transaction transaction = session.getTransaction();
 
         if ( TrackerBundleMode.VALIDATE == bundle.getImportMode() )
         {
             return bundleReport;
         }
 
-        if ( bundle.getAtomicMode().equals( AtomicMode.ALL ) )
-        {
-            transaction = session.beginTransaction();
+        TrackerType.getOrderedByPriority()
+            .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
+                .apply( session, bundle ) ) );
 
-            TrackerType.getOrderedByPriority()
-                .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
-                    .apply( session, bundle ) ) );
+        return bundleReport;
+    }
 
-            transaction.commit();
-        }
-        else
-        {
-            TrackerType.getOrderedByPriority()
-                .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
-                    .apply( session, bundle ) ) );
-        }
+    @Transactional( propagation = Propagation.REQUIRES_NEW )
+    @Override
+    public TrackerBundleReport commitAtomicModeAll( TrackerBundle bundle )
+    {
+        TrackerBundleReport bundleReport = new TrackerBundleReport();
+        Session session = sessionFactory.getCurrentSession();
+
+        TrackerType.getOrderedByPriority()
+            .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
+                .apply( session, bundle ) ) );
 
         return bundleReport;
     }

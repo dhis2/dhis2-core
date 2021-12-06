@@ -84,7 +84,7 @@ public class DefaultAppManager
      * In-memory storage of installed apps. Initially loaded on startup. Should
      * not be cleared during runtime.
      */
-    private final Cache<App> appCache;
+    private final Cache<String, App> appCache;
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
         CurrentUserService currentUserService,
@@ -104,7 +104,7 @@ public class DefaultAppManager
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.keyJsonValueService = keyJsonValueService;
-        this.appCache = cacheBuilderProvider.<App> newCacheBuilder()
+        this.appCache = cacheBuilderProvider.<String, App> newCacheBuilder()
             .forRegion( "appCache" )
             .build();
     }

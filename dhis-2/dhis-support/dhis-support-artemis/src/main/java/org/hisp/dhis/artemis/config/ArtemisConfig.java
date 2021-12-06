@@ -268,7 +268,7 @@ public class ArtemisConfig
     public AuditProducerConfiguration producerConfiguration()
     {
         return AuditProducerConfiguration.builder()
-            .useQueue( dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED ) )
+            .useQueue( true )
             .build();
     }
 }

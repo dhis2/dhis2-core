@@ -39,7 +39,7 @@ import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.cache.DefaultPreheatCacheService;
+import org.hisp.dhis.tracker.preheat.cache.NewPreheatCacheService;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.junit.Before;
 import org.junit.Rule;
@@ -73,7 +73,7 @@ public class PeriodTypeSupplierTest
     @Before
     public void setUp()
     {
-        final PreheatCacheService cache = new DefaultPreheatCacheService( conf, env );
+        final PreheatCacheService cache = new NewPreheatCacheService();
         supplier = new PeriodTypeSupplier( periodStore, cache );
         when( env.getActiveProfiles() ).thenReturn( new String[] {} );
     }

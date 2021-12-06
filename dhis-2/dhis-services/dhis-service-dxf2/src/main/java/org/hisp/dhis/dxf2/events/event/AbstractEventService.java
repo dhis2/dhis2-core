@@ -201,7 +201,7 @@ public abstract class AbstractEventService implements EventService
 
     protected EventServiceContextBuilder eventServiceContextBuilder;
 
-    protected Cache<Boolean> dataElementCache;
+    protected Cache<String, Boolean> dataElementCache;
 
     private static final int FLUSH_FREQUENCY = 100;
 

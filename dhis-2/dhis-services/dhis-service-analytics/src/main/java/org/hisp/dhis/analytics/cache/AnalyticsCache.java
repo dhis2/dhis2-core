@@ -50,7 +50,7 @@ public class AnalyticsCache
 {
     private static final Log log = getLog( AnalyticsCache.class );
 
-    private final Cache<Grid> queryCache;
+    private final Cache<String, Grid> queryCache;
 
     private final AnalyticsCacheSettings analyticsCacheSettings;
 

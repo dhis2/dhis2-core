@@ -117,7 +117,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
     // Caches the entire program hierarchy, including program stages and ACL
-    private final Cache<Map<String, Program>> programsCache;
+    private final Cache<String, Map<String, Program>> programsCache;
 
     public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider )
     {

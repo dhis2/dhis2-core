@@ -29,13 +29,22 @@ package org.hisp.dhis.cache;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.springframework.util.Assert.hasText;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.cache2k.Cache2kBuilder;
+import org.cache2k.event.CacheEntryCreatedListener;
+import org.cache2k.event.CacheEntryEvictedListener;
+import org.cache2k.event.CacheEntryExpiredListener;
+import org.cache2k.event.CacheEntryRemovedListener;
+import org.cache2k.event.CacheEntryUpdatedListener;
+import org.cache2k.expiry.Expiry;
 
 /**
  * Local cache implementation of {@link Cache}. This implementation is backed by
@@ -43,9 +52,14 @@ import org.cache2k.Cache2kBuilder;
  *
  * @author Ameen Mohamed
  */
-public class LocalCache<V> implements Cache<V>
+public class LocalCache<T, V>
+    implements Cache<T, V>
 {
-    private org.cache2k.Cache<String, V> cache2kInstance;
+    private final org.cache2k.Cache<T, V> cache2kInstance;
+
+    private boolean refreshExpiryOnAccess = false;
+
+    private long expiryInSeconds = 0;
 
     private V defaultValue;
 
@@ -54,60 +68,100 @@ public class LocalCache<V> implements Cache<V>
      *
      * @param cacheBuilder CacheBuilder instance
      */
-    @SuppressWarnings( "unchecked" )
-    public LocalCache( final CacheBuilder<V> cacheBuilder )
+    @SuppressWarnings( value = "unchecked" )
+    public LocalCache( final CacheBuilder<T, V> cacheBuilder )
     {
-        Cache2kBuilder<?, ?> builder = Cache2kBuilder.forUnknownTypes();
+        Cache2kBuilder<T, V> builder = (Cache2kBuilder<T, V>) Cache2kBuilder.forUnknownTypes();
 
         if ( cacheBuilder.isExpiryEnabled() )
         {
-            builder.eternal( false );
+            builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), SECONDS );
+
             if ( cacheBuilder.isRefreshExpiryOnAccess() )
             {
-                // TODO https://github.com/cache2k/cache2k/issues/39 is still
-                // Open. Once the issue is resolved it can be updated here
-                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), SECONDS );
-            }
-            else
-            {
-                builder.expireAfterWrite( cacheBuilder.getExpiryInSeconds(), SECONDS );
+                expiryInSeconds = cacheBuilder.getExpiryInSeconds();
+                refreshExpiryOnAccess = true;
             }
         }
-        else
+
+        if ( cacheBuilder.getLoader() != null )
         {
-            builder.eternal( true );
+            builder.loader( ( key ) -> cacheBuilder.getLoader().loadEntity( key ) );
         }
+
+        if ( cacheBuilder.getBulkLoader() != null )
+        {
+            builder.bulkLoader( set -> cacheBuilder.getBulkLoader().bulkLoadEntities( set ) );
+        }
+
+        builder.refreshAhead( cacheBuilder.isRefreshAhead() );
+
         if ( cacheBuilder.getMaximumSize() > 0 )
         {
             builder.entryCapacity( cacheBuilder.getMaximumSize() );
         }
 
-        // Using unknown typed key for builder and casting it
-        this.cache2kInstance = (org.cache2k.Cache<String, V>) builder.build();
+        builder.expiryPolicy( ( t, v, l, cacheEntry ) -> v == null ? Expiry.NOW : SECONDS.toMillis( expiryInSeconds ) );
+
+        // TODO:TEMP
+        builder
+            .addListener( (CacheEntryCreatedListener<T, V>) ( cache, cacheEntry ) -> System.out.println(
+                "C2k CREATED " + cacheEntry.getKey() ) )
+            .addListener( (CacheEntryUpdatedListener<T, V>) ( cache, cacheEntry, cacheEntry1 ) -> System.out.println(
+                "C2k UPDATED " + cacheEntry.getKey() ) )
+            .addListener( (CacheEntryEvictedListener<T, V>) ( cache, cacheEntry ) -> System.out.println(
+                "C2k EVICTED " + cacheEntry.getKey() ) )
+            .addListener( (CacheEntryExpiredListener<T, V>) ( cache, cacheEntry ) -> System.out.println(
+                "C2k EXPIRED " + cacheEntry.getKey() ) )
+            .addListener( (CacheEntryRemovedListener<T, V>) ( cache, cacheEntry ) -> System.out.println(
+                "C2k REMOVED " + cacheEntry.getKey() ) );
+
+        this.cache2kInstance = builder.build();
         this.defaultValue = cacheBuilder.getDefaultValue();
     }
 
-    @Override
-    public Optional<V> getIfPresent( String key )
+    private V getInternal( T key )
     {
-        return Optional.ofNullable( cache2kInstance.get( key ) );
+        // If a loader is configured, this call will load the value is missing
+        // from the cache
+        V res = cache2kInstance.get( key );
+
+        // Is refreshExpiryOnAccess is set to true, we set the expiry time to
+        // expiryInSeconds for the entry, if found.
+        if ( res != null && refreshExpiryOnAccess )
+        {
+            cache2kInstance.expireAt( key, SECONDS.toMillis( expiryInSeconds ) );
+        }
+
+        return res;
+    }
+
+    private void putInternal( T key, V value )
+    {
+        cache2kInstance.putIfAbsent( key, value );
     }
 
     @Override
-    public Optional<V> get( String key )
+    public Optional<V> getIfPresent( T key )
     {
-        return Optional.ofNullable( Optional.ofNullable( cache2kInstance.get( key ) ).orElse( defaultValue ) );
+        return Optional.ofNullable( getInternal( key ) );
     }
 
     @Override
-    public V get( String key, Function<String, V> mappingFunction )
+    public Optional<V> get( T key )
+    {
+        return Optional.ofNullable( Optional.ofNullable( getInternal( key ) ).orElse( defaultValue ) );
+    }
+
+    @Override
+    public V get( T key, Function<T, V> mappingFunction )
     {
         if ( null == mappingFunction )
         {
             throw new IllegalArgumentException( "MappingFunction cannot be null" );
         }
 
-        V value = cache2kInstance.get( key );
+        V value = getInternal( key );
 
         if ( value == null )
         {
@@ -115,7 +169,7 @@ public class LocalCache<V> implements Cache<V>
 
             if ( value != null )
             {
-                cache2kInstance.put( key, value );
+                putInternal( key, value );
             }
         }
 
@@ -129,33 +183,43 @@ public class LocalCache<V> implements Cache<V>
     }
 
     @Override
-    public void put( String key, V value )
+    public List<Optional<V>> getAll( Set<T> keys )
+    {
+        List<Optional<V>> result = new ArrayList<>();
+        Map<T, V> hits = cache2kInstance.getAll( keys );
+
+        keys.forEach( key -> result.add( Optional.ofNullable( hits.getOrDefault( key, null ) ) ) );
+
+        return result;
+    }
+
+    @Override
+    public void put( T key, V value )
     {
         if ( null == value )
         {
             throw new IllegalArgumentException( "Value cannot be null" );
         }
-        cache2kInstance.put( key, value );
+        putInternal( key, value );
     }
 
     @Override
-    public void put( String key, V value, long ttlInSeconds )
+    public void put( T key, V value, long ttlInSeconds )
     {
-        hasText( key, "Value cannot be null" );
         cache2kInstance.invoke( key,
             e -> e.setValue( value ).setExpiryTime( currentTimeMillis() + SECONDS.toMillis( ttlInSeconds ) ) );
     }
 
     @Override
-    public void invalidate( String key )
+    public void invalidate( T key )
     {
-        cache2kInstance.remove( key );
+        cache2kInstance.expireAt( key, Expiry.NOW );
     }
 
     @Override
     public void invalidateAll()
     {
-        cache2kInstance.removeAll();
+        cache2kInstance.clear();
     }
 
     @Override

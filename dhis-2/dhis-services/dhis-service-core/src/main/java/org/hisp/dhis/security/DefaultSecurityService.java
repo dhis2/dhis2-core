@@ -101,9 +101,9 @@ public class DefaultSecurityService
 
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
-    private final Cache<Integer> userFailedLoginAttemptCache;
+    private final Cache<String, Integer> userFailedLoginAttemptCache;
 
-    private final Cache<Integer> userAccountRecoverAttemptCache;
+    private final Cache<String, Integer> userAccountRecoverAttemptCache;
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------

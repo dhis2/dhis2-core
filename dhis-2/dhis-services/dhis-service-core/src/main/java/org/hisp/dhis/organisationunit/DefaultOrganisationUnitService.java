@@ -77,13 +77,13 @@ public class DefaultOrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
-    private final Cache<Boolean> inUserOrgUnitHierarchyCache;
+    private final Cache<String, Boolean> inUserOrgUnitHierarchyCache;
 
-    private final Cache<Boolean> inUserOrgUnitViewHierarchyCache;
+    private final Cache<String, Boolean> inUserOrgUnitViewHierarchyCache;
 
-    private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
+    private final Cache<String, Boolean> inUserOrgUnitSearchHierarchyCache;
 
-    private final Cache<Boolean> userCaptureOrgCountThresholdCache;
+    private final Cache<String, Boolean> userCaptureOrgCountThresholdCache;
 
     // -------------------------------------------------------------------------
     // Dependencies

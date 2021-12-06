@@ -95,13 +95,13 @@ public class TrackedEntityInstanceAggregate
     @NonNull
     private final CacheProvider cacheProvider;
 
-    private Cache<Set<TrackedEntityAttribute>> teiAttributesCache;
+    private Cache<String, Set<TrackedEntityAttribute>> teiAttributesCache;
 
-    private Cache<Map<Program, Set<TrackedEntityAttribute>>> programTeiAttributesCache;
+    private Cache<String, Map<Program, Set<TrackedEntityAttribute>>> programTeiAttributesCache;
 
-    private Cache<List<String>> userGroupUIDCache;
+    private Cache<String, List<String>> userGroupUIDCache;
 
-    private Cache<AggregateContext> securityCache;
+    private Cache<String, AggregateContext> securityCache;
 
     @PostConstruct
     protected void init()

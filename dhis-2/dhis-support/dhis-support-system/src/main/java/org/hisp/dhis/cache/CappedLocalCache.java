@@ -101,13 +101,13 @@ public class CappedLocalCache
     public static final Object EMPTY = new CacheEntry<>( null, null, null, 0L, 0L, 0L );
 
     /**
-     * A {@link CacheRegion} works like a {@link Cache} facade for the
+     * A {@link CacheRegion} works like a {@link SimpleCache} facade for the
      * underlying {@link CappedLocalCache} where all values share a single
      * space.
      *
      * @param <V> type of values stored.
      */
-    private static final class CacheRegion<V> implements Cache<V>
+    private static final class CacheRegion<V> implements Cache<String, V>
     {
         private final String region;
 
@@ -129,7 +129,7 @@ public class CappedLocalCache
 
         private final AtomicLong misses = new AtomicLong();
 
-        CacheRegion( final CacheBuilder<V> builder, Sizeof sizeof, LongConsumer sizeDeltaListener )
+        <T> CacheRegion( final CacheBuilder<T, V> builder, Sizeof sizeof, LongConsumer sizeDeltaListener )
         {
             this.region = builder.getRegion();
             log.info( "Local capped cache instance created for region: '{}'", region );
@@ -476,10 +476,10 @@ public class CappedLocalCache
     }
 
     @SuppressWarnings( "unchecked" )
-    public <V> Cache<V> createRegion( CacheBuilder<V> builder )
+    public <T, V> Cache<T, V> createRegion( CacheBuilder<T, V> builder )
     {
-        return (Cache<V>) regions.computeIfAbsent( builder.getRegion(),
-            region -> new CacheRegion<>( builder, sizeof, this::sizeUpdate ) );
+        return (Cache<T, V>) regions.computeIfAbsent( builder.getRegion(),
+            region -> new CacheRegion<V>( builder, sizeof, this::sizeUpdate ) );
     }
 
     /**

@@ -46,7 +46,7 @@ import org.springframework.data.redis.core.RedisTemplate;
  * @param <V> The Value type to be stored in cache
  */
 @Slf4j
-public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
+public class ExtendedCacheBuilder<T, V> extends SimpleCacheBuilder<T, V>
 {
     private final DhisConfigurationProvider configuration;
 
@@ -54,10 +54,10 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
 
     private boolean forceInMemory;
 
-    private final Function<CacheBuilder<V>, Cache<V>> cappedLocalCacheFactory;
+    private final Function<CacheBuilder<T, V>, Cache<T, V>> cappedLocalCacheFactory;
 
     public ExtendedCacheBuilder( RedisTemplate<String, ?> redisTemplate,
-        DhisConfigurationProvider configuration, Function<CacheBuilder<V>, Cache<V>> cappedLocalCacheFactory )
+        DhisConfigurationProvider configuration, Function<CacheBuilder<T, V>, Cache<T, V>> cappedLocalCacheFactory )
     {
         this.configuration = configuration;
         this.redisTemplate = redisTemplate;
@@ -73,7 +73,7 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
      * @return The builder instance.
      */
     @Override
-    public CacheBuilder<V> forceInMemory()
+    public CacheBuilder<T, V> forceInMemory()
     {
         this.forceInMemory = true;
         return this;
@@ -97,7 +97,7 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
      *         or {@link NoOpCache}
      */
     @Override
-    public Cache<V> build()
+    public Cache<T, V> build()
     {
         if ( getMaximumSize() == 0 || isDisabled() )
         {

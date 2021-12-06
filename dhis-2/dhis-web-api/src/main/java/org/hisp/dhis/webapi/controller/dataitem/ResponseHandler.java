@@ -79,7 +79,7 @@ class ResponseHandler
 
     private final FieldFilterService fieldFilterService;
 
-    private final Cache<Long> pageCountingCache;
+    private final Cache<String, Long> pageCountingCache;
 
     ResponseHandler( final QueryExecutor queryExecutor, final LinkService linkService,
         final FieldFilterService fieldFilterService, final CacheProvider cacheProvider )

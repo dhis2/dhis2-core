@@ -57,7 +57,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
 
     private final UserService userService;
 
-    private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
+    private final Cache<String, ApiTokenAuthenticationToken> apiTokenCache;
 
     private final SecurityService securityService;
 

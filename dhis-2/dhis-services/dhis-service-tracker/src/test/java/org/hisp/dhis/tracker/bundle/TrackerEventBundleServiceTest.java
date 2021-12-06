@@ -99,7 +99,7 @@ public class TrackerEventBundleServiceTest extends TrackerTest
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
@@ -114,7 +114,7 @@ public class TrackerEventBundleServiceTest extends TrackerTest
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
 
         trackerBundle = trackerBundleService.create( TrackerImportParams.builder()
@@ -124,7 +124,7 @@ public class TrackerEventBundleServiceTest extends TrackerTest
             .user( currentUserService.getCurrentUser() )
             .build() );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
     }
 }

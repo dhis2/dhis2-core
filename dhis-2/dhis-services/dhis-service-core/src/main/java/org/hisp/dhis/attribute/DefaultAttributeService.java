@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultAttributeService
     implements AttributeService
 {
-    private final Cache<Attribute> attributeCache;
+    private final Cache<String, Attribute> attributeCache;
 
     // -------------------------------------------------------------------------
     // Dependencies

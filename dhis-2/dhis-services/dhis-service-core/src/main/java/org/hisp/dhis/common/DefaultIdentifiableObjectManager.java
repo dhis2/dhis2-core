@@ -91,7 +91,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private final Cache<IdentifiableObject> defaultObjectCache;
+    private final Cache<String, IdentifiableObject> defaultObjectCache;
 
     private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 

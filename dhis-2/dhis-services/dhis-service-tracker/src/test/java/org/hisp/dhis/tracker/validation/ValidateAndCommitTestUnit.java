@@ -86,7 +86,7 @@ public class ValidateAndCommitTestUnit
         {
             try
             {
-                commitReport = trackerBundleService.commit( trackerBundle );
+                commitReport = trackerBundleService.commitAtomicModeAll( trackerBundle );
             }
             catch ( Exception e )
             {

@@ -149,7 +149,7 @@ public class DefaultProgramIndicatorService
 
     private final RelationshipTypeService relationshipTypeService;
 
-    private final Cache<String> analyticsSqlCache;
+    private final Cache<String, String> analyticsSqlCache;
 
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,

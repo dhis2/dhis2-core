@@ -49,7 +49,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class InputUtils
 {
-    private final Cache<Long> attrOptionComboIdCache;
+    private final Cache<String, Long> attrOptionComboIdCache;
 
     private final CategoryService categoryService;
 

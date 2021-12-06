@@ -128,12 +128,12 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager, 
     /**
      * Cache for storing recent ownership checks
      */
-    private final Cache<OrganisationUnit> ownerCache;
+    private final Cache<String, OrganisationUnit> ownerCache;
 
     /**
      * Cache for storing recent temporary ownership checks
      */
-    private final Cache<Boolean> tempOwnerCache;
+    private final Cache<String, Boolean> tempOwnerCache;
 
     // -------------------------------------------------------------------------
     // Implementation

@@ -53,7 +53,7 @@ public class JdbcOrgUnitAssociationsStore
 
     private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    private final Cache<Set<String>> orgUnitAssocCache;
+    private final Cache<String, Set<String>> orgUnitAssocCache;
 
     public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids )
     {

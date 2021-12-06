@@ -232,7 +232,6 @@ public class HibernateGenericStore<T>
 
     /**
      * Method for adding additional Predicates into where clause
-     *
      */
     protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<T>, Predicate>> predicates )
     {

@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.cache;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-public interface Cache<V>
+public interface Cache<T, V>
 {
     /**
      * Returns the value associated with the {@code key} in this cache instance,
@@ -42,7 +44,7 @@ public interface Cache<V>
      * @param key the key whose associated value is to be retrieved
      * @return the value wrapped in Optional, or {@code Optional.empty()}
      */
-    Optional<V> getIfPresent( String key );
+    Optional<V> getIfPresent( T key );
 
     /**
      * Returns the value associated with the {@code key} in this cache instance.
@@ -54,7 +56,7 @@ public interface Cache<V>
      * @return the value wrapped in Optional, or
      *         {@code Optional of defaultValue}
      */
-    Optional<V> get( String key );
+    Optional<V> get( T key );
 
     /**
      * Returns the value mapped to {@code key} in this cache instance, obtaining
@@ -72,7 +74,7 @@ public interface Cache<V>
      *         Optional.empty() if the computed value is null
      * @throws IllegalArgumentException if the specified mappingFunction is null
      */
-    V get( String key, Function<String, V> mappingFunction );
+    V get( T key, Function<T, V> mappingFunction );
 
     /**
      * Returns a collection of all the values in the cache
@@ -80,6 +82,8 @@ public interface Cache<V>
      * @return collection with all cached values
      */
     Stream<V> getAll();
+
+    List<Optional<V>> getAll( Set<T> keys );
 
     /**
      * Associates the {@code value} with the {@code key} in this cache. If the
@@ -92,7 +96,7 @@ public interface Cache<V>
      * @param value value to be mapped to the key
      * @throws IllegalArgumentException if the specified value is null
      */
-    void put( String key, V value );
+    void put( T key, V value );
 
     /**
      * Associates the {@code value} with the {@code key} in this cache. If the
@@ -105,7 +109,7 @@ public interface Cache<V>
      * @param ttlInSeconds the time to live for the key, in seconds
      * @throws IllegalArgumentException if the specified value is null
      */
-    void put( String key, V value, long ttlInSeconds );
+    void put( T key, V value, long ttlInSeconds );
 
     /**
      * Discards any cached value for the {@code key}. The behavior of this
@@ -114,7 +118,7 @@ public interface Cache<V>
      *
      * @param key the key whose mapping is to be removed from the cache
      */
-    void invalidate( String key );
+    void invalidate( T key );
 
     /**
      * Discards all entries in this cache instance. If a shared cache is used,

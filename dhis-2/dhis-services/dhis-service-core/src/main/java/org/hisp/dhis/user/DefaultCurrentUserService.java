@@ -56,14 +56,14 @@ public class DefaultCurrentUserService
      * Cache for user IDs. Key is username. Disabled during test phase. Take
      * care not to cache user info which might change during runtime.
      */
-    private final Cache<Long> usernameIdCache;
+    private final Cache<String, Long> usernameIdCache;
 
     /**
      * Cache contains Set of UserGroup UID for each user. Key is username. This
      * will be used for ACL check in
      * {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
      */
-    private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+    private final Cache<String, CurrentUserGroupInfo> currentUserGroupInfoCache;
 
     // -------------------------------------------------------------------------
     // Dependencies

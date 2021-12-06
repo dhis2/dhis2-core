@@ -30,7 +30,10 @@ package org.hisp.dhis.tracker.bundle;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +106,8 @@ public class TrackerImporterServiceTest
         TrackerBundleReport trackerBundleReport = TrackerBundleReport.builder().build();
         when( trackerUserService.getUser( anyString() ) ).thenReturn( getUser() );
 
-        when( trackerBundleService.commit( any( TrackerBundle.class ) ) ).thenReturn( trackerBundleReport );
+        when( trackerBundleService.commitAtomicModeAll( any( TrackerBundle.class ) ) )
+            .thenReturn( trackerBundleReport );
 
         when( trackerValidationService.validate( any( TrackerBundle.class ) ) )
             .thenReturn( new TrackerValidationReport() );

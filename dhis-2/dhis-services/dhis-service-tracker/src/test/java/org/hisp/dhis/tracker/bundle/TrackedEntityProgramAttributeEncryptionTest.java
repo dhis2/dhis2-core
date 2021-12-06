@@ -77,7 +77,7 @@ public class TrackedEntityProgramAttributeEncryptionTest
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

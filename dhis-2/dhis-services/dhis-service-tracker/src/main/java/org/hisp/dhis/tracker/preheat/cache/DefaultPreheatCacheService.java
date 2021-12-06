@@ -53,7 +53,7 @@ import org.springframework.stereotype.Service;
  */
 @RequiredArgsConstructor
 @Service
-public class DefaultPreheatCacheService implements PreheatCacheService
+public class DefaultPreheatCacheService
 {
     private final DhisConfigurationProvider config;
 
@@ -73,7 +73,6 @@ public class DefaultPreheatCacheService implements PreheatCacheService
      */
     private static Map<String, Cache<String, IdentifiableObject>> cache = new HashMap<>();
 
-    @Override
     public Optional<IdentifiableObject> get( final String cacheKey, final String id )
     {
         if ( isCacheEnabled() && cache.containsKey( cacheKey ) )
@@ -84,7 +83,6 @@ public class DefaultPreheatCacheService implements PreheatCacheService
         return Optional.empty();
     }
 
-    @Override
     public boolean hasKey( String cacheKey )
     {
         return cache.containsKey( cacheKey );
@@ -103,7 +101,6 @@ public class DefaultPreheatCacheService implements PreheatCacheService
 
     }
 
-    @Override
     public void put( final String cacheKey, final String id, IdentifiableObject object,
         final int cacheTTL, final long capacity )
     {
@@ -125,9 +122,9 @@ public class DefaultPreheatCacheService implements PreheatCacheService
                     .name( cacheKey )
                     .permitNullValues( false )
                     .entryCapacity( capacity == -1 ? Long.MAX_VALUE : capacity )
-                    .resilienceDuration( 30, TimeUnit.SECONDS ) // cope with at
-                                                                // most 30
-                                                                // seconds
+                    .expireAfterWrite( 30, TimeUnit.SECONDS ) // cope with at
+                                                              // most 30
+                                                              // seconds
                     // outage before propagating exceptions
                     .build();
 
@@ -139,13 +136,11 @@ public class DefaultPreheatCacheService implements PreheatCacheService
     }
 
     @EventListener
-    @Override
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
         invalidateCache();
     }
 
-    @Override
     public void invalidateCache()
     {
         cache.values().forEach( Cache::removeAll );

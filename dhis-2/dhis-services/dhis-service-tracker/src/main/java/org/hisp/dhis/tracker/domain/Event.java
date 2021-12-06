@@ -55,6 +55,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Event
     implements TrackerDto
 {
+    private boolean invalid = false;
+
     @JsonProperty
     private String event;
 
@@ -156,5 +158,16 @@ public class Event
     public TrackerType getTrackerType()
     {
         return TrackerType.EVENT;
+    }
+
+    @Override
+    public void invalidate( boolean cascade )
+    {
+        setInvalid( true );
+
+        if ( cascade )
+        {
+            this.relationships.forEach( r -> r.invalidate( true ) );
+        }
     }
 }

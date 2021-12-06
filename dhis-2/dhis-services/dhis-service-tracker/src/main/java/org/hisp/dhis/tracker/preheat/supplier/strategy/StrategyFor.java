@@ -56,7 +56,7 @@ public @interface StrategyFor
 
     /**
      * The time-to-live for the type of object being cached The value is in
-     * **minutes**. Defaults to 5 minutes
+     * **seconds**. Defaults to 5 seconds
      */
     int ttl() default 5;
 

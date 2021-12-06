@@ -188,7 +188,7 @@ public class LocalAppStorageService
     }
 
     @Override
-    public App installApp( File file, String fileName, Cache<App> appCache )
+    public App installApp( File file, String fileName, Cache<String, App> appCache )
     {
         throw new UnsupportedOperationException(
             "LocalAppStorageService.installApp is deprecated and should no longer be used." );

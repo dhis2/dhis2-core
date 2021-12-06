@@ -68,7 +68,7 @@ public interface AppStorageService
      * @param appCache The app cache
      * @return The status of the installation
      */
-    App installApp( File file, String filename, Cache<App> appCache );
+    App installApp( File file, String filename, Cache<String, App> appCache );
 
     /**
      * Deletes an app from the AppHubService.

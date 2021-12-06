@@ -68,7 +68,7 @@ public class DefaultUserSettingService
      * Cache for user settings. Does not accept nulls. Disabled during test
      * phase.
      */
-    private final Cache<SerializableOptional> userSettingCache;
+    private final Cache<String, SerializableOptional> userSettingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies

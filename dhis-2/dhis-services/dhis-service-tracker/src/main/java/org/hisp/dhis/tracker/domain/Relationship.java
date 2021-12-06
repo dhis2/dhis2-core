@@ -47,6 +47,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 public class Relationship implements TrackerDto
 {
+    private boolean invalid = false;
+
     @JsonProperty
     private String relationship;
 
@@ -81,5 +83,11 @@ public class Relationship implements TrackerDto
     public TrackerType getTrackerType()
     {
         return TrackerType.RELATIONSHIP;
+    }
+
+    @Override
+    public void invalidate( boolean cascade )
+    {
+        setInvalid( true );
     }
 }

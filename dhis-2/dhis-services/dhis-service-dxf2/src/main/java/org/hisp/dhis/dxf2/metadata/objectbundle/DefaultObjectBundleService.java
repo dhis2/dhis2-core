@@ -43,6 +43,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
+import org.hisp.dhis.common.MetadataUpdatedEvent;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.metadata.FlushMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleCommitReport;
@@ -57,6 +58,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +68,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService" )
 @AllArgsConstructor
-public class DefaultObjectBundleService implements ObjectBundleService
+public class DefaultObjectBundleService
+    implements ObjectBundleService
 {
     private final CurrentUserService currentUserService;
 
@@ -87,6 +90,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
     private final MergeService mergeService;
 
     private final ObjectBundleHooks objectBundleHooks;
+
+    private final ApplicationEventPublisher publisher;
 
     @Override
     @Transactional( readOnly = true )
@@ -313,6 +318,11 @@ public class DefaultObjectBundleService implements ObjectBundleService
             }
 
             session.update( persistedObject );
+
+            IdentifiableObject.class.isAssignableFrom( persistedObject.getClass() );
+            publisher.publishEvent( new MetadataUpdatedEvent( persistedObject,
+                persistedObject.getClass(),
+                persistedObject.getUid() ) );
 
             bundle.getPreheat().replace( bundle.getPreheatIdentifier(), persistedObject );
 

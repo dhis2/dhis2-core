@@ -51,7 +51,7 @@ public class DefaultProgramRuleVariableService
 
     private ProgramRuleVariableStore programRuleVariableStore;
 
-    private final Cache<Boolean> programRuleVariablesCache;
+    private final Cache<String, Boolean> programRuleVariablesCache;
 
     public DefaultProgramRuleVariableService( ProgramRuleVariableStore programRuleVariableStore,
         CacheProvider cacheProvider )

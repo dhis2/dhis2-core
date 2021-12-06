@@ -113,6 +113,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             TrackerObjectReport objectReport = new TrackerObjectReport( getType(), trackerDto.getUid(), idx );
             Transaction transaction = null;
 
+            if ( trackerDto.isInvalid() )
+            {
+                continue;
+            }
+
             if ( !bundle.getAtomicMode().equals( AtomicMode.ALL ) )
             {
                 transaction = session.beginTransaction();

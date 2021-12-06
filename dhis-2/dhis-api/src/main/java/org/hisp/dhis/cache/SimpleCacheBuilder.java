@@ -31,16 +31,19 @@ import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.cache.loader.BulkCacheLoader;
+import org.hisp.dhis.cache.loader.CacheLoader;
+
 /**
  * A Builder class that helps in building Cache instances. Sensible defaults are
  * in place which can be modified with a fluent builder api.
  *
- * @author Ameen Mohamed
- *
  * @param <V> The Value type to be stored in cache
+ * @author Ameen Mohamed
  */
 @Slf4j
-public class SimpleCacheBuilder<V> implements CacheBuilder<V>
+public class SimpleCacheBuilder<T, V>
+    implements CacheBuilder<T, V>
 {
     private long maximumSize;
 
@@ -54,9 +57,13 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
 
     private V defaultValue;
 
-    private boolean expiryEnabled;
-
     private boolean disabled;
+
+    private CacheLoader<T, V> loader;
+
+    private BulkCacheLoader<T, V> bulkLoader;
+
+    private boolean refreshAhead;
 
     public SimpleCacheBuilder()
     {
@@ -66,12 +73,18 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         this.refreshExpiryOnAccess = false;
         this.expiryInSeconds = 0;
         this.defaultValue = null;
-        this.expiryEnabled = false;
         this.disabled = false;
         this.initialCapacity = 16;
     }
 
-    public CacheBuilder<V> withMaximumSize( long maximumSize )
+    @Override
+    public CacheBuilder<T, V> withRefreshAhead( boolean refreshAhead )
+    {
+        this.refreshAhead = refreshAhead;
+        return this;
+    }
+
+    public CacheBuilder<T, V> withMaximumSize( long maximumSize )
     {
         if ( maximumSize < 0 )
         {
@@ -81,7 +94,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         return this;
     }
 
-    public CacheBuilder<V> withInitialCapacity( int initialCapacity )
+    public CacheBuilder<T, V> withInitialCapacity( int initialCapacity )
     {
         if ( initialCapacity < 0 )
         {
@@ -91,7 +104,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         return this;
     }
 
-    public CacheBuilder<V> forRegion( String region )
+    public CacheBuilder<T, V> forRegion( String region )
     {
         if ( region == null )
         {
@@ -101,7 +114,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         return this;
     }
 
-    public CacheBuilder<V> expireAfterAccess( long duration, TimeUnit timeUnit )
+    public CacheBuilder<T, V> expireAfterAccess( long duration, TimeUnit timeUnit )
     {
         if ( timeUnit == null )
         {
@@ -109,11 +122,10 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         }
         this.expiryInSeconds = timeUnit.toSeconds( duration );
         this.refreshExpiryOnAccess = true;
-        this.expiryEnabled = true;
         return this;
     }
 
-    public CacheBuilder<V> expireAfterWrite( long duration, TimeUnit timeUnit )
+    public CacheBuilder<T, V> expireAfterWrite( long duration, TimeUnit timeUnit )
     {
         if ( timeUnit == null )
         {
@@ -121,17 +133,28 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         }
         this.expiryInSeconds = timeUnit.toSeconds( duration );
         this.refreshExpiryOnAccess = false;
-        this.expiryEnabled = true;
         return this;
     }
 
-    public CacheBuilder<V> withDefaultValue( V defaultValue )
+    public CacheBuilder<T, V> withLoader( CacheLoader<T, V> cacheLoader )
+    {
+        this.loader = cacheLoader;
+        return this;
+    }
+
+    public CacheBuilder<T, V> withBulkLoader( BulkCacheLoader<T, V> bulkLoader )
+    {
+        this.bulkLoader = bulkLoader;
+        return this;
+    }
+
+    public CacheBuilder<T, V> withDefaultValue( V defaultValue )
     {
         this.defaultValue = defaultValue;
         return this;
     }
 
-    public CacheBuilder<V> disabled()
+    public CacheBuilder<T, V> disabled()
     {
         this.disabled = true;
         return this;
@@ -145,17 +168,17 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
      * @return A cache instance based on the input parameters. Returns one of
      *         {@link LocalCache} or {@link NoOpCache}
      */
-    public Cache<V> build()
+    public Cache<T, V> build()
     {
         if ( maximumSize == 0 || disabled )
         {
             log.info( String.format( "NoOp Cache instance created for region:'%s'", region ) );
-            return new NoOpCache<V>( this );
+            return new NoOpCache<>( this );
         }
         else
         {
             log.info( String.format( "Simple Local Cache instance created for region:'%s'", region ) );
-            return new LocalCache<V>( this );
+            return new LocalCache<>( this );
         }
     }
 
@@ -181,7 +204,7 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
 
     public boolean isExpiryEnabled()
     {
-        return expiryEnabled;
+        return refreshExpiryOnAccess || expiryInSeconds > 0;
     }
 
     public boolean isDisabled()
@@ -199,8 +222,26 @@ public class SimpleCacheBuilder<V> implements CacheBuilder<V>
         return defaultValue;
     }
 
-    public CacheBuilder<V> forceInMemory()
+    public CacheBuilder<T, V> forceInMemory()
     {
         return this;
+    }
+
+    @Override
+    public CacheLoader<T, V> getLoader()
+    {
+        return loader;
+    }
+
+    @Override
+    public BulkCacheLoader<T, V> getBulkLoader()
+    {
+        return bulkLoader;
+    }
+
+    @Override
+    public boolean isRefreshAhead()
+    {
+        return this.refreshAhead;
     }
 }

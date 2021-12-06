@@ -45,9 +45,9 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
 {
     private final ProgramNotificationTemplateStore store;
 
-    private final Cache<Boolean> programWebHookNotificationCache;
+    private final Cache<String, Boolean> programWebHookNotificationCache;
 
-    private final Cache<Boolean> programStageWebHookNotificationCache;
+    private final Cache<String, Boolean> programStageWebHookNotificationCache;
 
     public DefaultProgramNotificationTemplateService( ProgramNotificationTemplateStore store,
         CacheProvider cacheProvider )

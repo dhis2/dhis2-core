@@ -69,7 +69,7 @@ public class HibernatePeriodStore
     implements PeriodStore
 {
 
-    private final Cache<Long> periodIdCache;
+    private final Cache<String, Long> periodIdCache;
 
     public HibernatePeriodStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,

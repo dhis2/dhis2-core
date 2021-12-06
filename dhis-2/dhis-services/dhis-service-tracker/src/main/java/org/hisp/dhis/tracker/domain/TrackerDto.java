@@ -37,4 +37,8 @@ public interface TrackerDto
     String getUid();
 
     TrackerType getTrackerType();
+
+    boolean isInvalid();
+
+    void invalidate( boolean cascade );
 }

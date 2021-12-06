@@ -83,7 +83,7 @@ public class TrackerBundleServiceTest
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 13, trackedEntityInstances.size() );

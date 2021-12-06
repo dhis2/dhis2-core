@@ -51,9 +51,9 @@ public class DefaultCacheBuilderProvider implements CacheBuilderProvider
     private CappedLocalCache cappedLocalCache;
 
     @Override
-    public <V> CacheBuilder<V> newCacheBuilder()
+    public <T, V> CacheBuilder<T, V> newCacheBuilder()
     {
-        Function<CacheBuilder<V>, Cache<V>> capCacheFactory = cappedLocalCache != null
+        Function<CacheBuilder<T, V>, Cache<T, V>> capCacheFactory = cappedLocalCache != null
             ? cappedLocalCache::createRegion
             : builder -> new NoOpCache<>();
         return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider, capCacheFactory );

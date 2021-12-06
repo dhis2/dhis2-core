@@ -29,6 +29,8 @@ package org.hisp.dhis.cache;
 
 import java.time.Duration;
 
+import org.hisp.dhis.cache.loader.CacheLoaderProvider;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 
 /**
@@ -44,83 +46,86 @@ import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
  */
 public interface CacheProvider
 {
-    <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime );
+    <T, V> Cache<T, V> createAnalyticsResponseCache( Duration initialExpirationTime );
 
-    <V> Cache<V> createDefaultObjectCache();
+    <T, V> Cache<T, V> createDefaultObjectCache();
 
-    <V> Cache<V> createIsDataApprovedCache();
+    <T, V> Cache<T, V> createIsDataApprovedCache();
 
-    <V> Cache<V> createAllConstantsCache();
+    <T, V> Cache<T, V> createAllConstantsCache();
 
-    <V> Cache<V> createInUserOrgUnitHierarchyCache();
+    <T, V> Cache<T, V> createInUserOrgUnitHierarchyCache();
 
-    <V> Cache<V> createInUserViewOrgUnitHierarchyCache();
+    <T, V> Cache<T, V> createInUserViewOrgUnitHierarchyCache();
 
-    <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
+    <T, V> Cache<T, V> createInUserSearchOrgUnitHierarchyCache();
 
-    <V> Cache<V> createUserCaptureOrgUnitThresholdCache();
+    <T, V> Cache<T, V> createUserCaptureOrgUnitThresholdCache();
 
-    <V> Cache<V> createPeriodIdCache();
+    <T, V> Cache<T, V> createPeriodIdCache();
 
-    <V> Cache<V> createUserFailedLoginAttemptCache( V defaultValue );
+    <T, V> Cache<T, V> createUserFailedLoginAttemptCache( V defaultValue );
 
-    <V> Cache<V> createUserAccountRecoverAttemptCache( V defaultValue );
+    <T, V> Cache<T, V> createUserAccountRecoverAttemptCache( V defaultValue );
 
-    <V> Cache<V> createProgramOwnerCache();
+    <T, V> Cache<T, V> createProgramOwnerCache();
 
-    <V> Cache<V> createProgramTempOwnerCache();
+    <T, V> Cache<T, V> createProgramTempOwnerCache();
 
-    <V> Cache<V> createUserIdCache();
+    <T, V> Cache<T, V> createUserIdCache();
 
-    <V> Cache<V> createCurrentUserGroupInfoCache();
+    <T, V> Cache<T, V> createCurrentUserGroupInfoCache();
 
-    <V> Cache<V> createUserSettingCache();
+    <T, V> Cache<T, V> createUserSettingCache();
 
-    <V> Cache<V> createAttrOptionComboIdCache();
+    <T, V> Cache<T, V> createAttrOptionComboIdCache();
 
-    <V> Cache<V> createSystemSettingCache();
+    <T, V> Cache<T, V> createSystemSettingCache();
 
-    <V> Cache<V> createGoogleAccessTokenCache();
+    <T, V> Cache<T, V> createGoogleAccessTokenCache();
 
-    <V> Cache<V> createDataItemsPaginationCache();
+    <T, V> Cache<T, V> createDataItemsPaginationCache();
 
-    <V> Cache<V> createMetadataAttributesCache();
+    <T, V> Cache<T, V> createMetadataAttributesCache();
 
-    <V> Cache<V> createCanDataWriteCocCache();
+    <T, V> Cache<T, V> createCanDataWriteCocCache();
 
-    <V> Cache<V> createAnalyticsSqlCache();
+    <T, V> Cache<T, V> createAnalyticsSqlCache();
 
-    <V> Cache<V> createDataElementCache();
+    <T, V> Cache<T, V> createDataElementCache();
 
-    <V> Cache<V> createPropertyTransformerCache();
+    <T, V> Cache<T, V> createPropertyTransformerCache();
 
-    <V> Cache<V> createProgramHasRulesCache();
+    <T, V> Cache<T, V> createProgramHasRulesCache();
 
-    <V> Cache<V> createProgramRuleVariablesCache();
+    <T, V> Cache<T, V> createProgramRuleVariablesCache();
 
-    <V> Cache<V> createUserGroupNameCache();
+    <T, V> Cache<T, V> createUserGroupNameCache();
 
-    <V> Cache<V> createUserDisplayNameCache();
+    <T, V> Cache<T, V> createUserDisplayNameCache();
 
     void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 
-    <V> Cache<V> createProgramWebHookNotificationTemplateCache();
+    <T, V> Cache<T, V> createProgramWebHookNotificationTemplateCache();
 
-    <V> Cache<V> createProgramStageWebHookNotificationTemplateCache();
+    <T, V> Cache<T, V> createProgramStageWebHookNotificationTemplateCache();
 
-    <V> Cache<V> createProgramOrgUnitAssociationCache();
+    <T, V> Cache<T, V> createProgramOrgUnitAssociationCache();
 
-    <V> Cache<V> createCatOptOrgUnitAssociationCache();
+    <T, V> Cache<T, V> createCatOptOrgUnitAssociationCache();
 
-    <V> Cache<V> createApiKeyCache();
+    <T, V> Cache<T, V> createApiKeyCache();
 
-    <V> Cache<V> createProgramCache();
+    <T, V> Cache<T, V> createProgramCache();
 
-    <V> Cache<V> createTeiAttributesCache();
+    <T, V> Cache<T, V> createTeiAttributesCache();
 
-    <V> Cache<V> createProgramTeiAttributesCache();
+    <T, V> Cache<T, V> createProgramTeiAttributesCache();
 
-    <V> Cache<V> createUserGroupUIDCache();
+    <T, V> Cache<T, V> createUserGroupUIDCache();
 
-    <V> Cache<V> createSecurityCache();
+    <T, V> Cache<T, V> createSecurityCache();
+
+    <T, V> Cache<T, V> createMetadataObjectCache( Class<? extends IdentifiableObject> klass, long maxCapacity,
+        CacheLoaderProvider<T, V> cacheLoaderProvider );
 }

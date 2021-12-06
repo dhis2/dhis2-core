@@ -42,6 +42,7 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 
 import com.fasterxml.jackson.databind.util.StdConverter;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity
@@ -162,10 +163,10 @@ public class TrackerBundleParamsConverter
             .forEach( relationship -> relationshipHashMap.put( relationship.getRelationship(), relationship ) );
 
         return TrackerBundleParams.builder()
-            .trackedEntities( new ArrayList<>( trackedEntityMap.values() ) )
-            .enrollments( new ArrayList<>( enrollmentHashMap.values() ) )
-            .events( new ArrayList<>( eventHashMap.values() ) )
-            .relationships( new ArrayList<>( relationshipHashMap.values() ) )
+            .trackedEntities( ImmutableList.copyOf( trackedEntityMap.values() ) )
+            .enrollments( ImmutableList.copyOf( enrollmentHashMap.values() ) )
+            .events( ImmutableList.copyOf( eventHashMap.values() ) )
+            .relationships( ImmutableList.copyOf( relationshipHashMap.values() ) )
             .build();
 
     }
@@ -291,7 +292,6 @@ public class TrackerBundleParamsConverter
     private void updateEventReferences( Event event, String enrollment )
     {
         event.setEvent( updateReference( event.getEvent() ) );
-        event.setEnrollment( StringUtils.isEmpty( enrollment ) ? null : enrollment );
         event.setEnrollment( StringUtils.isEmpty( enrollment ) ? null : enrollment );
     }
 

@@ -60,7 +60,9 @@ public interface TrackerBundleService
      *
      * @param bundle TrackerBundle to commit.
      */
-    TrackerBundleReport commit( TrackerBundle bundle );
+    TrackerBundleReport commitAtomicModeNotAll( TrackerBundle bundle );
+
+    TrackerBundleReport commitAtomicModeAll( TrackerBundle bundle );
 
     /**
      * Carry out side effect for TrackerImporter i.e audits, notifications and

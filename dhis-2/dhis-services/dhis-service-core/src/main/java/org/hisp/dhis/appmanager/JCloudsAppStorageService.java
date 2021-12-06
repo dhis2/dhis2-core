@@ -271,7 +271,7 @@ public class JCloudsAppStorageService
         return reservedNamespaces;
     }
 
-    private boolean validateApp( App app, Cache<App> appCache )
+    private boolean validateApp( App app, Cache<String, App> appCache )
     {
         // -----------------------------------------------------------------
         // Check if app with same key is currently being deleted
@@ -330,7 +330,7 @@ public class JCloudsAppStorageService
     }
 
     @Override
-    public App installApp( File file, String filename, Cache<App> appCache )
+    public App installApp( File file, String filename, Cache<String, App> appCache )
     {
         App app = new App();
         log.info( "Installing new app: " + filename );

@@ -52,7 +52,7 @@ import org.springframework.stereotype.Service;
 public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {
-    private final Cache<List<String>> canDataWriteCocCache;
+    private final Cache<String, List<String>> canDataWriteCocCache;
 
     private final AclService aclService;
 

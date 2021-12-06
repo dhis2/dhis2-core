@@ -95,7 +95,7 @@ public class HibernateDataApprovalStore
 
     private static final String SQL_CAT = StatementBuilder.QUOTE + SQL_CONCAT + StatementBuilder.QUOTE;
 
-    private final Cache<Boolean> isApprovedCache;
+    private final Cache<String, Boolean> isApprovedCache;
 
     // -------------------------------------------------------------------------
     // Dependencies

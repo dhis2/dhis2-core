@@ -60,7 +60,7 @@ public class TokenController
 
     private static final String TOKEN_CACHE_KEY = "keyGoogleAccessToken";
 
-    private final Cache<GoogleAccessToken> tokenCache;
+    private final Cache<String, GoogleAccessToken> tokenCache;
 
     private final DhisConfigurationProvider config;
 

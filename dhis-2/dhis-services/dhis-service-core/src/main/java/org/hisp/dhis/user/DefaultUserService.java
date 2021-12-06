@@ -103,7 +103,7 @@ public class DefaultUserService
 
     private final SessionRegistry sessionRegistry;
 
-    private final Cache<String> userDisplayNameCache;
+    private final Cache<String, String> userDisplayNameCache;
 
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserCredentialsStore userCredentialsStore, UserAuthorityGroupStore userAuthorityGroupStore,

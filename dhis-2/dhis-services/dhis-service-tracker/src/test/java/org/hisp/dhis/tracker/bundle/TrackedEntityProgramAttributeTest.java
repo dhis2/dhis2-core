@@ -76,7 +76,7 @@ public class TrackedEntityProgramAttributeTest
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -98,7 +98,7 @@ public class TrackedEntityProgramAttributeTest
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -118,7 +118,7 @@ public class TrackedEntityProgramAttributeTest
         trackerImportParams = fromJson( "tracker/te_program_with_tea_update_data.json" );
         trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -137,7 +137,7 @@ public class TrackedEntityProgramAttributeTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_data.json" );
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -157,7 +157,7 @@ public class TrackedEntityProgramAttributeTest
         trackerImportParams = fromJson( "tracker/te_program_with_tea_update_data.json" );
         trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
@@ -176,7 +176,7 @@ public class TrackedEntityProgramAttributeTest
 
         trackerBundle = trackerBundleService.create( trackerImportParams );
 
-        trackerBundleService.commit( trackerBundle );
+        trackerBundleService.commitAtomicModeAll( trackerBundle );
 
         trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );

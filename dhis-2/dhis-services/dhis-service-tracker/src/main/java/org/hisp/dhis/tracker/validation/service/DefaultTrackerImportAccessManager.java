@@ -191,23 +191,16 @@ public class DefaultTrackerImportAccessManager
                 .addArg( eventOrgUnit ) );
         }
 
-        if ( programStage.getProgram().isWithoutRegistration() )
-        {
-            checkProgramWriteAccess( reporter, user, programStage.getProgram() );
-        }
-        else
-        {
-            checkProgramStageWriteAccess( reporter, user, programStage );
-            final Program program = programStage.getProgram();
+        checkProgramStageWriteAccess( reporter, user, programStage );
+        final Program program = programStage.getProgram();
 
-            checkProgramReadAccess( reporter, user, program );
+        checkProgramReadAccess( reporter, user, program );
 
-            checkTeiTypeAndTeiProgramAccess( reporter, user,
-                trackedEntity,
-                eventOrgUnit,
-                ownerOrgUnit,
-                programStage.getProgram() );
-        }
+        checkTeiTypeAndTeiProgramAccess( reporter, user,
+            trackedEntity,
+            eventOrgUnit,
+            ownerOrgUnit,
+            programStage.getProgram() );
 
         if ( categoryOptionCombo != null )
         {

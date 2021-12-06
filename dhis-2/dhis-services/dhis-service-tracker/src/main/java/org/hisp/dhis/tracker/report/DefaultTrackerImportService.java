@@ -279,7 +279,15 @@ public class DefaultTrackerImportService
 
     protected TrackerBundleReport commitBundle( TrackerBundle trackerBundle )
     {
-        TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
+        TrackerBundleReport bundleReport;
+        if ( trackerBundle.getAtomicMode().equals( AtomicMode.ALL ) )
+        {
+            bundleReport = trackerBundleService.commitAtomicModeAll( trackerBundle );
+        }
+        else
+        {
+            bundleReport = trackerBundleService.commitAtomicModeNotAll( trackerBundle );
+        }
 
         if ( !trackerBundle.isSkipSideEffects() )
         {

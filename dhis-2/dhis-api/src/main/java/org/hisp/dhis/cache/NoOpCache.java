@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.cache;
 
-import static org.springframework.util.Assert.hasText;
-
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -40,11 +38,11 @@ import java.util.stream.Stream;
  *
  * @author Ameen Mohamed
  */
-public class NoOpCache<V> implements Cache<V>
+public class NoOpCache<T, V> implements Cache<T, V>
 {
     private final V defaultValue;
 
-    public NoOpCache( CacheBuilder<V> cacheBuilder )
+    public NoOpCache( CacheBuilder<T, V> cacheBuilder )
     {
         this( cacheBuilder.getDefaultValue() );
     }
@@ -60,19 +58,19 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
-    public Optional<V> getIfPresent( String key )
+    public Optional<V> getIfPresent( T key )
     {
         return Optional.empty();
     }
 
     @Override
-    public Optional<V> get( String key )
+    public Optional<V> get( T key )
     {
         return Optional.ofNullable( defaultValue );
     }
 
     @Override
-    public V get( String key, Function<String, V> mappingFunction )
+    public V get( T key, Function<T, V> mappingFunction )
     {
         if ( null == mappingFunction )
         {
@@ -88,7 +86,7 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
-    public void put( String key, V value )
+    public void put( T key, V value )
     {
         if ( null == value )
         {
@@ -98,14 +96,13 @@ public class NoOpCache<V> implements Cache<V>
     }
 
     @Override
-    public void put( String key, V value, long ttlInSeconds )
+    public void put( T key, V value, long ttlInSeconds )
     {
-        hasText( key, "Value cannot be null" );
         // No operation
     }
 
     @Override
-    public void invalidate( String key )
+    public void invalidate( T key )
     {
         // No operation
     }

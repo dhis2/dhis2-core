@@ -165,7 +165,7 @@ public class ProgramStageInstanceServiceTest
 
     private EventDataValue eventDataValueD;
 
-    private Cache<DataElement> dataElementMap = new TestCache<>();
+    private Cache<String, DataElement> dataElementMap = new TestCache<>();
 
     private List<DataElement> dataElements;
 
@@ -564,7 +564,7 @@ public class ProgramStageInstanceServiceTest
         assertEquals( "3", eventDataValueCValue );
     }
 
-    private Map<String, DataElement> convertToMap( Cache<DataElement> dataElementMap )
+    private Map<String, DataElement> convertToMap( Cache<String, DataElement> dataElementMap )
     {
         return dataElementMap.getAll()
             .collect( Collectors.toMap( DataElement::getUid, d -> d ) );

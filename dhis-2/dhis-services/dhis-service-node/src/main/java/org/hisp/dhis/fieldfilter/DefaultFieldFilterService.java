@@ -119,7 +119,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private Property baseIdentifiableIdProperty;
 
-    private final Cache<PropertyTransformer> transformerCache;
+    private final Cache<String, PropertyTransformer> transformerCache;
 
     private final UserGroupService userGroupService;
 

@@ -49,8 +49,8 @@ public class CappedLocalCacheTest
 
     private final CappedLocalCache cache = new CappedLocalCache( sizeof, 0 );
 
-    private final Cache<String> testRegion = cache
-        .createRegion( new SimpleCacheBuilder<String>()
+    private final Cache<String, String> testRegion = cache
+        .createRegion( new SimpleCacheBuilder<String, String>()
             .forRegion( "test" )
             .expireAfterWrite( 1, TimeUnit.MINUTES )
             .forceInMemory() );

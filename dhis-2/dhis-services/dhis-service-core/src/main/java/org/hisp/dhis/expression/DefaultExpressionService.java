@@ -246,7 +246,7 @@ public class DefaultExpressionService
     /**
      * Cache for the constant map.
      */
-    private final Cache<Map<String, Constant>> constantMapCache;
+    private final Cache<String, Map<String, Constant>> constantMapCache;
 
     // -------------------------------------------------------------------------
     // Constructor

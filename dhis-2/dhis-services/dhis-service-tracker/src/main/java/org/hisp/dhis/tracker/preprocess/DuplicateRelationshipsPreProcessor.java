@@ -127,7 +127,9 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor
 
         // Remove duplicated Relationships from the bundle, if any
         bundle.getRelationships()
-            .removeIf( rel -> validRelationship.test( rel ) && !map.containsKey( rel.getRelationship() ) );
+            .stream()
+            .filter( rel -> validRelationship.test( rel ) && !map.containsKey( rel.getRelationship() ) )
+            .forEach( rel -> rel.invalidate( true ) );
     }
 
     private String hash( Relationship rel, TrackerBundle bundle )

@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 public class NotificationImplementableRuleService
     extends ImplementableRuleService
 {
-    private final Cache<Boolean> programHasRulesCache;
+    private final Cache<String, Boolean> programHasRulesCache;
 
     public NotificationImplementableRuleService( ProgramRuleService programRuleService,
         final CacheProvider cacheProvider )
@@ -65,7 +65,7 @@ public class NotificationImplementableRuleService
     }
 
     @Override
-    Cache<Boolean> getProgramHasRulesCache()
+    Cache<String, Boolean> getProgramHasRulesCache()
     {
         return this.programHasRulesCache;
     }

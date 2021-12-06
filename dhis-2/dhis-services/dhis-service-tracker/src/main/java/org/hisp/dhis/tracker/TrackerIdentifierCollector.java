@@ -27,7 +27,12 @@
  */
 package org.hisp.dhis.tracker;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,7 +63,6 @@ import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * This class "collects" identifiers from all input objects. This resulting map
@@ -87,8 +91,6 @@ public class TrackerIdentifierCollector
         collectRelationships( map, params.getRelationships() );
         // Using "*" signals that all the entities of the given type have to be
         // preloaded in the Preheat
-        map.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
-        map.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
         collectDefaults( map, params.getIdentifiers(), defaults );
 
         collectProgramRulesFields( map, params.getIdentifiers() );
@@ -135,6 +137,8 @@ public class TrackerIdentifierCollector
                 trackedEntity.getTrackedEntity() );
             addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(),
                 trackedEntity.getOrgUnit() );
+            addIdentifier( map, TrackedEntityType.class, params.getIdScheme().getIdScheme(),
+                trackedEntity.getTrackedEntityType() );
 
             collectEnrollments( map, params, trackedEntity.getEnrollments() );
 
@@ -209,6 +213,7 @@ public class TrackerIdentifierCollector
 
             addIdentifier( map, Relationship.class, TrackerIdScheme.UID, relationshipKey.asString() );
             addIdentifier( map, Relationship.class, TrackerIdScheme.UID, relationship.getRelationship() );
+            addIdentifier( map, RelationshipType.class, TrackerIdScheme.UID, relationship.getRelationshipType() );
 
             if ( relationship.getFrom() != null )
             {

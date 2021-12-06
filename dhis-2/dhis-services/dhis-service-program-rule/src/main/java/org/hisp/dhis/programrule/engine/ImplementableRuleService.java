@@ -51,7 +51,7 @@ abstract class ImplementableRuleService
 
     abstract List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid );
 
-    abstract Cache<Boolean> getProgramHasRulesCache();
+    abstract Cache<String, Boolean> getProgramHasRulesCache();
 
     protected List<ProgramRule> getProgramRulesByActionTypes( Program program,
         Set<ProgramRuleActionType> types, String programStageUid )

@@ -74,7 +74,7 @@ class DataApprovalPermissionsEvaluator
     {
     }
 
-    private static Cache<DataApprovalLevel> USER_APPROVAL_LEVEL_CACHE = new SimpleCacheBuilder<DataApprovalLevel>()
+    private static Cache<String, DataApprovalLevel> USER_APPROVAL_LEVEL_CACHE = new SimpleCacheBuilder<String, DataApprovalLevel>()
         .forRegion( "userApprovalLevelCache" )
         .expireAfterAccess( 10, TimeUnit.MINUTES )
         .withInitialCapacity( 10000 )

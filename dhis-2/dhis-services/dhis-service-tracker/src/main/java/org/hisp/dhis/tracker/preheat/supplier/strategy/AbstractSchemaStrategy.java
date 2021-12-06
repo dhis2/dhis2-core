@@ -56,6 +56,7 @@ import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.preheat.mappers.PreheatMapper;
 import org.hisp.dhis.user.User;
 import org.mapstruct.factory.Mappers;
+import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * Abstract Tracker Preheat strategy that applies to strategies that employ the
@@ -71,6 +72,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
 
     private final IdentifiableObjectManager manager;
 
+    @Qualifier( "NewPreheatCacheService" )
     private final PreheatCacheService cache;
 
     public AbstractSchemaStrategy( SchemaService schemaService, QueryService queryService,
