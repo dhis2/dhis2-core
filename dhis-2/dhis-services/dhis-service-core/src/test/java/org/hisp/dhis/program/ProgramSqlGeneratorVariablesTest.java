@@ -68,8 +68,6 @@ import org.mockito.junit.MockitoRule;
 public class ProgramSqlGeneratorVariablesTest
     extends DhisConvenienceTest
 {
-    private BeanRandomizer beanRandomizer = new BeanRandomizer();
-
     private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
 
     private final String SQL_CASE_VALUE = "case when \"%s\" >= 0 then 1 else 0 end";
@@ -103,6 +101,8 @@ public class ProgramSqlGeneratorVariablesTest
     private ProgramIndicator eventIndicator;
 
     private ProgramIndicator enrollmentIndicator;
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
@@ -336,7 +336,7 @@ public class ProgramSqlGeneratorVariablesTest
 
     private ProgramIndicator makeEnrollmentProgramIndicator()
     {
-        Program program = beanRandomizer.randomObject( Program.class );
+        Program program = rnd.nextObject( Program.class );
         ProgramIndicator programIndicator = createProgramIndicator( 'A', AnalyticsType.ENROLLMENT, program, "", "" );
 
         programIndicator.setProgram( program );
