@@ -218,6 +218,7 @@
         <maven-antrun-plugin.version>1.7</maven-antrun-plugin.version>
         <maven-java-formatter-plugin.version>0.4</maven-java-formatter-plugin.version>
         <maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
+        <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
         <versions-maven-plugin.version>2.8.1</versions-maven-plugin.version>
         <dependency-check-maven.version>6.0.3</dependency-check-maven.version>
         <spotbugs-maven-plugin.version>4.2.0</spotbugs-maven-plugin.version>
@@ -673,6 +674,20 @@
                             </licenseHeader>
                         </java>
                         <lineEndings>UNIX</lineEndings>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                    <configuration>
+                        <ignoredUnusedDeclaredDependencies>
+                            <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
+                            <!-- dependency on hamcrest-library and this config can be removed once we are on Junit 5 as
+                            it does not depend on hamcrest anymore. See
+                            http://hamcrest.org/JavaHamcrest/distributables#maven-upgrade-example -->
+                            <ignoredUnusedDeclaredDependency>org.hamcrest:hamcrest-library</ignoredUnusedDeclaredDependency>
+                        </ignoredUnusedDeclaredDependencies>
                     </configuration>
                 </plugin>
             </plugins>
