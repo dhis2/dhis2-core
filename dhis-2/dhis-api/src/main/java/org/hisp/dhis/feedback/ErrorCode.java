@@ -200,6 +200,7 @@ public enum ErrorCode
     /* ProgramRuleVariable validation */
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
+    E4053( "Program stage `{0}` must reference a program." ),
 
     /* SQL views */
     E4300( "SQL query is null" ),

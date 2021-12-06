@@ -104,7 +104,8 @@ public class MetadataImportBasedOnSchemasTest
             "messageConversations",
             "users",
             "organisationUnitLevels",
-            "programRuleActions" ); // blacklisted because contains
+            "programRuleActions",
+            "programStages" ); // blacklisted because contains
                                     // conditionally required properties, which
                                     // are not marked as required
 
