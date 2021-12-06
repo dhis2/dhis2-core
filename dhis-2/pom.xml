@@ -162,6 +162,7 @@
         <!-- Div. utils -->
         <version.debezium>1.7.1.Final</version.debezium>
         <guava.version>31.0.1-jre</guava.version>
+        <jsr305.version>3.0.2</jsr305.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
         <google-api-client.version>1.32.2</google-api-client.version>
         <lombok.version>1.18.20</lombok.version>
@@ -208,6 +209,7 @@
         <tree.version>0.2.5</tree.version>
         <h2.version>1.4.200</h2.version>
         <hsqldb.version>2.3.2</hsqldb.version>
+        <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
         <!-- Maven plugin versions -->
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
@@ -897,10 +899,6 @@
                         <artifactId>commons-logging</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>jsr305</artifactId>
-                    </exclusion>
-                    <exclusion>
                         <groupId>org.hisp.dhis.parser</groupId>
                         <artifactId>dhis-antlr-expression-parser</artifactId>
                     </exclusion>
@@ -1480,6 +1478,11 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-ehcache</artifactId>
                 <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.persistence</groupId>
+                <artifactId>javax.persistence-api</artifactId>
+                <version>${javax.persistence-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -2107,6 +2110,11 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${jsr305.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>
