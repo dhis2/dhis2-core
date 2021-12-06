@@ -229,8 +229,9 @@ public class ProgramInstanceEventSupplier extends AbstractSupplier<Map<String, P
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", eventUids );
 
+        Map<String, ProgramInstance> results = new HashMap<>();
+
         return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, ProgramInstance> results = new HashMap<>();
 
             while ( rs.next() )
             {
@@ -252,8 +253,9 @@ public class ProgramInstanceEventSupplier extends AbstractSupplier<Map<String, P
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", uids );
 
+        Map<String, ProgramInstance> results = new HashMap<>();
+
         return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, ProgramInstance> results = new HashMap<>();
 
             while ( rs.next() )
             {

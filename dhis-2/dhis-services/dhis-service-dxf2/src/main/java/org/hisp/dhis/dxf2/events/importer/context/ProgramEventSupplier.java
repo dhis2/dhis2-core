@@ -210,7 +210,7 @@ public class ProgramEventSupplier extends AbstractSupplier<Map<String, Program>>
 
         Map<Long, DataElementSets> results = new HashMap<>();
 
-        jdbcTemplate.query( sql, ( ResultSet rs ) -> {
+        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
 
             long programStageId = 0;
             while ( rs.next() )
@@ -247,10 +247,8 @@ public class ProgramEventSupplier extends AbstractSupplier<Map<String, Program>>
                     }
                 }
             }
-
+            return results;
         } );
-
-        return results;
     }
 
     @Data
@@ -292,8 +290,9 @@ public class ProgramEventSupplier extends AbstractSupplier<Map<String, Program>>
             + "group by p.programid, tet.trackedentitytypeid, c.categorycomboid, ps.programstageid, ps.sort_order "
             + "order by p.programid, ps.sort_order";
 
+        Map<String, Program> results = new HashMap<>();
+
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
-            Map<String, Program> results = new HashMap<>();
             long programId = 0;
             while ( rs.next() )
             {
