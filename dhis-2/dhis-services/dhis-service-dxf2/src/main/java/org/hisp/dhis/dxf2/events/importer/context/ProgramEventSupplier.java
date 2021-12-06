@@ -210,7 +210,7 @@ public class ProgramEventSupplier extends AbstractSupplier<Map<String, Program>>
 
         Map<Long, DataElementSets> results = new HashMap<>();
 
-        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
+        return Optional.ofNullable( jdbcTemplate.query( sql, ( ResultSet rs ) -> {
 
             long programStageId = 0;
             while ( rs.next() )
@@ -248,7 +248,7 @@ public class ProgramEventSupplier extends AbstractSupplier<Map<String, Program>>
                 }
             }
             return results;
-        } );
+        } ) ).orElse( new HashMap<>() );
     }
 
     @Data

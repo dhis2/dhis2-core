@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -229,16 +230,15 @@ public class ProgramInstanceEventSupplier extends AbstractSupplier<Map<String, P
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", eventUids );
 
-        Map<String, ProgramInstance> results = new HashMap<>();
-
-        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+        return Optional.ofNullable( jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+            Map<String, ProgramInstance> results = new HashMap<>();
 
             while ( rs.next() )
             {
                 results.put( rs.getString( "psi_uid" ), mapFromResultset( rs, importOptions, events ) );
             }
             return results;
-        } );
+        } ) ).orElse( new HashMap<>() );
     }
 
     private Map<String, ProgramInstance> getProgramInstancesByUid( ImportOptions importOptions, List<Event> events,
@@ -253,9 +253,8 @@ public class ProgramInstanceEventSupplier extends AbstractSupplier<Map<String, P
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", uids );
 
-        Map<String, ProgramInstance> results = new HashMap<>();
-
-        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+        return Optional.ofNullable( jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+            Map<String, ProgramInstance> results = new HashMap<>();
 
             while ( rs.next() )
             {
@@ -267,7 +266,7 @@ public class ProgramInstanceEventSupplier extends AbstractSupplier<Map<String, P
                 }
             }
             return results;
-        } );
+        } ) ).orElse( new HashMap<>() );
 
     }
 
