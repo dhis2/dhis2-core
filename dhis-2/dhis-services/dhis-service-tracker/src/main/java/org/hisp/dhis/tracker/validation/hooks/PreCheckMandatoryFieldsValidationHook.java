@@ -27,14 +27,20 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1008;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1121;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1122;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1123;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1124;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,6 +73,27 @@ public class PreCheckMandatoryFieldsValidationHook
     {
         addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), reporter, E1123, ORG_UNIT );
         addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), reporter, E1123, "programStage" );
+
+        // TODO remove if once metadata import is fixed
+        TrackerImportValidationContext context = reporter.getValidationContext();
+        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        if ( programStage != null )
+        {
+            // Program stages should always have a program! Due to how metadata
+            // import is currently implemented
+            // it's possible that users run into the edge case that a program
+            // stage does not have an associated
+            // program. Tell the user it's an issue with the metadata and not
+            // the event itself. This should be
+            // fixed in the metadata import. For more see
+            // https://jira.dhis2.org/browse/DHIS2-12123
+            addErrorIfNull( programStage.getProgram(), reporter, E1008, event.getProgramStage() );
+            // return since program is not a required field according to our API
+            // and the issue is with the missing reference in
+            // the DB entry of the program stage and not the payload itself
+            return;
+        }
+
         addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ), reporter, E1123, "program" );
     }
 

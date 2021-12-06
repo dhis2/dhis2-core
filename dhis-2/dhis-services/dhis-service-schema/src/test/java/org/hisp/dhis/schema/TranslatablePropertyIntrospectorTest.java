@@ -37,16 +37,17 @@ import java.util.Map;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.predictor.Predictor;
 import org.hisp.dhis.schema.introspection.TranslatablePropertyIntrospector;
 import org.junit.Test;
 
 public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
 {
+    private final TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
+
     @Test
     public void testGetTranslatableProperties()
     {
-        TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
-
         Property propTranslation = new Property( DataElement.class );
         propTranslation.setName( "translations" );
         propTranslation.setFieldName( "translations" );
@@ -83,8 +84,6 @@ public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
     @Test
     public void testNonTranslatableObject()
     {
-        TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
-
         Property propName = new Property( DataElement.class );
         propName.setName( "name" );
         propName.setPersisted( true );
@@ -122,9 +121,32 @@ public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
         propertyMap.put( "formName", property );
         propertyMap.put( "translations", propTranslation );
 
-        TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
         introspector.introspect( DataSet.class, propertyMap );
         assertEquals( "form_name", propertyMap.get( "formName" ).getI18nTranslationKey() );
+    }
 
+    @Test
+    public void testTranslatableEmbeddedProperty()
+    {
+        Property propTranslation = new Property( Predictor.class );
+        propTranslation.setName( "translations" );
+        propTranslation.setFieldName( "translations" );
+        propTranslation.setPersisted( true );
+
+        Property propGenerator = new Property( Predictor.class );
+        propGenerator.setName( "generator" );
+        propGenerator.setFieldName( "generator" );
+        propGenerator.setEmbeddedObject( true );
+        propGenerator.setPersisted( true );
+
+        Map<String, Property> propertyMap = new HashMap<>();
+        propertyMap.put( "generator", propGenerator );
+        propertyMap.put( "translations", propTranslation );
+
+        assertFalse( propertyMap.get( "generator" ).isTranslatable() );
+
+        introspector.introspect( Predictor.class, propertyMap );
+
+        assertTrue( propertyMap.get( "generator" ).isTranslatable() );
     }
 }

@@ -502,7 +502,8 @@ public class DhisWebApiWebSecurityConfig
                     .sessionFixation().migrateSession()
                     .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
                     .enableSessionUrlRewriting( false )
-                    .maximumSessions( 10 )
+                    .maximumSessions(
+                        Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
                     .sessionRegistry( sessionRegistry );
             }
             else

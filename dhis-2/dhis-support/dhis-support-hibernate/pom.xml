@@ -91,15 +91,22 @@
     </dependency>
 
     <!-- Test -->
-
+    <!-- hamcrest, hamcrest-library and junit order matters. Can be removed once we are on Junit 5 as it does not depend
+    on hamcrest anymore See http://hamcrest.org/JavaHamcrest/distributables Maven Upgrade Example -->
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest-library</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <dependency>

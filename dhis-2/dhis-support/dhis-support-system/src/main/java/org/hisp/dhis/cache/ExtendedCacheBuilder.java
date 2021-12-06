@@ -114,7 +114,7 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
             log.info( String.format( "Local Cache (forced) instance created for region:'%s'", getRegion() ) );
             return new LocalCache<>( this );
         }
-        if ( configuration.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" ) )
+        if ( configuration.isEnabled( ConfigurationKey.REDIS_ENABLED ) )
         {
             log.info( String.format( "Redis Cache instance created for region:'%s'", getRegion() ) );
             return new RedisCache<>( this );
