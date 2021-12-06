@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import java.io.Serializable;
 import java.util.function.Function;
 
 import lombok.AccessLevel;
@@ -51,7 +52,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Builder
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class DataIntegrityCheck
+public final class DataIntegrityCheck implements Serializable
 {
     @JsonProperty
     private final String name;
@@ -71,7 +72,7 @@ public final class DataIntegrityCheck
     @JsonProperty
     private final String recommendation;
 
-    private final Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
+    private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
 
-    private final Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
+    private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
 }

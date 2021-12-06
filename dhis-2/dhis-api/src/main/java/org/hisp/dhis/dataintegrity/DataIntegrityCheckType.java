@@ -101,6 +101,11 @@ public enum DataIntegrityCheckType
     PROGRAM_RULE_ACTIONS_WITHOUT_SECTION,
     PROGRAM_RULE_ACTIONS_WITHOUT_STAGE;
 
+    public String getName()
+    {
+        return name().toLowerCase();
+    }
+
     private static final Set<DataIntegrityCheckType> ALL = unmodifiableSet(
         EnumSet.allOf( DataIntegrityCheckType.class ) );
 

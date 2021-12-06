@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataintegrity;
 
+import java.io.Serializable;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -40,7 +42,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  */
 @Getter
 @AllArgsConstructor
-public class DataIntegritySummary
+public class DataIntegritySummary implements Serializable
 {
     @JsonUnwrapped
     private final DataIntegrityCheck source;

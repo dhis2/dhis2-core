@@ -53,7 +53,7 @@ public class DataIntegrityYamlReaderTest
         readDataIntegrityYaml( "data-integrity-checks.yaml", checks::add,
             sql -> check -> new DataIntegritySummary( check, 1, 100d ),
             sql -> check -> new DataIntegrityDetails( check,
-                singletonList( new DataIntegrityIssue( "id", "name", sql, new String[0] ) ) ) );
+                singletonList( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
 
         assertEquals( 1, checks.size() );
         DataIntegrityCheck check = checks.get( 0 );
