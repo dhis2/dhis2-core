@@ -134,7 +134,7 @@
     <sec:intercept-url pattern="/dhis-web-commons/security/**" access="permitAll()" />
 
     <sec:session-management>
-      <sec:concurrency-control max-sessions="10" expired-url="/dhis-web-commons-security/logout.action" session-registry-ref="sessionRegistry" />
+      <sec:concurrency-control max-sessions="50" expired-url="/dhis-web-commons-security/logout.action" session-registry-ref="sessionRegistry" />
     </sec:session-management>
 
     <!-- Account recovery -->
