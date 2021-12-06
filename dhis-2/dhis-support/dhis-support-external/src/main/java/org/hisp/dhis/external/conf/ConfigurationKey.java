@@ -172,14 +172,14 @@ public enum ConfigurationKey
      * If true, an operation will be performed at every connection checkout to
      * verify that the connection is valid (default: false).
      */
-    CONNECTION_POOL_TEST_ON_CHECKOUT( "connection.pool.test.on.checkout", Constants.FALSE, false ),
+    CONNECTION_POOL_TEST_ON_CHECKOUT( "connection.pool.test.on.checkout", Constants.OFF, false ),
 
     /**
      * If true, an operation will be performed asynchronously at every
      * connection checkin to verify that the connection is valid (default:
      * true).
      */
-    CONNECTION_POOL_TEST_ON_CHECKIN( "connection.pool.test.on.checkin", Constants.TRUE, false ),
+    CONNECTION_POOL_TEST_ON_CHECKIN( "connection.pool.test.on.checkin", Constants.ON, false ),
 
     /**
      * Hikari DB pool feature. Connection pool timeout: Set the maximum number
@@ -308,12 +308,12 @@ public enum ConfigurationKey
     /**
      * Use SSL for connecting to redis. (default: false)
      */
-    REDIS_USE_SSL( "redis.use.ssl", Constants.FALSE, false ),
+    REDIS_USE_SSL( "redis.use.ssl", Constants.OFF, false ),
 
     /**
      * Enable redis cache. (default: false)
      */
-    REDIS_ENABLED( "redis.enabled", Constants.FALSE, false ),
+    REDIS_ENABLED( "redis.enabled", Constants.OFF, false ),
 
     /**
      * Allows Flyway migrations to be run "out of order".
@@ -322,13 +322,13 @@ public enum ConfigurationKey
      * found, it will be applied too instead of being ignored.
      * </p>
      */
-    FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", Constants.FALSE, false ),
+    FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", Constants.OFF, false ),
 
     /**
      * Repairs the Flyway schema history table on startup before Flyway
      * migrations is applied. (default: false).
      */
-    FLYWAY_REPAIR_BEFORE_MIGRATION( "flyway.repair_before_migration", Constants.FALSE, false ),
+    FLYWAY_REPAIR_BEFORE_MIGRATION( "flyway.repair_before_migration", Constants.OFF, false ),
 
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
 
@@ -377,7 +377,7 @@ public enum ConfigurationKey
      * If enabled will use {@link #ARTEMIS_USERNAME} and
      * {@link #ARTEMIS_PASSWORD}.
      */
-    ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", Constants.FALSE ),
+    ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", Constants.OFF ),
 
     /**
      * Enable/disable Artemis persistence. (default. false).
@@ -386,7 +386,7 @@ public enum ConfigurationKey
      * should only be set if the volume on the queue is too high, and we want to
      * fall back to disk storage.
      */
-    ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", Constants.FALSE ),
+    ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", Constants.OFF ),
 
     /**
      * Number of threads to use for processing incoming packets. (default: 5).
@@ -582,7 +582,7 @@ public enum ConfigurationKey
     /**
      * WSO2 IdP specific parameters. Enable logout
      */
-    OIDC_PROVIDER_WSO2_ENABLE_LOGOUT( "oidc.provider.wso2.enable_logout", Constants.TRUE, false ),
+    OIDC_PROVIDER_WSO2_ENABLE_LOGOUT( "oidc.provider.wso2.enable_logout", Constants.ON, false ),
 
     /**
      * Database debugging feature. Defines threshold for logging of slow queries
@@ -595,17 +595,17 @@ public enum ConfigurationKey
      * Database debugging feature. Enables logging of all SQL queries to the
      * log.
      */
-    ENABLE_QUERY_LOGGING( "enable.query.logging", Constants.FALSE, false ),
+    ENABLE_QUERY_LOGGING( "enable.query.logging", Constants.OFF, false ),
 
     /**
      * Database debugging feature. Defines database logging before/after methods
      */
-    METHOD_QUERY_LOGGING_ENABLED( "method.query.logging.enabled", Constants.FALSE, false ),
+    METHOD_QUERY_LOGGING_ENABLED( "method.query.logging.enabled", Constants.OFF, false ),
 
     /**
      * Database debugging feature. Enable time query logging.
      */
-    ELAPSED_TIME_QUERY_LOGGING_ENABLED( "elapsed.time.query.logging.enabled", Constants.FALSE, false ),
+    ELAPSED_TIME_QUERY_LOGGING_ENABLED( "elapsed.time.query.logging.enabled", Constants.OFF, false ),
 
     /**
      * Database datasource pool type. Supported pool types are: c3p0 (default)
@@ -619,7 +619,7 @@ public enum ConfigurationKey
      * Allows enabling/disabling audits system-wide (without configuring the
      * audit matrix). (default: true)
      */
-    AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
+    AUDIT_ENABLED( "system.audit.enabled", Constants.ON, false ),
 
     /**
      * OAuth2 authorization server feature. Enable or disable.
@@ -684,7 +684,9 @@ public enum ConfigurationKey
     /**
      * System update notifications system. Enable or disable the feature.
      */
-    SYSTEM_UPDATE_NOTIFICATIONS_ENABLED( "system.update_notifications_enabled", Constants.ON, false );
+    SYSTEM_UPDATE_NOTIFICATIONS_ENABLED( "system.update_notifications_enabled", Constants.ON, false ),
+
+    MAX_SESSIONS_PER_USER( "max.sessions.per_user", "10", false );
 
     private final String key;
 
@@ -753,10 +755,6 @@ public enum ConfigurationKey
 
     private static final class Constants
     {
-        public static final String FALSE = Boolean.FALSE.toString();
-
-        public static final String TRUE = Boolean.TRUE.toString();
-
         public static final String OFF = "off";
 
         public static final String ON = "on";

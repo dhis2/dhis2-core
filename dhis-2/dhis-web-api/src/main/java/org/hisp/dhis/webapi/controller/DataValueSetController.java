@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.render.RenderFormat.ADX_XML;
 import static org.hisp.dhis.render.RenderFormat.CSV;
 import static org.hisp.dhis.render.RenderFormat.XML;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
@@ -126,7 +127,8 @@ public class DataValueSetController
         @RequestParam( required = false ) String compression,
         @RequestParam( required = false ) String format,
         IdSchemes idSchemes, HttpServletResponse response )
-        throws IOException
+        throws IOException,
+        AdxException
     {
         setNoStore( response );
 
@@ -135,6 +137,12 @@ public class DataValueSetController
             response.setContentType( CONTENT_TYPE_XML );
             OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
             dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), outputStream );
+        }
+        else if ( ADX_XML.isEqual( format ) )
+        {
+            response.setContentType( CONTENT_TYPE_XML_ADX );
+            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
+            adxDataService.writeDataValueSet( adxDataService.getFromUrl( params ), outputStream );
         }
         else if ( CSV.isEqual( format ) )
         {

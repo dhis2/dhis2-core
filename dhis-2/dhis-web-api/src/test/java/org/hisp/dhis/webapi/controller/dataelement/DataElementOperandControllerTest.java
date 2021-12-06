@@ -44,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.category.CategoryService;
@@ -121,15 +122,13 @@ public class DataElementOperandControllerTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BeanRandomizer rnd;
-
     private final static String ENDPOINT = "/dataElementOperands";
+
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
     {
-        rnd = new BeanRandomizer();
-
         ContextService contextService = new DefaultContextService();
 
         QueryService _queryService = new DefaultQueryService(
@@ -161,7 +160,7 @@ public class DataElementOperandControllerTest
         when( schemaService.getDynamicSchema( DataElementOperand.class ) )
             .thenReturn( new Schema( DataElementOperand.class, "", "" ) );
 
-        when( currentUserService.getCurrentUser() ).thenReturn( rnd.randomObject( User.class ) );
+        when( currentUserService.getCurrentUser() ).thenReturn( rnd.nextObject( User.class ) );
     }
 
     @Test
@@ -172,14 +171,14 @@ public class DataElementOperandControllerTest
         long totalSize = 150;
 
         // Given
-        final List<DataElement> dataElements = rnd.randomObjects( DataElement.class, 1 );
+        final List<DataElement> dataElements = rnd.objects( DataElement.class, 1 ).collect( Collectors.toList() );
 
         when( manager.getAllSorted( DataElement.class ) ).thenReturn( dataElements );
 
-        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class,
-            (int) totalSize );
+        final List<DataElementOperand> dataElementOperands = rnd.objects( DataElementOperand.class,
+            (int) totalSize ).collect( Collectors.toList() );
         when( dataElementCategoryService.getOperands( dataElements, true ) )
-            .thenReturn( rnd.randomObjects( DataElementOperand.class, (int) totalSize ) );
+            .thenReturn( rnd.objects( DataElementOperand.class, (int) totalSize ).collect( Collectors.toList() ) );
 
         final List<DataElementOperand> first50elements = dataElementOperands.subList( 0, pageSize );
         ArgumentCaptor<FieldFilterParams> filterParamsArgumentCaptor = ArgumentCaptor
@@ -226,14 +225,14 @@ public class DataElementOperandControllerTest
         long totalSize = 100;
 
         // Given
-        final List<DataElement> dataElements = rnd.randomObjects( DataElement.class, 1 );
+        final List<DataElement> dataElements = rnd.objects( DataElement.class, 1 ).collect( Collectors.toList() );
 
         when( manager.getAllSorted( DataElement.class ) ).thenReturn( dataElements );
 
-        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class,
-            (int) totalSize );
+        final List<DataElementOperand> dataElementOperands = rnd.objects( DataElementOperand.class,
+            (int) totalSize ).collect( Collectors.toList() );
         when( dataElementCategoryService.getOperands( dataElements, true ) )
-            .thenReturn( rnd.randomObjects( DataElementOperand.class, (int) totalSize ) );
+            .thenReturn( rnd.objects( DataElementOperand.class, (int) totalSize ).collect( Collectors.toList() ) );
 
         final List<DataElementOperand> thirdPageElements = dataElementOperands.subList( 50, 50 + pageSize );
         ArgumentCaptor<FieldFilterParams> filterParamsArgumentCaptor = ArgumentCaptor

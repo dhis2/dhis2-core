@@ -31,11 +31,17 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.tracker.TrackerIdentifierCollector.ID_WILDCARD;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -84,13 +90,12 @@ public class AbstractSchemaStrategyCachingTest
 
     private TrackerPreheat preheat;
 
-    private BeanRandomizer rnd;
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Before
     public void setUp()
     {
         preheat = new TrackerPreheat();
-        rnd = new BeanRandomizer();
     }
 
     @Test
@@ -100,7 +105,8 @@ public class AbstractSchemaStrategyCachingTest
         final Schema schema = new RelationshipTypeSchemaDescriptor().getSchema();
 
         when( manager.getAll( (Class<IdentifiableObject>) schema.getKlass() ) )
-            .thenReturn( (List<IdentifiableObject>) rnd.randomObjects( schema.getKlass(), 5 ) );
+            .thenReturn( (List<IdentifiableObject>) rnd.objects( schema.getKlass(), 5 )
+                .collect( Collectors.toList() ) );
 
         RelationshipTypeStrategy strategy = new RelationshipTypeStrategy( schemaService, queryService,
             manager, cache );
@@ -125,7 +131,7 @@ public class AbstractSchemaStrategyCachingTest
 
         String UID = CodeGenerator.generateUid();
 
-        Program program = rnd.randomObject( Program.class );
+        Program program = rnd.nextObject( Program.class );
         when( cache.get( Program.class.getSimpleName(), UID ) ).thenReturn( Optional.of( program ) );
 
         ProgramStrategy strategy = new ProgramStrategy( schemaService, queryService,
@@ -147,7 +153,7 @@ public class AbstractSchemaStrategyCachingTest
 
         String UID = CodeGenerator.generateUid();
 
-        Program program = rnd.randomObject( Program.class );
+        Program program = rnd.nextObject( Program.class );
 
         when( cache.get( Program.class.getSimpleName(), UID ) ).thenReturn( Optional.empty() );
 

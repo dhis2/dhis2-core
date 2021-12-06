@@ -44,6 +44,55 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
  */
 public interface DhisConfigurationProvider
 {
+    String ENABLED_VALUE = "on";
+
+    String DISABLED_VALUE = "off";
+
+    /**
+     * Indicates whether a value for the given key is equal to "on" or "true"
+     * (case-insensitive).
+     *
+     * @param value input value.
+     *
+     * @return true if the value is equal to "on" or "true" (case-insensitive).
+     */
+    static boolean isOn( String value )
+    {
+        boolean b1 = Boolean.parseBoolean( value );
+        boolean b2 = ENABLED_VALUE.equalsIgnoreCase( value );
+
+        return b1 || b2;
+    }
+
+    static boolean isOff( String value )
+    {
+        return !isOn( value );
+    }
+
+    /**
+     * Indicates whether a value for the given key is equal to "on".
+     *
+     * @param key the configuration key.
+     *
+     * @return true if the configuration key is enabled.
+     */
+    default boolean isEnabled( ConfigurationKey key )
+    {
+        return DhisConfigurationProvider.isOn( getProperty( key ) );
+    }
+
+    /**
+     * Indicates whether a value for the given key is equal to "off".
+     *
+     * @param key the configuration key.
+     *
+     * @return true if the configuration key is disabled.
+     */
+    default boolean isDisabled( ConfigurationKey key )
+    {
+        return !DhisConfigurationProvider.isOn( getProperty( key ) );
+    }
+
     /**
      * Get configuration as a set of properties.
      *
@@ -79,30 +128,6 @@ public interface DhisConfigurationProvider
      * @return true if a value exists.
      */
     boolean hasProperty( ConfigurationKey key );
-
-    /**
-     * Indicates whether a value for the given key is equal to "on".
-     *
-     * @param key the configuration key.
-     * @return true if the configuration key is enabled.
-     */
-    boolean isEnabled( ConfigurationKey key );
-
-    /**
-     * Returns value as boolean, will return false if value is null.
-     *
-     * @param key the configuration key.
-     * @return Will return true if the value is "true" or "TRUE"
-     */
-    boolean getBoolean( ConfigurationKey key );
-
-    /**
-     * Indicates whether a value for the given key is equal to "off".
-     *
-     * @param key the configuration key.
-     * @return true if the configuration key is disabled.
-     */
-    boolean isDisabled( ConfigurationKey key );
 
     /**
      * Returns a GoogleCredential, if a Google service account has been
