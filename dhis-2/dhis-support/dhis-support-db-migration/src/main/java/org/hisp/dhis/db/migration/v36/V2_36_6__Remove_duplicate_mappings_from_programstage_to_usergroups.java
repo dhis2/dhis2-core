@@ -28,6 +28,7 @@
 package org.hisp.dhis.db.migration.v36;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -55,12 +56,22 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
 
     private static final String PROGRAMSTAGEID = "programstageid";
 
-    private static final String CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING = "SELECT count(*),programstageid,name,usergroupid  "
+    private static final String CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING_OLD = "SELECT count(*),programstageid,name,usergroupid  "
         +
         "FROM   (SELECT ps.*,uga.* " +
         "       FROM   programstage ps " +
         "       LEFT JOIN programstageusergroupaccesses psuga " +
         "               ON ps.programstageid = psuga.programid " +
+        "       LEFT JOIN usergroupaccess uga " +
+        "               ON psuga.usergroupaccessid = uga.usergroupaccessid) AS pscouga " +
+        "GROUP  BY programstageid,name,usergroupid HAVING count(*) > 1";
+
+    private static final String CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING_FIXED = "SELECT count(*),programstageid,name,usergroupid  "
+        +
+        "FROM   (SELECT ps.*,uga.* " +
+        "       FROM   programstage ps " +
+        "       LEFT JOIN programstageusergroupaccesses psuga " +
+        "               ON ps.programstageid = psuga.programstageid " +
         "       LEFT JOIN usergroupaccess uga " +
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid) AS pscouga " +
         "GROUP  BY programstageid,name,usergroupid HAVING count(*) > 1";
@@ -96,7 +107,7 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
 
         // 1. Check if there are duplicate mappings. If not simply return.
         try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING ); )
+            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING_OLD ); )
         {
             if ( rs.next() == false )
             {
@@ -121,6 +132,47 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
                 }
                 while ( rs.next() );
             }
+        }
+        catch ( SQLException s )
+        {
+            log.error( "Sql exception", s );
+            context.getConnection().rollback();
+        }
+
+        // 1.1 Same as 1, but modified query to be compatible with newer and
+        // older version because of the fix
+        // https://github.com/dhis2/dhis2-core/pull/8776
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING_FIXED ); )
+        {
+            if ( rs.next() == false )
+            {
+                log.info(
+                    "No duplicate mappings for programstage to usergroups. Skipping duplicate cleanup migration" );
+                return;
+            }
+            else
+            {
+                DuplicateProgramStageUserGroupWithCount duplicatePgmStgUsrgrp = null;
+                do
+                {
+                    duplicatePgmStgUsrgrp = new DuplicateProgramStageUserGroupWithCount();
+                    duplicatePgmStgUsrgrp.setName( rs.getString( "name" ) );
+                    duplicatePgmStgUsrgrp.setProgramStageId( rs.getLong( PROGRAMSTAGEID ) );
+                    programStageIds.add( rs.getString( PROGRAMSTAGEID ) );
+                    duplicatePgmStgUsrgrp.setUserGroupId( rs.getLong( USERGROUPID ) );
+                    userGroupIds.add( rs.getString( USERGROUPID ) );
+                    duplicatePgmStgUsrgrp.setCount( rs.getInt( "count" ) );
+                    totalCount = totalCount + rs.getInt( "count" );
+                    duplicatePgmStgUsrgrps.add( duplicatePgmStgUsrgrp );
+                }
+                while ( rs.next() );
+            }
+        }
+        catch ( SQLException s )
+        {
+            log.error( "Sql exception", s );
+            context.getConnection().rollback();
         }
 
         Set<Pair<String, String>> pgmStgUsrGroupPairs = new HashSet<>();
