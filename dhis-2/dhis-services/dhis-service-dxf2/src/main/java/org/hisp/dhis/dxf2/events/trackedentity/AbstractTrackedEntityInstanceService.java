@@ -446,6 +446,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             importSummariesWithUpdatedTeis.addImportSummaries( updateTrackedEntityInstances( update, workContext ) );
             importSummariesWithUpdatedTeis.addImportSummaries( deleteTrackedEntityInstances( delete, workContext ) );
 
+            importSummaries.addImportSummaries( importSummariesWithUpdatedTeis );
+
             Set<String> updatedTeis = importSummariesWithUpdatedTeis.getImportSummaries().stream()
                 .map( ImportSummary::getUpdatedTei )
                 .filter( Objects::nonNull ).collect( Collectors.toSet() );

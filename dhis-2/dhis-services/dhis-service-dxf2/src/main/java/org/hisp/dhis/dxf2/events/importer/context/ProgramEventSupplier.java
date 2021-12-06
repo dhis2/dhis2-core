@@ -208,9 +208,10 @@ public class ProgramEventSupplier extends AbstractSupplier<Map<String, Program>>
             + "join dataelement de on psde.dataelementid = de.dataelementid "
             + "order by psde.programstageid";
 
-        return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
+        Map<Long, DataElementSets> results = new HashMap<>();
 
-            Map<Long, DataElementSets> results = new HashMap<>();
+        jdbcTemplate.query( sql, ( ResultSet rs ) -> {
+
             long programStageId = 0;
             while ( rs.next() )
             {
@@ -246,8 +247,10 @@ public class ProgramEventSupplier extends AbstractSupplier<Map<String, Program>>
                     }
                 }
             }
-            return results;
+
         } );
+
+        return results;
     }
 
     @Data
