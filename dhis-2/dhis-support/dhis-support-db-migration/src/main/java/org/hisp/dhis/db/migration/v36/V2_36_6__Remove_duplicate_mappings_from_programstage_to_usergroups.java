@@ -28,7 +28,6 @@
 package org.hisp.dhis.db.migration.v36;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -92,6 +91,10 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid " +
         " WHERE  programid IN (%s)  and usergroupid IN (%s)) AS pstguga order by accesslevel desc";
 
+    private static final String FAILSAFE_INSERT_COLUMN = "ALTER TABLE programstageusergroupaccesses ADD COLUMN IF NOT EXISTS programid bigint";
+
+    private static final String FAILSAFE_DROP_COLUMN = "ALTER TABLE programstageusergroupaccesses DROP COLUMN IF EXISTS programid";
+
     private static final String DELETE_PS_USRGRP_ACCESS = "delete from programstageusergroupaccesses where usergroupaccessid in (%s)";
 
     private static final String DELETE_USRGRP_ACCESS = "delete from usergroupaccess where usergroupaccessid in (%s)";
@@ -105,6 +108,13 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         Set<String> userGroupIds = new HashSet<>();
         long totalCount = 0;
 
+        // 0. For backward compatibility, inserting the incorrect column
+        // programid if not exists
+        try ( Statement stmt = context.getConnection().createStatement() )
+        {
+            stmt.execute( FAILSAFE_INSERT_COLUMN );
+        }
+
         // 1. Check if there are duplicate mappings. If not simply return.
         try ( Statement stmt = context.getConnection().createStatement();
             ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING_OLD ); )
@@ -113,7 +123,6 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
             {
                 log.info(
                     "No duplicate mappings for programstage to usergroups. Skipping duplicate cleanup migration" );
-                return;
             }
             else
             {
@@ -132,11 +141,6 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
                 }
                 while ( rs.next() );
             }
-        }
-        catch ( SQLException s )
-        {
-            log.error( "Sql exception", s );
-            context.getConnection().rollback();
         }
 
         // 1.1 Same as 1, but modified query to be compatible with newer and
@@ -149,7 +153,6 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
             {
                 log.info(
                     "No duplicate mappings for programstage to usergroups. Skipping duplicate cleanup migration" );
-                return;
             }
             else
             {
@@ -169,10 +172,10 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
                 while ( rs.next() );
             }
         }
-        catch ( SQLException s )
+
+        if ( duplicatePgmStgUsrgrps.isEmpty() )
         {
-            log.error( "Sql exception", s );
-            context.getConnection().rollback();
+            return;
         }
 
         Set<Pair<String, String>> pgmStgUsrGroupPairs = new HashSet<>();
@@ -208,10 +211,11 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
 
         String usrGrpAccessIdsCommaSeparated = StringUtils.join( deleteUserGroupAccessIds, "," );
 
+        // 3. Delete redundant mappings in both tables
         try ( Statement stmt = context.getConnection().createStatement(); )
         {
             // Delete redundant usergroupaccessid from
-            // dataelementcategoryoptionusergroupaccesses table
+            // programstageusergroupaccesses table
             int deletedPsugaCount = stmt
                 .executeUpdate( String.format( DELETE_PS_USRGRP_ACCESS, usrGrpAccessIdsCommaSeparated ) );
             log.info( "Deleted userGroupAccessIds from programstageusergroupaccesses table : " + deletedPsugaCount );
@@ -221,6 +225,14 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
                 .executeUpdate( String.format( DELETE_USRGRP_ACCESS, usrGrpAccessIdsCommaSeparated ) );
             log.info( "Deleted userGroupAccessIds from usergroupaccess table : " + deletedUgaCount );
         }
+
+        // 4. For backward compatibility, deleting the incorrect column
+        // programid if exists
+        try ( Statement stmt = context.getConnection().createStatement() )
+        {
+            stmt.execute( FAILSAFE_DROP_COLUMN );
+        }
+
     }
 }
 
