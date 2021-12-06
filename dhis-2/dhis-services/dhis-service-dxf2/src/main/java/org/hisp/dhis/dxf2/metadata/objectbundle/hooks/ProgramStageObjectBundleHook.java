@@ -42,11 +42,14 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Iterables;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -92,6 +95,11 @@ public class ProgramStageObjectBundleHook
         }
 
         errors.addAll( validateProgramStageDataElementsAcl( programStage, bundle ) );
+
+        if ( programStage.getProgram() == null && !checkProgramReference( programStage.getUid(), bundle ) )
+        {
+            errors.add( new ErrorReport( ProgramStage.class, ErrorCode.E4053, programStage.getUid() ) );
+        }
 
         return errors;
     }
@@ -177,5 +185,28 @@ public class ProgramStageObjectBundleHook
         } );
 
         return errors;
+    }
+
+    /**
+     * Check if current ProgramStage has reference from a Program in same
+     * payload.
+     */
+    private boolean checkProgramReference( String programStageId, ObjectBundle objectBundle )
+    {
+        List<IdentifiableObject> persistedObjects = objectBundle.getObjects( Program.class, true );
+        List<IdentifiableObject> nonPersistedObjects = objectBundle.getObjects( Program.class, false );
+
+        Iterable<IdentifiableObject> programs = Iterables.concat( persistedObjects, nonPersistedObjects );
+
+        for ( IdentifiableObject program : programs )
+        {
+            if ( ((Program) program).getProgramStages().stream()
+                .anyMatch( ps -> ps.getUid().equals( programStageId ) ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
