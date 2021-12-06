@@ -45,6 +45,8 @@
 
     <property name="sequentialSkipCount" column="sequentialskipcount" />
 
+    <property name="translations" type="jblTranslations"/>
+
     <set name="groups" table="predictorgroupmembers" inverse="true">
       <key column="predictorid" />
       <many-to-many class="org.hisp.dhis.predictor.PredictorGroup" column="predictorgroupid" />
