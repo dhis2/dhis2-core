@@ -34,24 +34,18 @@ import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.filterB
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
 
@@ -59,76 +53,50 @@ import com.google.common.collect.ImmutableList;
 
 @Service
 @RequiredArgsConstructor
-class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensionsService
+class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalyticsDimensionsService
 {
-
     @NonNull
-    private final ProgramStageService programStageService;
-
-    @NonNull
-    private final CategoryService categoryService;
+    private final ProgramService programService;
 
     @Override
-    public Collection<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId )
+    public Collection<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programId )
     {
-        return Optional.of( programStageId )
-            .map( programStageService::getProgramStage )
-            .map( ProgramStage::getProgram )
-            .map( p -> collectDimensions(
+        return Optional.of( programId )
+            .map( programService::getProgram )
+            .filter( Program::isRegistration )
+            .map( program -> collectDimensions(
                 ImmutableList.of(
-                    p.getProgramIndicators(),
-                    filterByValueType(
-                        QUERY,
-                        p.getDataElements(),
-                        DataElement::getValueType ),
-                    filterByValueType(
-                        QUERY,
-                        getTeasIfRegistrationAndNotConfidential( p ),
-                        TrackedEntityAttribute::getValueType ),
-                    getCategoriesIfNeeded( p ),
-                    getAttributeCategoryOptionGroupSetsIfNeeded( p ) ) ) )
+                    program.getProgramIndicators(),
+                    getProgramStageDataElements( QUERY, program ),
+                    filterByValueType( QUERY, getTeasIfRegistrationAndNotConfidential( program ),
+                        TrackedEntityAttribute::getValueType ) ) ) )
             .orElse( Collections.emptyList() );
+    }
+
+    private Collection<ProgramStageDataElement> getProgramStageDataElements(
+        DimensionsServiceCommon.OperationType operationType, Program program )
+    {
+        return program.getProgramStages().stream()
+            .map( ProgramStage::getProgramStageDataElements )
+            .map( programStageDataElements -> filterByValueType(
+                operationType,
+                programStageDataElements,
+                a -> a.getDataElement().getValueType() ) )
+            .flatMap( Collection::stream )
+            .collect( Collectors.toList() );
     }
 
     @Override
-    public Collection<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId )
+    public Collection<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programId )
     {
-        return Optional.of( programStageId )
-            .map( programStageService::getProgramStage )
-            .map( ps -> collectDimensions(
+        return Optional.of( programId )
+            .map( programService::getProgram )
+            .map( program -> collectDimensions(
                 ImmutableList.of(
+                    getProgramStageDataElements( AGGREGATE, program ),
                     filterByValueType( AGGREGATE,
-                        ps.getDataElements(),
-                        DataElement::getValueType ),
-                    filterByValueType( AGGREGATE,
-                        ps.getProgram().getTrackedEntityAttributes(),
-                        TrackedEntityAttribute::getValueType ),
-                    getCategoriesIfNeeded( ps.getProgram() ),
-                    getAttributeCategoryOptionGroupSetsIfNeeded( ps.getProgram() ) ) ) )
-            .orElse( Collections.emptyList() );
-    }
-
-    private List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsIfNeeded( Program program )
-    {
-        return Optional.of( program )
-            .filter( Program::hasCategoryCombo )
-            .map( unused -> categoryService.getAllCategoryOptionGroupSets().stream()
-                .filter( this::isTypeAttribute )
-                .collect( Collectors.toList() ) )
-            .orElse( Collections.emptyList() );
-    }
-
-    private boolean isTypeAttribute( CategoryOptionGroupSet categoryOptionGroupSet )
-    {
-        return categoryOptionGroupSet.getDataDimensionType().equals( DataDimensionType.ATTRIBUTE );
-    }
-
-    private Collection<Category> getCategoriesIfNeeded( Program program )
-    {
-        return Optional.of( program )
-            .filter( Program::hasCategoryCombo )
-            .map( Program::getCategoryCombo )
-            .map( CategoryCombo::getCategories )
+                        program.getTrackedEntityAttributes(),
+                        TrackedEntityAttribute::getValueType ) ) ) )
             .orElse( Collections.emptyList() );
     }
 

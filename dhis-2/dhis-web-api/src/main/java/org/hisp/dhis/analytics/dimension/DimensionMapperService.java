@@ -25,58 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics.dimension;
+
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.springframework.stereotype.Service;
 
-@Data
-@Builder( toBuilder = true )
-public class AnalyticsDimensions
+@Service
+@RequiredArgsConstructor
+public class DimensionMapperService
 {
 
-    public final static AnalyticsDimensions EMPTY_ANALYTICS_DIMENSIONS = AnalyticsDimensions
-        .builder()
-        .build();
+    private final Collection<DimensionMapper> mappers;
 
-    @Builder.Default
-    private final Collection<? extends BaseDimensionalItemObject> programIndicators = Collections.emptyList();
-
-    @Builder.Default
-    private final Collection<? extends BaseDimensionalItemObject> dataElements = Collections.emptyList();
-
-    @Builder.Default
-    private final Collection<? extends BaseDimensionalItemObject> trackedEntityAttributes = Collections.emptyList();
-
-    @Builder.Default
-    private final Collection<? extends BaseDimensionalObject> comboCategories = Collections.emptyList();
-
-    @Builder.Default
-    private final Collection<? extends BaseDimensionalObject> attributeCategoryOptionGroupSets = Collections
-        .emptyList();
-
-    public Collection<DimensionWrapper> getDimensions()
+    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
     {
-        return Stream.of(
-            programIndicators,
-            dataElements,
-            trackedEntityAttributes,
-            comboCategories,
-            attributeCategoryOptionGroupSets )
-            .map( CollectionUtils::emptyIfNull )
-            .flatMap( Collection::stream )
-            .map( HibernateProxyUtils::unproxy )
-            .map( DimensionWrapper::new )
+        return dimensions.stream()
+            .map( this::toDimensionResponse )
             .collect( Collectors.toList() );
     }
+
+    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension )
+    {
+        return mappers.stream()
+            .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
+            .findFirst()
+            .map( dimensionMapper -> dimensionMapper.map( dimension ) )
+            .orElseThrow( () -> new IllegalArgumentException(
+                "Unsupported dimension type: " + getRealClass( dimension ) ) );
+    }
+
 }

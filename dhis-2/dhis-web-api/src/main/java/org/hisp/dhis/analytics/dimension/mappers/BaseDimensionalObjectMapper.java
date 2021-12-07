@@ -25,18 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.dimension.mappers;
+
+import java.util.Collection;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
+import org.hisp.dhis.analytics.dimension.DimensionResponse;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.springframework.stereotype.Service;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class DimensionsCriteria extends PagingAndSortingCriteriaAdapter
+import com.google.common.collect.ImmutableSet;
+
+@Service
+public class BaseDimensionalObjectMapper extends BaseDimensionMapper
 {
-    private String filter;
+
+    @Getter
+    private final Collection<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
+        CategoryOptionGroupSet.class,
+        Category.class );
+
+    @Override
+    public DimensionResponse map( BaseIdentifiableObject dimension )
+    {
+        return super.map( dimension )
+            .withDimensionType( ((BaseDimensionalObject) dimension).getDimensionType().name() );
+    }
 }

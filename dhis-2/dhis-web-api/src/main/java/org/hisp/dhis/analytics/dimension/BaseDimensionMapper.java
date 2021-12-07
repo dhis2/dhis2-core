@@ -25,18 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.dimension;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-
-@Getter
-@Setter
-@NoArgsConstructor
-public class DimensionsCriteria extends PagingAndSortingCriteriaAdapter
+abstract public class BaseDimensionMapper implements DimensionMapper
 {
-    private String filter;
+
+    @Override
+    public DimensionResponse map( BaseIdentifiableObject dimension )
+    {
+        DimensionResponse mapped = DimensionResponse.builder()
+            .id( dimension.getUid() )
+            .uid( dimension.getUid() )
+            .displayName( dimension.getDisplayName() )
+            .created( dimension.getCreated() )
+            .code( dimension.getCode() )
+            .lastUpdated( dimension.getLastUpdated() )
+            .name( dimension.getName() )
+            .build();
+
+        if ( dimension instanceof BaseNameableObject )
+        {
+            return mapped.withDisplayShortName(
+                ((BaseNameableObject) dimension).getDisplayShortName() );
+        }
+        return mapped;
+    }
 }

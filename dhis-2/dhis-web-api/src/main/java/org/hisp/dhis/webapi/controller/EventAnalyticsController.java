@@ -178,9 +178,8 @@ public class EventAnalyticsController
         configResponseForJson( response );
         return dimensionFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId )
-                    .getDimensions(),
-                    dimensionsCriteria,
+                eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId ),
+                dimensionsCriteria,
                 fields );
     }
 
@@ -321,9 +320,8 @@ public class EventAnalyticsController
         configResponseForJson( response );
         return dimensionFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId )
-                    .getDimensions(),
-                    dimensionsCriteria,
+                eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId ),
+                dimensionsCriteria,
                 fields );
     }
 

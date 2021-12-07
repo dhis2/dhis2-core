@@ -25,18 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.dimension.mappers;
+
+import java.util.Collection;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.analytics.dimension.DimensionResponse;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.springframework.stereotype.Service;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class DimensionsCriteria extends PagingAndSortingCriteriaAdapter
+import com.google.common.collect.ImmutableSet;
+
+@Service
+public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapper
 {
-    private String filter;
+
+    @Getter
+    private final Collection<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
+        ProgramStageDataElement.class );
+
+    @Override
+    public DimensionResponse map( BaseIdentifiableObject dimension )
+    {
+        ProgramStageDataElement programStageDataElement = (ProgramStageDataElement) dimension;
+
+        return super.map( HibernateProxyUtils.unproxy( programStageDataElement.getDataElement() ) )
+            .withValueType( programStageDataElement.getDataElement().getValueType().name() )
+            .withProgramStageDataElement( getProgramStageDataElementUid( programStageDataElement ) );
+    }
+
+    private String getProgramStageDataElementUid( ProgramStageDataElement programStageDataElement )
+    {
+        return String.format( "%s.%s",
+            programStageDataElement.getProgramStage().getUid(),
+            programStageDataElement.getDataElement().getUid() );
+    }
 }

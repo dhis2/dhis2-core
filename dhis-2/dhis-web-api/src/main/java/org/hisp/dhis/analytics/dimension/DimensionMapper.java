@@ -25,18 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.dimension;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.Collection;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class DimensionsCriteria extends PagingAndSortingCriteriaAdapter
+interface DimensionMapper
 {
-    private String filter;
+    DimensionResponse map( BaseIdentifiableObject dimension );
+
+    Collection<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
+
+    default boolean supports( BaseIdentifiableObject dimension )
+    {
+        return getSupportedClasses().contains( HibernateProxyUtils.getRealClass( dimension ) );
+    }
 }

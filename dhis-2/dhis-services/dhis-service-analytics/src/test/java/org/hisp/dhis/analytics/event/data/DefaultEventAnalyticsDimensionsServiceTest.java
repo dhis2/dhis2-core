@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsDimensionsService.AGGREGATE_ALLOWED_VALUE_TYPES;
-import static org.hisp.dhis.analytics.event.data.DefaultEventAnalyticsDimensionsService.QUERY_DISALLOWED_VALUE_TYPES;
+import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.AGGREGATE_ALLOWED_VALUE_TYPES;
+import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.QUERY_DISALLOWED_VALUE_TYPES;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -43,8 +44,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
-import org.hisp.dhis.analytics.event.AnalyticsDimensions;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -82,20 +83,20 @@ public class DefaultEventAnalyticsDimensionsServiceTest
     @Test
     public void testAggregateOnlyContainsAllowedValueTypes()
     {
-        AnalyticsDimensions analyticsDimensions = eventAnalyticsDimensionsService
+        Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
             .getQueryDimensionsByProgramStageId( "anUid" );
 
         assertTrue(
             analyticsDimensions
-                .getDataElements()
                 .stream()
+                .filter( b -> b instanceof DataElement )
                 .map( de -> ((DataElement) de).getValueType() )
                 .noneMatch(
                     QUERY_DISALLOWED_VALUE_TYPES::contains ) );
         assertTrue(
             analyticsDimensions
-                .getTrackedEntityAttributes()
                 .stream()
+                .filter( b -> b instanceof TrackedEntityAttribute )
                 .map( tea -> ((TrackedEntityAttribute) tea).getValueType() )
                 .noneMatch(
                     QUERY_DISALLOWED_VALUE_TYPES::contains ) );
@@ -104,20 +105,20 @@ public class DefaultEventAnalyticsDimensionsServiceTest
     @Test
     public void testQueryDoesntContainDisallowedValueTypes()
     {
-        AnalyticsDimensions analyticsDimensions = eventAnalyticsDimensionsService
+        Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
             .getAggregateDimensionsByProgramStageId( "anUid" );
 
         assertTrue(
             analyticsDimensions
-                .getDataElements()
                 .stream()
+                .filter( b -> b instanceof DataElement )
                 .map( de -> ((DataElement) de).getValueType() )
                 .allMatch(
                     AGGREGATE_ALLOWED_VALUE_TYPES::contains ) );
         assertTrue(
             analyticsDimensions
-                .getTrackedEntityAttributes()
                 .stream()
+                .filter( b -> b instanceof TrackedEntityAttribute )
                 .map( tea -> ((TrackedEntityAttribute) tea).getValueType() )
                 .allMatch(
                     AGGREGATE_ALLOWED_VALUE_TYPES::contains ) );

@@ -25,15 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics.dimension.mappers;
 
 import java.util.Collection;
 
+import lombok.Getter;
+
+import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
+import org.hisp.dhis.analytics.dimension.DimensionResponse;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.stereotype.Service;
 
-public interface EventAnalyticsDimensionsService
+import com.google.common.collect.ImmutableSet;
+
+@Service
+public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
 {
-    Collection<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId );
 
-    Collection<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId );
+    @Getter
+    private final Collection<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
+        ProgramIndicator.class,
+        DataElement.class,
+        TrackedEntityAttribute.class );
+
+    @Override
+    public DimensionResponse map( BaseIdentifiableObject dimension )
+    {
+        BaseDimensionalItemObject baseDimensionalItemObject = (BaseDimensionalItemObject) dimension;
+        DimensionResponse responseWithDimensionType = super.map( dimension )
+            .withDimensionType( baseDimensionalItemObject.getDimensionItemType().name() );
+        if ( dimension instanceof ValueTypedDimensionalItemObject )
+        {
+            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) dimension;
+            return responseWithDimensionType
+                .withValueType( valueTypedDimensionalItemObject.getValueType().name() );
+        }
+        return responseWithDimensionType;
+    }
+
 }

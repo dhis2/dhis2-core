@@ -25,18 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.dimension;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.Date;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import lombok.Builder;
+import lombok.Data;
+import lombok.With;
 
-@Getter
-@Setter
-@NoArgsConstructor
-public class DimensionsCriteria extends PagingAndSortingCriteriaAdapter
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@Data
+@Builder
+@With
+public class DimensionResponse
 {
-    private String filter;
+
+    @JsonProperty
+    private final String valueType;
+
+    @JsonProperty
+    private final String dimensionType;
+
+    @JsonProperty
+    private final Date created;
+
+    @JsonProperty
+    private final Date lastUpdated;
+
+    @JsonProperty
+    private final String name;
+
+    @JsonProperty
+    private final String displayName;
+
+    @JsonProperty
+    private final String id;
+
+    @JsonProperty
+    private final String uid;
+
+    @JsonProperty
+    private final String code;
+
+    @JsonProperty
+    private final String displayShortName;
+
+    @JsonProperty
+    private final String programStageDataElement;
 }

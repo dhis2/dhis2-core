@@ -39,7 +39,7 @@ import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.event.DimensionWrapper;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -59,25 +59,28 @@ public class DimensionFilteringAndPagingService
     @NonNull
     private final FieldFilterService fieldFilterService;
 
-    private final static Comparator<DimensionWrapper> DEFAULT_COMPARATOR = Comparator
-        .comparing( DimensionWrapper::getCreated );
+    private final DimensionMapperService dimensionMapperService;
 
-    private final static Map<String, Comparator<DimensionWrapper>> ORDERING_MAP = ImmutableMap.of(
-        "lastUpdated", Comparator.comparing( DimensionWrapper::getLastUpdated ),
-        "code", Comparator.comparing( DimensionWrapper::getCode ),
-        "uid", Comparator.comparing( DimensionWrapper::getId ),
-        "id", Comparator.comparing( DimensionWrapper::getId ),
-        "name", Comparator.comparing( DimensionWrapper::getName ) );
+    private final static Comparator<DimensionResponse> DEFAULT_COMPARATOR = Comparator
+        .comparing( DimensionResponse::getCreated );
+
+    private final static Map<String, Comparator<DimensionResponse>> ORDERING_MAP = ImmutableMap.of(
+        "lastUpdated", Comparator.comparing( DimensionResponse::getLastUpdated ),
+        "code", Comparator.comparing( DimensionResponse::getCode ),
+        "uid", Comparator.comparing( DimensionResponse::getId ),
+        "id", Comparator.comparing( DimensionResponse::getId ),
+        "name", Comparator.comparing( DimensionResponse::getName ) );
 
     public PagingWrapper<ObjectNode> pageAndFilter(
-        Collection<DimensionWrapper> dimensions,
+        Collection<BaseIdentifiableObject> dimensions,
         DimensionsCriteria dimensionsCriteria,
         List<String> fields )
     {
+        Collection<DimensionResponse> dimensionResponses = dimensionMapperService.toDimensionResponse( dimensions );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "dimensions" );
 
-        Collection<DimensionWrapper> filteredDimensions = filterStream( dimensions.stream(),
+        Collection<DimensionResponse> filteredDimensions = filterStream( dimensionResponses.stream(),
             dimensionsCriteria )
                 .collect( Collectors.toList() );
 
@@ -100,8 +103,8 @@ public class DimensionFilteringAndPagingService
         return pagingWrapper;
     }
 
-    private Stream<DimensionWrapper> filterStream(
-        Stream<DimensionWrapper> dimensions,
+    private Stream<DimensionResponse> filterStream(
+        Stream<DimensionResponse> dimensions,
         DimensionsCriteria criteria )
     {
         DimensionFilters dimensionFilters = Optional.of( criteria )
@@ -109,20 +112,19 @@ public class DimensionFilteringAndPagingService
             .map( DimensionFilters::of )
             .orElse( DimensionFilters.EMPTY_DATA_DIMENSION_FILTER );
 
-        return dimensions.filter(dimensionFilters);
+        return dimensions.filter( dimensionFilters );
     }
 
-    private Stream<DimensionWrapper> sortedAndPagedStream(
-        Stream<DimensionWrapper> dimensions,
+    private Stream<DimensionResponse> sortedAndPagedStream(
+        Stream<DimensionResponse> dimensions,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
     {
-
         if ( Objects.nonNull( pagingAndSortingCriteria.getOrder() ) && !pagingAndSortingCriteria.getOrder().isEmpty() )
         {
 
             OrderCriteria orderCriteria = pagingAndSortingCriteria.getOrder().get( 0 );
 
-            Comparator<DimensionWrapper> comparator = ORDERING_MAP.keySet().stream()
+            Comparator<DimensionResponse> comparator = ORDERING_MAP.keySet().stream()
                 .filter( key -> key.equalsIgnoreCase( orderCriteria.getField() ) )
                 .map( ORDERING_MAP::get )
                 .findFirst()
@@ -138,7 +140,6 @@ public class DimensionFilteringAndPagingService
             {
                 dimensions = dimensions.sorted( comparator );
             }
-
         }
         else
         {
@@ -151,7 +152,6 @@ public class DimensionFilteringAndPagingService
                 .skip( pagingAndSortingCriteria.getFirstResult() )
                 .limit( pagingAndSortingCriteria.getPageSize() );
         }
-
         return dimensions;
     }
 
