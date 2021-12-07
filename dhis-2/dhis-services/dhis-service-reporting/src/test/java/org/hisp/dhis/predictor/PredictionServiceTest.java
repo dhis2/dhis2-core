@@ -28,6 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import static com.google.common.collect.Sets.newHashSet;
+import static org.hisp.dhis.common.OrganisationUnitDescendants.SELECTED;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.junit.Assert.assertEquals;
 
@@ -561,7 +562,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    public void testPredictSequential()
+    public void testPredictSequentialWithDescendants()
     {
         setupTestData();
 
@@ -589,6 +590,34 @@ public class PredictionServiceTest
         predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );
 
         assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 8", shortSummary( summary ) );
+    }
+
+    @Test
+    public void testPredictSequentialWithoutDescendants()
+    {
+        setupTestData();
+
+        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential",
+            expressionA, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
+
+        p.setOrganisationUnitDescendants( SELECTED );
+
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );
+
+        assertEquals( "Pred 1 Ins 4 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+
+        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
+        assertEquals( "6.121", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) );
+        assertEquals( "10.8", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) );
+        assertEquals( "10.24", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 11 ) ) );
+
+        // Make sure we can do it again.
+
+        summary = new PredictionSummary();
+
+        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );
+
+        assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 4", shortSummary( summary ) );
     }
 
     @Test

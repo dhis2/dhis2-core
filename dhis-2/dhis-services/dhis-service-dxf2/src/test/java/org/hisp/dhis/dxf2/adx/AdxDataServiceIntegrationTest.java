@@ -397,7 +397,7 @@ public class AdxDataServiceIntegrationTest
             .setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( pe202001 ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) )
-            .setIncludeChildren( true )
+            .setIncludeDescendants( true )
             .setIncludeDeleted( false )
             .setLastUpdated( now )
             .setLimit( 999 )
@@ -430,7 +430,7 @@ public class AdxDataServiceIntegrationTest
             .setOrganisationUnits( Sets.newHashSet( ouB ) )
             .setOrganisationUnitGroups( Sets.newHashSet( ougA ) )
             .setAttributeOptionCombos( Sets.newHashSet( cocMcDonalds ) )
-            .setIncludeChildren( false )
+            .setIncludeDescendants( false )
             .setIncludeDeleted( true )
             .setLastUpdated( now )
             .setOutputIdSchemes( new IdSchemes().setIdScheme( "UID" ) );
@@ -496,7 +496,7 @@ public class AdxDataServiceIntegrationTest
                 .setOrgUnitIdScheme( "NAME" )
                 .setCategoryIdScheme( "UID" )
                 .setCategoryOptionIdScheme( "NAME" ) )
-            .setIncludeChildren( true ) );
+            .setIncludeDescendants( true ) );
     }
 
     @Test
@@ -511,7 +511,7 @@ public class AdxDataServiceIntegrationTest
                 .setOrgUnitIdScheme( "NAME" )
                 .setCategoryIdScheme( "UID" )
                 .setCategoryOptionIdScheme( "NAME" ) )
-            .setIncludeChildren( true )
+            .setIncludeDescendants( true )
             .setAttributeOptionCombos( Sets.newHashSet( cocMcDonalds ) ) );
     }
 
