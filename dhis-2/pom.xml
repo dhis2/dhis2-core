@@ -197,7 +197,7 @@
 
         <!-- Test -->
         <junit.version>4.13.2</junit.version>
-        <mockito-core.version>3.4.6</mockito-core.version>
+        <mockito-core.version>4.1.0</mockito-core.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.7</hamcrest-date.version>
