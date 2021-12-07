@@ -114,7 +114,7 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
             {
                 try
                 {
-                    OrganisationUnit organisationUnit = mapFromResultSet( rs, idScheme );
+                    OrganisationUnit organisationUnit = mapFromResultSet( rs );
 
                     for ( String event : orgUnitToEntity
                         .get( idScheme.isAttribute() ? rs.getString( ATTRIBUTESCHEME_COL )
@@ -134,7 +134,7 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
         } );
     }
 
-    private OrganisationUnit mapFromResultSet( ResultSet rs, IdScheme idScheme )
+    private OrganisationUnit mapFromResultSet( ResultSet rs )
         throws SQLException
     {
         OrganisationUnit organisationUnit = new OrganisationUnit();
