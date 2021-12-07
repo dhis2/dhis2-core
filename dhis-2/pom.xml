@@ -79,7 +79,7 @@
         <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
         <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
         <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
-        <spring-hateoas.version>1.0.1.RELEASE</spring-hateoas.version>
+        <spring-hateoas.version>1.4.0</spring-hateoas.version>
         <spring-retry.version>1.2.4.RELEASE</spring-retry.version>
         <spring-restdocs-mockmvc.version>2.0.4.RELEASE</spring-restdocs-mockmvc.version>
         <cache2k-api.version>1.6.0.Final</cache2k-api.version>
@@ -115,7 +115,7 @@
         <jaxb-impl.version>2.4.0-b180830.0438</jaxb-impl.version>
         <jaxb-osgi.version>2.4.0-b180830.0438</jaxb-osgi.version>
         <jaxws-ri.version>2.3.2</jaxws-ri.version>
-        <jakarta.xml.ws-api.version>2.3.3</jakarta.xml.ws-api.version>
+        <jakarta.xml.ws-api.version>3.0.1</jakarta.xml.ws-api.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
         <xercesImpl.version>2.12.1</xercesImpl.version>
 
@@ -129,14 +129,14 @@
         <jacoco.version>0.8.2</jacoco.version>
         <itext.version>2.1.7</itext.version>
         <jclouds.version>2.4.0</jclouds.version>
-        <antlr.version>4.7.2</antlr.version>
+        <antlr.version>4.9.3</antlr.version>
 
         <!-- GIS -->
         <batik-transcoder.version>1.13</batik-transcoder.version>
         <batik-codec.version>1.13</batik-codec.version>
         <fop.version>2.5</fop.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
-        <geotools.version>26.0</geotools.version>
+        <geotools.version>26.1</geotools.version>
         <jts.version>1.16.0</jts.version>
 
         <!-- Apache Artemis -->
@@ -162,6 +162,7 @@
         <!-- Div. utils -->
         <version.debezium>1.7.1.Final</version.debezium>
         <guava.version>31.0.1-jre</guava.version>
+        <jsr305.version>3.0.2</jsr305.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
         <google-api-client.version>1.32.2</google-api-client.version>
         <lombok.version>1.18.20</lombok.version>
@@ -187,7 +188,7 @@
         <commons-email.version>1.5</commons-email.version>
 
         <!-- Monitoring -->
-        <micrometer-spring-legacy.version>1.3.5</micrometer-spring-legacy.version>
+        <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
         <micrometer-registry-prometheus.version>1.3.5</micrometer-registry-prometheus.version>
 
         <!-- Logging-->
@@ -208,6 +209,7 @@
         <tree.version>0.2.5</tree.version>
         <h2.version>1.4.200</h2.version>
         <hsqldb.version>2.3.2</hsqldb.version>
+        <javax.persistence-api.version>2.2</javax.persistence-api.version>
 
         <!-- Maven plugin versions -->
         <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
@@ -218,6 +220,7 @@
         <maven-antrun-plugin.version>1.7</maven-antrun-plugin.version>
         <maven-java-formatter-plugin.version>0.4</maven-java-formatter-plugin.version>
         <maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
+        <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
         <versions-maven-plugin.version>2.8.1</versions-maven-plugin.version>
         <dependency-check-maven.version>6.0.3</dependency-check-maven.version>
         <spotbugs-maven-plugin.version>4.2.0</spotbugs-maven-plugin.version>
@@ -675,6 +678,20 @@
                         <lineEndings>UNIX</lineEndings>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                    <configuration>
+                        <ignoredUnusedDeclaredDependencies>
+                            <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
+                            <!-- dependency on hamcrest-library and this config can be removed once we are on Junit 5 as
+                            it does not depend on hamcrest anymore. See
+                            http://hamcrest.org/JavaHamcrest/distributables#maven-upgrade-example -->
+                            <ignoredUnusedDeclaredDependency>org.hamcrest:hamcrest-library</ignoredUnusedDeclaredDependency>
+                        </ignoredUnusedDeclaredDependencies>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
 
@@ -880,10 +897,6 @@
                     <exclusion>
                         <groupId>commons-logging</groupId>
                         <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.code.findbugs</groupId>
-                        <artifactId>jsr305</artifactId>
                     </exclusion>
                     <exclusion>
                         <groupId>org.hisp.dhis.parser</groupId>
@@ -1465,6 +1478,11 @@
                 <groupId>org.hibernate</groupId>
                 <artifactId>hibernate-ehcache</artifactId>
                 <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.persistence</groupId>
+                <artifactId>javax.persistence-api</artifactId>
+                <version>${javax.persistence-api.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -2092,6 +2110,11 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>${jsr305.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.cache2k</groupId>
