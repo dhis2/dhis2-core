@@ -156,7 +156,7 @@ public class OwnershipTests
 
     protected String createUserWithAccessToOu()
     {
-        String username = DataGenerator.randomEntityName() + "user";
+        String username = (DataGenerator.randomEntityName() + "user").replace(" ",""  ).toLowerCase();
         String userid = userActions.addUser( username, Constants.USER_PASSWORD );
 
         //userActions.addRoleToUser( userid, auth );

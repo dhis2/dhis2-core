@@ -127,8 +127,8 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testReplicateUser_UserNameAlreadyTaken()
     {
-        assertWebMessage( "Conflict", 409, "ERROR", "Username already taken: Peter",
-            POST( "/users/" + peter.getUid() + "/replica", "{'username':'Peter','password':'Saf€sEcre1'}" )
+        assertWebMessage( "Conflict", 409, "ERROR", "Username already taken: peter",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter','password':'Saf€sEcre1'}" )
                 .content( HttpStatus.CONFLICT ) );
     }
 
@@ -211,8 +211,17 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     public void testPostJsonObject()
     {
         assertWebMessage( "Created", 201, "OK", null,
-            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'HarryS'}}" )
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'harrys'}}" )
                 .content( HttpStatus.CREATED ) );
+    }
+
+    @Test
+    public void testPostJsonObjectInvalidUsername()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "One more more errors occurred, please see full details in import report.",
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'Harrys'}}" )
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -220,7 +229,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     {
         assertWebMessage( "Created", 201, "OK", null,
             POST( "/users/invite",
-                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'userCredentials':{'username':'HarryS'}}" )
+                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'userCredentials':{'username':'harrys'}}" )
                     .content( HttpStatus.CREATED ) );
     }
 
