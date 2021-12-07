@@ -633,7 +633,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             clearSession();
         }
 
-        ImportSummaries enrollmentImportSummaries = enrollmentService.addEnrollmentList( enrollments, importOptions );
+        ImportSummaries enrollmentImportSummaries = enrollmentService.mergeOrDeleteEnrollments( enrollments, importOptions, null, true );
         linkEnrollmentSummaries( importSummaries, enrollmentImportSummaries, enrollments );
 
         return importSummaries;
@@ -734,7 +734,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             clearSession();
         }
 
-        ImportSummaries enrollmentImportSummaries = enrollmentService.addEnrollmentList( enrollments, importOptions );
+        ImportSummaries enrollmentImportSummaries = enrollmentService.mergeOrDeleteEnrollments( enrollments, importOptions, null, true );
         linkEnrollmentSummaries( importSummaries, enrollmentImportSummaries, enrollments );
 
         return importSummaries;
