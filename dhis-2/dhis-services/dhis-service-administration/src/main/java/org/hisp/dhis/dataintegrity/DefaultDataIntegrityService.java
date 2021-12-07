@@ -28,10 +28,10 @@
 package org.hisp.dhis.dataintegrity;
 
 import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toIssue;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.toRefsList;
@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -596,12 +597,9 @@ public class DefaultDataIntegrityService
 
     @Override
     @Transactional( readOnly = true )
-    public FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress )
+    public FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress )
     {
-        return new FlattenedDataIntegrityReport( getDetails(
-            checks.stream().map( DataIntegrityCheckType::getName ).collect( toUnmodifiableSet() ),
-            progress ) );
+        return new FlattenedDataIntegrityReport( getDetails( checks, progress ) );
     }
 
     /**
@@ -786,16 +784,18 @@ public class DefaultDataIntegrityService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress )
     {
-        return runDataIntegrityChecks( "Data Integrity summary checks", allChecksIfNoSpecificOnes( checks ), progress,
+        return runDataIntegrityChecks( "Data Integrity summary checks", expandChecks( checks ), progress,
             check -> check.getRunSummaryCheck().apply( check ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress )
     {
-        return runDataIntegrityChecks( "Data Integrity details checks", allChecksIfNoSpecificOnes( checks ), progress,
+        return runDataIntegrityChecks( "Data Integrity details checks", expandChecks( checks ), progress,
             check -> check.getRunDetailsCheck().apply( check ) );
     }
 
@@ -818,14 +818,34 @@ public class DefaultDataIntegrityService
         return checkResults;
     }
 
-    private Set<String> allChecksIfNoSpecificOnes( Set<String> checks )
+    private Set<String> expandChecks( Set<String> names )
     {
         ensureConfigurationsAreLoaded();
-        if ( checks == null || checks.isEmpty() )
+        if ( names == null || names.isEmpty() )
         {
-            checks = checksByName.keySet();
+            return unmodifiableSet( checksByName.keySet() );
         }
-        return checks;
+        Set<String> expanded = new LinkedHashSet<>();
+        for ( String name : names )
+        {
+            String uniformName = name.toLowerCase().replace( '-', '_' );
+            if ( uniformName.contains( "*" ) )
+            {
+                String pattern = uniformName.replace( "*", ".*" );
+                for ( String existingName : checksByName.keySet() )
+                {
+                    if ( existingName.matches( pattern ) )
+                    {
+                        expanded.add( existingName );
+                    }
+                }
+            }
+            else
+            {
+                expanded.add( uniformName );
+            }
+        }
+        return expanded;
     }
 
     private void ensureConfigurationsAreLoaded()

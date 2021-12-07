@@ -40,7 +40,6 @@ import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
-import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
 import org.hisp.dhis.dataintegrity.DataIntegrityService;
 import org.hisp.dhis.dataintegrity.DataIntegritySummary;
@@ -56,6 +55,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -82,7 +82,7 @@ public class DataIntegrityController
         @CurrentUser User currentUser )
     {
         DataIntegrityJobParameters params = new DataIntegrityJobParameters();
-        params.setChecks( DataIntegrityCheckType.parse( checks ) );
+        params.setChecks( toUniformCheckNames( checks ) );
         JobConfiguration config = new JobConfiguration( "runDataIntegrity", JobType.DATA_INTEGRITY, null,
             params, true, true );
         config.setUserUid( currentUser.getUid() );
@@ -118,12 +118,30 @@ public class DataIntegrityController
         return dataIntegrityService.getDetails( toUniformCheckNames( checks ), NoopJobProgress.INSTANCE );
     }
 
+    @GetMapping( "/{check}/summary" )
+    @ResponseBody
+    public DataIntegritySummary runAndGetSummary( @PathVariable String check )
+    {
+        Set<String> checks = toUniformCheckNames( Set.of( check ) );
+        return dataIntegrityService.getSummaries( checks, NoopJobProgress.INSTANCE ).get( checks.iterator().next() );
+    }
+
+    @GetMapping( "/{check}/details" )
+    @ResponseBody
+    public DataIntegrityDetails runAndGetDetails( @PathVariable String check )
+    {
+        Set<String> checks = toUniformCheckNames( Set.of( check ) );
+        return dataIntegrityService.getDetails( checks, NoopJobProgress.INSTANCE ).get( checks.iterator().next() );
+    }
+
     /**
      * Allow both dash or underscore in the API
      */
-    private static Set<String> toUniformCheckNames( Set<String> checks )
+    private static Set<String> toUniformCheckNames( Collection<String> checks )
     {
-        return checks.stream().map( check -> check.replace( '-', '_' ) ).collect( toUnmodifiableSet() );
+        return checks == null
+            ? Set.of()
+            : checks.stream().map( check -> check.replace( '-', '_' ) ).collect( toUnmodifiableSet() );
     }
 
 }

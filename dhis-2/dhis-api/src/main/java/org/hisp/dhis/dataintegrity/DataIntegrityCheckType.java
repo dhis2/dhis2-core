@@ -27,13 +27,6 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import static java.util.Collections.unmodifiableSet;
-
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Set;
-
 /**
  * The different types of data integrity checks one can run
  *
@@ -104,47 +97,6 @@ public enum DataIntegrityCheckType
     public String getName()
     {
         return name().toLowerCase();
-    }
-
-    private static final Set<DataIntegrityCheckType> ALL = unmodifiableSet(
-        EnumSet.allOf( DataIntegrityCheckType.class ) );
-
-    public static Set<DataIntegrityCheckType> all()
-    {
-        return ALL;
-    }
-
-    public static Set<DataIntegrityCheckType> parse( String... types )
-    {
-        return parse( List.of( types ) );
-    }
-
-    public static Set<DataIntegrityCheckType> parse( Collection<String> types )
-    {
-        if ( types == null || types.isEmpty() )
-        {
-            return ALL;
-        }
-        EnumSet<DataIntegrityCheckType> contained = EnumSet.noneOf( DataIntegrityCheckType.class );
-        for ( String type : types )
-        {
-            if ( type.contains( "*" ) )
-            {
-                String pattern = type.toUpperCase().replace( '-', '_' ).replace( "*", ".*" );
-                for ( DataIntegrityCheckType t : ALL )
-                {
-                    if ( t.name().matches( pattern ) )
-                    {
-                        contained.add( t );
-                    }
-                }
-            }
-            else
-            {
-                contained.add( DataIntegrityCheckType.valueOf( type.toUpperCase().replace( '-', '_' ) ) );
-            }
-        }
-        return contained;
     }
 
 }

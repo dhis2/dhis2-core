@@ -32,8 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Optional;
-
+import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
@@ -56,9 +55,17 @@ public class DataIntegrityYamlControllerTest extends DhisControllerConvenienceTe
             .asList( JsonDataIntegrityCheck.class );
 
         assertFalse( checks.isEmpty() );
-        Optional<JsonDataIntegrityCheck> categories_no_options = checks.stream()
-            .filter( check -> check.getName().equals( "categories_no_options" ) ).findFirst();
-        assertTrue( categories_no_options.isPresent() );
+
+        assertCheckExists( "categories_no_options", checks );
+        for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
+        {
+            assertCheckExists( type.getName(), checks );
+        }
+    }
+
+    private void assertCheckExists( String name, JsonList<JsonDataIntegrityCheck> checks )
+    {
+        assertTrue( checks.stream().anyMatch( check -> check.getName().equals( name ) ) );
     }
 
     @Test

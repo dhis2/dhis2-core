@@ -49,8 +49,7 @@ public interface DataIntegrityService
      *             compatibility until new UI exists
      */
     @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getFlattenedDataIntegrityReport( Set<DataIntegrityCheckType> checks,
-        JobProgress progress );
+    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
 
     /*
      * New generic API
