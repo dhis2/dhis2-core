@@ -34,42 +34,21 @@ import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
-import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityDetails;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests the {@link DataIntegrityController} API with focus on the checks
- * originating from a YAML configuration.
+ * Tests the {@link DataIntegrityController} API with focus API returning
+ * {@link org.hisp.dhis.dataintegrity.DataIntegritySummary}.
+ *
+ * @author Jan Bernitt
  */
-public class DataIntegrityYamlControllerTest extends DhisControllerConvenienceTest
+public class DataIntegritySummaryControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    public void testGetAvailableChecks()
-    {
-        JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity" ).content()
-            .asList( JsonDataIntegrityCheck.class );
-
-        assertFalse( checks.isEmpty() );
-
-        assertCheckExists( "categories_no_options", checks );
-        for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
-        {
-            assertCheckExists( type.getName(), checks );
-        }
-    }
-
-    private void assertCheckExists( String name, JsonList<JsonDataIntegrityCheck> checks )
-    {
-        assertTrue( checks.stream().anyMatch( check -> check.getName().equals( name ) ) );
-    }
-
-    @Test
-    public void testSummaries_categories_no_options()
+    public void testCategories_no_options()
     {
         assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
@@ -83,17 +62,28 @@ public class DataIntegrityYamlControllerTest extends DhisControllerConvenienceTe
     }
 
     @Test
-    public void testDetails_categories_no_options()
+    public void testLegacyChecksOnly()
     {
-        String uid = assertStatus( HttpStatus.CREATED,
+        for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
+        {
+            JsonObject content = GET( "/dataIntegrity/summary?checks={name}", type.getName() ).content();
+
+            JsonDataIntegritySummary summary = content.get( type.getName(), JsonDataIntegritySummary.class );
+            assertFalse( summary.exists() );
+        }
+    }
+
+    @Test
+    public void testSingleCheckByPath()
+    {
+        assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
 
-        JsonObject content = GET( "/dataIntegrity/details?checks=categories-no-options" ).content();
+        JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
+            .as( JsonDataIntegritySummary.class );
 
-        JsonDataIntegrityDetails details = content.get( "categories_no_options", JsonDataIntegrityDetails.class );
-        assertTrue( details.exists() );
-        assertEquals( 1, details.getIssues().size() );
-        assertEquals( uid, details.getIssues().get( 0 ).getId() );
-        assertEquals( "CatDog", details.getIssues().get( 0 ).getName() );
+        assertTrue( summary.exists() );
+        assertEquals( 1, summary.getCount() );
+        assertEquals( 50, summary.getPercentage().intValue() );
     }
 }

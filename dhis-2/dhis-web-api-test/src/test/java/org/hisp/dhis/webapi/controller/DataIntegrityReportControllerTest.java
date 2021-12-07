@@ -49,11 +49,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 /**
- * Tests a selection of data integrity checks.
+ * Tests the {@link DataIntegrityController} API with focus API returning
+ * {@link org.hisp.dhis.dataintegrity.FlattenedDataIntegrityReport}.
  *
  * @author Jan Bernitt
  */
-public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
+public class DataIntegrityReportControllerTest extends DhisControllerConvenienceTest
 {
     /**
      * Needed to create cyclic references for org units
@@ -62,7 +63,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     private OrganisationUnitStore organisationUnitStore;
 
     @Test
-    public void testDataIntegrity_NoViolations()
+    public void testNoViolations()
     {
         // if the report does not have any strings in the JSON tree there are no
         // errors since all collection/maps have string values
@@ -71,7 +72,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDataIntegrity_DataElementChecksOnly()
+    public void testDataElementChecksOnly()
     {
         JsonDataIntegrityReport report = getDataIntegrityReport( "/dataIntegrity?checks=data-element*" );
 
@@ -85,7 +86,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDataIntegrity_ExclusiveGroupsChecksOnly()
+    public void testExclusiveGroupsChecksOnly()
     {
         JsonDataIntegrityReport report = getDataIntegrityReport( "/dataIntegrity?checks=*exclusive-group*" );
 
@@ -97,7 +98,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDataIntegrity_PeriodsDuplicatesOnly()
+    public void testPeriodsDuplicatesOnly()
     {
         JsonDataIntegrityReport report = getDataIntegrityReport( "/dataIntegrity?checks=PERIODS_DUPLICATES" );
 
@@ -106,7 +107,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDataIntegrity_OrphanedOrganisationUnits()
+    public void testOrphanedOrganisationUnits()
     {
         // should match:
         String ouId = addOrganisationUnit( "OrphanedUnit" );
@@ -120,7 +121,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDataIntegrity_OrganisationUnitsWithoutGroups()
+    public void testOrganisationUnitsWithoutGroups()
     {
         // should match:
         String ouId = addOrganisationUnit( "noGroupSet" );
@@ -133,7 +134,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDataIntegrity_OrganisationUnitsWithCyclicReferences()
+    public void testOrganisationUnitsWithCyclicReferences()
     {
         String ouIdA = addOrganisationUnit( "A" );
         String ouIdB = addOrganisationUnit( "B", ouIdA );
@@ -150,7 +151,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDataIntegrity_OrganisationUnitsViolatingExclusiveGroupSets()
+    public void testOrganisationUnitsViolatingExclusiveGroupSets()
     {
         String ouIdA = addOrganisationUnit( "A" );
         String ouIdB = addOrganisationUnit( "B" );
