@@ -1,0 +1,18 @@
+[[1;34mINFO[m] Scanning for projects...
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m------------------< [0;36morg.apache.maven:standalone-pom[0;1m >-------------------[m
+[[1;34mINFO[m] [1mBuilding Maven Stub Project (No POM) 1[m
+[[1;34mINFO[m] [1m--------------------------------[ pom ]---------------------------------[m
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] [1;31mBUILD FAILURE[m
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] Total time:  0.747 s
+[[1;34mINFO[m] Finished at: 2021-12-07T13:37:55+01:00
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;31mERROR[m] Failed to execute goal [32morg.apache.maven.plugins:maven-dependency-plugin:2.8:tree[m [1m(default-cli)[m: [1;31mGoal requires a project to execute but there is no POM in this directory (/home/lars/dev/src/dhis2-core). Please verify you invoked Maven from the correct directory.[m -> [1m[Help 1][m
+[[1;31mERROR[m] 
+[[1;31mERROR[m] To see the full stack trace of the errors, re-run Maven with the [1m-e[m switch.
+[[1;31mERROR[m] Re-run Maven using the [1m-X[m switch to enable full debug logging.
+[[1;31mERROR[m] 
+[[1;31mERROR[m] For more information about the errors and possible solutions, please read the following articles:
+[[1;31mERROR[m] [1m[Help 1][m http://cwiki.apache.org/confluence/display/MAVEN/MissingProjectException
