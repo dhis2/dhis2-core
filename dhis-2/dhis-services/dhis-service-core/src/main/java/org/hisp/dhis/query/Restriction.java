@@ -72,7 +72,7 @@ public class Restriction implements Criterion
         return path;
     }
 
-    public Operator<?> getOperator()
+    public Operator getOperator()
     {
         return operator;
     }
