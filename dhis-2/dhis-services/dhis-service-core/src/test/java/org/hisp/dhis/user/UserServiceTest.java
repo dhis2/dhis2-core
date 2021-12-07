@@ -599,9 +599,9 @@ public class UserServiceTest
         Date inFiveDays = Date.from( now.plusDays( 5 ).toInstant() );
         Date inSixDays = Date.from( now.plusDays( 6 ).toInstant() );
         Date inEightDays = Date.from( now.plusDays( 8 ).toInstant() );
-        User userA = addUser( 'A' );
+        addUser( 'A' );
         addUser( 'B', UserCredentials::setAccountExpiry, inFiveDays );
-        User userC = addUser( 'C' );
+        addUser( 'C' );
         addUser( 'D', UserCredentials::setAccountExpiry, inSixDays );
         addUser( 'E', UserCredentials::setAccountExpiry, inEightDays );
 
@@ -664,8 +664,8 @@ public class UserServiceTest
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
         Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
 
-        User userA = addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
-        User userB = addUser( 'B', credentials -> {
+        addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
+        addUser( 'B', credentials -> {
             credentials.setDisabled( true );
             credentials.setLastLogin( Date.from( now.minusMonths( 4 ).plusDays( 2 ).toInstant() ) );
         } );

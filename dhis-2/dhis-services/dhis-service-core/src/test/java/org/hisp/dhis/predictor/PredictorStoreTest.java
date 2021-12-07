@@ -142,7 +142,7 @@ public class PredictorStoreTest
         predictorStore.save( predictorA );
         long idA = predictorA.getId();
         Set<OrganisationUnitLevel> levelsA = predictorA.getOrganisationUnitLevels();
-        Set<OrganisationUnitLevel> expectedLevelsA = new HashSet<OrganisationUnitLevel>();
+        Set<OrganisationUnitLevel> expectedLevelsA = new HashSet<>();
         expectedLevelsA.add( orgUnitLevel1 );
 
         predictorA = predictorStore.get( idA );
@@ -155,16 +155,16 @@ public class PredictorStoreTest
         // TODO Need a good skipTest test
         assertEquals( predictorA.getPeriodType(), periodType );
         assertEquals( predictorA.getOutput(), dataElementX );
-        assertEquals( predictorA.getAnnualSampleCount(), new Integer( 0 ) );
-        assertEquals( predictorA.getSequentialSampleCount(), new Integer( 6 ) );
-        assertEquals( predictorA.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( predictorA.getAnnualSampleCount(), Integer.valueOf( 0 ) );
+        assertEquals( predictorA.getSequentialSampleCount(), Integer.valueOf( 6 ) );
+        assertEquals( predictorA.getSequentialSkipCount(), Integer.valueOf( 1 ) );
         assertEquals( levelsA.size(), 1 );
         assertEquals( levelsA, expectedLevelsA );
 
         predictorStore.save( predictorB );
         long idB = predictorB.getId();
         Set<OrganisationUnitLevel> levelsB = predictorB.getOrganisationUnitLevels();
-        Set<OrganisationUnitLevel> expectedLevelsB = new HashSet<OrganisationUnitLevel>();
+        Set<OrganisationUnitLevel> expectedLevelsB = new HashSet<>();
         expectedLevelsB.add( orgUnitLevel1 );
 
         predictorB = predictorStore.get( idB );
@@ -177,9 +177,9 @@ public class PredictorStoreTest
         // TODO Need a good skipTest test
         assertEquals( predictorA.getPeriodType(), periodType );
         assertEquals( predictorA.getOutput(), dataElementX );
-        assertEquals( predictorA.getAnnualSampleCount(), new Integer( 0 ) );
-        assertEquals( predictorA.getSequentialSampleCount(), new Integer( 6 ) );
-        assertEquals( predictorA.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( predictorA.getAnnualSampleCount(), Integer.valueOf( 0 ) );
+        assertEquals( predictorA.getSequentialSampleCount(), Integer.valueOf( 6 ) );
+        assertEquals( predictorA.getSequentialSkipCount(), Integer.valueOf( 1 ) );
         assertEquals( levelsB.size(), 1 );
         assertEquals( levelsB, expectedLevelsB );
     }
@@ -211,7 +211,7 @@ public class PredictorStoreTest
 
         assertEquals( predictor.getName(), "PredictorB" );
         assertEquals( predictor.getDescription(), "DescriptionB" );
-        assertEquals( predictor.getSequentialSkipCount(), new Integer( 2 ) );
+        assertEquals( predictor.getSequentialSkipCount(), Integer.valueOf( 2 ) );
     }
 
     @Test
