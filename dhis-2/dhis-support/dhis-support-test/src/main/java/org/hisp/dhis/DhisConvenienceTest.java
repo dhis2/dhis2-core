@@ -73,6 +73,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -1249,6 +1250,7 @@ public abstract class DhisConvenienceTest
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
         predictor.setOrganisationUnitLevels( organisationUnitLevels );
+        predictor.setOrganisationUnitDescendants( OrganisationUnitDescendants.DESCENDANTS );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
