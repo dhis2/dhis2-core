@@ -1,0 +1,58 @@
+@Library('pipeline-library') _
+
+pipeline {
+    agent {
+        label 'ec2-jdk11'
+    }
+
+    options {
+        timeout(time: 20, activity: true)
+    }
+
+    environment {
+        MAVEN_OPTS = '-Xms1024m -Xmx4096m'
+    }
+
+    stages {
+        stage ('Patch') {
+            steps {
+                echo 'Patching DHIS2 ...'
+                sh './run-cve-patcher.sh'
+            }
+        }
+
+        stage ('Build') {
+            steps {
+                echo 'Building DHIS2 ...'
+                script {
+                    withMaven(options: [artifactsPublisher(disabled: true)]) {
+                        sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom-full.xml --update-snapshots'
+                    }
+                }
+            }
+        }
+
+        stage ('Sync WAR') {
+            steps {
+                echo 'Syncing WAR ...'
+                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/DEVOPS-119/ci/scripts/copy-war-s3.sh" -O'
+                sh 'chmod +x copy-war-s3.sh'
+                sh './copy-war-s3.sh stable ${GIT_BRANCH}'
+            }
+        }
+    }
+
+    //post {
+    //    failure {
+    //        script {
+    //            slack.sendFailureMessage()
+    //        }
+    //    }
+    //
+    //    aborted {
+    //        script {
+    //            slack.sendInactivityMessage(20)
+    //        }
+    //    }
+    //}
+}
