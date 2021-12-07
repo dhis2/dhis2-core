@@ -161,6 +161,19 @@ public class ValidationUtilsTest
         assertTrue( usernameIsValid( "johnmichaeldoe" ) );
         assertTrue( usernameIsValid( "ted@johnson.com" ) );
         assertTrue( usernameIsValid( "harry@gmail.com" ) );
+        assertTrue( usernameIsValid( "har_ry@gmail.com" ) );
+
+        assertFalse( usernameIsValid( "Harry@gmail.com" ) );
+        assertFalse( usernameIsValid( "_harry@gmail.com" ) );
+        assertFalse( usernameIsValid( "harry@gmail.com_" ) );
+        assertFalse( usernameIsValid( ".harry@gmail.com" ) );
+        assertFalse( usernameIsValid( "harry@gmail.com." ) );
+        assertFalse( usernameIsValid( "@harry@gmail.com" ) );
+        assertFalse( usernameIsValid( "harry@gmail.com@" ) );
+        assertFalse( usernameIsValid( "harry_@gmail.com" ) );
+        assertFalse( usernameIsValid( "har__ry@gmail.com" ) );
+        assertFalse( usernameIsValid( "harry@@gmail.com" ) );
+        assertFalse( usernameIsValid( "harry..gmail.com" ) );
 
         assertFalse( usernameIsValid( null ) );
         assertFalse( usernameIsValid( CodeGenerator.generateCode( 400 ) ) );
