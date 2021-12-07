@@ -61,7 +61,7 @@ public class LoginTests
 
     private String secret = "1e6db50c-0fee-11e5-98d0-3c15c2c6caf6";
 
-    private String userName = "LoginTestsUser" + DataGenerator.randomString();
+    private String userName = ("LoginTestsUser" + DataGenerator.randomString()).toLowerCase();
 
     private String password = Constants.USER_PASSWORD;
 

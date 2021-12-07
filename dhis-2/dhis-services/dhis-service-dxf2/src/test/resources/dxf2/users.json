@@ -110,7 +110,7 @@
             "id": "tHEWGwIMsJk"
           }
         ],
-        "username": "UserB",
+        "username": "userb",
         "invitation": false,
         "disabled": false,
         "externalAuth": false
@@ -140,7 +140,7 @@
       "dataViewMaxOrganisationUnitLevel": 3,
       "userCredentials": {
         "id": "m3ww4DWJtMf",
-        "username": "UserA",
+        "username": "usera",
         "userRoles": [
           {
             "id": "tHEWGwIMsJk"

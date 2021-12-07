@@ -142,7 +142,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
 
         mockSession( "SELECT code,url from " + schema.getKlass().getSimpleName() );
 
-        List<Object[]> l = new ArrayList();
+        List<Object[]> l = new ArrayList<>();
 
         l.add( new Object[] { "abc", "http://ok" } );
         l.add( new Object[] { "bce", "http://-exception" } );
@@ -174,7 +174,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
 
         mockSession( "SELECT url from " + schema.getKlass().getSimpleName() );
 
-        List<Object> l = new ArrayList();
+        List<Object> l = new ArrayList<>();
 
         l.add( "http://ok" );
         l.add( "http://is-ok" );

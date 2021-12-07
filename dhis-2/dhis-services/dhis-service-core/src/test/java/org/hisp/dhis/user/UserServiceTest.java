@@ -147,10 +147,10 @@ public class UserServiceTest
         addUser( 'A' );
         addUser( 'B' );
 
-        assertEquals( 2, userService.getUserCredentialsByUsernames( asList( "UsernameA", "UsernameB" ) ).size() );
+        assertEquals( 2, userService.getUserCredentialsByUsernames( asList( "usernamea", "usernameb" ) ).size() );
         assertEquals( 2,
-            userService.getUserCredentialsByUsernames( asList( "UsernameA", "UsernameB", "usernameX" ) ).size() );
-        assertEquals( 0, userService.getUserCredentialsByUsernames( asList( "usernameC" ) ).size() );
+            userService.getUserCredentialsByUsernames( asList( "usernamea", "usernameb", "usernamex" ) ).size() );
+        assertEquals( 0, userService.getUserCredentialsByUsernames( asList( "usernamec" ) ).size() );
     }
 
     @Test
@@ -599,25 +599,25 @@ public class UserServiceTest
         Date inFiveDays = Date.from( now.plusDays( 5 ).toInstant() );
         Date inSixDays = Date.from( now.plusDays( 6 ).toInstant() );
         Date inEightDays = Date.from( now.plusDays( 8 ).toInstant() );
-        User userA = addUser( 'A' );
+        addUser( 'A' );
         addUser( 'B', UserCredentials::setAccountExpiry, inFiveDays );
-        User userC = addUser( 'C' );
+        addUser( 'C' );
         addUser( 'D', UserCredentials::setAccountExpiry, inSixDays );
         addUser( 'E', UserCredentials::setAccountExpiry, inEightDays );
 
         List<UserAccountExpiryInfo> soonExpiringAccounts = userService.getExpiringUserAccounts( 7 );
         Set<String> soonExpiringAccountNames = soonExpiringAccounts.stream()
             .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
-        assertEquals( new HashSet<>( asList( "UsernameB", "UsernameD" ) ), soonExpiringAccountNames );
+        assertEquals( new HashSet<>( asList( "usernameb", "usernamed" ) ), soonExpiringAccountNames );
 
         soonExpiringAccounts = userService.getExpiringUserAccounts( 9 );
         soonExpiringAccountNames = soonExpiringAccounts.stream()
             .map( UserAccountExpiryInfo::getUsername ).collect( toSet() );
-        assertEquals( new HashSet<>( asList( "UsernameB", "UsernameD", "UsernameE" ) ), soonExpiringAccountNames );
+        assertEquals( new HashSet<>( asList( "usernameb", "usernamed", "usernamee" ) ), soonExpiringAccountNames );
 
         for ( UserAccountExpiryInfo expiryInfo : soonExpiringAccounts )
         {
-            assertEquals( expiryInfo.getUsername().replace( "Username", "Email" ), expiryInfo.getEmail() );
+            assertEquals( expiryInfo.getUsername().replace( "username", "email" ), expiryInfo.getEmail() );
         }
     }
 
@@ -664,8 +664,8 @@ public class UserServiceTest
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
         Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
 
-        User userA = addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
-        User userB = addUser( 'B', credentials -> {
+        addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
+        addUser( 'B', credentials -> {
             credentials.setDisabled( true );
             credentials.setLastLogin( Date.from( now.minusMonths( 4 ).plusDays( 2 ).toInstant() ) );
         } );
@@ -673,11 +673,11 @@ public class UserServiceTest
         addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
         addUser( 'D' );
 
-        assertEquals( singleton( "EmailA" ),
+        assertEquals( singleton( "emaila" ),
             userService.findNotifiableUsersWithLastLoginBetween( threeMonthAgo, twoMonthsAgo ) );
-        assertEquals( singleton( "EmailA" ),
+        assertEquals( singleton( "emaila" ),
             userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, oneMonthsAgo ) );
-        assertEquals( new HashSet<>( asList( "EmailA", "EmailC" ) ),
+        assertEquals( new HashSet<>( asList( "emaila", "emailc" ) ),
             userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, Date.from( now.toInstant() ) ) );
     }
 }

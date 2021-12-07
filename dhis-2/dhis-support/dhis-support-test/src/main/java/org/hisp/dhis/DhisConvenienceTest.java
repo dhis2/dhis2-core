@@ -73,6 +73,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -245,7 +246,7 @@ public abstract class DhisConvenienceTest
 
     protected static CategoryService categoryService;
 
-    private char nextUserName = 'a';
+    private char nextUserName = 'k';
 
     @PostConstruct
     protected void initServices()
@@ -1249,6 +1250,7 @@ public abstract class DhisConvenienceTest
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
         predictor.setOrganisationUnitLevels( organisationUnitLevels );
+        predictor.setOrganisationUnitDescendants( OrganisationUnitDescendants.DESCENDANTS );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
@@ -1334,7 +1336,7 @@ public abstract class DhisConvenienceTest
         credentials.setCreatedBy( user );
         user.setUserCredentials( credentials );
 
-        credentials.setUsername( "username" + uniqueCharacter );
+        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
         credentials.setPassword( "password" + uniqueCharacter );
 
         if ( auths != null && !auths.isEmpty() )
@@ -1346,7 +1348,7 @@ public abstract class DhisConvenienceTest
 
         user.setFirstName( "FirstName" + uniqueCharacter );
         user.setSurname( "Surname" + uniqueCharacter );
-        user.setEmail( "Email" + uniqueCharacter );
+        user.setEmail( ("Email" + uniqueCharacter).toLowerCase() );
         user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
         user.setCode( "UserCode" + uniqueCharacter );
         user.setAutoFields();
@@ -1375,7 +1377,7 @@ public abstract class DhisConvenienceTest
     {
         UserCredentials credentials = new UserCredentials();
         credentials.setName( "UserCredentials" + uniqueCharacter );
-        credentials.setUsername( "Username" + uniqueCharacter );
+        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
         credentials.setPassword( "Password" + uniqueCharacter );
         credentials.setUserInfo( user );
         user.setUserCredentials( credentials );
@@ -2535,7 +2537,7 @@ public abstract class DhisConvenienceTest
         credentials.setCode( username );
         credentials.setCreatedBy( user );
         credentials.setUserInfo( user );
-        credentials.setUsername( username );
+        credentials.setUsername( username.toLowerCase() );
         credentials.getUserAuthorityGroups().add( group );
 
         if ( !Strings.isNullOrEmpty( openIDIdentifier ) )

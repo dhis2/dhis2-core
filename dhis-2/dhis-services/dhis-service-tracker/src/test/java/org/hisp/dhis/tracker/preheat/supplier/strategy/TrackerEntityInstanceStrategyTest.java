@@ -65,13 +65,14 @@ public class TrackerEntityInstanceStrategyTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private BeanRandomizer rnd = new BeanRandomizer();
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Test
     public void verifyStrategyFiltersOutNonRootTei()
     {
         // Create preheat params
-        final List<TrackedEntity> trackedEntities = rnd.randomObjects( TrackedEntity.class, 2 );
+        final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )
+            .collect( Collectors.toList() );
         final TrackerImportParams params = TrackerImportParams.builder().trackedEntities( trackedEntities ).build();
 
         // Preheat
@@ -98,7 +99,8 @@ public class TrackerEntityInstanceStrategyTest
     public void verifyStrategyIgnoresPersistedTei()
     {
         // Create preheat params
-        final List<TrackedEntity> trackedEntities = rnd.randomObjects( TrackedEntity.class, 2 );
+        final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )
+            .collect( Collectors.toList() );
         final TrackerImportParams params = TrackerImportParams.builder().trackedEntities( trackedEntities ).build();
 
         // Preheat
