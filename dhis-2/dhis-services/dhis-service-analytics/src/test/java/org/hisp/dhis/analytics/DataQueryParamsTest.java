@@ -705,10 +705,8 @@ public class DataQueryParamsTest
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     public void testFinancialYearPeriodResultsInTwoAggregationYears()
     {
-
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, Lists.newArrayList( peC ) ) )
             .withDataPeriodType( PeriodType.getPeriodTypeFromIsoString( "2017" ) )

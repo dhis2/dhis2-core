@@ -114,13 +114,13 @@ public class ObjectBundleServiceUserTest
         assertUsernameEquals( userA, UserCredentials::getUserInfo, "usera" );
         assertUsernameEquals( userA, UserCredentials::getCreatedBy, "admin" );
         assertEquals( "user@a.org", userA.getEmail() );
-        assertEquals( new Integer( 3 ), userA.getDataViewMaxOrganisationUnitLevel() );
+        assertEquals( Integer.valueOf( 3 ), userA.getDataViewMaxOrganisationUnitLevel() );
         assertEquals( 1, userA.getOrganisationUnits().size() );
 
         assertUsernameEquals( userB, UserCredentials::getUserInfo, "userb" );
         assertUsernameEquals( userB, UserCredentials::getCreatedBy, "admin" );
         assertEquals( "user@b.org", userB.getEmail() );
-        assertEquals( new Integer( 4 ), userB.getDataViewMaxOrganisationUnitLevel() );
+        assertEquals( Integer.valueOf( 4 ), userB.getDataViewMaxOrganisationUnitLevel() );
         assertEquals( 1, userB.getOrganisationUnits().size() );
     }
 
