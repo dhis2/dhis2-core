@@ -50,7 +50,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractSupplierTest<T>
+public abstract class AbstractSupplierTest<T, R>
 {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -67,12 +67,12 @@ public abstract class AbstractSupplierTest<T>
     public void mockResultSetExtractor( ResultSet resultSetMock )
     {
         when( jdbcTemplate.query( sql.capture(), any( MapSqlParameterSource.class ), any( ResultSetExtractor.class ) ) )
-            .thenAnswer( (Answer<Map<String, T>>) invocationOnMock -> {
+            .thenAnswer( (Answer<R>) invocationOnMock -> {
                 // Fetch the method arguments
                 Object[] args = invocationOnMock.getArguments();
 
                 // Fetch the row mapper instance from the arguments
-                ResultSetExtractor<Map<String, T>> rm = (ResultSetExtractor<Map<String, T>>) args[2];
+                ResultSetExtractor<R> rm = (ResultSetExtractor<R>) args[2];
 
                 // Invoke the row mapper
                 return rm.extractData( resultSetMock );

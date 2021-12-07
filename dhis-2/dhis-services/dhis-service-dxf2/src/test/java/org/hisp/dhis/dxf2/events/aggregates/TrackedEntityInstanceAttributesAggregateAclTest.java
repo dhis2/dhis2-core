@@ -36,7 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.TrackerTest;
+import org.hisp.dhis.dxf2.TrackerBaseIntegrationTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -56,7 +56,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
+public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerBaseIntegrationTest
 {
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;

@@ -32,7 +32,6 @@ import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALU
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -46,6 +45,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.CodeGenerator;
@@ -62,6 +62,8 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -75,9 +77,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restrictions;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -168,13 +168,11 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     protected ObjectMapper xmlMapper;
 
-    private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
+    protected WorkContextLoader workContextLoader;
 
-    private final CachingMap<String, Program> programCache = new CachingMap<>();
+    protected SessionFactory sessionFactory;
 
     private final CachingMap<String, TrackedEntityType> trackedEntityCache = new CachingMap<>();
-
-    private final CachingMap<String, TrackedEntityAttribute> trackedEntityAttributeCache = new CachingMap<>();
 
     // -------------------------------------------------------------------------
     // READ
@@ -322,7 +320,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance createDAOTrackedEntityInstance(
-        TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions, ImportSummary importSummary )
+        TrackedEntityInstance dtoEntityInstance, WorkContext workContext, ImportSummary importSummary )
     {
         if ( StringUtils.isEmpty( dtoEntityInstance.getOrgUnit() ) )
         {
@@ -333,8 +331,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = new org.hisp.dhis.trackedentity.TrackedEntityInstance();
 
-        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(),
-            dtoEntityInstance.getOrgUnit() );
+        OrganisationUnit organisationUnit = workContext.getOrganisationUnitMap()
+            .get( dtoEntityInstance.getTrackedEntityInstance() );
 
         if ( organisationUnit == null )
         {
@@ -345,7 +343,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         daoEntityInstance.setOrganisationUnit( organisationUnit );
 
-        TrackedEntityType trackedEntityType = getTrackedEntityType( importOptions.getIdSchemes(),
+        TrackedEntityType trackedEntityType = getTrackedEntityType( workContext.getImportOptions().getIdSchemes(),
             dtoEntityInstance.getTrackedEntityType() );
 
         if ( trackedEntityType == null )
@@ -399,10 +397,12 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             ? dtoEntityInstance.getTrackedEntityInstance()
             : CodeGenerator.generateUid() );
 
+        User user = workContext.getImportOptions().getUser();
+
         String storedBy = !StringUtils.isEmpty( dtoEntityInstance.getStoredBy() ) ? dtoEntityInstance.getStoredBy()
-            : (importOptions.getUser() == null || StringUtils.isEmpty( importOptions.getUser().getUsername() )
+            : (user == null || StringUtils.isEmpty( user.getUsername() )
                 ? "system-process"
-                : importOptions.getUser().getUsername());
+                : user.getUsername());
 
         daoEntityInstance.setStoredBy( storedBy );
         daoEntityInstance.setPotentialDuplicate( dtoEntityInstance.isPotentialDuplicate() );
@@ -426,7 +426,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         try
         {
             ImportSummaries importSummaries = new ImportSummaries();
-            importOptions = updateImportOptions( importOptions );
 
             List<TrackedEntityInstance> create = new ArrayList<>();
             List<TrackedEntityInstance> update = new ArrayList<>();
@@ -437,11 +436,20 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             // removed
             List<Relationship> relationships = getRelationships( trackedEntityInstances );
 
-            setTrackedEntityListByStrategy( trackedEntityInstances, importOptions, create, update, delete );
+            WorkContext workContext = workContextLoader.loadForTei( updateImportOptions( importOptions ),
+                trackedEntityInstances );
 
-            importSummaries.addImportSummaries( addTrackedEntityInstances( create, importOptions ) );
-            importSummaries.addImportSummaries( updateTrackedEntityInstances( update, importOptions ) );
-            importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete, importOptions ) );
+            setTrackedEntityListByStrategy( trackedEntityInstances, workContext, create, update, delete );
+
+            importSummaries.addImportSummaries( addTrackedEntityInstances( create, workContext ) );
+
+            ImportSummaries importSummariesWithUpdatedTeis = new ImportSummaries();
+            importSummariesWithUpdatedTeis.addImportSummaries( updateTrackedEntityInstances( update, workContext ) );
+            importSummariesWithUpdatedTeis.addImportSummaries( deleteTrackedEntityInstances( delete, workContext ) );
+
+            importSummaries.addImportSummaries( importSummariesWithUpdatedTeis );
+
+            finalizeTeis( workContext.getImportOptions().getUser(), importSummariesWithUpdatedTeis );
 
             // TODO: Created importSummaries don't contain correct href (TEI
             // endpoint instead of relationships is used)
@@ -467,6 +475,22 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
     }
 
+    private void finalizeTeis( User user, ImportSummaries importSummariesWithUpdatedTeis )
+    {
+        Set<String> updatedTeis = importSummariesWithUpdatedTeis.getImportSummaries().stream()
+            .map( ImportSummary::getUpdatedTei )
+            .filter( Objects::nonNull ).collect( Collectors.toSet() );
+
+        if ( !updatedTeis.isEmpty() )
+        {
+            String userName = User.username( user );
+
+            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit(
+                updatedTeis.stream().map( tei -> new TrackedEntityInstanceAudit(
+                    tei, userName, AuditType.READ ) ).collect( Collectors.toList() ) );
+        }
+    }
+
     private List<Relationship> getRelationships( List<TrackedEntityInstance> trackedEntityInstances )
     {
         List<Relationship> relationships = new ArrayList<>();
@@ -489,16 +513,18 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     private void setTrackedEntityListByStrategy( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions, List<TrackedEntityInstance> create, List<TrackedEntityInstance> update,
+        WorkContext workContext, List<TrackedEntityInstance> create, List<TrackedEntityInstance> update,
         List<TrackedEntityInstance> delete )
     {
+        ImportOptions importOptions = workContext.getImportOptions();
+
         if ( importOptions.getImportStrategy().isCreate() )
         {
             create.addAll( trackedEntityInstances );
         }
         else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
         {
-            sortCreatesAndUpdates( trackedEntityInstances, create, update );
+            sortCreatesAndUpdates( trackedEntityInstances, workContext, create, update );
         }
         else if ( importOptions.getImportStrategy().isUpdate() )
         {
@@ -518,23 +544,21 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 }
                 else
                 {
-                    sortCreatesAndUpdates( trackedEntityInstance, create, update );
+                    sortCreatesAndUpdates( trackedEntityInstance, workContext, create, update );
                 }
             }
         }
     }
 
-    private void sortCreatesAndUpdates( List<TrackedEntityInstance> trackedEntityInstances,
+    private void sortCreatesAndUpdates( List<TrackedEntityInstance> trackedEntityInstances, WorkContext workContext,
         List<TrackedEntityInstance> create, List<TrackedEntityInstance> update )
     {
-        List<String> ids = trackedEntityInstances.stream().map( TrackedEntityInstance::getTrackedEntityInstance )
-            .collect( Collectors.toList() );
-        List<String> existingUids = teiService.getTrackedEntityInstancesUidsIncludingDeleted( ids );
+        Map<String, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstanceMap = workContext
+            .getTrackedEntityInstanceMap1();
 
         for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
         {
-            if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() )
-                || !existingUids.contains( trackedEntityInstance.getTrackedEntityInstance() ) )
+            if ( !trackedEntityInstanceMap.containsKey( trackedEntityInstance.getTrackedEntityInstance() ) )
             {
                 create.add( trackedEntityInstance );
             }
@@ -545,48 +569,59 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
     }
 
-    private void sortCreatesAndUpdates( TrackedEntityInstance trackedEntityInstance, List<TrackedEntityInstance> create,
+    private void sortCreatesAndUpdates( TrackedEntityInstance trackedEntityInstance, WorkContext workContext,
+        List<TrackedEntityInstance> create,
         List<TrackedEntityInstance> update )
     {
+        Map<String, org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntityInstanceMap = workContext
+            .getTrackedEntityInstanceMap1();
+
         if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() ) )
         {
             create.add( trackedEntityInstance );
         }
         else
         {
-            if ( !teiService.trackedEntityInstanceExists( trackedEntityInstance.getTrackedEntityInstance() ) )
+            if ( !trackedEntityInstanceMap.containsKey( trackedEntityInstance.getTrackedEntityInstance() ) )
             {
                 create.add( trackedEntityInstance );
             }
-            else
+            else if ( !trackedEntityInstanceMap.get( trackedEntityInstance.getTrackedEntityInstance() ).isDeleted() )
             {
                 update.add( trackedEntityInstance );
             }
         }
     }
 
-    @Override
-    @Transactional
     public ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions )
+        WorkContext workContext )
     {
-        importOptions = updateImportOptions( importOptions );
+        ImportOptions importOptions = workContext.getImportOptions();
         ImportSummaries importSummaries = new ImportSummaries();
         List<Enrollment> enrollments = new ArrayList<>();
 
-        List<TrackedEntityInstance> validTeis = resolveImportableTeis( trackedEntityInstances, importSummaries );
+        Set<String> uidsWithDeleted = workContext.getTrackedEntityInstanceMap1().keySet();
 
-        List<List<TrackedEntityInstance>> partitions = Lists.partition( validTeis, FLUSH_FREQUENCY );
+        Map<Boolean, List<TrackedEntityInstance>> partitionedEnrollmentOnExistingUids = trackedEntityInstances
+            .stream()
+            .collect( Collectors.partitioningBy( e -> !uidsWithDeleted.contains( e.getTrackedEntityInstance() ) ) );
+
+        partitionedEnrollmentOnExistingUids.get( false )
+            .forEach( invalidUid -> importSummaries.addImportSummary( new ImportSummary( ImportStatus.ERROR,
+                "Tracked Entity Instance " + invalidUid.getTrackedEntityInstance()
+                    + " already exists or was deleted earlier" )
+                        .setReference( invalidUid.getTrackedEntityInstance() ).incrementIgnored() ) );
+
+        List<List<TrackedEntityInstance>> partitions = Lists.partition( partitionedEnrollmentOnExistingUids.get( true ),
+            FLUSH_FREQUENCY );
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
             reloadUser( importOptions );
-            prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
-                ImportSummary importSummary = addTrackedEntityInstance( trackedEntityInstance, importOptions, false,
-                    true );
+                ImportSummary importSummary = addTrackedEntityInstance( trackedEntityInstance, workContext, false );
                 importSummaries.addImportSummary( importSummary );
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
@@ -598,76 +633,22 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             clearSession();
         }
 
-        ImportSummaries enrollmentImportSummaries = enrollmentService.addEnrollmentList( enrollments, importOptions );
+        ImportSummaries enrollmentImportSummaries = enrollmentService.mergeOrDeleteEnrollments( enrollments,
+            importOptions, null, true );
         linkEnrollmentSummaries( importSummaries, enrollmentImportSummaries, enrollments );
 
         return importSummaries;
     }
 
-    /**
-     * Filters out Tracked Entity Instances which are already present in the
-     * database (regardless of the 'deleted' state)
-     *
-     * @param trackedEntityInstances TEIs to import
-     * @param importSummaries ImportSummaries used for import
-     * @return TEIs that is possible to import (pass validation)
-     */
-    private List<TrackedEntityInstance> resolveImportableTeis( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportSummaries importSummaries )
-    {
-
-        List<String> conflictingTeiUids = checkForExistingTeisIncludingDeleted( trackedEntityInstances,
-            importSummaries );
-
-        return trackedEntityInstances.stream()
-            .filter( tei -> !conflictingTeiUids.contains( tei.getTrackedEntityInstance() ) )
-            .collect( Collectors.toList() );
-    }
-
-    private List<String> checkForExistingTeisIncludingDeleted( List<TrackedEntityInstance> teis,
-        ImportSummaries importSummaries )
-    {
-        List<String> foundTeis = teiService.getTrackedEntityInstancesUidsIncludingDeleted(
-            teis.stream().map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toList() ) );
-
-        for ( String foundTeiUid : foundTeis )
-        {
-            ImportSummary is = new ImportSummary( ImportStatus.ERROR,
-                "Tracked entity instance " + foundTeiUid + " already exists or was deleted earlier" )
-                    .setReference( foundTeiUid ).incrementIgnored();
-
-            importSummaries.addImportSummary( is );
-        }
-
-        return foundTeis;
-    }
-
-    @Override
-    @Transactional
-    public ImportSummary addTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance,
-        ImportOptions importOptions )
-    {
-        return addTrackedEntityInstance( dtoEntityInstance, importOptions, true, false );
-    }
-
     private ImportSummary addTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance,
-        ImportOptions importOptions, boolean handleEnrollments, boolean bulkImport )
+        WorkContext workContext, boolean handleEnrollments )
     {
-        if ( !bulkImport
-            && teiService.trackedEntityInstanceExistsIncludingDeleted( dtoEntityInstance.getTrackedEntityInstance() ) )
-        {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Tracked entity instance " + dtoEntityInstance.getTrackedEntityInstance()
-                    + " already exists or was deleted earlier" )
-                        .setReference( dtoEntityInstance.getTrackedEntityInstance() ).incrementIgnored();
-        }
-
-        importOptions = updateImportOptions( importOptions );
+        ImportOptions importOptions = workContext.getImportOptions();
         dtoEntityInstance.trimValuesToNull();
 
         ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
         checkTrackedEntityType( dtoEntityInstance, importOptions, importSummary );
-        checkAttributes( dtoEntityInstance, importOptions, importSummary, false );
+        checkAttributes( dtoEntityInstance, workContext, importSummary, false );
 
         if ( importSummary.hasConflicts() )
         {
@@ -677,7 +658,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = createDAOTrackedEntityInstance(
-            dtoEntityInstance, importOptions, importSummary );
+            dtoEntityInstance, workContext, importSummary );
 
         if ( importSummary.hasConflicts() )
         {
@@ -726,8 +707,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     // -------------------------------------------------------------------------
 
     private ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions )
+        WorkContext workContext )
     {
+        ImportOptions importOptions = workContext.getImportOptions();
+
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
@@ -736,11 +719,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
             reloadUser( importOptions );
-            prepareCaches( _trackedEntityInstances, importOptions.getUser() );
 
             for ( TrackedEntityInstance trackedEntityInstance : _trackedEntityInstances )
             {
-                ImportSummary importSummary = updateTrackedEntityInstance( trackedEntityInstance, null, importOptions,
+                ImportSummary importSummary = updateTrackedEntityInstance( trackedEntityInstance, null, workContext,
                     false, false );
                 importSummaries.addImportSummary( importSummary );
 
@@ -753,7 +735,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             clearSession();
         }
 
-        ImportSummaries enrollmentImportSummaries = enrollmentService.addEnrollmentList( enrollments, importOptions );
+        ImportSummaries enrollmentImportSummaries = enrollmentService.mergeOrDeleteEnrollments( enrollments,
+            importOptions, null, true );
         linkEnrollmentSummaries( importSummaries, enrollmentImportSummaries, enrollments );
 
         return importSummaries;
@@ -764,25 +747,33 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     public ImportSummary updateTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, String programId,
         ImportOptions importOptions, boolean singleUpdate )
     {
-        return updateTrackedEntityInstance( dtoEntityInstance, programId, importOptions, singleUpdate, true );
+        WorkContext workContext = workContextLoader.loadForTei( updateImportOptions( importOptions ),
+            Collections.singletonList( dtoEntityInstance ) );
+
+        return updateTrackedEntityInstance( dtoEntityInstance, programId, workContext, singleUpdate, true );
     }
 
     private ImportSummary updateTrackedEntityInstance( TrackedEntityInstance dtoEntityInstance, String programId,
-        ImportOptions importOptions, boolean singleUpdate, boolean handleEnrollments )
+        WorkContext workContext, boolean singleUpdate, boolean handleEnrollments )
     {
         ImportSummary importSummary = new ImportSummary( dtoEntityInstance.getTrackedEntityInstance() );
-        importOptions = updateImportOptions( importOptions );
+        ImportOptions importOptions = workContext.getImportOptions();
 
         dtoEntityInstance.trimValuesToNull();
 
-        checkAttributes( dtoEntityInstance, importOptions, importSummary, true );
+        checkAttributes( dtoEntityInstance, workContext, importSummary, true );
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
-            .getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser() );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = workContext.getTrackedEntityInstanceMap1()
+            .get( dtoEntityInstance.getTrackedEntityInstance() );
+
         List<String> errors = trackerAccessManager.canWrite( importOptions.getUser(), daoEntityInstance );
-        OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(),
-            dtoEntityInstance.getOrgUnit() );
+        OrganisationUnit organisationUnit = workContext.getOrganisationUnitMap()
+            .get( dtoEntityInstance.getTrackedEntityInstance() );
+
         Program program = getProgram( importOptions.getIdSchemes(), programId );
+
+        TrackedEntityType trackedEntityType = getTrackedEntityType( importOptions.getIdSchemes(),
+            dtoEntityInstance.getTrackedEntityType() );
 
         if ( daoEntityInstance == null || !errors.isEmpty() || organisationUnit == null
             || importSummary.hasConflicts() )
@@ -810,6 +801,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             return importSummary;
         }
 
+        daoEntityInstance.setTrackedEntityType( trackedEntityType );
         daoEntityInstance.setOrganisationUnit( organisationUnit );
         daoEntityInstance.setInactive( dtoEntityInstance.isInactive() );
         daoEntityInstance.setPotentialDuplicate( dtoEntityInstance.isPotentialDuplicate() );
@@ -860,10 +852,14 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
-        teiService.updateTrackedEntityInstance( daoEntityInstance );
+        daoEntityInstance.setLastUpdatedBy( importOptions.getUser() );
+        daoEntityInstance.setLastUpdated( new Date() );
+
+        sessionFactory.getCurrentSession().merge( daoEntityInstance );
 
         importSummary.setReference( daoEntityInstance.getUid() );
         importSummary.getImportCount().incrementUpdated();
+        importSummary.setUpdatedTei( daoEntityInstance.getUid() );
 
         if ( singleUpdate
             && (!importOptions.isIgnoreEmptyCollection() || !dtoEntityInstance.getRelationships().isEmpty()) )
@@ -903,14 +899,16 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     @Transactional
     public ImportSummary deleteTrackedEntityInstance( String uid )
     {
-        return deleteTrackedEntityInstance( uid, null, null );
+        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+        trackedEntityInstance.setTrackedEntityInstance( uid );
+
+        return deleteTrackedEntityInstance( uid, null, updateImportOptions( null ) );
     }
 
     private ImportSummary deleteTrackedEntityInstance( String uid, TrackedEntityInstance dtoEntityInstance,
         ImportOptions importOptions )
     {
         ImportSummary importSummary = new ImportSummary();
-        importOptions = updateImportOptions( importOptions );
 
         boolean teiExists = teiService.trackedEntityInstanceExists( uid );
 
@@ -957,17 +955,17 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     @Override
     @Transactional
     public ImportSummaries deleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions )
+        WorkContext workContext )
     {
         ImportSummaries importSummaries = new ImportSummaries();
-        importOptions = updateImportOptions( importOptions );
 
         int counter = 0;
 
         for ( TrackedEntityInstance tei : trackedEntityInstances )
         {
             importSummaries
-                .addImportSummary( deleteTrackedEntityInstance( tei.getTrackedEntityInstance(), tei, importOptions ) );
+                .addImportSummary( deleteTrackedEntityInstance( tei.getTrackedEntityInstance(), tei,
+                    workContext.getImportOptions() ) );
 
             if ( counter % FLUSH_FREQUENCY == 0 )
             {
@@ -1155,65 +1153,14 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     private ImportSummaries handleEnrollments( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, ImportOptions importOptions )
     {
-        List<Enrollment> create = new ArrayList<>();
-        List<Enrollment> update = new ArrayList<>();
-        List<Enrollment> delete = new ArrayList<>();
-
         for ( Enrollment enrollment : dtoEntityInstance.getEnrollments() )
         {
             enrollment.setTrackedEntityType( dtoEntityInstance.getTrackedEntityType() );
             enrollment.setTrackedEntityInstance( daoEntityInstance.getUid() );
-
-            if ( importOptions.getImportStrategy().isSync() && enrollment.isDeleted() )
-            {
-                delete.add( enrollment );
-            }
-            else if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
-            {
-                create.add( enrollment );
-            }
-            else
-            {
-                update.add( enrollment );
-            }
         }
 
-        ImportSummaries importSummaries = new ImportSummaries();
-
-        importSummaries.addImportSummaries( enrollmentService.deleteEnrollments( delete, importOptions, false ) );
-        importSummaries.addImportSummaries( enrollmentService.updateEnrollments( update, importOptions, false ) );
-        importSummaries
-            .addImportSummaries( enrollmentService.addEnrollments( create, importOptions, daoEntityInstance, false ) );
-
-        return importSummaries;
-    }
-
-    private void prepareCaches( List<TrackedEntityInstance> trackedEntityInstances, User user )
-    {
-        Collection<String> orgUnits = trackedEntityInstances.stream().map( TrackedEntityInstance::getOrgUnit )
-            .collect( Collectors.toSet() );
-
-        if ( !orgUnits.isEmpty() )
-        {
-            Query query = Query.from( schemaService.getDynamicSchema( OrganisationUnit.class ) );
-            query.setUser( user );
-            query.add( Restrictions.in( "id", orgUnits ) );
-            queryService.query( query )
-                .forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
-        }
-
-        Collection<String> trackedEntityAttributes = new HashSet<>();
-        trackedEntityInstances
-            .forEach( e -> e.getAttributes().forEach( at -> trackedEntityAttributes.add( at.getAttribute() ) ) );
-
-        if ( !trackedEntityAttributes.isEmpty() )
-        {
-            Query query = Query.from( schemaService.getDynamicSchema( TrackedEntityAttribute.class ) );
-            query.setUser( user );
-            query.add( Restrictions.in( "id", trackedEntityAttributes ) );
-            queryService.query( query )
-                .forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
-        }
+        return enrollmentService.mergeOrDeleteEnrollments( dtoEntityInstance.getEnrollments(), importOptions, null,
+            false );
     }
 
     private void updateAttributeValues( TrackedEntityInstance dtoEntityInstance,
@@ -1304,12 +1251,6 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
     }
 
-    private OrganisationUnit getOrganisationUnit( IdSchemes idSchemes, String id )
-    {
-        return organisationUnitCache.get( id,
-            () -> manager.getObject( OrganisationUnit.class, idSchemes.getOrgUnitIdScheme(), id ) );
-    }
-
     private Program getProgram( IdSchemes idSchemes, String id )
     {
         if ( id == null )
@@ -1317,19 +1258,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             return null;
         }
 
-        return programCache.get( id, () -> manager.getObject( Program.class, idSchemes.getProgramIdScheme(), id ) );
+        return manager.getObject( Program.class, idSchemes.getProgramIdScheme(), id );
     }
 
     private TrackedEntityType getTrackedEntityType( IdSchemes idSchemes, String id )
     {
         return trackedEntityCache.get( id,
             () -> manager.getObject( TrackedEntityType.class, idSchemes.getTrackedEntityIdScheme(), id ) );
-    }
-
-    private TrackedEntityAttribute getTrackedEntityAttribute( IdSchemes idSchemes, String id )
-    {
-        return trackedEntityAttributeCache.get( id, () -> manager.getObject( TrackedEntityAttribute.class,
-            idSchemes.getTrackedEntityAttributeIdScheme(), id ) );
     }
 
     private Map<String, TrackedEntityAttributeValue> getTeiAttributeValueMap(
@@ -1343,12 +1278,11 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     // VALIDATION
     // --------------------------------------------------------------------------
 
-    private void validateAttributeType( Attribute attribute, ImportOptions importOptions,
+    private void validateAttributeType( Attribute attribute, WorkContext workContext,
         ImportConflicts importConflicts )
     {
-        // Cache is populated. I should hit it.
-        TrackedEntityAttribute daoTrackedEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(),
-            attribute.getAttribute() );
+        TrackedEntityAttribute daoTrackedEntityAttribute = workContext.getTrackedEntityAttributeMap()
+            .get( attribute.getAttribute() );
 
         if ( daoTrackedEntityAttribute == null )
         {
@@ -1377,7 +1311,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
     }
 
-    private void checkAttributes( TrackedEntityInstance dtoEntityInstance, ImportOptions importOptions,
+    private void checkAttributes( TrackedEntityInstance dtoEntityInstance, WorkContext workContext,
         ImportConflicts importConflicts, boolean teiExistsInDatabase )
     {
         if ( dtoEntityInstance.getAttributes().isEmpty() )
@@ -1390,8 +1324,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( teiExistsInDatabase )
         {
-            daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(),
-                importOptions.getUser() );
+            daoEntityInstance = workContext.getTrackedEntityInstanceMap1()
+                .get( dtoEntityInstance.getTrackedEntityInstance() );
 
             if ( daoEntityInstance == null )
             {
@@ -1409,8 +1343,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             {
                 // Cache was populated in prepareCaches, so I should hit the
                 // cache
-                TrackedEntityAttribute daoEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(),
-                    attribute.getAttribute() );
+                TrackedEntityAttribute daoEntityAttribute = workContext.getTrackedEntityAttributeMap()
+                    .get( attribute.getAttribute() );
 
                 if ( daoEntityAttribute == null )
                 {
@@ -1430,15 +1364,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 if ( daoEntityAttribute.isUnique() )
                 {
-                    // Cache was populated in prepareCaches, so I should hit the
-                    // cache
-                    OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(),
-                        dtoEntityInstance.getOrgUnit() );
+                    OrganisationUnit organisationUnit = workContext.getOrganisationUnitMap()
+                        .get( dtoEntityInstance.getTrackedEntityType() );
                     checkAttributeUniquenessWithinScope( daoEntityInstance, daoEntityAttribute, attribute.getValue(),
                         organisationUnit, importConflicts );
                 }
 
-                validateAttributeType( attribute, importOptions, importConflicts );
+                validateAttributeType( attribute, workContext, importConflicts );
 
                 if ( daoEntityAttribute.getValueType().isFile() && checkAssigned( attribute, fileValues ) )
                 {
@@ -1472,10 +1404,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     private void clearSession()
     {
-        organisationUnitCache.clear();
         trackedEntityCache.clear();
-        trackedEntityAttributeCache.clear();
-
         dbmsManager.flushSession();
     }
 

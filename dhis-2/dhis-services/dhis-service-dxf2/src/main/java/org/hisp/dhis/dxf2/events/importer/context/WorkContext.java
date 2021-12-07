@@ -50,6 +50,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
@@ -89,6 +90,10 @@ public class WorkContext
      * canBeUpdatedByCurrentUser boolean>
      */
     private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
+
+    private final Map<String, TrackedEntityInstance> trackedEntityInstanceMap1;
+
+    private final Map<String, TrackedEntityAttribute> trackedEntityAttributeMap;
 
     /**
      * Holds a Map of all {@see ProgramInstance} associated to the Events to

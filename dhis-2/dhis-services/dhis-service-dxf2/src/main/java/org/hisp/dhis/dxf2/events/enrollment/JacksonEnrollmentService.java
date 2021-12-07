@@ -34,18 +34,18 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
@@ -54,6 +54,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -65,7 +66,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -77,7 +77,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Service( "org.hisp.dhis.dxf2.events.enrollment.EnrollmentService" )
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
-@Transactional
 public class JacksonEnrollmentService extends AbstractEnrollmentService
 {
     public JacksonEnrollmentService(
@@ -103,7 +102,10 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         Notifier notifier,
         ApplicationEventPublisher eventPublisher,
         ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper,
+        WorkContextLoader workContextLoader,
+        SessionFactory sessionFactory,
+        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService )
     {
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
@@ -152,6 +154,9 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         this.eventPublisher = eventPublisher;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
+        this.workContextLoader = workContextLoader;
+        this.sessionFactory = sessionFactory;
+        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
     }
     // -------------------------------------------------------------------------
     // EnrollmentService Impl
@@ -270,92 +275,8 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     @Override
     public ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions )
     {
-        ImportSummaries importSummaries = new ImportSummaries();
-        importOptions = updateImportOptions( importOptions );
-
-        List<Enrollment> create = new ArrayList<>();
-        List<Enrollment> update = new ArrayList<>();
-        List<Enrollment> delete = new ArrayList<>();
-
-        if ( importOptions.getImportStrategy().isCreate() )
-        {
-            create.addAll( enrollments );
-        }
-        else if ( importOptions.getImportStrategy().isCreateAndUpdate() )
-        {
-            sortCreatesAndUpdates( enrollments, create, update );
-        }
-        else if ( importOptions.getImportStrategy().isUpdate() )
-        {
-            update.addAll( enrollments );
-        }
-        else if ( importOptions.getImportStrategy().isDelete() )
-        {
-            delete.addAll( enrollments );
-        }
-        else if ( importOptions.getImportStrategy().isSync() )
-        {
-            for ( Enrollment enrollment : enrollments )
-            {
-                if ( enrollment.isDeleted() )
-                {
-                    delete.add( enrollment );
-                }
-                else
-                {
-                    sortCreatesAndUpdates( enrollment, create, update );
-                }
-            }
-        }
-
-        importSummaries.addImportSummaries( addEnrollments( create, importOptions, null, true ) );
-        importSummaries.addImportSummaries( updateEnrollments( update, importOptions, true ) );
-        importSummaries.addImportSummaries( deleteEnrollments( delete, importOptions, true ) );
-
-        if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
-        {
-            importSummaries.getImportSummaries().removeIf( is -> !is.hasConflicts() );
-        }
-
-        return importSummaries;
-    }
-
-    private void sortCreatesAndUpdates( List<Enrollment> enrollments, List<Enrollment> create, List<Enrollment> update )
-    {
-        List<String> ids = enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() );
-        List<String> existingUids = programInstanceService.getProgramInstancesUidsIncludingDeleted( ids );
-
-        for ( Enrollment enrollment : enrollments )
-        {
-            if ( StringUtils.isEmpty( enrollment.getEnrollment() )
-                || !existingUids.contains( enrollment.getEnrollment() ) )
-            {
-                create.add( enrollment );
-            }
-            else
-            {
-                update.add( enrollment );
-            }
-        }
-    }
-
-    private void sortCreatesAndUpdates( Enrollment enrollment, List<Enrollment> create, List<Enrollment> update )
-    {
-        if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
-        {
-            create.add( enrollment );
-        }
-        else
-        {
-            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
-            {
-                create.add( enrollment );
-            }
-            else
-            {
-                update.add( enrollment );
-            }
-        }
+        WorkContext workContext = workContextLoader.loadForEnrollment( importOptions, enrollments );
+        return addEnrollments( enrollments, workContext, true );
     }
 
     // -------------------------------------------------------------------------

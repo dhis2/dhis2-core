@@ -39,6 +39,7 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.events.trackedentity.JacksonTrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -155,6 +156,9 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     @Qualifier( "xmlMapper" )
     private ObjectMapper xmlMapper;
 
+    @Autowired
+    private WorkContextLoader workContextLoader;
+
     private TrackedEntityInstanceService subject;
 
     private TrackedEntityInstanceQueryParams queryParams;
@@ -216,7 +220,7 @@ public class TrackerSynchronizationTest extends DhisSpringTest
             trackerOwnershipAccessManager,
             trackedEntityInstanceAggregate, trackedEntityAttributeStore, trackedEntityInstanceAuditService,
             trackedEntityTypeService, notifier, jsonMapper,
-            xmlMapper );
+            xmlMapper, workContextLoader, sessionFactory );
 
         prepareSyncParams();
         prepareDataForTest();

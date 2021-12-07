@@ -35,8 +35,10 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
-import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -46,12 +48,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+
 /**
  * @author Luciano Fiandesio
  */
-public class OrganisationUnitSupplierTest extends AbstractSupplierTest<OrganisationUnit>
+public class OrganisationUnitSupplierTest extends AbstractSupplierTest<OrganisationUnit, Set<OrganisationUnit>>
 {
     private OrganisationUnitSupplier subject;
+
+    private static final String uid = CodeGenerator.generateUid();
 
     @Before
     public void setUp()
@@ -66,7 +73,7 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
     @Test
     public void handleNullEvents()
     {
-        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
+        assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null, null ) );
     }
 
     public void verifySupplier()
@@ -87,14 +94,17 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
 
         // create event to import
         Event event = new Event();
-        event.setUid( CodeGenerator.generateUid() );
+        event.setUid( uid );
         event.setOrgUnit( "abcded" );
 
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
+        Multimap<String, String> orgUnitToEntity = HashMultimap.create();
+        orgUnitToEntity.put( "abcded", uid );
+
         Map<String, OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
-            Collections.singletonList( event ) );
+            new HashSet<>( List.of( event.getUid() ) ), orgUnitToEntity );
 
         OrganisationUnit organisationUnit = map.get( event.getUid() );
         assertThat( organisationUnit, is( notNullValue() ) );
@@ -118,16 +128,20 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
 
         // create event to import
         Event event = new Event();
-        event.setUid( CodeGenerator.generateUid() );
+        event.setUid( uid );
         event.setOrgUnit( "abcded" );
 
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
+        Multimap<String, String> orgUnitToEntity = HashMultimap.create();
+        orgUnitToEntity.put( "abcded", uid );
+
         Map<String, OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
-            Collections.singletonList( event ) );
+            new HashSet<>( List.of( event.getUid() ) ), orgUnitToEntity );
 
         OrganisationUnit organisationUnit = map.get( event.getUid() );
+
         assertThat( organisationUnit, is( notNullValue() ) );
         assertThat( organisationUnit.getId(), is( 100L ) );
         assertThat( organisationUnit.getUid(), is( "abcded" ) );
@@ -150,7 +164,7 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
 
         // create event to import
         Event event = new Event();
-        event.setUid( CodeGenerator.generateUid() );
+        event.setUid( uid );
         event.setOrgUnit( "CODE1" );
 
         // mock resultset extraction
@@ -158,8 +172,12 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
 
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( IdScheme.CODE.name() );
-        Map<String, OrganisationUnit> map = subject.get( importOptions,
-            Collections.singletonList( event ) );
+
+        Multimap<String, String> orgUnitToEntity = HashMultimap.create();
+        orgUnitToEntity.put( "abcded", uid );
+
+        Map<String, OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
+            new HashSet<>( List.of( event.getUid() ) ), orgUnitToEntity );
 
         OrganisationUnit organisationUnit = map.get( event.getUid() );
         assertThat( organisationUnit, is( notNullValue() ) );
@@ -184,7 +202,7 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
 
         // create event to import
         Event event = new Event();
-        event.setUid( CodeGenerator.generateUid() );
+        event.setUid( uid );
         event.setOrgUnit( "someattributevalue" );
 
         // mock resultset extraction
@@ -193,8 +211,11 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + attributeId );
 
+        Multimap<String, String> orgUnitToEntity = HashMultimap.create();
+        orgUnitToEntity.put( "someattributevalue", uid );
+
         Map<String, OrganisationUnit> map = subject.get( importOptions,
-            Collections.singletonList( event ) );
+            new HashSet<>( List.of( event.getUid() ) ), orgUnitToEntity );
 
         final String executedSql = sql.getValue();
 
