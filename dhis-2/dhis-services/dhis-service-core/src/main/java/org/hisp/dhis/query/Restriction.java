@@ -46,7 +46,7 @@ public class Restriction implements Criterion
     /**
      * Operator for restriction.
      */
-    private Operator<?> operator;
+    private Operator operator;
 
     /**
      * Query Path.
@@ -61,7 +61,7 @@ public class Restriction implements Criterion
         this.predicate = predicate;
     }
 
-    public Restriction( String path, Operator<?> operator )
+    public Restriction( String path, Operator operator )
     {
         this.path = path;
         this.operator = operator;
