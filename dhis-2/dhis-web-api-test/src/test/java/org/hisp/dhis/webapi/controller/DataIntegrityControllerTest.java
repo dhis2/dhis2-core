@@ -120,13 +120,13 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     public void testDataIntegrity_OrphanedOrganisationUnits()
     {
         // should match:
-        addOrganisationUnit( "OrphanedUnit" );
+        String ouId = addOrganisationUnit( "OrphanedUnit" );
 
         // should not match:
         String ouRootId = addOrganisationUnit( "root" );
         addOrganisationUnit( "leaf", ouRootId );
 
-        assertEquals( singletonList( "OrphanedUnit" ),
+        assertEquals( singletonList( "OrphanedUnit:" + ouId ),
             getDataIntegrityReport().getOrphanedOrganisationUnits().toList( JsonString::string ) );
     }
 
@@ -134,13 +134,12 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     public void testDataIntegrity_OrganisationUnitsWithoutGroups()
     {
         // should match:
-        addOrganisationUnit( "noGroupSet" );
+        String ouId = addOrganisationUnit( "noGroupSet" );
 
         // should not match:
-        String ouId = addOrganisationUnit( "hasGroupSet" );
-        addOrganisationUnitGroup( "group", ouId );
+        addOrganisationUnitGroup( "group", addOrganisationUnit( "hasGroupSet" ) );
 
-        assertEquals( singletonList( "noGroupSet" ),
+        assertEquals( singletonList( "noGroupSet:" + ouId ),
             getDataIntegrityReport().getOrganisationUnitsWithoutGroups().toList( JsonString::string ) );
     }
 
@@ -158,7 +157,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
 
         assertContainsOnly(
             getDataIntegrityReport().getOrganisationUnitsWithCyclicReferences().toList( JsonString::string ),
-            "A", "B" );
+            "A:" + ouIdA, "B:" + ouIdB );
     }
 
     @Test
@@ -176,7 +175,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
         addOrganisationUnitGroupSet( "K", groupA0Id );
         addOrganisationUnitGroupSet( "X", groupB1Id, groupB2Id );
 
-        assertEquals( singletonMap( "B:" + ouIdB, asList( "B1", "B2" ) ),
+        assertEquals( singletonMap( "B:" + ouIdB, asList( "B1:" + groupB1Id, "B2:" + groupB2Id ) ),
             getDataIntegrityReport().getOrganisationUnitsViolatingExclusiveGroupSets()
                 .toMap( JsonString::string, String::compareTo ) );
     }
