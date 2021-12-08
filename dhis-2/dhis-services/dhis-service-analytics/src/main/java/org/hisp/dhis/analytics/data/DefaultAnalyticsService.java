@@ -141,7 +141,6 @@ public class DefaultAnalyticsService
             .withOutputFormat( DATA_VALUE_SET )
             .build();
 
-        // Grid grid = dataAggregator.getAggregatedDataValueGrid( query );
         Grid grid = analyticsCache.getOrFetch( params,
             p -> dataAggregator.getAggregatedDataValueGrid( query ) );
 
