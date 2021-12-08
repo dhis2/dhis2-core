@@ -80,14 +80,15 @@ public class DimensionFilteringAndPagingService
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "dimensions" );
 
-        Collection<DimensionResponse> filteredDimensions = filterStream( dimensionResponses.stream(),
+        List<DimensionResponse> filteredDimensions = filterStream( dimensionResponses.stream(),
             dimensionsCriteria )
                 .collect( Collectors.toList() );
 
-        var params = FieldFilterParams.of( sortedAndPagedStream( filteredDimensions.stream(), dimensionsCriteria )
-            .collect( Collectors.toList() ), fields );
+        FieldFilterParams<DimensionResponse> filterParams = FieldFilterParams
+            .of( sortedAndPagedStream( filteredDimensions.stream(), dimensionsCriteria )
+                .collect( Collectors.toList() ), fields );
 
-        var objectNodes = fieldFilterService.toObjectNodes( params );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( filterParams );
 
         pagingWrapper = pagingWrapper.withInstances( objectNodes );
 

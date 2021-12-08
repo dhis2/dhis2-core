@@ -40,7 +40,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @With
 public class DimensionResponse
 {
-
     @JsonProperty
     private final String valueType;
 
@@ -70,7 +69,4 @@ public class DimensionResponse
 
     @JsonProperty
     private final String displayShortName;
-
-    @JsonProperty
-    private final String programStageDataElement;
 }

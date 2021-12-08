@@ -42,6 +42,7 @@ import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
 import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -82,7 +83,7 @@ class DimensionsServiceCommon
         AGGREGATE
     }
 
-    static Collection<BaseIdentifiableObject> collectDimensions(
+    static List<BaseIdentifiableObject> collectDimensions(
         Collection<Collection<? extends BaseIdentifiableObject>> dimensionCollections )
     {
         return dimensionCollections.stream()
@@ -90,7 +91,7 @@ class DimensionsServiceCommon
             .collect( Collectors.toList() );
     }
 
-    static <T> Collection<T> filterByValueType(
+    static <T extends BaseIdentifiableObject> Collection<T> filterByValueType(
         DimensionsServiceCommon.OperationType operationType,
         Collection<T> elements, Function<T, ValueType> valueTypeProvider )
     {

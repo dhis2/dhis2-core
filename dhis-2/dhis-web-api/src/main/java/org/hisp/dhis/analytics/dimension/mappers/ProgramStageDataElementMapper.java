@@ -33,7 +33,6 @@ import lombok.Getter;
 
 import org.hisp.dhis.analytics.dimension.DimensionResponse;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +41,6 @@ import com.google.common.collect.ImmutableSet;
 @Service
 public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapper
 {
-
     @Getter
     private final Collection<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
         ProgramStageDataElement.class );
@@ -52,9 +50,9 @@ public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapp
     {
         ProgramStageDataElement programStageDataElement = (ProgramStageDataElement) dimension;
 
-        return super.map( HibernateProxyUtils.unproxy( programStageDataElement.getDataElement() ) )
+        return super.map( programStageDataElement.getDataElement() )
             .withValueType( programStageDataElement.getDataElement().getValueType().name() )
-            .withProgramStageDataElement( getProgramStageDataElementUid( programStageDataElement ) );
+            .withId( getProgramStageDataElementUid( programStageDataElement ) );
     }
 
     private String getProgramStageDataElementUid( ProgramStageDataElement programStageDataElement )

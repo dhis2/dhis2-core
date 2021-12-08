@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.filterB
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -59,7 +60,7 @@ class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalytics
     private final ProgramService programService;
 
     @Override
-    public Collection<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programId )
+    public List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programId )
     {
         return Optional.of( programId )
             .map( programService::getProgram )
@@ -87,7 +88,7 @@ class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalytics
     }
 
     @Override
-    public Collection<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programId )
+    public List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programId )
     {
         return Optional.of( programId )
             .map( programService::getProgram )

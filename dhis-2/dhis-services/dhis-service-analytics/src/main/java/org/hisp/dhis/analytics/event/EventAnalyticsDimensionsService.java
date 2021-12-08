@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.analytics.event;
 
-import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 public interface EventAnalyticsDimensionsService
 {
-    Collection<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId );
+    List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId );
 
-    Collection<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId );
+    List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId );
 }

@@ -55,9 +55,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
 
-public class DefaultEventAnalyticsDimensionsServiceTest
+public class EventAnalyticsDimensionsServiceTest
 {
-
     private EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
     @Before

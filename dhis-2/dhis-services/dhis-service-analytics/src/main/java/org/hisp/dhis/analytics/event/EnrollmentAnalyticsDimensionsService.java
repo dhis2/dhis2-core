@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.analytics.event;
 
-import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 public interface EnrollmentAnalyticsDimensionsService
 {
-    Collection<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programId );
+    List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programId );
 
-    Collection<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programId );
+    List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programId );
 }

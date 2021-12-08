@@ -31,6 +31,7 @@ import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.Operati
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.QUERY;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.collectDimensions;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.filterByValueType;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -47,7 +48,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -59,9 +59,8 @@ import com.google.common.collect.ImmutableList;
 
 @Service
 @RequiredArgsConstructor
-class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensionsService
+public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensionsService
 {
-
     @NonNull
     private final ProgramStageService programStageService;
 
@@ -69,7 +68,7 @@ class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensions
     private final CategoryService categoryService;
 
     @Override
-    public Collection<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId )
+    public List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
@@ -91,7 +90,7 @@ class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensions
     }
 
     @Override
-    public Collection<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId )
+    public List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
@@ -120,7 +119,7 @@ class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensions
 
     private boolean isTypeAttribute( CategoryOptionGroupSet categoryOptionGroupSet )
     {
-        return categoryOptionGroupSet.getDataDimensionType().equals( DataDimensionType.ATTRIBUTE );
+        return ATTRIBUTE == categoryOptionGroupSet.getDataDimensionType();
     }
 
     private Collection<Category> getCategoriesIfNeeded( Program program )
@@ -147,5 +146,4 @@ class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensions
     {
         return !trackedEntityAttribute.isConfidentialBool();
     }
-
 }

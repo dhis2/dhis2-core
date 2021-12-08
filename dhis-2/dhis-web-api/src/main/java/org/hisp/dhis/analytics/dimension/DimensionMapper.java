@@ -32,7 +32,7 @@ import java.util.Collection;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
-interface DimensionMapper
+public interface DimensionMapper
 {
     DimensionResponse map( BaseIdentifiableObject dimension );
 
