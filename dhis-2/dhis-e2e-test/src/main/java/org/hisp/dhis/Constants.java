@@ -52,6 +52,8 @@ public class Constants
 
     public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ";
 
+    public static String[] TRACKER_PROGRAM_STAGE_IDS = { "PaOOjwLVW23" };
+
     public static String ANOTHER_TRACKER_PROGRAM_ID = "f1AyMswryyX";
 
     public static String[] ORG_UNIT_IDS = {
