@@ -36,9 +36,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen
  */
-public class SpecificMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
+public class WebMessageMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
-    public SpecificMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
+    public WebMessageMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
     {
         super( objectMapper );
     }

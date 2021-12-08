@@ -47,7 +47,7 @@ import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.RequestInfoInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.SpecificMappingJackson2XmlHttpMessageConverter;
+import org.hisp.dhis.webapi.mvc.messageconverter.WebMessageMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -156,7 +156,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
     @Bean
     public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
     {
-        SpecificMappingJackson2XmlHttpMessageConverter messageConverter = new SpecificMappingJackson2XmlHttpMessageConverter(
+        WebMessageMappingJackson2XmlHttpMessageConverter messageConverter = new WebMessageMappingJackson2XmlHttpMessageConverter(
             xmlMapper );
 
         messageConverter.setSupportedMediaTypes( Arrays.asList(
