@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi;
 
 import static org.springframework.http.MediaType.parseMediaType;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +61,6 @@ import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -173,19 +171,6 @@ public class MvcTestConfig implements WebMvcConfigurer
         return new MappingJackson2HttpMessageConverter( jsonMapper );
     }
 
-    @Bean
-    public MappingJackson2XmlHttpMessageConverter mappingJackson2XmlHttpMessageConverter()
-    {
-        MappingJackson2XmlHttpMessageConverter messageConverter = new MappingJackson2XmlHttpMessageConverter(
-            xmlMapper );
-
-        messageConverter.setSupportedMediaTypes( Arrays.asList(
-            new MediaType( "application", "xml", StandardCharsets.UTF_8 ),
-            new MediaType( "application", "*+xml", StandardCharsets.UTF_8 ) ) );
-
-        return messageConverter;
-    }
-
     @Override
     public void configureMessageConverters(
         List<HttpMessageConverter<?>> converters )
@@ -200,7 +185,6 @@ public class MvcTestConfig implements WebMvcConfigurer
         converters.add( new FormHttpMessageConverter() );
 
         converters.add( mappingJackson2HttpMessageConverter() );
-        converters.add( mappingJackson2XmlHttpMessageConverter() );
     }
 
     @Bean
