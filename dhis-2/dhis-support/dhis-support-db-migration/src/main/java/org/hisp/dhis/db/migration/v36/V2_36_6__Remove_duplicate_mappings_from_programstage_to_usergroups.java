@@ -98,7 +98,7 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         Set<String> userGroupIds = new HashSet<>();
         long totalCount = 0;
 
-        String psugaForeignKeyColumnName = "programstageid";
+        String psugaForeignKeyColumnName = PROGRAMSTAGEID;
 
         // 0. For backward compatibility, check if the psuga table has old
         // column or fixed column
