@@ -42,17 +42,17 @@ pipeline {
         }
     }
 
-    //post {
-    //    failure {
-    //        script {
-    //            slack.sendFailureMessage()
-    //        }
-    //    }
-    //
-    //    aborted {
-    //        script {
-    //            slack.sendInactivityMessage(20)
-    //        }
-    //    }
-    //}
+    post {
+        failure {
+            script {
+                slack.sendFailureMessage()
+            }
+        }
+
+        aborted {
+            script {
+                slack.sendInactivityMessage(20)
+            }
+        }
+    }
 }
