@@ -2,7 +2,7 @@ name: Run api tests
 env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-
+  CORE_IMAGE_NAME: "dhis2/core:local"
 on:
   pull_request: 
     types: [ labeled, synchronize ]
@@ -10,10 +10,7 @@ concurrency:
     group: ${{ github.workflow}}-${{ github.ref }}
     cancel-in-progress: true
 jobs:    
-  api-test:
-    env:
-      CORE_IMAGE_NAME: "dhis2/core:local"
-      TEST_IMAGE_NAME: "dhis2/tests:local"
+  build: 
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
     steps:
@@ -28,6 +25,32 @@ jobs:
         run: |
           bash ./dhis-2/build-dev.sh
 
+  publish-image: 
+    runs-on: ubuntu-latest
+    needs: build
+    if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
+    env:
+      DOCKER_CHANNEL: "dhis2/pr"
+      DOCKER_IMAGE: ${{github.event.issue.number}}
+    steps: 
+      - uses: actions/checkout@v2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
+      - name: Publish image
+        run: |
+          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$DOCKER_IMAGE
+          docker push $DOCKER_CHANNEL:$DOCKER_IMAGE
+         
+  api-test:
+    env:
+      TEST_IMAGE_NAME: "dhis2/tests:local"
+    needs: build
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
+    steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Build test image
