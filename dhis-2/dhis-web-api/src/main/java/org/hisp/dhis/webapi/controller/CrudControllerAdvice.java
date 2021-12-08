@@ -93,6 +93,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.context.request.WebRequest;
 
 import com.fasterxml.jackson.core.JsonParseException;
 
@@ -363,12 +364,14 @@ public class CrudControllerAdvice
      * Catches default exception and send back to user, but re-throws internally
      * so it still ends up in server logs.
      */
-    @ExceptionHandler( Exception.class )
     @ResponseBody
-    public WebMessage defaultExceptionHandler( Exception ex )
+    @ExceptionHandler( Exception.class )
+    public WebMessage defaultExceptionHandler( Exception ex, WebRequest request )
     {
         // We print the stacktrace so it shows up in the logs, so we can more
         // easily understand 500-issues.
+        System.err.println( request.getHeader( "Content-Type" ) );
+
         ex.printStackTrace();
         return error( getExceptionMessage( ex ) );
     }
