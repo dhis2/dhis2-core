@@ -30,9 +30,9 @@ package org.hisp.dhis.analytics.data.handler;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.valueOf;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.emptyOrNullString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
@@ -130,7 +130,7 @@ public class SchemaIdResponseMapperTest
         final CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getCode() ) ) );
-        assertThat( responseMap.get( periodIsoDate ), isEmptyOrNullString() );
+        assertThat( responseMap.get( periodIsoDate ), is( emptyOrNullString() ) );
         assertThat( responseMap.get( dataElementA.getUid() ), is( equalTo( dataElementA.getCode() ) ) );
         assertThat( responseMap.get( dataElementB.getUid() ), is( equalTo( dataElementB.getCode() ) ) );
         assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( equalTo( categoryOptionComboC.getCode() ) ) );
@@ -157,12 +157,12 @@ public class SchemaIdResponseMapperTest
         final DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
         final CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
 
-        assertThat( responseMap.get( orgUnitUid ), isEmptyOrNullString() );
-        assertThat( responseMap.get( periodIsoDate ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( orgUnitUid ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( periodIsoDate ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
@@ -185,12 +185,12 @@ public class SchemaIdResponseMapperTest
         final DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
         final CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
 
-        assertThat( responseMap.get( orgUnitUid ), isEmptyOrNullString() );
-        assertThat( responseMap.get( periodIsoDate ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( orgUnitUid ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( periodIsoDate ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
@@ -271,10 +271,10 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
@@ -300,10 +300,10 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
@@ -329,10 +329,10 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getName() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
@@ -358,10 +358,10 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getCode() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
@@ -385,12 +385,12 @@ public class SchemaIdResponseMapperTest
         final DataElement dataElementB = dataElementOperandsStub.get( 1 ).getDataElement();
         final CategoryOptionCombo categoryOptionComboC = dataElementOperandsStub.get( 0 ).getCategoryOptionCombo();
 
-        assertThat( responseMap.get( orgUnitUid ), isEmptyOrNullString() );
+        assertThat( responseMap.get( orgUnitUid ), is( emptyOrNullString() ) );
         assertThat( responseMap.get( periodIsoDate ), is( periodStub.getUid() ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test
@@ -416,10 +416,10 @@ public class SchemaIdResponseMapperTest
 
         assertThat( responseMap.get( orgUnitUid ), is( equalTo( orUnitStub.getUid() ) ) );
         assertThat( responseMap.get( periodIsoDate ), is( equalTo( periodStub.getUid() ) ) );
-        assertThat( responseMap.get( dataElementA.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( dataElementB.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
-        assertThat( responseMap.get( categoryOptionComboC.getUid() ), isEmptyOrNullString() );
+        assertThat( responseMap.get( dataElementA.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( dataElementB.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
+        assertThat( responseMap.get( categoryOptionComboC.getUid() ), is( emptyOrNullString() ) );
     }
 
     @Test

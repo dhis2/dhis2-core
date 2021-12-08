@@ -25,41 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.analytics.event;
 
-import org.hisp.dhis.common.DxfNamespaces;
-
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JacksonXmlRootElement( localName = "propertyType", namespace = DxfNamespaces.DXF_2_0 )
-public enum PropertyType
+public interface EventAnalyticsDimensionalItemService
 {
-    IDENTIFIER,
-    TEXT,
-    NUMBER,
-    INTEGER,
-    BOOLEAN,
-    USERNAME,
-    EMAIL,
-    PASSWORD,
-    URL,
-    DATE,
-    PHONENUMBER,
-    GEOLOCATION,
-    COLOR,
-    CONSTANT,
+    EventsAnalyticsDimensionalItems getQueryDimensionalItemsByProgramStageId( String programStageId );
 
-    COMPLEX,
-    COLLECTION,
-    REFERENCE;
-
-    public boolean isSimple()
-    {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this
-            || USERNAME == this || PASSWORD == this || URL == this || DATE == this || PHONENUMBER == this
-            || GEOLOCATION == this || COLOR == this || CONSTANT == this;
-    }
+    EventsAnalyticsDimensionalItems getAggregateDimensionalItemsByProgramStageId( String programStageId );
 }

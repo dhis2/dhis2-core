@@ -25,41 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@JacksonXmlRootElement( localName = "propertyType", namespace = DxfNamespaces.DXF_2_0 )
-public enum PropertyType
+@Data
+@NoArgsConstructor
+public class DimensionalItemCriteria extends PagingAndSortingCriteriaAdapter
 {
-    IDENTIFIER,
-    TEXT,
-    NUMBER,
-    INTEGER,
-    BOOLEAN,
-    USERNAME,
-    EMAIL,
-    PASSWORD,
-    URL,
-    DATE,
-    PHONENUMBER,
-    GEOLOCATION,
-    COLOR,
-    CONSTANT,
-
-    COMPLEX,
-    COLLECTION,
-    REFERENCE;
-
-    public boolean isSimple()
-    {
-        return IDENTIFIER == this || TEXT == this || NUMBER == this || INTEGER == this || EMAIL == this
-            || USERNAME == this || PASSWORD == this || URL == this || DATE == this || PHONENUMBER == this
-            || GEOLOCATION == this || COLOR == this || CONSTANT == this;
-    }
+    private String filter;
 }
