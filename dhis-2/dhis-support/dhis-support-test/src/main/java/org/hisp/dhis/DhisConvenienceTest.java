@@ -223,6 +223,8 @@ public abstract class DhisConvenienceTest
 
     protected static final String BASE_TEI_UID = "teibcdefgh";
 
+    protected static final String BASE_PREDICTOR_GROUP_UID = "predictorg";
+
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
 
     public static final String DEFAULT_ADMIN_PASSWORD = "district";
@@ -1262,15 +1264,22 @@ public abstract class DhisConvenienceTest
      * Creates a Predictor Group
      *
      * @param uniqueCharacter A unique character to identify the object.
+     * @param predictors Predictors to add to the group.
      * @return PredictorGroup
      */
-    public static PredictorGroup createPredictorGroup( char uniqueCharacter )
+    public static PredictorGroup createPredictorGroup( char uniqueCharacter, Predictor... predictors )
     {
         PredictorGroup group = new PredictorGroup();
         group.setAutoFields();
 
         group.setName( "PredictorGroup" + uniqueCharacter );
         group.setDescription( "Description" + uniqueCharacter );
+        group.setUid( BASE_PREDICTOR_GROUP_UID + uniqueCharacter );
+
+        for ( Predictor p : predictors )
+        {
+            group.addPredictor( p );
+        }
 
         return group;
     }
