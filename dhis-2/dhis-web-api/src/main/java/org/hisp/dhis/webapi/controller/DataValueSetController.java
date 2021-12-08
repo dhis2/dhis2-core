@@ -146,7 +146,7 @@ public class DataValueSetController
         @RequestParam( required = false ) String compression,
         HttpServletResponse response )
     {
-        getDataValueSet( params, attachment, compression, "xml", response, CONTENT_TYPE_XML,
+        getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML,
             out -> dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), out ) );
     }
 
@@ -156,7 +156,7 @@ public class DataValueSetController
         @RequestParam( required = false ) String compression,
         HttpServletResponse response )
     {
-        getDataValueSet( params, attachment, compression, "xml", response, CONTENT_TYPE_XML_ADX,
+        getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML_ADX,
             out -> {
                 try
                 {
@@ -176,7 +176,7 @@ public class DataValueSetController
         @RequestParam( required = false ) String compression,
         HttpServletResponse response )
     {
-        getDataValueSet( params, attachment, compression, "json", response, CONTENT_TYPE_JSON,
+        getDataValueSet( attachment, compression, "json", response, CONTENT_TYPE_JSON,
             out -> dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), out ) );
     }
 
@@ -186,13 +186,12 @@ public class DataValueSetController
         @RequestParam( required = false ) String compression,
         HttpServletResponse response )
     {
-        getDataValueSet( params, attachment, compression, "csv", response, CONTENT_TYPE_CSV,
+        getDataValueSet( attachment, compression, "csv", response, CONTENT_TYPE_CSV,
             out -> dataValueSetService.writeDataValueSetCsv( dataValueSetService.getFromUrl( params ),
                 new PrintWriter( out ) ) );
     }
 
-    private void getDataValueSet( DataValueSetQueryParams params,
-        String attachment,
+    private void getDataValueSet( String attachment,
         String compression, String format, HttpServletResponse response, String contentType,
         Consumer<OutputStream> writeOutput )
     {
