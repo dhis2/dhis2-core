@@ -35,7 +35,7 @@ pipeline {
         stage ('Sync WAR') {
             steps {
                 echo 'Syncing WAR ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/DEVOPS-119/ci/scripts/copy-war-s3.sh" -O'
+                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
                 sh 'chmod +x copy-war-s3.sh'
                 sh './copy-war-s3.sh stable ${GIT_BRANCH}'
             }
