@@ -98,7 +98,7 @@ public class DataAggregator
 
         dataHandler.addReportingRates( params, grid );
 
-        dataHandler.addProgramDataElementAttributeIndicatorValues( params, grid, false );
+        dataHandler.addProgramDataElementAttributeIndicatorValues( params, grid );
 
         dataHandler.addDynamicDimensionValues( params, grid );
 

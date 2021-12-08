@@ -366,7 +366,7 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void addProgramDataElementAttributeIndicatorValues( DataQueryParams params, Grid grid, boolean tryCache )
+    void addProgramDataElementAttributeIndicatorValues( DataQueryParams params, Grid grid )
     {
         if ( (!params.getAllProgramDataElementsAndAttributes().isEmpty() || !params.getProgramIndicators().isEmpty())
             && !params.isSkipData() )
@@ -377,7 +377,7 @@ public class DataHandler
             EventQueryParams eventQueryParams = new EventQueryParams.Builder( fromDataQueryParams( dataSourceParams ) )
                 .withSkipMeta( true ).build();
 
-            Grid eventGrid = eventAnalyticsService.getAggregatedEventData( eventQueryParams );
+            Grid eventGrid = eventAnalyticsService.getAggregatedEventData( eventQueryParams, false );
 
             grid.addRows( eventGrid );
 
