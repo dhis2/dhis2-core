@@ -55,22 +55,12 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
 
     private static final String PROGRAMSTAGEID = "programstageid";
 
-    private static final String CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING_OLD = "SELECT count(*),programstageid,name,usergroupid  "
+    private static final String CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING = "SELECT count(*),programstageid,name,usergroupid  "
         +
         "FROM   (SELECT ps.*,uga.* " +
         "       FROM   programstage ps " +
         "       LEFT JOIN programstageusergroupaccesses psuga " +
-        "               ON ps.programstageid = psuga.programid " +
-        "       LEFT JOIN usergroupaccess uga " +
-        "               ON psuga.usergroupaccessid = uga.usergroupaccessid) AS pscouga " +
-        "GROUP  BY programstageid,name,usergroupid HAVING count(*) > 1";
-
-    private static final String CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING_FIXED = "SELECT count(*),programstageid,name,usergroupid  "
-        +
-        "FROM   (SELECT ps.*,uga.* " +
-        "       FROM   programstage ps " +
-        "       LEFT JOIN programstageusergroupaccesses psuga " +
-        "               ON ps.programstageid = psuga.programstageid " +
+        "               ON ps.programstageid = psuga.%s " +
         "       LEFT JOIN usergroupaccess uga " +
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid) AS pscouga " +
         "GROUP  BY programstageid,name,usergroupid HAVING count(*) > 1";
@@ -91,13 +81,13 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid " +
         " WHERE  programid IN (%s)  and usergroupid IN (%s)) AS pstguga order by accesslevel desc";
 
-    private static final String FAILSAFE_INSERT_COLUMN = "ALTER TABLE programstageusergroupaccesses ADD COLUMN IF NOT EXISTS programid bigint";
-
-    private static final String FAILSAFE_DROP_COLUMN = "ALTER TABLE programstageusergroupaccesses DROP COLUMN IF EXISTS programid";
-
     private static final String DELETE_PS_USRGRP_ACCESS = "delete from programstageusergroupaccesses where usergroupaccessid in (%s)";
 
     private static final String DELETE_USRGRP_ACCESS = "delete from usergroupaccess where usergroupaccessid in (%s)";
+
+    private static final String CHECK_COLUMN_EXISTENCE = "SELECT column_name "
+        + "FROM information_schema.columns "
+        + "WHERE table_name='programstageusergroupaccesses' and column_name='programid'";
 
     @Override
     public void migrate( Context context )
@@ -108,21 +98,29 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         Set<String> userGroupIds = new HashSet<>();
         long totalCount = 0;
 
-        // 0. For backward compatibility, inserting the incorrect column
-        // programid if not exists
-        try ( Statement stmt = context.getConnection().createStatement() )
+        String psugaForeignKeyColumnName = "programstageid";
+
+        // 0. For backward compatibility, check if the psuga table has old
+        // column or fixed column
+        try ( Statement stmt = context.getConnection().createStatement();
+            ResultSet rs = stmt.executeQuery( CHECK_COLUMN_EXISTENCE ); )
         {
-            stmt.execute( FAILSAFE_INSERT_COLUMN );
+            if ( rs.next() == true )
+            {
+                psugaForeignKeyColumnName = rs.getString( 0 );
+            }
         }
 
         // 1. Check if there are duplicate mappings. If not simply return.
         try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING_OLD ); )
+            ResultSet rs = stmt.executeQuery(
+                String.format( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING, psugaForeignKeyColumnName ) ); )
         {
             if ( rs.next() == false )
             {
                 log.info(
                     "No duplicate mappings for programstage to usergroups. Skipping duplicate cleanup migration" );
+                return;
             }
             else
             {
@@ -141,41 +139,6 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
                 }
                 while ( rs.next() );
             }
-        }
-
-        // 1.1 Same as 1, but modified query to be compatible with newer and
-        // older version because of the fix
-        // https://github.com/dhis2/dhis2-core/pull/8776
-        try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING_FIXED ); )
-        {
-            if ( rs.next() == false )
-            {
-                log.info(
-                    "No duplicate mappings for programstage to usergroups. Skipping duplicate cleanup migration" );
-            }
-            else
-            {
-                DuplicateProgramStageUserGroupWithCount duplicatePgmStgUsrgrp = null;
-                do
-                {
-                    duplicatePgmStgUsrgrp = new DuplicateProgramStageUserGroupWithCount();
-                    duplicatePgmStgUsrgrp.setName( rs.getString( "name" ) );
-                    duplicatePgmStgUsrgrp.setProgramStageId( rs.getLong( PROGRAMSTAGEID ) );
-                    programStageIds.add( rs.getString( PROGRAMSTAGEID ) );
-                    duplicatePgmStgUsrgrp.setUserGroupId( rs.getLong( USERGROUPID ) );
-                    userGroupIds.add( rs.getString( USERGROUPID ) );
-                    duplicatePgmStgUsrgrp.setCount( rs.getInt( "count" ) );
-                    totalCount = totalCount + rs.getInt( "count" );
-                    duplicatePgmStgUsrgrps.add( duplicatePgmStgUsrgrp );
-                }
-                while ( rs.next() );
-            }
-        }
-
-        if ( duplicatePgmStgUsrgrps.isEmpty() )
-        {
-            return;
         }
 
         Set<Pair<String, String>> pgmStgUsrGroupPairs = new HashSet<>();
@@ -224,13 +187,6 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
             int deletedUgaCount = stmt
                 .executeUpdate( String.format( DELETE_USRGRP_ACCESS, usrGrpAccessIdsCommaSeparated ) );
             log.info( "Deleted userGroupAccessIds from usergroupaccess table : " + deletedUgaCount );
-        }
-
-        // 4. For backward compatibility, deleting the incorrect column
-        // programid if exists
-        try ( Statement stmt = context.getConnection().createStatement() )
-        {
-            stmt.execute( FAILSAFE_DROP_COLUMN );
         }
 
     }
