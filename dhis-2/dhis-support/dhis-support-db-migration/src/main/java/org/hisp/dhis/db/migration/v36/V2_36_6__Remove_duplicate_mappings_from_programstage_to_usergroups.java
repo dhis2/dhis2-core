@@ -107,7 +107,7 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         {
             if ( rs.next() == true )
             {
-                psugaForeignKeyColumnName = rs.getString( 0 );
+                psugaForeignKeyColumnName = rs.getString( 1 );
             }
         }
 
