@@ -31,6 +31,7 @@ jobs:
     if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
     env:
       DOCKER_CHANNEL: "dhis2/pr"
+      PR_NUMBER: ${{ github.event.number }}
     steps: 
       - uses: actions/checkout@v2
       - name: Login to Docker Hub
@@ -40,8 +41,8 @@ jobs:
           password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
       - name: Publish image
         run: |
-          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:${{github.event.issue.number}}
-          docker push $DOCKER_CHANNEL:${{github.event.issue.number}}
+          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$PR_NUMBER
+          docker push $DOCKER_CHANNEL:$PR_NUMBER
          
   api-test:
     env:
