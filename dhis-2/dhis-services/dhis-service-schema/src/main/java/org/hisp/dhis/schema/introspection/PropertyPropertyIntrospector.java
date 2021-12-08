@@ -31,10 +31,7 @@ import static org.hisp.dhis.schema.PropertyType.BOOLEAN;
 import static org.hisp.dhis.schema.PropertyType.CONSTANT;
 import static org.hisp.dhis.schema.PropertyType.DATE;
 import static org.hisp.dhis.schema.PropertyType.REFERENCE;
-import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
-import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Date;
 import java.util.EnumSet;
@@ -134,10 +131,10 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
 
     private static void initFromPropertyRangeAnnotation( Property property )
     {
-        if ( isAnnotationPresent( property.getGetterMethod(), PropertyRange.class ) )
-        {
-            PropertyRange range = getAnnotation( property.getGetterMethod(), PropertyRange.class );
+        PropertyRange range = property.getAnnotation( PropertyRange.class );
 
+        if ( range != null )
+        {
             double max = range.max();
             double min = range.min();
 
@@ -167,49 +164,50 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
 
     private static void initFromPropertyTransformerAnnotation( Property property )
     {
-        Method getter = property.getGetterMethod();
-        if ( isAnnotationPresent( getter, PropertyTransformer.class ) )
+        PropertyTransformer transformer = property.getAnnotation( PropertyTransformer.class );
+
+        if ( transformer != null )
         {
-            property.setPropertyTransformer( getAnnotation( getter, PropertyTransformer.class ).value() );
+            property.setPropertyTransformer( transformer.value() );
         }
     }
 
     private static void initFromPropertyAnnotation( Property property )
     {
-        Method getter = property.getGetterMethod();
-        if ( isAnnotationPresent( getter, org.hisp.dhis.schema.annotation.Property.class ) )
+        org.hisp.dhis.schema.annotation.Property propertyAnnotation = property
+            .getAnnotation( org.hisp.dhis.schema.annotation.Property.class );
+
+        if ( propertyAnnotation != null )
         {
-            org.hisp.dhis.schema.annotation.Property pAnnotation = getAnnotation( getter,
-                org.hisp.dhis.schema.annotation.Property.class );
-            property.setPropertyType( pAnnotation.value() );
+            property.setPropertyType( propertyAnnotation.value() );
 
-            if ( pAnnotation.required() != Value.DEFAULT )
+            if ( propertyAnnotation.required() != Value.DEFAULT )
             {
-                property.setRequired( pAnnotation.required() == Value.TRUE );
+                property.setRequired( propertyAnnotation.required() == Value.TRUE );
             }
 
-            if ( pAnnotation.persisted() != Value.DEFAULT )
+            if ( propertyAnnotation.persisted() != Value.DEFAULT )
             {
-                property.setPersisted( pAnnotation.persisted() == Value.TRUE );
+                property.setPersisted( propertyAnnotation.persisted() == Value.TRUE );
             }
 
-            if ( pAnnotation.owner() != Value.DEFAULT )
+            if ( propertyAnnotation.owner() != Value.DEFAULT )
             {
-                property.setOwner( pAnnotation.owner() == Value.TRUE );
+                property.setOwner( propertyAnnotation.owner() == Value.TRUE );
             }
 
-            if ( Access.READ_ONLY == pAnnotation.access() )
+            if ( Access.READ_ONLY == propertyAnnotation.access() )
             {
                 property.setWritable( false );
             }
 
-            if ( Access.WRITE_ONLY == pAnnotation.access() )
+            if ( Access.WRITE_ONLY == propertyAnnotation.access() )
             {
                 property.setReadable( false );
             }
-            if ( !pAnnotation.persistedAs().isEmpty() )
+            if ( !propertyAnnotation.persistedAs().isEmpty() )
             {
-                property.setFieldName( pAnnotation.persistedAs() );
+                property.setFieldName( propertyAnnotation.persistedAs() );
             }
         }
     }

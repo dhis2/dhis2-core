@@ -65,4 +65,9 @@ public class FieldFilterParams<T>
             .filters( Collections.singleton( StringUtils.join( filters, "," ) ) )
             .build();
     }
+
+    public FieldFilterParams<T> copy()
+    {
+        return new FieldFilterParams<>( objects, filters );
+    }
 }

@@ -33,10 +33,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.dataelement.DataElementStore;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.user.User;
@@ -52,13 +49,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class ApiTokenServiceImplTest extends DhisSpringTest
 {
-
-    @Autowired
-    private DataElementStore dataElementStore;
-
     @Autowired
     private ApiTokenStore apiTokenStore;
 

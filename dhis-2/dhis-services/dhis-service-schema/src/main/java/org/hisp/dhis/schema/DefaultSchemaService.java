@@ -74,13 +74,11 @@ import com.google.common.collect.Maps;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com> descriptors
  */
-@Service( "org.hisp.dhis.schema.SchemaService" )
 @Slf4j
+@Service( "org.hisp.dhis.schema.SchemaService" )
 public class DefaultSchemaService
     implements SchemaService
 {
-    private static final String PROPERTY_SELF = "__self__";
-
     // Simple alias map for our concrete implementations of the core interfaces
     private static final ImmutableMap<Class<?>, Class<?>> BASE_ALIAS_MAP = ImmutableMap.<Class<?>, Class<?>> builder()
         .put( IdentifiableObject.class, BaseIdentifiableObject.class )
@@ -423,13 +421,13 @@ public class DefaultSchemaService
 
     private void updateSelf( Schema schema )
     {
-        if ( schema.haveProperty( PROPERTY_SELF ) )
+        if ( schema.haveProperty( PROPERTY_SCHEMA ) )
         {
-            Property property = schema.getProperty( PROPERTY_SELF );
+            Property property = schema.getProperty( PROPERTY_SCHEMA );
             schema.setName( property.getName() );
             schema.setCollectionName( schema.getPlural() );
             schema.setNamespace( property.getNamespace() );
-            schema.getPropertyMap().remove( PROPERTY_SELF );
+            schema.getPropertyMap().remove( PROPERTY_SCHEMA );
         }
     }
 

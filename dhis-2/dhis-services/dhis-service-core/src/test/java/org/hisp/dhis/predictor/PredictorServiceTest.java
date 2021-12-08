@@ -212,7 +212,7 @@ public class PredictorServiceTest
         Predictor predictor = createPredictor( dataElementX, defaultCombo, "A", expressionA, expressionB,
             periodTypeMonthly, orgUnitLevel1,
             6, 1, 0 );
-        Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
+        Set<OrganisationUnitLevel> levels = new HashSet<>();
         levels.add( orgUnitLevel1 );
 
         long id = predictorService.addPredictor( predictor );
@@ -225,9 +225,9 @@ public class PredictorServiceTest
         assertEquals( predictor.getSampleSkipTest(), expressionB );
         assertEquals( predictor.getPeriodType(), periodTypeMonthly );
         assertEquals( predictor.getOutput(), dataElementX );
-        assertEquals( predictor.getAnnualSampleCount(), new Integer( 0 ) );
-        assertEquals( predictor.getSequentialSampleCount(), new Integer( 6 ) );
-        assertEquals( predictor.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( predictor.getAnnualSampleCount(), Integer.valueOf( 0 ) );
+        assertEquals( predictor.getSequentialSampleCount(), Integer.valueOf( 6 ) );
+        assertEquals( predictor.getSequentialSkipCount(), Integer.valueOf( 1 ) );
         assertEquals( predictor.getOrganisationUnitLevels(), levels );
     }
 
@@ -237,7 +237,7 @@ public class PredictorServiceTest
         Predictor predictor = createPredictor( dataElementA, altCombo, "B", expressionC, null, periodTypeMonthly,
             orgUnitLevel1,
             6, 1, 0 );
-        Set<OrganisationUnitLevel> levels = new HashSet<OrganisationUnitLevel>();
+        Set<OrganisationUnitLevel> levels = new HashSet<>();
         levels.add( orgUnitLevel1 );
 
         long id = predictorService.addPredictor( predictor );
@@ -250,9 +250,9 @@ public class PredictorServiceTest
         assertNull( predictor.getSampleSkipTest() );
         assertEquals( predictor.getPeriodType(), periodTypeMonthly );
         assertEquals( predictor.getOutput(), dataElementA );
-        assertEquals( predictor.getAnnualSampleCount(), new Integer( 0 ) );
-        assertEquals( predictor.getSequentialSampleCount(), new Integer( 6 ) );
-        assertEquals( predictor.getSequentialSkipCount(), new Integer( 1 ) );
+        assertEquals( predictor.getAnnualSampleCount(), Integer.valueOf( 0 ) );
+        assertEquals( predictor.getSequentialSampleCount(), Integer.valueOf( 6 ) );
+        assertEquals( predictor.getSequentialSkipCount(), Integer.valueOf( 1 ) );
         assertEquals( predictor.getOrganisationUnitLevels(), levels );
     }
 
@@ -281,7 +281,7 @@ public class PredictorServiceTest
 
         assertEquals( predictor.getName(), "PredictorB" );
         assertEquals( predictor.getDescription(), "DescriptionB" );
-        assertEquals( predictor.getSequentialSkipCount(), new Integer( 2 ) );
+        assertEquals( predictor.getSequentialSkipCount(), Integer.valueOf( 2 ) );
     }
 
     @Test

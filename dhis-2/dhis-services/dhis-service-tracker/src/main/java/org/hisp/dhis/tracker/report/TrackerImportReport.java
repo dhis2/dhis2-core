@@ -41,7 +41,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Luciano Fiandesio
  */
 @Getter
-@Builder( access = AccessLevel.PROTECTED )
+@Builder
 @AllArgsConstructor( access = AccessLevel.PROTECTED )
 @NoArgsConstructor( access = AccessLevel.PROTECTED )
 public class TrackerImportReport
