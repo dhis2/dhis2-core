@@ -19,6 +19,26 @@ pipeline {
     }
 
     stages {
+        stage ('Publish canary docker image') {
+            steps {
+                echo "Publishing docker image to dhis2/core-canary"
+                script {
+                    def branch="${GIT_BRANCH}"
+                    def today = new Date()
+                    def formatted = "${today.format('yyyyMMdd')}"
+                    def source = "dhis2/core-dev:${branch}"
+                    def target = "dhis2/core-canary:${branch}"
+
+                    sh "docker pull ${source}"
+                    sh "docker tag ${source} ${target}"
+                    sh "docker tag ${source} ${target}-${formatted}"
+                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""]) {
+                        sh "docker push ${target}"
+                        sh "docker push ${target}-${formatted}"
+                    }           
+                }
+            }
+        }
         stage ('Build') {
             steps {
                 echo 'Building DHIS2 ...'
