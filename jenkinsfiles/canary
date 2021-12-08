@@ -23,7 +23,7 @@ pipeline {
             steps {
                 echo "Publishing docker image to dhis2/core-canary"
                 script {
-                    def branch="2.37"
+                    def branch="${GIT_BRANCH}"
                     def today = new Date()
                     def formatted = "${today.format('yyyyMMdd')}"
                     def source = "dhis2/core-dev:${branch}"
