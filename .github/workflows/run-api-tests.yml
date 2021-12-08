@@ -14,6 +14,7 @@ jobs:
     env:
       CORE_IMAGE_NAME: "dhis2/core:local"
       TEST_IMAGE_NAME: "dhis2/tests:local"
+      PR_NUMBER: ${{ github.event.number }}
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
     steps:
@@ -47,7 +48,6 @@ jobs:
           tags: ${{ env.TEST_IMAGE_NAME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
       - name: Run tests
         run: |
           cd dhis-2/dhis-e2e-test
