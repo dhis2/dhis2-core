@@ -2,7 +2,7 @@ name: Run api tests
 env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
-  CORE_IMAGE_NAME: "dhis2/core:local"
+
 on:
   pull_request: 
     types: [ labeled, synchronize ]
@@ -10,7 +10,10 @@ concurrency:
     group: ${{ github.workflow}}-${{ github.ref }}
     cancel-in-progress: true
 jobs:    
-  build: 
+  api-test:
+    env:
+      CORE_IMAGE_NAME: "dhis2/core:local"
+      TEST_IMAGE_NAME: "dhis2/tests:local"
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
     steps:
@@ -24,51 +27,17 @@ jobs:
       - name: Build core image
         run: |
           bash ./dhis-2/build-dev.sh
-      - name: Temporarily save Docker image
-        uses: actions/upload-artifact@v2
-        with:
-          name: docker-artifact
-          path: docker/artifacts
-          retention-days: 1
 
-  publish-image: 
-    runs-on: ubuntu-latest
-    needs: build
-    if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
-    env:
-      DOCKER_CHANNEL: "dhis2/pr"
-      PR_NUMBER: ${{ github.event.number }}
-    steps: 
-      - name: Retrieve saved Docker image
-        uses: actions/download-artifact@v2
-        with:
-          name: docker-artifact
-          path: docker/artifacts
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }}
-          password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
-      - name: Publish image
-        run: |
-          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$PR_NUMBER
-          docker push $DOCKER_CHANNEL:$PR_NUMBER
-         
-  api-test:
-    env:
-      TEST_IMAGE_NAME: "dhis2/tests:local"
-    needs: build
-    runs-on: ubuntu-latest
-    if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
-    steps:
-      - uses: actions/checkout@v2
-      - name: Retrieve saved Docker image
-        uses: actions/download-artifact@v2
-        with:
-          name: docker-artifact
-          path: docker/artifacts
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
+      
+      - name: Publish docker image
+        if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
+        run: |
+          echo ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }} | docker login -u ${{ secrets.DHIS2_BOT_DOCKER_HUB_USERNAME }} --password-stdin
+          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$PR_NUMBER
+          docker push $DOCKER_CHANNEL:$PR_NUMBER
+
       - name: Build test image
         uses: docker/build-push-action@v2
         with:
@@ -78,6 +47,7 @@ jobs:
           tags: ${{ env.TEST_IMAGE_NAME }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      
       - name: Run tests
         run: |
           cd dhis-2/dhis-e2e-test
