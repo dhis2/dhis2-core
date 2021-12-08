@@ -137,6 +137,9 @@ public interface DimensionalObject
 
     /**
      * Returns the value type of the dimension.
+     *
+     * NOTE: not all dimensional objects have a ValueType, hence this method
+     * will return null in such cases.
      */
     ValueType getValueType();
 
