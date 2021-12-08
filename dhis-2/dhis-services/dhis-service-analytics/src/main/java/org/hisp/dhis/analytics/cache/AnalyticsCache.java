@@ -38,6 +38,7 @@ import java.util.function.Function;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
@@ -104,7 +105,7 @@ public class AnalyticsCache
 
         if ( cachedGrid.isPresent() )
         {
-            return cachedGrid.get();
+            return getGridClone( cachedGrid.get() );
         }
         else
         {
@@ -152,7 +153,7 @@ public class AnalyticsCache
      */
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
-        queryCache.put( key, grid, ttlInSeconds );
+        queryCache.put( key, getGridClone( grid ), ttlInSeconds );
     }
 
     /**
@@ -184,5 +185,15 @@ public class AnalyticsCache
 
         log.info( format( "Analytics server-side cache is enabled with expiration time (in seconds): %d",
             initialExpirationTime ) );
+    }
+
+    private Grid getGridClone( Grid grid )
+    {
+        if ( grid != null )
+        {
+            return (Grid) SerializationUtils.clone( grid );
+        }
+
+        return null;
     }
 }
