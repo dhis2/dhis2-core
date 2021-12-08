@@ -109,6 +109,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -127,6 +128,7 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
@@ -189,11 +191,15 @@ public class DataHandler
 
     private DataAggregator dataAggregator;
 
+    private final AnalyticsCache analyticsCache;
+
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
         ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
-        AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService )
+        AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService,
+        AnalyticsCache analyticsCache )
     {
+        checkNotNull( analyticsCache );
         checkNotNull( eventAnalyticsService );
         checkNotNull( rawAnalyticsManager );
         checkNotNull( constantService );
@@ -205,6 +211,7 @@ public class DataHandler
         checkNotNull( analyticsManager );
         checkNotNull( organisationUnitService );
 
+        this.analyticsCache = analyticsCache;
         this.eventAnalyticsService = eventAnalyticsService;
         this.rawAnalyticsManager = rawAnalyticsManager;
         this.constantService = constantService;
@@ -941,7 +948,9 @@ public class DataHandler
             .withSkipMeta( true )
             .build();
 
-        Grid grid = dataAggregator.getAggregatedDataValueGrid( dataSourceParams );
+        Grid grid = getOrFetchGrid( dataSourceParams,
+            ( dataSourceParam ) -> dataAggregator.getAggregatedDataValueGrid( dataSourceParams ) );
+
         MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
 
         if ( isEmpty( grid.getRows() ) )
@@ -983,6 +992,24 @@ public class DataHandler
         }
 
         return result;
+    }
+
+    private Grid getOrFetchGrid( final DataQueryParams params, final Function<DataQueryParams, Grid> function )
+    {
+        final Optional<Grid> cachedGrid = analyticsCache.get( params.getKey() );
+
+        if ( cachedGrid.isPresent() )
+        {
+            return cachedGrid.get();
+        }
+        else
+        {
+            final Grid grid = function.apply( params );
+
+            analyticsCache.put( params, grid );
+
+            return grid;
+        }
     }
 
     /**

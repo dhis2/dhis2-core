@@ -126,9 +126,9 @@ public abstract class AnalyticsServiceBaseTest
         MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );
         DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager, constantService,
             resolvers, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
-            organisationUnitService );
+            organisationUnitService, analyticsCache );
 
-        target = new DataAggregator( headerHandler, metadataHandler, dataHandler, analyticsCache );
+        target = new DataAggregator( headerHandler, metadataHandler, dataHandler );
         target.feedHandlers();
 
         when( systemSettingManager.getBooleanSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) )
