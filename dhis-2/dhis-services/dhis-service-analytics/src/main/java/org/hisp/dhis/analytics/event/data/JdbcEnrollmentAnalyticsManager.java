@@ -64,7 +64,6 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.system.util.MathUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
@@ -133,16 +132,7 @@ public class JdbcEnrollmentAnalyticsManager
 
             for ( GridHeader header : grid.getHeaders() )
             {
-                if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
-                {
-                    double val = rowSet.getDouble( index );
-                    grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
-                }
-                else
-                {
-                    grid.addValue( rowSet.getString( index ) );
-                }
-
+                addGridValue( grid, header, index, rowSet, params );
                 index++;
             }
         }

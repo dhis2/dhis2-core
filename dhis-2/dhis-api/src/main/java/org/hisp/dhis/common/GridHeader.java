@@ -67,6 +67,10 @@ public class GridHeader
 
     private LegendSet legendSet;
 
+    private String programStage;
+
+    private String stageOffset;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -143,6 +147,25 @@ public class GridHeader
         this( name, column, valueType, hidden, meta );
         this.optionSet = optionSet;
         this.legendSet = legendSet;
+    }
+
+    /**
+     * @param name formal header name.
+     * @param column readable header title.
+     * @param valueType header value type.
+     * @param hidden indicates whether header is hidden.
+     * @param meta indicates whether header is meta data.
+     * @param optionSet option set.
+     * @param legendSet legend set.
+     * @param programStage program stage.
+     * @param stageOffset offset for repeatable program stage.
+     */
+    public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta,
+        OptionSet optionSet, LegendSet legendSet, String programStage, String stageOffset )
+    {
+        this( name, column, valueType, hidden, meta, optionSet, legendSet );
+        this.programStage = programStage;
+        this.stageOffset = stageOffset;
     }
 
     // -------------------------------------------------------------------------
@@ -231,6 +254,18 @@ public class GridHeader
     public LegendSet getLegendSetObject()
     {
         return legendSet;
+    }
+
+    @JsonProperty
+    public String getProgramStage()
+    {
+        return programStage != null && !programStage.isBlank() ? programStage : null;
+    }
+
+    @JsonProperty
+    public String getStageOffset()
+    {
+        return stageOffset != null && !stageOffset.isBlank() ? stageOffset : null;
     }
 
     // -------------------------------------------------------------------------

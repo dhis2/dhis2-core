@@ -116,10 +116,23 @@ public abstract class AbstractAnalyticsService
                     item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
                     false, true, item.getOptionSet(), item.getLegendSet() ) );
             }
+            else if ( hasNonDefaultRepeatableProgramStageOffset( item ) )
+            {
+
+                String name = item.getProgramStage().getUid() + "[" + item.getProgramStage().getStageOffset() + "]." +
+                    item.getItem().getUid();
+
+                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+
+                grid.addHeader( new GridHeader( name, column, item.getValueType(),
+                    false, true, item.getOptionSet(), item.getLegendSet(),
+                    item.getProgramStage().getUid(), Integer.toString( item.getProgramStage().getStageOffset() ) ) );
+            }
             else
             {
-                grid.addHeader( new GridHeader( item.getItem().getUid(),
-                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
+                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+
+                grid.addHeader( new GridHeader( item.getItem().getUid(), column, item.getValueType(),
                     false, true, item.getOptionSet(), item.getLegendSet() ) );
             }
         }
@@ -322,5 +335,10 @@ public abstract class AbstractAnalyticsService
                 grid.substituteMetaData( i, i, legendMap );
             }
         }
+    }
+
+    private boolean hasNonDefaultRepeatableProgramStageOffset( QueryItem item )
+    {
+        return item.getProgramStage() != null && item.getProgramStage().getStageOffset() != 0;
     }
 }

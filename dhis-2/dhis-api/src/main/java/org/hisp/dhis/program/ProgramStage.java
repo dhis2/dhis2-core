@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -63,7 +64,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "programStage", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStage
     extends BaseNameableObject
-    implements MetadataObject
+    implements MetadataObject, Cloneable
 {
     private String description;
 
@@ -154,6 +155,16 @@ public class ProgramStage
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
+
+    @Override
+    public boolean equals( Object o )
+    {
+        if ( o instanceof ProgramStage && ((ProgramStage) o).offset != offset )
+        {
+            return false;
+        }
+        return super.equals( o );
+    }
 
     /**
      * Returns all data elements part of this program stage.
@@ -584,5 +595,12 @@ public class ProgramStage
     public void setNextScheduleDate( DataElement nextScheduleDate )
     {
         this.nextScheduleDate = nextScheduleDate;
+    }
+
+    @SuppressWarnings( "MethodDoesntCallSuperMethod" )
+    @Override
+    public ProgramStage clone()
+    {
+        return SerializationUtils.clone( this );
     }
 }

@@ -225,6 +225,11 @@ public class DefaultQueryItemLocator
 
         if ( programStage != null && programStage.getRepeatable() && stageOffset != 0 )
         {
+            if ( programStage.getStageOffset() != stageOffset )
+            {
+                programStage = programStage.clone();
+            }
+
             programStage.setStageOffset( stageOffset );
         }
 

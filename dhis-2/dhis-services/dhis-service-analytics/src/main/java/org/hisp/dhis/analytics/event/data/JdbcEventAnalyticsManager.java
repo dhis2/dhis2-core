@@ -81,7 +81,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.system.util.MathUtils;
 import org.postgresql.util.PSQLException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -157,14 +156,9 @@ public class JdbcEventAnalyticsManager
                     double val = rowSet.getDouble( index );
                     grid.addValue( Precision.round( val, COORD_DEC ) );
                 }
-                else if ( Double.class.getName().equals( header.getType() ) && !header.hasLegendSet() )
-                {
-                    double val = rowSet.getDouble( index );
-                    grid.addValue( params.isSkipRounding() ? val : MathUtils.getRounded( val ) );
-                }
                 else
                 {
-                    grid.addValue( rowSet.getString( index ) );
+                    addGridValue( grid, header, index, rowSet, params );
                 }
 
                 index++;

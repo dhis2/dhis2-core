@@ -78,7 +78,9 @@ public class EnrollmentAnalyticsController
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
-        return analyticsService.getEnrollments( params );
+        Grid grid = analyticsService.getEnrollments( params );
+
+        return grid;
     }
 
     @GetMapping( "/query/{program}.xml" )
