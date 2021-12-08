@@ -359,7 +359,7 @@ public class DataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the grid.
      */
-    void addProgramDataElementAttributeIndicatorValues( DataQueryParams params, Grid grid )
+    void addProgramDataElementAttributeIndicatorValues( DataQueryParams params, Grid grid, boolean tryCache )
     {
         if ( (!params.getAllProgramDataElementsAndAttributes().isEmpty() || !params.getProgramIndicators().isEmpty())
             && !params.isSkipData() )

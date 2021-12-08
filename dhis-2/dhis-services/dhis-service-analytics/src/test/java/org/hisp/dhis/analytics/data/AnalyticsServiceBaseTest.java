@@ -128,7 +128,7 @@ public abstract class AnalyticsServiceBaseTest
             resolvers, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
             organisationUnitService );
 
-        target = new DataAggregator( headerHandler, metadataHandler, dataHandler );
+        target = new DataAggregator( headerHandler, metadataHandler, dataHandler, analyticsCache );
         target.feedHandlers();
 
         when( systemSettingManager.getBooleanSetting( SettingKey.ANALYTICS_MAINTENANCE_MODE ) )

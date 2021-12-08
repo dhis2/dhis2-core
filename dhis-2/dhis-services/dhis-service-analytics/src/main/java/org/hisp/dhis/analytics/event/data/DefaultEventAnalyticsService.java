@@ -230,7 +230,7 @@ public class DefaultEventAnalyticsService
     }
 
     @Override
-    public Grid getAggregatedEventData( EventQueryParams params )
+    public Grid getAggregatedEventData( EventQueryParams params, boolean tryCache )
     {
         // ---------------------------------------------------------------------
         // Decide access, add constraints and validate
@@ -241,13 +241,19 @@ public class DefaultEventAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( analyticsCache.isEnabled() )
+        if ( analyticsCache.isEnabled() && tryCache )
         {
             final EventQueryParams immutableParams = new EventQueryParams.Builder( params ).build();
             return analyticsCache.getOrFetch( params, p -> getAggregatedEventDataGrid( immutableParams ) );
         }
 
         return getAggregatedEventDataGrid( params );
+    }
+
+    @Override
+    public Grid getAggregatedEventData( EventQueryParams params )
+    {
+        return getAggregatedEventData( params, true );
     }
 
     /**

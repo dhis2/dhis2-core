@@ -104,6 +104,23 @@ public interface EventAnalyticsService
         throws Exception;
 
     /**
+     * Generates an aggregated value grid for the given query. The grid will
+     * represent a table with dimensions used as columns and rows as specified
+     * in columns and rows dimension arguments. If columns and rows are null or
+     * empty, the normalized table will be returned.
+     *
+     * If meta data is included in the query, the meta data map of the grid will
+     * contain keys described in {@link AnalyticsMetaDataKey}.
+     *
+     * @param params the event query parameters.
+     * @param columns the identifiers of the dimensions to use as columns.
+     * @param rows the identifiers of the dimensions to use as rows.
+     * @param tryCache the flag, if true the data are fetched from cache first
+     * @return aggregated data as a Grid object.
+     */
+    Grid getAggregatedEventData( EventQueryParams params, boolean tryCache );
+
+    /**
      * Generates aggregated event data for the given analytical object.
      *
      * @param params the event query parameters.

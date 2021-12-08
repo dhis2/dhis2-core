@@ -36,9 +36,12 @@ import static org.hisp.dhis.analytics.ProcessingHint.SINGLE_PROGRAM_INDICATOR_RE
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 
+import java.util.Optional;
+
 import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -57,12 +60,17 @@ public class DataAggregator
 
     private final DataHandler dataHandler;
 
-    public DataAggregator( HeaderHandler headerHandler, MetadataHandler metadataHandler, DataHandler dataHandler )
+    private final AnalyticsCache analyticsCache;
+
+    public DataAggregator( HeaderHandler headerHandler, MetadataHandler metadataHandler, DataHandler dataHandler,
+        AnalyticsCache analyticsCache )
     {
+        checkNotNull( analyticsCache );
         checkNotNull( headerHandler );
         checkNotNull( metadataHandler );
         checkNotNull( dataHandler );
 
+        this.analyticsCache = analyticsCache;
         this.headerHandler = headerHandler;
         this.metaDataHandler = metadataHandler;
         this.dataHandler = dataHandler;
@@ -78,6 +86,14 @@ public class DataAggregator
     {
         params = preHandleQuery( params );
 
+        if ( analyticsCache.isEnabled() )
+        {
+            Optional<Grid> grid = analyticsCache.get( params.getKey() );
+            if ( grid.isPresent() )
+            {
+                return grid.get();
+            }
+        }
         // ---------------------------------------------------------------------
         // Headers
         // ---------------------------------------------------------------------
@@ -98,7 +114,7 @@ public class DataAggregator
 
         dataHandler.addReportingRates( params, grid );
 
-        dataHandler.addProgramDataElementAttributeIndicatorValues( params, grid );
+        dataHandler.addProgramDataElementAttributeIndicatorValues( params, grid, false );
 
         dataHandler.addDynamicDimensionValues( params, grid );
 
@@ -116,11 +132,16 @@ public class DataAggregator
 
         postHandleGrid( params, grid );
 
+        if ( analyticsCache.isEnabled() )
+        {
+            analyticsCache.put( params, grid );
+        }
+
         return grid;
     }
 
     /**
-     * Returns headers, raw data and meta data as a grid.
+     * Returns headers, raw data and metadata as a grid.
      *
      * @param params the {@link DataQueryParams}.
      * @return a grid.

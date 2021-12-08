@@ -34,7 +34,6 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.logging.Log;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
@@ -56,8 +55,8 @@ public class AnalyticsCache
     private final AnalyticsCacheSettings analyticsCacheSettings;
 
     /**
-     * Default constructor. Note that a default expiration time is set, as as
-     * the TTL will always be overwritten during cache put operations.
+     * Default constructor. Note that a default expiration time is set, as the
+     * TTL will always be overwritten during cache put operations.
      */
     public AnalyticsCache( final CacheProvider cacheProvider,
         final AnalyticsCacheSettings analyticsCacheSettings )
@@ -76,7 +75,7 @@ public class AnalyticsCache
 
     public Optional<Grid> get( final String key )
     {
-        return getGridClone( queryCache.get( key ) );
+        return queryCache.get( key );
     }
 
     /**
@@ -99,7 +98,7 @@ public class AnalyticsCache
 
         if ( cachedGrid.isPresent() )
         {
-            return getGridClone( cachedGrid.get() );
+            return cachedGrid.get();
         }
         else
         {
@@ -107,7 +106,7 @@ public class AnalyticsCache
 
             put( params, grid );
 
-            return getGridClone( grid );
+            return grid;
         }
     }
 
@@ -146,7 +145,7 @@ public class AnalyticsCache
      */
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
-        queryCache.put( key, getGridClone( grid ), ttlInSeconds );
+        queryCache.put( key, grid, ttlInSeconds );
     }
 
     /**
@@ -162,20 +161,5 @@ public class AnalyticsCache
     public boolean isEnabled()
     {
         return analyticsCacheSettings.isCachingEnabled();
-    }
-
-    private Grid getGridClone( Grid grid )
-    {
-        if ( grid != null )
-        {
-            return SerializationUtils.clone( grid );
-        }
-
-        return null;
-    }
-
-    private Optional<Grid> getGridClone( Optional<Grid> grid )
-    {
-        return grid.map( SerializationUtils::clone );
     }
 }
