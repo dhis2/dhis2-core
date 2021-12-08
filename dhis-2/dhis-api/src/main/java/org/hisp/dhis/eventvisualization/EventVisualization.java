@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getPrettyFilter;
 import static org.hisp.dhis.common.DimensionalObjectUtils.setDimensionItemsForFilters;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.join;
+import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.schema.PropertyType.CONSTANT;
 import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
 import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
@@ -178,6 +179,11 @@ public class EventVisualization extends BaseAnalyticalObject
      * Dimensions to use as rows.
      */
     private List<String> rowDimensions = new ArrayList<>();
+
+    /**
+     * The non-typed dimensions for this event visualization.
+     */
+    private List<DynamicDimension> dynamicDimensions = new ArrayList<>();
 
     /**
      * Indicates output type.
@@ -686,7 +692,7 @@ public class EventVisualization extends BaseAnalyticalObject
             {
                 if ( isNotBlank( column ) )
                 {
-                    columns.add( getDimensionalObject( column ) );
+                    columns.add( getDimensionalObject( column, COLUMN ) );
                 }
             }
         }
@@ -712,6 +718,23 @@ public class EventVisualization extends BaseAnalyticalObject
         }
 
         value = firstNonNull( dataElementValueDimension, attributeValueDimension );
+    }
+
+    protected DimensionalObject getDimensionalObject( final String dimension, final Attribute attribute )
+    {
+        try
+        {
+            return super.getDimensionalObject( dimension );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            return new DynamicDimensionHandler( this ).getDynamicDimension( dimension, attribute );
+        }
+    }
+
+    public void associateDynamicDimensions()
+    {
+        new DynamicDimensionHandler( this ).associateDimensions();
     }
 
     public List<DimensionalItemObject> series()
@@ -825,6 +848,18 @@ public class EventVisualization extends BaseAnalyticalObject
     public void setRowDimensions( List<String> rowDimensions )
     {
         this.rowDimensions = rowDimensions;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public List<DynamicDimension> getDynamicDimensions()
+    {
+        return dynamicDimensions;
+    }
+
+    public void setDynamicDimensions( final List<DynamicDimension> dynamicDimensions )
+    {
+        this.dynamicDimensions = dynamicDimensions;
     }
 
     @Override
