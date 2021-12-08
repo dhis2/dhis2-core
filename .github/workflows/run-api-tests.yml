@@ -31,7 +31,6 @@ jobs:
     if: "contains(github.event.pull_request.labels.*.name, 'publish-docker-image')"
     env:
       DOCKER_CHANNEL: "dhis2/pr"
-      DOCKER_IMAGE: ${{github.event.issue.number}}
     steps: 
       - uses: actions/checkout@v2
       - name: Login to Docker Hub
@@ -41,8 +40,8 @@ jobs:
           password: ${{ secrets.DHIS2_BOT_DOCKER_HUB_PASSWORD }}
       - name: Publish image
         run: |
-          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:$DOCKER_IMAGE
-          docker push $DOCKER_CHANNEL:$DOCKER_IMAGE
+          docker tag $CORE_IMAGE_NAME $DOCKER_CHANNEL:${{github.event.issue.number}}
+          docker push $DOCKER_CHANNEL:${{github.event.issue.number}}
          
   api-test:
     env:
@@ -51,6 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-api-tests')"
     steps:
+      - uses: actions/checkout@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Build test image
