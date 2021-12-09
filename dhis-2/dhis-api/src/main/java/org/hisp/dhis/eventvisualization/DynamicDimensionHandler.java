@@ -32,8 +32,8 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
-import static org.hisp.dhis.eventvisualization.DynamicDimension.DynamicType.from;
-import static org.hisp.dhis.eventvisualization.DynamicDimension.DynamicType.isDynamic;
+import static org.hisp.dhis.eventvisualization.DynamicDimension.Type.from;
+import static org.hisp.dhis.eventvisualization.DynamicDimension.Type.isDynamic;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,27 +41,28 @@ import java.util.List;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.EventAnalyticalObject;
 
 /**
  * Responsible for handling and associating the dynamic dimensions in the
- * EventVisualization.
+ * EventAnalyticalObject instances.
  *
  * @author maikel arabori
  */
 public class DynamicDimensionHandler
 {
-    private final EventVisualization eventVisualization;
+    private final EventAnalyticalObject eventAnalyticalObject;
 
-    public DynamicDimensionHandler( final EventVisualization eventVisualization )
+    public DynamicDimensionHandler( final EventAnalyticalObject eventAnalyticalObject )
     {
-        this.eventVisualization = eventVisualization;
+        this.eventAnalyticalObject = eventAnalyticalObject;
     }
 
     public DimensionalObject getDynamicDimension( final String dimension, final Attribute attribute )
     {
         if ( dimension != null && isDynamic( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, from( dimension ).getDimensionType(),
+            return new BaseDimensionalObject( dimension, from( dimension ).getParentType(),
                 loadDynamicDimensionItems( dimension, attribute ) );
         }
         else
@@ -75,7 +76,7 @@ public class DynamicDimensionHandler
     {
         final List<BaseDimensionalItemObject> items = new ArrayList<>();
 
-        for ( final DynamicDimension dynamicDimension : eventVisualization.getDynamicDimensions() )
+        for ( final DynamicDimension dynamicDimension : eventAnalyticalObject.getDynamicDimensions() )
         {
             final boolean hasSameDimension = dynamicDimension.getDimension().equals( dimension );
 
@@ -91,35 +92,35 @@ public class DynamicDimensionHandler
 
     public void associateDimensions()
     {
-        if ( isNotEmpty( eventVisualization.getColumns() ) )
+        if ( isNotEmpty( eventAnalyticalObject.getColumns() ) )
         {
-            for ( final DimensionalObject column : eventVisualization.getColumns() )
+            for ( final DimensionalObject column : eventAnalyticalObject.getColumns() )
             {
                 if ( column != null && isDynamic( column.getUid() ) )
                 {
-                    eventVisualization.getDynamicDimensions().add( createDynamicDimensionFor( column, COLUMN ) );
+                    eventAnalyticalObject.getDynamicDimensions().add( createDynamicDimensionFor( column, COLUMN ) );
                 }
             }
         }
 
-        if ( isNotEmpty( eventVisualization.getRows() ) )
+        if ( isNotEmpty( eventAnalyticalObject.getRows() ) )
         {
-            for ( final DimensionalObject row : eventVisualization.getRows() )
+            for ( final DimensionalObject row : eventAnalyticalObject.getRows() )
             {
                 if ( row != null && isDynamic( row.getUid() ) )
                 {
-                    eventVisualization.getDynamicDimensions().add( createDynamicDimensionFor( row, ROW ) );
+                    eventAnalyticalObject.getDynamicDimensions().add( createDynamicDimensionFor( row, ROW ) );
                 }
             }
         }
 
-        if ( isNotEmpty( eventVisualization.getFilters() ) )
+        if ( isNotEmpty( eventAnalyticalObject.getFilters() ) )
         {
-            for ( final DimensionalObject filter : eventVisualization.getFilters() )
+            for ( final DimensionalObject filter : eventAnalyticalObject.getFilters() )
             {
                 if ( filter != null && isDynamic( filter.getUid() ) )
                 {
-                    eventVisualization.getDynamicDimensions().add( createDynamicDimensionFor( filter, FILTER ) );
+                    eventAnalyticalObject.getDynamicDimensions().add( createDynamicDimensionFor( filter, FILTER ) );
                 }
             }
         }

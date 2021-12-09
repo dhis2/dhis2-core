@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.eventreport;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
+import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
+import static org.hisp.dhis.eventvisualization.Attribute.ROW;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -37,6 +42,7 @@ import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -44,6 +50,9 @@ import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventvisualization.Attribute;
+import org.hisp.dhis.eventvisualization.DynamicDimension;
+import org.hisp.dhis.eventvisualization.DynamicDimensionHandler;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -194,6 +203,11 @@ public class EventReport
      */
     private transient DimensionalItemObject value;
 
+    /**
+     * The non-typed dimensions for this event report.
+     */
+    private List<DynamicDimension> dynamicDimensions = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // BACKWARD compatible attributes.
     // They are not exposed and should be always false for EventChart.
@@ -247,17 +261,17 @@ public class EventReport
     {
         for ( String column : columnDimensions )
         {
-            columns.add( getDimensionalObject( column ) );
+            columns.add( getDimensionalObject( column, COLUMN ) );
         }
 
         for ( String row : rowDimensions )
         {
-            rows.add( getDimensionalObject( row ) );
+            rows.add( getDimensionalObject( row, ROW ) );
         }
 
         for ( String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( filter ) );
+            filters.add( getDimensionalObject( filter, FILTER ) );
         }
 
         value = ObjectUtils.firstNonNull( dataElementValueDimension, attributeValueDimension );
@@ -267,6 +281,23 @@ public class EventReport
     protected void clearTransientStateProperties()
     {
         value = null;
+    }
+
+    protected DimensionalObject getDimensionalObject( final String dimension, final Attribute attribute )
+    {
+        try
+        {
+            return super.getDimensionalObject( dimension );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            return new DynamicDimensionHandler( this ).getDynamicDimension( dimension, attribute );
+        }
+    }
+
+    public void associateDynamicDimensions()
+    {
+        new DynamicDimensionHandler( this ).associateDimensions();
     }
 
     // -------------------------------------------------------------------------
@@ -365,6 +396,19 @@ public class EventReport
     public void setRowDimensions( List<String> rowDimensions )
     {
         this.rowDimensions = rowDimensions;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public List<DynamicDimension> getDynamicDimensions()
+    {
+        return dynamicDimensions;
+    }
+
+    public void setDynamicDimensions( final List<DynamicDimension> dynamicDimensions )
+    {
+        this.dynamicDimensions = dynamicDimensions;
     }
 
     @JsonProperty

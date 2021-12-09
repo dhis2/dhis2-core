@@ -28,6 +28,7 @@
 package org.hisp.dhis.eventchart;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -43,6 +44,7 @@ import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventvisualization.DynamicDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -332,6 +334,15 @@ public class EventChart
     public void setRowDimensions( List<String> rowDimensions )
     {
         this.rowDimensions = rowDimensions;
+    }
+
+    /**
+     * This method is not used/implemented in EventChart.
+     */
+    @Override
+    public List<DynamicDimension> getDynamicDimensions()
+    {
+        return Collections.emptyList();
     }
 
     @Override

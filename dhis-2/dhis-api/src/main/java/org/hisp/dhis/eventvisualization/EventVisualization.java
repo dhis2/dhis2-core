@@ -850,6 +850,7 @@ public class EventVisualization extends BaseAnalyticalObject
         this.rowDimensions = rowDimensions;
     }
 
+    @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     public List<DynamicDimension> getDynamicDimensions()

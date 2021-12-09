@@ -56,7 +56,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 @Data
 public class DynamicDimension implements Serializable
 {
-    enum DynamicType
+    enum Type
     {
         EVENT_DATE( "eventDate", PERIOD ),
         ENROLLMENT_DATE( "enrollmentDate", PERIOD ),
@@ -64,36 +64,36 @@ public class DynamicDimension implements Serializable
         SCHEDULE_DATE( "scheduledDate", PERIOD ),
         LAST_UPDATE_DATE( "lastUpdatedDate", PERIOD );
 
-        private String exposedName;
+        private String dimension;
 
-        private DimensionType dimensionType;
+        private DimensionType parentType;
 
-        DynamicType( final String exposedName, final DimensionType dimensionType )
+        Type( final String dimension, final DimensionType parentType )
         {
-            this.exposedName = exposedName;
-            this.dimensionType = dimensionType;
+            this.dimension = dimension;
+            this.parentType = parentType;
         }
 
-        public String getExposedName()
+        public String getDimension()
         {
-            return exposedName;
+            return dimension;
         }
 
-        public DimensionType getDimensionType()
+        public DimensionType getParentType()
         {
-            return dimensionType;
+            return parentType;
         }
 
-        public static boolean isDynamic( final String exposedName )
+        public static boolean isDynamic( final String dimension )
         {
-            return stream( DynamicType.values() )
-                .filter( t -> t.getExposedName().equals( exposedName ) ).findFirst().isPresent();
+            return stream( Type.values() )
+                .filter( t -> t.getDimension().equals( dimension ) ).findFirst().isPresent();
         }
 
-        public static DynamicType from( final String exposedName )
+        public static Type from( final String exposedName )
         {
-            return stream( DynamicType.values() )
-                .filter( t -> t.getExposedName().equals( exposedName ) ).findFirst().get();
+            return stream( Type.values() )
+                .filter( t -> t.getDimension().equals( exposedName ) ).findFirst().get();
         }
     }
 

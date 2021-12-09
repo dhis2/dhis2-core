@@ -30,6 +30,7 @@ package org.hisp.dhis.mapping;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -44,6 +45,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.eventvisualization.DynamicDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -461,6 +463,15 @@ public class MapView
     public void setFilterDimensions( List<String> filterDimensions )
     {
         this.filterDimensions = filterDimensions;
+    }
+
+    /**
+     * This method is not used/implemented in MapView.
+     */
+    @Override
+    public List<DynamicDimension> getDynamicDimensions()
+    {
+        return Collections.emptyList();
     }
 
     @JsonProperty
