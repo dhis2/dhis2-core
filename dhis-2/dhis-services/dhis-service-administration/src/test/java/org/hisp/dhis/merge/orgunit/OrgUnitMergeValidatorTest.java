@@ -93,6 +93,22 @@ public class OrgUnitMergeValidatorTest
     }
 
     @Test
+    public void testValidateTargetIsDescendantOfSource()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        OrganisationUnit ouC = createOrganisationUnit( 'C', ouA );
+
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
+            .addSource( ouA )
+            .addSource( ouB )
+            .withTarget( ouC )
+            .build();
+
+        assertEquals( ErrorCode.E1504, validator.validateForErrorMessage( request ).getErrorCode() );
+    }
+
+    @Test
     public void testValidateSuccess()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );

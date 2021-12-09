@@ -100,10 +100,10 @@ public class CsvMetadataImportTest
         throws Exception
     {
         ImportReport importReport = runImport( "metadata/organisationUnits.csv", CsvImportClass.ORGANISATION_UNIT,
-            metadata -> assertEquals( 5, metadata.getOrganisationUnits().size() ) );
+            metadata -> assertEquals( 6, metadata.getOrganisationUnits().size() ) );
 
-        assertEquals( 5, importReport.getStats().getCreated() );
-        assertEquals( 5, organisationUnitService.getAllOrganisationUnits().size() );
+        assertEquals( 6, importReport.getStats().getCreated() );
+        assertEquals( 6, organisationUnitService.getAllOrganisationUnits().size() );
     }
 
     @Test
@@ -112,10 +112,10 @@ public class CsvMetadataImportTest
     {
         User admin = createAndInjectAdminUser();
         ImportReport importReport = runImport( "metadata/organisationUnits.csv", CsvImportClass.ORGANISATION_UNIT,
-            metadata -> assertEquals( 5, metadata.getOrganisationUnits().size() ) );
+            metadata -> assertEquals( 6, metadata.getOrganisationUnits().size() ) );
 
-        assertEquals( 5, importReport.getStats().getCreated() );
-        assertEquals( 5, organisationUnitService.getAllOrganisationUnits().size() );
+        assertEquals( 6, importReport.getStats().getCreated() );
+        assertEquals( 6, organisationUnitService.getAllOrganisationUnits().size() );
     }
 
     @Test

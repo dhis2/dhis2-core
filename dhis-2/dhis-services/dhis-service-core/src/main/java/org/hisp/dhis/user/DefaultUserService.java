@@ -825,9 +825,9 @@ public class DefaultUserService
 
     @Override
     @Transactional( readOnly = true )
-    public Set<String> findUsersInactiveSince( Date inactiveSince )
+    public Set<String> findNotifiableUsersWithLastLoginBetween( Date from, Date to )
     {
-        return userStore.findUsersInactiveSince( inactiveSince );
+        return userStore.findNotifiableUsersWithLastLoginBetween( from, to );
     }
 
     @Override

@@ -79,6 +79,10 @@ public class OrgUnitMergeValidator
         {
             return new ErrorMessage( ErrorCode.E1502 );
         }
+        if ( request.getTarget().isDescendant( request.getSources() ) )
+        {
+            return new ErrorMessage( ErrorCode.E1504 );
+        }
 
         return null;
     }

@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-public class InterpretationMigrateTest
+public class InterpretationDataOrgUnitMergeHandlerTest
     extends DhisSpringTest
 {
     @Autowired

@@ -50,7 +50,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-public class ProgramInstanceMigrateTest
+public class TrackerOrgUnitMergeHandlerTest
     extends DhisSpringTest
 {
     @Autowired

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.split.orgunit.handler;
 
+import java.util.List;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
@@ -40,7 +41,6 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
@@ -94,23 +94,33 @@ public class MetadataOrgUnitSplitHandler
 
     public void splitUsers( OrgUnitSplitRequest request )
     {
-        Set<OrganisationUnit> organisationUnits = Sets.newHashSet( request.getSource() );
+        Set<OrganisationUnit> source = Sets.newHashSet( request.getSource() );
 
-        Set<User> users = ImmutableSet.<User> builder()
-            .addAll( userService.getUsers( new UserQueryParams()
-                .setCanSeeOwnUserAuthorityGroups( true )
-                .setOrganisationUnits( organisationUnits ) ) )
-            .addAll( userService.getUsers( new UserQueryParams()
-                .setCanSeeOwnUserAuthorityGroups( true )
-                .setDataViewOrganisationUnits( organisationUnits ) ) )
-            .addAll( userService.getUsers( new UserQueryParams()
-                .setCanSeeOwnUserAuthorityGroups( true )
-                .setTeiSearchOrganisationUnits( organisationUnits ) ) )
-            .build();
+        List<User> dataCaptureUsers = userService.getUsers( new UserQueryParams()
+            .setCanSeeOwnUserAuthorityGroups( true )
+            .setOrganisationUnits( source ) );
 
-        users.forEach( u -> {
+        dataCaptureUsers.forEach( u -> {
             u.addOrganisationUnits( request.getTargets() );
             u.removeOrganisationUnit( request.getSource() );
+        } );
+
+        List<User> dataViewUsers = userService.getUsers( new UserQueryParams()
+            .setCanSeeOwnUserAuthorityGroups( true )
+            .setDataViewOrganisationUnits( source ) );
+
+        dataViewUsers.forEach( u -> {
+            u.getDataViewOrganisationUnits().addAll( request.getTargets() );
+            u.getDataViewOrganisationUnits().remove( request.getSource() );
+        } );
+
+        List<User> teiSearchOrgUnits = userService.getUsers( new UserQueryParams()
+            .setCanSeeOwnUserAuthorityGroups( true )
+            .setTeiSearchOrganisationUnits( source ) );
+
+        teiSearchOrgUnits.forEach( u -> {
+            u.getTeiSearchOrganisationUnits().addAll( request.getTargets() );
+            u.getTeiSearchOrganisationUnits().remove( request.getSource() );
         } );
     }
 

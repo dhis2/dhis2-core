@@ -655,9 +655,10 @@ public class UserServiceTest
     }
 
     @Test
-    public void testFindUsersInactiveSince()
+    public void testFindNotifiableUsersWithLastLoginBetween()
     {
         ZonedDateTime now = ZonedDateTime.now();
+        Date oneMonthsAgo = Date.from( now.minusMonths( 1 ).toInstant() );
         Date twoMonthsAgo = Date.from( now.minusMonths( 2 ).toInstant() );
         Date threeMonthAgo = Date.from( now.minusMonths( 3 ).toInstant() );
         Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
@@ -666,14 +667,17 @@ public class UserServiceTest
         User userA = addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
         User userB = addUser( 'B', credentials -> {
             credentials.setDisabled( true );
-            credentials.setLastLogin( fourMonthAgo );
+            credentials.setLastLogin( Date.from( now.minusMonths( 4 ).plusDays( 2 ).toInstant() ) );
         } );
 
         addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
         addUser( 'D' );
 
-        assertEquals( singleton( "EmailA" ), userService.findUsersInactiveSince( twoMonthsAgo ) );
+        assertEquals( singleton( "EmailA" ),
+            userService.findNotifiableUsersWithLastLoginBetween( threeMonthAgo, twoMonthsAgo ) );
+        assertEquals( singleton( "EmailA" ),
+            userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, oneMonthsAgo ) );
         assertEquals( new HashSet<>( asList( "EmailA", "EmailC" ) ),
-            userService.findUsersInactiveSince( Date.from( now.minusDays( 10 ).toInstant() ) ) );
+            userService.findNotifiableUsersWithLastLoginBetween( fourMonthAgo, Date.from( now.toInstant() ) ) );
     }
 }

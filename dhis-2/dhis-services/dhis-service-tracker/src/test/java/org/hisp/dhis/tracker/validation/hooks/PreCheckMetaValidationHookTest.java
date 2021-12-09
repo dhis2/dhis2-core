@@ -259,7 +259,6 @@ public class PreCheckMetaValidationHookTest
         validatorToTest.validateEvent( reporter, event );
 
         // then
-        // then
         assertFalse( reporter.hasErrors() );
     }
 
