@@ -165,7 +165,7 @@
         <jsr305.version>3.0.2</jsr305.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
         <google-api-client.version>1.32.2</google-api-client.version>
-        <lombok.version>1.18.20</lombok.version>
+        <lombok.version>1.18.22</lombok.version>
         <lombok-maven-plugin.version>1.18.16.0</lombok-maven-plugin.version>
         <joda-time.version>2.10.5</joda-time.version>
         <cron-utils.version>9.1.6</cron-utils.version>
