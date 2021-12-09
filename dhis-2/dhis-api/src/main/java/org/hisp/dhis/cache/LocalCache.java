@@ -30,11 +30,7 @@ package org.hisp.dhis.cache;
 import static java.lang.System.currentTimeMillis;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -180,17 +176,6 @@ public class LocalCache<T, V>
     public Stream<V> getAll()
     {
         return cache2kInstance.asMap().values().stream();
-    }
-
-    @Override
-    public List<Optional<V>> getAll( Set<T> keys )
-    {
-        List<Optional<V>> result = new ArrayList<>();
-        Map<T, V> hits = cache2kInstance.getAll( keys );
-
-        keys.forEach( key -> result.add( Optional.ofNullable( hits.getOrDefault( key, null ) ) ) );
-
-        return result;
     }
 
     @Override

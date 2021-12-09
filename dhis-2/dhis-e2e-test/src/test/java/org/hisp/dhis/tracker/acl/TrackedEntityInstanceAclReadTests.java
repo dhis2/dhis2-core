@@ -98,7 +98,7 @@ public class TrackedEntityInstanceAclReadTests
         users.add( new User( "User B", "aDy67f9ijOe", "UserB!123" ) );
         users.add( new User( "User C", "CKrrGm5Be8O", "UserC!123" ) );
         users.add( new User( "User D", "Lpa5INiC3Qf", "UserD!123" ) );
-        users.add( new User( "User ALL", "GTqb3WOZMop", "UserALL!123" ) );
+        users.add( new User( "User ALL", "  q", "UserALL!123" ) );
 
         // Update passwords, so we can log in as them
         // Set AllAuth if user has it and ou scopes.
