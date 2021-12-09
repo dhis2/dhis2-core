@@ -370,11 +370,11 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         createDataSetsForOrganisationUnit( orgUnitId, "Peter", "Paul", "Mary", "Ringo", "John", "George" );
 
-        assertEquals( List.of( "John", "Mary", "Paul", "set1" ),
+        assertEquals( asList( "John", "Mary", "Paul", "set1" ),
             GET( "/dataSets/gist?fields=name&filter=name:eq:4&headless=true&order=name" ).content().stringValues() );
-        assertEquals( List.of( "Peter", "Ringo" ),
+        assertEquals( asList( "Peter", "Ringo" ),
             GET( "/dataSets/gist?fields=name&filter=name:eq:5&headless=true&order=name" ).content().stringValues() );
-        assertEquals( List.of( "George" ),
+        assertEquals( asList( "George" ),
             GET( "/dataSets/gist?fields=name&filter=name:eq:6&headless=true&order=name" ).content().stringValues() );
     }
 
@@ -383,11 +383,11 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         createDataSetsForOrganisationUnit( orgUnitId, "Peter", "Paul", "Mary", "Ringo", "John", "George" );
 
-        assertEquals( List.of( "George", "Peter", "Ringo" ),
+        assertEquals( asList( "George", "Peter", "Ringo" ),
             GET( "/dataSets/gist?fields=name&filter=name:neq:4&headless=true&order=name" ).content().stringValues() );
-        assertEquals( List.of( "George", "John", "Mary", "Paul", "set1" ),
+        assertEquals( asList( "George", "John", "Mary", "Paul", "set1" ),
             GET( "/dataSets/gist?fields=name&filter=name:neq:5&headless=true&order=name" ).content().stringValues() );
-        assertEquals( List.of( "John", "Mary", "Paul", "Peter", "Ringo", "set1" ),
+        assertEquals( asList( "John", "Mary", "Paul", "Peter", "Ringo", "set1" ),
             GET( "/dataSets/gist?fields=name&filter=name:neq:6&headless=true&order=name" ).content().stringValues() );
     }
 
@@ -396,7 +396,7 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         createDataSetsForOrganisationUnit( orgUnitId, "Peter", "Paul", "Mary", "Ringo", "John", "George" );
 
-        assertEquals( List.of( "George", "Peter", "Ringo" ),
+        assertEquals( asList( "George", "Peter", "Ringo" ),
             GET( "/dataSets/gist?fields=name&filter=name:ge:5&headless=true&order=name" ).content().stringValues() );
     }
 
@@ -405,7 +405,7 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         createDataSetsForOrganisationUnit( orgUnitId, "Peter", "Paul", "Mary", "Ringo", "John", "George" );
 
-        assertEquals( List.of( "George", "Peter", "Ringo" ),
+        assertEquals( asList( "George", "Peter", "Ringo" ),
             GET( "/dataSets/gist?fields=name&filter=name:gt:4&headless=true&order=name" ).content().stringValues() );
     }
 
@@ -414,7 +414,7 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         createDataSetsForOrganisationUnit( orgUnitId, "Peter", "Paul", "Mary", "Ringo", "John", "George" );
 
-        assertEquals( List.of( "John", "Mary", "Paul", "set1" ),
+        assertEquals( asList( "John", "Mary", "Paul", "set1" ),
             GET( "/dataSets/gist?fields=name&filter=name:lt:5&headless=true&order=name" ).content().stringValues() );
     }
 
@@ -423,7 +423,7 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         createDataSetsForOrganisationUnit( orgUnitId, "Peter", "Paul", "Mary", "Ringo", "John", "George" );
 
-        assertEquals( List.of( "John", "Mary", "Paul", "set1" ),
+        assertEquals( asList( "John", "Mary", "Paul", "set1" ),
             GET( "/dataSets/gist?fields=name&filter=name:le:4&headless=true&order=name" ).content().stringValues() );
     }
 
@@ -432,7 +432,7 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         createDataSetsForOrganisationUnit( orgUnitId, "Peter", "Paul", "Paula", "Ringo", "John", "George", "paul" );
 
-        assertEquals( List.of( "Paul", "paul" ),
+        assertEquals( asList( "Paul", "paul" ),
             GET( "/dataSets/gist?fields=name&filter=name:ieq:paul&headless=true&order=name" )
                 .content().stringValues() );
     }
@@ -442,7 +442,7 @@ public class GistFilterControllerTest extends AbstractGistControllerTest
     {
         createDataSetsForOrganisationUnit( orgUnitId, "Peter", "Paul", "Paula", "Ringo", "John", "George", "paul" );
 
-        assertEquals( List.of( "Paul", "paul" ),
+        assertEquals( asList( "Paul", "paul" ),
             GET( "/dataSets/gist?fields=name&filter=name:ilike:paul&filter=name:eq:4&headless=true&order=name" )
                 .content().stringValues() );
     }

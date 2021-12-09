@@ -35,7 +35,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonString;
@@ -211,7 +210,7 @@ public class GistFieldsControllerTest extends AbstractGistControllerTest
         String attrId = assertStatus( HttpStatus.CREATED, POST( "/attributes", "{" +
             "'name':'extra', " +
             "'valueType':'TEXT', " +
-            "'" + ObjectType.DATA_ELEMENT.getPropertyName() + "':true}" ) );
+            "'dataElementAttribute':true}" ) );
 
         String ccId = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
