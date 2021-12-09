@@ -109,7 +109,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.function.Function;
@@ -948,7 +947,7 @@ public class DataHandler
             .withSkipMeta( true )
             .build();
 
-        Grid grid = getOrFetchGrid( dataSourceParams,
+        Grid grid = analyticsCache.getOrFetch( dataSourceParams,
             ( dataSourceParam ) -> dataAggregator.getAggregatedDataValueGrid( dataSourceParams ) );
 
         MultiValuedMap<String, DimensionItemObjectValue> result = new ArrayListValuedHashMap<>();
@@ -992,24 +991,6 @@ public class DataHandler
         }
 
         return result;
-    }
-
-    private Grid getOrFetchGrid( final DataQueryParams params, final Function<DataQueryParams, Grid> function )
-    {
-        final Optional<Grid> cachedGrid = analyticsCache.get( params.getKey() );
-
-        if ( cachedGrid.isPresent() )
-        {
-            return cachedGrid.get();
-        }
-        else
-        {
-            final Grid grid = function.apply( params );
-
-            analyticsCache.put( params, grid );
-
-            return grid;
-        }
     }
 
     /**
