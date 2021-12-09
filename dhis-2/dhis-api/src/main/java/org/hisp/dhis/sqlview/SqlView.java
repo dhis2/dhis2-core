@@ -87,7 +87,7 @@ public class SqlView
 
     private String sqlQuery;
 
-    private SqlViewType type;
+    private SqlViewType type = SqlViewType.VIEW;
 
     private CacheStrategy cacheStrategy = CacheStrategy.RESPECT_SYSTEM_SETTING;
 
