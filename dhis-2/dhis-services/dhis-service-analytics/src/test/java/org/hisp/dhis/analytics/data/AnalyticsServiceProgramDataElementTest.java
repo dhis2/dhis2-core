@@ -35,6 +35,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,12 +100,15 @@ public class AnalyticsServiceProgramDataElementTest
             eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( emptyData ) );
 
+        when( eventAnalyticsService.getAggregatedEventData( any( EventQueryParams.class ), anyBoolean() ) )
+            .thenReturn( new ListGrid() );
+
         when( eventAnalyticsService.getAggregatedEventData( any( EventQueryParams.class ) ) )
             .thenReturn( new ListGrid() );
 
         target.getAggregatedDataValueGrid( params );
 
-        verify( eventAnalyticsService ).getAggregatedEventData( capturedParams.capture() );
+        verify( eventAnalyticsService ).getAggregatedEventData( capturedParams.capture(), anyBoolean() );
         EventQueryParams data = capturedParams.getValue();
 
         assertThat( data.hasValueDimension(), is( false ) );
