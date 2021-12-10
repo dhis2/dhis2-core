@@ -40,7 +40,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen
  */
-public class OverridableMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
+public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
     private static final List<String> XML_PATHS = List.of(
         "/relationships",
@@ -50,7 +50,7 @@ public class OverridableMappingJackson2XmlHttpMessageConverter extends MappingJa
         "/dataValueSets",
         "/completeDataSetRegistrations" );
 
-    public OverridableMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
+    public XmlPathMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
     {
         super( objectMapper );
     }
