@@ -44,7 +44,7 @@ import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventvisualization.DynamicDimension;
+import org.hisp.dhis.eventvisualization.SimpleEventDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -196,17 +196,17 @@ public class EventChart
     {
         for ( String column : columnDimensions )
         {
-            columns.add( getDimensionalObject( column ) );
+            columns.add( getDimensionalObject( column ).get() );
         }
 
         for ( String row : rowDimensions )
         {
-            rows.add( getDimensionalObject( row ) );
+            rows.add( getDimensionalObject( row ).get() );
         }
 
         for ( String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( filter ) );
+            filters.add( getDimensionalObject( filter ).get() );
         }
 
         value = ObjectUtils.firstNonNull( dataElementValueDimension, attributeValueDimension );
@@ -340,7 +340,7 @@ public class EventChart
      * This method is not used/implemented in EventChart.
      */
     @Override
-    public List<DynamicDimension> getDynamicDimensions()
+    public List<SimpleEventDimension> getSimpleEventDimensions()
     {
         return Collections.emptyList();
     }

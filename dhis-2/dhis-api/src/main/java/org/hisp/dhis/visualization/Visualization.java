@@ -1340,7 +1340,7 @@ public class Visualization
             {
                 if ( isNotBlank( column ) )
                 {
-                    columns.add( getDimensionalObject( column ) );
+                    columns.add( getDimensionalObject( column ).get() );
                 }
             }
         }
@@ -1352,7 +1352,7 @@ public class Visualization
             {
                 if ( isNotBlank( row ) )
                 {
-                    rows.add( getDimensionalObject( row ) );
+                    rows.add( getDimensionalObject( row ).get() );
                 }
             }
         }
@@ -1361,7 +1361,7 @@ public class Visualization
         {
             if ( isNotBlank( filter ) )
             {
-                filters.add( getDimensionalObject( filter ) );
+                filters.add( getDimensionalObject( filter ).get() );
             }
         }
     }

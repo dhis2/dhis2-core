@@ -35,6 +35,7 @@ import static org.hisp.dhis.eventvisualization.Attribute.ROW;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -51,9 +52,9 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventvisualization.Attribute;
-import org.hisp.dhis.eventvisualization.DynamicDimension;
-import org.hisp.dhis.eventvisualization.DynamicDimensionHandler;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
+import org.hisp.dhis.eventvisualization.SimpleEventDimension;
+import org.hisp.dhis.eventvisualization.SimpleEventDimensionHandler;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -206,7 +207,7 @@ public class EventReport
     /**
      * The non-typed dimensions for this event report.
      */
-    private List<DynamicDimension> dynamicDimensions = new ArrayList<>();
+    private List<SimpleEventDimension> simpleEventDimensions = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // BACKWARD compatible attributes.
@@ -283,21 +284,35 @@ public class EventReport
         value = null;
     }
 
-    protected DimensionalObject getDimensionalObject( final String dimension, final Attribute attribute )
+    /**
+     * This method will first try to return a concrete dimension (one that can
+     * be persisted and managed). If a concrete dimension is not found, then it
+     * will try to find a "String" dimension (one that is not defined anywhere
+     * and only exists for very specific use cases. See
+     * {@link SimpleEventDimension}).
+     *
+     * @param dimension
+     * @param attribute
+     * @return the dimensional object related to the given dimension and
+     *         attribute.
+     */
+    private DimensionalObject getDimensionalObject( final String dimension, final Attribute attribute )
     {
-        try
+        final Optional<DimensionalObject> dimensionalObject = super.getDimensionalObject( dimension );
+
+        if ( dimensionalObject.isPresent() )
         {
-            return super.getDimensionalObject( dimension );
+            return dimensionalObject.get();
         }
-        catch ( IllegalArgumentException e )
+        else
         {
-            return new DynamicDimensionHandler( this ).getDynamicDimension( dimension, attribute );
+            return new SimpleEventDimensionHandler( this ).getDimensionalObject( dimension, attribute );
         }
     }
 
-    public void associateDynamicDimensions()
+    public void associateStringDimensions()
     {
-        new DynamicDimensionHandler( this ).associateDimensions();
+        new SimpleEventDimensionHandler( this ).associateDimensions();
     }
 
     // -------------------------------------------------------------------------
@@ -401,14 +416,14 @@ public class EventReport
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public List<DynamicDimension> getDynamicDimensions()
+    public List<SimpleEventDimension> getSimpleEventDimensions()
     {
-        return dynamicDimensions;
+        return simpleEventDimensions;
     }
 
-    public void setDynamicDimensions( final List<DynamicDimension> dynamicDimensions )
+    public void setSimpleEventDimensions( final List<SimpleEventDimension> simpleEventDimensions )
     {
-        this.dynamicDimensions = dynamicDimensions;
+        this.simpleEventDimensions = simpleEventDimensions;
     }
 
     @JsonProperty

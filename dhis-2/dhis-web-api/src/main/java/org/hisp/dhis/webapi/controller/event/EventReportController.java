@@ -148,13 +148,13 @@ public class EventReportController
         report.getColumnDimensions().clear();
         report.getRowDimensions().clear();
         report.getFilterDimensions().clear();
-        report.getDynamicDimensions().clear();
+        report.getSimpleEventDimensions().clear();
 
         report.getColumnDimensions().addAll( getDimensions( report.getColumns() ) );
         report.getRowDimensions().addAll( getDimensions( report.getRows() ) );
         report.getFilterDimensions().addAll( getDimensions( report.getFilters() ) );
 
-        report.associateDynamicDimensions();
+        report.associateStringDimensions();
     }
 
     /**

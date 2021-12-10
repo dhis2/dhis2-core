@@ -111,6 +111,8 @@ public abstract class BaseAnalyticalObject
 
     public static final int NONE = 0;
 
+    public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
+
     // -------------------------------------------------------------------------
     // Persisted properties
     // -------------------------------------------------------------------------
@@ -593,11 +595,12 @@ public abstract class BaseAnalyticalObject
      * @param dimension the dimension identifier.
      * @return a list of DimensionalObjects.
      */
-    protected DimensionalObject getDimensionalObject( String dimension )
+    protected Optional<DimensionalObject> getDimensionalObject( String dimension )
     {
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, getDataDimensionNameableObjects() );
+            return Optional
+                .of( new BaseDimensionalObject( dimension, DimensionType.DATA_X, getDataDimensionNameableObjects() ) );
         }
         else if ( PERIOD_DIM_ID.equals( dimension ) )
         {
@@ -613,7 +616,7 @@ public abstract class BaseAnalyticalObject
                 }
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.PERIOD, periodList );
+            return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PERIOD, periodList ) );
         }
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
         {
@@ -656,48 +659,50 @@ public abstract class BaseAnalyticalObject
                 }
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, ouList );
+            return Optional.of( new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, ouList ) );
         }
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>() );
+            return Optional
+                .of( new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>() ) );
         }
         else if ( DATA_COLLAPSED_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>() );
+            return Optional
+                .of( new BaseDimensionalObject( dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>() ) );
         }
         else if ( STATIC_DIMS.contains( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.STATIC, new ArrayList<>() );
+            return Optional.of( new BaseDimensionalObject( dimension, DimensionType.STATIC, new ArrayList<>() ) );
         }
         else
         {
             // Embedded dimensions
 
-            Optional<DimensionalObject> object = Optional.empty();
+            Optional<DimensionalObject> object;
 
             if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.DATA_ELEMENT_GROUP_SET,
                 dataElementGroupSetDimensions )).isPresent() )
             {
-                return object.get();
+                return Optional.of( object.get() );
             }
 
             if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET,
                 organisationUnitGroupSetDimensions )).isPresent() )
             {
-                return object.get();
+                return Optional.of( object.get() );
             }
 
             if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY, categoryDimensions ))
                 .isPresent() )
             {
-                return object.get();
+                return Optional.of( object.get() );
             }
 
             if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET,
                 categoryOptionGroupSetDimensions )).isPresent() )
             {
-                return object.get();
+                return Optional.of( object.get() );
             }
 
             // Tracked entity attribute
@@ -709,8 +714,8 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityAttributeDimension tead = attributes.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
-                    tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter() );
+                return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
+                    tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter() ) );
             }
 
             // Tracked entity data element
@@ -722,8 +727,8 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
-                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() );
+                return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
+                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter() ) );
             }
 
             // Tracked entity program indicator
@@ -735,12 +740,12 @@ public abstract class BaseAnalyticalObject
             {
                 TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null,
-                    teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
+                return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null,
+                    teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() ) );
             }
         }
 
-        throw new IllegalArgumentException( "Not a valid dimension: " + dimension );
+        return Optional.empty();
     }
 
     /**

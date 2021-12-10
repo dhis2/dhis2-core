@@ -43,18 +43,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * Represents a dynamic dimension. This is used to represents dimensions that
- * are needed by clients but do not actually exists in the back-end.
+ * This is used to represents dimensions that are needed by clients but do not
+ * actually exists in the back-end/codebase.
  *
- * They represent dimensions that do not have a concrete entity representation,
- * hence dynamic.
+ * It holds dimensions that do not have a concrete entity representation, and
+ * are simple enough so they can be represented by Strings.
  *
- * It holds only the minimum necessary data.
+ * It should hold only the necessary data for the respective event
+ * visualization.
  *
  * @author maikel arabori
  */
 @Data
-public class DynamicDimension implements Serializable
+public class SimpleEventDimension implements Serializable
 {
     enum Type
     {
@@ -84,7 +85,7 @@ public class DynamicDimension implements Serializable
             return parentType;
         }
 
-        public static boolean isDynamic( final String dimension )
+        public static boolean contains( final String dimension )
         {
             return stream( Type.values() )
                 .filter( t -> t.getDimension().equals( dimension ) ).findFirst().isPresent();

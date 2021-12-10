@@ -192,12 +192,12 @@ public class EventVisualizationController
         eventVisualization.getColumnDimensions().clear();
         eventVisualization.getRowDimensions().clear();
         eventVisualization.getFilterDimensions().clear();
-        eventVisualization.getDynamicDimensions().clear();
+        eventVisualization.getSimpleEventDimensions().clear();
 
         eventVisualization.getColumnDimensions().addAll( getDimensions( eventVisualization.getColumns() ) );
         eventVisualization.getRowDimensions().addAll( getDimensions( eventVisualization.getRows() ) );
         eventVisualization.getFilterDimensions().addAll( getDimensions( eventVisualization.getFilters() ) );
-        eventVisualization.associateDynamicDimensions();
+        eventVisualization.associateStringDimensions();
     }
 
     private void doesNotAllowPivotAndReportChart( final EventVisualization eventVisualization )

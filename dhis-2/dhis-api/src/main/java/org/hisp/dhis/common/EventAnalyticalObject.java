@@ -32,7 +32,7 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventvisualization.DynamicDimension;
+import org.hisp.dhis.eventvisualization.SimpleEventDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -51,7 +51,7 @@ public interface EventAnalyticalObject
 
     Date getEndDate();
 
-    List<DynamicDimension> getDynamicDimensions();
+    List<SimpleEventDimension> getSimpleEventDimensions();
 
     EventOutputType getOutputType();
 

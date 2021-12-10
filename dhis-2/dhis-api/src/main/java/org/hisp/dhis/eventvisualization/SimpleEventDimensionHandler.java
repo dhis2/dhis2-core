@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.eventvisualization;
 
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.BaseAnalyticalObject.NOT_A_VALID_DIMENSION;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
-import static org.hisp.dhis.eventvisualization.DynamicDimension.Type.from;
-import static org.hisp.dhis.eventvisualization.DynamicDimension.Type.isDynamic;
+import static org.hisp.dhis.eventvisualization.SimpleEventDimension.Type.contains;
+import static org.hisp.dhis.eventvisualization.SimpleEventDimension.Type.from;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,50 +46,39 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 
 /**
- * Responsible for handling and associating the dynamic dimensions in the
+ * Responsible for handling and associating the simple event dimensions in the
  * EventAnalyticalObject instances.
  *
  * @author maikel arabori
  */
-public class DynamicDimensionHandler
+public class SimpleEventDimensionHandler
 {
+    /**
+     * We use the EventAnalyticalObject interface because this handler is also
+     * used by the deprecated EventReport. So, in order to being able to reuse
+     * it, we make usage of the common interface.
+     *
+     * Once the EventReport is completely removed we can start using the actual
+     * EventVisualization class.
+     */
     private final EventAnalyticalObject eventAnalyticalObject;
 
-    public DynamicDimensionHandler( final EventAnalyticalObject eventAnalyticalObject )
+    public SimpleEventDimensionHandler( final EventAnalyticalObject eventAnalyticalObject )
     {
         this.eventAnalyticalObject = eventAnalyticalObject;
     }
 
-    public DimensionalObject getDynamicDimension( final String dimension, final Attribute attribute )
+    public DimensionalObject getDimensionalObject( final String dimension, final Attribute attribute )
     {
-        if ( dimension != null && isDynamic( dimension ) )
+        if ( dimension != null && contains( dimension ) )
         {
             return new BaseDimensionalObject( dimension, from( dimension ).getParentType(),
-                loadDynamicDimensionItems( dimension, attribute ) );
+                loadDimensionalItems( dimension, attribute ) );
         }
         else
         {
-            throw new IllegalArgumentException( "Not a valid dimension: " + dimension );
+            throw new IllegalArgumentException( format( NOT_A_VALID_DIMENSION, dimension ) );
         }
-    }
-
-    private List<BaseDimensionalItemObject> loadDynamicDimensionItems( final String dimension,
-        final Attribute attribute )
-    {
-        final List<BaseDimensionalItemObject> items = new ArrayList<>();
-
-        for ( final DynamicDimension dynamicDimension : eventAnalyticalObject.getDynamicDimensions() )
-        {
-            final boolean hasSameDimension = dynamicDimension.getDimension().equals( dimension );
-
-            if ( dynamicDimension.belongsTo( attribute ) && hasSameDimension )
-            {
-                items.addAll( dynamicDimension.getValues().stream()
-                    .map( value -> new BaseDimensionalItemObject( value ) ).collect( toList() ) );
-            }
-        }
-
-        return items;
     }
 
     public void associateDimensions()
@@ -96,9 +87,9 @@ public class DynamicDimensionHandler
         {
             for ( final DimensionalObject column : eventAnalyticalObject.getColumns() )
             {
-                if ( column != null && isDynamic( column.getUid() ) )
+                if ( column != null && contains( column.getUid() ) )
                 {
-                    eventAnalyticalObject.getDynamicDimensions().add( createDynamicDimensionFor( column, COLUMN ) );
+                    eventAnalyticalObject.getSimpleEventDimensions().add( createStringDimensionFor( column, COLUMN ) );
                 }
             }
         }
@@ -107,9 +98,9 @@ public class DynamicDimensionHandler
         {
             for ( final DimensionalObject row : eventAnalyticalObject.getRows() )
             {
-                if ( row != null && isDynamic( row.getUid() ) )
+                if ( row != null && contains( row.getUid() ) )
                 {
-                    eventAnalyticalObject.getDynamicDimensions().add( createDynamicDimensionFor( row, ROW ) );
+                    eventAnalyticalObject.getSimpleEventDimensions().add( createStringDimensionFor( row, ROW ) );
                 }
             }
         }
@@ -118,27 +109,46 @@ public class DynamicDimensionHandler
         {
             for ( final DimensionalObject filter : eventAnalyticalObject.getFilters() )
             {
-                if ( filter != null && isDynamic( filter.getUid() ) )
+                if ( filter != null && contains( filter.getUid() ) )
                 {
-                    eventAnalyticalObject.getDynamicDimensions().add( createDynamicDimensionFor( filter, FILTER ) );
+                    eventAnalyticalObject.getSimpleEventDimensions().add( createStringDimensionFor( filter, FILTER ) );
                 }
             }
         }
     }
 
-    private DynamicDimension createDynamicDimensionFor( final DimensionalObject dimensionalObject,
+    private List<BaseDimensionalItemObject> loadDimensionalItems( final String dimension,
         final Attribute attribute )
     {
-        final DynamicDimension dynamicDimension = new DynamicDimension();
-        dynamicDimension.setParent( attribute );
-        dynamicDimension.setDimension( dimensionalObject.getUid() );
+        final List<BaseDimensionalItemObject> items = new ArrayList<>();
+
+        for ( final SimpleEventDimension simpleEventDimension : eventAnalyticalObject.getSimpleEventDimensions() )
+        {
+            final boolean hasSameDimension = simpleEventDimension.getDimension().equals( dimension );
+
+            if ( simpleEventDimension.belongsTo( attribute ) && hasSameDimension )
+            {
+                items.addAll( simpleEventDimension.getValues().stream()
+                    .map( value -> new BaseDimensionalItemObject( value ) ).collect( toList() ) );
+            }
+        }
+
+        return items;
+    }
+
+    private SimpleEventDimension createStringDimensionFor( final DimensionalObject dimensionalObject,
+        final Attribute attribute )
+    {
+        final SimpleEventDimension simpleEventDimension = new SimpleEventDimension();
+        simpleEventDimension.setParent( attribute );
+        simpleEventDimension.setDimension( dimensionalObject.getUid() );
 
         if ( isNotEmpty( dimensionalObject.getItems() ) )
         {
-            dynamicDimension
+            simpleEventDimension
                 .setValues( dimensionalObject.getItems().stream().map( v -> v.getUid() ).collect( toList() ) );
         }
 
-        return dynamicDimension;
+        return simpleEventDimension;
     }
 }

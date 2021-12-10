@@ -45,7 +45,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.eventvisualization.DynamicDimension;
+import org.hisp.dhis.eventvisualization.SimpleEventDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -253,14 +253,14 @@ public class MapView
     {
         for ( String column : columnDimensions )
         {
-            columns.add( getDimensionalObject( column ) );
+            columns.add( getDimensionalObject( column ).get() );
         }
 
-        rows.add( getDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID ) );
+        rows.add( getDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID ).get() );
 
         for ( String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( filter ) );
+            filters.add( getDimensionalObject( filter ).get() );
         }
     }
 
@@ -469,7 +469,7 @@ public class MapView
      * This method is not used/implemented in MapView.
      */
     @Override
-    public List<DynamicDimension> getDynamicDimensions()
+    public List<SimpleEventDimension> getSimpleEventDimensions()
     {
         return Collections.emptyList();
     }

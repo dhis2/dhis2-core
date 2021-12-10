@@ -54,7 +54,7 @@
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblDynamicDimensions">
-    <param name="clazz">org.hisp.dhis.eventvisualization.DynamicDimension</param>
+    <param name="clazz">org.hisp.dhis.eventvisualization.SimpleEventDimension</param>
   </typedef>
 
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jblDashboardLayout">
