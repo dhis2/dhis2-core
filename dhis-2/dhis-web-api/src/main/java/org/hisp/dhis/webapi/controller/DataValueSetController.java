@@ -30,9 +30,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.common.DhisApiVersion.V38;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importSummary;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.render.RenderFormat.ADX_XML;
-import static org.hisp.dhis.render.RenderFormat.CSV;
-import static org.hisp.dhis.render.RenderFormat.XML;
 import static org.hisp.dhis.scheduling.JobType.DATAVALUE_IMPORT;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
@@ -52,6 +49,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.UncheckedIOException;
+import java.util.function.Consumer;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -67,7 +66,6 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.adx.AdxException;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -94,13 +92,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Lars Helge Overland
  */
 @Controller
-@RequestMapping( value = DataValueSetController.RESOURCE_PATH )
+@RequestMapping( value = "/dataValueSets" )
 @Slf4j
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class DataValueSetController
 {
-    public static final String RESOURCE_PATH = "/dataValueSets";
-
     @Autowired
     private DataValueSetService dataValueSetService;
 
@@ -120,43 +116,27 @@ public class DataValueSetController
     // Get
     // -------------------------------------------------------------------------
 
-    @GetMapping( params = { "format", "compression", "attachment" } )
+    @GetMapping( params = { "format" } )
     public void getDataValueSet(
         DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         @RequestParam( required = false ) String format,
-        IdSchemes idSchemes, HttpServletResponse response )
-        throws IOException,
-        AdxException
+        HttpServletResponse response )
     {
-        setNoStore( response );
-
-        if ( XML.isEqual( format ) )
+        switch ( format )
         {
-            response.setContentType( CONTENT_TYPE_XML );
-            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
-            dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), outputStream );
-        }
-        else if ( ADX_XML.isEqual( format ) )
-        {
-            response.setContentType( CONTENT_TYPE_XML_ADX );
-            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
-            adxDataService.writeDataValueSet( adxDataService.getFromUrl( params ), outputStream );
-        }
-        else if ( CSV.isEqual( format ) )
-        {
-            response.setContentType( CONTENT_TYPE_CSV );
-            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
-            PrintWriter printWriter = new PrintWriter( outputStream );
-            dataValueSetService.writeDataValueSetCsv( dataValueSetService.getFromUrl( params ), printWriter );
-        }
-        else
-        {
-            // default to json
-            response.setContentType( CONTENT_TYPE_JSON );
-            OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "json" );
-            dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), outputStream );
+        case "xml":
+            getDataValueSetXml( params, attachment, compression, response );
+            break;
+        case "adx+xml":
+            getDataValueSetXmlAdx( params, attachment, compression, response );
+            break;
+        case "csv":
+            getDataValueSetCsv( params, attachment, compression, response );
+            break;
+        default:
+            getDataValueSetJson( params, attachment, compression, response );
         }
     }
 
@@ -164,32 +144,30 @@ public class DataValueSetController
     public void getDataValueSetXml( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
-        IdSchemes idSchemes, HttpServletResponse response )
-        throws IOException
+        HttpServletResponse response )
     {
-        response.setContentType( CONTENT_TYPE_XML );
-        setNoStore( response );
-
-        OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
-
-        dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), outputStream );
+        getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML,
+            out -> dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), out ) );
     }
 
     @GetMapping( produces = CONTENT_TYPE_XML_ADX )
     public void getDataValueSetXmlAdx( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
-        IdSchemes idSchemes,
         HttpServletResponse response )
-        throws IOException,
-        AdxException
     {
-        response.setContentType( CONTENT_TYPE_XML_ADX );
-        setNoStore( response );
-
-        OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "xml" );
-
-        adxDataService.writeDataValueSet( adxDataService.getFromUrl( params ), outputStream );
+        getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML_ADX,
+            out -> {
+                try
+                {
+                    adxDataService.writeDataValueSet( adxDataService.getFromUrl( params ), out );
+                }
+                catch ( AdxException ex )
+                {
+                    // this will end up in same exception handler
+                    throw new IllegalStateException( ex.getMessage(), ex );
+                }
+            } );
     }
 
     @GetMapping( produces = CONTENT_TYPE_JSON )
@@ -197,32 +175,38 @@ public class DataValueSetController
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
         HttpServletResponse response )
-        throws IOException
     {
-        response.setContentType( CONTENT_TYPE_JSON );
-        setNoStore( response );
-
-        OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "json" );
-
-        dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), outputStream );
+        getDataValueSet( attachment, compression, "json", response, CONTENT_TYPE_JSON,
+            out -> dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), out ) );
     }
 
     @GetMapping( produces = CONTENT_TYPE_CSV )
     public void getDataValueSetCsv( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
-        IdSchemes idSchemes,
         HttpServletResponse response )
-        throws IOException
     {
-        response.setContentType( CONTENT_TYPE_CSV );
+        getDataValueSet( attachment, compression, "csv", response, CONTENT_TYPE_CSV,
+            out -> dataValueSetService.writeDataValueSetCsv( dataValueSetService.getFromUrl( params ),
+                new PrintWriter( out ) ) );
+    }
+
+    private void getDataValueSet( String attachment,
+        String compression, String format, HttpServletResponse response, String contentType,
+        Consumer<OutputStream> writeOutput )
+    {
+        response.setContentType( contentType );
         setNoStore( response );
 
-        OutputStream outputStream = compress( response, attachment, Compression.fromValue( compression ), "csv" );
-
-        PrintWriter printWriter = new PrintWriter( outputStream );
-
-        dataValueSetService.writeDataValueSetCsv( dataValueSetService.getFromUrl( params ), printWriter );
+        try (
+            OutputStream out = compress( response, attachment, Compression.fromValue( compression ), format ) )
+        {
+            writeOutput.accept( out );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
     }
 
     // -------------------------------------------------------------------------

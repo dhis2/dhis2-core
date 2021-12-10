@@ -150,6 +150,19 @@ public class HibernateDbmsManager
         emptyTable( "eventchart_rows" );
         emptyTable( "eventchart" );
 
+        emptyTable( "eventvisualization_attributedimensions" );
+        emptyTable( "eventvisualization_columns" );
+        emptyTable( "eventvisualization_dataelementdimensions" );
+        emptyTable( "eventvisualization_filters" );
+        emptyTable( "eventvisualization_itemorgunitgroups" );
+        emptyTable( "eventvisualization_organisationunits" );
+        emptyTable( "eventvisualization_orgunitgroupsetdimensions" );
+        emptyTable( "eventvisualization_orgunitlevels" );
+        emptyTable( "eventvisualization_periods" );
+        emptyTable( "eventvisualization_programindicatordimensions" );
+        emptyTable( "eventvisualization_rows" );
+        emptyTable( "eventvisualization" );
+
         emptyTable( "dataelementgroupsetdimension_items" );
         emptyTable( "dataelementgroupsetdimension" );
         emptyTable( "categoryoptiongroupsetdimension" );

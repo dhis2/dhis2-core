@@ -44,6 +44,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.mapping.ExternalMapLayer;
 import org.hisp.dhis.mapping.ImageFormat;
@@ -71,7 +73,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -275,7 +276,7 @@ public class TranslationServiceTest
 
         EventChart ecA = new EventChart( "ecA" );
         ecA.setProgram( prA );
-        ecA.setType( VisualizationType.COLUMN );
+        ecA.setType( EventVisualizationType.COLUMN );
         ecA.setBaseLineLabel( "BaseLineLabel" );
         ecA.setDomainAxisLabel( "DomainAxisLabel" );
         ecA.setRangeAxisLabel( "RangeAxisLabel" );
@@ -302,6 +303,50 @@ public class TranslationServiceTest
         manager.updateTranslations( ecA, translations );
 
         EventChart updated = manager.get( EventChart.class, ecA.getUid() );
+
+        assertEquals( "translated BaseLineLabel", updated.getDisplayBaseLineLabel() );
+        assertEquals( "translated DomainAxisLabel", updated.getDisplayDomainAxisLabel() );
+        assertEquals( "translated RangeAxisLabel", updated.getDisplayRangeAxisLabel() );
+        assertEquals( "translated TargetLineLabel", updated.getDisplayTargetLineLabel() );
+        assertEquals( "translated Title", updated.getDisplayTitle() );
+        assertEquals( "translated SubTitle", updated.getDisplaySubtitle() );
+    }
+
+    @Test
+    public void testEventVisualizationTranslations()
+    {
+        Program prA = createProgram( 'A', null, null );
+        manager.save( prA );
+
+        EventVisualization evA = new EventVisualization( "evA" );
+        evA.setProgram( prA );
+        evA.setType( EventVisualizationType.COLUMN );
+        evA.setBaseLineLabel( "BaseLineLabel" );
+        evA.setDomainAxisLabel( "DomainAxisLabel" );
+        evA.setRangeAxisLabel( "RangeAxisLabel" );
+        evA.setTargetLineLabel( "TargetLineLabel" );
+        evA.setTitle( "Title" );
+        evA.setSubtitle( "SubTitle" );
+
+        manager.save( evA );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), "baseLineLabel",
+            "translated BaseLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "domainAxisLabel",
+            "translated DomainAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "rangeAxisLabel",
+            "translated RangeAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "targetLineLabel",
+            "translated TargetLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "title",
+            "translated Title" ) );
+        translations.add( new Translation( locale.getLanguage(), "subtitle",
+            "translated SubTitle" ) );
+
+        manager.updateTranslations( evA, translations );
+
+        EventVisualization updated = manager.get( EventVisualization.class, evA.getUid() );
 
         assertEquals( "translated BaseLineLabel", updated.getDisplayBaseLineLabel() );
         assertEquals( "translated DomainAxisLabel", updated.getDisplayDomainAxisLabel() );
