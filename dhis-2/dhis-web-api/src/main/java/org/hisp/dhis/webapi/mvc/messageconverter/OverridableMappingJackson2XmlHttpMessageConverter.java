@@ -41,11 +41,13 @@ import com.google.common.collect.ImmutableList;
  */
 public class OverridableMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
-    private static ImmutableList<String> ALLOW_XML = ImmutableList.<String> builder()
+    private static final ImmutableList<String> XML_PATHS = ImmutableList.<String> builder()
         .add( "/relationships" )
         .add( "/enrollments" )
         .add( "/events" )
         .add( "/trackedEntityInstances" )
+        .add( "/dataValueSets" )
+        .add( "/completeDataSetRegistrations" )
         .build();
 
     public OverridableMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
@@ -59,9 +61,9 @@ public class OverridableMappingJackson2XmlHttpMessageConverter extends MappingJa
         HttpServletRequest request = ContextUtils.getRequest();
         String pathInfo = request.getPathInfo();
 
-        for ( var path : ALLOW_XML )
+        for ( var path : XML_PATHS )
         {
-            if ( pathInfo.startsWith( path ) )
+            if ( pathInfo.contains( path ) )
             {
                 return super.canWrite( clazz, mediaType );
             }
