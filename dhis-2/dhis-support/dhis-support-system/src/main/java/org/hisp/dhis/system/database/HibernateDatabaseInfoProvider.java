@@ -221,6 +221,8 @@ public class HibernateDatabaseInfoProvider
         }
         catch ( Exception ex )
         {
+            // swallowing exception as this is just an attempt to create the
+            // extension if possible.
         }
 
         try
@@ -249,6 +251,8 @@ public class HibernateDatabaseInfoProvider
         }
         catch ( Exception ex )
         {
+            // swallowing exception as this is just an attempt to create the
+            // extension if possible.
         }
 
         try
@@ -277,6 +281,8 @@ public class HibernateDatabaseInfoProvider
         }
         catch ( Exception ex )
         {
+            // swallowing exception as this is just an attempt to create the
+            // extension if possible.
         }
 
         try

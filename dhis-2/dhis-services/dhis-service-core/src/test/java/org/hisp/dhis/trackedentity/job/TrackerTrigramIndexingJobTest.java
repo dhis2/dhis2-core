@@ -64,8 +64,8 @@ public class TrackerTrigramIndexingJobTest
         // mock normal run conditions
         when( trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes() ).thenReturn(
             Collections.emptySet() );
-        when( trackedEntityAttributeService.runAnalyze() ).thenReturn( true );
-        when( trackedEntityAttributeService.runVacuum() ).thenReturn( true );
+        doNothing().when( trackedEntityAttributeService ).runAnalyze();
+        doNothing().when( trackedEntityAttributeService ).runVacuum();
     }
 
     @Test
@@ -79,8 +79,8 @@ public class TrackerTrigramIndexingJobTest
 
         job.execute( jobConfiguration, NoopJobProgress.INSTANCE );
 
-        verify( trackedEntityAttributeService, atLeastOnce() ).runAnalyze();
-        verify( trackedEntityAttributeService, atLeastOnce() ).runVacuum();
+        verify( trackedEntityAttributeService, times( 1 ) ).runAnalyze();
+        verify( trackedEntityAttributeService, times( 1 ) ).runVacuum();
         verify( trackedEntityAttributeService, never() ).createTrigramIndex( any() );
     }
 
@@ -100,8 +100,8 @@ public class TrackerTrigramIndexingJobTest
 
         job.execute( jobConfiguration, NoopJobProgress.INSTANCE );
 
-        verify( trackedEntityAttributeService, atMostOnce() ).runAnalyze();
-        verify( trackedEntityAttributeService, atMostOnce() ).runVacuum();
+        verify( trackedEntityAttributeService, times( 1 ) ).runAnalyze();
+        verify( trackedEntityAttributeService, times( 1 ) ).runVacuum();
         verify( trackedEntityAttributeService, never() ).createTrigramIndex( any() );
     }
 
@@ -121,8 +121,7 @@ public class TrackerTrigramIndexingJobTest
 
         when( trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes() ).thenReturn(
             indexableAttributes );
-        when( trackedEntityAttributeService.createTrigramIndex( any() ) ).thenReturn(
-            true );
+        doNothing().when( trackedEntityAttributeService ).createTrigramIndex( any() );
         JobConfiguration jobConfiguration = new JobConfiguration();
         TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
         jp.setRunAnalyze( true );
@@ -132,9 +131,9 @@ public class TrackerTrigramIndexingJobTest
 
         job.execute( jobConfiguration, NoopJobProgress.INSTANCE );
 
-        verify( trackedEntityAttributeService, atMostOnce() ).runAnalyze();
-        verify( trackedEntityAttributeService, atMostOnce() ).runVacuum();
-        verify( trackedEntityAttributeService, atMost( 2 ) ).createTrigramIndex( any() );
+        verify( trackedEntityAttributeService, times( 1 ) ).runAnalyze();
+        verify( trackedEntityAttributeService, times( 1 ) ).runVacuum();
+        verify( trackedEntityAttributeService, times( 2 ) ).createTrigramIndex( any() );
     }
 
 }

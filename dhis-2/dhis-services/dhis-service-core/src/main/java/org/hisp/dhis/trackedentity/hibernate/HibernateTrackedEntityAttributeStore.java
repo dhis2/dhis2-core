@@ -208,30 +208,24 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     @Override
-    public boolean createTrigramIndexForAttribute( TrackedEntityAttribute trackedEntityAttribute )
+    public void createTrigramIndexForAttribute( TrackedEntityAttribute trackedEntityAttribute )
     {
-        String query = trigramIndexQuery( trackedEntityAttribute );
+        String query = String.format( TRIGRAM_INDEX_QUERY, trackedEntityAttribute.getId(),
+            trackedEntityAttribute.getId() );
+        ;
         jdbcTemplate.execute( query );
-        return true;
     }
 
     @Override
-    public boolean runAnalyzeOnTrackerTables()
+    public void runAnalyzeOnTrackerTables()
     {
         jdbcTemplate.execute( ANALYZE_QUERY );
-        return true;
     }
 
     @Override
-    public boolean runVacuumOnTrackerTables()
+    public void runVacuumOnTrackerTables()
     {
         jdbcTemplate.execute( VACUUM_QUERY );
-        return true;
-    }
-
-    private String trigramIndexQuery( TrackedEntityAttribute trackedEntityAttribute )
-    {
-        return String.format( TRIGRAM_INDEX_QUERY, trackedEntityAttribute.getId(), trackedEntityAttribute.getId() );
     }
 
     @Override

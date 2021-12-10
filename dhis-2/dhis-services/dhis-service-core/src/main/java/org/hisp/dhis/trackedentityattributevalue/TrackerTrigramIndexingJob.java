@@ -89,7 +89,7 @@ public class TrackerTrigramIndexingJob implements Job
             indexableAttributes = indexableAttributes.stream()
                 .filter( itea -> parameters.getAttributes().contains( itea.getUid() ) ).collect( Collectors.toSet() );
 
-            log.debug( "Number of Attributes provided in jobparameters that are indexable: {}",
+            log.debug( "Number of Attributes provided in job parameters that are indexable: {}",
                 indexableAttributes.size() );
 
             if ( !indexableAttributes.isEmpty() )
@@ -104,7 +104,7 @@ public class TrackerTrigramIndexingJob implements Job
             }
             else
             {
-                log.warn( "No indexable attributes provided in jobParameters. Skipping trigram index creation step" );
+                log.warn( "No indexable attributes provided in job parameters. Skipping trigram index creation step" );
             }
         }
 
@@ -127,19 +127,14 @@ public class TrackerTrigramIndexingJob implements Job
         }
 
         progress.completedProcess( "Job completed" );
-        log.info( "Trigram Indexing Job completed" );
+        log.info( "Trigram Indexing job completed" );
     }
 
     private static String computeTrigramIndexingSummary( int successful, int failed )
     {
-        log.info(
-            format( "%d trigram indexes have been created for corresponding trackedentityattributes", successful ) );
-        if ( failed == 0 )
-        {
-            return null;
-        }
-        String summary = format( "%d trigram index creation failed", failed );
-        log.warn( summary );
+        String summary = format( "Number of trigram index created: %d. Number of trigram index creation failed: %d",
+            successful, failed );
+        log.debug( summary );
         return summary;
     }
 }

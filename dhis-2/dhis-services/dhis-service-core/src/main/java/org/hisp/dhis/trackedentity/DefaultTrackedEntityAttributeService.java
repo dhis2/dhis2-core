@@ -353,21 +353,21 @@ public class DefaultTrackedEntityAttributeService
     }
 
     @Override
-    public boolean createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute )
+    public void createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute )
     {
-        return attributeStore.createTrigramIndexForAttribute( trackedEntityAttribute );
+        attributeStore.createTrigramIndexForAttribute( trackedEntityAttribute );
     }
 
     @Override
-    public boolean runAnalyze()
+    public void runAnalyze()
     {
-        return attributeStore.runAnalyzeOnTrackerTables();
+        attributeStore.runAnalyzeOnTrackerTables();
     }
 
     @Override
-    public boolean runVacuum()
+    public void runVacuum()
     {
-        return attributeStore.runVacuumOnTrackerTables();
+        attributeStore.runVacuumOnTrackerTables();
     }
 
     // -------------------------------------------------------------------------
