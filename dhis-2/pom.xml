@@ -197,7 +197,7 @@
 
         <!-- Test -->
         <junit.version>4.13.2</junit.version>
-        <mockito-core.version>3.4.6</mockito-core.version>
+        <mockito-core.version>4.1.0</mockito-core.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.7</hamcrest-date.version>
@@ -711,6 +711,10 @@
                                 <bannedDependencies>
                                     <excludes>
                                         <exclude>org.slf4j:slf4j-simple</exclude>
+                                        <!-- let's stick to mockito only to allow easy migration to JUnit 5 as mockito
+                                        & powermock are lead to trouble -->
+                                        <exclude>org.powermock:powermock-api-mockito2</exclude>
+                                        <exclude>org.powermock:powermock-module-junit4</exclude>
                                     </excludes>
                                 </bannedDependencies>
                                 <banDuplicatePomDependencyVersions/>
@@ -2255,30 +2259,12 @@
                 <version>${mockito-core.version}</version>
                 <scope>test</scope>
             </dependency>
+            <!-- Depend only on mockito-inline (includes mockito-core already) if you must use mockStatic (can you
+            rewrite your code, so it's not necessary ;)), otherwise depend on mockito-core only -->
             <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.javassist</groupId>
-                        <artifactId>javassist</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.bytebuddy</groupId>
-                        <artifactId>byte-buddy-agent</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.bytebuddy</groupId>
-                        <artifactId>byte-buddy</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>${powermock.version}</version>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockito-core.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
