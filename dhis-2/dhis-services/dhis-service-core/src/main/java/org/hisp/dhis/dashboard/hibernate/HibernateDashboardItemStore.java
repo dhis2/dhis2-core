@@ -40,6 +40,7 @@ import org.hisp.dhis.dashboard.DashboardItemStore;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.security.acl.AclService;
@@ -79,6 +80,15 @@ public class HibernateDashboardItemStore extends HibernateIdentifiableObjectStor
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "visualization" ), visualization ) ) );
+    }
+
+    @Override
+    public List<DashboardItem> getEventVisualizationDashboardItems( EventVisualization eventVisualization )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "eventVisualization" ), eventVisualization ) ) );
     }
 
     @Override
