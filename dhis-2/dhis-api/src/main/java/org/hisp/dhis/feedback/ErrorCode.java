@@ -196,6 +196,7 @@ public enum ErrorCode
     E4046( "TrackedEntityAttribute `{0}` associated with program rule `{1}` does not exist" ),
     E4047( "DataElement `{0}` is not linked to any ProgramStageDataElement for program rule `{1}`" ),
     E4048( "TrackedEntityAttribute `{0}` is not linked to ProgramTrackedEntityAttribute for program rule `{1}`" ),
+    E4049( "Property `{0}` requires a valid username, was given `{1}`." ),
 
     /* ProgramRuleVariable validation */
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),

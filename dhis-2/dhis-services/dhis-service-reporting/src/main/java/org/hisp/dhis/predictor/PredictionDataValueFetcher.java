@@ -106,7 +106,7 @@ public class PredictionDataValueFetcher
 
     private Set<DataElementOperand> dataElementOperands;
 
-    private boolean includeChildren = false;
+    private boolean includeDescendants = false;
 
     private boolean includeDeleted = false;
 
@@ -210,7 +210,7 @@ public class PredictionDataValueFetcher
         params.setOrgUnitLevel( orgUnitLevel );
         params.setBlockingQueue( blockingQueue );
         params.setOrderByOrgUnitPath( true );
-        params.setIncludeChildren( includeChildren );
+        params.setIncludeDescendants( includeDescendants );
         params.setIncludeDeleted( includeDeleted );
 
         try
@@ -272,12 +272,12 @@ public class PredictionDataValueFetcher
     /**
      * Sets whether the data should return aggregated to the parent org unit.
      *
-     * @param includeChildren whether the data should include child orgUnits.
+     * @param includeDescendants whether the data includes descendant orgUnits.
      * @return this object (for method chaining).
      */
-    public PredictionDataValueFetcher setIncludeChildren( boolean includeChildren )
+    public PredictionDataValueFetcher setIncludeDescendants( boolean includeDescendants )
     {
-        this.includeChildren = includeChildren;
+        this.includeDescendants = includeDescendants;
         return this;
     }
 

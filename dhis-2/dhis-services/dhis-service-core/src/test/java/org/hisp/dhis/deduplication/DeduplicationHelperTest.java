@@ -549,11 +549,6 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         return Lists.newArrayList( relationshipA );
     }
 
-    private List<TrackedEntityAttribute> getAttributes()
-    {
-        return Lists.newArrayList( attribute );
-    }
-
     private List<ProgramInstance> getEnrollments()
     {
         return Lists.newArrayList( programInstance );

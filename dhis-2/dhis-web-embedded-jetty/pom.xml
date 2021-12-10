@@ -164,43 +164,36 @@
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-api</artifactId>
-            <version>${project.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-api</artifactId>
-            <version>${project.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-dxf2</artifactId>
-            <version>${project.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-core</artifactId>
-            <version>${project.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-administration</artifactId>
-            <version>${project.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-reporting</artifactId>
-            <version>${project.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-analytics</artifactId>
-            <version>${project.version}</version>
             <type>jar</type>
         </dependency>
 
