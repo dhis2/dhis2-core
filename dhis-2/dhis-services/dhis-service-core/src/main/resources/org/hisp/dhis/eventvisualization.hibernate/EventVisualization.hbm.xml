@@ -187,7 +187,7 @@
             <element type="string" column="dimension"/>
         </list>
 
-        <property name="simpleEventDimensions" type="jblDynamicDimensions"/>
+        <property name="simpleEventDimensions" type="jblSimpleEventDimensions"/>
 
         <property name="showData"/>
 

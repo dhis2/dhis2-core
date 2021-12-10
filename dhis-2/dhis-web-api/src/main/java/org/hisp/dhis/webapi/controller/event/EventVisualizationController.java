@@ -197,7 +197,7 @@ public class EventVisualizationController
         eventVisualization.getColumnDimensions().addAll( getDimensions( eventVisualization.getColumns() ) );
         eventVisualization.getRowDimensions().addAll( getDimensions( eventVisualization.getRows() ) );
         eventVisualization.getFilterDimensions().addAll( getDimensions( eventVisualization.getFilters() ) );
-        eventVisualization.associateStringDimensions();
+        eventVisualization.associateSimpleDimensions();
     }
 
     private void doesNotAllowPivotAndReportChart( final EventVisualization eventVisualization )

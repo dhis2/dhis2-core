@@ -310,7 +310,7 @@ public class EventReport
         }
     }
 
-    public void associateStringDimensions()
+    public void associateSimpleDimensions()
     {
         new SimpleEventDimensionHandler( this ).associateDimensions();
     }

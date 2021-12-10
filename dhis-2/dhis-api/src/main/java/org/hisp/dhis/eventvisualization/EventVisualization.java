@@ -749,7 +749,7 @@ public class EventVisualization extends BaseAnalyticalObject
         }
     }
 
-    public void associateStringDimensions()
+    public void associateSimpleDimensions()
     {
         new SimpleEventDimensionHandler( this ).associateDimensions();
     }

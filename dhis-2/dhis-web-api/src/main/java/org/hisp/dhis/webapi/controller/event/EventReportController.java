@@ -154,7 +154,7 @@ public class EventReportController
         report.getRowDimensions().addAll( getDimensions( report.getRows() ) );
         report.getFilterDimensions().addAll( getDimensions( report.getFilters() ) );
 
-        report.associateStringDimensions();
+        report.associateSimpleDimensions();
     }
 
     /**
