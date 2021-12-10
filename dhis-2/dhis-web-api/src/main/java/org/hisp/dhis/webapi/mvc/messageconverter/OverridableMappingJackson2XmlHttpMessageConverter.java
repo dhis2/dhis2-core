@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -34,21 +36,19 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Olav Hansen
  */
 public class OverridableMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
-    private static final ImmutableList<String> XML_PATHS = ImmutableList.<String> builder()
-        .add( "/relationships" )
-        .add( "/enrollments" )
-        .add( "/events" )
-        .add( "/trackedEntityInstances" )
-        .add( "/dataValueSets" )
-        .add( "/completeDataSetRegistrations" )
-        .build();
+    private static final List<String> XML_PATHS = List.of(
+        "/relationships",
+        "/enrollments",
+        "/events",
+        "/trackedEntityInstances",
+        "/dataValueSets",
+        "/completeDataSetRegistrations" );
 
     public OverridableMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
     {
