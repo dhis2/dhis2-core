@@ -100,7 +100,7 @@ public class HibernateTrackedEntityInstanceAuditStore
             sb.append( quote( audit.getAccessedBy() ) ).append( "," );
             sb.append( quote( audit.getAuditType().getValue() ) ).append( "," );
             sb.append(
-                    StringUtils.isNotEmpty( audit.getComment() ) ? statementBuilder.encode( audit.getComment() ) : "''" );
+                StringUtils.isNotEmpty( audit.getComment() ) ? statementBuilder.encode( audit.getComment() ) : "''" );
             sb.append( ")" );
             return sb.toString();
         };
