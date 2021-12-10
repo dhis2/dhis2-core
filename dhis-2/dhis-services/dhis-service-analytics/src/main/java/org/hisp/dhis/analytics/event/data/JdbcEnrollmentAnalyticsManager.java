@@ -405,7 +405,7 @@ public class JdbcEnrollmentAnalyticsManager
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + psCondition + ORDER_BY_EXECUTION_DATE +
-                createOrderTypeAndOffset( item.getProgramStage().getStageOffset() ) + " " + LIMIT_1 + " )";
+                createOrderTypeAndOffset( item.getProgramStageOffset() ) + " " + LIMIT_1 + " )";
         }
 
         return StringUtils.EMPTY;
@@ -440,7 +440,7 @@ public class JdbcEnrollmentAnalyticsManager
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStage().getStageOffset() )
+                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
                 + " " + LIMIT_1 + " )";
         }
         else
@@ -472,7 +472,7 @@ public class JdbcEnrollmentAnalyticsManager
                 + " from " + eventTableName
                 + " where " + eventTableName + ".pi = " + ANALYTICS_TBL_ALIAS + ".pi " +
                 "and " + colName + " is not null " + "and ps = '" + item.getProgramStage().getUid() + "' " +
-                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStage().getStageOffset() )
+                ORDER_BY_EXECUTION_DATE + createOrderTypeAndOffset( item.getProgramStageOffset() )
                 + " " + LIMIT_1 + " )";
         }
         else

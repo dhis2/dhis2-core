@@ -156,6 +156,7 @@ public class DefaultQueryItemLocator
             if ( programStage != null )
             {
                 qi.setProgramStage( programStage );
+                qi.setProgramStageOffset( getProgramStageOffset( dimension ) );
             }
             else if ( type != null && type.equals( EventOutputType.ENROLLMENT ) )
             {
@@ -215,25 +216,11 @@ public class DefaultQueryItemLocator
 
     private ProgramStage getProgramStageOrFail( String dimension )
     {
-        int stageOffset = getStageOffset( dimension );
-
         BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail( removeOffset( dimension ) );
 
-        ProgramStage programStage = (baseIdentifiableObject instanceof ProgramStage
+        return (baseIdentifiableObject instanceof ProgramStage
             ? (ProgramStage) baseIdentifiableObject
             : null);
-
-        if ( programStage != null && programStage.getRepeatable() && stageOffset != 0 )
-        {
-            if ( programStage.getStageOffset() != stageOffset )
-            {
-                programStage = programStage.clone();
-            }
-
-            programStage.setStageOffset( stageOffset );
-        }
-
-        return programStage;
     }
 
     private String removeOffset( String dimension )
@@ -250,7 +237,7 @@ public class DefaultQueryItemLocator
         return dimension;
     }
 
-    private int getStageOffset( String dimension )
+    private int getProgramStageOffset( String dimension )
     {
         final Pattern pattern = Pattern.compile( INDEX_REGEX );
 

@@ -32,7 +32,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -64,7 +63,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "programStage", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramStage
     extends BaseNameableObject
-    implements MetadataObject, Cloneable
+    implements MetadataObject
 {
     private String description;
 
@@ -110,11 +109,6 @@ public class ProgramStage
     private ObjectStyle style;
 
     /**
-     * Valid only for repeatable stages, must not be persisted.
-     */
-    private transient int offset;
-
-    /**
      * Enabled this property to show a pop-up for confirming Complete a program
      * after to complete a program-stage
      */
@@ -156,16 +150,6 @@ public class ProgramStage
     // Logic
     // -------------------------------------------------------------------------
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( o instanceof ProgramStage && ((ProgramStage) o).offset != offset )
-        {
-            return false;
-        }
-        return super.equals( o );
-    }
-
     /**
      * Returns all data elements part of this program stage.
      */
@@ -183,16 +167,6 @@ public class ProgramStage
         element.setAutoFields();
 
         return this.programStageDataElements.add( element );
-    }
-
-    public int getStageOffset()
-    {
-        return offset;
-    }
-
-    public void setStageOffset( int offset )
-    {
-        this.offset = offset;
     }
 
     @JsonProperty
@@ -595,12 +569,5 @@ public class ProgramStage
     public void setNextScheduleDate( DataElement nextScheduleDate )
     {
         this.nextScheduleDate = nextScheduleDate;
-    }
-
-    @SuppressWarnings( "MethodDoesntCallSuperMethod" )
-    @Override
-    public ProgramStage clone()
-    {
-        return SerializationUtils.clone( this );
     }
 }
