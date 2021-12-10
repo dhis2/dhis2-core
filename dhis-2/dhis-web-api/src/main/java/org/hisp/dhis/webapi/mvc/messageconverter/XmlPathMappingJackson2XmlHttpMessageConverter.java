@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -45,7 +45,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
-    private static final List<String> XML_PATHS = List.of(
+    private static final Set<String> XML_PATHS = Set.of(
         "/relationships",
         "/enrollments",
         "/events",
