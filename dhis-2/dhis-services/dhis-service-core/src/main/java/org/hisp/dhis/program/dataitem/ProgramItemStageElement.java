@@ -71,18 +71,10 @@ public class ProgramItemStageElement
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
         }
 
-        if ( visitor.getStageOffset() != Integer.MIN_VALUE )
+        if ( hasNonDefaultStageOffset( visitor.getStageOffset() )
+            && !isRepeatableStage( stageService, programStageId ) )
         {
-            ProgramStage stage = stageService.getProgramStage( programStageId );
-
-            if ( stage == null || !stage.getRepeatable() )
-            {
-                String errorMessage = "StageOffset is allowed only for repeatable stages";
-
-                errorMessage += " (" + programStageId + " is not repeatable)";
-
-                throw new ParserException( errorMessage );
-            }
+            throw new ParserException( getErrorMessage( programStageId ) );
         }
 
         String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID
@@ -100,6 +92,24 @@ public class ProgramItemStageElement
 
         String programStageId = ctx.uid0.getText();
         String dataElementId = ctx.uid1.getText();
+        int stageOffset = visitor.getStageOffset();
+
+        if ( hasNonDefaultStageOffset( stageOffset ) )
+        {
+            if ( isRepeatableStage( visitor.getProgramStageService(), programStageId ) )
+            {
+                return " coalesce("
+                    + visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageId,
+                        Integer.valueOf( stageOffset ).toString(),
+                        "\"" + dataElementId + "\"",
+                        visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() )
+                    + "::numeric, 0)";
+            }
+            else
+            {
+                throw new ParserException( getErrorMessage( programStageId ) );
+            }
+        }
 
         String column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
             programStageId, dataElementId, visitor.getReportingStartDate(), visitor.getReportingEndDate(),
@@ -119,5 +129,26 @@ public class ProgramItemStageElement
         }
 
         return column;
+    }
+
+    private static boolean hasNonDefaultStageOffset( int stageOffset )
+    {
+        return stageOffset != Integer.MIN_VALUE;
+    }
+
+    private static boolean isRepeatableStage( ProgramStageService stageService, String programStageId )
+    {
+        ProgramStage programStage = stageService.getProgramStage( programStageId );
+
+        return programStage != null && programStage.getRepeatable();
+    }
+
+    private static String getErrorMessage( String programStageId )
+    {
+        String errorMessage = "StageOffset is allowed only for repeatable stages";
+
+        errorMessage += " (" + programStageId + " is not repeatable)";
+
+        return errorMessage;
     }
 }

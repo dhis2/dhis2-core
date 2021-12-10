@@ -27,14 +27,9 @@
  */
 package org.hisp.dhis.parser.expression.function;
 
-import java.util.Optional;
-
-import org.hisp.dhis.antlr.ParserException;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
-import org.hisp.dhis.program.ProgramStage;
 
 /**
  * @author Dusan Bernat
@@ -42,8 +37,6 @@ import org.hisp.dhis.program.ProgramStage;
 
 public class StageOffset implements ExpressionItem
 {
-    private static final int UID_LENGTH = 11;
-
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
@@ -61,42 +54,14 @@ public class StageOffset implements ExpressionItem
     @Override
     public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        String programStageUid = getProgramStageUid( ctx.expr( 0 ) );
+        int oldStageOffset = visitor.getStageOffset();
 
-        Optional<DataElement> dataElement = visitor.getProgramIndicator().getProgram().getDataElements().stream()
-            .filter( de -> visitor.getProgramIndicator().getExpression().contains( de.getUid() ) ).findFirst();
+        visitor.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
 
-        Optional<ProgramStage> programStage = visitor.getProgramIndicator().getProgram().getProgramStages()
-            .stream().filter( ps -> programStageUid.equals( ps.getUid() ) && ps.getRepeatable() ).findFirst();
+        Object ret = visitor.visit( ctx.expr( 0 ) );
 
-        if ( programStage.isPresent() && dataElement.isPresent() )
-        {
-            return " coalesce("
-                + visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageUid, ctx.stage.getText(),
-                    "\"" + dataElement.get().getUid() + "\"",
-                    visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() )
-                + "::numeric, 0)";
-        }
-        else
-        {
-            throw new ParserException( "StageOffset is allowed only for repeatable stages" );
-        }
-    }
+        visitor.setStageOffset( oldStageOffset );
 
-    private String getProgramStageUid( ExpressionParser.ExprContext ctx )
-    {
-        if ( ctx.uid0 != null )
-        {
-            return ctx.uid0.getText();
-        }
-
-        String firstFragment = ctx.getText().split( "\\." )[0];
-
-        if ( firstFragment.length() >= UID_LENGTH )
-        {
-            return firstFragment.substring( firstFragment.length() - UID_LENGTH );
-        }
-
-        return firstFragment;
+        return ret;
     }
 }
