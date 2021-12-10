@@ -56,6 +56,23 @@ public class OverridableMappingJackson2XmlHttpMessageConverter extends MappingJa
     }
 
     @Override
+    public boolean canRead( Class<?> clazz, MediaType mediaType )
+    {
+        HttpServletRequest request = ContextUtils.getRequest();
+        String pathInfo = request.getPathInfo();
+
+        for ( var path : XML_PATHS )
+        {
+            if ( pathInfo.contains( path ) )
+            {
+                return super.canRead( clazz, mediaType );
+            }
+        }
+
+        return false;
+    }
+
+    @Override
     public boolean canWrite( Class<?> clazz, MediaType mediaType )
     {
         HttpServletRequest request = ContextUtils.getRequest();
