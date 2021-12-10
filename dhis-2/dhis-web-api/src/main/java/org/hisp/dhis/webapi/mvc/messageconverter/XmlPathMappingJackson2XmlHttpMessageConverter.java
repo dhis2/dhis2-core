@@ -38,6 +38,9 @@ import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConve
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
+ * Custom {@link MappingJackson2XmlHttpMessageConverter} that only supports XML
+ * for certain endpoints.
+ *
  * @author Morten Olav Hansen
  */
 public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
