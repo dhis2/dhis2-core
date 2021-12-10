@@ -27,18 +27,28 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import javax.servlet.http.HttpServletRequest;
+
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Morten Olav Hansen
  */
-public class WebMessageMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
+public class OverridableMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
-    public WebMessageMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
+    private static ImmutableList<String> ALLOW_XML = ImmutableList.<String> builder()
+        .add( "/relationships" )
+        .add( "/enrollments" )
+        .add( "/events" )
+        .add( "/trackedEntityInstances" )
+        .build();
+
+    public OverridableMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
     {
         super( objectMapper );
     }
@@ -46,6 +56,17 @@ public class WebMessageMappingJackson2XmlHttpMessageConverter extends MappingJac
     @Override
     public boolean canWrite( Class<?> clazz, MediaType mediaType )
     {
-        return canWrite( mediaType ) && clazz.isAssignableFrom( WebMessage.class );
+        HttpServletRequest request = ContextUtils.getRequest();
+        String pathInfo = request.getPathInfo();
+
+        for ( var path : ALLOW_XML )
+        {
+            if ( pathInfo.startsWith( path ) )
+            {
+                return super.canWrite( clazz, mediaType );
+            }
+        }
+
+        return false;
     }
 }
