@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.datastatistics;
 
-import java.util.*;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.analytics.SortOrder;
@@ -35,8 +41,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.statistics.StatisticsProvider;
@@ -46,7 +52,6 @@ import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,26 +64,46 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDataStatisticsService
     implements DataStatisticsService
 {
-    @Autowired
-    private DataStatisticsStore dataStatisticsStore;
+    private final DataStatisticsStore dataStatisticsStore;
 
-    @Autowired
-    private DataStatisticsEventStore dataStatisticsEventStore;
+    private final DataStatisticsEventStore dataStatisticsEventStore;
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private DataValueService dataValueService;
+    private final DataValueService dataValueService;
 
-    @Autowired
-    private StatisticsProvider statisticsProvider;
+    private final StatisticsProvider statisticsProvider;
 
-    @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private final ProgramStageInstanceService programStageInstanceService;
+
+    private final EventVisualizationStore eventVisualizationStore;
+
+    public DefaultDataStatisticsService( final DataStatisticsStore dataStatisticsStore,
+        final DataStatisticsEventStore dataStatisticsEventStore, final UserService userService,
+        final IdentifiableObjectManager idObjectManager, final DataValueService dataValueService,
+        final StatisticsProvider statisticsProvider, final ProgramStageInstanceService programStageInstanceService,
+        final EventVisualizationStore eventVisualizationStore )
+    {
+        checkNotNull( dataStatisticsStore );
+        checkNotNull( dataStatisticsEventStore );
+        checkNotNull( userService );
+        checkNotNull( idObjectManager );
+        checkNotNull( dataValueService );
+        checkNotNull( statisticsProvider );
+        checkNotNull( programStageInstanceService );
+        checkNotNull( eventVisualizationStore );
+
+        this.dataStatisticsStore = dataStatisticsStore;
+        this.dataStatisticsEventStore = dataStatisticsEventStore;
+        this.userService = userService;
+        this.idObjectManager = idObjectManager;
+        this.dataValueService = dataValueService;
+        this.statisticsProvider = statisticsProvider;
+        this.programStageInstanceService = programStageInstanceService;
+        this.eventVisualizationStore = eventVisualizationStore;
+    }
 
     // -------------------------------------------------------------------------
     // DataStatisticsService implementation
@@ -111,8 +136,9 @@ public class DefaultDataStatisticsService
 
         double savedMaps = idObjectManager.getCountByCreated( org.hisp.dhis.mapping.Map.class, startDate );
         double savedVisualizations = idObjectManager.getCountByCreated( Visualization.class, startDate );
-        double savedEventReports = idObjectManager.getCountByCreated( EventReport.class, startDate );
-        double savedEventCharts = idObjectManager.getCountByCreated( EventChart.class, startDate );
+        double savedEventReports = eventVisualizationStore.countReportsCreated( startDate );
+        double savedEventCharts = eventVisualizationStore.countChartsCreated( startDate );
+        double savedEventVisualizations = idObjectManager.getCountByCreated( EventVisualization.class, startDate );
         double savedDashboards = idObjectManager.getCountByCreated( Dashboard.class, startDate );
         double savedIndicators = idObjectManager.getCountByCreated( Indicator.class, startDate );
         double savedDataValues = dataValueService.getDataValueCount( days );
@@ -127,12 +153,13 @@ public class DefaultDataStatisticsService
             eventCountMap.get( DataStatisticsEventType.VISUALIZATION_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.EVENT_CHART_VIEW ),
+            eventCountMap.get( DataStatisticsEventType.EVENT_VISUALIZATION_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DASHBOARD_VIEW ),
             eventCountMap.get( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW ),
             eventCountMap.get( DataStatisticsEventType.DATA_SET_REPORT_VIEW ),
             eventCountMap.get( DataStatisticsEventType.TOTAL_VIEW ),
-            savedMaps, savedVisualizations, savedEventReports,
-            savedEventCharts, savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
+            savedMaps, savedVisualizations, savedEventReports, savedEventCharts, savedEventVisualizations,
+            savedDashboards, savedIndicators, savedDataValues, activeUsers, users );
 
         return dataStatistics;
     }

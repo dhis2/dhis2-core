@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
 
 import java.util.HashMap;
 import java.util.List;
@@ -192,6 +193,8 @@ public class DefaultObjectBundleService implements ObjectBundleService
         List<T> objects, ObjectBundle bundle )
     {
         TypeReport typeReport = new TypeReport( klass );
+
+        handleDeprecationIfEventReport( klass, objects );
 
         if ( objects.isEmpty() )
         {
