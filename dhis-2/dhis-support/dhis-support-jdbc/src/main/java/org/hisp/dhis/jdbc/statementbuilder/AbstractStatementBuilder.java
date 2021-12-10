@@ -383,21 +383,15 @@ public abstract class AbstractStatementBuilder
 
     private String createOrderTypeAndOffset( String stageOffset )
     {
-        try
+        int offset = Integer.parseInt( stageOffset );
+
+        if ( offset <= 0 )
         {
-            int offset = Integer.parseInt( stageOffset );
-            if ( offset <= 0 )
-            {
-                return "desc offset " + (-1 * offset);
-            }
-            else
-            {
-                return "asc offset " + (offset - 1);
-            }
+            return "desc offset " + (-1 * offset);
         }
-        catch ( NumberFormatException ex )
+        else
         {
-            return "desc";
+            return "asc offset " + (offset - 1);
         }
     }
 

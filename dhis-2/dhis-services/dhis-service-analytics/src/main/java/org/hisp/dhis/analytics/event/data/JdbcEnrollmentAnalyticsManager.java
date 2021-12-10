@@ -49,7 +49,6 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -128,12 +127,9 @@ public class JdbcEnrollmentAnalyticsManager
         {
             grid.addRow();
 
-            int index = 1;
-
-            for ( GridHeader header : grid.getHeaders() )
+            for ( int i = 0; i < grid.getHeaders().size(); ++i )
             {
-                addGridValue( grid, header, index, rowSet, params );
-                index++;
+                addGridValue( grid, grid.getHeaders().get( i ), i + 1, rowSet, params );
             }
         }
     }

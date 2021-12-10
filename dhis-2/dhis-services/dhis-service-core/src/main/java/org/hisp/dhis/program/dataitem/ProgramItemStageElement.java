@@ -71,7 +71,7 @@ public class ProgramItemStageElement
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
         }
 
-        if ( hasNonDefaultStageOffset( visitor.getStageOffset() )
+        if ( isNonDefaultStageOffset( visitor.getStageOffset() )
             && !isRepeatableStage( stageService, programStageId ) )
         {
             throw new ParserException( getErrorMessage( programStageId ) );
@@ -91,29 +91,33 @@ public class ProgramItemStageElement
         assumeStageElementSyntax( ctx );
 
         String programStageId = ctx.uid0.getText();
+
         String dataElementId = ctx.uid1.getText();
+
         int stageOffset = visitor.getStageOffset();
 
-        if ( hasNonDefaultStageOffset( stageOffset ) )
+        String column;
+
+        if ( isNonDefaultStageOffset( stageOffset ) )
         {
             if ( isRepeatableStage( visitor.getProgramStageService(), programStageId ) )
             {
-                return " coalesce("
-                    + visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageId,
-                        Integer.valueOf( stageOffset ).toString(),
-                        "\"" + dataElementId + "\"",
-                        visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() )
-                    + "::numeric, 0)";
+                column = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageId,
+                    Integer.valueOf( stageOffset ).toString(),
+                    "\"" + dataElementId + "\"",
+                    visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() );
             }
             else
             {
                 throw new ParserException( getErrorMessage( programStageId ) );
             }
         }
-
-        String column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
-            programStageId, dataElementId, visitor.getReportingStartDate(), visitor.getReportingEndDate(),
-            visitor.getProgramIndicator() );
+        else
+        {
+            column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
+                programStageId, dataElementId, visitor.getReportingStartDate(), visitor.getReportingEndDate(),
+                visitor.getProgramIndicator() );
+        }
 
         if ( visitor.getReplaceNulls() )
         {
@@ -131,7 +135,7 @@ public class ProgramItemStageElement
         return column;
     }
 
-    private static boolean hasNonDefaultStageOffset( int stageOffset )
+    private static boolean isNonDefaultStageOffset( int stageOffset )
     {
         return stageOffset != Integer.MIN_VALUE;
     }
