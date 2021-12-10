@@ -412,8 +412,8 @@ public class HibernateTrackedEntityInstanceStore
     private String encodeAndQuote( Collection<String> elements )
     {
         return getQuotedCommaDelimitedString( elements.stream()
-                .map( element -> statementBuilder.encode( element, false ) )
-                .collect( Collectors.toList() ) );
+            .map( element -> statementBuilder.encode( element, false ) )
+            .collect( Collectors.toList() ) );
     }
 
     @Override
