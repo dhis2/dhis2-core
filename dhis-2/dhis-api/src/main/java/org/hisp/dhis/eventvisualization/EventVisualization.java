@@ -730,12 +730,12 @@ public class EventVisualization extends BaseAnalyticalObject
      * and only exists for very specific use cases. See
      * {@link SimpleEventDimension}).
      *
-     * @param dimension
-     * @param attribute
+     * @param dimension the dimension, ie: dx, pe, eventDate
+     * @param parent the parent attribute
      * @return the dimensional object related to the given dimension and
      *         attribute.
      */
-    private DimensionalObject getDimensionalObject( final String dimension, final Attribute attribute )
+    private DimensionalObject getDimensionalObject( final String dimension, final Attribute parent )
     {
         final Optional<DimensionalObject> dimensionalObject = super.getDimensionalObject( dimension );
 
@@ -745,7 +745,7 @@ public class EventVisualization extends BaseAnalyticalObject
         }
         else
         {
-            return new SimpleEventDimensionHandler( this ).getDimensionalObject( dimension, attribute );
+            return new SimpleEventDimensionHandler( this ).getDimensionalObject( dimension, parent );
         }
     }
 
