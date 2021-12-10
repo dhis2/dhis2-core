@@ -116,7 +116,7 @@ public class CommonExpressionVisitor
      */
     private int periodOffset = 0;
 
-    private int stageOffset = 0;
+    private int stageOffset = Integer.MIN_VALUE;
 
     /**
      * Used to collect the string replacements to build a description.

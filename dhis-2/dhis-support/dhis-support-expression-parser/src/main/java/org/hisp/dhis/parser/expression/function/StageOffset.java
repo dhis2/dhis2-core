@@ -28,7 +28,6 @@
 package org.hisp.dhis.parser.expression.function;
 
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -36,7 +35,6 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
 
 /**
  * @author Dusan Bernat
@@ -49,31 +47,15 @@ public class StageOffset implements ExpressionItem
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        return visitor.visit( ctx.expr( 0 ) );
-    }
+        int oldStageOffset = visitor.getStageOffset();
 
-    @Override
-    public Object getDescription( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String programStageUid = getProgramStageUid( ctx.expr( 0 ) );
+        visitor.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
 
-        ProgramStageService stageService = visitor.getProgramStageService();
+        Object ret = visitor.visit( ctx.expr( 0 ) );
 
-        ProgramStage stage = stageService != null ? stageService.getProgramStage( programStageUid ) : null;
+        visitor.setStageOffset( oldStageOffset );
 
-        if ( stage == null || !stage.getRepeatable() )
-        {
-            String errorMessage = "StageOffset is allowed only for repeatable stages";
-
-            if ( isValidUid( programStageUid ) )
-            {
-                errorMessage += " (" + programStageUid + " is not repeatable)";
-            }
-
-            throw new ParserException( errorMessage );
-        }
-
-        return ExpressionItem.super.getDescription( ctx, visitor );
+        return ret;
     }
 
     @Override
@@ -116,12 +98,5 @@ public class StageOffset implements ExpressionItem
         }
 
         return firstFragment;
-    }
-
-    private boolean isValidUid( String value )
-    {
-        final Pattern uidPattern = Pattern.compile( "^[a-zA-Z]{1}[a-zA-Z0-9]{10}$" );
-
-        return value != null && uidPattern.matcher( value ).matches();
     }
 }

@@ -30,12 +30,14 @@ package org.hisp.dhis.program.dataitem;
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
@@ -54,7 +56,9 @@ public class ProgramItemStageElement
         String programStageId = ctx.uid0.getText();
         String dataElementId = ctx.uid1.getText();
 
-        ProgramStage programStage = visitor.getProgramStageService().getProgramStage( programStageId );
+        ProgramStageService stageService = visitor.getProgramStageService();
+
+        ProgramStage programStage = stageService.getProgramStage( programStageId );
         DataElement dataElement = visitor.getDataElementService().getDataElement( dataElementId );
 
         if ( programStage == null )
@@ -65,6 +69,20 @@ public class ProgramItemStageElement
         if ( dataElement == null )
         {
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
+        }
+
+        if ( visitor.getStageOffset() != Integer.MIN_VALUE )
+        {
+            ProgramStage stage = stageService.getProgramStage( programStageId );
+
+            if ( stage == null || !stage.getRepeatable() )
+            {
+                String errorMessage = "StageOffset is allowed only for repeatable stages";
+
+                errorMessage += " (" + programStageId + " is not repeatable)";
+
+                throw new ParserException( errorMessage );
+            }
         }
 
         String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID
