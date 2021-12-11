@@ -46,12 +46,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
     private static final Set<String> XML_PATHS = Set.of(
-        "/relationships",
-        "/enrollments",
-        "/events",
-        "/trackedEntityInstances",
-        "/dataValueSets",
-        "/completeDataSetRegistrations" );
+        "/(\\d\\d/)?relationships(/?$|/.+)",
+        "/(\\d\\d/)?enrollments(/?$|/.+)",
+        "/(\\d\\d/)?events(/?$|/.+)",
+        "/(\\d\\d/)?trackedEntityInstances(/?$|/.+)",
+        "/(\\d\\d/)?dataValueSets(/?$|/.+)",
+        "/(\\d\\d/)?completeDataSetRegistrations(/?$|/.+)" );
 
     public XmlPathMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
     {
@@ -66,7 +66,7 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
 
         for ( var path : XML_PATHS )
         {
-            if ( pathInfo.contains( path ) )
+            if ( pathInfo.matches( path ) )
             {
                 return super.canRead( clazz, mediaType );
             }
@@ -83,7 +83,7 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
 
         for ( var path : XML_PATHS )
         {
-            if ( pathInfo.contains( path ) )
+            if ( pathInfo.matches( path ) )
             {
                 return super.canWrite( clazz, mediaType );
             }
