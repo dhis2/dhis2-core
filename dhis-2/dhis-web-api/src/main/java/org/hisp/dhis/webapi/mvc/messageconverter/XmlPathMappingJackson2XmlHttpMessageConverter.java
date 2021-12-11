@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
-import java.util.Set;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -45,13 +46,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
 {
-    private static final Set<String> XML_PATHS = Set.of(
-        "/(\\d\\d/)?relationships(/?$|/.+)",
-        "/(\\d\\d/)?enrollments(/?$|/.+)",
-        "/(\\d\\d/)?events(/?$|/.+)",
-        "/(\\d\\d/)?trackedEntityInstances(/?$|/.+)",
-        "/(\\d\\d/)?dataValueSets(/?$|/.+)",
-        "/(\\d\\d/)?completeDataSetRegistrations(/?$|/.+)" );
+    private static final List<Pattern> XML_PATTERNS = List.of(
+        Pattern.compile( "/(\\d\\d/)?relationships(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?enrollments(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?events(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?dataValueSets(/?$|/.+)" ),
+        Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(/?$|/.+)" ) );
 
     public XmlPathMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
     {
@@ -64,9 +65,9 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
         HttpServletRequest request = ContextUtils.getRequest();
         String pathInfo = request.getPathInfo();
 
-        for ( var path : XML_PATHS )
+        for ( var pathPattern : XML_PATTERNS )
         {
-            if ( pathInfo.matches( path ) )
+            if ( pathPattern.matcher( pathInfo ).matches() )
             {
                 return super.canRead( clazz, mediaType );
             }
@@ -81,9 +82,9 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
         HttpServletRequest request = ContextUtils.getRequest();
         String pathInfo = request.getPathInfo();
 
-        for ( var path : XML_PATHS )
+        for ( var pathPattern : XML_PATTERNS )
         {
-            if ( pathInfo.matches( path ) )
+            if ( pathPattern.matcher( pathInfo ).matches() )
             {
                 return super.canWrite( clazz, mediaType );
             }
