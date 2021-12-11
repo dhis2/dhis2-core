@@ -58,7 +58,7 @@ public abstract class WebSnippet<T> implements WebClient
     public final HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
         String content )
     {
-        return client.webRequest( method, null, headers, contentType, content );
+        return client.webRequest( method, url, headers, contentType, content );
     }
 
     /**
