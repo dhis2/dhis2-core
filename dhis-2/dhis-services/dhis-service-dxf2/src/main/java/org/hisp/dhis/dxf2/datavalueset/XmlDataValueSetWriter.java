@@ -88,5 +88,6 @@ final class XmlDataValueSetWriter implements DataValueSetWriter
     {
         writer.closeElement();
         writer.closeDocument();
+        writer.closeWriter();
     }
 }

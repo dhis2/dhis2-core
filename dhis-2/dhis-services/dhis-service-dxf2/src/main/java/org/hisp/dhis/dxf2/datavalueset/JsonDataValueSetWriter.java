@@ -139,6 +139,7 @@ final class JsonDataValueSetWriter implements DataValueSetWriter
         {
             generator.writeEndArray();
             generator.writeEndObject();
+            generator.close();
         }
         catch ( IOException ex )
         {
