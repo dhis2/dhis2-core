@@ -504,8 +504,6 @@ public class ExpressionService2Test extends DhisSpringTest
         Set<DimensionalItemId> itemIds = Sets.newHashSet(
             getId( opA ), getId( opB ), getId( deB ), getId( pdeA ), getId( pteaA ), getId( piA ) );
 
-        Set<DimensionalItemObject> itemObjects = Sets.newHashSet( opA, opB, deB, pdeA, pteaA, piA );
-
         ImmutableMap<DimensionalItemId, DimensionalItemObject> itemMap = ImmutableMap
             .<DimensionalItemId, DimensionalItemObject> builder()
             .put( getId( opA ), opA )
@@ -753,8 +751,6 @@ public class ExpressionService2Test extends DhisSpringTest
         List<Indicator> indicators = Arrays.asList( indicatorA );
 
         Map<DimensionalItemId, DimensionalItemObject> itemMap = target.getIndicatorDimensionalItemMap( indicators );
-
-        List<Period> periods = Collections.singletonList( period );
 
         Map<DimensionalItemObject, Object> valueMap = new HashMap<>();
 

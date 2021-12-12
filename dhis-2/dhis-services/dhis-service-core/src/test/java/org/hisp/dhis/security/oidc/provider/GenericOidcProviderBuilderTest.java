@@ -47,6 +47,7 @@ import org.junit.Test;
 public class GenericOidcProviderBuilderTest
 {
     @Test
+    @SuppressWarnings( "unchecked" )
     public void testBuildSuccessfully()
     {
         Properties p = new Properties();
