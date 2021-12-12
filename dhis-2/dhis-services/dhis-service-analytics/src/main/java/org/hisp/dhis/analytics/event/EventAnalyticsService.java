@@ -113,8 +113,6 @@ public interface EventAnalyticsService
      * contain keys described in {@link AnalyticsMetaDataKey}.
      *
      * @param params the event query parameters.
-     * @param columns the identifiers of the dimensions to use as columns.
-     * @param rows the identifiers of the dimensions to use as rows.
      * @param tryCache the flag, if true the data are fetched from cache first
      * @return aggregated data as a Grid object.
      */
