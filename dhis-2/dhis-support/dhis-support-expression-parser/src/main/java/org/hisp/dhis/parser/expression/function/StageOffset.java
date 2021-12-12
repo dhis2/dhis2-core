@@ -40,19 +40,16 @@ public class StageOffset implements ExpressionItem
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        int oldStageOffset = visitor.getStageOffset();
-
-        visitor.setStageOffset( Integer.parseInt( ctx.stage.getText() ) );
-
-        Object ret = visitor.visit( ctx.expr( 0 ) );
-
-        visitor.setStageOffset( oldStageOffset );
-
-        return ret;
+        return next( ctx, visitor );
     }
 
     @Override
     public Object getSql( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return next( ctx, visitor );
+    }
+
+    private static Object next( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
         int oldStageOffset = visitor.getStageOffset();
 
