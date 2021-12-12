@@ -223,7 +223,7 @@ public class DefaultQueryItemLocator
             : null);
     }
 
-    private String removeOffset( String dimension )
+    private static String removeOffset( String dimension )
     {
         final Pattern pattern = Pattern.compile( INDEX_REGEX );
 
@@ -237,7 +237,7 @@ public class DefaultQueryItemLocator
         return dimension;
     }
 
-    private int getProgramStageOffset( String dimension )
+    private static int getProgramStageOffset( String dimension )
     {
         final Pattern pattern = Pattern.compile( INDEX_REGEX );
 

@@ -49,7 +49,7 @@ public class StageOffset implements ExpressionItem
         return next( ctx, visitor );
     }
 
-    private static Object next( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
+    private Object next( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )
     {
         int oldStageOffset = visitor.getStageOffset();
 
