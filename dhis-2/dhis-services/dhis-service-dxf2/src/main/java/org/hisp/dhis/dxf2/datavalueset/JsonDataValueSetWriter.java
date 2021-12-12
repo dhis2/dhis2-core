@@ -119,7 +119,11 @@ final class JsonDataValueSetWriter implements DataValueSetWriter
             generator.writeStringField( "lastUpdated", entry.getLastUpdated() );
             generator.writeStringField( "comment", entry.getComment() );
             generator.writeBooleanField( "followup", entry.getFollowup() );
-            generator.writeBooleanField( "deleted", entry.getDeleted() );
+            Boolean deleted = entry.getDeleted();
+            if ( deleted != null )
+            {
+                generator.writeBooleanField( "deleted", deleted );
+            }
             generator.writeEndObject();
         }
         catch ( IOException ex )
