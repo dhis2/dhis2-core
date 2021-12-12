@@ -55,6 +55,7 @@ public class DhisPostgisContainerProvider
     {
         DockerImageName postgres = DockerImageName.parse( DEFAULT_IMAGE + ":" + tag )
             .asCompatibleSubstituteFor( "postgres" );
+
         return new DhisPostgreSQLContainer( postgres );
     }
 }

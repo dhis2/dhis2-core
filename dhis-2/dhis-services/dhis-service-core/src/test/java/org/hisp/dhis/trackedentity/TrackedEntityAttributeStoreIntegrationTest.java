@@ -27,21 +27,16 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -53,9 +48,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Chau Thu Tran
  */
-public class TrackedEntityAttributeStoreTest
+public class TrackedEntityAttributeStoreIntegrationTest
     extends
-    DhisSpringTest
+    IntegrationTestBase
 {
     @Autowired
     private TrackedEntityAttributeService attributeService;
@@ -83,7 +78,9 @@ public class TrackedEntityAttributeStoreTest
     {
 
         attributeW = createTrackedEntityAttribute( 'W' );
+        attributeW.setUnique( true );
         attributeY = createTrackedEntityAttribute( 'Y' );
+        attributeY.setUnique( true );
         attributeZ = createTrackedEntityAttribute( 'Z', ValueType.NUMBER );
 
         List<TrackedEntityAttribute> attributesA = new ArrayList<>();
@@ -113,12 +110,24 @@ public class TrackedEntityAttributeStoreTest
                 attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
             .collect( Collectors.toList() );
 
+        // Setting searchable to true for 5 tracked entity type attributes
+        TrackedEntityTypeAttribute teta = teatList.get( 0 );
+        teta.setSearchable( true );
+        teta = teatList.get( 4 );
+        teta.setSearchable( true );
+        teta = teatList.get( 9 );
+        teta.setSearchable( true );
+        teta = teatList.get( 14 );
+        teta.setSearchable( true );
+        teta = teatList.get( 19 );
+        teta.setSearchable( true );
+
         // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type A
-        trackedEntityTypeA.setTrackedEntityTypeAttributes( teatList.subList( 0, 10 ) );
+        trackedEntityTypeA.getTrackedEntityTypeAttributes().addAll( teatList.subList( 0, 10 ) );
         trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeA );
 
         // Assign 10 TrackedEntityTypeAttribute to Tracked Entity Type B
-        trackedEntityTypeB.setTrackedEntityTypeAttributes( teatList.subList( 10, 20 ) );
+        trackedEntityTypeB.getTrackedEntityTypeAttributes().addAll( teatList.subList( 10, 20 ) );
         trackedEntityTypeService.updateTrackedEntityType( trackedEntityTypeB );
 
         programB = createProgram( 'B' );
@@ -129,136 +138,75 @@ public class TrackedEntityAttributeStoreTest
                 attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
             .collect( Collectors.toList() );
 
-        programB.setProgramAttributes( pteaList );
+        // Setting searchable to true for 5 program tracked entity attributes
+        ProgramTrackedEntityAttribute ptea = pteaList.get( 0 );
+        ptea.setSearchable( true );
+        ptea = pteaList.get( 4 );
+        ptea.setSearchable( true );
+        ptea = pteaList.get( 9 );
+        ptea.setSearchable( true );
+        ptea = pteaList.get( 13 );
+        ptea.setSearchable( true );
+        ptea = pteaList.get( 18 );
+        ptea.setSearchable( true );
+
+        programB.getProgramAttributes().addAll( pteaList );
         programService.updateProgram( programB );
 
     }
 
     @Test
-    public void testSaveTrackedEntityAttribute()
+    public void testGetAllIndexableAttributes()
     {
         long idA = attributeService.addTrackedEntityAttribute( attributeW );
         long idB = attributeService.addTrackedEntityAttribute( attributeY );
 
-        assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
-        assertNotNull( attributeService.getTrackedEntityAttribute( idB ) );
+        Set<TrackedEntityAttribute> indexableAttributes = attributeService
+            .getAllTrigramIndexableTrackedEntityAttributes();
+
+        assertNotNull( indexableAttributes );
+        assertEquals( indexableAttributes.size(), 9 );
+        assertTrue( indexableAttributes.contains( attributeW ) );
+        assertTrue( indexableAttributes.contains( attributeY ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'A' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'E' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'J' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'N' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'O' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'S' ) ) );
+        assertTrue(
+            indexableAttributes.contains( attributeService.getTrackedEntityAttributeByName( "Attribute" + 'T' ) ) );
     }
 
     @Test
-    public void testDeleteTrackedEntityAttribute()
+    public void testCreateTrigramIndex()
     {
         long idA = attributeService.addTrackedEntityAttribute( attributeW );
-        long idB = attributeService.addTrackedEntityAttribute( attributeY );
-
-        assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
-        assertNotNull( attributeService.getTrackedEntityAttribute( idB ) );
-
-        attributeService.deleteTrackedEntityAttribute( attributeW );
-
-        assertNull( attributeService.getTrackedEntityAttribute( idA ) );
-        assertNotNull( attributeService.getTrackedEntityAttribute( idB ) );
-
-        attributeService.deleteTrackedEntityAttribute( attributeY );
-
-        assertNull( attributeService.getTrackedEntityAttribute( idA ) );
-        assertNull( attributeService.getTrackedEntityAttribute( idB ) );
+        attributeService.createTrigramIndex( attributeW );
     }
 
     @Test
-    public void testUpdateTrackedEntityAttribute()
+    public void testRunAnalyze()
     {
-        long idA = attributeService.addTrackedEntityAttribute( attributeW );
-
-        assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
-
-        attributeW.setName( "B" );
-        attributeService.updateTrackedEntityAttribute( attributeW );
-
-        assertEquals( "B", attributeService.getTrackedEntityAttribute( idA ).getName() );
+        attributeService.runAnalyze();
     }
 
     @Test
-    public void testGetTrackedEntityAttributeById()
+    public void testRunVacuum()
     {
-        long idA = attributeService.addTrackedEntityAttribute( attributeW );
-        long idB = attributeService.addTrackedEntityAttribute( attributeY );
-
-        assertEquals( attributeW, attributeService.getTrackedEntityAttribute( idA ) );
-        assertEquals( attributeY, attributeService.getTrackedEntityAttribute( idB ) );
+        attributeService.runVacuum();
     }
 
-    @Test
-    public void testGetTrackedEntityAttributeByUid()
+    @Override
+    public boolean emptyDatabaseAfterTest()
     {
-        attributeW.setUid( "uid" );
-        attributeService.addTrackedEntityAttribute( attributeW );
-
-        assertEquals( attributeW, attributeService.getTrackedEntityAttribute( "uid" ) );
-    }
-
-    @Test
-    public void testGetTrackedEntityAttributeByName()
-    {
-        long idA = attributeService.addTrackedEntityAttribute( attributeW );
-
-        assertNotNull( attributeService.getTrackedEntityAttribute( idA ) );
-        assertEquals( attributeW.getName(),
-            attributeService.getTrackedEntityAttributeByName( "AttributeW" ).getName() );
-    }
-
-    @Test
-    public void testGetAllTrackedEntityAttributes()
-    {
-        attributeService.addTrackedEntityAttribute( attributeW );
-        attributeService.addTrackedEntityAttribute( attributeY );
-
-        List<TrackedEntityAttribute> teas = attributeService.getAllTrackedEntityAttributes();
-
-        assertThat( teas, hasItem( attributeW ) );
-        assertThat( teas, hasItem( attributeY ) );
-    }
-
-    @Test
-    public void testGetTrackedEntityAttributesByDisplayOnVisitSchedule()
-    {
-        attributeW.setDisplayOnVisitSchedule( true );
-        attributeY.setDisplayOnVisitSchedule( true );
-        attributeZ.setDisplayOnVisitSchedule( false );
-
-        attributeService.addTrackedEntityAttribute( attributeW );
-        attributeService.addTrackedEntityAttribute( attributeY );
-        attributeService.addTrackedEntityAttribute( attributeZ );
-
-        List<TrackedEntityAttribute> attributes = attributeService
-            .getTrackedEntityAttributesByDisplayOnVisitSchedule( true );
-        assertEquals( 2, attributes.size() );
-        assertTrue( attributes.contains( attributeW ) );
-        assertTrue( attributes.contains( attributeY ) );
-
-        attributes = attributeService.getTrackedEntityAttributesByDisplayOnVisitSchedule( false );
-        assertEquals( 21, attributes.size() );
-        assertTrue( attributes.contains( attributeZ ) );
-    }
-
-    @Test
-    public void verifyGetTrackedEntityAttributesByTrackedEntityTypes()
-    {
-
-        Set<TrackedEntityAttribute> trackedEntityAttributes = attributeService
-            .getTrackedEntityAttributesByTrackedEntityTypes();
-
-        assertThat( trackedEntityAttributes, hasSize( 20 ) );
-    }
-
-    @Test
-    public void verifyGetTrackedEntityAttributesByProgram()
-    {
-
-        Map<Program, Set<TrackedEntityAttribute>> trackedEntityAttributes = attributeService
-            .getTrackedEntityAttributesByProgram();
-
-        assertThat( trackedEntityAttributes.size(), is( 1 ) );
-        assertThat( trackedEntityAttributes.get( programB ), hasSize( 20 ) );
+        return true;
     }
 
 }
