@@ -491,7 +491,11 @@ public class JdbcEnrollmentAnalyticsManager
 
     private String createOrderTypeAndOffset( int offset )
     {
-        if ( offset <= 0 )
+        if ( offset == 0 )
+        {
+            return "desc";
+        }
+        if ( offset < 0 )
         {
             return "desc offset " + (-1 * offset);
         }

@@ -385,7 +385,11 @@ public abstract class AbstractStatementBuilder
     {
         int offset = Integer.parseInt( stageOffset );
 
-        if ( offset <= 0 )
+        if ( offset == 0 )
+        {
+            return "desc";
+        }
+        if ( offset < 0 )
         {
             return "desc offset " + (-1 * offset);
         }
