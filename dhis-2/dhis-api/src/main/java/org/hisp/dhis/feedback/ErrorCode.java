@@ -44,6 +44,7 @@ public enum ErrorCode
     E1103( "Category option combo not found or not accessible: `{0}`" ),
     E1104( "Attribute option combo not found or not accessible: `{0}`" ),
     E1105( "Data set not found or not accessible: `{0}`" ),
+    E1106( "There are duplicate translation record for property `{0}` and locale `{1}`" ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),

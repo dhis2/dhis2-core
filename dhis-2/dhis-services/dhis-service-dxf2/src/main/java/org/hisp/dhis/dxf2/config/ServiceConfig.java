@@ -101,6 +101,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.NotOwnerReferencesChe
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SecurityCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueAttributesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueMultiPropertiesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniquenessCheck;
@@ -214,7 +215,8 @@ public class ServiceConfig
                 getValidationCheckByClass( MandatoryAttributesCheck.class ),
                 getValidationCheckByClass( UniqueAttributesCheck.class ),
                 getValidationCheckByClass( ReferencesCheck.class ),
-                getValidationCheckByClass( NotOwnerReferencesCheck.class ) ),
+                getValidationCheckByClass( NotOwnerReferencesCheck.class ),
+                getValidationCheckByClass( TranslationsCheck.class ) ),
             CREATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -226,7 +228,8 @@ public class ServiceConfig
                 getValidationCheckByClass( MandatoryAttributesCheck.class ),
                 getValidationCheckByClass( UniqueAttributesCheck.class ),
                 getValidationCheckByClass( ReferencesCheck.class ),
-                getValidationCheckByClass( NotOwnerReferencesCheck.class ) ),
+                getValidationCheckByClass( NotOwnerReferencesCheck.class ),
+                getValidationCheckByClass( TranslationsCheck.class ) ),
             UPDATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -238,7 +241,8 @@ public class ServiceConfig
                 getValidationCheckByClass( MandatoryAttributesCheck.class ),
                 getValidationCheckByClass( UniqueAttributesCheck.class ),
                 getValidationCheckByClass( ReferencesCheck.class ),
-                getValidationCheckByClass( NotOwnerReferencesCheck.class ) ),
+                getValidationCheckByClass( NotOwnerReferencesCheck.class ),
+                getValidationCheckByClass( TranslationsCheck.class ) ),
             DELETE, newArrayList(
                 getValidationCheckByClass( SecurityCheck.class ),
                 getValidationCheckByClass( DeletionCheck.class ) ) );
