@@ -83,7 +83,7 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
             "programRuleAction", // needs DataElement and TrackedEntityAttribute
                                  // (not a required field)
             "validationRule", // generator insufficient (embedded fields)
-
+            "programStage", // required Program not required in schema
             // presumably server errors/bugs
             "trackedEntityInstance", // conflict (no details)
             "Predictor" // NPE in preheat when creating objects
@@ -131,10 +131,9 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
                 // delete the last created object
                 // (the one belonging to the tested schema)
                 assertStatus( HttpStatus.OK, DELETE( endpoint + "/" + uid ) );
-
             }
         }
-        assertTrue( "make sure we actually test schemas", testedSchemas >= 59 );
+        assertTrue( "make sure we actually test schemas", testedSchemas >= 58 );
     }
 
     /**
