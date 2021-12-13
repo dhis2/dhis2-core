@@ -195,6 +195,7 @@ public enum SettingKey
         "keyDashboardContextMenuItemShowInterpretationsAndDetails", Boolean.TRUE, Boolean.class ),
     DASHBOARD_CONTEXT_MENU_ITEM_VIEW_FULLSCREEN( "keyDashboardContextMenuItemViewFullscreen", Boolean.TRUE,
         Boolean.class ),
+    DEFAULT_BASE_MAP( "keyDefaultBaseMap" ),
     RULE_ENGINE_ASSIGN_OVERWRITE( "ruleEngineAssignOverwrite", Boolean.FALSE, Boolean.class ),
 
     /**

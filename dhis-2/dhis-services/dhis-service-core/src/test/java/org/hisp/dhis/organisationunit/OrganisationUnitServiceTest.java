@@ -1020,11 +1020,11 @@ public class OrganisationUnitServiceTest
         organisationUnitService.addOrganisationUnitLevel( levelA );
         organisationUnitService.addOrganisationUnitLevel( levelB );
 
-        assertEquals( new Integer( 1 ), organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "1" ) );
-        assertEquals( new Integer( 1 ),
+        assertEquals( Integer.valueOf( 1 ), organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "1" ) );
+        assertEquals( Integer.valueOf( 1 ),
             organisationUnitService.getOrganisationUnitLevelByLevelOrUid( levelA.getUid() ) );
-        assertEquals( new Integer( 2 ), organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) );
-        assertEquals( new Integer( 2 ),
+        assertEquals( Integer.valueOf( 2 ), organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) );
+        assertEquals( Integer.valueOf( 2 ),
             organisationUnitService.getOrganisationUnitLevelByLevelOrUid( levelB.getUid() ) );
     }
 

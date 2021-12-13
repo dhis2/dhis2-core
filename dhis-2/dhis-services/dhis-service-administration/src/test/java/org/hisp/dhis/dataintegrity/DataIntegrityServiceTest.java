@@ -168,8 +168,6 @@ public class DataIntegrityServiceTest
 
     private DefaultDataIntegrityService subject;
 
-    private BeanRandomizer rnd;
-
     private DataElementGroup elementGroupA;
 
     private IndicatorType indicatorTypeA;
@@ -216,6 +214,8 @@ public class DataIntegrityServiceTest
 
     private ProgramRuleAction programRuleActionA;
 
+    private final BeanRandomizer rnd = BeanRandomizer.create( DataSet.class, "periodType", "workflow" );
+
     @Before
     public void setUp()
     {
@@ -223,7 +223,6 @@ public class DataIntegrityServiceTest
             programRuleVariableService, dataElementService, indicatorService, dataSetService,
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
             dataEntryFormService, categoryService, periodService, programIndicatorService );
-        rnd = new BeanRandomizer();
         setUpFixtures();
     }
 
@@ -348,14 +347,14 @@ public class DataIntegrityServiceTest
         String seed = "abcde";
         Map<String, DataElement> dataElements = createRandomDataElements( 6, seed );
 
-        DataSet dataSet1 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
+        DataSet dataSet1 = rnd.nextObject( DataSet.class );
         dataSet1.setPeriodType( PeriodType.getPeriodTypeFromIsoString( "2011" ) );
         dataSet1.addDataSetElement( dataElements.get( seed + 1 ) );
         dataSet1.addDataSetElement( dataElements.get( seed + 2 ) );
         dataSet1.addDataSetElement( dataElements.get( seed + 3 ) );
         dataSet1.addDataSetElement( dataElements.get( seed + 4 ) );
 
-        DataSet dataSet2 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
+        DataSet dataSet2 = rnd.nextObject( DataSet.class );
         dataSet2.setPeriodType( PeriodType.getByIndex( 5 ) );
         dataSet2.addDataSetElement( dataElements.get( seed + 4 ) );
         dataSet2.addDataSetElement( dataElements.get( seed + 5 ) );
@@ -381,13 +380,13 @@ public class DataIntegrityServiceTest
         String seed = "abcde";
         Map<String, DataElement> dataElements = createRandomDataElements( 6, seed );
 
-        DataSet dataSet1 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
+        DataSet dataSet1 = rnd.nextObject( DataSet.class );
         dataSet1.setPeriodType( PeriodType.getPeriodTypeFromIsoString( "2011" ) );
         dataSet1.addDataSetElement( dataElements.get( seed + 1 ) );
         dataSet1.addDataSetElement( dataElements.get( seed + 2 ) );
         dataSet1.addDataSetElement( dataElements.get( seed + 3 ) );
 
-        DataSet dataSet2 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
+        DataSet dataSet2 = rnd.nextObject( DataSet.class );
         dataSet2.setPeriodType( PeriodType.getByIndex( 5 ) );
         dataSet2.addDataSetElement( dataElements.get( seed + 4 ) );
         dataSet2.addDataSetElement( dataElements.get( seed + 5 ) );
@@ -570,7 +569,7 @@ public class DataIntegrityServiceTest
     {
 
         return IntStream.range( 1, quantity + 1 ).mapToObj( i -> {
-            DataElement d = rnd.randomObject( DataElement.class );
+            DataElement d = rnd.nextObject( DataElement.class );
             d.setUid( uidSeed + i );
             return d;
         } ).collect( Collectors.toMap( DataElement::getUid, Function.identity() ) );

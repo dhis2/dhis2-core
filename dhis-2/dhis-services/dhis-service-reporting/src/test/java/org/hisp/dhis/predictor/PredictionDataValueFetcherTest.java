@@ -241,7 +241,7 @@ public class PredictionDataValueFetcherTest
         when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
 
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
-            BlockingQueue blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( deflatedDataValueA );
             blockingQueue.put( deflatedDataValueB );
             blockingQueue.put( deflatedDataValueC );
@@ -262,7 +262,7 @@ public class PredictionDataValueFetcherTest
     public void testOrgUnitsOutOfOrder()
     {
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
-            BlockingQueue blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( END_OF_DDV_DATA );
             return new ArrayList<>();
         } );
@@ -277,7 +277,7 @@ public class PredictionDataValueFetcherTest
     public void testNoDataValues()
     {
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
-            BlockingQueue blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( END_OF_DDV_DATA );
             return new ArrayList<>();
         } );

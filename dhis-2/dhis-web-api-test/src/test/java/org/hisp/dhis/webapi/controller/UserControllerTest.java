@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
-import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -52,7 +50,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.UserController}.
@@ -127,8 +124,8 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testReplicateUser_UserNameAlreadyTaken()
     {
-        assertWebMessage( "Conflict", 409, "ERROR", "Username already taken: Peter",
-            POST( "/users/" + peter.getUid() + "/replica", "{'username':'Peter','password':'Saf€sEcre1'}" )
+        assertWebMessage( "Conflict", 409, "ERROR", "Username already taken: peter",
+            POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter','password':'Saf€sEcre1'}" )
                 .content( HttpStatus.CONFLICT ) );
     }
 
@@ -187,32 +184,20 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPutXmlObject()
-    {
-        HttpResponse response = PUT( "/38/users/" + peter.getUid(), Body( "<user></user>" ),
-            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
-        assertTrue( content.contains(
-            "<message>One more more errors occurred, please see full details in import report.</message>" ) );
-    }
-
-    @Test
-    public void testPutXmlObject_Pre38()
-    {
-        HttpResponse response = PUT( "/37/users/" + peter.getUid(), Body( "<user></user>" ),
-            ContentType( MediaType.APPLICATION_XML ), Accept( MediaType.APPLICATION_XML ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        String content = response.content( MediaType.APPLICATION_XML );
-        assertTrue( content.startsWith( "<importReport " ) );
-    }
-
-    @Test
     public void testPostJsonObject()
     {
         assertWebMessage( "Created", 201, "OK", null,
-            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'HarryS'}}" )
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'harrys'}}" )
                 .content( HttpStatus.CREATED ) );
+    }
+
+    @Test
+    public void testPostJsonObjectInvalidUsername()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "One more more errors occurred, please see full details in import report.",
+            POST( "/users/", "{'surname':'S.','firstName':'Harry','userCredentials':{'username':'Harrys'}}" )
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -220,7 +205,7 @@ public class UserControllerTest extends DhisControllerConvenienceTest
     {
         assertWebMessage( "Created", 201, "OK", null,
             POST( "/users/invite",
-                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'userCredentials':{'username':'HarryS'}}" )
+                "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'userCredentials':{'username':'harrys'}}" )
                     .content( HttpStatus.CREATED ) );
     }
 

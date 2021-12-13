@@ -149,7 +149,7 @@ public class StartupConfig
         MessageService messageService, DhisConfigurationProvider configurationProvider )
     {
         SchedulerStart schedulerStart = new SchedulerStart( systemSettingManager,
-            configurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ),
+            configurationProvider.isEnabled( ConfigurationKey.REDIS_ENABLED ),
             configurationProvider.getProperty( ConfigurationKey.LEADER_TIME_TO_LIVE ), jobConfigurationService,
             schedulingManager, messageService );
         schedulerStart.setRunlevel( 15 );

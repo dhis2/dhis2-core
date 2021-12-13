@@ -41,6 +41,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
@@ -75,6 +76,11 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
         }
 
         validateProgramStageDataElementsAcl( programStage, bundle, addReports );
+
+        if ( programStage.getProgram() == null && !checkProgramReference( programStage.getUid(), bundle ) )
+        {
+            addReports.accept( new ErrorReport( ProgramStage.class, ErrorCode.E4053, programStage.getUid() ) );
+        }
     }
 
     @Override
@@ -148,5 +154,22 @@ public class ProgramStageObjectBundleHook extends AbstractObjectBundleHook<Progr
                     identifier.getIdentifiersWithName( de ) ) );
             }
         } );
+    }
+
+    /**
+     * Check if current ProgramStage has reference from a Program in same
+     * payload.
+     */
+    private boolean checkProgramReference( String programStageId, ObjectBundle objectBundle )
+    {
+        for ( Program program : objectBundle.getObjects( Program.class ) )
+        {
+            if ( program.getProgramStages().stream().anyMatch( ps -> ps.getUid().equals( programStageId ) ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

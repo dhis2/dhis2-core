@@ -95,7 +95,7 @@ public class HibernateListenerConfigurer
     @PostConstruct
     protected void init()
     {
-        boolean auditEnabled = config.getBoolean( ConfigurationKey.AUDIT_ENABLED );
+        boolean auditEnabled = config.isEnabled( ConfigurationKey.AUDIT_ENABLED );
 
         boolean isTestAndNotAuditTest = isTestRun() && !isAuditTest();
 

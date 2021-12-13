@@ -30,6 +30,7 @@ package org.hisp.dhis.interpretation;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.DATASET_REPORT;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_CHART;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_REPORT;
+import static org.hisp.dhis.analytics.AnalyticsFavoriteType.EVENT_VISUALIZATION;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.MAP;
 import static org.hisp.dhis.analytics.AnalyticsFavoriteType.VISUALIZATION;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
@@ -45,6 +46,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
@@ -70,6 +72,8 @@ public class Interpretation
     extends BaseIdentifiableObject
 {
     private Visualization visualization;
+
+    private EventVisualization eventVisualization;
 
     private Map map;
 
@@ -147,6 +151,14 @@ public class Interpretation
         this.text = text;
     }
 
+    public Interpretation( EventVisualization eventVisualization, OrganisationUnit organisationUnit, String text )
+    {
+        this.eventVisualization = eventVisualization;
+        eventVisualization.getInterpretations().add( this );
+        this.organisationUnit = organisationUnit;
+        this.text = text;
+    }
+
     public Interpretation( DataSet dataSet, Period period, OrganisationUnit organisationUnit, String text )
     {
         this.dataSet = dataSet;
@@ -179,6 +191,10 @@ public class Interpretation
         {
             return EVENT_CHART;
         }
+        else if ( eventVisualization != null )
+        {
+            return EVENT_VISUALIZATION;
+        }
         else if ( dataSet != null )
         {
             return DATASET_REPORT;
@@ -205,6 +221,10 @@ public class Interpretation
         {
             return eventChart;
         }
+        else if ( eventVisualization != null )
+        {
+            return eventVisualization;
+        }
         else if ( dataSet != null )
         {
             return dataSet;
@@ -219,6 +239,11 @@ public class Interpretation
     }
 
     public boolean isVisualizationInterpretation()
+    {
+        return visualization != null;
+    }
+
+    public boolean isEventVisualizationInterpretation()
     {
         return visualization != null;
     }
@@ -304,6 +329,19 @@ public class Interpretation
     public void setVisualization( Visualization visualization )
     {
         this.visualization = visualization;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseIdentifiableObject.class )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public EventVisualization getEventVisualization()
+    {
+        return eventVisualization;
+    }
+
+    public void setEventVisualization( EventVisualization eventVisualization )
+    {
+        this.eventVisualization = eventVisualization;
     }
 
     @JsonProperty

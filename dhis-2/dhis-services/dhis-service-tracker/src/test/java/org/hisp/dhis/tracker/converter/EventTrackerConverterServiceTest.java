@@ -75,7 +75,7 @@ public class EventTrackerConverterServiceTest
 
     private final static String PROGRAM_UID = "ProgramUid";
 
-    private final static String USERNAME = "usernameU";
+    private final static String USERNAME = "usernameu";
 
     private final static Date today = new Date();
 

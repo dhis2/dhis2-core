@@ -32,13 +32,19 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -210,6 +216,25 @@ public class PreCheckMandatoryFieldsValidationHookTest
         validationHook.validateEvent( reporter, event );
 
         assertMissingPropertyForEvent( reporter, "program" );
+    }
+
+    @Test
+    public void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram()
+    {
+        Event event = Event.builder()
+            .orgUnit( CodeGenerator.generateUid() )
+            .programStage( CodeGenerator.generateUid() )
+            .build();
+        ProgramStage programStage = new ProgramStage();
+        programStage.setUid( event.getProgramStage() );
+        when( ctx.getProgramStage( anyString() ) ).thenReturn( programStage );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        validationHook.validateEvent( reporter, event );
+
+        assertTrue( reporter.hasErrors() );
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1008 ) );
     }
 
     @Test

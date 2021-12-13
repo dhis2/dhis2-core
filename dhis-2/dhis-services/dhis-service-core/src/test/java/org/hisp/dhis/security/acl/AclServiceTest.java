@@ -42,6 +42,8 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.Map;
@@ -220,6 +222,34 @@ public class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    public void testCanCreatePrivatePublicEventVisualization()
+    {
+        // Given
+        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+
+        // Then
+        assertFalse( aclService.canMakeClassPublic( user, EventVisualization.class ) );
+        assertTrue( aclService.canMakeClassPrivate( user, EventVisualization.class ) );
+    }
+
+    @Test
+    public void testCanUpdatePrivateEventVisualization()
+    {
+        // Given
+        User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
+
+        EventVisualization eventVisualization = new EventVisualization( "any" );
+        eventVisualization.setAutoFields();
+        eventVisualization.setCreatedBy( user );
+        eventVisualization.getSharing().setOwner( user );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+        eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
+
+        // Then
+        assertTrue( aclService.canUpdate( user, eventVisualization ) );
+    }
+
+    @Test
     public void testCanCreatePrivatePublicMap()
     {
         User user = createAdminUser( "F_DATAELEMENT_PRIVATE_ADD" );
@@ -370,6 +400,22 @@ public class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    public void testVerifyEventVisualizationCantExternalize()
+    {
+        // Given
+        User user = createAdminUser( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
+
+        EventVisualization eventVisualization = new EventVisualization();
+        eventVisualization.setAutoFields();
+        eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        eventVisualization.setExternalAccess( true );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        // Then
+        assertFalse( aclService.verifySharing( eventVisualization, user ).isEmpty() );
+    }
+
+    @Test
     public void testResetSharingPropsPrivate()
     {
         User user = createAdminUser();
@@ -391,6 +437,30 @@ public class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    public void testResetSharingEventVisualizationPropsPrivate()
+    {
+        // Given
+        User user = createAdminUser();
+
+        EventVisualization eventVisualization = new EventVisualization();
+        eventVisualization.setAutoFields();
+        eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        eventVisualization.setExternalAccess( true );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        assertFalse( aclService.verifySharing( eventVisualization, user ).isEmpty() );
+
+        // When
+        aclService.resetSharing( eventVisualization, user );
+
+        // Then
+        assertEquals( AccessStringHelper.DEFAULT, eventVisualization.getPublicAccess() );
+        assertFalse( eventVisualization.getExternalAccess() );
+        assertTrue( eventVisualization.getUserAccesses().isEmpty() );
+        assertTrue( eventVisualization.getUserGroupAccesses().isEmpty() );
+    }
+
+    @Test
     public void testResetSharingPropsPublic()
     {
         User user = createAdminUser( "F_VISUALIZATION_PUBLIC_ADD" );
@@ -409,6 +479,30 @@ public class AclServiceTest extends TransactionalIntegrationTest
         assertFalse( visualization.getExternalAccess() );
         assertTrue( visualization.getUserAccesses().isEmpty() );
         assertTrue( visualization.getUserGroupAccesses().isEmpty() );
+    }
+
+    @Test
+    public void testResetSharingEventVisualizationPropsPublic()
+    {
+        // Given
+        User user = createAdminUser( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
+
+        EventVisualization eventVisualization = new EventVisualization();
+        eventVisualization.setAutoFields();
+        eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        eventVisualization.setExternalAccess( true );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        assertFalse( aclService.verifySharing( eventVisualization, user ).isEmpty() );
+
+        // When
+        aclService.resetSharing( eventVisualization, user );
+
+        // Then
+        assertEquals( AccessStringHelper.READ_WRITE, eventVisualization.getPublicAccess() );
+        assertFalse( eventVisualization.getExternalAccess() );
+        assertTrue( eventVisualization.getUserAccesses().isEmpty() );
+        assertTrue( eventVisualization.getUserGroupAccesses().isEmpty() );
     }
 
     @Test
@@ -1114,7 +1208,7 @@ public class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUserBCanUpdateReportTableWithAuthority()
+    public void testUserBCanUpdateVisualizationWithAuthority()
     {
         User userA = createUser( 'A' );
         manager.save( userA );
@@ -1149,7 +1243,44 @@ public class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void testUserBCanUpdateReportTableWithAuthorityNoUserAccess()
+    public void testUserBCanUpdateEventVisualizationWithAuthority()
+    {
+        // Given
+        User userA = createUser( 'A' );
+        manager.save( userA );
+
+        EventVisualization eventVisualization = new EventVisualization();
+        eventVisualization.setAutoFields();
+        eventVisualization.setName( "FavA" );
+        eventVisualization.setCreatedBy( userA );
+        eventVisualization.getSharing().setOwner( userA );
+        eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        assertTrue( aclService.canUpdate( userA, eventVisualization ) );
+
+        manager.save( eventVisualization );
+
+        // Then
+        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setAutoFields();
+        userAuthorityGroup.setName( "UR" );
+
+        userAuthorityGroup.getAuthorities().add( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
+        manager.save( userAuthorityGroup );
+
+        User userB = createUser( 'B' );
+        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        manager.save( userB );
+
+        eventVisualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
+        manager.update( eventVisualization );
+
+        assertTrue( aclService.canUpdate( userB, eventVisualization ) );
+    }
+
+    @Test
+    public void testUserBCanUpdateVisualizationWithAuthorityNoUserAccess()
     {
         User userA = createUser( 'A' );
         manager.save( userA );
@@ -1183,6 +1314,42 @@ public class AclServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    public void testUserBCanUpdateEventVisualizationWithAuthorityNoUserAccess()
+    {
+        // Given
+        User userA = createUser( 'A' );
+        manager.save( userA );
+
+        EventVisualization eventVisualization = new EventVisualization();
+        eventVisualization.setAutoFields();
+        eventVisualization.setName( "FavA" );
+        eventVisualization.setCreatedBy( userA );
+        eventVisualization.getSharing().setOwner( userA );
+        eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        assertTrue( aclService.canUpdate( userA, eventVisualization ) );
+
+        manager.save( eventVisualization );
+
+        // Then
+        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
+        userAuthorityGroup.setAutoFields();
+        userAuthorityGroup.setName( "UR" );
+
+        userAuthorityGroup.getAuthorities().add( "F_EVENT_VISUALIZATION_PUBLIC_ADD" );
+        manager.save( userAuthorityGroup );
+
+        User userB = createUser( 'B' );
+        userB.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        manager.save( userB );
+
+        manager.update( eventVisualization );
+
+        assertFalse( aclService.canUpdate( userB, eventVisualization ) );
+    }
+
+    @Test
     public void testUserBCanUpdateVisualizationWithoutAuthority()
     {
         User userA = createUser( 'A' );
@@ -1207,6 +1374,35 @@ public class AclServiceTest extends TransactionalIntegrationTest
         manager.update( visualization );
 
         assertTrue( aclService.canUpdate( userB, visualization ) );
+    }
+
+    @Test
+    public void testUserBCanUpdateEventVisualizationWithoutAuthority()
+    {
+        // Given
+        User userA = createUser( 'A' );
+        manager.save( userA );
+
+        EventVisualization eventVisualization = new EventVisualization();
+        eventVisualization.setAutoFields();
+        eventVisualization.setName( "FavA" );
+        eventVisualization.setCreatedBy( userA );
+        eventVisualization.getSharing().setOwner( userA );
+        eventVisualization.setPublicAccess( AccessStringHelper.DEFAULT );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        assertTrue( aclService.canUpdate( userA, eventVisualization ) );
+
+        manager.save( eventVisualization );
+
+        // Then
+        User userB = createUser( 'B' );
+        manager.save( userB );
+
+        eventVisualization.getSharing().addUserAccess( new UserAccess( userB, AccessStringHelper.FULL ) );
+        manager.update( eventVisualization );
+
+        assertTrue( aclService.canUpdate( userB, eventVisualization ) );
     }
 
     @Test

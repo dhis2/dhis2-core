@@ -44,6 +44,7 @@ import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -61,17 +62,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Lars Helge Overland
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
+ *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
+ *             NEW FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
+ *
+ * @author Jan Henrik Overland
  */
+@Deprecated
 @JacksonXmlRootElement( localName = "eventReport", namespace = DxfNamespaces.DXF_2_0 )
 public class EventReport
     extends BaseAnalyticalObject
     implements EventAnalyticalObject, MetadataObject
 {
-    public static final String DATA_TYPE_AGGREGATED_VALUES = "aggregated_values";
-
-    public static final String DATA_TYPE_INDIVIDUAL_CASES = "individual_cases";
-
     /**
      * Program. Required.
      */
@@ -191,6 +193,30 @@ public class EventReport
      * Value dimension.
      */
     private transient DimensionalItemObject value;
+
+    // -------------------------------------------------------------------------
+    // BACKWARD compatible attributes.
+    // They are not exposed and should be always false for EventChart.
+    // Needed to enable backward compatibility with EventVisualization.
+    // Cannot be removed until EventReport if fully deprecated.
+    // -------------------------------------------------------------------------
+
+    private boolean hideLegend;
+
+    private boolean noSpaceBetweenColumns;
+
+    private boolean showData;
+
+    private boolean percentStackedValues;
+
+    private boolean cumulativeValues;
+
+    /**
+     * Default to true, as this entity is always legacy.
+     */
+    private boolean legacy = true;
+
+    private EventVisualizationType type;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -539,5 +565,27 @@ public class EventReport
     public void setValue( DimensionalItemObject value )
     {
         this.value = value;
+    }
+
+    // -------------------------------------------------------------------------
+    // BACKWARD compatible attributes.
+    // They are not exposed and should be always be set.
+    // Needed to enable backward compatibility with EventVisualization.
+    // Cannot be removed until EventReport if fully deprecated.
+    // The rule to populate "type" is:
+    // if dataType == EVENTS then "type" = LINE_LIST
+    // if dataType == AGGREGATED_VALUES then "type" = PIVOT_TABLE
+    // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventVisualizationType getType()
+    {
+        return type;
+    }
+
+    public void setType( EventVisualizationType type )
+    {
+        this.type = type;
     }
 }
