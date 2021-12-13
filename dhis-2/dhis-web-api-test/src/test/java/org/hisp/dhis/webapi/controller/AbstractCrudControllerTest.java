@@ -45,6 +45,7 @@ import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonError;
+import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
@@ -136,6 +137,29 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertEquals( "sv", translation.getLocale() );
         assertEquals( "name", translation.getProperty() );
         assertEquals( "namn", translation.getValue() );
+    }
+
+    @Test
+    public void replaceTranslationsWithDuplicateLocales()
+    {
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+        JsonArray translations = GET( "/dataSets/{id}/translations", id )
+            .content().getArray( "translations" );
+
+        assertTrue( translations.isEmpty() );
+
+        JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
+            "One more more errors occurred, please see full details in import report.",
+            PUT( "/dataSets/" + id + "/translations",
+                "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn 1'},{'locale':'sv', 'property':'name', 'value':'namn2'}]}" )
+                    .content( HttpStatus.CONFLICT ) );
+
+        JsonErrorReport error = message.find( JsonErrorReport.class,
+            report -> report.getErrorCode() == ErrorCode.E1106 );
+        assertEquals( "There are duplicate translation record for property `name` and locale `sv`",
+            error.getMessage() );
+        assertEquals( "name", error.getErrorProperties().get( 0 ) );
     }
 
     @Test

@@ -41,8 +41,10 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -63,8 +65,6 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
@@ -81,7 +81,6 @@ import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.sharing.SharingService;
-import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -103,7 +102,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -175,49 +173,20 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
         T object = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        TypeReport typeReport = new TypeReport( Translation.class );
+        BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+        translatedObject.setTranslations( object.getTranslations().stream()
+            .filter( t -> !StringUtils.isEmpty( t.getValue() ) )
+            .collect( Collectors.toSet() ) );
+        translatedObject.setLastUpdated( new Date() );
+        translatedObject.setLastUpdatedBy( user );
 
-        List<Translation> objectTranslations = Lists.newArrayList( object.getTranslations() );
+        MetadataImportParams params = new MetadataImportParams();
 
-        for ( int idx = 0; idx < object.getTranslations().size(); idx++ )
-        {
-            ObjectReport objectReport = new ObjectReport( Translation.class, idx );
-            Translation translation = objectTranslations.get( idx );
+        params.setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( translatedObject );
 
-            if ( translation.getLocale() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
-            }
-
-            if ( translation.getProperty() == null )
-            {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" )
-                    .setErrorKlass( getEntityClass() ) );
-            }
-
-            if ( translation.getValue() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
-            }
-
-            typeReport.addObjectReport( objectReport );
-
-            if ( !objectReport.isEmpty() )
-            {
-                typeReport.getStats().incIgnored();
-            }
-        }
-
-        if ( typeReport.hasErrorReports() )
-        {
-            return typeReport( typeReport );
-        }
-
-        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
-        manager.updateTranslations( persistedObject, object.getTranslations() );
-        return null;
+        return objectReport( importService.importMetadata( params ) );
     }
 
     // --------------------------------------------------------------------------
