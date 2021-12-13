@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -44,9 +43,10 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * @author Chau Thu Tran
+ * @author Ameen
  */
 public class TrackedEntityAttributeStoreIntegrationTest
     extends
@@ -55,11 +55,8 @@ public class TrackedEntityAttributeStoreIntegrationTest
     @Autowired
     private TrackedEntityAttributeService attributeService;
 
-    private TrackedEntityAttribute attributeW;
-
-    private TrackedEntityAttribute attributeY;
-
-    private TrackedEntityAttribute attributeZ;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -73,6 +70,12 @@ public class TrackedEntityAttributeStoreIntegrationTest
 
     private Program programB;
 
+    private TrackedEntityAttribute attributeW;
+
+    private TrackedEntityAttribute attributeY;
+
+    private TrackedEntityAttribute attributeZ;
+
     @Override
     public void setUpTest()
     {
@@ -82,10 +85,6 @@ public class TrackedEntityAttributeStoreIntegrationTest
         attributeY = createTrackedEntityAttribute( 'Y' );
         attributeY.setUnique( true );
         attributeZ = createTrackedEntityAttribute( 'Z', ValueType.NUMBER );
-
-        List<TrackedEntityAttribute> attributesA = new ArrayList<>();
-        attributesA.add( attributeW );
-        attributesA.add( attributeY );
 
         Program program = createProgram( 'A' );
         programService.addProgram( program );
@@ -110,7 +109,8 @@ public class TrackedEntityAttributeStoreIntegrationTest
                 attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
             .collect( Collectors.toList() );
 
-        // Setting searchable to true for 5 tracked entity type attributes
+        // Setting searchable to true for 5 random tracked entity type
+        // attributes
         TrackedEntityTypeAttribute teta = teatList.get( 0 );
         teta.setSearchable( true );
         teta = teatList.get( 4 );
@@ -138,7 +138,8 @@ public class TrackedEntityAttributeStoreIntegrationTest
                 attributeService.getTrackedEntityAttributeByName( "Attribute" + s ) ) )
             .collect( Collectors.toList() );
 
-        // Setting searchable to true for 5 program tracked entity attributes
+        // Setting searchable to true for 5 random program tracked entity
+        // attributes
         ProgramTrackedEntityAttribute ptea = pteaList.get( 0 );
         ptea.setSearchable( true );
         ptea = pteaList.get( 4 );
@@ -160,6 +161,7 @@ public class TrackedEntityAttributeStoreIntegrationTest
     {
         long idA = attributeService.addTrackedEntityAttribute( attributeW );
         long idB = attributeService.addTrackedEntityAttribute( attributeY );
+        long idC = attributeService.addTrackedEntityAttribute( attributeZ );
 
         Set<TrackedEntityAttribute> indexableAttributes = attributeService
             .getAllTrigramIndexableTrackedEntityAttributes();
@@ -189,18 +191,23 @@ public class TrackedEntityAttributeStoreIntegrationTest
     {
         long idA = attributeService.addTrackedEntityAttribute( attributeW );
         attributeService.createTrigramIndex( attributeW );
+        assertFalse( jdbcTemplate.queryForList( "select * "
+            + "from pg_indexes "
+            + "where tablename= 'trackedentityattributevalue' and indexname like 'in_gin_teavalue_%'; " ).isEmpty() );
     }
 
     @Test
     public void testRunAnalyze()
     {
         attributeService.runAnalyze();
+        assertEquals( 0, jdbcTemplate.update( "ANALYZE trackedentityattributevalue;" ) );
     }
 
     @Test
     public void testRunVacuum()
     {
         attributeService.runVacuum();
+        assertEquals( 0, jdbcTemplate.update( "VACUUM trackedentityattributevalue;" ) );
     }
 
     @Override

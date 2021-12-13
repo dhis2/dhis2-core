@@ -212,7 +212,6 @@ public class HibernateTrackedEntityAttributeStore
     {
         String query = String.format( TRIGRAM_INDEX_QUERY, trackedEntityAttribute.getId(),
             trackedEntityAttribute.getId() );
-        ;
         jdbcTemplate.execute( query );
     }
 
