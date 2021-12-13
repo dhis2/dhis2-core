@@ -196,8 +196,9 @@
         <slf4j.version>1.7.32</slf4j.version>
 
         <!-- Test -->
+        <junit5.version>5.8.2</junit5.version>
         <junit.version>4.13.2</junit.version>
-        <mockito-core.version>4.1.0</mockito-core.version>
+        <mockito.version>4.1.0</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.7</hamcrest-date.version>
@@ -2242,6 +2243,13 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit5.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>${junit.version}</version>
@@ -2256,7 +2264,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>${mockito-core.version}</version>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
             <!-- Depend only on mockito-inline (includes mockito-core already) if you must use mockStatic (can you
@@ -2264,8 +2272,13 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-inline</artifactId>
-                <version>${mockito-core.version}</version>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.skyscreamer</groupId>
