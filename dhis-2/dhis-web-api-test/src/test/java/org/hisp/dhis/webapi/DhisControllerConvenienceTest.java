@@ -28,19 +28,18 @@
 package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
-import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ActiveProfiles;
@@ -52,7 +51,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
  * Base class for convenient testing of the web API on basis of
@@ -65,7 +63,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest implements WebClient
+public abstract class DhisControllerConvenienceTest extends DhisMockMvcControllerTest
 {
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -86,11 +84,10 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         throws Exception
     {
         userService = _userService;
-        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
-        characterEncodingFilter.setEncoding( "UTF-8" );
-        characterEncodingFilter.setForceEncoding( true );
+
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
         TestUtils.executeStartupRoutines( webApplicationContext );
+
         superUser = switchToNewUser( null, "ALL" );
     }
 
@@ -135,28 +132,17 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
             SecurityContextHolder.getContext() );
     }
 
+    protected final HttpResponse POST_MULTIPART( String url, MockMultipartFile part )
+    {
+        return webRequest( multipart( url ).file( part ) );
+    }
+
     @Override
-    public HttpResponse webRequest( MockHttpServletRequestBuilder request )
+    protected final HttpResponse webRequest( MockHttpServletRequestBuilder request )
     {
         return failOnException(
-            () -> new HttpResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) );
+            () -> new HttpResponse(
+                toResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) ) );
     }
 
-    public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
-        JsonResponse actual )
-    {
-        return assertWebMessage( httpStatus, httpStatusCode, status, message, actual.as( JsonWebMessage.class ) );
-    }
-
-    public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
-        JsonWebMessage actual )
-    {
-        assertTrue( "response appears to be something other than a WebMessage: " + actual.toString(),
-            actual.has( "httpStatusCode", "httpStatus", "status" ) );
-        assertEquals( "unexpected HTTP status code", httpStatusCode, actual.getHttpStatusCode() );
-        assertEquals( "unexpected HTTP status", httpStatus, actual.getHttpStatus() );
-        assertEquals( "unexpected status", status, actual.getStatus() );
-        assertEquals( "unexpected message", message, actual.getMessage() );
-        return actual;
-    }
 }
