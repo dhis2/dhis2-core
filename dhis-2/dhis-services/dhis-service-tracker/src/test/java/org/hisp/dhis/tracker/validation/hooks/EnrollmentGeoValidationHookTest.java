@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -94,7 +95,7 @@ public class EnrollmentGeoValidationHookTest
         assertFalse( reporter.hasErrors() );
     }
 
-    @Test( expected = NullPointerException.class )
+    @Test
     public void testEnrollmentWithNoProgramThrowsAnError()
     {
         // given
@@ -104,10 +105,7 @@ public class EnrollmentGeoValidationHookTest
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
 
-        // when
-        this.hookToTest.validateEnrollment( reporter, enrollment );
-
-        // then
+        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEnrollment( reporter, enrollment ) );
     }
 
     @Test

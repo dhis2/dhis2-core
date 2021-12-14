@@ -78,17 +78,19 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.MockitoRule;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
+@RunWith( MockitoJUnitRunner.class )
 public class TeiServiceTest
 {
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 

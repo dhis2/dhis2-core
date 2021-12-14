@@ -31,6 +31,7 @@ import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -294,7 +295,7 @@ public class DataValueSetExportAccessControlTest
      * User does not have data read sharing access to data set. Verifies that
      * validation fails.
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testExportDataSetAccess()
     {
         // User
@@ -323,15 +324,14 @@ public class DataValueSetExportAccessControlTest
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
 
         dbmsManager.flushSession();
-
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) );
     }
 
     /**
      * User has no data read sharing access to cocA through category options.
      * Verifies that validation fails.
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testExportExplicitAttributeOptionComboAccess()
     {
         // User
@@ -359,8 +359,7 @@ public class DataValueSetExportAccessControlTest
             .setPeriods( Sets.newHashSet( peA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) )
             .setAttributeOptionCombos( Sets.newHashSet( cocA ) );
-
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) );
     }
 
     /**

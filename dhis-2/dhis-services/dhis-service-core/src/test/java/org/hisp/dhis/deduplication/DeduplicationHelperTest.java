@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -253,18 +254,15 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         assertEquals( "Missing access to organisation unit of one or both entities.", hasUserAccess );
     }
 
-    @Test( expected = PotentialDuplicateForbiddenException.class )
+    @Test
     public void shouldFailGenerateMergeObjectDifferentTrackedEntityType()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
     {
-        deduplicationHelper.generateMergeObject( getTeiA(), getTeiB() );
+        assertThrows( PotentialDuplicateForbiddenException.class,
+            () -> deduplicationHelper.generateMergeObject( getTeiA(), getTeiB() ) );
     }
 
-    @Test( expected = PotentialDuplicateConflictException.class )
+    @Test
     public void shouldFailGenerateMergeObjectConflictingValue()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
     {
         TrackedEntityInstance original = getTeiA();
 
@@ -283,8 +281,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         attributeValueDuplicate.setValue( "Attribute-Duplicate" );
 
         duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
-
-        deduplicationHelper.generateMergeObject( original, duplicate );
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
     }
 
     @Test
@@ -385,10 +383,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         assertEquals( "programInstanceB", generatedMergeObject.getEnrollments().get( 0 ) );
     }
 
-    @Test( expected = PotentialDuplicateConflictException.class )
+    @Test
     public void shouldFailGenerateMergeObjectEnrollmentsSameProgram()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
     {
         TrackedEntityInstance original = getTeiA();
 
@@ -399,8 +395,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         TrackedEntityInstance duplicate = getTeiA();
         ProgramInstance programInstanceB = createProgramInstance( program, duplicate, organisationUnitA );
         duplicate.getProgramInstances().add( programInstanceB );
-
-        deduplicationHelper.generateMergeObject( original, duplicate );
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
     }
 
     @Test
@@ -547,11 +543,6 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         relationshipA.setRelationshipType( relationshipType );
 
         return Lists.newArrayList( relationshipA );
-    }
-
-    private List<TrackedEntityAttribute> getAttributes()
-    {
-        return Lists.newArrayList( attribute );
     }
 
     private List<ProgramInstance> getEnrollments()

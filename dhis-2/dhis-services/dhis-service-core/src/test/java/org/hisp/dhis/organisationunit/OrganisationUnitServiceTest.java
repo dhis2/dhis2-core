@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -175,7 +176,7 @@ public class OrganisationUnitServiceTest
         assertTrue( organisationUnitService.getOrganisationUnit( id1 ).getChildren().isEmpty() );
     }
 
-    @Test( expected = DeleteNotAllowedException.class )
+    @Test
     public void testAddAndDelOrganisationUnitWithChildren()
     {
         OrganisationUnit organisationUnit1 = createOrganisationUnit( 'A' );
@@ -191,8 +192,8 @@ public class OrganisationUnitServiceTest
 
         assertNotNull( organisationUnitService.getOrganisationUnit( id1 ) );
         assertNotNull( organisationUnitService.getOrganisationUnit( id2 ) );
-
-        organisationUnitService.deleteOrganisationUnit( organisationUnitService.getOrganisationUnit( id1 ) );
+        assertThrows( DeleteNotAllowedException.class, () -> organisationUnitService
+            .deleteOrganisationUnit( organisationUnitService.getOrganisationUnit( id1 ) ) );
     }
 
     @Test
@@ -1020,11 +1021,11 @@ public class OrganisationUnitServiceTest
         organisationUnitService.addOrganisationUnitLevel( levelA );
         organisationUnitService.addOrganisationUnitLevel( levelB );
 
-        assertEquals( new Integer( 1 ), organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "1" ) );
-        assertEquals( new Integer( 1 ),
+        assertEquals( Integer.valueOf( 1 ), organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "1" ) );
+        assertEquals( Integer.valueOf( 1 ),
             organisationUnitService.getOrganisationUnitLevelByLevelOrUid( levelA.getUid() ) );
-        assertEquals( new Integer( 2 ), organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) );
-        assertEquals( new Integer( 2 ),
+        assertEquals( Integer.valueOf( 2 ), organisationUnitService.getOrganisationUnitLevelByLevelOrUid( "2" ) );
+        assertEquals( Integer.valueOf( 2 ),
             organisationUnitService.getOrganisationUnitLevelByLevelOrUid( levelB.getUid() ) );
     }
 

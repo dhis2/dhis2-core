@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
@@ -72,22 +73,20 @@ public class SharingControllerTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Test( expected = AccessDeniedException.class )
+    @Test
     public void notSystemDefaultMetadataNoAccess()
-        throws Exception
     {
         final OrganisationUnit organisationUnit = new OrganisationUnit();
 
         doReturn( OrganisationUnit.class ).when( aclService ).classForType( eq( "organisationUnit" ) );
         when( aclService.isClassShareable( eq( OrganisationUnit.class ) ) ).thenReturn( true );
         doReturn( organisationUnit ).when( manager ).getNoAcl( eq( OrganisationUnit.class ), eq( "kkSjhdhks" ) );
-
-        sharingController.postSharing( "organisationUnit", "kkSjhdhks", request );
+        assertThrows( AccessDeniedException.class,
+            () -> sharingController.postSharing( "organisationUnit", "kkSjhdhks", request ) );
     }
 
-    @Test( expected = AccessDeniedException.class )
+    @Test
     public void systemDefaultMetadataNoAccess()
-        throws Exception
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME + "x" );
@@ -95,8 +94,8 @@ public class SharingControllerTest
         doReturn( Category.class ).when( aclService ).classForType( eq( "category" ) );
         when( aclService.isClassShareable( eq( Category.class ) ) ).thenReturn( true );
         when( manager.getNoAcl( eq( Category.class ), eq( "kkSjhdhks" ) ) ).thenReturn( category );
-
-        sharingController.postSharing( "category", "kkSjhdhks", request );
+        assertThrows( AccessDeniedException.class,
+            () -> sharingController.postSharing( "category", "kkSjhdhks", request ) );
     }
 
     @Test

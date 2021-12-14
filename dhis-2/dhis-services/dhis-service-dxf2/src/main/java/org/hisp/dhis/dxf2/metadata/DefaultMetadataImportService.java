@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
+import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -122,6 +124,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         preCreateBundle( params );
 
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
+        handleDeprecationIfEventReport( bundleParams );
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
         postCreateBundle( bundle, bundleParams );

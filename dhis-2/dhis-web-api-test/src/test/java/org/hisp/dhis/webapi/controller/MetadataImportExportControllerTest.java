@@ -27,17 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
+import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 
 /**
  * Tests the
@@ -134,37 +134,28 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
     }
 
     @Test
-    public void testPostXmlMetadata()
+    public void testPostProgramStageWithoutProgram()
     {
-        HttpResponse response = POST( "/38/metadata", Body( "<metadata></metadata>" ),
-            ContentType( "application/xml" ), Accept( "application/xml" ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
+        JsonWebMessage message = POST( "/metadata/", "{'programStages':[{'name':'test programStage'}]}" )
+            .content( HttpStatus.CONFLICT )
+            .as( JsonWebMessage.class );
+        JsonImportSummary response = message.get( "response", JsonImportSummary.class );
+        assertEquals( 1, response.getTypeReports().get( 0 ).getObjectReports().get( 0 ).getErrorReports().size() );
+        assertEquals( ErrorCode.E4053,
+            response.getTypeReports().get( 0 ).getObjectReports().get( 0 ).getErrorReports().get( 0 ).getErrorCode() );
     }
 
     @Test
-    public void testPostXmlMetadata_Async()
+    public void testPostProgramStageWithProgram()
     {
-        HttpResponse response = POST( "/metadata?async=true", Body( "<metadata></metadata>" ),
-            ContentType( "application/xml" ), Accept( "application/xml" ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
-    }
+        POST( "/metadata/",
+            "{'programs':[{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION','programStages':[{'id':'VoZMWi7rBgf'}] }],'programStages':[{'id':'VoZMWi7rBgf','name':'test programStage'}]}" )
+                .content( HttpStatus.OK );
 
-    @Test
-    public void testPostXmlMetadata_Pre38()
-    {
-        HttpResponse response = POST( "/37/metadata", Body( "<metadata></metadata>" ),
-            ContentType( "application/xml" ), Accept( "application/xml" ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<importReport" ) );
-    }
+        assertEquals( "VoZMWi7rBgj", GET( "/programStages/{id}", "VoZMWi7rBgf" )
+            .content().getString( "program.id" ).string() );
 
-    @Test
-    public void testPostXmlMetadata_JsonResponse()
-    {
-        assertWebMessage( "OK", 200, "OK", null,
-            POST( "/38/metadata", Body( "<metadata></metadata>" ),
-                ContentType( "application/xml" ), Accept( "application/json" ) ).content( HttpStatus.OK ) );
+        assertEquals( "VoZMWi7rBgf", GET( "/programs/{id}", "VoZMWi7rBgj" )
+            .content().getString( "programStages[0].id" ).string() );
     }
 }

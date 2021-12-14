@@ -73,6 +73,11 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     public void validate( User user, ObjectBundle bundle,
         Consumer<ErrorReport> addReports )
     {
+        if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername() ) )
+        {
+            addReports.accept( new ErrorReport( User.class, ErrorCode.E4049, "Username", user.getUsername() ) );
+        }
+
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsapp( user.getWhatsApp() ) )
         {
             addReports.accept( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "Whatsapp" ) );

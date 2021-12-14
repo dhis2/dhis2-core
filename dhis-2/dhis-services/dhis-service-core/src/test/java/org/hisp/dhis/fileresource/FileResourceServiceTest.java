@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.*;
 
 import java.io.File;
@@ -124,26 +125,24 @@ public class FileResourceServiceTest
         assertThat( event.getFile(), is( file ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void verifySaveIllegalFileTypeResourceA()
     {
         FileResource fileResource = new FileResource( "very_evil_script.html", "text/html", 1024, "md5",
             FileResourceDomain.USER_AVATAR );
 
         File file = new File( "very_evil_script.html" );
-
-        subject.saveFileResource( fileResource, file );
+        assertThrows( IllegalQueryException.class, () -> subject.saveFileResource( fileResource, file ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void verifySaveIllegalFileTypeResourceB()
     {
         FileResource fileResource = new FileResource( "suspicious_program.rpm", "application/x-rpm", 2048, "md5",
             FileResourceDomain.MESSAGE_ATTACHMENT );
 
         File file = new File( "suspicious_program.rpm" );
-
-        subject.saveFileResource( fileResource, file );
+        assertThrows( IllegalQueryException.class, () -> subject.saveFileResource( fileResource, file ) );
     }
 
     @Test
