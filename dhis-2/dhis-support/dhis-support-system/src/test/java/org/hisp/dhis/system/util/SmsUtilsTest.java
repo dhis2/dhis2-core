@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.text.ParseException;
@@ -193,12 +194,13 @@ public class SmsUtilsTest
         assertNotEquals( reference, d );
     }
 
-    @Test( expected = SMSParserException.class )
+    @Test
     public void testGetUser()
     {
         User returnedUser = SmsUtils.getUser( "", new SMSCommand(), Lists.newArrayList( userA ) );
         assertEquals( userA, returnedUser );
-        SmsUtils.getUser( "", new SMSCommand(), Lists.newArrayList( userA, userB ) );
+        assertThrows( SMSParserException.class,
+            () -> SmsUtils.getUser( "", new SMSCommand(), Lists.newArrayList( userA, userB ) ) );
     }
 
     @Test
@@ -237,7 +239,7 @@ public class SmsUtilsTest
         assertTrue( SmsUtils.getRecipientsEmail( Lists.newArrayList( userA ) ).contains( email ) );
     }
 
-    @Test( expected = SMSParserException.class )
+    @Test
     public void testSelectOrganisationUnit()
     {
         OrganisationUnit expected = organisationUnitA;
@@ -245,8 +247,9 @@ public class SmsUtilsTest
         SMSCommand smsCommand = new SMSCommand();
         assertEquals( expected, SmsUtils.selectOrganisationUnit( Lists.newArrayList( organisationUnitA ),
             parsedMessage, smsCommand ) );
-        SmsUtils.selectOrganisationUnit( Lists.newArrayList( organisationUnitB, organisationUnitC ),
-            parsedMessage, smsCommand );
+        assertThrows( SMSParserException.class,
+            () -> SmsUtils.selectOrganisationUnit( Lists.newArrayList( organisationUnitB, organisationUnitC ),
+                parsedMessage, smsCommand ) );
     }
 
     @Test

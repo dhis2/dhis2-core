@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,10 +81,8 @@ public class FileResourceControllerMockTest
         verify( fileResourceService ).copyFileResourceContent( any(), any() );
     }
 
-    @Test( expected = WebMessageException.class )
+    @Test
     public void testGetDataValue()
-        throws WebMessageException,
-        IOException
     {
         controller = new FileResourceController( fileResourceService, fileResourceUtils );
         FileResource fileResource = new FileResource();
@@ -92,7 +91,8 @@ public class FileResourceControllerMockTest
 
         when( fileResourceService.getFileResource( "id" ) ).thenReturn( fileResource );
 
-        controller.getFileResourceData( "id", new MockHttpServletResponse(), null,
-            currentUserService.getCurrentUser() );
+        assertThrows( WebMessageException.class,
+            () -> controller.getFileResourceData( "id", new MockHttpServletResponse(), null,
+                currentUserService.getCurrentUser() ) );
     }
 }
