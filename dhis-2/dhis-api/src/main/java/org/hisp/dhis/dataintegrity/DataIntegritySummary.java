@@ -27,37 +27,30 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.io.Serializable;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * The result data of a {@link DataIntegrityCheck#getRunSummaryCheck()} run.
+ *
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+@Getter
+@AllArgsConstructor
+public class DataIntegritySummary implements Serializable
 {
-    /*
-     * Old API
-     */
+    @JsonUnwrapped
+    private final DataIntegrityCheck check;
 
-    /**
-     * @deprecated Replaced by {@link #getSummaries(Set, JobProgress)} and
-     *             {@link #getDetails(Set, JobProgress)}, kept for backwards
-     *             compatibility until new UI exists
-     */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
+    @JsonProperty
+    private int count;
 
-    /*
-     * New generic API
-     */
+    @JsonProperty
+    private Double percentage;
 
-    Collection<DataIntegrityCheck> getDataIntegrityChecks();
-
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress );
-
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress );
 }
