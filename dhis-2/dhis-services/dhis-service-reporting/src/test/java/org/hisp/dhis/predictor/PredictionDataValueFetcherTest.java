@@ -30,6 +30,7 @@ package org.hisp.dhis.predictor;
 import static org.hisp.dhis.datavalue.DataValueStore.END_OF_DDV_DATA;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -241,7 +242,7 @@ public class PredictionDataValueFetcherTest
         when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
 
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
-            BlockingQueue blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( deflatedDataValueA );
             blockingQueue.put( deflatedDataValueB );
             blockingQueue.put( deflatedDataValueC );
@@ -258,11 +259,11 @@ public class PredictionDataValueFetcherTest
         assertContainsOnly( fetcher.getDataValues( orgUnitE ) );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void testOrgUnitsOutOfOrder()
     {
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
-            BlockingQueue blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( END_OF_DDV_DATA );
             return new ArrayList<>();
         } );
@@ -270,14 +271,14 @@ public class PredictionDataValueFetcherTest
         fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, dataElementOperands );
 
         fetcher.getDataValues( orgUnitC );
-        fetcher.getDataValues( orgUnitA );
+        assertThrows( IllegalArgumentException.class, () -> fetcher.getDataValues( orgUnitA ) );
     }
 
     @Test
     public void testNoDataValues()
     {
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
-            BlockingQueue blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
+            BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( END_OF_DDV_DATA );
             return new ArrayList<>();
         } );
@@ -291,13 +292,13 @@ public class PredictionDataValueFetcherTest
         assertEquals( 0, fetcher.getDataValues( orgUnitE ).size() );
     }
 
-    @Test( expected = ArithmeticException.class )
+    @Test
     public void testProducerException()
     {
         when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> {
             throw new ArithmeticException();
         } );
-
-        fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, new HashSet<>() );
+        assertThrows( ArithmeticException.class,
+            () -> fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, new HashSet<>() ) );
     }
 }

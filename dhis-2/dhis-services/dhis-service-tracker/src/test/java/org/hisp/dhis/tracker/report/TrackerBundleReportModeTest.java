@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.report;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.junit.Test;
@@ -44,9 +45,10 @@ public class TrackerBundleReportModeTest
         assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
     }
 
-    @Test( expected = HttpClientErrorException.class )
+    @Test
     public void shouldThrowWhenReportModeNotFound()
     {
-        TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" );
+        assertThrows( HttpClientErrorException.class,
+            () -> TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" ) );
     }
 }

@@ -29,6 +29,7 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
@@ -247,7 +248,7 @@ public class DefaultPredictionService
 
                 for ( PredictorGroup predictorGroup : predictorGroupList )
                 {
-                    predictorList.addAll( predictorGroup.getMembers() );
+                    predictorList.addAll( predictorGroup.getSortedMembers() );
                 }
             }
         }
@@ -339,10 +340,10 @@ public class DefaultPredictionService
             storedBy = currentUser.getUsername();
         }
 
-        PredictionDataValueFetcher oldPredictionFetcher = new PredictionDataValueFetcher(
-            dataValueService, categoryService ).setIncludeDeleted( true );
-        PredictionDataValueFetcher dataValueFetcher = new PredictionDataValueFetcher(
-            dataValueService, categoryService ).setIncludeChildren( true );
+        PredictionDataValueFetcher oldPredictionFetcher = new PredictionDataValueFetcher( dataValueService,
+            categoryService ).setIncludeDeleted( true );
+        PredictionDataValueFetcher dataValueFetcher = new PredictionDataValueFetcher( dataValueService,
+            categoryService ).setIncludeDescendants( predictor.getOrganisationUnitDescendants().equals( DESCENDANTS ) );
         PredictionAnalyticsDataFetcher analyticsFetcher = new PredictionAnalyticsDataFetcher( analyticsService );
         PredictionWriter predictionWriter = new PredictionWriter( dataValueService, batchHandlerFactory );
 

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
+import static org.junit.Assert.assertThrows;
+
 import org.junit.Test;
 
 public class ImportConflictTest
@@ -38,9 +40,9 @@ public class ImportConflictTest
         new ImportConflict( null, "message" );
     }
 
-    @Test( expected = NullPointerException.class )
+    @Test
     public void testImportConflictMessageCantBeNull()
     {
-        new ImportConflict( "whatever", null );
+        assertThrows( NullPointerException.class, () -> new ImportConflict( "whatever", null ) );
     }
 }

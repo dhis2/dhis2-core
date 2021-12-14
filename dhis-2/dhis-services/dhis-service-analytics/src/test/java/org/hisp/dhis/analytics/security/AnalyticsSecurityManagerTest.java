@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.security;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsCollectionContaining.hasItem;
+import static org.hamcrest.core.IsIterableContaining.hasItem;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
@@ -206,15 +206,14 @@ public class AnalyticsSecurityManagerTest
         securityManager.decideAccess( params );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testDecideAccessDenied()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withPeriods( Lists.newArrayList( createPeriod( "201801" ), createPeriod( "201802" ) ) )
             .withOrganisationUnits( Lists.newArrayList( ouA, ouB ) )
             .build();
-
-        securityManager.decideAccess( params );
+        assertThrows( IllegalQueryException.class, () -> securityManager.decideAccess( params ) );
     }
 
     @Test

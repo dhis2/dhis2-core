@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -766,7 +767,7 @@ public class QueryPlannerTest
     /**
      * Expected to fail because of no periods specified.
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void planQueryG()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -775,8 +776,7 @@ public class QueryPlannerTest
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
             .withTableType( ANALYTICS_TABLE_TYPE ).build();
-
-        queryPlanner.planQuery( params, plannerParams );
+        assertThrows( IllegalQueryException.class, () -> queryPlanner.planQuery( params, plannerParams ) );
     }
 
     /**
@@ -843,7 +843,7 @@ public class QueryPlannerTest
     /**
      * No periods specified, illegal query.
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void planQueryJ()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -852,8 +852,7 @@ public class QueryPlannerTest
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
             .withTableType( ANALYTICS_TABLE_TYPE ).build();
-
-        queryPlanner.planQuery( params, plannerParams );
+        assertThrows( IllegalQueryException.class, () -> queryPlanner.planQuery( params, plannerParams ) );
     }
 
     /**
@@ -1004,7 +1003,7 @@ public class QueryPlannerTest
      * No data dimension items or data element group set dimension items
      * specified, illegal query.
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void planQueryNoDataItems()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -1013,8 +1012,7 @@ public class QueryPlannerTest
 
         QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
             .withTableType( ANALYTICS_TABLE_TYPE ).build();
-
-        queryPlanner.planQuery( params, plannerParams );
+        assertThrows( IllegalQueryException.class, () -> queryPlanner.planQuery( params, plannerParams ) );
     }
 
     /**

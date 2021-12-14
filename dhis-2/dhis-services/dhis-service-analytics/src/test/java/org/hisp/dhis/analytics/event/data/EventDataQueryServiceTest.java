@@ -235,7 +235,7 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromUrlWithEventdateSorting()
+    public void testGetFromUrlWithEventDateSorting()
     {
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
@@ -501,15 +501,15 @@ public class EventDataQueryServiceTest
         assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetInvalidCoordinateFieldException()
     {
-        dataQueryService.getCoordinateField( "someField" );
+        assertThrows( IllegalQueryException.class, () -> dataQueryService.getCoordinateField( "someField" ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetNonCoordinateValueTypeCoordinateFieldException()
     {
-        dataQueryService.getCoordinateField( deA.getUid() );
+        assertThrows( IllegalQueryException.class, () -> dataQueryService.getCoordinateField( deA.getUid() ) );
     }
 }

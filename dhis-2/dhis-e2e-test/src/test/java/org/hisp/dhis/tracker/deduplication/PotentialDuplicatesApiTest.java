@@ -76,7 +76,7 @@ public class PotentialDuplicatesApiTest
 
     protected String createUserWithAccessToMerge()
     {
-        String username = DataGenerator.randomString();
+        String username = (DataGenerator.randomString()).toLowerCase();
         String auth = new UserRoleActions().createWithAuthorities( MERGE_AUTHORITY );
         String userid = userActions.addUser( username, USER_PASSWORD );
 

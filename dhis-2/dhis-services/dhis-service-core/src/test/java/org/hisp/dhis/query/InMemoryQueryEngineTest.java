@@ -511,13 +511,13 @@ public class InMemoryQueryEngineTest
         assertEquals( "deabcdefghF", objects.get( 5 ).getUid() );
     }
 
-    @Test( expected = QueryException.class )
+    @Test
     public void testInvalidDeepPath()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ) );
         query.setObjects( dataElementGroups );
         query.add( Restrictions.eq( "dataElements.abc", "deabcdefghA" ) );
-        queryEngine.query( query );
+        assertThrows( QueryException.class, () -> queryEngine.query( query ) );
     }
 
     @Test

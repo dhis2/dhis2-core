@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.deduplication;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -136,12 +137,11 @@ public class DeduplicationControllerTest
         verify( deduplicationService ).getAllPotentialDuplicatesBy( potentialDuplicateQuery );
     }
 
-    @Test( expected = NotFoundException.class )
+    @Test
     public void getPotentialDuplicateNotFound()
-        throws NotFoundException
     {
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( null );
-        deduplicationController.getPotentialDuplicateById( uid );
+        assertThrows( NotFoundException.class, () -> deduplicationController.getPotentialDuplicateById( uid ) );
     }
 
     @Test
@@ -337,13 +337,12 @@ public class DeduplicationControllerTest
         verify( deduplicationService ).exists( pd );
     }
 
-    @Test( expected = NotFoundException.class )
+    @Test
     public void updatePotentialDuplicateInvalidNotFound()
-        throws NotFoundException,
-        BadRequestException
     {
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( null );
-        deduplicationController.updatePotentialDuplicate( uid, DeduplicationStatus.INVALID.name() );
+        assertThrows( NotFoundException.class,
+            () -> deduplicationController.updatePotentialDuplicate( uid, DeduplicationStatus.INVALID.name() ) );
     }
 
     @Test
@@ -366,36 +365,31 @@ public class DeduplicationControllerTest
         assertEquals( DeduplicationStatus.INVALID, potentialDuplicateArgumentCaptor.getValue().getStatus() );
     }
 
-    @Test( expected = BadRequestException.class )
+    @Test
     public void shouldThrowUpdatePotentialDuplicateMergedStatusDb()
-        throws NotFoundException,
-        BadRequestException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         potentialDuplicate.setStatus( DeduplicationStatus.MERGED );
 
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-
-        deduplicationController.updatePotentialDuplicate( uid, DeduplicationStatus.INVALID.name() );
+        assertThrows( BadRequestException.class,
+            () -> deduplicationController.updatePotentialDuplicate( uid, DeduplicationStatus.INVALID.name() ) );
     }
 
-    @Test( expected = BadRequestException.class )
+    @Test
     public void shouldThrowUpdatePotentialDuplicateMergeRequest()
-        throws NotFoundException,
-        BadRequestException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
 
         when( deduplicationService.getPotentialDuplicateByUid( uid ) ).thenReturn( potentialDuplicate );
-
-        deduplicationController.updatePotentialDuplicate( uid, DeduplicationStatus.MERGED.name() );
+        assertThrows( BadRequestException.class,
+            () -> deduplicationController.updatePotentialDuplicate( uid, DeduplicationStatus.MERGED.name() ) );
     }
 
-    @Test( expected = BadRequestException.class )
+    @Test
     public void shouldThrowUpdatePotentialDuplicateInvalidStatusRequest()
-        throws NotFoundException,
-        BadRequestException
     {
-        deduplicationController.updatePotentialDuplicate( uid, "invalid status" );
+        assertThrows( BadRequestException.class,
+            () -> deduplicationController.updatePotentialDuplicate( uid, "invalid status" ) );
     }
 }

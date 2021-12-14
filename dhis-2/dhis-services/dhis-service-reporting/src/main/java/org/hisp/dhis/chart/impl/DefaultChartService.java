@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -759,7 +758,7 @@ public class DefaultChartService implements ChartService
 
     private CategoryDataset[] getCategoryDataSet( PlotData plotData )
     {
-        Map<String, Object> valueMap = new HashMap<>();
+        Map<String, Object> valueMap;
 
         if ( plotData.isAggregate() )
         {
@@ -767,11 +766,22 @@ public class DefaultChartService implements ChartService
         }
         else
         {
-            Grid grid = eventAnalyticsService.getAggregatedEventData( plotData.getEventChart() );
+            if ( plotData.getEventChart() != null )
+            {
+                Grid grid = eventAnalyticsService.getAggregatedEventData( plotData.getEventChart() );
 
-            plotData.getEventChart().setDataItemGrid( grid );
+                plotData.getEventChart().setDataItemGrid( grid );
 
-            valueMap = GridUtils.getMetaValueMapping( grid, (grid.getWidth() - 1) );
+                valueMap = GridUtils.getMetaValueMapping( grid, (grid.getWidth() - 1) );
+            }
+            else
+            {
+                Grid grid = eventAnalyticsService.getAggregatedEventData( plotData.getEventVisualization() );
+
+                plotData.getEventVisualization().setDataItemGrid( grid );
+
+                valueMap = GridUtils.getMetaValueMapping( grid, (grid.getWidth() - 1) );
+            }
         }
 
         DefaultCategoryDataset regularDataSet = new DefaultCategoryDataset();

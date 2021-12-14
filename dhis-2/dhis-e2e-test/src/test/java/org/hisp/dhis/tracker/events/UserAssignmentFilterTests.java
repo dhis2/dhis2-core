@@ -90,7 +90,7 @@ public class UserAssignmentFilterTests
         metadataActions = new MetadataActions();
         userActions = new UserActions();
 
-        userUsername = "EventFiltersUser" + DataGenerator.randomString();
+        userUsername = ("EventFiltersUser" + DataGenerator.randomString()).toLowerCase();
 
         loginActions.loginAsSuperUser();
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/eventProgram.json" ) );

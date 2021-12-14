@@ -46,7 +46,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.StrSubstitutor;
+import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.sms.config.ContentType;
 import org.hisp.dhis.sms.config.GenericGatewayParameter;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
@@ -113,7 +113,7 @@ public class GenericSmsGatewayTest
 
     private GenericGatewayParameter password;
 
-    private StrSubstitutor strSubstitutor;
+    private StringSubstitutor strSubstitutor;
 
     private String body;
 
@@ -152,7 +152,7 @@ public class GenericSmsGatewayTest
     @Test
     public void testSendSms_Json()
     {
-        strSubstitutor = new StrSubstitutor( valueStore );
+        strSubstitutor = new StringSubstitutor( valueStore );
         body = strSubstitutor.replace( CONFIG_TEMPLATE_JSON );
 
         gatewayConfig.getParameters().clear();
@@ -202,7 +202,7 @@ public class GenericSmsGatewayTest
         valueStore.put( username.getKey(), username.getValue() );
         valueStore.put( password.getKey(), password.getValue() );
 
-        strSubstitutor = new StrSubstitutor( valueStore );
+        strSubstitutor = new StringSubstitutor( valueStore );
 
         gatewayConfig.getParameters().clear();
         gatewayConfig.setParameters( Arrays.asList( username, password ) );
