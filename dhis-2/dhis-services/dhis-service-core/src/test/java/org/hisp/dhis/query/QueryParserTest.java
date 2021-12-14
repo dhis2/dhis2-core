@@ -28,6 +28,7 @@
 package org.hisp.dhis.query;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -108,11 +109,11 @@ public class QueryParserTest
         queryParser = new DefaultJpaQueryParser( schemaService );
     }
 
-    @Test( expected = QueryParserException.class )
+    @Test
     public void failedFilters()
-        throws QueryParserException
     {
-        queryParser.parse( DataElement.class, Arrays.asList( "id", "name" ) );
+        assertThrows( QueryParserException.class,
+            () -> queryParser.parse( DataElement.class, Arrays.asList( "id", "name" ) ) );
     }
 
     @Test
@@ -152,12 +153,11 @@ public class QueryParserTest
         assertTrue( restriction.getOperator() instanceof EqualOperator );
     }
 
-    @Test( expected = QueryParserException.class )
+    @Test
     public void eqOperatorDeepPathFail()
-        throws QueryParserException
     {
-        queryParser.parse( DataElement.class,
-            Arrays.asList( "dataElementGroups.id.name:eq:1", "dataElementGroups.id.abc:eq:2" ) );
+        assertThrows( QueryParserException.class, () -> queryParser.parse( DataElement.class,
+            Arrays.asList( "dataElementGroups.id.name:eq:1", "dataElementGroups.id.abc:eq:2" ) ) );
     }
 
     @Test

@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.ValueType;
@@ -79,24 +80,27 @@ public class TrackedAttributeValidationServiceTest
         tea.setOrgunitScope( false );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void shouldThrowWhenTeaIsNull()
     {
-        trackedEntityAttributeService.validateValueType( null, "" );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( null, "" ) );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void shouldThrowWhenNotAValidDate()
     {
         tea.setValueType( ValueType.DATE );
         String teaValue = "Firstname";
-        trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( tea, teaValue ) );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void shouldThrowWhenNullValue()
     {
-        trackedEntityAttributeService.validateValueType( tea, null );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( tea, null ) );
     }
 
     @Test
@@ -122,11 +126,12 @@ public class TrackedAttributeValidationServiceTest
         assertNotNull( trackedEntityAttributeService.validateValueType( tea, "value" ) );
     }
 
-    @Test( expected = IllegalFieldValueException.class )
+    @Test
     public void shouldFailValidationWhenInvalidDate()
     {
         tea.setValueType( ValueType.DATE );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-32" ) );
+        assertThrows( IllegalFieldValueException.class,
+            () -> assertNotNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-32" ) ) );
     }
 
     @Test

@@ -501,15 +501,15 @@ public class EventDataQueryServiceTest
         assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetInvalidCoordinateFieldException()
     {
-        dataQueryService.getCoordinateField( "someField" );
+        assertThrows( IllegalQueryException.class, () -> dataQueryService.getCoordinateField( "someField" ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetNonCoordinateValueTypeCoordinateFieldException()
     {
-        dataQueryService.getCoordinateField( deA.getUid() );
+        assertThrows( IllegalQueryException.class, () -> dataQueryService.getCoordinateField( deA.getUid() ) );
     }
 }

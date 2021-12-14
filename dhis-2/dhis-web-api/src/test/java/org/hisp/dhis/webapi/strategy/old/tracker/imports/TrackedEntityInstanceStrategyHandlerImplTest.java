@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.strategy.old.tracker.imports;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -179,10 +180,9 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
         verify( taskExecutor, times( 1 ) ).executeTask( trackedEntitiesTaskArgumentCaptor.capture() );
     }
 
-    @Test( expected = BadRequestException.class )
+    @Test
     public void shouldThrowMediaTypeNotAllowed()
-        throws IOException,
-        BadRequestException
+        throws IOException
     {
         when( trackedEntityInstanceService.getTrackedEntityInstancesJson( any() ) )
             .thenReturn( trackedEntityInstanceList );
@@ -192,6 +192,7 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
             .jobConfiguration( jobConfiguration ).inputStream( inputStream )
             .build();
 
-        trackedEntityInstanceAsyncStrategy.mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest );
+        assertThrows( BadRequestException.class, () -> trackedEntityInstanceAsyncStrategy
+            .mergeOrDeleteTrackedEntityInstances( trackerEntityInstanceRequest ) );
     }
 }

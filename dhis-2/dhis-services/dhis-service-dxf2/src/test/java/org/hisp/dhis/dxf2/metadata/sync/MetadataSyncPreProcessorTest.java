@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.sync;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -98,7 +99,7 @@ public class MetadataSyncPreProcessorTest
         verify( synchronizationManager, times( 1 ) ).executeDataValuePush();
     }
 
-    @Test( expected = MetadataSyncServiceException.class )
+    @Test
     public void testhandleAggregateDataPushShouldThrowExceptionWhenDataPushIsUnsuccessful()
     {
         MetadataRetryContext mockRetryContext = mock( MetadataRetryContext.class );
@@ -109,8 +110,8 @@ public class MetadataSyncPreProcessorTest
         doThrow( MetadataSyncServiceException.class )
             .when( metadataSyncPreProcessor )
             .handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
-
-        metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters );
+        assertThrows( MetadataSyncServiceException.class,
+            () -> metadataSyncPreProcessor.handleDataValuePush( mockRetryContext, metadataSyncJobParameters ) );
     }
 
     @Test
@@ -193,7 +194,7 @@ public class MetadataSyncPreProcessorTest
         assertEquals( 0, expectedListOfVersions.size() );
     }
 
-    @Test( expected = MetadataSyncServiceException.class )
+    @Test
     public void testHandleMetadataVersionsListShouldThrowExceptionIfAnyIssueWithMetadataDifference()
     {
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
@@ -210,7 +211,8 @@ public class MetadataSyncPreProcessorTest
 
         when( metadataVersionDelegate.getMetaDataDifference( currentVersion ) )
             .thenThrow( new MetadataSyncServiceException( "test_message" ) );
-        metadataSyncPreProcessor.handleMetadataVersionsList( mockRetryContext, currentVersion );
+        assertThrows( MetadataSyncServiceException.class,
+            () -> metadataSyncPreProcessor.handleMetadataVersionsList( mockRetryContext, currentVersion ) );
     }
 
     @Test

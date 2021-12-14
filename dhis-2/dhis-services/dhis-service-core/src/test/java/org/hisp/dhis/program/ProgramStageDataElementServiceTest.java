@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
@@ -183,12 +184,12 @@ public class ProgramStageDataElementServiceTest
             stageDataElementB ) );
     }
 
-    @Test( expected = DeleteNotAllowedException.class )
+    @Test
     public void testRemoveReferencedDataElement()
     {
         programStageDataElementService.addProgramStageDataElement( stageDataElementA );
         stageA.setProgramStageDataElements( ImmutableSet.of( stageDataElementA ) );
         programStageService.updateProgramStage( stageA );
-        dataElementService.deleteDataElement( dataElementA );
+        assertThrows( DeleteNotAllowedException.class, () -> dataElementService.deleteDataElement( dataElementA ) );
     }
 }

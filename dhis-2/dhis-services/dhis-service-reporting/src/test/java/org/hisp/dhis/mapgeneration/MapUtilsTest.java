@@ -29,6 +29,7 @@ package org.hisp.dhis.mapgeneration;
 
 import static org.hisp.dhis.mapgeneration.MapUtils.getWidthHeight;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
 
@@ -58,10 +59,10 @@ public class MapUtilsTest
         assertEquals( 300, getWidthHeight( null, 300, 0, 0, 2 )[1] );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void testGetWidthHeightIllegalArgument()
     {
-        getWidthHeight( null, null, 0, 0, 0.5 );
+        assertThrows( IllegalArgumentException.class, () -> getWidthHeight( null, null, 0, 0, 0.5 ) );
     }
 
 }

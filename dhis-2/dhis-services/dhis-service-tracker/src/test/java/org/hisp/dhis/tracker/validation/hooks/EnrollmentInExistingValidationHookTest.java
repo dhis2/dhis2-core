@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
@@ -123,11 +124,12 @@ public class EnrollmentInExistingValidationHookTest
         verify( validationContext, times( 0 ) ).getProgram( programUid );
     }
 
-    @Test( expected = NullPointerException.class )
+    @Test
     public void shouldThrowProgramNotFound()
     {
         when( enrollment.getProgram() ).thenReturn( null );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        assertThrows( NullPointerException.class,
+            () -> hookToTest.validateEnrollment( validationErrorReporter, enrollment ) );
     }
 
     @Test
@@ -143,7 +145,7 @@ public class EnrollmentInExistingValidationHookTest
         verify( validationContext.getBundle(), times( 0 ) ).getPreheat();
     }
 
-    @Test( expected = NullPointerException.class )
+    @Test
     public void shouldThrowTrackedEntityNotFound()
     {
         Program program = new Program();
@@ -152,7 +154,8 @@ public class EnrollmentInExistingValidationHookTest
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
 
         when( enrollment.getTrackedEntity() ).thenReturn( null );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        assertThrows( NullPointerException.class,
+            () -> hookToTest.validateEnrollment( validationErrorReporter, enrollment ) );
     }
 
     @Test
