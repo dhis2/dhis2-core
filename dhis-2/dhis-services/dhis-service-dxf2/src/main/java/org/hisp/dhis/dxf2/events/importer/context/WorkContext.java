@@ -50,6 +50,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
@@ -88,7 +89,11 @@ public class WorkContext
      * Map: key -> Event UID value -> Pair<TrackedEntityInstance,
      * canBeUpdatedByCurrentUser boolean>
      */
-    private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
+    private final Map<String, Pair<TrackedEntityInstance, Boolean>> eventToTeiMap;
+
+    private final Map<String, TrackedEntityInstance> trackedEntityInstanceMap;
+
+    private final Map<String, TrackedEntityAttribute> trackedEntityAttributeMap;
 
     /**
      * Holds a Map of all {@see ProgramInstance} associated to the Events to
@@ -177,7 +182,7 @@ public class WorkContext
 
     public Optional<TrackedEntityInstance> getTrackedEntityInstance( String event )
     {
-        final Pair<TrackedEntityInstance, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
+        final Pair<TrackedEntityInstance, Boolean> teiPair = this.eventToTeiMap.get( event );
 
         return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
     }

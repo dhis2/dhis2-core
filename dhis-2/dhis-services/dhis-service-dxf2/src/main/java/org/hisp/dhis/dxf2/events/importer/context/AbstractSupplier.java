@@ -27,17 +27,65 @@
  */
 package org.hisp.dhis.dxf2.events.importer.context;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractSupplier<T> implements WorkContextSupplier<T>
+@Slf4j
+public abstract class AbstractSupplier
 {
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
     public AbstractSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public <T> T jsonToEntity( String json, Class<T> clazz )
+    {
+        if ( StringUtils.isEmpty( json ) )
+            return null;
+
+        try
+        {
+            return JacksonObjectMapperConfig.staticJsonMapper().readValue( json, clazz );
+        }
+        catch ( JsonProcessingException e )
+        {
+            log.error( e.getMessage() );
+        }
+
+        return null;
+    }
+
+    public Geometry getGeometryFrom( String field, ResultSet rs, String entity )
+        throws SQLException
+    {
+        if ( null != rs.getObject( field ) )
+        {
+            try
+            {
+                return new WKTReader().read( rs.getString( field ) );
+            }
+            catch ( ParseException e )
+            {
+                log.error( "Unable to read geometry for '" + entity + "': ", e );
+            }
+        }
+
+        return null;
     }
 }

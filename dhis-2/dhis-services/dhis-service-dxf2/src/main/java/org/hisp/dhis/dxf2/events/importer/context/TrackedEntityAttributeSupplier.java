@@ -28,48 +28,41 @@
 package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
-import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-/**
- * @author Luciano Fiandesio
- */
-@Component( "workContextProgramSupplier" )
-public class ProgramSupplier extends AbstractSupplier
+@Component( "workContextTrackedEntityAttributeSupplier" )
+public class TrackedEntityAttributeSupplier extends AbstractSupplier
 {
-    private final static String PROGRAM_CACHE_KEY = "000PS";
+
+    private final static String PROGRAM_CACHE_KEY = "000TEA";
 
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
-    private final Cache<Map<String, Program>> programsCache;
+    private final Cache<Map<String, TrackedEntityAttribute>> trackedEntityAttributeCache;
 
-    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider )
+    public TrackedEntityAttributeSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider )
     {
         super( jdbcTemplate );
-        programsCache = cacheProvider.createProgramCache();
+        this.trackedEntityAttributeCache = cacheProvider.createTeiAttributesCache();
     }
 
-    public Map<String, Program> get( ImportOptions importOptions, Set<String> uids )
+    public Map<String, TrackedEntityAttribute> get( ImportOptions importOptions, Set<String> uids )
     {
         if ( isEmpty( uids ) )
         {
@@ -78,21 +71,22 @@ public class ProgramSupplier extends AbstractSupplier
 
         if ( importOptions.isSkipCache() )
         {
-            programsCache.invalidateAll();
+            trackedEntityAttributeCache.invalidateAll();
         }
 
-        Map<String, Program> programMap = programsCache.get( PROGRAM_CACHE_KEY ).orElse( new HashMap<>() );
+        Map<String, TrackedEntityAttribute> programMap = trackedEntityAttributeCache.get( PROGRAM_CACHE_KEY )
+            .orElse( new HashMap<>() );
 
         if ( requiresCacheReload( uids, programMap ) )
         {
-            programMap = get( importOptions.getIdSchemes().getProgramIdScheme(),
+            programMap = getTrackedEntityAttributeMap( importOptions.getIdSchemes().getTrackedEntityAttributeIdScheme(),
                 uids );
         }
 
         return programMap;
     }
 
-    private boolean requiresCacheReload( Set<String> uids, Map<String, Program> programMap )
+    private boolean requiresCacheReload( Set<String> uids, Map<String, TrackedEntityAttribute> programMap )
     {
         final Set<String> programsInCache = programMap.keySet();
 
@@ -106,7 +100,7 @@ public class ProgramSupplier extends AbstractSupplier
         return false;
     }
 
-    private Map<String, Program> get( IdScheme idScheme,
+    public Map<String, TrackedEntityAttribute> getTrackedEntityAttributeMap( IdScheme idScheme,
         Set<String> uids )
     {
         if ( isEmpty( uids ) )
@@ -114,53 +108,42 @@ public class ProgramSupplier extends AbstractSupplier
             return new HashMap<>();
         }
 
-        String sql = "select p.programid as programid, p.uid as program_uid, p.onlyenrollonce, p.displayincidentdate, p.featuretype, p.selectenrollmentdatesinfuture, p.selectincidentdatesinfuture, p.type, p.sharing ";
+        String sql = "select trackedentityattributeid , name , uid, code, description, sharing, valuetype ";
 
         if ( idScheme.isAttribute() )
         {
-            sql += ",p.attributevalues->'" + idScheme.getAttribute()
+            sql += ",t.attributevalues->'" + idScheme.getAttribute()
                 + "'->>'value' as " + ATTRIBUTESCHEME_COL;
         }
 
-        sql += "from program p left join program_attributes pa on p.programid = pa.programid where p.uid in (:ids)";
+        sql += "from trackedentityattribute t where t.uid in (:ids)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         parameters.addValue( "ids", uids );
 
-        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, Program> results = new HashMap<>();
+        Map<String, TrackedEntityAttribute> trackedEntityAttributeMap = new HashMap<>();
 
+        return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
             while ( rs.next() )
             {
-                Program pi = mapFromResultSet( rs, idScheme );
-                results.put( pi.getUid(), pi );
+                TrackedEntityAttribute trackedEntityAttribute = mapFromResultSet( rs );
+                trackedEntityAttributeMap.put( idScheme.isAttribute() ? rs.getString( ATTRIBUTESCHEME_COL )
+                    : getIdentifierBasedOnIdScheme( trackedEntityAttribute, idScheme ), trackedEntityAttribute );
             }
-            return results;
+            return trackedEntityAttributeMap;
         } );
 
     }
 
-    private Program mapFromResultSet( ResultSet rs, IdScheme idScheme )
+    private TrackedEntityAttribute mapFromResultSet( ResultSet rs )
         throws SQLException
     {
-        Program pi = new Program();
-        pi.setId( rs.getLong( "programid" ) );
-        pi.setUid( rs.getString( "program_uid" ) );
-        pi.setOnlyEnrollOnce( rs.getBoolean( "onlyenrollonce" ) );
-        pi.setDisplayIncidentDate( rs.getBoolean( "displayincidentdate" ) );
-        pi.setFeatureType(
-            Optional.ofNullable( rs.getString( "featuretype" ) ).map( FeatureType::valueOf ).orElse( null ) );
-        pi.setSelectEnrollmentDatesInFuture( rs.getBoolean( "selectenrollmentdatesinfuture" ) );
-        pi.setSelectIncidentDatesInFuture( rs.getBoolean( "selectincidentdatesinfuture" ) );
-        pi.setProgramType( Optional.ofNullable( rs.getString( "type" ) ).map( ProgramType::valueOf ).orElse( null ) );
-        pi.setSharing( jsonToEntity( rs.getString( "sharing" ), Sharing.class ) );
-
-        if ( idScheme.isAttribute() )
-        {
-            pi.setAttributeValues(
-                new HashSet<>(
-                    Collections.singletonList( new AttributeValue( rs.getString( ATTRIBUTESCHEME_COL ) ) ) ) );
-        }
+        TrackedEntityAttribute pi = new TrackedEntityAttribute();
+        pi.setId( rs.getLong( "trackedentityattributeid" ) );
+        pi.setUid( rs.getString( "uid" ) );
+        pi.setName( rs.getString( "name" ) );
+        pi.setDescription( rs.getString( "description" ) );
+        pi.setValueType( ValueType.valueOf( rs.getString( "valuetype" ) ) );
 
         return pi;
     }

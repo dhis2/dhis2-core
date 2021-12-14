@@ -51,7 +51,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component( "workContextDataElementsSupplier" )
-public class DataElementSupplier extends AbstractSupplier<Map<String, DataElement>>
+public class DataElementSupplier extends AbstractSupplier
 {
     private final IdentifiableObjectManager manager;
 
@@ -61,7 +61,6 @@ public class DataElementSupplier extends AbstractSupplier<Map<String, DataElemen
         this.manager = manager;
     }
 
-    @Override
     public Map<String, DataElement> get( ImportOptions importOptions, List<Event> events )
     {
         Map<String, DataElement> dataElementsMap;

@@ -48,15 +48,15 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component( "workContextCategoryOptionCombosSupplier" )
-public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, CategoryOptionCombo>>
+public class CategoryOptionComboSupplier extends AbstractSupplier
 {
     private final AttributeOptionComboLoader attributeOptionComboLoader;
 
-    private final ProgramSupplier programSupplier;
+    private final ProgramEventSupplier programSupplier;
 
     private final ProgramStageInstanceSupplier programStageInstanceSupplier;
 
-    public CategoryOptionComboSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramSupplier programSupplier,
+    public CategoryOptionComboSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramEventSupplier programSupplier,
         AttributeOptionComboLoader attributeOptionComboLoader,
         ProgramStageInstanceSupplier programStageInstanceSupplier )
     {
@@ -66,7 +66,6 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         this.programStageInstanceSupplier = programStageInstanceSupplier;
     }
 
-    @Override
     public Map<String, CategoryOptionCombo> get( ImportOptions importOptions, List<Event> events )
     {
         if ( events == null )

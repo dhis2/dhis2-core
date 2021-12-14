@@ -40,7 +40,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -51,15 +50,14 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component( "workContextNotesSupplier" )
-public class NoteSupplier extends AbstractSupplier<Map<String, Note>>
+public class NoteSupplier extends AbstractSupplier
 {
     public NoteSupplier( NamedParameterJdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }
 
-    @Override
-    public Map<String, Note> get( ImportOptions importOptions, List<Event> events )
+    public Map<String, Note> get( List<Event> events )
     {
         Map<String, Note> persistableNotes = new HashMap<>();
         //

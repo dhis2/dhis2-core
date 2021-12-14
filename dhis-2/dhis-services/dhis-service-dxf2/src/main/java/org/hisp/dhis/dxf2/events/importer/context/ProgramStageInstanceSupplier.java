@@ -63,21 +63,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Component( "workContextProgramStageInstancesSupplier" )
 @Slf4j
-public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, ProgramStageInstance>>
+public class ProgramStageInstanceSupplier extends AbstractSupplier
 {
     private final ObjectMapper jsonMapper;
 
-    private final ProgramSupplier programSupplier;
+    private final ProgramEventSupplier programSupplier;
 
     public ProgramStageInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate,
-        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, ProgramSupplier programSupplier )
+        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, ProgramEventSupplier programSupplier )
     {
         super( jdbcTemplate );
         this.jsonMapper = jsonMapper;
         this.programSupplier = programSupplier;
     }
 
-    @Override
     public Map<String, ProgramStageInstance> get( ImportOptions importOptions, List<Event> events )
     {
         if ( events == null )
