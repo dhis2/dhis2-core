@@ -45,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 public class DataIntegritySummary implements Serializable
 {
     @JsonUnwrapped
-    private final DataIntegrityCheck source;
+    private final DataIntegrityCheck check;
 
     @JsonProperty
     private int count;

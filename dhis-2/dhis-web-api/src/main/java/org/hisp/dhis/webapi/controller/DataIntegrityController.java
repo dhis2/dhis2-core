@@ -102,6 +102,7 @@ public class DataIntegrityController
         return dataIntegrityService.getDataIntegrityChecks();
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( "/summary" )
     @ResponseBody
     public Map<String, DataIntegritySummary> runAndGetSummaries(
@@ -110,6 +111,7 @@ public class DataIntegrityController
         return dataIntegrityService.getSummaries( toUniformCheckNames( checks ), NoopJobProgress.INSTANCE );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( "/details" )
     @ResponseBody
     public Map<String, DataIntegrityDetails> runAndGetDetails(
@@ -118,6 +120,7 @@ public class DataIntegrityController
         return dataIntegrityService.getDetails( toUniformCheckNames( checks ), NoopJobProgress.INSTANCE );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( "/{check}/summary" )
     @ResponseBody
     public DataIntegritySummary runAndGetSummary( @PathVariable String check )
@@ -126,6 +129,7 @@ public class DataIntegrityController
         return dataIntegrityService.getSummaries( checks, NoopJobProgress.INSTANCE ).get( checks.iterator().next() );
     }
 
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @GetMapping( "/{check}/details" )
     @ResponseBody
     public DataIntegrityDetails runAndGetDetails( @PathVariable String check )

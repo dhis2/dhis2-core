@@ -52,7 +52,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 public class DataIntegrityDetails implements Serializable
 {
     @JsonUnwrapped
-    private final DataIntegrityCheck source;
+    private final DataIntegrityCheck check;
 
     @JsonProperty
     private final List<DataIntegrityIssue> issues;
