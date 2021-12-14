@@ -28,51 +28,40 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /**
- * Adapter interface to write {@link DataValueSet} data to different output
- * formats like JSON, XML and CSV.
+ * Adopter interface to read {@link DataValueSet}s from different input formats
+ * like XML, JSON and CSV.
  *
- * Data is written by the following method call sequence:
+ * To avoid materialising a potentially very large set of
+ * {@link org.hisp.dhis.dxf2.datavalue.DataValue}s with the {@link DataValueSet}
+ * the values are not included in the {@link #readHeader()} value. Instead, the
+ * values are iterated/streamed using the {@link #readNext()} method.
+ *
+ * To read an input the call sequence should be the following:
  * <ol>
- * <li>{@link #writeHeader()} or
- * {@link #writeHeader(String, String, String, String)}</li>
- * <li>0 or more times {@link #writeValue(DataValueEntry)}</li>
- * <li>{@link #close()}</li>
+ * <li>call {@link #readHeader()} once</li>
+ * <li>call {@link #readNext()} until it returns {@code null}</li>
+ * <li>call {@link #close()} once</li>
  * </ol>
  *
  * All methods might throw an {@link java.io.UncheckedIOException}.
  *
  * @author Jan Bernitt
- *
- * @see XmlDataValueSetWriter
- * @see JsonDataValueSetWriter
- * @see CsvDataValueSetWriter
  */
-public interface DataValueSetWriter extends AutoCloseable
+public interface DataValueSetReader extends AutoCloseable
 {
 
     /**
-     * Add a minimum document header to the output, so it is ready for calls of
-     * {@link #writeValue(DataValueEntry)}
+     * @return The information on the {@link DataValueSet} but not including the
+     *         {@link DataValueSet#getDataValues()}
      */
-    void writeHeader();
+    DataValueSet readHeader();
 
     /**
-     * Add a header with the provided information to the output. Afterwards the
-     * output should be ready for calls to {@link #writeValue(DataValueEntry)}.
-     *
-     * @param dataSetId ID of the written dataset
-     * @param completedDate the completeDate of the set
-     * @param isoPeriod the period of the set
-     * @param orgUnitId the organisation unit of the set
+     * @return the next {@link DataValueEntry} in the set or {@code null} if no
+     *         more values are available
      */
-    void writeHeader( String dataSetId, String completedDate, String isoPeriod, String orgUnitId );
+    DataValueEntry readNext();
 
-    void writeValue( DataValueEntry entry );
-
-    /**
-     * Add the document footer to the output and close the document.
-     */
     @Override
     void close();
-
 }

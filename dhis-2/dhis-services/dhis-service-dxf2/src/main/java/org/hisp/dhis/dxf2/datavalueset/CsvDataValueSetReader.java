@@ -25,103 +25,130 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.datavalue;
+package org.hisp.dhis.dxf2.datavalueset;
 
-import static org.hisp.dhis.commons.util.TextUtils.valueOf;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 
-import java.util.Arrays;
-import java.util.List;
+import lombok.AllArgsConstructor;
 
-/**
- * @author Lars Helge Overland
- */
-public class StreamingCsvDataValue
-    extends DataValue
+import com.csvreader.CsvReader;
+
+@AllArgsConstructor
+final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
 {
-    private List<String> values;
+    private final CsvReader reader;
 
-    public StreamingCsvDataValue( String[] row )
+    @Override
+    public DataValueSet readHeader()
     {
-        this.values = Arrays.asList( row );
+        return new DataValueSet();
     }
 
-    // --------------------------------------------------------------------------
-    // Supportive methods
-    // --------------------------------------------------------------------------
-
-    private String getValue( int index )
+    @Override
+    public DataValueEntry readNext()
     {
-        return index >= 0 && index < values.size() ? values.get( index ) : null;
+        try
+        {
+            return reader.readRecord() ? this : null;
+        }
+        catch ( IOException ex )
+        {
+            throw new RuntimeException( "Failed to read record", ex );
+        }
     }
 
-    // --------------------------------------------------------------------------
-    // Getters
-    // --------------------------------------------------------------------------
+    /*
+     * When used as DataValueEntry
+     */
+
+    @Override
+    public void close()
+    {
+        reader.close();
+    }
 
     @Override
     public String getDataElement()
     {
-        return dataElement = dataElement == null ? getValue( 0 ) : dataElement;
+        return getString( 0 );
     }
 
     @Override
     public String getPeriod()
     {
-        return period = period == null ? getValue( 1 ) : period;
+        return getString( 1 );
     }
 
     @Override
     public String getOrgUnit()
     {
-        return orgUnit = orgUnit == null ? getValue( 2 ) : orgUnit;
+        return getString( 2 );
     }
 
     @Override
     public String getCategoryOptionCombo()
     {
-        return categoryOptionCombo = categoryOptionCombo == null ? getValue( 3 ) : categoryOptionCombo;
+        return getString( 3 );
     }
 
     @Override
     public String getAttributeOptionCombo()
     {
-        return attributeOptionCombo = attributeOptionCombo == null ? getValue( 4 ) : attributeOptionCombo;
+        return getString( 4 );
     }
 
     @Override
     public String getValue()
     {
-        return value = value == null ? getValue( 5 ) : value;
+        return getString( 5 );
     }
 
     @Override
     public String getStoredBy()
     {
-        return storedBy = storedBy == null ? getValue( 6 ) : storedBy;
+        return getString( 6 );
+    }
+
+    @Override
+    public String getCreated()
+    {
+        return null;
     }
 
     @Override
     public String getLastUpdated()
     {
-        return lastUpdated = lastUpdated == null ? getValue( 7 ) : lastUpdated;
+        return getString( 7 );
     }
 
     @Override
     public String getComment()
     {
-        return comment = comment == null ? getValue( 8 ) : comment;
+        return getString( 8 );
     }
 
     @Override
-    public Boolean getFollowup()
+    public boolean getFollowup()
     {
-        return followup = followup == null ? valueOf( getValue( 9 ) ) : followup;
+        return Boolean.parseBoolean( getString( 9 ) );
     }
 
     @Override
     public Boolean getDeleted()
     {
-        return deleted = deleted == null ? valueOf( getValue( 10 ) ) : deleted;
+        return Boolean.valueOf( getString( 10 ) );
     }
 
+    private String getString( int index )
+    {
+        try
+        {
+            return reader.get( index );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
 }

@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lombok.Setter;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
@@ -45,6 +47,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Lars Helge Overland
  */
+@Setter
 @JacksonXmlRootElement( localName = "dataValueSet", namespace = DxfNamespaces.DXF_2_0 )
 public class DataValueSet
 {
@@ -131,21 +134,11 @@ public class DataValueSet
         return idScheme;
     }
 
-    public void setIdScheme( String idScheme )
-    {
-        this.idScheme = idScheme;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getDataElementIdScheme()
     {
         return dataElementIdScheme;
-    }
-
-    public void setDataElementIdScheme( String dataElementIdScheme )
-    {
-        this.dataElementIdScheme = dataElementIdScheme;
     }
 
     @JsonProperty
@@ -155,21 +148,11 @@ public class DataValueSet
         return orgUnitIdScheme;
     }
 
-    public void setOrgUnitIdScheme( String orgUnitIdScheme )
-    {
-        this.orgUnitIdScheme = orgUnitIdScheme;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getCategoryOptionComboIdScheme()
     {
         return categoryOptionComboIdScheme;
-    }
-
-    public void setCategoryOptionComboIdScheme( String categoryOptionComboIdScheme )
-    {
-        this.categoryOptionComboIdScheme = categoryOptionComboIdScheme;
     }
 
     @JsonProperty
@@ -179,21 +162,11 @@ public class DataValueSet
         return dataSetIdScheme;
     }
 
-    public void setDataSetIdScheme( String dataSetIdScheme )
-    {
-        this.dataSetIdScheme = dataSetIdScheme;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public Boolean getDryRun()
     {
         return dryRun;
-    }
-
-    public void setDryRun( Boolean dryRun )
-    {
-        this.dryRun = dryRun;
     }
 
     @JsonProperty
@@ -203,21 +176,11 @@ public class DataValueSet
         return strategy;
     }
 
-    public void setStrategy( String strategy )
-    {
-        this.strategy = strategy;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getDataSet()
     {
         return dataSet;
-    }
-
-    public void setDataSet( String dataSet )
-    {
-        this.dataSet = dataSet;
     }
 
     @JsonProperty
@@ -227,21 +190,11 @@ public class DataValueSet
         return completeDate;
     }
 
-    public void setCompleteDate( String completeDate )
-    {
-        this.completeDate = completeDate;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getPeriod()
     {
         return period;
-    }
-
-    public void setPeriod( String period )
-    {
-        this.period = period;
     }
 
     @JsonProperty
@@ -251,21 +204,11 @@ public class DataValueSet
         return orgUnit;
     }
 
-    public void setOrgUnit( String orgUnit )
-    {
-        this.orgUnit = orgUnit;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     public String getAttributeOptionCombo()
     {
         return attributeOptionCombo;
-    }
-
-    public void setAttributeOptionCombo( String attributeOptionCombo )
-    {
-        this.attributeOptionCombo = attributeOptionCombo;
     }
 
     @JsonProperty( value = "dataValues" )
@@ -276,21 +219,11 @@ public class DataValueSet
         return dataValues;
     }
 
-    public void setDataValues( List<DataValue> dataValues )
-    {
-        this.dataValues = dataValues;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public List<String> getAttributeCategoryOptions()
     {
         return attributeCategoryOptions;
-    }
-
-    public void setAttributeCategoryOptions( List<String> attributeCategoryOptions )
-    {
-        this.attributeCategoryOptions = attributeCategoryOptions;
     }
 
     // --------------------------------------------------------------------------
@@ -299,7 +232,7 @@ public class DataValueSet
 
     private Iterator<DataValue> dataValueIterator;
 
-    public void refreshDataValueIterator()
+    private void refreshDataValueIterator()
     {
         dataValueIterator = dataValues.iterator();
     }
@@ -322,11 +255,6 @@ public class DataValueSet
         }
 
         return dataValueIterator.next();
-    }
-
-    public DataValue getDataValueInstance()
-    {
-        return new DataValue();
     }
 
     public void close()

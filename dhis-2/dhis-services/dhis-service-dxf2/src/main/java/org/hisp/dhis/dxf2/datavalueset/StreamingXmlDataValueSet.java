@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.datavalueset;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalue.StreamingXmlDataValue;
 import org.hisp.staxwax.reader.XMLReader;
-import org.hisp.staxwax.writer.XMLWriter;
 
 /**
  * @author Lars Helge Overland
@@ -44,22 +43,11 @@ public class StreamingXmlDataValueSet
 
     private static final String TRUE = "true";
 
-    private XMLWriter writer;
-
     private XMLReader reader;
 
     // --------------------------------------------------------------------------
     // Constructor
     // --------------------------------------------------------------------------
-
-    public StreamingXmlDataValueSet( XMLWriter writer )
-    {
-        this.writer = writer;
-
-        this.writer.openDocument();
-        this.writer.openElement( FIELD_DATAVALUESET );
-        this.writer.writeAttribute( XMLNS, NS );
-    }
 
     public StreamingXmlDataValueSet( XMLReader reader )
     {
@@ -163,77 +151,4 @@ public class StreamingXmlDataValueSet
         return new StreamingXmlDataValue( reader );
     }
 
-    // --------------------------------------------------------------------------
-    // Setters
-    // --------------------------------------------------------------------------
-
-    @Override
-    public void setIdScheme( String idScheme )
-    {
-        writer.writeAttribute( FIELD_IDSCHEME, idScheme );
-    }
-
-    @Override
-    public void setDataElementIdScheme( String dataElementIdScheme )
-    {
-        writer.writeAttribute( FIELD_DATAELEMENTIDSCHEME, dataElementIdScheme );
-    }
-
-    @Override
-    public void setOrgUnitIdScheme( String orgUnitIdScheme )
-    {
-        writer.writeAttribute( FIELD_ORGUNITIDSCHEME, orgUnitIdScheme );
-    }
-
-    @Override
-    public void setCategoryOptionComboIdScheme( String categoryOptionComboIdScheme )
-    {
-        writer.writeAttribute( FIELD_CATEGORYOPTCOMBOIDSCHEME, categoryOptionComboIdScheme );
-    }
-
-    @Override
-    public void setDataSetIdScheme( String dataSetIdScheme )
-    {
-        writer.writeAttribute( FIELD_DATASETIDSCHEME, dataSetIdScheme );
-    }
-
-    @Override
-    public void setDataSet( String dataSet )
-    {
-        writer.writeAttribute( FIELD_DATASET, dataSet );
-    }
-
-    @Override
-    public void setCompleteDate( String completeDate )
-    {
-        writer.writeAttribute( FIELD_COMPLETEDATE, completeDate );
-    }
-
-    @Override
-    public void setPeriod( String period )
-    {
-        writer.writeAttribute( FIELD_PERIOD, period );
-    }
-
-    @Override
-    public void setOrgUnit( String orgUnit )
-    {
-        writer.writeAttribute( FIELD_ORGUNIT, orgUnit );
-    }
-
-    @Override
-    public DataValue getDataValueInstance()
-    {
-        return new StreamingXmlDataValue( writer );
-    }
-
-    @Override
-    public void close()
-    {
-        if ( writer != null )
-        {
-            writer.closeElement();
-            writer.closeDocument();
-        }
-    }
 }

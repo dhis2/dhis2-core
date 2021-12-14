@@ -33,7 +33,6 @@ import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalue.StreamingCsvDataValue;
 
 import com.csvreader.CsvReader;
-import com.csvreader.CsvWriter;
 
 /**
  * @author Lars Helge Overland
@@ -41,24 +40,7 @@ import com.csvreader.CsvWriter;
 public class StreamingCsvDataValueSet
     extends DataValueSet
 {
-    private CsvWriter writer;
-
     private CsvReader reader;
-
-    public StreamingCsvDataValueSet( CsvWriter writer )
-    {
-        this.writer = writer;
-
-        try
-        {
-            this.writer.writeRecord( StreamingCsvDataValue.getHeaders() ); // Write
-                                                                           // headers
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to write CSV headers", ex );
-        }
-    }
 
     public StreamingCsvDataValueSet( CsvReader reader )
     {
@@ -92,19 +74,8 @@ public class StreamingCsvDataValueSet
     }
 
     @Override
-    public DataValue getDataValueInstance()
-    {
-        return new StreamingCsvDataValue( writer );
-    }
-
-    @Override
     public void close()
     {
-        if ( writer != null )
-        {
-            writer.close();
-        }
-
         if ( reader != null )
         {
             reader.close();

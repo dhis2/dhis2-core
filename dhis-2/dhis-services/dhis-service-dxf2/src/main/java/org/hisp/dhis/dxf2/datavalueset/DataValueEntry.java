@@ -28,51 +28,34 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 /**
- * Adapter interface to write {@link DataValueSet} data to different output
- * formats like JSON, XML and CSV.
- *
- * Data is written by the following method call sequence:
- * <ol>
- * <li>{@link #writeHeader()} or
- * {@link #writeHeader(String, String, String, String)}</li>
- * <li>0 or more times {@link #writeValue(DataValueEntry)}</li>
- * <li>{@link #close()}</li>
- * </ol>
- *
- * All methods might throw an {@link java.io.UncheckedIOException}.
+ * An entry in an {@link DataValueSet} while processing it in context of a
+ * {@link DataValueSetReader} or {@link DataValueSetWriter}.
  *
  * @author Jan Bernitt
- *
- * @see XmlDataValueSetWriter
- * @see JsonDataValueSetWriter
- * @see CsvDataValueSetWriter
  */
-public interface DataValueSetWriter extends AutoCloseable
+public interface DataValueEntry
 {
+    String getDataElement();
 
-    /**
-     * Add a minimum document header to the output, so it is ready for calls of
-     * {@link #writeValue(DataValueEntry)}
-     */
-    void writeHeader();
+    String getPeriod();
 
-    /**
-     * Add a header with the provided information to the output. Afterwards the
-     * output should be ready for calls to {@link #writeValue(DataValueEntry)}.
-     *
-     * @param dataSetId ID of the written dataset
-     * @param completedDate the completeDate of the set
-     * @param isoPeriod the period of the set
-     * @param orgUnitId the organisation unit of the set
-     */
-    void writeHeader( String dataSetId, String completedDate, String isoPeriod, String orgUnitId );
+    String getOrgUnit();
 
-    void writeValue( DataValueEntry entry );
+    String getCategoryOptionCombo();
 
-    /**
-     * Add the document footer to the output and close the document.
-     */
-    @Override
-    void close();
+    String getAttributeOptionCombo();
 
+    String getValue();
+
+    String getStoredBy();
+
+    String getCreated();
+
+    String getLastUpdated();
+
+    String getComment();
+
+    boolean getFollowup();
+
+    Boolean getDeleted();
 }

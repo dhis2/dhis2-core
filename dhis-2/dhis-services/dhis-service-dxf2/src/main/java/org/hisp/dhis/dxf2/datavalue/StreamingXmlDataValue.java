@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.datavalue;
 import static org.hisp.dhis.commons.util.TextUtils.valueOf;
 
 import org.hisp.staxwax.reader.XMLReader;
-import org.hisp.staxwax.writer.XMLWriter;
 
 /**
  * @author Lars Helge Overland
@@ -64,20 +63,11 @@ public class StreamingXmlDataValue
 
     private static final String FIELD_DELETED = "deleted";
 
-    private XMLWriter writer;
-
     private XMLReader reader;
 
     // --------------------------------------------------------------------------
     // Constructors
     // --------------------------------------------------------------------------
-
-    public StreamingXmlDataValue( XMLWriter writer )
-    {
-        this.writer = writer;
-
-        this.writer.openElement( FIELD_DATAVALUE );
-    }
 
     public StreamingXmlDataValue( XMLReader reader )
     {
@@ -164,79 +154,4 @@ public class StreamingXmlDataValue
         return deleted = deleted == null ? valueOf( reader.getAttributeValue( FIELD_DELETED ) ) : deleted;
     }
 
-    // --------------------------------------------------------------------------
-    // Setters
-    // --------------------------------------------------------------------------
-
-    @Override
-    public void setDataElement( String dataElement )
-    {
-        writer.writeAttribute( FIELD_DATAELEMENT, dataElement );
-    }
-
-    @Override
-    public void setPeriod( String period )
-    {
-        writer.writeAttribute( FIELD_PERIOD, period );
-    }
-
-    @Override
-    public void setOrgUnit( String orgUnit )
-    {
-        writer.writeAttribute( FIELD_ORGUNIT, orgUnit );
-    }
-
-    @Override
-    public void setCategoryOptionCombo( String categoryOptionCombo )
-    {
-        writer.writeAttribute( FIELD_CATEGORY_OPTION_COMBO, categoryOptionCombo );
-    }
-
-    @Override
-    public void setAttributeOptionCombo( String attributeOptionCombo )
-    {
-        writer.writeAttribute( FIELD_ATTRIBUTE_OPTION_COMBO, attributeOptionCombo );
-    }
-
-    @Override
-    public void setValue( String value )
-    {
-        writer.writeAttribute( FIELD_VALUE, value );
-    }
-
-    @Override
-    public void setStoredBy( String storedBy )
-    {
-        writer.writeAttribute( FIELD_STOREDBY, storedBy );
-    }
-
-    @Override
-    public void setLastUpdated( String lastUpdated )
-    {
-        writer.writeAttribute( FIELD_LAST_UPDATED, lastUpdated );
-    }
-
-    @Override
-    public void setComment( String comment )
-    {
-        writer.writeAttribute( FIELD_COMMENT, comment );
-    }
-
-    @Override
-    public void setFollowup( Boolean followup )
-    {
-        writer.writeAttribute( FIELD_FOLLOWUP, valueOf( followup ) );
-    }
-
-    @Override
-    public void setDeleted( Boolean deleted )
-    {
-        writer.writeAttribute( FIELD_DELETED, valueOf( deleted ) );
-    }
-
-    @Override
-    public void close()
-    {
-        writer.closeElement();
-    }
 }
