@@ -55,7 +55,7 @@ public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapp
             .withId( getProgramStageDataElementUid( programStageDataElement ) );
     }
 
-    private String getProgramStageDataElementUid( ProgramStageDataElement programStageDataElement )
+    private static String getProgramStageDataElementUid( ProgramStageDataElement programStageDataElement )
     {
         return String.format( "%s.%s",
             programStageDataElement.getProgramStage().getUid(),
