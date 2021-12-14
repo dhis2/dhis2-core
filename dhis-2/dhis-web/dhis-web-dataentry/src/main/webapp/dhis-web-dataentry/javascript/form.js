@@ -3866,7 +3866,7 @@ function getTimeDelta()
 
     //Gets the server time delta
     $.getJSON(url, function( data ) {
-            serverTimeDelta = new Date(data.serverDate) - new Date();
+            serverTimeDelta = new Date(data.serverDate.substring(0,24)) - new Date();
             dhis2.de.storageManager.setServerTimeDelta(serverTimeDelta);
             // if successful, record time of update
             dhis2.de.storageManager.setServerTimeRetrieved(new Date());
