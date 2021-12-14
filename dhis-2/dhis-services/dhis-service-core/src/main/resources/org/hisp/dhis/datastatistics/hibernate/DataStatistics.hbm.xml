@@ -17,6 +17,7 @@
     <property name="visualizationViews" column="visualizationviews" type="double"/>
     <property name="eventReportViews" column="eventreportviews" type="double"/>
     <property name="eventChartViews" column="eventchartviews" type="double"/>
+    <property name="eventVisualizationViews" column="eventvisualizationviews" type="double"/>
     <property name="dashboardViews" column="dashboardviews" type="double"/>
     <property name="passiveDashboardViews" column="passivedashboardviews" type="double"/>
     <property name="dataSetReportViews" column="datasetreportviews" type="double" />
@@ -26,6 +27,7 @@
     <property name="savedVisualizations" column="visualizations" type="double"/>
     <property name="savedEventReports" column="eventreports" type="double"/>
     <property name="savedEventCharts" column="eventcharts" type="double"/>
+    <property name="savedEventVisualizations" column="eventvisualizations" type="double"/>
     <property name="savedDashboards" column="dashboards" type="double"/>
     <property name="savedIndicators" column="indicators" type="double"/>
     <property name="savedDataValues" column="datavalues" type="double"/>

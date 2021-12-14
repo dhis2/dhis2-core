@@ -235,7 +235,7 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromUrlWithEventdateSorting()
+    public void testGetFromUrlWithEventDateSorting()
     {
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
