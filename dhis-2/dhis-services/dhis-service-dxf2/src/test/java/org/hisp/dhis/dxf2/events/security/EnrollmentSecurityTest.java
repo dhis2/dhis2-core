@@ -33,6 +33,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.Attribute;
@@ -184,6 +185,7 @@ public class EnrollmentSecurityTest
         manager.save( maleB );
         manager.save( femaleA );
         manager.save( femaleB );
+
     }
 
     /**
@@ -203,27 +205,35 @@ public class EnrollmentSecurityTest
 
         injectSecurityContext( user );
 
-        assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.SUCCESS, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.SUCCESS, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.SUCCESS, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.SUCCESS, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.SUCCESS, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
     }
 
     /**
      * program = DATA READ/WRITE orgUnit = Not Accessible status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testUserWithDataReadWriteNoOrgUnit()
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -233,27 +243,35 @@ public class EnrollmentSecurityTest
 
         injectSecurityContext( user );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
     }
 
     /**
      * program = DATA READ orgUnit = Accessible status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testUserWithDataReadOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
@@ -264,27 +282,35 @@ public class EnrollmentSecurityTest
 
         injectSecurityContext( user );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
     }
 
     /**
      * program = orgUnit = Accessible status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testUserNoDataAccessOrgUnit()
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
@@ -295,27 +321,35 @@ public class EnrollmentSecurityTest
 
         injectSecurityContext( user );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
     }
 
     /**
      * program = orgUnit = Not Accessible status = ERROR
      */
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testUserNoDataAccessNoOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
@@ -325,20 +359,28 @@ public class EnrollmentSecurityTest
 
         injectSecurityContext( user );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleA.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
 
-        assertEquals( ImportStatus.ERROR, enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), femaleB.getUid() ), ImportOptions.getDefaultImportOptions() )
+        assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), femaleB.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false )
             .getStatus() );
     }
 
@@ -348,8 +390,10 @@ public class EnrollmentSecurityTest
     @Test
     public void testGetEnrollmentUserWithDataReadWrite()
     {
-        ImportSummary importSummary = enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, true ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -372,8 +416,10 @@ public class EnrollmentSecurityTest
     @Test
     public void testGetEnrollmentUserWithDataRead()
     {
-        ImportSummary importSummary = enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, true ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -396,9 +442,9 @@ public class EnrollmentSecurityTest
     @Test
     public void testGetEnrollmentsInSearchScopeForUser()
     {
-        ImportSummary importSummary = enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ),
-            ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(), null, true ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -430,8 +476,10 @@ public class EnrollmentSecurityTest
     @Test( expected = IllegalQueryException.class )
     public void testGetEnrollmentUserWithDataReadNoOrgUnit()
     {
-        ImportSummary importSummary = enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -451,8 +499,10 @@ public class EnrollmentSecurityTest
     @Test( expected = IllegalQueryException.class )
     public void testGetEnrollmentUserWithDataReadWriteNoOrgUnit()
     {
-        ImportSummary importSummary = enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -472,8 +522,10 @@ public class EnrollmentSecurityTest
     @Test( expected = IllegalQueryException.class )
     public void testGetEnrollmentUserWithNoDataReadWriteOrgUnit()
     {
-        ImportSummary importSummary = enrollmentService.addEnrollment(
-            createEnrollment( programA.getUid(), maleA.getUid() ), ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
+            ImportOptions.getDefaultImportOptions(),
+            null, false ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -495,8 +547,9 @@ public class EnrollmentSecurityTest
         manager.updateNoAcl( programA );
         Enrollment en = createEnrollment( programA.getUid(), maleA.getUid() );
         en.setOrgUnit( organisationUnitB.getUid() );
-        ImportSummary importSummary = enrollmentService.addEnrollment(
-            en, ImportOptions.getDefaultImportOptions() );
+        ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( en ), ImportOptions.getDefaultImportOptions(), null, false ).getImportSummaries()
+            .get( 0 );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertEquals( "Program is not assigned to this Organisation Unit: " + organisationUnitB.getUid(),
@@ -506,8 +559,9 @@ public class EnrollmentSecurityTest
         programA.getOrganisationUnits().add( organisationUnitB );
         manager.updateNoAcl( programA );
 
-        importSummary = enrollmentService.addEnrollment(
-            en, ImportOptions.getDefaultImportOptions() );
+        importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            Collections.singletonList( en ), ImportOptions.getDefaultImportOptions(), null, false ).getImportSummaries()
+            .get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
     }
@@ -536,8 +590,8 @@ public class EnrollmentSecurityTest
         ImportOptions importOptions = new ImportOptions();
         importOptions.getIdSchemes().setOrgUnitIdScheme( "ATTRIBUTE" );
         importOptions.getIdSchemes().getOrgUnitIdScheme().setAttribute( "D1DDOl5hTsL" );
-        ImportSummary importSummary = enrollmentService.addEnrollment(
-            en, importOptions );
+        ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            List.of( en ), importOptions, null, true ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertEquals( "Program is not assigned to this Organisation Unit: " + av.getValue(),
@@ -547,8 +601,8 @@ public class EnrollmentSecurityTest
         programA.getOrganisationUnits().add( organisationUnitB );
         manager.updateNoAcl( programA );
 
-        importSummary = enrollmentService.addEnrollment(
-            en, importOptions );
+        importSummary = enrollmentService.mergeOrDeleteEnrollments(
+            List.of( en ), importOptions, null, true ).getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
     }

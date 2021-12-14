@@ -27,16 +27,15 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.HashSet;
 
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
@@ -45,7 +44,13 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -59,7 +64,7 @@ import com.google.common.collect.Lists;
  * @author Enrico Colasante
  */
 public class HandleRelationshipsTrackedEntityInstanceServiceTest
-    extends DhisSpringTest
+    extends IntegrationTestBase
 {
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -118,9 +123,6 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
         programStageA1 = createProgramStage( '1', programA );
         programStageA2 = createProgramStage( '2', programA );
 
-        programA.setProgramStages(
-            Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
-
         manager.save( organisationUnitA );
         manager.save( trackedEntityInstanceA );
         manager.save( trackedEntityInstanceB );
@@ -166,7 +168,8 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
             Lists.newArrayList( relationship ) );
 
         ImportSummary importSummaryFrom = trackedEntityInstanceService
-            .updateTrackedEntityInstance( trackedEntityInstanceFrom, null, null, true );
+            .updateTrackedEntityInstance( trackedEntityInstanceFrom, null, ImportOptions.getDefaultImportOptions(),
+                true );
         assertEquals( ImportStatus.SUCCESS, importSummaryFrom.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummaryFrom.getRelationships().getStatus() );
 
@@ -174,7 +177,8 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
             Lists.newArrayList( relationship ) );
 
         ImportSummary importSummaryTo = trackedEntityInstanceService
-            .updateTrackedEntityInstance( trackedEntityInstanceTo, null, null, true );
+            .updateTrackedEntityInstance( trackedEntityInstanceTo, null, ImportOptions.getDefaultImportOptions(),
+                true );
         assertEquals( ImportStatus.SUCCESS, importSummaryTo.getStatus() );
         assertEquals( ImportStatus.ERROR, importSummaryTo.getRelationships().getStatus() );
         assertEquals( "Can't update relationship '" + relationship.getRelationship() + "': TrackedEntityInstance '" +
@@ -201,7 +205,8 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
             Lists.newArrayList( relationship ) );
 
         ImportSummary importSummaryFrom = trackedEntityInstanceService
-            .updateTrackedEntityInstance( trackedEntityInstanceFrom, null, null, true );
+            .updateTrackedEntityInstance( trackedEntityInstanceFrom, null, ImportOptions.getDefaultImportOptions(),
+                true );
         assertEquals( ImportStatus.SUCCESS, importSummaryFrom.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummaryFrom.getRelationships().getStatus() );
 
@@ -209,7 +214,8 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
             Lists.newArrayList( relationship ) );
 
         ImportSummary importSummaryTo = trackedEntityInstanceService
-            .updateTrackedEntityInstance( trackedEntityInstanceTo, null, null, true );
+            .updateTrackedEntityInstance( trackedEntityInstanceTo, null, ImportOptions.getDefaultImportOptions(),
+                true );
         assertEquals( ImportStatus.SUCCESS, importSummaryTo.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummaryTo.getRelationships().getStatus() );
     }
@@ -234,7 +240,7 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
             Lists.newArrayList( relationship ) );
 
         ImportSummary importSummary = trackedEntityInstanceService
-            .updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
+            .updateTrackedEntityInstance( trackedEntityInstance, null, ImportOptions.getDefaultImportOptions(), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.ERROR, importSummary.getRelationships().getStatus() );
         assertEquals( "Can't update relationship '" + relationship.getRelationship() + "': TrackedEntityInstance '" +
@@ -260,7 +266,7 @@ public class HandleRelationshipsTrackedEntityInstanceServiceTest
             Lists.newArrayList( relationship ) );
 
         ImportSummary importSummary = trackedEntityInstanceService
-            .updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
+            .updateTrackedEntityInstance( trackedEntityInstance, null, ImportOptions.getDefaultImportOptions(), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getRelationships().getStatus() );
 

@@ -39,6 +39,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +49,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.Objects;
@@ -56,6 +57,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -90,8 +92,8 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackedEntityInstanceServiceTest
-    extends TransactionalIntegrationTest
+public class TeiServiceIntegrationTest
+    extends IntegrationTestBase
 {
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -210,9 +212,6 @@ public class TrackedEntityInstanceServiceTest
         programStageA1 = createProgramStage( '1', programA );
         programStageA2 = createProgramStage( '2', programA );
 
-        programA.setProgramStages(
-            Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
-
         manager.save( organisationUnitA );
         manager.save( organisationUnitB );
         manager.save( maleA );
@@ -223,6 +222,11 @@ public class TrackedEntityInstanceServiceTest
         manager.save( programA );
         manager.save( programStageA1 );
         manager.save( programStageA2 );
+
+        programA.setProgramStages(
+            Stream.of( programStageA1, programStageA2 ).collect( Collectors.toCollection( HashSet::new ) ) );
+
+        manager.update( programA );
 
         teiMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
         teiMaleB = trackedEntityInstanceService.getTrackedEntityInstance( maleB );
@@ -237,7 +241,6 @@ public class TrackedEntityInstanceServiceTest
             DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
 
         manager.flush();
-
     }
 
     @Test
@@ -295,6 +298,12 @@ public class TrackedEntityInstanceServiceTest
         enrollment1.setCompletedBy( "test" );
         enrollment1.setCompletedDate( new Date() );
 
+        ImportSummary importSummary = trackedEntityInstanceService
+            .updateTrackedEntityInstance( trackedEntityInstance, null, ImportOptions.getDefaultImportOptions(), true );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
+
         Enrollment enrollment2 = new Enrollment();
         enrollment2.setTrackedEntityInstance( maleA.getUid() );
         enrollment2.setEnrollmentDate( new Date() );
@@ -304,8 +313,8 @@ public class TrackedEntityInstanceServiceTest
 
         trackedEntityInstance.getEnrollments().add( enrollment2 );
 
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
-            null, null, true );
+        importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
+            null, ImportOptions.getDefaultImportOptions(), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
 
@@ -324,6 +333,12 @@ public class TrackedEntityInstanceServiceTest
         enrollment1.setCompletedBy( "test" );
         enrollment1.setCompletedDate( new Date() );
 
+        ImportSummary importSummary = trackedEntityInstanceService
+            .updateTrackedEntityInstance( trackedEntityInstance, null, ImportOptions.getDefaultImportOptions(), true );
+
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
+
         Enrollment enrollment2 = new Enrollment();
         enrollment2.setTrackedEntityInstance( maleA.getUid() );
 
@@ -341,8 +356,8 @@ public class TrackedEntityInstanceServiceTest
 
         trackedEntityInstance.getEnrollments().add( enrollment2 );
 
-        ImportSummary importSummary = trackedEntityInstanceService
-            .updateTrackedEntityInstance( trackedEntityInstance, null, null, true );
+        importSummary = trackedEntityInstanceService
+            .updateTrackedEntityInstance( trackedEntityInstance, null, ImportOptions.getDefaultImportOptions(), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
 
@@ -388,7 +403,7 @@ public class TrackedEntityInstanceServiceTest
         enrollment1.setEvents( Arrays.asList( event1, event2 ) );
 
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
-            null, null, true );
+            null, ImportOptions.getDefaultImportOptions(), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS,
@@ -483,8 +498,6 @@ public class TrackedEntityInstanceServiceTest
     @Test
     public void testUpdateTeiByDeletingExistingEventAndAddNewEventForSameProgramStage()
     {
-        // Making program stage repeatable
-        programStageA2.setRepeatable( true );
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
             .getTrackedEntityInstance( maleA.getUid() );
@@ -503,6 +516,9 @@ public class TrackedEntityInstanceServiceTest
         event1.setStatus( EventStatus.COMPLETED );
         event1.setTrackedEntityInstance( maleA.getUid() );
 
+        // Making program stage repeatable
+        programStageA2.setRepeatable( true );
+
         Event event2 = new Event();
         event2.setEnrollment( enrollment1.getEnrollment() );
         event2.setOrgUnit( organisationUnitA.getUid() );
@@ -515,8 +531,10 @@ public class TrackedEntityInstanceServiceTest
 
         enrollment1.setEvents( Arrays.asList( event1, event2 ) );
 
+        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
-            null, null, true );
+            null, importOptions, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS,
@@ -550,7 +568,6 @@ public class TrackedEntityInstanceServiceTest
 
         enrollment1.getEvents().add( event3 );
 
-        ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.SYNC );
 
         importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null,
@@ -570,8 +587,10 @@ public class TrackedEntityInstanceServiceTest
         // person.setName( "NAME" );
         trackedEntityInstance.setOrgUnit( organisationUnitA.getUid() );
 
-        ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance,
-            null );
+        ImportSummary importSummary = trackedEntityInstanceService
+            .mergeOrDeleteTrackedEntityInstances( Collections.singletonList( trackedEntityInstance ),
+                ImportOptions.getDefaultImportOptions(), null )
+            .getImportSummaries().get( 0 );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         // assertEquals( "NAME", personService.getTrackedEntityInstance(
@@ -598,7 +617,8 @@ public class TrackedEntityInstanceServiceTest
             trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.DELETE );
-        trackedEntityInstanceService.deleteTrackedEntityInstances( teis, importOptions );
+        trackedEntityInstanceService.deleteTrackedEntityInstances( teis,
+            WorkContext.builder().importOptions( importOptions ).build() );
 
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ) );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
@@ -608,7 +628,7 @@ public class TrackedEntityInstanceServiceTest
     public void testTooLongTrackedEntityAttributeValue()
     {
         TrackedEntityInstance tei = new TrackedEntityInstance();
-
+        tei.setTrackedEntityInstance( CodeGenerator.generateUid() );
         String testValue = StringUtils.repeat( "x", 1201 );
 
         Attribute attribute = new Attribute( testValue );
@@ -619,8 +639,9 @@ public class TrackedEntityInstanceServiceTest
         List<TrackedEntityInstance> teis = Lists.newArrayList( tei );
 
         ImportOptions importOptions = new ImportOptions();
-        importOptions.setImportStrategy( ImportStrategy.UPDATE );
-        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
+        importOptions.setImportStrategy( ImportStrategy.CREATE );
+        ImportSummaries importSummaries = trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( teis,
+            importOptions, null );
 
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
 
@@ -636,14 +657,17 @@ public class TrackedEntityInstanceServiceTest
     {
         ImportOptions importOptions = new ImportOptions();
 
-        trackedEntityInstanceService.addTrackedEntityInstance( teiMaleA, importOptions );
+        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( Arrays.asList( teiMaleA ), importOptions,
+            null );
         trackedEntityInstanceService.deleteTrackedEntityInstance( teiMaleA.getTrackedEntityInstance() );
 
         manager.flush();
 
         importOptions.setImportStrategy( ImportStrategy.CREATE );
         teiMaleA.setDeleted( true );
-        ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( teiMaleA, importOptions );
+        ImportSummary importSummary = trackedEntityInstanceService
+            .mergeOrDeleteTrackedEntityInstances( Arrays.asList( teiMaleA ), importOptions, null ).getImportSummaries()
+            .get( 0 );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertEquals( 1, importSummary.getImportCount().getIgnored() );
@@ -655,7 +679,8 @@ public class TrackedEntityInstanceServiceTest
     {
         ImportOptions importOptions = new ImportOptions();
 
-        trackedEntityInstanceService.addTrackedEntityInstance( teiMaleA, importOptions );
+        trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( Arrays.asList( teiMaleA ), importOptions,
+            null );
         trackedEntityInstanceService.deleteTrackedEntityInstance( teiMaleA.getTrackedEntityInstance() );
 
         manager.flush();
@@ -671,7 +696,8 @@ public class TrackedEntityInstanceServiceTest
         teis.add( teiMaleB );
         teis.add( teiFemaleA );
 
-        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
+        ImportSummaries importSummaries = trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( teis,
+            importOptions, null );
 
         assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
         assertEquals( 1, importSummaries.getIgnored() );
@@ -706,7 +732,8 @@ public class TrackedEntityInstanceServiceTest
 
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.CREATE );
-        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
+        ImportSummaries importSummaries = trackedEntityInstanceService.mergeOrDeleteTrackedEntityInstances( teis,
+            importOptions, null );
 
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
 
@@ -726,6 +753,7 @@ public class TrackedEntityInstanceServiceTest
 
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.UPDATE );
+
         ImportSummary importSummaries = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, importOptions, true );
 

@@ -135,7 +135,7 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
         Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), Pair.of( tei, true ) );
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
+        when( workContext.getEventToTeiMap() ).thenReturn( teiMap );
 
         ProgramInstance programInstance1 = new ProgramInstance();
         ProgramInstance programInstance2 = new ProgramInstance();

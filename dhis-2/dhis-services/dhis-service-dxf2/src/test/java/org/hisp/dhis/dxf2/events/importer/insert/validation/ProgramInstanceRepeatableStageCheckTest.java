@@ -93,7 +93,7 @@ public class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
         Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), teiPair );
 
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
+        when( workContext.getEventToTeiMap() ).thenReturn( teiMap );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
@@ -135,7 +135,7 @@ public class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
         Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), teiPair );
 
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
+        when( workContext.getEventToTeiMap() ).thenReturn( teiMap );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
