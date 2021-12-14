@@ -45,7 +45,7 @@ import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
 import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 import static org.springframework.http.CacheControl.maxAge;
@@ -161,18 +161,14 @@ public class WebCacheTest
         assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );
     }
 
-    @Test( expected = UnsupportedOperationException.class )
+    @Test
     public void testGetCacheControlForWhenCacheStrategyIsRespectSystemSettingNotUsedInObjectBasis()
     {
         // Given
-        givenCacheabilityPublic();
         givenCacheStartegy( RESPECT_SYSTEM_SETTING );
 
-        // When
-        webCache.getCacheControlFor( RESPECT_SYSTEM_SETTING );
-
-        // Then
-        fail( "Should not reach here. Exception was expected: " );
+        assertThrows( UnsupportedOperationException.class,
+            () -> webCache.getCacheControlFor( RESPECT_SYSTEM_SETTING ) );
     }
 
     @Test

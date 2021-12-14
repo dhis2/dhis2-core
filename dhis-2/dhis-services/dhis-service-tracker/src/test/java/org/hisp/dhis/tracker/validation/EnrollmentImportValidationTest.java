@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.io.IOException;
 
@@ -119,11 +120,11 @@ public class EnrollmentImportValidationTest
         } );
     }
 
-    @Test( expected = IOException.class )
+    @Test
     public void testDisplayIncidentDateTrueButDateValueIsInvalid()
-        throws IOException
     {
-        createBundleFromJson( "tracker/validations/enrollments_error-displayIncident.json" );
+        assertThrows( IOException.class,
+            () -> createBundleFromJson( "tracker/validations/enrollments_error-displayIncident.json" ) );
     }
 
     @Test

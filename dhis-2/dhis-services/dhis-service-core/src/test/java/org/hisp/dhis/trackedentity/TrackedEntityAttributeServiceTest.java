@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -122,10 +123,11 @@ public class TrackedEntityAttributeServiceTest
         tea.setOrgunitScope( false );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void shouldThrowWhenTeaIsNull()
     {
-        trackedEntityAttributeService.validateValueType( null, "" );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( null, "" ) );
     }
 
     @Test
@@ -184,12 +186,13 @@ public class TrackedEntityAttributeServiceTest
         assertNotNull( result );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void wrongValueToDateValueType()
     {
         tea.setValueType( ValueType.DATE );
         String teaValue = "Firstname";
-        trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( tea, teaValue ) );
     }
 
     @Test

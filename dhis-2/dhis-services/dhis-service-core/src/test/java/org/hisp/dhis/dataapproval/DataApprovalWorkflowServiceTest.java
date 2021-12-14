@@ -30,6 +30,7 @@ package org.hisp.dhis.dataapproval;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -231,11 +232,12 @@ public class DataApprovalWorkflowServiceTest
         assertEquals( "H", dataApprovalService.getWorkflow( idA ).getName() );
     }
 
-    @Test( expected = CreateAccessDeniedException.class )
+    @Test
     public void testSaveWorkFlowWithoutAuthority()
     {
         createUserAndInjectSecurityContext( false, null );
-        dataApprovalService.addWorkflow( new DataApprovalWorkflow( "F", periodType, newHashSet( level1, level2 ) ) );
+        assertThrows( CreateAccessDeniedException.class, () -> dataApprovalService
+            .addWorkflow( new DataApprovalWorkflow( "F", periodType, newHashSet( level1, level2 ) ) ) );
     }
 
     @Test
@@ -247,10 +249,11 @@ public class DataApprovalWorkflowServiceTest
         assertEquals( "4", dataApprovalLevelService.getDataApprovalLevel( idA ).getName() );
     }
 
-    @Test( expected = UpdateAccessDeniedException.class )
+    @Test
     public void testSaveLevelWithoutAuthority()
     {
         createUserAndInjectSecurityContext( false, null );
-        dataApprovalLevelService.addDataApprovalLevel( new DataApprovalLevel( "7", 1, null ) );
+        assertThrows( UpdateAccessDeniedException.class,
+            () -> dataApprovalLevelService.addDataApprovalLevel( new DataApprovalLevel( "7", 1, null ) ) );
     }
 }

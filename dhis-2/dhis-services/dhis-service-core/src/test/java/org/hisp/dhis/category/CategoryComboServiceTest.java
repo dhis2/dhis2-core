@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -211,7 +212,7 @@ public class CategoryComboServiceTest
         assertTrue( categoryService.getCategory( catIdB ).getCategoryCombos().contains( categoryComboB ) );
     }
 
-    @Test( expected = DeleteNotAllowedException.class )
+    @Test
     public void testDeleteCategory()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
@@ -223,8 +224,7 @@ public class CategoryComboServiceTest
         categoryA.setCategoryCombos( Lists.newArrayList( categoryComboA, categoryComboB ) );
 
         categoryService.updateCategory( categoryA );
-
-        categoryService.deleteCategory( categoryA );
+        assertThrows( DeleteNotAllowedException.class, () -> categoryService.deleteCategory( categoryA ) );
     }
 
     @Test

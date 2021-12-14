@@ -111,18 +111,14 @@ public class FilterValidatorTest
         assertThat( thrown.getMessage(), containsString( "Filter not supported: `invalidAttribute`" ) );
     }
 
-    @Test( expected = Test.None.class ) /* no exception is expected */
+    @Test
     public void testCheckNamesAndOperatorsWithSuccess()
     {
         // Given
         final Set<String> filters = new HashSet<>( singletonList( "name:ilike:aWord" ) );
-        final boolean noExceptionIsThrown = true;
 
         // When
         checkNamesAndOperators( filters );
-
-        // Then
-        assert (noExceptionIsThrown);
     }
 
     @Test

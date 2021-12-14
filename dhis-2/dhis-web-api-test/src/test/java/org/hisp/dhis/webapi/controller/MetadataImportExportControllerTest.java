@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -40,7 +38,6 @@ import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 
 /**
  * Tests the
@@ -134,41 +131,6 @@ public class MetadataImportExportControllerTest extends DhisControllerConvenienc
             ContentType( "application/xml" ) ).content( HttpStatus.OK );
         assertEquals( "OK", report.getString( "status" ).string() );
         assertEquals( "ImportReport", report.getString( "responseType" ).string() );
-    }
-
-    @Test
-    public void testPostXmlMetadata()
-    {
-        HttpResponse response = POST( "/38/metadata", Body( "<metadata></metadata>" ),
-            ContentType( "application/xml" ), Accept( "application/xml" ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
-    }
-
-    @Test
-    public void testPostXmlMetadata_Async()
-    {
-        HttpResponse response = POST( "/metadata?async=true", Body( "<metadata></metadata>" ),
-            ContentType( "application/xml" ), Accept( "application/xml" ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<webMessage" ) );
-    }
-
-    @Test
-    public void testPostXmlMetadata_Pre38()
-    {
-        HttpResponse response = POST( "/37/metadata", Body( "<metadata></metadata>" ),
-            ContentType( "application/xml" ), Accept( "application/xml" ) );
-        assertEquals( HttpStatus.OK, response.status() );
-        assertTrue( response.content( MediaType.APPLICATION_XML ).startsWith( "<importReport" ) );
-    }
-
-    @Test
-    public void testPostXmlMetadata_JsonResponse()
-    {
-        assertWebMessage( "OK", 200, "OK", null,
-            POST( "/38/metadata", Body( "<metadata></metadata>" ),
-                ContentType( "application/xml" ), Accept( "application/json" ) ).content( HttpStatus.OK ) );
     }
 
     @Test
