@@ -27,37 +27,52 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.io.Serializable;
+import java.util.function.Function;
 
-import org.hisp.dhis.scheduling.JobProgress;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Fredrik Fjeld (old API)
- * @author Jan Bernitt (new API)
+ * In-memory representation of a data integrity check.
+ *
+ * Alongside its informative fields it has a {@link Function} that given the
+ * check produces the {@link DataIntegritySummary} and one that produces the
+ * {@link DataIntegrityDetails} of the check.
+ *
+ * If a check does not support one or the other of the two check types the
+ * {@link Function} returns {@code null}.
+ *
+ * @author Jan Bernitt
  */
-public interface DataIntegrityService
+@Getter
+@Builder
+@AllArgsConstructor( access = AccessLevel.PRIVATE )
+public final class DataIntegrityCheck implements Serializable
 {
-    /*
-     * Old API
-     */
+    @JsonProperty
+    private final String name;
 
-    /**
-     * @deprecated Replaced by {@link #getSummaries(Set, JobProgress)} and
-     *             {@link #getDetails(Set, JobProgress)}, kept for backwards
-     *             compatibility until new UI exists
-     */
-    @Deprecated( since = "2.38", forRemoval = true )
-    FlattenedDataIntegrityReport getReport( Set<String> checks, JobProgress progress );
+    @JsonProperty
+    private final String section;
 
-    /*
-     * New generic API
-     */
+    @JsonProperty
+    private final DataIntegritySeverity severity;
 
-    Collection<DataIntegrityCheck> getDataIntegrityChecks();
+    @JsonProperty
+    private final String description;
 
-    Map<String, DataIntegritySummary> getSummaries( Set<String> checks, JobProgress progress );
+    @JsonProperty
+    private final String introduction;
 
-    Map<String, DataIntegrityDetails> getDetails( Set<String> checks, JobProgress progress );
+    @JsonProperty
+    private final String recommendation;
+
+    private final transient Function<DataIntegrityCheck, DataIntegritySummary> runSummaryCheck;
+
+    private final transient Function<DataIntegrityCheck, DataIntegrityDetails> runDetailsCheck;
 }
