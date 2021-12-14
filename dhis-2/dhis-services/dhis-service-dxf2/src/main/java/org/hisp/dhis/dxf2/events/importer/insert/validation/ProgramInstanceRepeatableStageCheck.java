@@ -59,7 +59,7 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
 
         if ( program.isRegistration() )
         {
-            tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getLeft();
+            tei = ctx.getEventToTeiMap().get( event.getUid() ).getLeft();
         }
 
         /*
