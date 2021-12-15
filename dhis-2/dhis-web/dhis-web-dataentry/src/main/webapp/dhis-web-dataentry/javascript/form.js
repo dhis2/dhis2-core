@@ -1838,8 +1838,9 @@ function insertDataValues( json )
     
     if ( dataSet && dataSet.expiryDays > 0 )
     {
+        var serverTimeDelta = dhis2.de.storageManager.getServerTimeDelta() || 0;
         var maxDate = moment( period.endDate, dhis2.period.format.toUpperCase() ).add( parseInt(dataSet.expiryDays), 'day' );
-        periodLocked = moment().isAfter( maxDate );
+        periodLocked = moment().add( serverTimeDelta, 'ms' ).isAfter( maxDate );
     }
 
     var lockExceptionId = dhis2.de.currentOrganisationUnitId + "-" + dhis2.de.currentDataSetId + "-" + period.iso;
