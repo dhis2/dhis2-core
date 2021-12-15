@@ -315,6 +315,11 @@ public class MetadataItem
         return indicatorType;
     }
 
+    public void setIndicatorType( AggregationType itemSpecificType )
+    {
+        this.aggregationType = itemSpecificType;
+    }
+
     @JsonProperty
     public TotalAggregationType getTotalAggregationType()
     {
