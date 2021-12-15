@@ -41,24 +41,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 
 public class DimensionMapperTestSupport
 {
-    public static void assertAll( Collection<Pair<Supplier<?>, Object>> assertions )
-    {
-        assertions.forEach( DimensionMapperTestSupport::assertOne );
-    }
-
-    private static void assertOne( Pair<Supplier<?>, Object> assertingPair )
-    {
-        assertThat( assertingPair.getKey().get().toString(), is( assertingPair.getValue().toString() ) );
-    }
-
-    public static <T extends BaseIdentifiableObject> T getBaseIdentifiableObject( Supplier<T> instanceSupplier,
-        Collection<Consumer<T>> setters )
-    {
-        T baseIdentifiableObject = instanceSupplier.get();
-        setters.forEach( setter -> setter.accept( baseIdentifiableObject ) );
-        return baseIdentifiableObject;
-    }
-
     public static <T extends BaseIdentifiableObject> void asserter(
         DimensionMapper dimensionMapper,
         Supplier<T> instanceSupplier,
@@ -73,5 +55,23 @@ public class DimensionMapperTestSupport
                 () -> functionObjectPair.getKey().apply( dimensionMapper.map( item ) ),
                 functionObjectPair.getRight() ) )
             .collect( Collectors.toList() ) );
+    }
+
+    private static <T extends BaseIdentifiableObject> T getBaseIdentifiableObject( Supplier<T> instanceSupplier,
+                                                                                   Collection<Consumer<T>> setters )
+    {
+        T baseIdentifiableObject = instanceSupplier.get();
+        setters.forEach( setter -> setter.accept( baseIdentifiableObject ) );
+        return baseIdentifiableObject;
+    }
+
+    private static void assertAll( Collection<Pair<Supplier<?>, Object>> assertions )
+    {
+        assertions.forEach( DimensionMapperTestSupport::assertOne );
+    }
+
+    private static void assertOne( Pair<Supplier<?>, Object> assertingPair )
+    {
+        assertThat( assertingPair.getKey().get().toString(), is( assertingPair.getValue().toString() ) );
     }
 }
