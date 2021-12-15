@@ -30,28 +30,25 @@ package org.hisp.dhis.fileresource;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Optional;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-public class FileResourceKeyUtilTest
+class FileResourceKeyUtilTest
 {
 
     @Test
-    public void verifyBuildKey()
+    void verifyBuildKey()
     {
         String key = FileResourceKeyUtil.makeKey( FileResourceDomain.DOCUMENT, Optional.empty() );
         assertThat( key, startsWith( "document/" ) );
         assertEquals( 36, key.substring( "document/".length() ).length() );
-
         key = FileResourceKeyUtil.makeKey( FileResourceDomain.DOCUMENT, Optional.of( "myKey" ) );
         assertThat( key, is( "document/myKey" ) );
-
     }
-
 }

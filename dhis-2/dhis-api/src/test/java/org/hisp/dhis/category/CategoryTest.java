@@ -28,35 +28,36 @@
 package org.hisp.dhis.category;
 
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link Category}.
  *
  * @author Volker Schmidt
  */
-public class CategoryTest
+class CategoryTest
 {
+
     @Test
-    public void hasDefault()
+    void hasDefault()
     {
-        Assert.assertTrue( SystemDefaultMetadataObject.class.isAssignableFrom( Category.class ) );
+        Assertions.assertTrue( SystemDefaultMetadataObject.class.isAssignableFrom( Category.class ) );
     }
 
     @Test
-    public void isDefault()
+    void isDefault()
     {
         Category category = new Category();
         category.setName( Category.DEFAULT_NAME );
-        Assert.assertTrue( category.isDefault() );
+        Assertions.assertTrue( category.isDefault() );
     }
 
     @Test
-    public void isNotDefault()
+    void isNotDefault()
     {
         Category category = new Category();
         category.setName( Category.DEFAULT_NAME + "x" );
-        Assert.assertFalse( category.isDefault() );
+        Assertions.assertFalse( category.isDefault() );
     }
 }
