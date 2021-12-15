@@ -88,17 +88,13 @@ public class OrderValidatorTest
         assertThat( thrown.getMessage(), containsString( "Unable to parse order param: `name:asc:invalid`" ) );
     }
 
-    @Test( expected = Test.None.class ) /* no exception is expected */
+    @Test
     public void testCheckOrderParamsWithSuccess()
     {
         // Given
         final Set<String> orderings = new HashSet<>( singletonList( "name:desc" ) );
-        final boolean noExceptionIsThrown = true;
 
         // When
         checkOrderParams( orderings );
-
-        // Then
-        assert (noExceptionIsThrown);
     }
 }

@@ -28,12 +28,6 @@
 package org.hisp.dhis.dataintegrity;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasKey;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
@@ -46,33 +40,35 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramRule;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleAction;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariable;
+import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.issueName;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.hibernate.SessionFactory;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
+import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.ExpressionService;
@@ -222,7 +218,8 @@ public class DataIntegrityServiceTest
         subject = new DefaultDataIntegrityService( i18nManager, programRuleService, programRuleActionService,
             programRuleVariableService, dataElementService, indicatorService, dataSetService,
             organisationUnitService, organisationUnitGroupService, validationRuleService, expressionService,
-            dataEntryFormService, categoryService, periodService, programIndicatorService );
+            dataEntryFormService, categoryService, periodService, programIndicatorService,
+            mock( SessionFactory.class ) );
         setUpFixtures();
     }
 
@@ -361,16 +358,19 @@ public class DataIntegrityServiceTest
         dataSet2.addDataSetElement( dataElements.get( seed + 6 ) );
         dataSet2.addDataSetElement( dataElements.get( seed + 1 ) );
 
-        when( dataElementService.getAllDataElements() ).thenReturn( new ArrayList<>( dataElements.values() ) );
-        when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSet1, dataSet2 ) );
+        when( dataElementService.getAllDataElements() ).thenReturn( List.copyOf( dataElements.values() ) );
+        when( dataSetService.getAllDataSets() ).thenReturn( List.of( dataSet1, dataSet2 ) );
 
-        SortedMap<DataElement, Collection<DataSet>> result = subject
+        List<DataIntegrityIssue> result = subject
             .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
 
-        assertThat( result.get( dataElements.get( seed + 4 ) ), hasSize( 2 ) );
-        assertThat( result.get( dataElements.get( seed + 1 ) ), hasSize( 2 ) );
-        assertThat( result.get( dataElements.get( seed + 4 ) ), containsInAnyOrder( dataSet1, dataSet2 ) );
-        assertThat( result.get( dataElements.get( seed + 1 ) ), containsInAnyOrder( dataSet1, dataSet2 ) );
+        assertEquals( 2, result.size() );
+        DataIntegrityIssue issue0 = result.get( 0 );
+        assertEquals( seed + 1, issue0.getId() );
+        assertContainsOnly( issue0.getRefs(), issueName( dataSet1 ), issueName( dataSet2 ) );
+        DataIntegrityIssue issue1 = result.get( 1 );
+        assertEquals( seed + 4, issue1.getId() );
+        assertContainsOnly( issue1.getRefs(), issueName( dataSet1 ), issueName( dataSet2 ) );
     }
 
     @Test
@@ -395,9 +395,7 @@ public class DataIntegrityServiceTest
         when( dataElementService.getAllDataElements() ).thenReturn( new ArrayList<>( dataElements.values() ) );
         when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSet1, dataSet2 ) );
 
-        SortedMap<DataElement, Collection<DataSet>> result = subject
-            .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
-        assertThat( result.keySet(), hasSize( 0 ) );
+        assertTrue( subject.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes().isEmpty() );
     }
 
     @Test
@@ -412,14 +410,12 @@ public class DataIntegrityServiceTest
     @Test
     public void testGetIndicatorsWithIdenticalFormulas()
     {
-        when( indicatorService.getAllIndicators() ).thenReturn( newArrayList( indicatorA, indicatorB, indicatorC ) );
-        Set<Set<Indicator>> expected = subject.getIndicatorsWithIdenticalFormulas();
+        when( indicatorService.getAllIndicators() ).thenReturn( List.of( indicatorA, indicatorB, indicatorC ) );
+        List<DataIntegrityIssue> issues = subject.getIndicatorsWithIdenticalFormulas();
 
-        Collection<Indicator> violation = expected.iterator().next();
-        assertThat( expected, hasSize( 1 ) );
-        assertThat( violation, hasSize( 2 ) );
-        assertThat( violation, hasItem( indicatorB ) );
-        assertThat( violation, hasItem( indicatorC ) );
+        assertEquals( 1, issues.size() );
+        assertContainsOnly( issues.get( 0 ).getRefs(),
+            issueName( indicatorB ), issueName( indicatorC ) );
     }
 
     @Test
@@ -458,16 +454,17 @@ public class DataIntegrityServiceTest
     public void testGetProgramRulesWithNoExpression()
     {
         programRuleB.setCondition( null );
-        when( programRuleService.getProgramRulesWithNoCondition() ).thenReturn( Arrays.asList( programRuleB ) );
+        when( programRuleService.getProgramRulesWithNoCondition() ).thenReturn( List.of( programRuleB ) );
 
-        Map<Program, Collection<ProgramRule>> actual = subject.getProgramRulesWithNoCondition();
+        List<DataIntegrityIssue> issues = subject.getProgramRulesWithNoCondition();
 
         verify( programRuleService ).getProgramRulesWithNoCondition();
         verify( programRuleService, times( 1 ) ).getProgramRulesWithNoCondition();
 
-        assertThat( actual, hasKey( programB ) );
-        assertThat( actual.get( programB ), hasSize( 1 ) );
-        assertThat( actual.get( programB ), contains( programRuleB ) );
+        assertEquals( 1, issues.size() );
+        DataIntegrityIssue issue = issues.get( 0 );
+        assertEquals( issueName( programB ), issue.getName() );
+        assertContainsOnly( issue.getRefs(), issueName( programRuleB ) );
     }
 
     @Test
@@ -476,16 +473,17 @@ public class DataIntegrityServiceTest
         programRuleVariableA.setProgram( programA );
 
         when( programRuleVariableService.getVariablesWithNoDataElement() )
-            .thenReturn( Arrays.asList( programRuleVariableA ) );
+            .thenReturn( List.of( programRuleVariableA ) );
 
-        Map<Program, Collection<ProgramRuleVariable>> actual = subject.getProgramRuleVariablesWithNoDataElement();
+        List<DataIntegrityIssue> issues = subject.getProgramRuleVariablesWithNoDataElement();
 
         verify( programRuleVariableService ).getVariablesWithNoDataElement();
         verify( programRuleVariableService, times( 1 ) ).getVariablesWithNoDataElement();
 
-        assertThat( actual, hasKey( programA ) );
-        assertThat( actual.get( programA ), hasSize( 1 ) );
-        assertThat( actual.get( programA ), contains( programRuleVariableA ) );
+        assertEquals( 1, issues.size() );
+        DataIntegrityIssue issue = issues.get( 0 );
+        assertEquals( issueName( programA ), issue.getName() );
+        assertContainsOnly( issue.getRefs(), issueName( programRuleVariableA ) );
     }
 
     @Test
@@ -494,16 +492,17 @@ public class DataIntegrityServiceTest
         programRuleActionA.setProgramRule( programRuleA );
 
         when( programRuleActionService.getProgramActionsWithNoLinkToDataObject() )
-            .thenReturn( Arrays.asList( programRuleActionA ) );
+            .thenReturn( List.of( programRuleActionA ) );
 
-        Map<ProgramRule, Collection<ProgramRuleAction>> actual = subject.getProgramRuleActionsWithNoDataObject();
+        List<DataIntegrityIssue> issues = subject.getProgramRuleActionsWithNoDataObject();
 
         verify( programRuleActionService ).getProgramActionsWithNoLinkToDataObject();
         verify( programRuleActionService, times( 1 ) ).getProgramActionsWithNoLinkToDataObject();
 
-        assertThat( actual, hasKey( programRuleA ) );
-        assertThat( actual.get( programRuleA ), hasSize( 1 ) );
-        assertThat( actual.get( programRuleA ), contains( programRuleActionA ) );
+        assertEquals( 1, issues.size() );
+        DataIntegrityIssue issue = issues.get( 0 );
+        assertEquals( issueName( programRuleA ), issue.getName() );
+        assertContainsOnly( issue.getRefs(), issueName( programRuleActionA ) );
     }
 
     @Test
@@ -514,17 +513,18 @@ public class DataIntegrityServiceTest
         programIndicator.setExpression( "A{someuid} + 1" );
 
         when( programIndicatorService.expressionIsValid( anyString() ) ).thenReturn( false );
-        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
+        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( List.of( programIndicator ) );
 
         when( expressionService.getExpressionDescription( anyString(), any() ) )
             .thenThrow( new ParserException( INVALID_EXPRESSION ) );
 
-        Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorExpressions();
+        List<DataIntegrityIssue> issues = subject.getInvalidProgramIndicatorExpressions();
 
-        assertNotNull( invalidExpressions );
-        assertEquals( invalidExpressions.size(), 1 );
-        assertTrue( invalidExpressions.containsKey( programIndicator ) );
-        assertTrue( invalidExpressions.containsValue( INVALID_EXPRESSION ) );
+        assertNotNull( issues );
+        assertEquals( 1, issues.size() );
+        DataIntegrityIssue issue = issues.get( 0 );
+        assertEquals( issueName( programIndicator ), issue.getName() );
+        assertEquals( INVALID_EXPRESSION, issue.getComment() );
     }
 
     @Test
@@ -535,17 +535,17 @@ public class DataIntegrityServiceTest
         programIndicator.setFilter( "A{someuid} + 1" );
 
         when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( false );
-        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
+        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( List.of( programIndicator ) );
 
         when( expressionService.getExpressionDescription( anyString(), any() ) )
             .thenThrow( new ParserException( INVALID_EXPRESSION ) );
 
-        Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
+        List<DataIntegrityIssue> issues = subject.getInvalidProgramIndicatorFilters();
 
-        assertNotNull( invalidExpressions );
-        assertEquals( invalidExpressions.size(), 1 );
-        assertTrue( invalidExpressions.containsKey( programIndicator ) );
-        assertTrue( invalidExpressions.containsValue( INVALID_EXPRESSION ) );
+        assertEquals( 1, issues.size(), 1 );
+        DataIntegrityIssue issue = issues.get( 0 );
+        assertEquals( issueName( programIndicator ), issue.getName() );
+        assertEquals( INVALID_EXPRESSION, issue.getComment() );
     }
 
     @Test
@@ -556,13 +556,12 @@ public class DataIntegrityServiceTest
         programIndicator.setFilter( "1 < 2" );
 
         when( programIndicatorService.filterIsValid( anyString() ) ).thenReturn( true );
-        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
+        when( programIndicatorService.getAllProgramIndicators() ).thenReturn( List.of( programIndicator ) );
 
-        Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
+        List<DataIntegrityIssue> issues = subject.getInvalidProgramIndicatorFilters();
 
         verify( expressionService, times( 0 ) ).getExpressionDescription( anyString(), any() );
-        assertNotNull( invalidExpressions );
-        assertTrue( invalidExpressions.isEmpty() );
+        assertTrue( issues.isEmpty() );
     }
 
     private Map<String, DataElement> createRandomDataElements( int quantity, String uidSeed )

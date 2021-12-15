@@ -29,6 +29,7 @@ package org.hisp.dhis.sms.listener;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
@@ -207,13 +208,15 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
-    @Test( expected = SMSParserException.class )
+    @Test
     public void testIfProgramHasNoOu()
     {
         Program programA = createProgram( 'P' );
 
         teiRegistrationCommand.setProgram( programA );
-        subject.receive( incomingSms );
+
+        assertThrows( SMSParserException.class,
+            () -> subject.receive( incomingSms ) );
 
         verify( trackedEntityTypeService, never() ).getTrackedEntityByName( anyString() );
     }

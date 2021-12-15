@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -264,11 +265,12 @@ public class IdentifiableObjectManagerTest
         assertFalse( AccessStringHelper.canWrite( dataElement.getPublicAccess() ) );
     }
 
-    @Test( expected = CreateAccessDeniedException.class )
+    @Test
     public void userDeniedCreateObject()
     {
         createUserAndInjectSecurityContext( false );
-        identifiableObjectManager.save( createDataElement( 'A' ) );
+        assertThrows( CreateAccessDeniedException.class,
+            () -> identifiableObjectManager.save( createDataElement( 'A' ) ) );
     }
 
     @Test
@@ -296,15 +298,14 @@ public class IdentifiableObjectManagerTest
         identifiableObjectManager.save( dataElement, false );
     }
 
-    @Test( expected = CreateAccessDeniedException.class )
+    @Test
     public void privateUserModifiedPublicAccessRW()
     {
         createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
-
-        identifiableObjectManager.save( dataElement, false );
+        assertThrows( CreateAccessDeniedException.class, () -> identifiableObjectManager.save( dataElement, false ) );
     }
 
     @Test
@@ -318,7 +319,7 @@ public class IdentifiableObjectManagerTest
         identifiableObjectManager.save( dataElement, false );
     }
 
-    @Test( expected = UpdateAccessDeniedException.class )
+    @Test
     public void updateForPrivateUserDeniedAfterChangePublicAccessRW()
     {
         createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PRIVATE_ADD" );
@@ -329,22 +330,20 @@ public class IdentifiableObjectManagerTest
         identifiableObjectManager.save( dataElement, false );
 
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
-
-        identifiableObjectManager.update( dataElement );
+        assertThrows( UpdateAccessDeniedException.class, () -> identifiableObjectManager.update( dataElement ) );
     }
 
-    @Test( expected = CreateAccessDeniedException.class )
+    @Test
     public void userDeniedForPublicAdd()
     {
         createUserAndInjectSecurityContext( false );
 
         DataElement dataElement = createDataElement( 'A' );
         dataElement.setPublicAccess( AccessStringHelper.READ_WRITE );
-
-        identifiableObjectManager.save( dataElement, false );
+        assertThrows( CreateAccessDeniedException.class, () -> identifiableObjectManager.save( dataElement, false ) );
     }
 
-    @Test( expected = DeleteAccessDeniedException.class )
+    @Test
     public void userDeniedDeleteObject()
     {
         createUserAndInjectSecurityContext( false, "F_DATAELEMENT_PUBLIC_ADD", "F_USER_ADD" );
@@ -358,8 +357,7 @@ public class IdentifiableObjectManagerTest
         dataElement.setOwner( user.getUid() );
         dataElement.setPublicAccess( AccessStringHelper.DEFAULT );
         sessionFactory.getCurrentSession().update( dataElement );
-
-        identifiableObjectManager.delete( dataElement );
+        assertThrows( DeleteAccessDeniedException.class, () -> identifiableObjectManager.delete( dataElement ) );
     }
 
     @Test

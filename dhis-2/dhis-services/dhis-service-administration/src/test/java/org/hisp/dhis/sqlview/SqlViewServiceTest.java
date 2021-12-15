@@ -192,10 +192,11 @@ public class SqlViewServiceTest
         assertNotSame( "_view_sqlviewc", sqlViewD.getViewName() );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateIllegalKeywords()
     {
-        sqlViewService.validateSqlView( getSqlView( "delete * from dataelement" ), null, null );
+        assertThrows( IllegalQueryException.class,
+            () -> sqlViewService.validateSqlView( getSqlView( "delete * from dataelement" ), null, null ) );
     }
 
     @Test
