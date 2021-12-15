@@ -120,7 +120,7 @@
         <xercesImpl.version>2.12.1</xercesImpl.version>
 
         <!--Reporting -->
-        <jasperreports.version>6.3.1</jasperreports.version>
+        <jasperreports.version>6.18.1</jasperreports.version>
         <jasperreports-fonts.version>6.18.1</jasperreports-fonts.version>
         <jfreechart.version>1.5.3</jfreechart.version>
         <htmlparser.version>2.1</htmlparser.version>
@@ -192,7 +192,7 @@
         <micrometer-registry-prometheus.version>1.3.5</micrometer-registry-prometheus.version>
 
         <!-- Logging-->
-        <log4j.version>2.15.0</log4j.version>
+        <log4j.version>2.16.0</log4j.version>
         <slf4j.version>1.7.32</slf4j.version>
 
         <!-- Test -->
