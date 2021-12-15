@@ -77,10 +77,10 @@ public class ReflectionUtilsTest
         assertEquals( "ShortNameA", dataElementA.getShortName() );
     }
 
-    @Test( expected = UnsupportedOperationException.class )
+    @Test
     public void testSetPropertyException()
     {
-        setProperty( dataElementA, "color", "Blue" );
+        assertThrows( UnsupportedOperationException.class, () -> setProperty( dataElementA, "color", "Blue" ) );
     }
 
     @Test

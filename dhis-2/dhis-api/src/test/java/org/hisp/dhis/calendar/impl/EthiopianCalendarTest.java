@@ -28,6 +28,7 @@
 package org.hisp.dhis.calendar.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Date;
 import java.util.List;
@@ -66,10 +67,10 @@ public class EthiopianCalendarTest
         assertEquals( 11, startOfYear.getDay() );
     }
 
-    @Test( expected = RuntimeException.class )
+    @Test
     public void testDaysInMonth13()
     {
-        calendar.daysInMonth( 2007, 13 );
+        assertThrows( RuntimeException.class, () -> calendar.daysInMonth( 2007, 13 ) );
     }
 
     @Test

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.jobs;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.eq;
@@ -136,9 +137,9 @@ public class MetadataSyncJobParametersTest
             metadataRetryContext, metadataVersion );
     }
 
-    @Test( expected = MetadataSyncServiceException.class )
+    @Test
     public void testHandleMetadataSyncIsThrowingException()
-        throws Exception
+        throws DhisVersionMismatchException
     {
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) )
             .thenThrow( new MetadataSyncServiceException( "" ) );
@@ -150,7 +151,8 @@ public class MetadataSyncJobParametersTest
             eq( metadataVersion ) );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
 
-        metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters );
+        assertThrows( MetadataSyncServiceException.class,
+            () -> metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters ) );
 
         verify( metadataSyncPreProcessor ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleDataValuePush( metadataRetryContext, metadataSyncJobParameters );
@@ -161,13 +163,14 @@ public class MetadataSyncJobParametersTest
         verify( metadataSyncPreProcessor ).handleCurrentMetadataVersion( metadataRetryContext );
         verify( metadataSyncPreProcessor ).handleMetadataVersionsList( metadataRetryContext, metadataVersion );
         verify( metadataSyncService ).doMetadataSync( any( MetadataSyncParams.class ) );
-        verify( metadataSyncPostProcessor, never() ).handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
+        verify( metadataSyncPostProcessor, never() ).handleSyncNotificationsAndAbortStatus(
+            metadataSyncSummary,
             metadataRetryContext, metadataVersion );
     }
 
-    @Test( expected = DhisVersionMismatchException.class )
+    @Test
     public void testShouldAbortIfDHISVersionMismatch()
-        throws Exception
+        throws DhisVersionMismatchException
     {
         metadataVersions.add( metadataVersion );
 
@@ -178,7 +181,9 @@ public class MetadataSyncJobParametersTest
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) )
             .thenThrow( new DhisVersionMismatchException( "" ) );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
-        metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters );
+
+        assertThrows( DhisVersionMismatchException.class,
+            () -> metadataSyncJob.runSyncTask( metadataRetryContext, metadataSyncJobParameters ) );
 
         verify( metadataSyncPreProcessor, times( 1 ) ).setUp( metadataRetryContext );
         verify( metadataSyncPreProcessor, times( 1 ) ).handleDataValuePush( metadataRetryContext,

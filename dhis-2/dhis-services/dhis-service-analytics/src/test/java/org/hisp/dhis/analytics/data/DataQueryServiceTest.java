@@ -814,7 +814,7 @@ public class DataQueryServiceTest
         assertEquals( 2, params.getPeriods().size() );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetFromUrlNoDx()
     {
         Set<String> dimensionParams = new HashSet<>();
@@ -823,10 +823,10 @@ public class DataQueryServiceTest
 
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
             .dimension( dimensionParams ).build();
-        dataQueryService.getFromRequest( dataQueryRequest );
+        assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetFromUrlNoPeriods()
     {
         Set<String> dimensionParams = new HashSet<>();
@@ -835,10 +835,10 @@ public class DataQueryServiceTest
 
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
             .dimension( dimensionParams ).build();
-        dataQueryService.getFromRequest( dataQueryRequest );
+        assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetFromUrlNoOrganisationUnits()
     {
         Set<String> dimensionParams = new HashSet<>();
@@ -847,10 +847,10 @@ public class DataQueryServiceTest
 
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
             .dimension( dimensionParams ).build();
-        dataQueryService.getFromRequest( dataQueryRequest );
+        assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testGetFromUrlInvalidDimension()
     {
         Set<String> dimensionParams = new HashSet<>();
@@ -859,7 +859,7 @@ public class DataQueryServiceTest
 
         DataQueryRequest dataQueryRequest = DataQueryRequest.newBuilder()
             .dimension( dimensionParams ).build();
-        dataQueryService.getFromRequest( dataQueryRequest );
+        assertThrows( IllegalQueryException.class, () -> dataQueryService.getFromRequest( dataQueryRequest ) );
     }
 
     @Test

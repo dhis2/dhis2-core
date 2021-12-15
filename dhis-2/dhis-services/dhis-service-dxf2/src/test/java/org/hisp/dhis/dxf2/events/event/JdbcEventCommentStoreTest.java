@@ -28,7 +28,13 @@
 package org.hisp.dhis.dxf2.events.event;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyInt;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
@@ -36,7 +42,9 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.common.collect.ImmutableList;
@@ -44,6 +52,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
+@RunWith( MockitoJUnitRunner.class )
 public class JdbcEventCommentStoreTest
 {
 

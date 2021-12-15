@@ -28,6 +28,7 @@
 package org.hisp.dhis.calendar.impl;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.util.Date;
 import java.util.List;
@@ -71,16 +72,16 @@ public class PersianCalendarTest
         assertEquals( 21, startOfYear.getDay() );
     }
 
-    @Test( expected = ArrayIndexOutOfBoundsException.class )
+    @Test
     public void testDaysInMonth13()
     {
-        calendar.daysInMonth( 1389, 13 );
+        assertThrows( ArrayIndexOutOfBoundsException.class, () -> calendar.daysInMonth( 1389, 13 ) );
     }
 
-    @Test( expected = InvalidCalendarParametersException.class )
+    @Test
     public void testGetDaysFromMapEx()
     {
-        calendar.daysInMonth( 1500, 7 );
+        assertThrows( InvalidCalendarParametersException.class, () -> calendar.daysInMonth( 1500, 7 ) );
     }
 
     public void testGetDaysFromMap()

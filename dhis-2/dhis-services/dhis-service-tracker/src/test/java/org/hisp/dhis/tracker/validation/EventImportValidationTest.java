@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -286,11 +287,11 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1039 ) ) ) );
     }
 
-    @Test( expected = IOException.class )
+    @Test
     public void testWrongScheduledDateString()
-        throws IOException
     {
-        createBundleFromJson( "tracker/validations/events_error-no-wrong-date.json" );
+        assertThrows( IOException.class,
+            () -> createBundleFromJson( "tracker/validations/events_error-no-wrong-date.json" ) );
     }
 
     @Test

@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.WebClient.Header;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 
 /**
  * Tests {@link MaintenanceController} using (mocked) REST requests.
@@ -127,30 +124,6 @@ public class MaintenanceControllerTest extends DhisControllerConvenienceTest
 
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             POST( "/maintenance/categoryOptionComboUpdate/categoryCombo/" + ccId ).content() );
-    }
-
-    @Test
-    public void testUpdateCategoryOptionCombos_XML_AcceptHeader()
-    {
-        String ccId = GET(
-            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 ).getString( "id" ).string();
-
-        String xmlResponse = POST( "/maintenance/categoryOptionComboUpdate/categoryCombo/" + ccId,
-            Header( "Accept", MediaType.APPLICATION_XML_VALUE ) ).content( MediaType.APPLICATION_XML );
-        assertTrue( xmlResponse.startsWith( "<webMessage" ) );
-    }
-
-    @Test
-    public void testUpdateCategoryOptionCombos_XML_PathExtension()
-    {
-        String ccId = GET(
-            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 ).getString( "id" ).string();
-
-        String xmlResponse = POST( "/maintenance/categoryOptionComboUpdate/categoryCombo/" + ccId + ".xml" )
-            .content( MediaType.APPLICATION_XML );
-        assertTrue( xmlResponse.startsWith( "<webMessage" ) );
     }
 
     @Test

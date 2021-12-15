@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -100,18 +101,16 @@ public class RelationshipControllerTest
         mockMvc = MockMvcBuilders.standaloneSetup( relationshipController ).build();
     }
 
-    @Test( expected = NestedServletException.class )
+    @Test
     public void verifyEndpointWithNoArgs()
-        throws Exception
     {
-        mockMvc.perform( get( ENDPOINT ) );
+        assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT ) ) );
     }
 
-    @Test( expected = NestedServletException.class )
+    @Test
     public void verifyEndpointWithNotFoundTei()
-        throws Exception
     {
-        mockMvc.perform( get( ENDPOINT ).param( "tei", TEI_ID ) );
+        assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT ).param( "tei", TEI_ID ) ) );
     }
 
     @Test
@@ -125,11 +124,11 @@ public class RelationshipControllerTest
         verify( relationshipService ).getRelationshipsByTrackedEntityInstance( tei, false );
     }
 
-    @Test( expected = NestedServletException.class )
+    @Test
     public void verifyEndpointWithNotFoundEvent()
-        throws Exception
     {
-        mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) );
+        assertThrows( NestedServletException.class,
+            () -> mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) ) );
     }
 
     @Test
@@ -143,11 +142,11 @@ public class RelationshipControllerTest
         verify( relationshipService ).getRelationshipsByProgramStageInstance( event, false );
     }
 
-    @Test( expected = NestedServletException.class )
+    @Test
     public void verifyEndpointWithNotFoundEnrollment()
-        throws Exception
     {
-        mockMvc.perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ).andExpect( status().isBadRequest() );
+        assertThrows( NestedServletException.class, () -> mockMvc
+            .perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ) );
     }
 
     @Test
@@ -161,11 +160,10 @@ public class RelationshipControllerTest
         verify( relationshipService ).getRelationshipsByProgramInstance( enrollment, false );
     }
 
-    @Test( expected = NestedServletException.class )
+    @Test
     public void testGetRelationshipNotPresent()
-        throws Exception
     {
-        mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) );
+        assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ) );
     }
 
     @Test
