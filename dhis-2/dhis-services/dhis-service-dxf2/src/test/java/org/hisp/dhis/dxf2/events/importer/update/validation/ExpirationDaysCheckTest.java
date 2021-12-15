@@ -54,7 +54,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 /**
  * @author Luciano Fiandesio
  */
-@RunWith( MockitoJUnitRunner.class )
+@RunWith( MockitoJUnitRunner.Silent.class )
 public class ExpirationDaysCheckTest extends BaseValidationTest
 {
     private ExpirationDaysCheck rule;
