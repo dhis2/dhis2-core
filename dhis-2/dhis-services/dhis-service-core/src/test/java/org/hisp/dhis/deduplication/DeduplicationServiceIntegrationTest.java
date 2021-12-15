@@ -30,6 +30,7 @@ package org.hisp.dhis.deduplication;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -175,24 +176,23 @@ public class DeduplicationServiceIntegrationTest
         assertTrue( deduplicationService.exists( potentialDuplicate ) );
     }
 
-    @Test( expected = PotentialDuplicateConflictException.class )
+    @Test
     public void testShouldThrowWhenMissingTeiBProperty()
-        throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
-        assertTrue( deduplicationService.exists( new PotentialDuplicate( teiA, null ) ) );
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationService.exists( new PotentialDuplicate( teiA, null ) ) );
     }
 
-    @Test( expected = PotentialDuplicateConflictException.class )
+    @Test
     public void testShouldThrowWhenMissingTeiAProperty()
         throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
-        assertTrue( deduplicationService.exists( new PotentialDuplicate( null, teiB ) ) );
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationService.exists( new PotentialDuplicate( null, teiB ) ) );
     }
 
     @Test

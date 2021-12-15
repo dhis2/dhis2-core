@@ -89,6 +89,8 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.DefaultLocationManager;
@@ -222,6 +224,8 @@ public abstract class DhisConvenienceTest
     protected static final String BASE_PR_UID = "prabcdefgh";
 
     protected static final String BASE_TEI_UID = "teibcdefgh";
+
+    protected static final String BASE_PREDICTOR_GROUP_UID = "predictorg";
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
 
@@ -1262,15 +1266,22 @@ public abstract class DhisConvenienceTest
      * Creates a Predictor Group
      *
      * @param uniqueCharacter A unique character to identify the object.
+     * @param predictors Predictors to add to the group.
      * @return PredictorGroup
      */
-    public static PredictorGroup createPredictorGroup( char uniqueCharacter )
+    public static PredictorGroup createPredictorGroup( char uniqueCharacter, Predictor... predictors )
     {
         PredictorGroup group = new PredictorGroup();
         group.setAutoFields();
 
         group.setName( "PredictorGroup" + uniqueCharacter );
         group.setDescription( "Description" + uniqueCharacter );
+        group.setUid( BASE_PREDICTOR_GROUP_UID + uniqueCharacter );
+
+        for ( Predictor p : predictors )
+        {
+            group.addPredictor( p );
+        }
 
         return group;
     }
@@ -1319,6 +1330,17 @@ public abstract class DhisConvenienceTest
         visualization.setType( PIVOT_TABLE );
 
         return visualization;
+    }
+
+    public static EventVisualization createEventVisualization( char uniqueCharacter, Program program )
+    {
+        EventVisualization eventVisualization = new EventVisualization( "name-" + uniqueCharacter );
+        eventVisualization.setAutoFields();
+        eventVisualization.setProgram( program );
+        eventVisualization.setName( "EventVisualization" + uniqueCharacter );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        return eventVisualization;
     }
 
     public static User createUser( char uniqueCharacter )

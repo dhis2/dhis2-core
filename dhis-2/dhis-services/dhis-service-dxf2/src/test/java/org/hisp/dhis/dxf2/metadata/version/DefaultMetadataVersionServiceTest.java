@@ -30,6 +30,7 @@ package org.hisp.dhis.dxf2.metadata.version;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
@@ -287,22 +288,25 @@ public class DefaultMetadataVersionServiceTest
         assertEquals( "mySnapshot", versionService.getVersionData( "myVersion" ) );
     }
 
-    @Test( expected = MetadataVersionServiceException.class )
+    @Test
     public void testShouldThrowMetadataVersionServiceExceptionWhenSnapshotIsEmpty()
     {
-        versionService.createMetadataVersionInDataStore( "myVersion", "" );
+        assertThrows( MetadataVersionServiceException.class,
+            () -> versionService.createMetadataVersionInDataStore( "myVersion", "" ) );
     }
 
-    @Test( expected = MetadataVersionServiceException.class )
+    @Test
     public void testShouldThrowMetadataVersionServiceExceptionWhenSnapshotIsNull()
     {
-        versionService.createMetadataVersionInDataStore( "myVersion", null );
+        assertThrows( MetadataVersionServiceException.class,
+            () -> versionService.createMetadataVersionInDataStore( "myVersion", null ) );
     }
 
-    @Test( expected = MetadataVersionServiceException.class )
+    @Test
     public void shouldThrowAnExceptionWhenVersionAndItsShanpShotAreNull()
     {
-        versionService.isMetadataPassingIntegrity( null, null );
+        assertThrows( MetadataVersionServiceException.class,
+            () -> versionService.isMetadataPassingIntegrity( null, null ) );
     }
 
     // --------------------------------------------------------------------------

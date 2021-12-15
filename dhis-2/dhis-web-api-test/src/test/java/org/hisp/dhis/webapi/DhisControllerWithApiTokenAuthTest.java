@@ -29,11 +29,11 @@ package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
-import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
+import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +47,6 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
  * Base class for convenient testing of the web API on basis of
@@ -63,7 +62,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithAuth.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisControllerWithApiTokenAuthTest extends DhisConvenienceTest implements WebClient
+public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest
 {
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -82,10 +81,6 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisConvenience
     {
         userService = _userService;
 
-        CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
-        characterEncodingFilter.setEncoding( "UTF-8" );
-        characterEncodingFilter.setForceEncoding( true );
-
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
             .addFilter( springSecurityFilterChain ).build();
 
@@ -93,9 +88,9 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisConvenience
     }
 
     @Override
-    public HttpResponse webRequest( MockHttpServletRequestBuilder request )
+    protected final HttpResponse webRequest( MockHttpServletRequestBuilder request )
     {
         return failOnException(
-            () -> new HttpResponse( mvc.perform( request ).andReturn().getResponse() ) );
+            () -> new HttpResponse( toResponse( mvc.perform( request ).andReturn().getResponse() ) ) );
     }
 }

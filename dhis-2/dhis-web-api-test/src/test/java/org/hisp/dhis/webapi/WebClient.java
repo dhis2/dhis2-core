@@ -40,15 +40,11 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -58,18 +54,15 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.WebClientUtils;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import org.testcontainers.shaded.com.google.common.io.ByteStreams;
 
 /**
  * The purpose of this interface is to allow mixin style addition of the
  * convenience web API by implementing this interface's essential method
- * {@link #webRequest(MockHttpServletRequestBuilder)}.
+ * {@link #webRequest(HttpMethod, String, List, MediaType, String)}.
  *
  * @author Jan Bernitt
  */
@@ -77,7 +70,8 @@ import org.testcontainers.shaded.com.google.common.io.ByteStreams;
 public interface WebClient
 {
 
-    HttpResponse webRequest( MockHttpServletRequestBuilder request );
+    HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
+        String content );
 
     interface RequestComponent
     {
@@ -135,6 +129,16 @@ public interface WebClient
             this.name = name;
             this.value = value;
         }
+
+        public String getName()
+        {
+            return name;
+        }
+
+        public Object getValue()
+        {
+            return value;
+        }
     }
 
     final class Body implements RequestComponent
@@ -149,27 +153,22 @@ public interface WebClient
 
     default HttpResponse GET( String url, Object... args )
     {
-        return webRequest( get( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
+        return webRequest( HttpMethod.GET, substitutePlaceholders( url, args ), requestComponentsIn( args ) );
     }
 
     default HttpResponse POST( String url, Object... args )
     {
-        return webRequest( post( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
+        return webRequest( HttpMethod.POST, substitutePlaceholders( url, args ), requestComponentsIn( args ) );
     }
 
     default HttpResponse POST( String url, String body )
     {
-        return webRequest( post( url ), new Body( body ) );
-    }
-
-    default HttpResponse POST_MULTIPART( String url, MockMultipartFile part )
-    {
-        return webRequest( multipart( url ).file( part ) );
+        return webRequest( HttpMethod.POST, url, new Body( body ) );
     }
 
     default HttpResponse PATCH( String url, Object... args )
     {
-        return webRequest( patch( substitutePlaceholders( url, args ) ),
+        return webRequest( HttpMethod.PATCH, substitutePlaceholders( url, args ),
             // default mime type is added as first element so that ContentType
             // in args does override it
             ArrayUtils.insert( 0, requestComponentsIn( args ), ContentType( APPLICATION_JSON_PATCH_UTF8 ) ) );
@@ -177,33 +176,34 @@ public interface WebClient
 
     default HttpResponse PATCH( String url, String body )
     {
-        return webRequest( patch( url ), ContentType( APPLICATION_JSON_PATCH_UTF8 ), Body( body ) );
+        return webRequest( HttpMethod.PATCH, url, ContentType( APPLICATION_JSON_PATCH_UTF8 ), Body( body ) );
     }
 
     default HttpResponse PUT( String url, Object... args )
     {
-        return webRequest( put( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
+        return webRequest( HttpMethod.PUT, substitutePlaceholders( url, args ), requestComponentsIn( args ) );
     }
 
     default HttpResponse PUT( String url, String body )
     {
-        return webRequest( put( url ), new Body( body ) );
+        return webRequest( HttpMethod.PUT, url, new Body( body ) );
     }
 
     default HttpResponse DELETE( String url, Object... args )
     {
-        return webRequest( delete( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
+        return webRequest( HttpMethod.DELETE, substitutePlaceholders( url, args ), requestComponentsIn( args ) );
     }
 
     default HttpResponse DELETE( String url, String body )
     {
-        return webRequest( delete( url ), new Body( body ) );
+        return webRequest( HttpMethod.DELETE, url, new Body( body ) );
     }
 
-    default HttpResponse webRequest( MockHttpServletRequestBuilder request, RequestComponent... components )
+    default HttpResponse webRequest( HttpMethod method, String url, RequestComponent... components )
     {
         // configure headers
         MediaType contentMediaType = null;
+        List<Header> headers = new ArrayList<>();
         for ( RequestComponent c : components )
         {
             if ( c instanceof Header )
@@ -215,7 +215,7 @@ public interface WebClient
                 }
                 else
                 {
-                    request.header( header.name, header.value );
+                    headers.add( header );
                 }
             }
         }
@@ -226,23 +226,21 @@ public interface WebClient
         if ( body != null && body.endsWith( ".json" ) )
         {
             MediaType fileContentType = contentMediaType != null ? contentMediaType : APPLICATION_JSON_UTF8;
-            return failOnException( () -> webRequest( request
-                .contentType( fileContentType )
-                .content( ByteStreams.toByteArray( new ClassPathResource( body ).getInputStream() ) ) ) );
+            return failOnException( () -> webRequest( method, url, headers, fileContentType,
+                Files.readString( new ClassPathResource( body ).getFile().toPath(), StandardCharsets.UTF_8 ) ) );
         }
 
         if ( startWithMediaType( body ) )
         {
-            return webRequest( request
-                .contentType( body.substring( 0, body.indexOf( ':' ) ) )
-                .content( body.substring( body.indexOf( ':' ) + 1 ) ) );
+            return webRequest( method, url, headers,
+                MediaType.parseMediaType( body.substring( 0, body.indexOf( ':' ) ) ),
+                body.substring( body.indexOf( ':' ) + 1 ) );
         }
 
         return body == null || body.isEmpty()
-            ? webRequest( request )
-            : webRequest( request
-                .contentType( contentMediaType != null ? contentMediaType : MediaType.APPLICATION_JSON )
-                .content( plainTextOrJson( body ) ) );
+            ? webRequest( method, url, headers, contentMediaType, null )
+            : webRequest( method, url, headers,
+                contentMediaType != null ? contentMediaType : MediaType.APPLICATION_JSON, plainTextOrJson( body ) );
     }
 
     default <T> T run( Function<WebClient, ? extends WebSnippet<T>> snippet )
@@ -255,11 +253,22 @@ public interface WebClient
         return snippet.apply( this, argument ).run();
     }
 
+    interface ResponseAdapter
+    {
+        int getStatus();
+
+        String getContent();
+
+        String getErrorMessage();
+
+        String getHeader( String name );
+    }
+
     final class HttpResponse
     {
-        private final MockHttpServletResponse response;
+        private final ResponseAdapter response;
 
-        public HttpResponse( MockHttpServletResponse response )
+        public HttpResponse( ResponseAdapter response )
         {
             this.response = response;
         }
@@ -295,7 +304,7 @@ public interface WebClient
             String expected = contentType.toString();
             assertTrue( String.format( "Expected %s but was: %s", expected, actualContentType ),
                 actualContentType.startsWith( expected ) );
-            return failOnException( () -> response.getContentAsString( StandardCharsets.UTF_8 ) );
+            return failOnException( response::getContent );
         }
 
         public JsonResponse content()
@@ -353,19 +362,12 @@ public interface WebClient
 
         public boolean hasBody()
         {
-            try
-            {
-                return !response.getContentAsString( StandardCharsets.UTF_8 ).isEmpty();
-            }
-            catch ( UnsupportedEncodingException ex )
-            {
-                return true;
-            }
+            return !response.getContent().isEmpty();
         }
 
         public JsonResponse contentUnchecked()
         {
-            return failOnException( () -> new JsonResponse( response.getContentAsString( StandardCharsets.UTF_8 ) ) );
+            return failOnException( () -> new JsonResponse( response.getContent() ) );
         }
 
         public String location()

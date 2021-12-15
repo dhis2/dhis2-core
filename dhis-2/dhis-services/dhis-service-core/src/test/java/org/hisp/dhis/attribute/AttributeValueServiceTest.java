@@ -30,6 +30,7 @@ package org.hisp.dhis.attribute;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -204,9 +205,8 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
         attributeService.addAttributeValue( dataElementB, attributeValueB );
     }
 
-    @Test( expected = NonUniqueAttributeValueException.class )
+    @Test
     public void testAddUniqueAttributeValue()
-        throws NonUniqueAttributeValueException
     {
         Attribute attribute = new Attribute( "ID", ValueType.TEXT );
         attribute.setUnique( true );
@@ -218,7 +218,8 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
         attributeService.addAttributeValue( dataElementA, attributeValueA );
 
         AttributeValue attributeValueB = new AttributeValue( "A", attribute );
-        attributeService.addAttributeValue( dataElementB, attributeValueB );
+        assertThrows( NonUniqueAttributeValueException.class,
+            () -> attributeService.addAttributeValue( dataElementB, attributeValueB ) );
     }
 
     @Test
@@ -378,7 +379,7 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
         assertTrue( values.stream().anyMatch( av -> av.getValue().equals( "valueB" ) ) );
     }
 
-    @Test( expected = DeleteNotAllowedException.class )
+    @Test
     public void testDeleteAttributeWithReferences()
     {
         AttributeValue avA = new AttributeValue( "valueA", attribute1 );
@@ -386,7 +387,6 @@ public class AttributeValueServiceTest extends TransactionalIntegrationTest
         attributeService.addAttributeValue( dataElementA, avA );
 
         assertEquals( 1, manager.countAllValuesByAttributes( DataElement.class, Lists.newArrayList( attribute1 ) ) );
-
-        attributeService.deleteAttribute( attribute1 );
+        assertThrows( DeleteNotAllowedException.class, () -> attributeService.deleteAttribute( attribute1 ) );
     }
 }

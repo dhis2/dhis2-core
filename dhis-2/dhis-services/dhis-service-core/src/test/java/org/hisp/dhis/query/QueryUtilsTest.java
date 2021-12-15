@@ -115,39 +115,39 @@ public class QueryUtilsTest
         org.junit.Assert.assertSame( 100, value2 );
     }
 
-    @Test( expected = QueryParserException.class )
+    @Test
     public void testParseInvalidEnum()
     {
         QueryUtils.parseValue( ValueType.class, "INTEGER" );
-        QueryUtils.parseValue( ValueType.class, "ABC" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( ValueType.class, "ABC" ) );
     }
 
-    @Test( expected = QueryParserException.class )
+    @Test
     public void testInvalidInteger()
     {
         QueryUtils.parseValue( Integer.class, "1" );
-        QueryUtils.parseValue( Integer.class, "ABC" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( Integer.class, "ABC" ) );
     }
 
-    @Test( expected = QueryParserException.class )
+    @Test
     public void testInvalidFloat()
     {
         QueryUtils.parseValue( Float.class, "1.2" );
-        QueryUtils.parseValue( Float.class, "ABC" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( Float.class, "ABC" ) );
     }
 
-    @Test( expected = QueryParserException.class )
+    @Test
     public void testInvalidDouble()
     {
         QueryUtils.parseValue( Double.class, "1.2" );
-        QueryUtils.parseValue( Double.class, "ABC" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( Double.class, "ABC" ) );
     }
 
-    @Test( expected = QueryParserException.class )
+    @Test
     public void testInvalidDate()
     {
         QueryUtils.parseValue( Date.class, "2014" );
-        QueryUtils.parseValue( Date.class, "ABC" );
+        assertThrows( QueryParserException.class, () -> QueryUtils.parseValue( Date.class, "ABC" ) );
     }
 
     @Test

@@ -31,6 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -267,7 +268,7 @@ public class CategoryOptionComboServiceTest
         assertTrue( optionCombos.contains( categoryOptionComboC ) );
     }
 
-    @Test( expected = DeleteNotAllowedException.class )
+    @Test
     public void testDeleteCategory()
     {
         categoryOptionComboA = new CategoryOptionCombo();
@@ -299,8 +300,7 @@ public class CategoryOptionComboServiceTest
         assertNotNull( categoryService.getCategoryOptionCombo( idA ) );
         assertNotNull( categoryService.getCategoryOptionCombo( idB ) );
         assertNotNull( categoryService.getCategoryOptionCombo( idC ) );
-
-        categoryService.deleteCategory( categoryA );
+        assertThrows( DeleteNotAllowedException.class, () -> categoryService.deleteCategory( categoryA ) );
     }
 
     @Test

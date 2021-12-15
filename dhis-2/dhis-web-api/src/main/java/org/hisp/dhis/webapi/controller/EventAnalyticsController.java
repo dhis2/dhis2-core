@@ -259,7 +259,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toXml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML,
-            "events.xml", response ), response.getOutputStream() );
+            "events.xml", false, response ), response.getOutputStream() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.xls" )
@@ -271,7 +271,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toXls( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL,
-            "events.xls", response ), response.getOutputStream() );
+            "events.xls", true, response ), response.getOutputStream() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.csv" )
@@ -283,7 +283,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toCsv( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
-            "events.csv", response ), response.getWriter() );
+            "events.csv", true, response ), response.getWriter() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.html" )
@@ -295,7 +295,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toHtml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
-            "events.html", response ), response.getWriter() );
+            "events.html", false, response ), response.getWriter() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.html+css" )
@@ -307,7 +307,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toHtmlCss( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
-            "events.html", response ), response.getWriter() );
+            "events.html", false, response ), response.getWriter() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/dimensions", produces = { APPLICATION_JSON_VALUE,
@@ -343,12 +343,12 @@ public class EventAnalyticsController
 
     private Grid getListGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,
         DhisApiVersion apiVersion,
-        String contentType, String file,
+        String contentType, String file, boolean attachment,
         HttpServletResponse response )
     {
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
 
-        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, false );
+        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, attachment );
         return analyticsService.getEvents( params );
     }
 
