@@ -36,47 +36,41 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 
-import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
-import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Before;
 import org.junit.Test;
 
-public class EventAnalyticsDimensionsServiceTest
+public class EnrollmentAnalyticsDimensionsServiceTest
 {
-    private EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
+    private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
     @Before
     public void setup()
     {
-        ProgramStageService programStageService = mock( ProgramStageService.class );
-        CategoryService categoryService = mock( CategoryService.class );
+        ProgramService programService = mock( ProgramService.class );
 
         Program program = mock( Program.class );
-        ProgramStage programStage = mock( ProgramStage.class );
 
-        when( programStageService.getProgramStage( any() ) ).thenReturn( programStage );
-        when( programStage.getProgram() ).thenReturn( program );
+        when( programService.getProgram( any() ) ).thenReturn( program );
         when( program.getDataElements() ).thenReturn( allValueTypeDataElements() );
         when( program.getProgramIndicators() ).thenReturn( Collections.emptySet() );
         when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
 
-        eventAnalyticsDimensionsService = new DefaultEventAnalyticsDimensionsService( programStageService,
-            categoryService );
+        enrollmentAnalyticsDimensionsService = new DefaultEnrollmentAnalyticsDimensionsService( programService );
+
     }
 
     @Test
     public void testQueryDoesntContainDisallowedValueTypes()
     {
-        Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
+        Collection<BaseIdentifiableObject> analyticsDimensions = enrollmentAnalyticsDimensionsService
             .getQueryDimensionsByProgramStageId( "anUid" );
 
         assertTrue(
@@ -98,7 +92,7 @@ public class EventAnalyticsDimensionsServiceTest
     @Test
     public void testAggregateOnlyContainsAllowedValueTypes()
     {
-        Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
+        Collection<BaseIdentifiableObject> analyticsDimensions = enrollmentAnalyticsDimensionsService
             .getAggregateDimensionsByProgramStageId( "anUid" );
 
         assertTrue(
@@ -116,4 +110,5 @@ public class EventAnalyticsDimensionsServiceTest
                 .allMatch(
                     AGGREGATE_ALLOWED_VALUE_TYPES::contains ) );
     }
+
 }
