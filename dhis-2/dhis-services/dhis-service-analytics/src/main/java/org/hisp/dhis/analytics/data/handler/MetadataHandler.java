@@ -49,7 +49,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +137,7 @@ public class MetadataHandler
             List<OrganisationUnit> organisationUnits = asTypedList(
                 params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) );
 
-            Collection<OrganisationUnit> roots = dataQueryService.getUserOrgUnits( params, null );
+            List<OrganisationUnit> roots = dataQueryService.getUserOrgUnits( params, null );
 
             if ( params.isHierarchyMeta() )
             {
