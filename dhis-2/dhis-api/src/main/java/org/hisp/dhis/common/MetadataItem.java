@@ -315,6 +315,11 @@ public class MetadataItem
         return indicatorType;
     }
 
+    public void setIndicatorType( IndicatorType indicatorType )
+    {
+        this.indicatorType = HibernateProxyUtils.unproxy( indicatorType );
+    }
+
     @JsonProperty
     public TotalAggregationType getTotalAggregationType()
     {
