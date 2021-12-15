@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.jackson;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -56,10 +57,9 @@ public class RemoveOperationTest
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Ignore( "for now we will allow 'removal' of invalid path keys" )
-    @Test( expected = JsonPatchException.class )
+    @Test
     public void testRemoveInvalidKeyShouldThrowException()
-        throws JsonProcessingException,
-        JsonPatchException
+        throws JsonProcessingException
     {
         JsonPatch patch = jsonMapper.readValue( "[" +
             "{\"op\": \"remove\", \"path\": \"/aaa\"}" +
@@ -69,7 +69,7 @@ public class RemoveOperationTest
         JsonNode root = jsonMapper.createObjectNode();
 
         assertFalse( root.has( "aaa" ) );
-        root = patch.apply( root );
+        assertThrows( JsonPatchException.class, () -> patch.apply( root ) );
     }
 
     @Test

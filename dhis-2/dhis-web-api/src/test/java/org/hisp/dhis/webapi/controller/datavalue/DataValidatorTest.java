@@ -32,7 +32,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
@@ -238,27 +237,31 @@ public class DataValidatorTest
         assertEquals( ErrorCode.E1102, ex.getErrorCode() );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateAttributeOptionComboWithEarlyData()
     {
         // Given
         categoryOptionA.setStartDate( feb15 );
 
         // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
+
+        assertThrows( IllegalQueryException.class,
+            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateAttributeOptionComboWithLateData()
     {
         // Given
         categoryOptionA.setEndDate( jan15 );
 
         // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA );
+
+        assertThrows( IllegalQueryException.class,
+            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateAttributeOptionComboWithLateAdjustedData()
     {
         // Given
@@ -266,7 +269,9 @@ public class DataValidatorTest
         dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
 
         // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA );
+
+        assertThrows( IllegalQueryException.class,
+            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA ) );
     }
 
     @Test
@@ -329,7 +334,7 @@ public class DataValidatorTest
         assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateBooleanDataValueWhenValueIsNotValid()
     {
         // Given
@@ -337,9 +342,7 @@ public class DataValidatorTest
         final DataElement aBooleanTypeDataElement = new DataElement();
         aBooleanTypeDataElement.setValueType( BOOLEAN );
 
-        // When
-        dataValidator.validateAndNormalizeDataValue( anInvalidBooleanValue, aBooleanTypeDataElement );
-
-        fail( "Should not reach here. It was expected IllegalQueryException." );
+        assertThrows( IllegalQueryException.class,
+            () -> dataValidator.validateAndNormalizeDataValue( anInvalidBooleanValue, aBooleanTypeDataElement ) );
     }
 }

@@ -1787,4 +1787,60 @@ public class PredictionServiceTest
 
         assertEquals( "true", getDataValue( dataElementJ, defaultCombo, sourceA, makeMonth( 2021, 8 ) ) );
     }
+
+    @Test
+    public void testOrderWithinPredictorGroup()
+    {
+        useDataValue( dataElementA, makeMonth( 2021, 12 ), sourceA, defaultCombo, "0" );
+
+        dataValueBatchHandler.flush();
+
+        // 0 + 1 * 2 + 2 * 3 + 3 * 4 + 4 = 64, if operations are in order
+
+        Expression e1 = new Expression( "#{" + dataElementA.getUid() + "} + 1", "e1" );
+        Expression e2 = new Expression( "#{" + dataElementA.getUid() + "} * 2", "e2" );
+        Expression e3 = new Expression( "#{" + dataElementA.getUid() + "} + 2", "e3" );
+        Expression e4 = new Expression( "#{" + dataElementA.getUid() + "} * 3", "e4" );
+        Expression e5 = new Expression( "#{" + dataElementA.getUid() + "} + 3", "e5" );
+        Expression e6 = new Expression( "#{" + dataElementA.getUid() + "} * 4", "e6" );
+        Expression e7 = new Expression( "#{" + dataElementA.getUid() + "} + 4", "e7" );
+
+        Predictor p1 = createPredictor( dataElementA, defaultCombo, "p1", e1,
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        Predictor p2 = createPredictor( dataElementA, defaultCombo, "p2", e2,
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        Predictor p3 = createPredictor( dataElementA, defaultCombo, "p3", e3,
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        Predictor p4 = createPredictor( dataElementA, defaultCombo, "p4", e4,
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        Predictor p5 = createPredictor( dataElementA, defaultCombo, "p5", e5,
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        Predictor p6 = createPredictor( dataElementA, defaultCombo, "p6", e6,
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        Predictor p7 = createPredictor( dataElementA, defaultCombo, "p7", e7,
+            null, periodTypeMonthly, orgUnitLevel1, 1, 0, 0 );
+
+        predictorService.addPredictor( p1 );
+        predictorService.addPredictor( p2 );
+        predictorService.addPredictor( p3 );
+        predictorService.addPredictor( p4 );
+        predictorService.addPredictor( p5 );
+        predictorService.addPredictor( p6 );
+        predictorService.addPredictor( p7 );
+
+        PredictorGroup predictorGroup = createPredictorGroup( 'A', p1, p2, p3, p4, p5, p6, p7 );
+
+        predictorService.addPredictorGroup( predictorGroup );
+
+        predictionService.predictTask( monthStart( 2021, 12 ), monthStart( 2022, 1 ), null,
+            Lists.newArrayList( "predictorgA" ), null );
+
+        assertEquals( "64", getDataValue( dataElementA, defaultCombo, sourceA, makeMonth( 2021, 12 ) ) );
+    }
 }

@@ -28,6 +28,7 @@
 package org.hisp.dhis.apphub.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.apphub.AppHubUtils;
@@ -47,28 +48,28 @@ public class AppHubUtilsTest
         AppHubUtils.validateQuery( "apps" );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateInvalidQueryA()
     {
-        AppHubUtils.validateQuery( "apps/../../evil/endpoint" );
+        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( "apps/../../evil/endpoint" ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateInvalidQueryB()
     {
-        AppHubUtils.validateQuery( "http://evildomain" );
+        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( "http://evildomain" ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateInvalidQueryC()
     {
-        AppHubUtils.validateQuery( "" );
+        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( "" ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateInvalidQueryD()
     {
-        AppHubUtils.validateQuery( null );
+        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( null ) );
     }
 
     @Test
@@ -83,16 +84,16 @@ public class AppHubUtilsTest
         AppHubUtils.validateApiVersion( "v146" );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateInvalidApiVersionA()
     {
-        AppHubUtils.validateApiVersion( "25" );
+        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateApiVersion( "25" ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void testValidateInvalidApiVersionB()
     {
-        AppHubUtils.validateApiVersion( "malicious_script.js" );
+        assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateApiVersion( "malicious_script.js" ) );
     }
 
     @Test

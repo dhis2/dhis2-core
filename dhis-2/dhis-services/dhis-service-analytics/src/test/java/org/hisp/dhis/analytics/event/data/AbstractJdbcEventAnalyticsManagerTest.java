@@ -40,6 +40,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -206,7 +207,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
         assertThat( clause, is( "sum(ax.\"fWIAEtYVEGk\")" ) );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void verifyGetAggregateClauseWithValueFails()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -215,9 +216,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
             .withValue( dio )
             .withAggregationType( fromAggregationType( AggregationType.CUSTOM ) )
             .build();
-
-        subject.getAggregateClause( params );
-
+        assertThrows( IllegalArgumentException.class, () -> subject.getAggregateClause( params ) );
     }
 
     @Test

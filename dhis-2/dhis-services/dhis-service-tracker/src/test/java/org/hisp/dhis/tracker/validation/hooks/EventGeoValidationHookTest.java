@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -94,7 +95,7 @@ public class EventGeoValidationHookTest
         assertFalse( reporter.hasErrors() );
     }
 
-    @Test( expected = NullPointerException.class )
+    @Test
     public void testEventWithNoProgramStageThrowsAnError()
     {
         // given
@@ -105,9 +106,7 @@ public class EventGeoValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
-
-        // then
+        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEvent( reporter, event ) );
     }
 
     @Test

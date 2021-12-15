@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -168,7 +169,7 @@ public class JdbcAnalyticsTableManagerTest
         assertEquals( startTime, partition.getEndDate() );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void testGetLatestAnalyticsTableNoFullTableUpdate()
     {
         Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
@@ -183,7 +184,6 @@ public class JdbcAnalyticsTableManagerTest
             .thenReturn( null );
         when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
             .thenReturn( lastLatestPartitionUpdate );
-
-        subject.getAnalyticsTables( params );
+        assertThrows( IllegalArgumentException.class, () -> subject.getAnalyticsTables( params ) );
     }
 }

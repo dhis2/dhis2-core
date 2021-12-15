@@ -41,19 +41,11 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.system.util.HttpUtils;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,13 +53,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author aamerm
  */
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( HttpUtils.class )
-@PowerMockIgnore( { "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "org.w3c.*" } )
+@RunWith( MockitoJUnitRunner.class )
 public class MetadataSyncDelegateTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @InjectMocks
     private MetadataSyncDelegate metadataSyncDelegate;
@@ -80,13 +68,6 @@ public class MetadataSyncDelegateTest
 
     @Mock
     private RenderService renderService;
-
-    @Before
-    public void setup()
-    {
-        PowerMockito.mockStatic( HttpUtils.class );
-
-    }
 
     @Test
     public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInLocal()
