@@ -29,32 +29,30 @@ package org.hisp.dhis.dataintegrity;
 
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.dataintegrity.DataIntegrityYamlReader.readDataIntegrityYaml;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link DataIntegrityYamlReader}.
  *
  * @author Jan Bernitt
  */
-public class DataIntegrityYamlReaderTest
+class DataIntegrityYamlReaderTest
 {
 
     @Test
-    public void testReadDataIntegrityYaml()
+    void testReadDataIntegrityYaml()
     {
         List<DataIntegrityCheck> checks = new ArrayList<>();
         readDataIntegrityYaml( "data-integrity-checks.yaml", checks::add,
-            sql -> check -> new DataIntegritySummary( check, 1, 100d ),
-            sql -> check -> new DataIntegrityDetails( check,
+            sql -> check -> new DataIntegritySummary( check, 1, 100d ), sql -> check -> new DataIntegrityDetails( check,
                 singletonList( new DataIntegrityIssue( "id", "name", sql, List.of() ) ) ) );
-
         assertEquals( 1, checks.size() );
         DataIntegrityCheck check = checks.get( 0 );
         assertEquals( "categories_no_options", check.getName() );

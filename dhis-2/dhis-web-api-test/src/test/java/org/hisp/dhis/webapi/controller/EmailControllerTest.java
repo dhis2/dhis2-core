@@ -28,37 +28,33 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
  * Tests the {@link EmailController} using (mocked) REST requests.
  */
-public class EmailControllerTest extends DhisControllerConvenienceTest
+class EmailControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testSendTestEmail()
+    void testSendTestEmail()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "SMTP server not configured",
             POST( "/email/test" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testSendSystemNotificationEmail()
+    void testSendSystemNotificationEmail()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "SMTP server not configured",
-            POST( "/email/notification",
-                "{" +
-                    "'subject':'Subject'," +
-                    "'text':'Text'," +
-                    "'sender':{'id':'" + getCurrentUser().getUid() + "'}," +
-                    "'recipients':[{'id':'" + getSuperuserUid() + "'}]" +
-                    "}" )
-                        .content( HttpStatus.CONFLICT ) );
+            POST( "/email/notification", "{" + "'subject':'Subject'," + "'text':'Text'," + "'sender':{'id':'"
+                + getCurrentUser().getUid() + "'}," + "'recipients':[{'id':'" + getSuperuserUid() + "'}]" + "}" )
+                    .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testSendEmailNotification()
+    void testSendEmailNotification()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "SMTP server not configured",
             POST( "/email/notification?subject=Subject&message=Text&recipients=" + getSuperuserUid() )

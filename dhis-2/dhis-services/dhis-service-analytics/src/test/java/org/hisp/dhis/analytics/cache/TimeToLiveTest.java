@@ -34,26 +34,26 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_MULTIPLIER;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
 import org.hisp.dhis.setting.DefaultSystemSettingManager;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class TimeToLiveTest
 {
 
     @Mock
     private DefaultSystemSettingManager systemSettingManager;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Test
     public void testComputeForCurrentDayWhenCacheFactorIsNegative()

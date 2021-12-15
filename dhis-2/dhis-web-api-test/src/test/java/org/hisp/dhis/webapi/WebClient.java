@@ -37,9 +37,9 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.plainTextOrJson;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.requestComponentsIn;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.startWithMediaType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -75,7 +75,6 @@ public interface WebClient
 
     interface RequestComponent
     {
-
     }
 
     static Header Header( String name, Object value )
@@ -120,6 +119,7 @@ public interface WebClient
 
     final class Header implements RequestComponent
     {
+
         final String name;
 
         final Object value;
@@ -143,6 +143,7 @@ public interface WebClient
 
     final class Body implements RequestComponent
     {
+
         final String body;
 
         Body( String body )
@@ -168,8 +169,17 @@ public interface WebClient
 
     default HttpResponse PATCH( String url, Object... args )
     {
-        return webRequest( HttpMethod.PATCH, substitutePlaceholders( url, args ),
-            // default mime type is added as first element so that ContentType
+        return webRequest( HttpMethod.PATCH, substitutePlaceholders( url, args ), // default
+                                                                                  // mime
+                                                                                  // type
+                                                                                  // is
+                                                                                  // added
+                                                                                  // as
+                                                                                  // first
+                                                                                  // element
+                                                                                  // so
+                                                                                  // that
+                                                                                  // ContentType
             // in args does override it
             ArrayUtils.insert( 0, requestComponentsIn( args ), ContentType( APPLICATION_JSON_PATCH_UTF8 ) ) );
     }
@@ -222,23 +232,19 @@ public interface WebClient
         // configure body
         Body bodyComponent = getComponent( Body.class, components );
         String body = bodyComponent == null ? "" : bodyComponent.body;
-
         if ( body != null && body.endsWith( ".json" ) )
         {
             MediaType fileContentType = contentMediaType != null ? contentMediaType : APPLICATION_JSON_UTF8;
             return failOnException( () -> webRequest( method, url, headers, fileContentType,
                 Files.readString( new ClassPathResource( body ).getFile().toPath(), StandardCharsets.UTF_8 ) ) );
         }
-
         if ( startWithMediaType( body ) )
         {
             return webRequest( method, url, headers,
                 MediaType.parseMediaType( body.substring( 0, body.indexOf( ':' ) ) ),
                 body.substring( body.indexOf( ':' ) + 1 ) );
         }
-
-        return body == null || body.isEmpty()
-            ? webRequest( method, url, headers, contentMediaType, null )
+        return body == null || body.isEmpty() ? webRequest( method, url, headers, contentMediaType, null )
             : webRequest( method, url, headers,
                 contentMediaType != null ? contentMediaType : MediaType.APPLICATION_JSON, plainTextOrJson( body ) );
     }
@@ -255,6 +261,7 @@ public interface WebClient
 
     interface ResponseAdapter
     {
+
         int getStatus();
 
         String getContent();
@@ -266,6 +273,7 @@ public interface WebClient
 
     final class HttpResponse
     {
+
         private final ResponseAdapter response;
 
         public HttpResponse( ResponseAdapter response )
@@ -302,8 +310,8 @@ public interface WebClient
             }
             String actualContentType = header( "Content-Type" );
             String expected = contentType.toString();
-            assertTrue( String.format( "Expected %s but was: %s", expected, actualContentType ),
-                actualContentType.startsWith( expected ) );
+            assertTrue( actualContentType.startsWith( expected ),
+                String.format( "Expected %s but was: %s", expected, actualContentType ) );
             return failOnException( response::getContent );
         }
 
@@ -326,7 +334,7 @@ public interface WebClient
 
         public JsonError error()
         {
-            assertTrue( "not a client or server error", series().value() >= 4 );
+            assertTrue( series().value() >= 4, "not a client or server error" );
             return errorInternal();
         }
 

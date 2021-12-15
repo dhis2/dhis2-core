@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,13 +41,12 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.util.NestedServletException;
@@ -55,11 +54,9 @@ import org.springframework.web.util.NestedServletException;
 /**
  * @author Enrico Colasante
  */
+@ExtendWith( MockitoExtension.class )
 public class RelationshipControllerTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private MockMvc mockMvc;
 
     private static final String TEI_ID = "TEI_ID";
@@ -95,7 +92,7 @@ public class RelationshipControllerTest
 
     private final static String ENDPOINT = "/relationships";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         mockMvc = MockMvcBuilders.standaloneSetup( relationshipController ).build();

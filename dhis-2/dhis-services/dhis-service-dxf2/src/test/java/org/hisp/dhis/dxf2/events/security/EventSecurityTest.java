@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dxf2.events.security;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -62,7 +62,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -70,9 +70,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EventSecurityTest
-    extends TransactionalIntegrationTest
+class EventSecurityTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private EventService eventService;
 
@@ -113,77 +113,59 @@ public class EventSecurityTest
     {
         userService = _userService;
         categoryService = _categoryService;
-
         createAndInjectAdminUser();
-
         organisationUnitA = createOrganisationUnit( 'A' );
         manager.save( organisationUnitA );
-
         dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
         manager.save( dataElementA );
-
         programStageA = createProgramStage( 'A', 0 );
         manager.save( programStageA );
-
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         manager.save( programA );
-
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementA );
         programStageDataElement.setProgramStage( programStageA );
         programStageDataElementService.addProgramStageDataElement( programStageDataElement );
-
         programStageA.getProgramStageDataElements().add( programStageDataElement );
         programStageA.setProgram( programA );
         programA.getProgramStages().add( programStageA );
-
         manager.update( programStageA );
         manager.update( programA );
-
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setProgram( programA );
         programInstance.setIncidentDate( new Date() );
         programInstance.setEnrollmentDate( new Date() );
-
         programInstanceService.addProgramInstance( programInstance );
         manager.update( programA );
-
         manager.flush();
     }
 
     @Test
-    public void testAddEventSuperuser()
+    void testAddEventSuperuser()
     {
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
         programStageA.setPublicAccess( AccessStringHelper.DEFAULT );
-
         manager.update( programA );
         manager.update( programStageA );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertFalse( importSummary.hasConflicts() );
     }
 
     @Test
-    public void testAddEventSimpleUser()
+    void testAddEventSimpleUser()
     {
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
         programStageA.setPublicAccess( AccessStringHelper.DEFAULT );
-
         manager.update( programA );
         manager.update( programStageA );
-
         User user = createUser( "user1" );
         injectSecurityContext( user );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
 
@@ -192,27 +174,19 @@ public class EventSecurityTest
      * Accessible status = SUCCESS
      */
     @Test
-    public void testAddEventSimpleUserFullAccess1()
+    void testAddEventSimpleUserFullAccess1()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.updateNoAcl( programA );
         manager.updateNoAcl( programStageA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
-
         injectSecurityContext( user );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         // make sure data is flushed, so event service can access it
         manager.flush();
-
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
 
@@ -221,22 +195,16 @@ public class EventSecurityTest
      * status = ERROR
      */
     @Test
-    public void testAddEventSimpleUserFullAccess2()
+    void testAddEventSimpleUserFullAccess2()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
 
@@ -245,25 +213,18 @@ public class EventSecurityTest
      * status = ERROR
      */
     @Test
-    public void testAddEventSimpleUserFullAccess3()
+    void testAddEventSimpleUserFullAccess3()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
-
         manager.update( programA );
         manager.update( programStageA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-
         // make sure data is flushed, so event service can access it
         manager.flush();
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
 
@@ -272,20 +233,16 @@ public class EventSecurityTest
      * Accessible status = ERROR
      */
     @Test
-    public void testAddEventSimpleUserFullAccess4()
+    void testAddEventSimpleUserFullAccess4()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
         User user = createUser( "user1" );
         injectSecurityContext( user );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
 
@@ -294,40 +251,28 @@ public class EventSecurityTest
      * = SUCCESS
      */
     @Test
-    public void testAddEventSimpleUserFullAccess5()
+    void testAddEventSimpleUserFullAccess5()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
-
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
-
         manager.update( programA );
         manager.update( programStageA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-
         Event eventFromPsi = eventService.getEvent( programStageInstance );
         assertNotNull( eventFromPsi );
-
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
 
@@ -336,40 +281,28 @@ public class EventSecurityTest
      * status = SUCCESS
      */
     @Test
-    public void testAddEventSimpleUserFullAccess6()
+    void testAddEventSimpleUserFullAccess6()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
-
         programA.setPublicAccess( AccessStringHelper.DATA_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-
         Event eventFromPsi = eventService.getEvent( programStageInstance );
         assertNotNull( eventFromPsi );
-
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
 
@@ -378,36 +311,26 @@ public class EventSecurityTest
      * status = ERROR
      */
     @Test
-    public void testAddEventSimpleUserFullAccess7()
+    void testAddEventSimpleUserFullAccess7()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
-
         programA.setPublicAccess( AccessStringHelper.DATA_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
         User user = createUser( "user1" );
-
         injectSecurityContext( user );
-
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-
         assertThrows( IllegalQueryException.class, () -> eventService.getEvent( programStageInstance ) );
     }
 
@@ -416,36 +339,26 @@ public class EventSecurityTest
      * status = ERROR
      */
     @Test
-    public void testAddEventSimpleUserFullAccess8()
+    void testAddEventSimpleUserFullAccess8()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
-
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
-
         manager.update( programA );
         manager.update( programStageA );
-
         User user = createUser( "user1" );
-
         injectSecurityContext( user );
-
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-
         assertThrows( IllegalQueryException.class, () -> eventService.getEvent( programStageInstance ) );
     }
 
@@ -453,37 +366,26 @@ public class EventSecurityTest
      * program = programStage = DATA READ orgUnit = Accessible status = ERROR
      */
     @Test
-    public void testAddEventSimpleUserFullAccess9()
+    void testAddEventSimpleUserFullAccess9()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
-
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ );
-
         manager.update( programA );
         manager.update( programStageA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-
         assertThrows( IllegalQueryException.class, () -> eventService.getEvent( programStageInstance ) );
     }
 
@@ -491,40 +393,28 @@ public class EventSecurityTest
      * program = DATA READ programStage = orgUnit = Accessible status = ERROR
      */
     @Test
-    public void testAddEventSimpleUserFullAccess10()
+    void testAddEventSimpleUserFullAccess10()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.update( programA );
         manager.update( programStageA );
-
         Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
-
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
-
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         programStageA.setPublicAccess( AccessStringHelper.DEFAULT );
-
         manager.update( programA );
         manager.update( programStageA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-
         ProgramStageInstance programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-
         Event eventFromPsi = eventService.getEvent( programStageInstance );
         assertNotNull( eventFromPsi );
-
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
 
@@ -537,9 +427,7 @@ public class EventSecurityTest
         event.setProgramStage( programStage );
         event.setOrgUnit( orgUnit );
         event.setEventDate( "2013-01-01" );
-
         event.getDataValues().add( new DataValue( dataElementA.getUid(), "10" ) );
-
         return event;
     }
 }

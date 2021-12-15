@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
@@ -67,25 +67,22 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-@RunWith( MockitoJUnitRunner.Silent.class )
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class TrackerCrudTest
 {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ImportOptions importOptions;
@@ -143,7 +140,7 @@ public class TrackerCrudTest
 
     private static final String orgUnitUid = "orgUnit";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         trackedEntityInstanceService = mock( AbstractTrackedEntityInstanceService.class, CALLS_REAL_METHODS );
@@ -156,6 +153,7 @@ public class TrackerCrudTest
 
         when( notifier.notify( any( JobConfiguration.class ), any( NotificationLevel.class ), anyString(),
             anyBoolean() ) ).thenReturn( notifier );
+        when( notifier.notify( any( JobConfiguration.class ), anyString() ) ).thenReturn( notifier );
         when( notifier.clear( any() ) ).thenReturn( notifier );
 
         when( defaultTrackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceUid, user ) )

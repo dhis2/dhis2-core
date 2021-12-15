@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -54,8 +54,8 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -65,8 +65,9 @@ import com.google.common.collect.Maps;
 /**
  * @author Robert White <robert.white.13@ucl.ac.uk>
  */
-public class SmsUtilsTest
+class SmsUtilsTest
 {
+
     private User userA;
 
     private User userB;
@@ -85,46 +86,39 @@ public class SmsUtilsTest
 
     private String email;
 
-    @Before
-    public void setup()
+    @BeforeEach
+    void setup()
     {
         phoneNumber = "0123456789";
         email = "test@example.com";
-
         userA = new User();
         userA.setAutoFields();
         userA.setUserCredentials( new UserCredentials() );
         userA.setPhoneNumber( phoneNumber );
         userA.setEmail( email );
-
         organisationUnitA = new OrganisationUnit();
         organisationUnitA.setAutoFields();
         organisationUnitA.setId( 1 );
         organisationUnitA.setCode( "TESTORGA" );
         userA.addOrganisationUnit( organisationUnitA );
-
         userB = new User();
-
         organisationUnitB = new OrganisationUnit();
         organisationUnitB.setAutoFields();
         organisationUnitB.setId( 2 );
         organisationUnitB.setCode( "TESTORGB" );
         userB.addOrganisationUnit( organisationUnitB );
-
         organisationUnitC = new OrganisationUnit();
         organisationUnitC.setAutoFields();
         organisationUnitC.setId( 3 );
         organisationUnitC.setCode( "TESTORGC" );
-
         incomingSms = new IncomingSms();
         incomingSms.setCreatedBy( userA );
-
         keyValueCommand = new SMSCommand();
         keyValueCommand.setParserType( ParserType.KEY_VALUE_PARSER );
     }
 
     @Test
-    public void testGetCommandStringWithSms()
+    void testGetCommandStringWithSms()
     {
         incomingSms = new IncomingSms();
         incomingSms.setText( "000testcommandstring" );
@@ -132,13 +126,13 @@ public class SmsUtilsTest
     }
 
     @Test
-    public void testGetCommandStringWithText()
+    void testGetCommandStringWithText()
     {
         assertEquals( "testcommandstring", SmsUtils.getCommandString( "000testcommandstring" ) );
     }
 
     @Test
-    public void testIsBase64()
+    void testIsBase64()
     {
         incomingSms = new IncomingSms();
         incomingSms.setText( "0b976c484577437bbba6794d0e7ebde0" );
@@ -154,7 +148,7 @@ public class SmsUtilsTest
     }
 
     @Test
-    public void testGetBytes()
+    void testGetBytes()
     {
         incomingSms.setText( "0b976c484577437bbba6794d0e7ebde0" );
         assertArrayEquals( Base64.getDecoder().decode( "0b976c484577437bbba6794d0e7ebde0" ),
@@ -168,7 +162,7 @@ public class SmsUtilsTest
     }
 
     @Test
-    public void testGetOrganisationUnitsByPhoneNumber()
+    void testGetOrganisationUnitsByPhoneNumber()
     {
         Collection<User> params = Collections.singleton( userA );
         Map<String, Set<OrganisationUnit>> expected = ImmutableMap.of( userA.getUid(),
@@ -177,7 +171,7 @@ public class SmsUtilsTest
     }
 
     @Test
-    public void testLookForDate()
+    void testLookForDate()
         throws ParseException
     {
         GregorianCalendar gc = new GregorianCalendar( 2019, 12, 31 );
@@ -195,7 +189,7 @@ public class SmsUtilsTest
     }
 
     @Test
-    public void testGetUser()
+    void testGetUser()
     {
         User returnedUser = SmsUtils.getUser( "", new SMSCommand(), Lists.newArrayList( userA ) );
         assertEquals( userA, returnedUser );
@@ -204,63 +198,63 @@ public class SmsUtilsTest
     }
 
     @Test
-    public void testSplitLongUnicodeString()
+    void testSplitLongUnicodeString()
     {
         List<String> result = new ArrayList<>();
-        assertEquals( Lists.newArrayList(
-            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue",
-            "red.green.blue000000000000000000000000000000000000000000000000000000000000000000" ),
+        assertEquals(
+            Lists.newArrayList( "000000000000000000000000000000000000000000000000000000000000000000red-green-blue",
+                "red.green.blue000000000000000000000000000000000000000000000000000000000000000000" ),
             SmsUtils.splitLongUnicodeString(
                 "000000000000000000000000000000000000000000000000000000000000000000red-green-blue red.green.blue"
                     + "000000000000000000000000000000000000000000000000000000000000000000",
                 result ) );
-
         result = new ArrayList<>();
-        assertEquals( Lists.newArrayList(
-            "000000000000000000000000000000000000000000000000000000000000000000red-green-blue",
-            "red.green.blue000000000000000000000000000000000000000000000000000000000000000000",
-            "000000000000000000000000000000000000000000000000000000000000000000red.green.blue" ),
-            SmsUtils.splitLongUnicodeString(
-                "000000000000000000000000000000000000000000000000000000000000000000red-green-blue red.green.blue"
-                    + "000000000000000000000000000000000000000000000000000000000000000000 "
-                    + "000000000000000000000000000000000000000000000000000000000000000000red.green.blue",
-                result ) );
+        assertEquals(
+            Lists.newArrayList( "000000000000000000000000000000000000000000000000000000000000000000red-green-blue",
+                "red.green.blue000000000000000000000000000000000000000000000000000000000000000000",
+                "000000000000000000000000000000000000000000000000000000000000000000red.green.blue" ),
+            SmsUtils
+                .splitLongUnicodeString(
+                    "000000000000000000000000000000000000000000000000000000000000000000red-green-blue red.green.blue"
+                        + "000000000000000000000000000000000000000000000000000000000000000000 "
+                        + "000000000000000000000000000000000000000000000000000000000000000000red.green.blue",
+                    result ) );
     }
 
     @Test
-    public void testGetRecipientsPhoneNumber()
+    void testGetRecipientsPhoneNumber()
     {
         assertTrue( SmsUtils.getRecipientsPhoneNumber( Lists.newArrayList( userA ) ).contains( phoneNumber ) );
     }
 
     @Test
-    public void testGetRecipientsEmail()
+    void testGetRecipientsEmail()
     {
         assertTrue( SmsUtils.getRecipientsEmail( Lists.newArrayList( userA ) ).contains( email ) );
     }
 
     @Test
-    public void testSelectOrganisationUnit()
+    void testSelectOrganisationUnit()
     {
         OrganisationUnit expected = organisationUnitA;
         Map<String, String> parsedMessage = Maps.newHashMap( ImmutableMap.of( "ORG", "TESTORGA" ) );
         SMSCommand smsCommand = new SMSCommand();
-        assertEquals( expected, SmsUtils.selectOrganisationUnit( Lists.newArrayList( organisationUnitA ),
-            parsedMessage, smsCommand ) );
+        assertEquals( expected,
+            SmsUtils.selectOrganisationUnit( Lists.newArrayList( organisationUnitA ), parsedMessage, smsCommand ) );
         assertThrows( SMSParserException.class,
             () -> SmsUtils.selectOrganisationUnit( Lists.newArrayList( organisationUnitB, organisationUnitC ),
                 parsedMessage, smsCommand ) );
     }
 
     @Test
-    public void testRemovePhoneNumberPrefix()
+    void testRemovePhoneNumberPrefix()
     {
         assertEquals( phoneNumber, SmsUtils.removePhoneNumberPrefix( "00" + phoneNumber ) );
         assertEquals( phoneNumber, SmsUtils.removePhoneNumberPrefix( "+" + phoneNumber ) );
     }
 
     @Test
-    public void testSMSTextEncoding()
+    void testSMSTextEncoding()
     {
         assertEquals( "Hi+User", SmsUtils.encode( "Hi User" ) );
         assertEquals( "Jeg+er+p%C3%A5+universitetet", SmsUtils.encode( "Jeg er på universitetet" ) );

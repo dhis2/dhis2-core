@@ -28,23 +28,29 @@
 package org.hisp.dhis.tracker.preheat;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.supplier.*;
+import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.ApplicationContext;
 
@@ -53,11 +59,10 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Cambi Luca
  */
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class DefaultTrackerPreheatServiceTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Mock
     private IdentifiableObjectManager manager;
 
@@ -80,7 +85,7 @@ public class DefaultTrackerPreheatServiceTest
         .trackedEntities( Collections.singletonList( new TrackedEntity() ) )
         .build();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         preheatService = new DefaultTrackerPreheatService( manager, ImmutableList.of(

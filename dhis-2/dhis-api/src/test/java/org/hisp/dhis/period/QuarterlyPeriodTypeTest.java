@@ -79,11 +79,6 @@ class QuarterlyPeriodTypeTest
     }
 
     @Test
-    void testCreatePeriodOverflow()
-    {
-    }
-
-    @Test
     void testGetNextPeriod()
     {
         testDate = new DateTime( 2009, 8, 15, 0, 0 );

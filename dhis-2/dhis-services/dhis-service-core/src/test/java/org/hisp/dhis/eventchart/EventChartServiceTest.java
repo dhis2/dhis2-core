@@ -27,21 +27,23 @@
  */
 package org.hisp.dhis.eventchart;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jan Henrik Overland
  */
-public class EventChartServiceTest
-    extends DhisSpringTest
+class EventChartServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private EventChartService eventChartService;
 
@@ -58,7 +60,7 @@ public class EventChartServiceTest
     }
 
     @Test
-    public void testSaveGet()
+    void testSaveGet()
     {
         EventChart ecA = new EventChart( "ecA" );
         ecA.setProgram( prA );
@@ -69,18 +71,16 @@ public class EventChartServiceTest
         EventChart ecC = new EventChart( "ecC" );
         ecC.setProgram( prA );
         ecC.setType( EventVisualizationType.COLUMN );
-
         long idA = eventChartService.saveEventChart( ecA );
         long idB = eventChartService.saveEventChart( ecB );
         long idC = eventChartService.saveEventChart( ecC );
-
         assertEquals( "ecA", eventChartService.getEventChart( idA ).getName() );
         assertEquals( "ecB", eventChartService.getEventChart( idB ).getName() );
         assertEquals( "ecC", eventChartService.getEventChart( idC ).getName() );
     }
 
     @Test
-    public void testDelete()
+    void testDelete()
     {
         EventChart ecA = new EventChart( "ecA" );
         ecA.setProgram( prA );
@@ -91,29 +91,21 @@ public class EventChartServiceTest
         EventChart ecC = new EventChart( "ecC" );
         ecC.setProgram( prA );
         ecC.setType( EventVisualizationType.COLUMN );
-
         long idA = eventChartService.saveEventChart( ecA );
         long idB = eventChartService.saveEventChart( ecB );
         long idC = eventChartService.saveEventChart( ecC );
-
         assertNotNull( eventChartService.getEventChart( idA ) );
         assertNotNull( eventChartService.getEventChart( idB ) );
         assertNotNull( eventChartService.getEventChart( idC ) );
-
         eventChartService.deleteEventChart( ecA );
-
         assertNull( eventChartService.getEventChart( idA ) );
         assertNotNull( eventChartService.getEventChart( idB ) );
         assertNotNull( eventChartService.getEventChart( idC ) );
-
         eventChartService.deleteEventChart( ecB );
-
         assertNull( eventChartService.getEventChart( idA ) );
         assertNull( eventChartService.getEventChart( idB ) );
         assertNotNull( eventChartService.getEventChart( idC ) );
-
         eventChartService.deleteEventChart( ecC );
-
         assertNull( eventChartService.getEventChart( idA ) );
         assertNull( eventChartService.getEventChart( idB ) );
         assertNull( eventChartService.getEventChart( idC ) );

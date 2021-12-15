@@ -28,15 +28,15 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegritySummary;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -45,16 +45,15 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class DataIntegritySummaryControllerTest extends DhisControllerConvenienceTest
+class DataIntegritySummaryControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testCategories_no_options()
+    void testCategories_no_options()
     {
         assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
-
         JsonObject content = GET( "/dataIntegrity/summary?checks=categories-no-options" ).content();
-
         JsonDataIntegritySummary summary = content.get( "categories_no_options", JsonDataIntegritySummary.class );
         assertTrue( summary.exists() );
         assertEquals( 1, summary.getCount() );
@@ -62,26 +61,23 @@ public class DataIntegritySummaryControllerTest extends DhisControllerConvenienc
     }
 
     @Test
-    public void testLegacyChecksOnly()
+    void testLegacyChecksOnly()
     {
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {
             JsonObject content = GET( "/dataIntegrity/summary?checks={name}", type.getName() ).content();
-
             JsonDataIntegritySummary summary = content.get( type.getName(), JsonDataIntegritySummary.class );
             assertFalse( summary.exists() );
         }
     }
 
     @Test
-    public void testSingleCheckByPath()
+    void testSingleCheckByPath()
     {
         assertStatus( HttpStatus.CREATED,
             POST( "/categories", "{'name': 'CatDog', 'shortName': 'CD', 'dataDimensionType': 'ATTRIBUTE'}" ) );
-
         JsonDataIntegritySummary summary = GET( "/dataIntegrity/categories-no-options/summary" ).content()
             .as( JsonDataIntegritySummary.class );
-
         assertTrue( summary.exists() );
         assertEquals( 1, summary.getCount() );
         assertEquals( 50, summary.getPercentage().intValue() );

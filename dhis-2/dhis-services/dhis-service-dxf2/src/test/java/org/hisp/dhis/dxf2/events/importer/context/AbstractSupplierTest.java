@@ -35,13 +35,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Map;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -50,11 +49,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public abstract class AbstractSupplierTest<T>
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Mock
     protected NamedParameterJdbcTemplate jdbcTemplate;
 
@@ -96,14 +93,10 @@ public abstract class AbstractSupplierTest<T>
             } );
     }
 
-    @Test
-    public void doVerifySupplier()
+    @BeforeEach
+    protected void setUpMock()
         throws SQLException
     {
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( false );
-        verifySupplier();
     }
-
-    public abstract void verifySupplier()
-        throws SQLException;
 }
