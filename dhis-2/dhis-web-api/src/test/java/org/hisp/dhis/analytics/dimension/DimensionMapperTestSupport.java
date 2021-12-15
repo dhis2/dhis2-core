@@ -58,7 +58,7 @@ public class DimensionMapperTestSupport
     }
 
     private static <T extends BaseIdentifiableObject> T getBaseIdentifiableObject( Supplier<T> instanceSupplier,
-                                                                                   Collection<Consumer<T>> setters )
+        Collection<Consumer<T>> setters )
     {
         T baseIdentifiableObject = instanceSupplier.get();
         setters.forEach( setter -> setter.accept( baseIdentifiableObject ) );

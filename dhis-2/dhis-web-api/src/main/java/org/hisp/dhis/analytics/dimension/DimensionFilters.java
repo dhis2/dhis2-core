@@ -114,10 +114,15 @@ public class DimensionFilters implements Predicate<DimensionResponse>
             StringTokenizer filterTokenizer = new StringTokenizer( filter, ":" );
             if ( filterTokenizer.countTokens() == 3 )
             {
-                String field = filterTokenizer.nextToken();
-                String operator = filterTokenizer.nextToken();
-                String value = filterTokenizer.nextToken();
-                return new SingleFilter( field.trim(), operator.trim(), value.trim() );
+                String field = filterTokenizer.nextToken().trim();
+                String operator = filterTokenizer.nextToken().trim();
+                String value = filterTokenizer.nextToken().trim();
+
+                if ( FIELD_EXTRACTORS.containsKey( field ) && OPERATOR_MAP.containsKey( operator ) )
+                {
+                    return new SingleFilter( field, operator, value );
+                }
+                return null;
             }
             return null;
         }

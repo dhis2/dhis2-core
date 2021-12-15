@@ -62,7 +62,7 @@ public class DimensionFilteringAndPagingService
     private final DimensionMapperService dimensionMapperService;
 
     private final static Comparator<DimensionResponse> DEFAULT_COMPARATOR = Comparator
-        .comparing( DimensionResponse::getCreated );
+        .comparing( DimensionResponse::getCreated, Comparator.nullsFirst( Comparator.naturalOrder() ) );
 
     private final static Map<String, Comparator<DimensionResponse>> ORDERING_MAP = ImmutableMap.of(
         "lastUpdated", Comparator.comparing( DimensionResponse::getLastUpdated ),
