@@ -108,7 +108,7 @@
         <jackson.version>2.13.0</jackson.version>
         <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
         <jackson-datatype-hibernate5.version>2.11.2</jackson-datatype-hibernate5.version>
-        <classmate.version>1.3.2</classmate.version>
+        <classmate.version>1.5.1</classmate.version>
 
         <!-- JAXB -->
         <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
