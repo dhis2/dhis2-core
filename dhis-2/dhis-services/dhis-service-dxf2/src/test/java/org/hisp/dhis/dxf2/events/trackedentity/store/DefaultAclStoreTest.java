@@ -43,12 +43,11 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class DefaultAclStoreTest
-    extends IntegrationTestBase
+class DefaultAclStoreTest extends IntegrationTestBase
 {
 
     @Autowired
@@ -64,8 +63,8 @@ public class DefaultAclStoreTest
 
     private User user;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         // DhisConvenienceTests needs it to be injected/set for createUser
         userService = _userService;
@@ -74,9 +73,8 @@ public class DefaultAclStoreTest
     }
 
     @Test
-    public void getAccessibleProgramsReturnsNoneIfNoneIsPublicAndUserHasNoAccess()
+    void getAccessibleProgramsReturnsNoneIfNoneIsPublicAndUserHasNoAccess()
     {
-
         // a private program
         Program programA = createProgram( 'A' );
         programA.setPublicAccess( "--------" );
@@ -93,16 +91,13 @@ public class DefaultAclStoreTest
         a.setAccess( "--r-----" );
         programB.getSharing().addUserGroupAccess( a );
         manager.save( programB, false );
-
         List<Long> programIds = aclStore.getAccessiblePrograms( user.getUid(), Collections.emptyList() );
-
         assertThat( programIds, hasSize( 0 ) );
     }
 
     @Test
-    public void getAccessibleProgramsReturnsPublicOnes()
+    void getAccessibleProgramsReturnsPublicOnes()
     {
-
         // a publicly readable program
         Program programA = createProgram( 'A' );
         programA.getSharing().setOwner( owner );
@@ -113,16 +108,13 @@ public class DefaultAclStoreTest
         programB.getSharing().setOwner( owner );
         programB.setPublicAccess( "--------" );
         manager.save( programB, false );
-
         List<Long> programIds = aclStore.getAccessiblePrograms( user.getUid(), Collections.emptyList() );
-
         assertContainsOnly( programIds, programA.getId() );
     }
 
     @Test
-    public void getAccessibleProgramsReturnsUserAccessibleOnes()
+    void getAccessibleProgramsReturnsUserAccessibleOnes()
     {
-
         // a private program
         Program programA = createProgram( 'A' );
         programA.setPublicAccess( "--------" );
@@ -137,16 +129,13 @@ public class DefaultAclStoreTest
         a.setAccess( "--r-----" );
         programB.getSharing().addUserAccess( a );
         manager.save( programB, false );
-
         List<Long> programIds = aclStore.getAccessiblePrograms( user.getUid(), Collections.emptyList() );
-
         assertContainsOnly( programIds, programB.getId() );
     }
 
     @Test
-    public void getAccessibleProgramsReturnsUserGroupOnes()
+    void getAccessibleProgramsReturnsUserGroupOnes()
     {
-
         // a private program
         Program programA = createProgram( 'A' );
         programA.setPublicAccess( "--------" );
@@ -163,10 +152,8 @@ public class DefaultAclStoreTest
         a.setAccess( "--r-----" );
         programB.getSharing().addUserGroupAccess( a );
         manager.save( programB, false );
-
         List<Long> programIds = aclStore.getAccessiblePrograms( user.getUid(),
             Collections.singletonList( g.getUid() ) );
-
         assertContainsOnly( programIds, programB.getId() );
     }
 }

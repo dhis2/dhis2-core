@@ -29,8 +29,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -40,30 +41,31 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class EnrollmentGeoValidationHookTest
 {
+
     private static final String PROGRAM = "Program";
 
     private EnrollmentGeoValidationHook hookToTest;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private TrackerImportValidationContext validationContext;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         hookToTest = new EnrollmentGeoValidationHook();
@@ -94,7 +96,7 @@ public class EnrollmentGeoValidationHookTest
         assertFalse( reporter.hasErrors() );
     }
 
-    @Test( expected = NullPointerException.class )
+    @Test
     public void testEnrollmentWithNoProgramThrowsAnError()
     {
         // given
@@ -104,10 +106,7 @@ public class EnrollmentGeoValidationHookTest
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
 
-        // when
-        this.hookToTest.validateEnrollment( reporter, enrollment );
-
-        // then
+        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEnrollment( reporter, enrollment ) );
     }
 
     @Test

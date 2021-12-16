@@ -80,14 +80,15 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.common.collect.ImmutableList;
@@ -95,10 +96,10 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Luciano Fiandesio
  */
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -112,7 +113,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private final static String DEFAULT_COLUMNS_WITH_REGISTRATION = "psi,ps,executiondate,storedby,lastupdated,enrollmentdate,incidentdate,tei,pi,ST_AsGeoJSON(psigeometry, 6) as geometry,longitude,latitude,ouname,oucode";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();

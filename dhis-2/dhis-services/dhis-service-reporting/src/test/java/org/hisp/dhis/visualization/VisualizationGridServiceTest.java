@@ -52,13 +52,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith( MockitoExtension.class )
 public class VisualizationGridServiceTest
 {
     @Mock
@@ -76,12 +76,9 @@ public class VisualizationGridServiceTest
     @Mock
     private I18nManager i18nManager;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private VisualizationGridService visualizationGridService;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         visualizationGridService = new DefaultVisualizationGridService( visualizationService, analyticsService,

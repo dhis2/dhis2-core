@@ -27,31 +27,29 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.IllegalFieldValueException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith( MockitoExtension.class )
 public class TrackedAttributeValidationServiceTest
 {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private TrackedAttributeValidationService trackedEntityAttributeService;
 
@@ -66,7 +64,7 @@ public class TrackedAttributeValidationServiceTest
 
     private TrackedEntityAttribute tea;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
 
@@ -79,24 +77,27 @@ public class TrackedAttributeValidationServiceTest
         tea.setOrgunitScope( false );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void shouldThrowWhenTeaIsNull()
     {
-        trackedEntityAttributeService.validateValueType( null, "" );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( null, "" ) );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void shouldThrowWhenNotAValidDate()
     {
         tea.setValueType( ValueType.DATE );
         String teaValue = "Firstname";
-        trackedEntityAttributeService.validateValueType( tea, teaValue );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( tea, teaValue ) );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void shouldThrowWhenNullValue()
     {
-        trackedEntityAttributeService.validateValueType( tea, null );
+        assertThrows( IllegalArgumentException.class,
+            () -> trackedEntityAttributeService.validateValueType( tea, null ) );
     }
 
     @Test
@@ -122,11 +123,12 @@ public class TrackedAttributeValidationServiceTest
         assertNotNull( trackedEntityAttributeService.validateValueType( tea, "value" ) );
     }
 
-    @Test( expected = IllegalFieldValueException.class )
+    @Test
     public void shouldFailValidationWhenInvalidDate()
     {
         tea.setValueType( ValueType.DATE );
-        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-32" ) );
+        assertThrows( IllegalFieldValueException.class,
+            () -> assertNotNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-32" ) ) );
     }
 
     @Test

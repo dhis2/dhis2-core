@@ -41,14 +41,13 @@ import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.node.types.RootNode;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.http.MockHttpOutputMessage;
 
 import com.google.common.net.HttpHeaders;
@@ -58,6 +57,7 @@ import com.google.common.net.HttpHeaders;
  *
  * @author Volker Schmidt <volker@dhis2.org>
  */
+@ExtendWith( MockitoExtension.class )
 public class AbstractRootNodeMessageConverterTest
 {
     @Mock
@@ -73,10 +73,7 @@ public class AbstractRootNodeMessageConverterTest
 
     private MockHttpOutputMessage httpOutputMessage = new MockHttpOutputMessage();
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void before()
     {
         converter = Mockito.mock( AbstractRootNodeMessageConverter.class, withSettings()
@@ -90,43 +87,44 @@ public class AbstractRootNodeMessageConverterTest
     @Test
     public void isAttachmentNull()
     {
-        Assert.assertFalse( converter.isAttachment( null ) );
+        Assertions.assertFalse( converter.isAttachment( null ) );
     }
 
     @Test
     public void isAttachmentInline()
     {
-        Assert.assertFalse( converter.isAttachment( "inline; filename=test.txt" ) );
+        Assertions.assertFalse( converter.isAttachment( "inline; filename=test.txt" ) );
     }
 
     @Test
     public void isAttachment()
     {
-        Assert.assertTrue( converter.isAttachment( "attachment; filename=test.txt" ) );
+        Assertions.assertTrue( converter.isAttachment( "attachment; filename=test.txt" ) );
     }
 
     @Test
     public void getExtensibleAttachmentFilenameNull()
     {
-        Assert.assertNull( converter.getExtensibleAttachmentFilename( null ) );
+        Assertions.assertNull( converter.getExtensibleAttachmentFilename( null ) );
     }
 
     @Test
     public void getExtensibleAttachmentFilenameInline()
     {
-        Assert.assertNull( converter.getExtensibleAttachmentFilename( "inline; filename=metadata" ) );
+        Assertions.assertNull( converter.getExtensibleAttachmentFilename( "inline; filename=metadata" ) );
     }
 
     @Test
     public void getExtensibleAttachmentFilename()
     {
-        Assert.assertEquals( "metadata", converter.getExtensibleAttachmentFilename( "attachment; filename=metadata" ) );
+        Assertions.assertEquals( "metadata",
+            converter.getExtensibleAttachmentFilename( "attachment; filename=metadata" ) );
     }
 
     @Test
     public void getExtensibleAttachmentFilenameOther()
     {
-        Assert.assertNull( converter.getExtensibleAttachmentFilename( "attachment; filename=other" ) );
+        Assertions.assertNull( converter.getExtensibleAttachmentFilename( "attachment; filename=other" ) );
     }
 
     @Test
@@ -139,8 +137,8 @@ public class AbstractRootNodeMessageConverterTest
         } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ),
             Mockito.any( OutputStream.class ) );
         converter.writeInternal( rootNode, httpOutputMessage );
-        Assert.assertNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assert.assertEquals( rootNode.getName(),
+        Assertions.assertNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( rootNode.getName(),
             new String( httpOutputMessage.getBodyAsBytes(), StandardCharsets.UTF_8 ) );
     }
 
@@ -155,11 +153,11 @@ public class AbstractRootNodeMessageConverterTest
             Mockito.any( OutputStream.class ) );
         httpOutputMessage.getHeaders().set( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
         converter.writeInternal( rootNode, httpOutputMessage );
-        Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx",
+        Assertions.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
+        Assertions.assertEquals( "attachment; filename=metadata.xzx",
             httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
-        Assert.assertEquals( rootNode.getName(),
+        Assertions.assertEquals( rootNode.getName(),
             new String( httpOutputMessage.getBodyAsBytes(), StandardCharsets.UTF_8 ) );
     }
 
@@ -174,11 +172,11 @@ public class AbstractRootNodeMessageConverterTest
             Mockito.any( OutputStream.class ) );
         httpOutputMessage.getHeaders().set( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
         converterGzip.writeInternal( rootNode, httpOutputMessage );
-        Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx.gz",
+        Assertions.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
+        Assertions.assertEquals( "attachment; filename=metadata.xzx.gz",
             httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
-        Assert.assertEquals( rootNode.getName(),
+        Assertions.assertEquals( rootNode.getName(),
             IOUtils.toString( new GZIPInputStream( new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) ),
                 StandardCharsets.UTF_8 ) );
     }
@@ -193,11 +191,11 @@ public class AbstractRootNodeMessageConverterTest
         } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ),
             Mockito.any( OutputStream.class ) );
         converterGzip.writeInternal( rootNode, httpOutputMessage );
-        Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx.gz",
+        Assertions.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
+        Assertions.assertEquals( "attachment; filename=metadata.xzx.gz",
             httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
-        Assert.assertEquals( rootNode.getName(),
+        Assertions.assertEquals( rootNode.getName(),
             IOUtils.toString( new GZIPInputStream( new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) ),
                 StandardCharsets.UTF_8 ) );
     }
@@ -212,14 +210,14 @@ public class AbstractRootNodeMessageConverterTest
         } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ),
             Mockito.any( OutputStream.class ) );
         converterZip.writeInternal( rootNode, httpOutputMessage );
-        Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx.zip",
+        Assertions.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
+        Assertions.assertEquals( "attachment; filename=metadata.xzx.zip",
             httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
         final ZipInputStream zipInputStream = new ZipInputStream(
             new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) );
-        Assert.assertNotNull( zipInputStream.getNextEntry() );
-        Assert.assertEquals( rootNode.getName(), IOUtils.toString( zipInputStream, StandardCharsets.UTF_8 ) );
+        Assertions.assertNotNull( zipInputStream.getNextEntry() );
+        Assertions.assertEquals( rootNode.getName(), IOUtils.toString( zipInputStream, StandardCharsets.UTF_8 ) );
     }
 
     @Test
@@ -233,13 +231,13 @@ public class AbstractRootNodeMessageConverterTest
             Mockito.any( OutputStream.class ) );
         httpOutputMessage.getHeaders().set( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
         converterZip.writeInternal( rootNode, httpOutputMessage );
-        Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx.zip",
+        Assertions.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
+        Assertions.assertEquals( "attachment; filename=metadata.xzx.zip",
             httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
         final ZipInputStream zipInputStream = new ZipInputStream(
             new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) );
-        Assert.assertNotNull( zipInputStream.getNextEntry() );
-        Assert.assertEquals( rootNode.getName(), IOUtils.toString( zipInputStream, StandardCharsets.UTF_8 ) );
+        Assertions.assertNotNull( zipInputStream.getNextEntry() );
+        Assertions.assertEquals( rootNode.getName(), IOUtils.toString( zipInputStream, StandardCharsets.UTF_8 ) );
     }
 }

@@ -27,18 +27,19 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class ProgramIndicatorGroupServiceTest
-    extends DhisSpringTest
+class ProgramIndicatorGroupServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private ProgramIndicatorService service;
 
@@ -51,30 +52,25 @@ public class ProgramIndicatorGroupServiceTest
     }
 
     @Test
-    public void testAddProgramIndicatorGroup()
+    void testAddProgramIndicatorGroup()
     {
         service.addProgramIndicatorGroup( programIndicatorGroupA );
         assertNotNull( programIndicatorGroupA.getUid() );
     }
 
     @Test
-    public void testUpdateProgramIndicatorGroup()
+    void testUpdateProgramIndicatorGroup()
     {
         service.addProgramIndicatorGroup( programIndicatorGroupA );
-
         programIndicatorGroupA.setName( "B" );
-
         assertEquals( "B", service.getProgramIndicatorGroup( programIndicatorGroupA.getId() ).getName() );
     }
 
     @Test
-    public void testDeleteProgramIndicatorGroup()
+    void testDeleteProgramIndicatorGroup()
     {
         long id = service.addProgramIndicatorGroup( programIndicatorGroupA );
-
         service.deleteProgramIndicatorGroup( programIndicatorGroupA );
-
         assertEquals( null, service.getProgramIndicatorGroup( id ) );
     }
-
 }

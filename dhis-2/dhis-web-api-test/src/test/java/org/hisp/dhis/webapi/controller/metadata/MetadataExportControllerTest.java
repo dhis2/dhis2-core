@@ -32,13 +32,12 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
@@ -47,6 +46,7 @@ import org.springframework.http.ResponseEntity;
  *
  * @author Volker Schmidt
  */
+@ExtendWith( MockitoExtension.class )
 public class MetadataExportControllerTest
 {
     @Mock
@@ -64,22 +64,19 @@ public class MetadataExportControllerTest
     @InjectMocks
     private MetadataImportExportController controller;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Test
     public void withoutDownload()
     {
         ResponseEntity<RootNode> responseEntity = controller.getMetadata( false, null, false );
-        Assert.assertNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
     }
 
     @Test
     public void withDownload()
     {
         ResponseEntity<RootNode> responseEntity = controller.getMetadata( false, null, true );
-        Assert.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assert.assertEquals( "attachment; filename=metadata",
+        Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( "attachment; filename=metadata",
             responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
     }
 }

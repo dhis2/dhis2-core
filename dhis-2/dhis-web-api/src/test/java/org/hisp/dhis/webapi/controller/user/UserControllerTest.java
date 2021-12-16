@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller.user;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -64,20 +64,23 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Unit tests for {@link UserController}.
  *
  * @author Volker Schmidt
  */
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class UserControllerTest
 {
     @Mock
@@ -105,10 +108,7 @@ public class UserControllerTest
 
     private User parsedUser;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         userGroup1 = new UserGroup();
@@ -317,8 +317,8 @@ public class UserControllerTest
         ArgumentCaptor<UserCredentials> credentials = ArgumentCaptor.forClass( UserCredentials.class );
         verify( userService ).updateUserCredentials( credentials.capture() );
         UserCredentials actual = credentials.getValue();
-        assertSame( "no user credentials update occurred", actual, user.getUserCredentials() );
-        assertEquals( "date was not updated", accountExpiry, actual.getAccountExpiry() );
+        assertSame( actual, user.getUserCredentials(), "no user credentials update occurred" );
+        assertEquals( accountExpiry, actual.getAccountExpiry(), "date was not updated" );
         verify( userService ).isAccountExpired( same( actual ) );
     }
 

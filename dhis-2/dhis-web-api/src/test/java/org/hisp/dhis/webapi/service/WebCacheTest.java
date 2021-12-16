@@ -45,9 +45,8 @@ import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
 import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
 
@@ -57,13 +56,14 @@ import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.CacheControl;
 
+@ExtendWith( MockitoExtension.class )
 public class WebCacheTest
 {
 
@@ -73,12 +73,9 @@ public class WebCacheTest
     @Mock
     private AnalyticsCacheSettings analyticsCacheSettings;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private WebCache webCache;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         webCache = new WebCache( systemSettingManager, analyticsCacheSettings );
@@ -161,18 +158,14 @@ public class WebCacheTest
         assertThat( actualCacheControl.toString(), is( expectedCacheControl.toString() ) );
     }
 
-    @Test( expected = UnsupportedOperationException.class )
+    @Test
     public void testGetCacheControlForWhenCacheStrategyIsRespectSystemSettingNotUsedInObjectBasis()
     {
         // Given
-        givenCacheabilityPublic();
         givenCacheStartegy( RESPECT_SYSTEM_SETTING );
 
-        // When
-        webCache.getCacheControlFor( RESPECT_SYSTEM_SETTING );
-
-        // Then
-        fail( "Should not reach here. Exception was expected: " );
+        assertThrows( UnsupportedOperationException.class,
+            () -> webCache.getCacheControlFor( RESPECT_SYSTEM_SETTING ) );
     }
 
     @Test

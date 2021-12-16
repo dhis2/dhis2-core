@@ -27,23 +27,22 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author anilkumk
  */
-
+@ExtendWith( MockitoExtension.class )
 public class MetadataSystemSettingServiceTest
     extends DhisSpringTest
 {
@@ -53,10 +52,7 @@ public class MetadataSystemSettingServiceTest
     @Autowired
     DefaultMetadataSystemSettingService metadataSystemSettingService;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setup()
     {
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_URL, "http://localhost:9080" );

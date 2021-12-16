@@ -27,18 +27,20 @@
  */
 package org.hisp.dhis.sms;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPClient;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
 
@@ -54,7 +56,8 @@ import com.google.common.collect.Sets;
  * @Author Zubair Asghar.
  */
 
-@Ignore( "Test to run manually" )
+@Disabled( "Test to run manually" )
+@ExtendWith( MockitoExtension.class )
 public class SMPPClientTest
 {
     private static final String SYSTEM_ID = "smppclient1";
@@ -71,12 +74,9 @@ public class SMPPClientTest
 
     private static final int PORT = 2775;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private SMPPClient subject;
 
-    @Before
+    @BeforeEach
     public void init()
     {
         subject = new SMPPClient();
