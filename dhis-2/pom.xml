@@ -183,9 +183,9 @@
     <micrometer-spring-legacy.version>1.3.5</micrometer-spring-legacy.version>
     <micrometer-registry-prometheus.version>1.3.5</micrometer-registry-prometheus.version>
 
-        <!-- Logging-->
-        <log4j.version>2.15.0</log4j.version>
-        <slf4j.version>1.7.32</slf4j.version>
+    <!-- Logging-->
+    <log4j.version>2.16.0</log4j.version>
+    <slf4j.version>1.7.32</slf4j.version>
 
     <!-- Test -->
     <junit.version>4.13.1</junit.version>
