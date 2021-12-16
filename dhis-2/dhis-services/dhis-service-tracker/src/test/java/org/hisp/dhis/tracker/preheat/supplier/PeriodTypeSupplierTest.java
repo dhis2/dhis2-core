@@ -42,19 +42,23 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.DefaultPreheatCacheService;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
  */
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class PeriodTypeSupplierTest
 {
+
     private PeriodTypeSupplier supplier;
 
     @Mock
@@ -66,12 +70,9 @@ public class PeriodTypeSupplierTest
     @Mock
     private Environment env;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         final PreheatCacheService cache = new DefaultPreheatCacheService( conf, env );

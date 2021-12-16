@@ -196,13 +196,12 @@
         <slf4j.version>1.7.32</slf4j.version>
 
         <!-- Test -->
-        <junit5.version>5.8.2</junit5.version>
-        <junit.version>4.13.2</junit.version>
+        <junit.version>5.8.2</junit.version>
         <mockito.version>4.1.0</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.7</hamcrest-date.version>
-        <testcontainers.version>1.15.1</testcontainers.version>
+        <testcontainers.version>1.16.2</testcontainers.version>
         <objenesis.version>3.2</objenesis.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <awaitility.version>4.0.2</awaitility.version>
@@ -357,12 +356,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
                         <configuration>
                             <skipTests>${skipTests}</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
+                            <excludedGroups>integration</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -384,12 +382,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
                         <configuration>
                             <skipTests>false</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <groups>org.hisp.dhis.IntegrationTest</groups>
+                            <groups>integration</groups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -410,12 +407,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
                         <configuration>
                             <skipTests>true</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${argLine}${surefireArgLine}</argLine>
-                            <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
+                            <excludedGroups>integration</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -457,12 +453,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
                         <configuration>
                             <skipTests>true</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
+                            <excludedGroups>integration</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -541,6 +536,11 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven-failsafe-plugin.version}</version>
                     <configuration>
@@ -565,6 +565,11 @@
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
@@ -686,10 +691,6 @@
                     <configuration>
                         <ignoredUnusedDeclaredDependencies>
                             <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
-                            <!-- dependency on hamcrest-library and this config can be removed once we are on Junit 5 as
-                            it does not depend on hamcrest anymore. See
-                            http://hamcrest.org/JavaHamcrest/distributables#maven-upgrade-example -->
-                            <ignoredUnusedDeclaredDependency>org.hamcrest:hamcrest-library</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
                     </configuration>
                 </plugin>
@@ -700,7 +701,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven-enforcer-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
@@ -712,10 +712,6 @@
                                 <bannedDependencies>
                                     <excludes>
                                         <exclude>org.slf4j:slf4j-simple</exclude>
-                                        <!-- let's stick to mockito only to allow easy migration to JUnit 5 as mockito
-                                        & powermock are lead to trouble -->
-                                        <exclude>org.powermock:powermock-api-mockito2</exclude>
-                                        <exclude>org.powermock:powermock-module-junit4</exclude>
                                     </excludes>
                                 </bannedDependencies>
                                 <banDuplicatePomDependencyVersions/>
@@ -2161,6 +2157,12 @@
                 <groupId>org.locationtech.jts.io</groupId>
                 <artifactId>jts-io-common</artifactId>
                 <version>${jts.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.jsoup</groupId>
@@ -2227,17 +2229,9 @@
 
 
             <!-- Test -->
-            <!-- hamcrest, hamcrest-library and junit order matters
-            See http://hamcrest.org/JavaHamcrest/distributables Maven Upgrade Example -->
             <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest</artifactId>
-                <version>${hamcrest.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-library</artifactId>
                 <version>${hamcrest.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -2250,15 +2244,9 @@
             <dependency>
                 <groupId>org.junit</groupId>
                 <artifactId>junit-bom</artifactId>
-                <version>${junit5.version}</version>
+                <version>${junit.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.objenesis</groupId>
@@ -2284,6 +2272,7 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-junit-jupiter</artifactId>
                 <version>${mockito.version}</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.skyscreamer</groupId>

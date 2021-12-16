@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
 
-public class FileResourceControllerTest extends DhisControllerConvenienceTest
+class FileResourceControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testSaveOrgUnitImage()
+    void testSaveOrgUnitImage()
     {
         MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
             "<<png data>>".getBytes() );
-
         HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
         JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
             .getObject( "fileResource" );

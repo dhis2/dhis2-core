@@ -28,7 +28,7 @@
 package org.hisp.dhis.system.util;
 
 import static org.hisp.dhis.system.util.ReflectionUtils.*;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,18 +37,19 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class ReflectionUtilsTest
+class ReflectionUtilsTest
 {
+
     private DataElement dataElementA;
 
-    @Before
-    public void before()
+    @BeforeEach
+    void before()
     {
         dataElementA = new DataElement();
         dataElementA.setId( 8 );
@@ -57,45 +58,43 @@ public class ReflectionUtilsTest
     }
 
     @Test
-    public void testGetId()
+    void testGetId()
     {
         assertEquals( 8, getId( dataElementA ) );
     }
 
     @Test
-    public void testGetProperty()
+    void testGetProperty()
     {
         assertEquals( "NameA", getProperty( dataElementA, "name" ) );
         assertNull( getProperty( dataElementA, "color" ) );
     }
 
     @Test
-    public void testSetProperty()
+    void testSetProperty()
     {
         setProperty( dataElementA, "shortName", "ShortNameA" );
-
         assertEquals( "ShortNameA", dataElementA.getShortName() );
     }
 
     @Test
-    public void testSetPropertyException()
+    void testSetPropertyException()
     {
         assertThrows( UnsupportedOperationException.class, () -> setProperty( dataElementA, "color", "Blue" ) );
     }
 
     @Test
-    public void testGetClassName()
+    void testGetClassName()
     {
         assertEquals( "DataElement", getClassName( dataElementA ) );
     }
 
     @Test
-    public void testIsCollection()
+    void testIsCollection()
     {
         List<Object> colA = new ArrayList<>();
         Collection<DataElement> colB = new HashSet<>();
         Collection<DataElement> colC = new ArrayList<>();
-
         assertTrue( isCollection( colA ) );
         assertTrue( isCollection( colB ) );
         assertTrue( isCollection( colC ) );

@@ -31,7 +31,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 import org.hisp.dhis.configuration.ConfigurationService;
@@ -41,19 +41,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Lars Helge Overland
  */
+@ExtendWith( MockitoExtension.class )
 public class MetadataOrgUnitMergeHandlerTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private MetadataOrgUnitMergeHandler handler;
 
@@ -63,7 +61,7 @@ public class MetadataOrgUnitMergeHandlerTest
 
     private OrganisationUnit ouC;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         handler = new MetadataOrgUnitMergeHandler(

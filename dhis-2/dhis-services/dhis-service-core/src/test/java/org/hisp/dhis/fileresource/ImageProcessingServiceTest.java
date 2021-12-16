@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,16 +38,16 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @Author Zubair Asghar.
  */
+@ExtendWith( MockitoExtension.class )
 public class ImageProcessingServiceTest
 {
     private static final int SMALL_IMAGE_WIDTH = 256;
@@ -54,12 +56,9 @@ public class ImageProcessingServiceTest
 
     private static final int LARGE_IMAGE_WIDTH = 1024;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private ImageProcessingService subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new DefaultImageProcessingService();

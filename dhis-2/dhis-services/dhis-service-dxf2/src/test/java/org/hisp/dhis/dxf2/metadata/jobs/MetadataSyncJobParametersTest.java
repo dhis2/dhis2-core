@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.jobs;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.eq;
@@ -51,17 +51,17 @@ import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.retry.support.RetryTemplate;
 
 /**
  * @author aamerm
  */
+@ExtendWith( MockitoExtension.class )
 public class MetadataSyncJobParametersTest
 {
     @Mock
@@ -89,16 +89,13 @@ public class MetadataSyncJobParametersTest
 
     private final MetadataSyncJobParameters metadataSyncJobParameters = new MetadataSyncJobParameters();
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private MetadataSyncSummary metadataSyncSummary;
 
     private MetadataVersion metadataVersion;
 
     private List<MetadataVersion> metadataVersions;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         metadataSyncSummary = mock( MetadataSyncSummary.class );

@@ -39,8 +39,8 @@ import static org.hisp.dhis.audit.AuditType.READ;
 import static org.hisp.dhis.audit.AuditType.SEARCH;
 import static org.hisp.dhis.audit.AuditType.SECURITY;
 import static org.hisp.dhis.audit.AuditType.UPDATE;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
@@ -49,29 +49,26 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public class AuditMatrixConfigurerTest
 {
     @Mock
     private DhisConfigurationProvider config;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private AuditMatrixConfigurer subject;
 
     private Map<AuditScope, Map<AuditType, Boolean>> matrix;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         this.subject = new AuditMatrixConfigurer( config );
