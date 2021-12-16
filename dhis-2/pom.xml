@@ -1903,7 +1903,14 @@
       <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
-        <version>4.12</version>
+        <version>${junit.version}</version>
+      </dependency>
+      <dependency>
+          <groupId>org.junit</groupId>
+          <artifactId>junit-bom</artifactId>
+          <version>${junit5.version}</version>
+          <type>pom</type>
+          <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.objenesis</groupId>
@@ -1914,34 +1921,20 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.4.6</version>
+        <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-api-mockito2</artifactId>
-        <version>${powermock.version}</version>
-        <scope>test</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>org.javassist</groupId>
-            <artifactId>javassist</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy-agent</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy</artifactId>
-          </exclusion>
-        </exclusions>
+          <groupId>org.mockito</groupId>
+          <artifactId>mockito-inline</artifactId>
+          <version>${mockito.version}</version>
+          <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.powermock</groupId>
-        <artifactId>powermock-module-junit4</artifactId>
-        <version>${powermock.version}</version>
-        <scope>test</scope>
+          <groupId>org.mockito</groupId>
+          <artifactId>mockito-junit-jupiter</artifactId>
+          <version>${mockito.version}</version>
+          <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.skyscreamer</groupId>
@@ -2061,7 +2054,9 @@
     <!-- Keep in sync with Hibernate -->
     <javassist.version>3.23.1-GA</javassist.version>
     <!-- unit test dependencies-->
-    <powermock.version>2.0.4</powermock.version>
+    <junit.version>4.13.1</junit.version>
+    <junit5.version>5.8.2</junit5.version>
+    <mockito.version>4.1.0</mockito.version>
     <jackson.version>2.11.2</jackson.version>
     <log4j.version>2.15.0</log4j.version>
     <slf4j.version>1.7.32</slf4j.version>
