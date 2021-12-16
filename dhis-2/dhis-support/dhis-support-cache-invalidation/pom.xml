@@ -5,77 +5,62 @@
 
     <parent>
         <groupId>org.hisp.dhis</groupId>
-        <artifactId>dhis-services</artifactId>
-        <version>2.36.5-SNAPSHOT</version>
+        <artifactId>dhis-support</artifactId>
+        <version>2.37.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>dhis-service-tracker</artifactId>
+    <artifactId>dhis-support-cache-invalidation</artifactId>
     <packaging>jar</packaging>
-    <name>DHIS Tracker services</name>
+    <name>DHIS Cache invalidation Support</name>
 
     <dependencies>
 
+        <!-- DHIS -->
+
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-service-schema</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-service-core</artifactId>
+            <artifactId>dhis-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-service-dxf2</artifactId>
+            <artifactId>dhis-support-external</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-service-acl</artifactId>
+            <artifactId>dhis-support-db-migration</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-support-test</artifactId>
+            <artifactId>dhis-support-commons</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-support-system</artifactId>
+            <artifactId>dhis-support-hibernate</artifactId>
+        </dependency>
+
+        <!-- Debezium -->
+        <dependency>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi</artifactId>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-embedded</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.poi</groupId>
-            <artifactId>poi-ooxml</artifactId>
+            <groupId>io.debezium</groupId>
+            <artifactId>debezium-connector-postgres</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.github.classgraph</groupId>
-            <artifactId>classgraph</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.scalified</groupId>
-            <artifactId>tree</artifactId>
+            <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-        </dependency>
 
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
         <!-- Test -->
 
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-library</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -97,25 +82,22 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>net.ttddyy</groupId>
+            <artifactId>datasource-proxy</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-junit-jupiter</artifactId>
-            <scope>test</scope>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-system</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.awaitility</groupId>
-            <artifactId>awaitility</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.skyscreamer</groupId>
-            <artifactId>jsonassert</artifactId>
-            <scope>test</scope>
-        </dependency>
+
+        <!-- Other -->
+
 
     </dependencies>
     <properties>
