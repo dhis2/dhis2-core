@@ -30,6 +30,7 @@ package org.hisp.dhis.security;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.context.ApplicationListener;
@@ -121,8 +122,8 @@ public class AuthenticationLoggerListener
         }
 
         String userNamePrefix = Strings.isNullOrEmpty( authName ) ? "" : String.format( "username: %s; ", authName );
-
-        log.info( eventClassName + userNamePrefix + ipAddress + sessionId + exceptionMessage );
+        log.info( TextUtils.removeNonEssentialChars(
+            eventClassName + userNamePrefix + ipAddress + sessionId + exceptionMessage ) );
     }
 
     private String hashSessionId( String sessionId )
