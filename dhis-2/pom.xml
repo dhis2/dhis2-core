@@ -76,14 +76,14 @@
 
         <!-- Spring-->
         <spring.version>5.3.13</spring.version>
-        <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
+        <spring-data-redis.version>2.6.0</spring-data-redis.version>
         <spring-session-data-redis.version>2.6.0</spring-session-data-redis.version>
         <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
         <spring-hateoas.version>1.4.0</spring-hateoas.version>
         <spring-retry.version>1.2.4.RELEASE</spring-retry.version>
         <spring-restdocs-mockmvc.version>2.0.4.RELEASE</spring-restdocs-mockmvc.version>
         <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-        <lettuce.version>5.2.0.RELEASE</lettuce.version>
+        <lettuce.version>6.1.5.RELEASE</lettuce.version>
 
         <!--DBMS -->
         <flyway-core.version>8.2.2</flyway-core.version>
