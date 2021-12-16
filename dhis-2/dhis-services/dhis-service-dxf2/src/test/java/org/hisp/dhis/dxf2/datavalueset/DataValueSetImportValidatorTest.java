@@ -85,7 +85,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  *
  * @author Jan Bernitt
  */
-@RunWith( MockitoJUnitRunner.class )
+@RunWith( MockitoJUnitRunner.Silent.class )
 public class DataValueSetImportValidatorTest
 {
 
