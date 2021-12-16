@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -42,18 +42,18 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public class TrackerEntityInstanceStrategyTest
 {
     @InjectMocks
@@ -61,9 +61,6 @@ public class TrackerEntityInstanceStrategyTest
 
     @Mock
     private TrackedEntityInstanceStore trackedEntityInstanceStore;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private BeanRandomizer rnd = new BeanRandomizer();
 

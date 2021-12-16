@@ -48,10 +48,13 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.User;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * @author Luciano Fiandesio
  */
+@RunWith( MockitoJUnitRunner.Silent.class )
 public class ExpirationDaysCheckTest extends BaseValidationTest
 {
     private ExpirationDaysCheck rule;
