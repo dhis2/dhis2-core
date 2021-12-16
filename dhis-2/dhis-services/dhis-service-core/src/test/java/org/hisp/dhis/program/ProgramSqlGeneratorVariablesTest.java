@@ -34,7 +34,7 @@ import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -55,25 +55,22 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public class ProgramSqlGeneratorVariablesTest
     extends DhisConvenienceTest
 {
     private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
 
     private final String SQL_CASE_VALUE = "case when \"%s\" >= 0 then 1 else 0 end";
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     private Date startDate = getDate( 2018, 1, 1 );
 
@@ -104,7 +101,7 @@ public class ProgramSqlGeneratorVariablesTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         statementBuilder = new PostgreSQLStatementBuilder();

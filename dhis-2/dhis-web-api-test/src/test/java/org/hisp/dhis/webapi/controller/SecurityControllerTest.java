@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -37,10 +37,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class SecurityControllerTest extends DhisControllerConvenienceTest
+class SecurityControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testAuthenticate2FA()
+    void testAuthenticate2FA()
     {
         assertWebMessage( "Unauthorized", 401, "ERROR", "2FA code not authenticated",
             GET( "/2fa/authenticate?code=xyz" ).content( HttpStatus.UNAUTHORIZED ) );

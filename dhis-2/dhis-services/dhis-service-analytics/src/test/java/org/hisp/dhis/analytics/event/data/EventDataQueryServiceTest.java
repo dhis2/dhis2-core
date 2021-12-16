@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
@@ -67,7 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -75,9 +79,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-public class EventDataQueryServiceTest
-    extends DhisSpringTest
+class EventDataQueryServiceTest extends DhisSpringTest
 {
+
     private Program prA;
 
     private ProgramStage psA;
@@ -132,71 +136,50 @@ public class EventDataQueryServiceTest
     {
         peA = PeriodType.getPeriodFromIsoString( "201401" );
         peB = PeriodType.getPeriodFromIsoString( "201402" );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
-
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
-
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         deC = createDataElement( 'C' );
         deC.setValueType( ValueType.COORDINATE );
-
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
         dataElementService.addDataElement( deC );
-
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
-
         attributeService.addTrackedEntityAttribute( atA );
         attributeService.addTrackedEntityAttribute( atB );
-
         prA = createProgram( 'A', null, Sets.newHashSet( atA, atB ), Sets.newHashSet( ouA, ouB ), null );
         programService.addProgram( prA );
-
         psA = createProgramStage( 'A', 0 );
         psA.addDataElement( deA, 0 );
         psA.addDataElement( deB, 1 );
         prA.getProgramStages().add( psA );
-
         programStageService.saveProgramStage( psA );
-
         legendA = createLegend( 'A', 0d, 10d );
         legendB = createLegend( 'B', 10d, 20d );
-
         legendSetA = createLegendSet( 'A' );
-
         legendSetA.getLegends().add( legendA );
         legendSetA.getLegends().add( legendB );
-
         legendSetService.addLegendSet( legendSetA );
     }
 
     @Test
-    public void testGetFromUrlA()
+    void testGetFromUrlA()
     {
         final String coordinateField = "EVENT";
         final String fallbackCoordinateField = "ougeometry";
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
         dimensionParams.add( atA.getUid() + ":LE:5" );
-
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
-
-        EventDataQueryRequest request = EventDataQueryRequest.builder()
-            .program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams )
-            .coordinateField( coordinateField )
-            .fallbackCoordinateField( fallbackCoordinateField )
-            .coordinateOuFallback( true )
-            .build();
-
+        EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
+            .dimension( dimensionParams ).filter( filterParams ).coordinateField( coordinateField )
+            .fallbackCoordinateField( fallbackCoordinateField ).coordinateOuFallback( true ).build();
         EventQueryParams params = dataQueryService.getFromRequest( request );
-
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
@@ -207,21 +190,17 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromUrlB()
+    void testGetFromUrlB()
     {
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
         dimensionParams.add( atA.getUid() + ":LE:5" );
-
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
-
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).build();
-
         EventQueryParams params = dataQueryService.getFromRequest( request );
-
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
@@ -231,28 +210,22 @@ public class EventDataQueryServiceTest
         assertFalse( params.isCoordinateOuFallback() );
         assertEquals( "psigeometry", params.getCoordinateField() );
         assertEquals( "ougeometry", params.getFallbackCoordinateField() );
-
     }
 
     @Test
-    public void testGetFromUrlWithEventDateSorting()
+    void testGetFromUrlWithEventDateSorting()
     {
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
         dimensionParams.add( atA.getUid() + ":LE:5" );
-
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
-
         Set<String> desc = new HashSet<>();
         desc.add( "eventdate" );
-
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
-
         EventQueryParams params = dataQueryService.getFromRequest( request );
-
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
@@ -264,24 +237,19 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromUrlWithOrgUnitNameSorting()
+    void testGetFromUrlWithOrgUnitNameSorting()
     {
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
         dimensionParams.add( atA.getUid() + ":LE:5" );
-
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
-
         Set<String> desc = new HashSet<>();
         desc.add( "ouname" );
-
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
-
         EventQueryParams params = dataQueryService.getFromRequest( request );
-
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
@@ -293,24 +261,19 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromUrlWithDataElementSorting()
+    void testGetFromUrlWithDataElementSorting()
     {
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
         dimensionParams.add( atA.getUid() + ":LE:5" );
-
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
-
         Set<String> desc = new HashSet<>();
         desc.add( deA.getUid() );
-
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
-
         EventQueryParams params = dataQueryService.getFromRequest( request );
-
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
@@ -322,24 +285,19 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromUrlWithProgramAttributeSorting()
+    void testGetFromUrlWithProgramAttributeSorting()
     {
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams.add( "ou:" + ouA.getUid() + ";" + ouB.getId() );
         dimensionParams.add( atA.getUid() + ":LE:5" );
-
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
-
         Set<String> desc = new HashSet<>();
         desc.add( atA.getUid() );
-
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
-
         EventQueryParams params = dataQueryService.getFromRequest( request );
-
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getOrganisationUnits().size() );
         assertEquals( 1, params.getItems().size() );
@@ -351,24 +309,20 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromAnalyticalObjectA()
+    void testGetFromAnalyticalObjectA()
     {
         EventChart eventChart = new EventChart();
         eventChart.setAutoFields();
         eventChart.setProgram( prA );
-
         eventChart.getColumnDimensions().add( atA.getUid() );
         eventChart.getRowDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
         eventChart.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
-
         eventChart.getAttributeDimensions().add( new TrackedEntityAttributeDimension( atA, null, "LE:5" ) );
         eventChart.getPeriods().add( peA );
         eventChart.getPeriods().add( peB );
         eventChart.getOrganisationUnits().add( ouA );
         eventChart.getOrganisationUnits().add( ouB );
-
         EventQueryParams params = dataQueryService.getFromAnalyticalObject( eventChart );
-
         assertNotNull( params );
         assertEquals( 1, params.getItems().size() );
         assertEquals( 2, params.getOrganisationUnits().size() );
@@ -376,26 +330,22 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromAnalyticalObjectB()
+    void testGetFromAnalyticalObjectB()
     {
         EventChart eventChart = new EventChart();
         eventChart.setAutoFields();
         eventChart.setProgram( prA );
-
         eventChart.getColumnDimensions().add( atA.getUid() );
         eventChart.getColumnDimensions().add( deA.getUid() );
         eventChart.getRowDimensions().add( DimensionalObject.PERIOD_DIM_ID );
         eventChart.getFilterDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
-
         eventChart.getAttributeDimensions().add( new TrackedEntityAttributeDimension( atA, null, "LE:5" ) );
         eventChart.getDataElementDimensions().add( new TrackedEntityDataElementDimension( deA, null, null, "GE:100" ) );
         eventChart.getPeriods().add( peA );
         eventChart.getPeriods().add( peB );
         eventChart.getOrganisationUnits().add( ouA );
         eventChart.getOrganisationUnits().add( ouB );
-
         EventQueryParams params = dataQueryService.getFromAnalyticalObject( eventChart );
-
         assertNotNull( params );
         assertEquals( 2, params.getItems().size() );
         assertEquals( 2, params.getPeriods().size() );
@@ -403,26 +353,22 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromAnalyticalObjectC()
+    void testGetFromAnalyticalObjectC()
     {
         EventChart eventChart = new EventChart();
         eventChart.setAutoFields();
         eventChart.setProgram( prA );
-
         eventChart.getColumnDimensions().add( deA.getUid() );
         eventChart.getColumnDimensions().add( atA.getUid() );
         eventChart.getRowDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
         eventChart.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
-
         eventChart.getDataElementDimensions()
             .add( new TrackedEntityDataElementDimension( deA, null, null, "GT:2000" ) );
         eventChart.getAttributeDimensions().add( new TrackedEntityAttributeDimension( atA, null, "LE:5" ) );
         eventChart.getPeriods().add( peA );
         eventChart.getPeriods().add( peB );
         eventChart.getOrganisationUnits().add( ouA );
-
         EventQueryParams params = dataQueryService.getFromAnalyticalObject( eventChart );
-
         assertNotNull( params );
         assertEquals( 2, params.getItems().size() );
         assertEquals( 1, params.getOrganisationUnits().size() );
@@ -430,36 +376,28 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testSetItemsForDimensionFilters()
+    void testSetItemsForDimensionFilters()
     {
         TrackedEntityAttribute tea = new TrackedEntityAttribute();
         tea.setAutoFields();
-
         TrackedEntityAttributeDimension tead = new TrackedEntityAttributeDimension( tea, null, "EQ:2" );
-
         EventChart eventChart = new EventChart();
         eventChart.setAutoFields();
         eventChart.getColumnDimensions().add( tea.getUid() );
         eventChart.getAttributeDimensions().add( tead );
-
         Grid grid = new ListGrid();
         grid.addHeader( new GridHeader( tea.getUid(), tea.getName() ) );
         grid.addRow().addValue( "1" );
         grid.addRow().addValue( "2" );
         grid.addRow().addValue( "3" );
         grid.addRow().addValue( null );
-
         eventChart.populateAnalyticalProperties();
-
         DimensionalObject dim = eventChart.getColumns().get( 0 );
-
         DimensionalObjectUtils.setDimensionItemsForFilters( dim, grid, true );
-
         assertNotNull( dim );
         assertEquals( DimensionType.PROGRAM_ATTRIBUTE, dim.getDimensionType() );
         assertEquals( AnalyticsType.EVENT, dim.getAnalyticsType() );
         assertEquals( tead.getFilter(), dim.getFilter() );
-
         List<DimensionalItemObject> items = dim.getItems();
         assertEquals( 4, items.size() );
         assertNotNull( items.get( 0 ).getUid() );
@@ -469,21 +407,17 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetFromUrlLegendSet()
+    void testGetFromUrlLegendSet()
     {
         Set<String> dimensionParams = new HashSet<>();
         dimensionParams
             .add( deA.getUid() + "-" + legendSetA.getUid() + ":IN:" + legendA.getUid() + ";" + legendB.getUid() );
-
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
         filterParams.add( atA.getUid() + ":LE:5" );
-
         EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).build();
-
         EventQueryParams params = dataQueryService.getFromRequest( request );
-
         assertEquals( prA, params.getProgram() );
         assertEquals( 1, params.getItems().size() );
         assertEquals( legendSetA, params.getItems().get( 0 ).getLegendSet() );
@@ -492,7 +426,7 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetCoordinateField()
+    void testGetCoordinateField()
     {
         assertEquals( "psigeometry", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
         assertEquals( "pigeometry",
@@ -502,13 +436,13 @@ public class EventDataQueryServiceTest
     }
 
     @Test
-    public void testGetInvalidCoordinateFieldException()
+    void testGetInvalidCoordinateFieldException()
     {
         assertThrows( IllegalQueryException.class, () -> dataQueryService.getCoordinateField( "someField" ) );
     }
 
     @Test
-    public void testGetNonCoordinateValueTypeCoordinateFieldException()
+    void testGetNonCoordinateValueTypeCoordinateFieldException()
     {
         assertThrows( IllegalQueryException.class, () -> dataQueryService.getCoordinateField( deA.getUid() ) );
     }

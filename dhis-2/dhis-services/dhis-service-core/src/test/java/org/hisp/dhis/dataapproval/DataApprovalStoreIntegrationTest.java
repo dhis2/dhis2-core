@@ -28,7 +28,7 @@
 package org.hisp.dhis.dataapproval;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
@@ -59,12 +59,11 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.joda.time.DateTime;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -77,8 +76,10 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
+@ExtendWith( MockitoExtension.class )
 public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
 {
+
     private HibernateDataApprovalStore dataApprovalStore;
 
     @Autowired
@@ -122,9 +123,6 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
 
     @Mock
     private CurrentUserService currentUserService;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     // -------------------------------------------------------------------------
     // Supporting data

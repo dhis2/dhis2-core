@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.eq;
@@ -50,17 +50,17 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author anilkumk
  */
+@ExtendWith( MockitoExtension.class )
 public class MetadataSyncImportHandlerTest
 {
     @Mock
@@ -75,9 +75,6 @@ public class MetadataSyncImportHandlerTest
     @InjectMocks
     private MetadataSyncImportHandler metadataSyncImportHandler;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private MetadataVersion metadataVersion;
 
     private String expectedMetadataSnapshot;
@@ -86,7 +83,7 @@ public class MetadataSyncImportHandlerTest
 
     private ImportReport importReport;
 
-    @Before
+    @BeforeEach
     public void setup()
     {
         metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -99,8 +96,9 @@ public class MetadataSyncImportHandlerTest
     public void testShouldThrowExceptionWhenNoVersionSet()
     {
         syncParams.setImportParams( null );
-        assertThrows( "MetadataImportParams for the Sync cant be null.", MetadataSyncServiceException.class,
-            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ) );
+        assertThrows( MetadataSyncServiceException.class,
+            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ),
+            "MetadataImportParams for the Sync cant be null." );
     }
 
     @Test
@@ -109,8 +107,9 @@ public class MetadataSyncImportHandlerTest
         syncParams.setVersion( metadataVersion );
         syncParams.setImportParams( null );
 
-        assertThrows( "MetadataImportParams for the Sync cant be null.", MetadataSyncServiceException.class,
-            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ) );
+        assertThrows( MetadataSyncServiceException.class,
+            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ),
+            "MetadataImportParams for the Sync cant be null." );
     }
 
     @Test
@@ -192,8 +191,9 @@ public class MetadataSyncImportHandlerTest
 
         when( renderService.fromMetadata( any( InputStream.class ), eq( RenderFormat.JSON ) ) ).thenReturn( null );
 
-        assertThrows( "ClassListMap can't be null", MetadataSyncServiceException.class,
-            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ) );
+        assertThrows( MetadataSyncServiceException.class,
+            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ),
+            "ClassListMap can't be null" );
 
         verify( metadataImportService, never() ).importMetadata( syncParams.getImportParams() );
         verify( metadataVersionDelegate, never() ).addNewMetadataVersion( metadataVersion );
@@ -211,9 +211,9 @@ public class MetadataSyncImportHandlerTest
         when( renderService.fromMetadata( any( InputStream.class ), eq( RenderFormat.JSON ) ) )
             .thenThrow( new IOException() );
 
-        assertThrows( "Exception occurred while trying to do JSON conversion while parsing class list map",
-            MetadataSyncServiceException.class,
-            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ) );
+        assertThrows( MetadataSyncServiceException.class,
+            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ),
+            "Exception occurred while trying to do JSON conversion while parsing class list map" );
 
         verify( metadataImportService, never() ).importMetadata( syncParams.getImportParams() );
         verify( metadataVersionDelegate, never() ).addNewMetadataVersion( metadataVersion );

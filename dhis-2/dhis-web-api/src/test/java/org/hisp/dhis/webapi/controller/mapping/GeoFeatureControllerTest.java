@@ -47,28 +47,25 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public class GeoFeatureControllerTest
 {
     private MockMvc mockMvc;
 
     @Mock
     private DataQueryService dataQueryService;
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private CurrentUserService currentUserService;
@@ -88,7 +85,7 @@ public class GeoFeatureControllerTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create( OrganisationUnit.class, "parent", "geometry" );
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         mockMvc = MockMvcBuilders.standaloneSetup( geoFeatureController ).build();

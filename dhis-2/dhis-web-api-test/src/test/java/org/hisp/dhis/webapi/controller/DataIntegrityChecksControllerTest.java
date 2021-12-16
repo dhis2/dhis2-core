@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityCheck;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link DataIntegrityController} API with focus API returning
@@ -42,16 +42,15 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class DataIntegrityChecksControllerTest extends DhisControllerConvenienceTest
+class DataIntegrityChecksControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testGetAvailableChecks()
+    void testGetAvailableChecks()
     {
         JsonList<JsonDataIntegrityCheck> checks = GET( "/dataIntegrity" ).content()
             .asList( JsonDataIntegrityCheck.class );
-
         assertFalse( checks.isEmpty() );
-
         assertCheckExists( "categories_no_options", checks );
         for ( DataIntegrityCheckType type : DataIntegrityCheckType.values() )
         {

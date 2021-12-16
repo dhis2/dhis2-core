@@ -32,10 +32,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
@@ -70,13 +70,12 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -85,8 +84,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public class DataQueryServiceDimensionItemKeywordTest
 {
+
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -114,9 +115,6 @@ public class DataQueryServiceDimensionItemKeywordTest
     @Mock
     private I18n i18n;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private DefaultDataQueryService target;
 
     private final static DataElement DATA_ELEMENT_1 = buildDataElement( "fbfJHSPpUQD", "D1" );
@@ -135,7 +133,7 @@ public class DataQueryServiceDimensionItemKeywordTest
         OrganisationUnitGroup.class, Set.of( "geometry" ),
         OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         target = new DefaultDataQueryService( idObjectManager, organisationUnitService, dimensionService,

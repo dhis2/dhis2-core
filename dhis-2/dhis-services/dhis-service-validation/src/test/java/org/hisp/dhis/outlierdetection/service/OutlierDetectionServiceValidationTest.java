@@ -30,9 +30,9 @@ package org.hisp.dhis.outlierdetection.service;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -43,20 +43,21 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
+@ExtendWith( MockitoExtension.class )
 public class OutlierDetectionServiceValidationTest
 {
+
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -65,9 +66,6 @@ public class OutlierDetectionServiceValidationTest
 
     @Mock
     private MinMaxOutlierDetectionManager minMaxOutlierManager;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private OutlierDetectionService subject;
 
@@ -85,7 +83,7 @@ public class OutlierDetectionServiceValidationTest
 
     private OrganisationUnit ouB;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new DefaultOutlierDetectionService( idObjectManager, zScoreOutlierManager, minMaxOutlierManager );

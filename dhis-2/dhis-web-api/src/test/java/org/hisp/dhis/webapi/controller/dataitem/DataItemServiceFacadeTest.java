@@ -44,7 +44,6 @@ import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -62,11 +61,11 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -74,20 +73,19 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
+@ExtendWith( MockitoExtension.class )
 public class DataItemServiceFacadeTest
 {
+
     @Mock
     private CurrentUserService currentUserService;
 
     @Mock
     private QueryExecutor queryExecutor;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private DataItemServiceFacade dataItemServiceFacade;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         dataItemServiceFacade = new DataItemServiceFacade( currentUserService, queryExecutor );

@@ -49,7 +49,7 @@ import static org.hisp.dhis.analytics.ColumnDataType.GEOMETRY_POINT;
 import static org.hisp.dhis.analytics.ColumnDataType.INTEGER;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
 import static org.hisp.dhis.analytics.ColumnDataType.TIMESTAMP;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,14 +99,13 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.common.collect.ImmutableMap;
@@ -116,8 +115,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public class JdbcEventAnalyticsTableManagerTest
 {
+
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -138,9 +139,6 @@ public class JdbcEventAnalyticsTableManagerTest
     @Mock
     private JdbcTemplate jdbcTemplate;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private JdbcEventAnalyticsTableManager subject;
 
     private Date today;
@@ -158,7 +156,7 @@ public class JdbcEventAnalyticsTableManagerTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         statementBuilder = new PostgreSQLStatementBuilder();

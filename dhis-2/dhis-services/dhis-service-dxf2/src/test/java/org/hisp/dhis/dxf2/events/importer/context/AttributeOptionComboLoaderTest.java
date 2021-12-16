@@ -36,7 +36,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.dxf2.events.importer.context.AttributeOptionComboLoader.SQL_GET_CATEGORYOPTIONCOMBO;
 import static org.hisp.dhis.dxf2.events.importer.context.AttributeOptionComboLoader.SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.eq;
@@ -53,25 +53,22 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public class AttributeOptionComboLoaderTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Mock
     protected JdbcTemplate jdbcTemplate;
 
@@ -80,7 +77,7 @@ public class AttributeOptionComboLoaderTest
 
     private AttributeOptionComboLoader subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new AttributeOptionComboLoader( jdbcTemplate );
@@ -115,8 +112,9 @@ public class AttributeOptionComboLoaderTest
     @Test
     public void verifyGetAttributeOptionComboWithNullCategoryCombo()
     {
-        assertThrows( "Illegal category combo", IllegalQueryException.class,
-            () -> subject.getAttributeOptionCombo( null, "", "", IdScheme.UID ) );
+        assertThrows( IllegalQueryException.class,
+            () -> subject.getAttributeOptionCombo( null, "", "", IdScheme.UID ),
+            "Illegal category combo" );
     }
 
     @Test
@@ -124,8 +122,9 @@ public class AttributeOptionComboLoaderTest
     {
         CategoryCombo cc = new CategoryCombo();
 
-        assertThrows( "Illegal category option identifier: abcdef", IllegalQueryException.class,
-            () -> subject.getAttributeOptionCombo( cc, "abcdef", "", IdScheme.UID ) );
+        assertThrows( IllegalQueryException.class,
+            () -> subject.getAttributeOptionCombo( cc, "abcdef", "", IdScheme.UID ),
+            "Illegal category option identifier: abcdef" );
     }
 
     @Test

@@ -28,11 +28,11 @@
 package org.hisp.dhis.sqlview;
 
 import static java.util.Collections.singletonMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,19 +44,19 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Dang Duy Hieu
  */
-public class SqlViewServiceTest
-    extends DhisSpringTest
+@ExtendWith( MockitoExtension.class )
+public class SqlViewServiceTest extends DhisSpringTest
 {
+
     @Mock
     private CurrentUserService currentUserService;
 
@@ -65,9 +65,6 @@ public class SqlViewServiceTest
 
     @Autowired
     private UserService internalUserService;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private String sqlA = "SELECT   *  FROM     _categorystructure;;  ; ;;;  ;; ; ";
 
