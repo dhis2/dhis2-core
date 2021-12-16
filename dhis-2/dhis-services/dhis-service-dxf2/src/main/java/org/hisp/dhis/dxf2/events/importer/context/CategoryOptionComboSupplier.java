@@ -41,6 +41,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -58,9 +59,9 @@ public class CategoryOptionComboSupplier extends AbstractSupplier
 
     public CategoryOptionComboSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramEventSupplier programSupplier,
         AttributeOptionComboLoader attributeOptionComboLoader,
-        ProgramStageInstanceSupplier programStageInstanceSupplier )
+        ProgramStageInstanceSupplier programStageInstanceSupplier, Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
         this.attributeOptionComboLoader = attributeOptionComboLoader;
         this.programSupplier = programSupplier;
         this.programStageInstanceSupplier = programStageInstanceSupplier;

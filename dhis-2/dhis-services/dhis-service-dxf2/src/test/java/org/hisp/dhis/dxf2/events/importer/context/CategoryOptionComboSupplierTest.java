@@ -49,6 +49,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
@@ -67,6 +68,9 @@ public class CategoryOptionComboSupplierTest
     @Mock
     private ProgramStageInstanceSupplier programStageInstanceSupplier;
 
+    @Mock
+    private Environment environment;
+
     private Map<String, Program> programMap;
 
     private Map<String, ProgramStageInstance> programStageInstanceMap;
@@ -83,7 +87,7 @@ public class CategoryOptionComboSupplierTest
     public void setUp()
     {
         this.subject = new CategoryOptionComboSupplier( jdbcTemplate, programSupplier, attributeOptionComboLoader,
-            programStageInstanceSupplier );
+            programStageInstanceSupplier, environment );
         programMap = new HashMap<>();
         programStageInstanceMap = new HashMap<>();
 

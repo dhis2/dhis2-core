@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.UnrecoverableImportException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -54,9 +55,9 @@ public class OrganisationUnitSupplier extends AbstractSupplier
 {
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
-    public OrganisationUnitSupplier( NamedParameterJdbcTemplate jdbcTemplate )
+    public OrganisationUnitSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
     }
 
     public Map<String, OrganisationUnit> get( ImportOptions importOptions, Set<String> uids,

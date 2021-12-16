@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -52,9 +53,9 @@ import org.springframework.stereotype.Component;
 @Component( "workContextNotesSupplier" )
 public class NoteSupplier extends AbstractSupplier
 {
-    public NoteSupplier( NamedParameterJdbcTemplate jdbcTemplate )
+    public NoteSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
     }
 
     public Map<String, Note> get( List<Event> events )

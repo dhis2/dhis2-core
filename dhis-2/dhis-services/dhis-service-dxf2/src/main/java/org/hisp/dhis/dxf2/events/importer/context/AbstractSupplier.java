@@ -34,9 +34,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -49,9 +51,12 @@ public abstract class AbstractSupplier
 {
     protected final NamedParameterJdbcTemplate jdbcTemplate;
 
-    public AbstractSupplier( NamedParameterJdbcTemplate jdbcTemplate )
+    protected final Environment environment;
+
+    public AbstractSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment environment )
     {
         this.jdbcTemplate = jdbcTemplate;
+        this.environment = environment;
     }
 
     public <T> T jsonToEntity( String json, Class<T> clazz )
@@ -87,5 +92,10 @@ public abstract class AbstractSupplier
         }
 
         return null;
+    }
+
+    public String getGeometryField( String field )
+    {
+        return SystemUtils.isH2( environment.getActiveProfiles() ) ? field : "ST_AsText( " + field + " )";
     }
 }

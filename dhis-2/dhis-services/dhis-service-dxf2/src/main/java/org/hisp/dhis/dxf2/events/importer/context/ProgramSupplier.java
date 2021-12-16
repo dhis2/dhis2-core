@@ -47,6 +47,7 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -63,9 +64,10 @@ public class ProgramSupplier extends AbstractSupplier
 
     private final Cache<Map<String, Program>> programsCache;
 
-    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider )
+    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider,
+        Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
         programsCache = cacheProvider.createProgramCache();
     }
 

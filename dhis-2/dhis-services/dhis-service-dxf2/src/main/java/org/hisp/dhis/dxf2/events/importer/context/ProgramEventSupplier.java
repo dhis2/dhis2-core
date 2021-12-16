@@ -59,6 +59,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -116,9 +117,10 @@ public class ProgramEventSupplier extends AbstractSupplier
     // Caches the entire program hierarchy, including program stages and ACL
     private final Cache<Map<String, Program>> programsCache;
 
-    public ProgramEventSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider )
+    public ProgramEventSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider,
+        Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
         programsCache = cacheProvider.createProgramCache();
     }
 

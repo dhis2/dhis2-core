@@ -41,6 +41,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
+import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
 import com.google.common.collect.ImmutableList;
 
@@ -51,10 +53,13 @@ public class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long, Map<L
 {
     private ProgramOrgUnitSupplier subject;
 
+    @Mock
+    private Environment environment;
+
     @Before
     public void setUp()
     {
-        this.subject = new ProgramOrgUnitSupplier( jdbcTemplate );
+        this.subject = new ProgramOrgUnitSupplier( jdbcTemplate, environment );
     }
 
     @Override

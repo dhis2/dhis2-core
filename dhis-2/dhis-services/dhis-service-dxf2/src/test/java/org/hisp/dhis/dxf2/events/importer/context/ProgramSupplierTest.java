@@ -28,7 +28,9 @@
 package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +50,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
 @RunWith( Parameterized.class )
 public class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<String, Program>>
@@ -59,6 +62,9 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<Strin
 
     @Mock
     private Cache cache;
+
+    @Mock
+    private Environment environment;
 
     @Parameterized.Parameters
     public static Collection<String> data()
@@ -74,7 +80,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<Strin
     {
         when( cacheProvider.createProgramCache() ).thenReturn( cache );
         when( cache.get( anyString() ) ).thenReturn( Optional.empty() );
-        this.subject = new ProgramEventSupplier( jdbcTemplate, cacheProvider );
+        this.subject = new ProgramEventSupplier( jdbcTemplate, cacheProvider, environment );
     }
 
     @Override

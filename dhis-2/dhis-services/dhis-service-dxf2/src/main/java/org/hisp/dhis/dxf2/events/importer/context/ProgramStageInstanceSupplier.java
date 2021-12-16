@@ -51,6 +51,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -70,9 +71,10 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier
     private final ProgramEventSupplier programSupplier;
 
     public ProgramStageInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate,
-        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, ProgramEventSupplier programSupplier )
+        @Qualifier( "dataValueJsonMapper" ) ObjectMapper jsonMapper, ProgramEventSupplier programSupplier,
+        Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
         this.jsonMapper = jsonMapper;
         this.programSupplier = programSupplier;
     }

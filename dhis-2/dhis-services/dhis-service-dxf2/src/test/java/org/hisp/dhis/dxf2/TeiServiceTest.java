@@ -185,7 +185,6 @@ public class TeiServiceTest
         when( workContext.getOrganisationUnitMap() ).thenReturn( organisationUnitMap );
 
         when( idSchemes.getTrackedEntityIdScheme() ).thenReturn( IdScheme.UID );
-        when( idSchemes.getOrgUnitIdScheme() ).thenReturn( IdScheme.UID );
 
         when( notifier.notify( any( JobConfiguration.class ), any( NotificationLevel.class ), anyString(),
             anyBoolean() ) ).thenReturn( notifier );
@@ -193,20 +192,14 @@ public class TeiServiceTest
 
         when( defaultTrackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceUid ) )
             .thenReturn( new org.hisp.dhis.trackedentity.TrackedEntityInstance() );
-        when( defaultTrackedEntityInstanceService.getTrackedEntityInstancesUidsIncludingDeleted( anyList() ) )
-            .thenReturn( new ArrayList<>() );
 
         when( enrollmentService.mergeOrDeleteEnrollments( anyList(), any(), any(), anyBoolean() ) )
             .thenReturn( new ImportSummaries() );
-        when( enrollmentService.addEnrollmentList( anyList(), any() ) ).thenReturn( new ImportSummaries() );
 
         when( relationshipService.processRelationshipList( anyList(), any() ) ).thenReturn( new ImportSummaries() );
 
-        when( userService.getUser( anyString() ) ).thenReturn( new User() );
         when( identifiableObjectManager.getObject( TrackedEntityType.class, IdScheme.UID, trackedEntityTypeUid ) )
             .thenReturn( new TrackedEntityType() );
-        when( identifiableObjectManager.getObject( OrganisationUnit.class, IdScheme.UID, orgUnitUid ) )
-            .thenReturn( new OrganisationUnit() );
         when( trackerAccessManager.canWrite( any(), any( org.hisp.dhis.trackedentity.TrackedEntityInstance.class ) ) )
             .thenReturn( new ArrayList<>() );
 

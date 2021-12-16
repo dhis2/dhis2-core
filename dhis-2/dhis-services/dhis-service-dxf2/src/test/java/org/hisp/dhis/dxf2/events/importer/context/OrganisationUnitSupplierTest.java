@@ -47,6 +47,8 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -60,11 +62,14 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
 
     private static final String uid = CodeGenerator.generateUid();
 
+    @Mock
+    private Environment environment;
+
     @Before
     public void setUp()
         throws SQLException
     {
-        this.subject = new OrganisationUnitSupplier( jdbcTemplate );
+        this.subject = new OrganisationUnitSupplier( jdbcTemplate, environment );
         reset( mockResultSet );
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( false );
 

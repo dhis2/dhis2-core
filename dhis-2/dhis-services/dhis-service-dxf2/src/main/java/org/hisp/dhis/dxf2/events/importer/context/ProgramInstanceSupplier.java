@@ -44,6 +44,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -54,9 +55,9 @@ import org.springframework.stereotype.Component;
 @Component( "workContextProgramInstancesSupplier" )
 public class ProgramInstanceSupplier extends AbstractSupplier
 {
-    public ProgramInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate )
+    public ProgramInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
     }
 
     public Map<String, ProgramInstance> get( List<Enrollment> events )
@@ -84,7 +85,8 @@ public class ProgramInstanceSupplier extends AbstractSupplier
 
         final String sql = "select pi.programinstanceid, pi.status, pi.uid as programinstance_uid, pi.programid, pi.uid, pi.completedby, pi.enrollmentdate, pi.enddate,  pi.created, pi.deleted, pi.storedby"
             +
-            ", pi.createdatclient, pi.lastupdatedatclient, pi.lastupdated, pi.lastUpdatedAtClient, ST_AsText( pi.geometry ) as pi_geometry, pi.createdbyuserinfo, pi.lastupdatedbyuserinfo"
+            ", pi.createdatclient, pi.lastupdatedatclient, pi.lastupdated, pi.lastUpdatedAtClient, "
+            + getGeometryField( "pi.geometry" ) + " as pi_geometry, pi.createdbyuserinfo, pi.lastupdatedbyuserinfo"
             +
             ", t.trackedentityinstanceid as tei_id, t.uid as tei_uid, p.uid as program_uid "
             + "from programinstance pi join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "

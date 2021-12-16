@@ -45,6 +45,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
@@ -59,11 +60,14 @@ public class ProgramStageInstanceSupplierTest
     @Mock
     private ProgramEventSupplier programSupplier;
 
+    @Mock
+    private Environment environment;
+
     @Before
     public void setUp()
     {
         JsonMapper mapper = new JsonMapper();
-        this.subject = new ProgramStageInstanceSupplier( jdbcTemplate, mapper, programSupplier );
+        this.subject = new ProgramStageInstanceSupplier( jdbcTemplate, mapper, programSupplier, environment );
     }
 
     @Test

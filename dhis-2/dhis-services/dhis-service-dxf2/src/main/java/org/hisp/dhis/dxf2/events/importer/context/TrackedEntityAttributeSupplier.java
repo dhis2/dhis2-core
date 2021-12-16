@@ -42,6 +42,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -50,15 +51,16 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityAttributeSupplier extends AbstractSupplier
 {
 
-    private final static String PROGRAM_CACHE_KEY = "000TEA";
+    private static final String PROGRAM_CACHE_KEY = "000TEA";
 
-    private final static String ATTRIBUTESCHEME_COL = "attributevalues";
+    private static final String ATTRIBUTESCHEME_COL = "attributevalues";
 
     private final Cache<Map<String, TrackedEntityAttribute>> trackedEntityAttributeCache;
 
-    public TrackedEntityAttributeSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider )
+    public TrackedEntityAttributeSupplier( NamedParameterJdbcTemplate jdbcTemplate, CacheProvider cacheProvider,
+        Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
         this.trackedEntityAttributeCache = cacheProvider.createTeiAttributesCache();
     }
 

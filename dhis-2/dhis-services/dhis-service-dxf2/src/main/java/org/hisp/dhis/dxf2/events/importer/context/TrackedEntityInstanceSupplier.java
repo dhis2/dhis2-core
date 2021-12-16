@@ -43,6 +43,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -55,9 +56,9 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityInstanceSupplier extends AbstractSupplier
 {
 
-    public TrackedEntityInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate )
+    public TrackedEntityInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
     }
 
     public Set<TrackedEntityInstance> get( Set<String> teiUids )
@@ -74,7 +75,8 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier
     {
         final String sql = "select tei.trackedentityinstanceid, tei.uid, tei.code, tei.deleted, tei.created, tei.createdatclient, tei.lastupdatedatclient, tei.lastupdated, tei.lastUpdatedAtClient"
             +
-            ", tei.storedby, tei.inactive, tei.potentialDuplicate, tei.lastsynchronized, tei.createdbyuserinfo, tei.lastupdatedbyuserinfo, ST_AsText( tei.geometry ) as tei_geometry"
+            ", tei.storedby, tei.inactive, tei.potentialDuplicate, tei.lastsynchronized, tei.createdbyuserinfo, tei.lastupdatedbyuserinfo, "
+            + getGeometryField( "tei.geometry" ) + " as tei_geometry"
             +
             ", tet.trackedentitytypeid, tet.uid as tet_uid, tet.code as tet_code, tet.name as tet_name, tet.description as tet_description, ou.organisationunitid as ou_id, ou.uid as ou_uid, ou.path as ou_path "
             +

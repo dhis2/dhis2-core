@@ -46,6 +46,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
@@ -57,10 +58,13 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
     @Mock
     private ProgramEventSupplier programSupplier;
 
+    @Mock
+    private Environment environment;
+
     @Before
     public void setUp()
     {
-        this.subject = new ProgramInstanceEventSupplier( jdbcTemplate, programSupplier );
+        this.subject = new ProgramInstanceEventSupplier( jdbcTemplate, programSupplier, environment );
     }
 
     @Test

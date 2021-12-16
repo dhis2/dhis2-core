@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
@@ -57,10 +58,13 @@ public class TrackedEntityInstanceSupplierTest
     @Mock
     private AclService aclService;
 
+    @Mock
+    private Environment environment;
+
     @Before
     public void setUp()
     {
-        this.subject = new TrackedEntityInstanceSupplier( jdbcTemplate );
+        this.subject = new TrackedEntityInstanceSupplier( jdbcTemplate, environment );
     }
 
     @Test

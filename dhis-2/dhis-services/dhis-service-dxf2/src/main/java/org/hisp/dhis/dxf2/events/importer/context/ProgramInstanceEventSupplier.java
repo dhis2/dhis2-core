@@ -49,6 +49,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -64,9 +65,10 @@ public class ProgramInstanceEventSupplier extends AbstractSupplier
 {
     private final ProgramEventSupplier programSupplier;
 
-    public ProgramInstanceEventSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramEventSupplier programSupplier )
+    public ProgramInstanceEventSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramEventSupplier programSupplier,
+        Environment environment )
     {
-        super( jdbcTemplate );
+        super( jdbcTemplate, environment );
         this.programSupplier = programSupplier;
     }
 
