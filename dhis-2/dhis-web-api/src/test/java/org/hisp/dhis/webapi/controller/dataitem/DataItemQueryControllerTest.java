@@ -34,14 +34,13 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 import static org.springframework.http.HttpStatus.OK;
 
 import java.util.HashMap;
@@ -60,11 +59,11 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 /**
@@ -72,8 +71,10 @@ import org.springframework.http.ResponseEntity;
  *
  * @author maikel arabori
  */
+@ExtendWith( MockitoExtension.class )
 public class DataItemQueryControllerTest
 {
+
     @Mock
     private DataItemServiceFacade dataItemServiceFacade;
 
@@ -86,12 +87,9 @@ public class DataItemQueryControllerTest
     @Mock
     private AclService aclService;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private DataItemQueryController dataItemQueryController;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         dataItemQueryController = new DataItemQueryController( dataItemServiceFacade, contextService, responseHandler,

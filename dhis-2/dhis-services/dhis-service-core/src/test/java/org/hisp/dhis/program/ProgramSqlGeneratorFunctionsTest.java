@@ -36,7 +36,7 @@ import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
 import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
 import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -67,19 +67,19 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Jim Grace
  */
-public class ProgramSqlGeneratorFunctionsTest
-    extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
 {
+
     private ProgramIndicator programIndicator;
 
     private Program programA;
@@ -104,9 +104,6 @@ public class ProgramSqlGeneratorFunctionsTest
 
     private Date endDate = getDate( 2020, 12, 31 );
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private ProgramIndicatorService programIndicatorService;
 
@@ -127,7 +124,7 @@ public class ProgramSqlGeneratorFunctionsTest
 
     private StatementBuilder statementBuilder;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         dataElementA = createDataElement( 'A' );

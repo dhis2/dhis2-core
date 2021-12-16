@@ -36,9 +36,10 @@ import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
@@ -90,12 +91,12 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.Environment;
 
 import com.google.common.collect.Sets;
@@ -103,7 +104,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-@RunWith( MockitoJUnitRunner.class )
+@ExtendWith( MockitoExtension.class )
 public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 {
     @Mock
@@ -187,7 +188,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
 
     private CategoryOptionCombo DEFAULT_COC;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         user = new User();
@@ -284,6 +285,7 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
             when( batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class ) )
                 .thenReturn( batchHandler );
 
+            when( notifier.notify( any(), anyString() ) ).thenReturn( notifier );
             when( notifier.notify( null, NotificationLevel.INFO, "Import done", true ) ).thenReturn( notifier );
 
             // call method under test

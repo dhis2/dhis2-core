@@ -31,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.importexport.ImportStrategy.CREATE_AND_UPDATE;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,17 +51,18 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public class ValidatingEventCheckerTest
 {
     @Mock
@@ -77,12 +77,9 @@ public class ValidatingEventCheckerTest
     @Mock
     private UserService userService;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private ValidationFactory validationFactory;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         // Create a validation factory with a dummy check

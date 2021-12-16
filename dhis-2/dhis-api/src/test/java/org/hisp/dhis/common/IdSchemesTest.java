@@ -27,34 +27,31 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class IdSchemesTest
+class IdSchemesTest
 {
+
     @Test
-    public void testGetIdScheme()
+    void testGetIdScheme()
     {
         IdSchemes schemes = new IdSchemes();
-
         schemes.setDataElementIdScheme( IdScheme.UID.name() );
         schemes.setIdScheme( IdScheme.CODE.name() );
-
         assertEquals( IdScheme.UID, schemes.getDataElementIdScheme() );
         assertEquals( IdScheme.CODE, schemes.getOrgUnitIdScheme() );
         assertEquals( IdScheme.CODE, schemes.getIdScheme() );
     }
 
     @Test
-    public void testFrom()
+    void testFrom()
     {
         IdScheme schemeA = IdScheme.from( IdScheme.ATTR_ID_SCHEME_PREFIX + "abcdefghijA" );
         IdScheme schemeB = IdScheme.from( "CODE" );
-
         assertEquals( IdentifiableProperty.ATTRIBUTE, schemeA.getIdentifiableProperty() );
         assertEquals( "abcdefghijA", schemeA.getAttribute() );
-
         assertEquals( IdentifiableProperty.CODE, schemeB.getIdentifiableProperty() );
     }
 }

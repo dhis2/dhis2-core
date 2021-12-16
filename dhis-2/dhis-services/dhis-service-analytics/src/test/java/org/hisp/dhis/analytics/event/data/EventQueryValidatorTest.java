@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -55,12 +55,10 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.function.ThrowingRunnable;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -68,9 +66,10 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-public class EventQueryValidatorTest
-    extends DhisSpringTest
+@ExtendWith( MockitoExtension.class )
+public class EventQueryValidatorTest extends DhisSpringTest
 {
+
     private Program prA;
 
     private Program prB;
@@ -110,9 +109,6 @@ public class EventQueryValidatorTest
 
     @Mock
     private QueryValidator aggregateQueryValidator;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private EventQueryValidator queryValidator;
 
@@ -372,8 +368,7 @@ public class EventQueryValidatorTest
      */
     private void assertValidatonError( final ErrorCode errorCode, final EventQueryParams params )
     {
-        ThrowingRunnable runnable = () -> queryValidator.validate( params );
-        IllegalQueryException ex = assertThrows( "Error code mismatch", IllegalQueryException.class, runnable );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> queryValidator.validate( params ) );
         assertEquals( errorCode, ex.getErrorCode() );
     }
 }

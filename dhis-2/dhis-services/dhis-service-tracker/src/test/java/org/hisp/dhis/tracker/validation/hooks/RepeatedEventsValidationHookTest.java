@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -50,21 +50,24 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
  */
-public class RepeatedEventsValidationHookTest
-    extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 {
+
     private final static String NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION = "NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";
 
     private final static String REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION = "REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";
@@ -77,9 +80,6 @@ public class RepeatedEventsValidationHookTest
 
     private final static String ENROLLMENT_B = "ENROLLMENT_B";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private RepeatedEventsValidationHook validatorToTest;
 
     private TrackerImportValidationContext ctx;
@@ -89,7 +89,7 @@ public class RepeatedEventsValidationHookTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         validatorToTest = new RepeatedEventsValidationHook();

@@ -40,7 +40,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,23 +66,20 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AbstractJdbcEventAnalyticsManagerTest
-    extends
+@ExtendWith( MockitoExtension.class )
+public class AbstractJdbcEventAnalyticsManagerTest extends
     EventAnalyticsTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -100,7 +97,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
     private Date to = getDate( 2018, 10, 10 );
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();

@@ -38,14 +38,13 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.sharing.CascadeSharingService;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -56,8 +55,10 @@ import com.google.common.net.HttpHeaders;
  *
  * @author Volker Schmidt
  */
+@ExtendWith( MockitoExtension.class )
 public class DashboardControllerTest
 {
+
     @Mock
     private ContextService contextService;
 
@@ -75,9 +76,6 @@ public class DashboardControllerTest
 
     @InjectMocks
     private DashboardController controller;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Test
     public void getWithDependencies()
@@ -109,16 +107,16 @@ public class DashboardControllerTest
             .thenReturn( rootNode );
 
         final ResponseEntity<RootNode> responseEntity = controller.getDataSetWithDependencies( "88dshgdga", download );
-        Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assert.assertSame( rootNode, responseEntity.getBody() );
+        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
+        Assertions.assertSame( rootNode, responseEntity.getBody() );
         if ( download )
         {
-            Assert.assertEquals( "attachment; filename=metadata",
+            Assertions.assertEquals( "attachment; filename=metadata",
                 responseEntity.getHeaders().getFirst( HttpHeaders.CONTENT_DISPOSITION ) );
         }
         else
         {
-            Assert.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
+            Assertions.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
         }
     }
 }

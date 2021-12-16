@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.resolver;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -41,20 +41,24 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupStore;
 import org.hisp.dhis.expression.ExpressionService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Dusan Bernat
  */
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class DataElementGroupResolverTest
 {
+
     @Mock
     private DataElementGroupStore dataElementGroupStore;
 
@@ -62,9 +66,6 @@ public class DataElementGroupResolverTest
     private ExpressionService expressionService;
 
     private ExpressionResolver resolver;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private String uid1;
 
@@ -82,7 +83,7 @@ public class DataElementGroupResolverTest
 
     private static final String DATA_ELEMENT_GROUP_PREFIX = "deGroup:";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         uid1 = CodeGenerator.generateUid();

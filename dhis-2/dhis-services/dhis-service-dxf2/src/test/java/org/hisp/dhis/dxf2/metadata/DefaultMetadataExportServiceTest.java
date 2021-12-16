@@ -49,14 +49,13 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.CurrentUserService;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 /**
@@ -64,6 +63,7 @@ import org.mockito.stubbing.Answer;
  *
  * @author Volker Schmidt
  */
+@ExtendWith( MockitoExtension.class )
 public class DefaultMetadataExportServiceTest
 {
     @Mock
@@ -90,9 +90,6 @@ public class DefaultMetadataExportServiceTest
     @InjectMocks
     private DefaultMetadataExportService service;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Test
     public void getMetadataWithDependenciesAsNodeSharing()
     {
@@ -106,7 +103,7 @@ public class DefaultMetadataExportServiceTest
         Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) )
             .then( (Answer<CollectionNode>) invocation -> {
                 FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assert.assertFalse( fieldFilterParams.getSkipSharing() );
+                Assertions.assertFalse( fieldFilterParams.getSkipSharing() );
                 return new CollectionNode( "test" );
             } );
 
@@ -130,7 +127,7 @@ public class DefaultMetadataExportServiceTest
         Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) )
             .then( (Answer<CollectionNode>) invocation -> {
                 FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assert.assertTrue( fieldFilterParams.getSkipSharing() );
+                Assertions.assertTrue( fieldFilterParams.getSkipSharing() );
                 return new CollectionNode( "test" );
             } );
 
@@ -155,8 +152,8 @@ public class DefaultMetadataExportServiceTest
         params.put( "options", Collections.singletonList( "true" ) );
 
         MetadataExportParams exportParams = service.getParamsFromMap( params );
-        Assert.assertTrue( exportParams.getClasses().contains( JobConfiguration.class ) );
-        Assert.assertTrue( exportParams.getClasses().contains( Option.class ) );
+        Assertions.assertTrue( exportParams.getClasses().contains( JobConfiguration.class ) );
+        Assertions.assertTrue( exportParams.getClasses().contains( Option.class ) );
     }
 
     @Test
@@ -172,8 +169,8 @@ public class DefaultMetadataExportServiceTest
         params.put( "options", Collections.singletonList( "true" ) );
 
         MetadataExportParams exportParams = service.getParamsFromMap( params );
-        Assert.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
-        Assert.assertTrue( exportParams.getClasses().contains( Option.class ) );
+        Assertions.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
+        Assertions.assertTrue( exportParams.getClasses().contains( Option.class ) );
     }
 
     @Test
@@ -186,7 +183,7 @@ public class DefaultMetadataExportServiceTest
         params.put( "options", Collections.singletonList( "true" ) );
 
         MetadataExportParams exportParams = service.getParamsFromMap( params );
-        Assert.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
-        Assert.assertTrue( exportParams.getClasses().contains( Option.class ) );
+        Assertions.assertFalse( exportParams.getClasses().contains( JobConfiguration.class ) );
+        Assertions.assertTrue( exportParams.getClasses().contains( Option.class ) );
     }
 }

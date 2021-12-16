@@ -30,15 +30,16 @@ package org.hisp.dhis.analytics.util;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsSqlUtilsTest
+class AnalyticsSqlUtilsTest
 {
+
     @Test
-    public void testGetClosingParentheses()
+    void testGetClosingParentheses()
     {
         assertThat( AnalyticsSqlUtils.getClosingParentheses( null ), is( "" ) );
         assertThat( AnalyticsSqlUtils.getClosingParentheses( "" ), is( "" ) );

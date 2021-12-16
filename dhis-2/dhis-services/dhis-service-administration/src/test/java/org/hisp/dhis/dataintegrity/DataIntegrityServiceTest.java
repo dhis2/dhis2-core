@@ -42,9 +42,9 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleAction;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariable;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.issueName;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.clearInvocations;
@@ -96,18 +96,19 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.validation.ValidationRuleService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Lars Helge Overland
  */
+@ExtendWith( MockitoExtension.class )
 public class DataIntegrityServiceTest
 {
+
     private static final String INVALID_EXPRESSION = "INVALID_EXPRESSION";
 
     @Mock
@@ -159,9 +160,6 @@ public class DataIntegrityServiceTest
     @Mock
     private ProgramRuleActionService programRuleActionService;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private DefaultDataIntegrityService subject;
 
     private DataElementGroup elementGroupA;
@@ -212,7 +210,7 @@ public class DataIntegrityServiceTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create( DataSet.class, "periodType", "workflow" );
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new DefaultDataIntegrityService( i18nManager, programRuleService, programRuleActionService,

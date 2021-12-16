@@ -27,77 +27,78 @@
  */
 package org.hisp.dhis.apphub.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.apphub.AppHubUtils;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.MediaType;
 
 /**
  * @author Lars Helge Overland
  */
-public class AppHubUtilsTest
+class AppHubUtilsTest
 {
+
     @Test
-    public void testValidateQuery()
+    void testValidateQuery()
     {
         AppHubUtils.validateQuery( "apps" );
     }
 
     @Test
-    public void testValidateInvalidQueryA()
+    void testValidateInvalidQueryA()
     {
         assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( "apps/../../evil/endpoint" ) );
     }
 
     @Test
-    public void testValidateInvalidQueryB()
+    void testValidateInvalidQueryB()
     {
         assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( "http://evildomain" ) );
     }
 
     @Test
-    public void testValidateInvalidQueryC()
+    void testValidateInvalidQueryC()
     {
         assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( "" ) );
     }
 
     @Test
-    public void testValidateInvalidQueryD()
+    void testValidateInvalidQueryD()
     {
         assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateQuery( null ) );
     }
 
     @Test
-    public void testValidateApiVersionA()
+    void testValidateApiVersionA()
     {
         AppHubUtils.validateApiVersion( "v2" );
     }
 
     @Test
-    public void testValidateApiVersionB()
+    void testValidateApiVersionB()
     {
         AppHubUtils.validateApiVersion( "v146" );
     }
 
     @Test
-    public void testValidateInvalidApiVersionA()
+    void testValidateInvalidApiVersionA()
     {
         assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateApiVersion( "25" ) );
     }
 
     @Test
-    public void testValidateInvalidApiVersionB()
+    void testValidateInvalidApiVersionB()
     {
         assertThrows( IllegalQueryException.class, () -> AppHubUtils.validateApiVersion( "malicious_script.js" ) );
     }
 
     @Test
-    public void testSanitizeQuery()
+    void testSanitizeQuery()
     {
         assertEquals( "apps", AppHubUtils.sanitizeQuery( "apps" ) );
         assertEquals( "apps", AppHubUtils.sanitizeQuery( "/apps" ) );
@@ -105,10 +106,9 @@ public class AppHubUtilsTest
     }
 
     @Test
-    public void testGetJsonRequestEntity()
+    void testGetJsonRequestEntity()
     {
         HttpEntity<String> entity = AppHubUtils.getJsonRequestEntity();
-
         assertTrue( entity.getHeaders().getAccept().contains( MediaType.APPLICATION_JSON ) );
     }
 }

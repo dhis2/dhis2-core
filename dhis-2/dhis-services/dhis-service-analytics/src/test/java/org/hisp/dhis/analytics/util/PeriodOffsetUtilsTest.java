@@ -52,46 +52,39 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.joda.time.DateTime;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 
-public class PeriodOffsetUtilsTest
+class PeriodOffsetUtilsTest
 {
+
     @Test
-    public void verifyGetPeriodTypePeriodMapExitOnNull()
+    void verifyGetPeriodTypePeriodMapExitOnNull()
     {
         // Given | When
-        ListMap<String, DimensionalItemObject> periodTypePeriodMap = PeriodOffsetUtils
-            .getPeriodTypePeriodMap( null );
-
+        ListMap<String, DimensionalItemObject> periodTypePeriodMap = PeriodOffsetUtils.getPeriodTypePeriodMap( null );
         // Then
         assertThat( periodTypePeriodMap.size(), is( 0 ) );
-
         // Given | When
         PeriodOffsetUtils.getPeriodTypePeriodMap( DataQueryParams.newBuilder().build() );
-
         // Then
         assertThat( periodTypePeriodMap.size(), is( 0 ) );
     }
 
     @Test
-    public void verifyMappingIsCreatedWithNoOffset()
+    void verifyMappingIsCreatedWithNoOffset()
     {
         // Given
         Period month1 = createMonthlyPeriod( 2020, 1 );
         Period month2 = createMonthlyPeriod( 2020, 2 );
         Period month3 = createMonthlyPeriod( 2020, 3 );
         Period q1 = createQuarterPeriod( 2020, 1 );
-
         DataQueryParams queryParams = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( month1, month2, month3, q1 ) )
-            .build();
-
+            .withPeriods( Lists.newArrayList( month1, month2, month3, q1 ) ).build();
         // When
         final ListMap<String, DimensionalItemObject> periodMap = PeriodOffsetUtils
             .getPeriodTypePeriodMap( queryParams );
-
         // Then
         assertThat( periodMap.size(), is( 2 ) );
         assertThat( periodMap.get( MonthlyPeriodType.NAME ), hasSize( 3 ) );
@@ -99,21 +92,16 @@ public class PeriodOffsetUtilsTest
     }
 
     @Test
-    public void verifyMappingIsCreatedWitOffset()
+    void verifyMappingIsCreatedWitOffset()
     {
         // Given
         Period month1 = createMonthlyPeriod( 2020, 1 );
         Period q1 = createQuarterPeriod( 2020, 1 );
-
-        DataQueryParams queryParams = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( month1, q1 ) )
-            .withDataElements( Lists.newArrayList( createDataElement( 1 ), createDataElement( 5 ) ) )
-            .build();
-
+        DataQueryParams queryParams = DataQueryParams.newBuilder().withPeriods( Lists.newArrayList( month1, q1 ) )
+            .withDataElements( Lists.newArrayList( createDataElement( 1 ), createDataElement( 5 ) ) ).build();
         // When
         final ListMap<String, DimensionalItemObject> periodMap = PeriodOffsetUtils
             .getPeriodTypePeriodMap( queryParams );
-
         // Then
         assertThat( periodMap.size(), is( 2 ) );
         assertThat( periodMap.get( MonthlyPeriodType.NAME ), hasSize( 3 ) );
@@ -123,56 +111,48 @@ public class PeriodOffsetUtilsTest
     }
 
     @Test
-    public void verifyShiftPeriod()
+    void verifyShiftPeriod()
     {
         Period p1 = PeriodOffsetUtils.shiftPeriod( createMonthlyPeriod( 2020, 1 ), 12 );
         assertThat( p1.getIsoDate(), is( "202101" ) );
-
         Period p2 = PeriodOffsetUtils.shiftPeriod( createQuarterPeriod( 2020, 1 ), 12 );
         assertThat( p2.getIsoDate(), is( "2023Q1" ) );
-
         Period p3 = PeriodOffsetUtils.shiftPeriod( createWeeklyType( 2020, 5, 1 ), 2 );
         assertThat( p3.getIsoDate(), is( "2020W20" ) );
-
         Period p4 = PeriodOffsetUtils.shiftPeriod( createMonthlyPeriod( 2020, 1 ), -12 );
         assertThat( p4.getIsoDate(), is( "201901" ) );
-
         Period p5 = PeriodOffsetUtils.shiftPeriod( createQuarterPeriod( 2020, 1 ), -12 );
         assertThat( p5.getIsoDate(), is( "2017Q1" ) );
-
         Period p6 = PeriodOffsetUtils.shiftPeriod( createWeeklyType( 2020, 5, 1 ), -2 );
         assertThat( p6.getIsoDate(), is( "2020W16" ) );
     }
 
     @Test
-    public void verifyRemoveOffsetPeriodsIfNotNeeded()
+    void verifyRemoveOffsetPeriodsIfNotNeeded()
     {
         // Given
-        Period month1 = createMonthlyPeriod( 2020, 1 ); // this period will be
-                                                        // preserved
-        Period month2 = createMonthlyPeriod( 2020, 2 ); // this period will be
-                                                        // preserved
+        // this period will be
+        Period month1 = createMonthlyPeriod( 2020, 1 );
+        // preserved
+        // this period will be
+        Period month2 = createMonthlyPeriod( 2020, 2 );
+        // preserved
         Period month3 = createMonthlyPeriod( 2020, 3 );
         month3.setShifted( true );
         Period month4 = createMonthlyPeriod( 2020, 4 );
         month4.setShifted( true );
-
         DataQueryParams queryParams = DataQueryParams.newBuilder()
             .withPeriods( Lists.newArrayList( month1, month2, month3, month4 ) )
-            .withDataElements( Lists.newArrayList( createDataElement( 0 ), createDataElement( 0 ) ) )
-            .build();
-
+            .withDataElements( Lists.newArrayList( createDataElement( 0 ), createDataElement( 0 ) ) ).build();
         // When
-        final DataQueryParams dataQueryParams = PeriodOffsetUtils
-            .removeOffsetPeriodsIfNotNeeded( queryParams );
-
+        final DataQueryParams dataQueryParams = PeriodOffsetUtils.removeOffsetPeriodsIfNotNeeded( queryParams );
         // Then
         assertThat( dataQueryParams.getPeriods(), hasSize( 2 ) );
         assertIsoPeriods( dataQueryParams.getPeriods(), "202001", "202002" );
     }
 
     @Test
-    public void verifyRemoveOffsetPeriodsIfNotNeededNoPeriodsRemoved()
+    void verifyRemoveOffsetPeriodsIfNotNeededNoPeriodsRemoved()
     {
         // Given
         Period month1 = createMonthlyPeriod( 2020, 1 );
@@ -181,53 +161,40 @@ public class PeriodOffsetUtilsTest
         month3.setShifted( true );
         Period month4 = createMonthlyPeriod( 2020, 4 );
         month4.setShifted( true );
-
         DataQueryParams queryParams = DataQueryParams.newBuilder()
             .withPeriods( Lists.newArrayList( month1, month2, month3, month4 ) )
-            .withDataElements( Lists.newArrayList( createDataElement( 0 ), createDataElement( 1 ) ) )
-            .build();
-
+            .withDataElements( Lists.newArrayList( createDataElement( 0 ), createDataElement( 1 ) ) ).build();
         // When
-        final DataQueryParams dataQueryParams = PeriodOffsetUtils
-            .removeOffsetPeriodsIfNotNeeded( queryParams );
-
+        final DataQueryParams dataQueryParams = PeriodOffsetUtils.removeOffsetPeriodsIfNotNeeded( queryParams );
         // Then
         assertThat( dataQueryParams.getPeriods(), hasSize( 4 ) );
     }
 
     @Test
-    public void verifyGetPeriodOffsetRow()
+    void verifyGetPeriodOffsetRow()
     {
-
         // Given
         Grid grid = new ListGrid();
-
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
-
         int dataIndex = 0;
         int periodIndex = 2;
-
         grid.addRow();
         grid.addValue( "de1" );
         grid.addValue( "ou2" );
         grid.addValue( "202001" );
         grid.addValue( 3 );
-
         grid.addRow();
         grid.addValue( "de1" );
         grid.addValue( "ou3" );
         grid.addValue( "202002" );
         grid.addValue( 5 );
-
         DataElement dataElement = createDataElement( 0 );
         dataElement.setUid( "de1" );
-
         // When
         final List<Object> row = PeriodOffsetUtils.getPeriodOffsetRow( grid, dataIndex, periodIndex, dataElement,
             "202001", 1 );
-
         // Then
         assertThat( row, is( notNullValue() ) );
         assertThat( row, hasSize( 4 ) );
@@ -235,38 +202,30 @@ public class PeriodOffsetUtilsTest
     }
 
     @Test
-    public void verifyGetPeriodOffsetRowNoMatch()
+    void verifyGetPeriodOffsetRowNoMatch()
     {
-
         // Given
         Grid grid = new ListGrid();
-
         grid.addHeader( new GridHeader( DimensionalObject.DATA_X_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
-
         int dataIndex = 0;
         int periodIndex = 2;
-
         grid.addRow();
         grid.addValue( "de1" );
         grid.addValue( "ou2" );
         grid.addValue( "202001" );
         grid.addValue( 3 );
-
         grid.addRow();
         grid.addValue( "de1" );
         grid.addValue( "ou3" );
         grid.addValue( "202002" );
         grid.addValue( 5 );
-
         DataElement dataElement = createDataElement( 0 );
         dataElement.setUid( "de1" );
-
         // When
         final List<Object> row = PeriodOffsetUtils.getPeriodOffsetRow( grid, dataIndex, periodIndex, dataElement,
             "202003", 1 );
-
         // Then
         assertThat( row, is( nullValue() ) );
     }

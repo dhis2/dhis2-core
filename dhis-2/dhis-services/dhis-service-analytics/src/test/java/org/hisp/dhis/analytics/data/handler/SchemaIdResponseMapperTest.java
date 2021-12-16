@@ -47,7 +47,6 @@ import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdScheme.UUID;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.List;
 import java.util.Map;
@@ -60,22 +59,21 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author maikel arabori
  */
+@ExtendWith( MockitoExtension.class )
 public class SchemaIdResponseMapperTest
 {
-    @Rule
-    public MockitoRule mockitoRule = rule();
 
     private SchemaIdResponseMapper schemaIdResponseMapper;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         schemaIdResponseMapper = new SchemaIdResponseMapper();
