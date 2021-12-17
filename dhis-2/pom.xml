@@ -149,7 +149,7 @@
         <ant-compress.version>1.5</ant-compress.version>
         <sms-compression.version>0.2.1.1</sms-compression.version>
         <javacsv.version>2.0</javacsv.version>
-        <aerogear-otp-java.version>1.0.0.CR1</aerogear-otp-java.version>
+        <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
         <javax.interceptor-api.version>1.2.1</javax.interceptor-api.version>
         <jsmpp.version>2.3.7</jsmpp.version>
         <rxtx.version>2.1.7</rxtx.version>
@@ -160,13 +160,13 @@
         <jetty.version>10.0.7</jetty.version>
 
         <!-- Div. utils -->
-        <version.debezium>1.7.1.Final</version.debezium>
+        <version.debezium>1.7.2.Final</version.debezium>
         <guava.version>31.0.1-jre</guava.version>
         <jsr305.version>3.0.2</jsr305.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
         <google-api-client.version>1.32.2</google-api-client.version>
         <lombok.version>1.18.22</lombok.version>
-        <lombok-maven-plugin.version>1.18.16.0</lombok-maven-plugin.version>
+        <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
         <joda-time.version>2.10.13</joda-time.version>
         <cron-utils.version>9.1.6</cron-utils.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
@@ -197,7 +197,7 @@
 
         <!-- Test -->
         <junit.version>5.8.2</junit.version>
-        <mockito.version>4.1.0</mockito.version>
+        <mockito.version>4.2.0</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.7</hamcrest-date.version>
@@ -218,7 +218,6 @@
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
         <maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
         <maven-antrun-plugin.version>1.7</maven-antrun-plugin.version>
-        <maven-java-formatter-plugin.version>0.4</maven-java-formatter-plugin.version>
         <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version>
         <maven-dependency-plugin.version>3.2.0</maven-dependency-plugin.version>
         <versions-maven-plugin.version>2.8.1</versions-maven-plugin.version>
@@ -615,25 +614,6 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin>
-                <plugin>
-                    <groupId>com.googlecode.maven-java-formatter-plugin</groupId>
-                    <artifactId>maven-java-formatter-plugin</artifactId>
-                    <version>${maven-java-formatter-plugin.version}</version>
-                    <configuration>
-                        <configFile>${rootDir}DHISFormatter.xml</configFile>
-                        <lineEnding>LF</lineEnding>
-                    </configuration>
-                    <!-- Uncomment the following to add autoformatting when building -->
-                    <!--
-                    <executions>
-                      <execution>
-                        <goals>
-                          <goal>format</goal>
-                        </goals>
-                      </execution>
-                    </executions>
-                    -->
                 </plugin>
                 <plugin>
                     <groupId>org.owasp</groupId>

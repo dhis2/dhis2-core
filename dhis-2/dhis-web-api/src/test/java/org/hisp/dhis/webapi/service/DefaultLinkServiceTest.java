@@ -55,7 +55,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class DefaultLinkServiceTest
+class DefaultLinkServiceTest
 {
     @Mock
     private SchemaService schemaService;
@@ -69,7 +69,7 @@ public class DefaultLinkServiceTest
     private MockHttpServletRequest request = new MockHttpServletRequest();
 
     @Test
-    public void noLinks()
+    void noLinks()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -88,7 +88,7 @@ public class DefaultLinkServiceTest
     }
 
     @Test
-    public void nextLinkDefaultParameters()
+    void nextLinkDefaultParameters()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -116,7 +116,7 @@ public class DefaultLinkServiceTest
     }
 
     @Test
-    public void nextLinkParameters()
+    void nextLinkParameters()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -148,7 +148,7 @@ public class DefaultLinkServiceTest
     }
 
     @Test
-    public void prevLinkDefaultParameters()
+    void prevLinkDefaultParameters()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -176,7 +176,7 @@ public class DefaultLinkServiceTest
     }
 
     @Test
-    public void nextLink()
+    void nextLink()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -204,7 +204,7 @@ public class DefaultLinkServiceTest
     }
 
     @Test
-    public void nextLinkWithDotsInPath()
+    void nextLinkWithDotsInPath()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -232,7 +232,7 @@ public class DefaultLinkServiceTest
     }
 
     @Test
-    public void prevLinkParameters()
+    void prevLinkParameters()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -263,7 +263,7 @@ public class DefaultLinkServiceTest
     }
 
     @Test
-    public void prevLinkParametersPage1()
+    void prevLinkParametersPage1()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {

@@ -47,7 +47,7 @@ import org.springframework.http.ResponseEntity;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataExportControllerTest
+class MetadataExportControllerTest
 {
     @Mock
     private MetadataExportService metadataExportService;
@@ -65,14 +65,14 @@ public class MetadataExportControllerTest
     private MetadataImportExportController controller;
 
     @Test
-    public void withoutDownload()
+    void withoutDownload()
     {
         ResponseEntity<RootNode> responseEntity = controller.getMetadata( false, null, false );
         Assertions.assertNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
     }
 
     @Test
-    public void withDownload()
+    void withDownload()
     {
         ResponseEntity<RootNode> responseEntity = controller.getMetadata( false, null, true );
         Assertions.assertNotNull( responseEntity.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );

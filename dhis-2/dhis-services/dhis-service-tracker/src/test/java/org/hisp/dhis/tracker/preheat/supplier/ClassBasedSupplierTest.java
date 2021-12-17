@@ -56,7 +56,7 @@ import org.springframework.context.ApplicationContext;
  * @author Cambi Luca
  */
 @ExtendWith( MockitoExtension.class )
-public class ClassBasedSupplierTest
+class ClassBasedSupplierTest
 {
     private ClassBasedSupplier classBasedSupplier;
 
@@ -96,7 +96,7 @@ public class ClassBasedSupplierTest
     }
 
     @Test
-    public void verifyGenericStrategy()
+    void verifyGenericStrategy()
     {
         when( strategiesMap.getOrDefault( anyString(), anyString() ) )
             .thenReturn( Constant.GENERIC_STRATEGY_BEAN );
@@ -109,7 +109,7 @@ public class ClassBasedSupplierTest
     }
 
     @Test
-    public void verifyClassBasedSupplierStrategy()
+    void verifyClassBasedSupplierStrategy()
     {
         when( strategiesMap.getOrDefault( anyString(), anyString() ) )
             .thenReturn( "classbasedstrategy" );

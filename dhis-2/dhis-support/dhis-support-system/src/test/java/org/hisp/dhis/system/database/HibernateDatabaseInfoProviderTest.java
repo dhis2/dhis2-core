@@ -51,7 +51,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class HibernateDatabaseInfoProviderTest
+class HibernateDatabaseInfoProviderTest
 {
 
     @Mock
@@ -74,9 +74,9 @@ public class HibernateDatabaseInfoProviderTest
         provider = new HibernateDatabaseInfoProvider( config, jdbcTemplate, environment );
     }
 
-    @Test
     @SuppressWarnings( "unchecked" )
-    public void init()
+    @Test
+    void init()
         throws SQLException
     {
         Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select 'checking db connection';" ),

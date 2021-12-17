@@ -43,8 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author anilkumk
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataSystemSettingServiceTest
-    extends DhisSpringTest
+class MetadataSystemSettingServiceTest extends DhisSpringTest
 {
     @Autowired
     SystemSettingManager systemSettingManager;
@@ -62,7 +61,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetRemoteUserName()
+    void testShouldGetRemoteUserName()
     {
         String remoteInstanceUserName = metadataSystemSettingService.getRemoteInstanceUserName();
 
@@ -70,7 +69,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetRemotePassword()
+    void testShouldGetRemotePassword()
     {
         String remoteInstancePassword = metadataSystemSettingService.getRemoteInstancePassword();
 
@@ -78,7 +77,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldDownloadMetadataVersionForGivenVersionName()
+    void testShouldDownloadMetadataVersionForGivenVersionName()
     {
         String downloadVersionUrl = metadataSystemSettingService.getVersionDetailsUrl( "Version_Name" );
 
@@ -86,7 +85,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldDownloadMetadataVersionSnapshotForGivenVersionName()
+    void testShouldDownloadMetadataVersionSnapshotForGivenVersionName()
     {
         String downloadVersionUrl = metadataSystemSettingService.getDownloadVersionSnapshotURL( "Version_Name" );
 
@@ -94,7 +93,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetAllVersionsCreatedAfterTheGivenVersionName()
+    void testShouldGetAllVersionsCreatedAfterTheGivenVersionName()
     {
         String metadataDifferenceUrl = metadataSystemSettingService.getMetaDataDifferenceURL( "Version_Name" );
 
@@ -103,7 +102,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetEntireVersionHistoryWhenNoVersionNameIsGiven()
+    void testShouldGetEntireVersionHistoryWhenNoVersionNameIsGiven()
     {
         String versionHistoryUrl = metadataSystemSettingService.getEntireVersionHistory();
 
@@ -111,7 +110,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldGetStopMetadataSyncSettingValue()
+    void testShouldGetStopMetadataSyncSettingValue()
     {
         Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
@@ -119,7 +118,7 @@ public class MetadataSystemSettingServiceTest
     }
 
     @Test
-    public void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
+    void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
     {
         systemSettingManager.saveSystemSetting( SettingKey.STOP_METADATA_SYNC, null );
         Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();

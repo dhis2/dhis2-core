@@ -78,7 +78,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class AnalyticsControllerTest
+class AnalyticsControllerTest
 {
 
     private final static String ENDPOINT = "/analytics";
@@ -121,7 +121,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyJsonRequest()
+    void verifyJsonRequest()
         throws Exception
     {
         // Then
@@ -134,7 +134,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyXmlRequest()
+    void verifyXmlRequest()
         throws Exception
     {
         // Then
@@ -150,7 +150,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyHtmlRequest()
+    void verifyHtmlRequest()
         throws Exception
     {
         // Then
@@ -166,7 +166,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyHtmlCssRequest()
+    void verifyHtmlCssRequest()
         throws Exception
     {
         // Then
@@ -182,7 +182,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyCsvRequest()
+    void verifyCsvRequest()
         throws Exception
     {
         // Then
@@ -199,7 +199,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyXlsRequest()
+    void verifyXlsRequest()
         throws Exception
     {
         // Then
@@ -222,7 +222,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyJrxmlRequest()
+    void verifyJrxmlRequest()
         throws Exception
     {
         when( analyticsService.getAggregatedDataValues( Mockito.any( DataQueryParams.class ) ) )

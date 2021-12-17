@@ -177,7 +177,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCondition()
+    void testCondition()
     {
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
@@ -190,7 +190,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCount()
+    void testCount()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -204,7 +204,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCountWithStartEventBoundary()
+    void testCountWithStartEventBoundary()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -221,7 +221,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCountWithEndEventBoundary()
+    void testCountWithEndEventBoundary()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -238,7 +238,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCountWithStartAndEndEventBoundary()
+    void testCountWithStartAndEndEventBoundary()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -255,7 +255,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCountIfCondition()
+    void testCountIfCondition()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -271,7 +271,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCountIfValueNumeric()
+    void testCountIfValueNumeric()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -285,7 +285,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCountIfValueString()
+    void testCountIfValueString()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -301,7 +301,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDaysBetween()
+    void testDaysBetween()
     {
         when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
         when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
@@ -313,7 +313,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testHasValueDataElement()
+    void testHasValueDataElement()
     {
 
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -324,7 +324,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testHasValueAttribute()
+    void testHasValueAttribute()
     {
         when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
 
@@ -333,7 +333,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMinutesBetween()
+    void testMinutesBetween()
     {
         when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
         when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
@@ -346,7 +346,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMonthsBetween()
+    void testMonthsBetween()
     {
         when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
         when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
@@ -361,7 +361,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testOizp()
+    void testOizp()
     {
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
@@ -371,7 +371,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testRelationshipCountWithNoRelationshipId()
+    void testRelationshipCountWithNoRelationshipId()
     {
         String sql = test( "d2:relationshipCount()" );
         assertThat( sql, is( "(select count(*) from relationship r " +
@@ -380,7 +380,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testRelationshipCountWithRelationshipId()
+    void testRelationshipCountWithRelationshipId()
     {
         when( relationshipTypeService.getRelationshipType( relTypeA.getUid() ) ).thenReturn( relTypeA );
 
@@ -392,7 +392,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWeeksBetween()
+    void testWeeksBetween()
     {
         when( dataElementService.getDataElement( dataElementC.getUid() ) ).thenReturn( dataElementC );
         when( dataElementService.getDataElement( dataElementD.getUid() ) ).thenReturn( dataElementD );
@@ -404,14 +404,14 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testYearsBetween()
+    void testYearsBetween()
     {
         String sql = test( "d2:yearsBetween(V{enrollment_date}, V{analytics_period_start})" );
         assertThat( sql, is( "(date_part('year',age(cast('2020-01-01' as date), cast(enrollmentdate as date))))" ) );
     }
 
     @Test
-    public void testYearsBetweenWithProgramStage()
+    void testYearsBetweenWithProgramStage()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
@@ -425,7 +425,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testYearsBetweenWithProgramStageAndBoundaries()
+    void testYearsBetweenWithProgramStageAndBoundaries()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
 
@@ -440,7 +440,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testZing()
+    void testZing()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -450,7 +450,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testZpvcOneArg()
+    void testZpvcOneArg()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -462,7 +462,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testZpvcTwoArgs()
+    void testZpvcTwoArgs()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -476,7 +476,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testLog()
+    void testLog()
     {
         String sql = test( "log(V{enrollment_count})" );
         assertThat( sql, is( "ln(distinct pi)" ) );
@@ -486,21 +486,21 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testLog10()
+    void testLog10()
     {
         String sql = test( "log10(V{org_unit_count})" );
         assertThat( sql, is( "log(distinct ou)" ) );
     }
 
     @Test
-    public void testIllegalFunction()
+    void testIllegalFunction()
     {
         assertThrows( ParserException.class,
             () -> test( "d2:zztop(#{ProgrmStagA.DataElmentA})" ) );
     }
 
     @Test
-    public void testVectorAvg()
+    void testVectorAvg()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -510,7 +510,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testVectorCount()
+    void testVectorCount()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -520,7 +520,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testVectorMax()
+    void testVectorMax()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -530,7 +530,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testVectorMin()
+    void testVectorMin()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -540,7 +540,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testVectorStddev()
+    void testVectorStddev()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -550,7 +550,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testVectorSum()
+    void testVectorSum()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -560,7 +560,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testVectorVariance()
+    void testVectorVariance()
     {
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
@@ -570,7 +570,7 @@ class ProgramSqlGeneratorFunctionsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCompareStrings()
+    void testCompareStrings()
     {
         String sql = test( "'a' < \"b\"" );
         assertThat( sql, is( "'a' < 'b'" ) );

@@ -41,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class ImportOptionsPreProcessorTest
+class ImportOptionsPreProcessorTest
 {
 
     private ImportOptionsPreProcessor subject;
@@ -53,7 +53,7 @@ public class ImportOptionsPreProcessorTest
     }
 
     @Test
-    public void verifyExceptionIsThrownOnMissingImportOptions()
+    void verifyExceptionIsThrownOnMissingImportOptions()
     {
         WorkContext wc = WorkContext.builder().build();
 

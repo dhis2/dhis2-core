@@ -76,7 +76,7 @@ import com.google.common.collect.Sets;
  * @author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-public class DataSetNotificationServiceTest extends DhisConvenienceTest
+class DataSetNotificationServiceTest extends DhisConvenienceTest
 {
     public static final String TEMPALTE_A_UID = "smsTemplateA";
 
@@ -214,7 +214,7 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testShouldReturnNullIfRegistrationIsNull()
+    void testShouldReturnNullIfRegistrationIsNull()
     {
         subject.sendCompleteDataSetNotifications( null );
 
@@ -222,7 +222,7 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfNotTemplateFoundForDataSet()
+    void testIfNotTemplateFoundForDataSet()
     {
         when( dsntService.getCompleteNotifications( any( DataSet.class ) ) ).thenReturn( null );
 
@@ -234,7 +234,7 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendCompletionSMSNotification()
+    void testSendCompletionSMSNotification()
     {
         when( renderer.render( any( CompleteDataSetRegistration.class ), any( DataSetNotificationTemplate.class ) ) )
             .thenReturn( notificationMessage );

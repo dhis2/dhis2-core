@@ -52,7 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackedEntityInstanceStrategyHandlerTest
+class TrackedEntityInstanceStrategyHandlerTest
 {
 
     @InjectMocks
@@ -68,9 +68,9 @@ public class TrackedEntityInstanceStrategyHandlerTest
     private ImportOptions importOptions;
 
     @Test
-    public void shouldCallSyncTrackedEntitySyncStrategy()
-        throws IOException,
-        BadRequestException
+    void shouldCallSyncTrackedEntitySyncStrategy()
+        throws BadRequestException,
+        IOException
     {
         when( importOptions.isAsync() ).thenReturn( false );
 
@@ -84,9 +84,9 @@ public class TrackedEntityInstanceStrategyHandlerTest
     }
 
     @Test
-    public void shouldCallAsyncTrackedEntitySyncStrategy()
-        throws IOException,
-        BadRequestException
+    void shouldCallAsyncTrackedEntitySyncStrategy()
+        throws BadRequestException,
+        IOException
     {
         when( importOptions.isAsync() ).thenReturn( true );
 

@@ -52,7 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-public class AssignedUserValidationHookTest
+class AssignedUserValidationHookTest
 {
 
     private static final String USER_ID = "ABCDEF12345";
@@ -86,7 +86,7 @@ public class AssignedUserValidationHookTest
     }
 
     @Test
-    public void testAssignedUserIsValid()
+    void testAssignedUserIsValid()
     {
         // given
         Event event = new Event();
@@ -103,7 +103,7 @@ public class AssignedUserValidationHookTest
     }
 
     @Test
-    public void testEventWithNotValidUserUid()
+    void testEventWithNotValidUserUid()
     {
         // given
         Event event = new Event();
@@ -121,7 +121,7 @@ public class AssignedUserValidationHookTest
     }
 
     @Test
-    public void testEventWithUserNotPresentInPreheat()
+    void testEventWithUserNotPresentInPreheat()
     {
         // given
         Event event = new Event();
@@ -143,7 +143,7 @@ public class AssignedUserValidationHookTest
     }
 
     @Test
-    public void testEventWithNotEnabledUserAssignment()
+    void testEventWithNotEnabledUserAssignment()
     {
         // given
         Event event = new Event();
@@ -166,7 +166,7 @@ public class AssignedUserValidationHookTest
     }
 
     @Test
-    public void testEventWithNullEnabledUserAssignment()
+    void testEventWithNullEnabledUserAssignment()
     {
         // given
         Event event = new Event();

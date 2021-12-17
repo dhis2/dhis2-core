@@ -61,7 +61,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackedEntityInstanceControllerTest
+class TrackedEntityInstanceControllerTest
 {
 
     private MockMvc mockMvc;
@@ -108,7 +108,7 @@ public class TrackedEntityInstanceControllerTest
     }
 
     @Test
-    public void shouldCallSyncStrategy()
+    void shouldCallSyncStrategy()
         throws Exception
     {
 
@@ -126,7 +126,7 @@ public class TrackedEntityInstanceControllerTest
     }
 
     @Test
-    public void shouldCallAsyncStrategy()
+    void shouldCallAsyncStrategy()
         throws Exception
     {
         mockMvc.perform( post( ENDPOINT )

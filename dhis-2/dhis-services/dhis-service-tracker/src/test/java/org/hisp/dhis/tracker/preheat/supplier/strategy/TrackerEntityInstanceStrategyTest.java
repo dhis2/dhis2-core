@@ -54,7 +54,7 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackerEntityInstanceStrategyTest
+class TrackerEntityInstanceStrategyTest
 {
     @InjectMocks
     private TrackerEntityInstanceStrategy strategy;
@@ -65,7 +65,7 @@ public class TrackerEntityInstanceStrategyTest
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Test
-    public void verifyStrategyFiltersOutNonRootTei()
+    void verifyStrategyFiltersOutNonRootTei()
     {
         // Create preheat params
         final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )
@@ -93,7 +93,7 @@ public class TrackerEntityInstanceStrategyTest
     }
 
     @Test
-    public void verifyStrategyIgnoresPersistedTei()
+    void verifyStrategyIgnoresPersistedTei()
     {
         // Create preheat params
         final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )

@@ -61,7 +61,7 @@ import com.google.common.collect.Lists;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class ProgramInstanceSupplierTest extends DhisConvenienceTest
+class ProgramInstanceSupplierTest extends DhisConvenienceTest
 {
 
     @InjectMocks
@@ -105,7 +105,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplierWhenNoEventProgramArePresent()
+    void verifySupplierWhenNoEventProgramArePresent()
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();
@@ -126,7 +126,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplierWhenNoProgramsArePresent()
+    void verifySupplierWhenNoProgramsArePresent()
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();
@@ -146,7 +146,7 @@ public class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();

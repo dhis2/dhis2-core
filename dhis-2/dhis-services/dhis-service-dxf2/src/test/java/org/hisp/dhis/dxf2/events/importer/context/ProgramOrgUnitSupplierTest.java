@@ -49,7 +49,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
+class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
 {
 
     private ProgramOrgUnitSupplier subject;
@@ -61,7 +61,7 @@ public class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
         throws SQLException
     {
         // Org Unit //

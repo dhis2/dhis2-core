@@ -76,7 +76,7 @@ class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<ProgramStage
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
         throws SQLException
     {
         // mock resultset data

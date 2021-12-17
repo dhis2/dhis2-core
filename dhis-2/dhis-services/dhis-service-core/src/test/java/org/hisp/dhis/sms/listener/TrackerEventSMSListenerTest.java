@@ -81,11 +81,9 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class TrackerEventSMSListenerTest
-    extends
+class TrackerEventSMSListenerTest extends
     CompressionSMSListenerTest
 {
-    // Needed for parent
 
     @Mock
     private UserService userService;
@@ -188,7 +186,7 @@ public class TrackerEventSMSListenerTest
     }
 
     @Test
-    public void testTrackerEvent()
+    void testTrackerEvent()
     {
         subject.receive( incomingSmsTrackerEvent );
 
@@ -200,7 +198,7 @@ public class TrackerEventSMSListenerTest
     }
 
     @Test
-    public void testTrackerEventRepeat()
+    void testTrackerEventRepeat()
     {
         subject.receive( incomingSmsTrackerEvent );
         subject.receive( incomingSmsTrackerEvent );
@@ -213,7 +211,7 @@ public class TrackerEventSMSListenerTest
     }
 
     @Test
-    public void testTrackerEventWithNulls()
+    void testTrackerEventWithNulls()
     {
         subject.receive( incomingSmsTrackerEventWithNulls );
 
@@ -225,7 +223,7 @@ public class TrackerEventSMSListenerTest
     }
 
     @Test
-    public void testTrackerEventNoValues()
+    void testTrackerEventNoValues()
     {
         subject.receive( incomingSmsTrackerEventNoValues );
 

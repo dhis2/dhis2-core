@@ -98,7 +98,7 @@ import com.google.common.collect.ImmutableList;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EventsAnalyticsManagerTest extends EventAnalyticsTest
+class EventsAnalyticsManagerTest extends EventAnalyticsTest
 {
 
     @Mock
@@ -129,7 +129,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventSqlWithProgramWithNoRegistration()
+    void verifyGetEventSqlWithProgramWithNoRegistration()
     {
         mockEmptyRowSet();
 
@@ -147,7 +147,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventSqlWithOrgUnitTypeDataElement()
+    void verifyGetEventSqlWithOrgUnitTypeDataElement()
     {
         mockEmptyRowSet();
 
@@ -170,7 +170,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventSqlWithProgram()
+    void verifyGetEventSqlWithProgram()
     {
         mockEmptyRowSet();
 
@@ -185,7 +185,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsSqlWithProgramAndProgramStage()
+    void verifyGetEventsSqlWithProgramAndProgramStage()
     {
         mockEmptyRowSet();
 
@@ -202,7 +202,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsWithProgramStageAndNumericDataElement()
+    void verifyGetEventsWithProgramStageAndNumericDataElement()
     {
         mockEmptyRowSet();
 
@@ -219,7 +219,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsWithProgramStageAndNumericDataElementAndFilter()
+    void verifyGetEventsWithProgramStageAndNumericDataElementAndFilter()
     {
         mockEmptyRowSet();
 
@@ -236,7 +236,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsWithMissingValueEqFilter()
+    void verifyGetEventsWithMissingValueEqFilter()
     {
         String expected = "ax.\"fWIAEtYVEGk\" is null";
         testIt( EQ, NV, Collections.singleton(
@@ -244,7 +244,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsWithMissingValueNeFilter()
+    void verifyGetEventsWithMissingValueNeFilter()
     {
         String expected = "ax.\"fWIAEtYVEGk\" is not null";
         testIt( NE, NV, Collections.singleton(
@@ -252,7 +252,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsWithMissingValueAndNumericValuesInFilter()
+    void verifyGetEventsWithMissingValueAndNumericValuesInFilter()
     {
         String numericValues = String.join( OPTION_SEP, "10", "11", "12" );
         String expected = "(ax.\"fWIAEtYVEGk\" in (" + String.join( ",", numericValues.split( OPTION_SEP ) )
@@ -263,7 +263,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsWithoutMissingValueAndNumericValuesInFilter()
+    void verifyGetEventsWithoutMissingValueAndNumericValuesInFilter()
     {
         String numericValues = String.join( OPTION_SEP, "10", "11", "12" );
         String expected = "ax.\"fWIAEtYVEGk\" in (" + String.join( ",", numericValues.split( OPTION_SEP ) ) + ")";
@@ -273,7 +273,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsWithOnlyMissingValueInFilter()
+    void verifyGetEventsWithOnlyMissingValueInFilter()
     {
         String expected = "ax.\"fWIAEtYVEGk\" is null";
         String unexpected = "(ax.\"fWIAEtYVEGk\" in (";
@@ -298,7 +298,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsWithProgramStageAndTextDataElement()
+    void verifyGetEventsWithProgramStageAndTextDataElement()
     {
         mockEmptyRowSet();
 
@@ -315,7 +315,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetEventsWithProgramStageAndTextDataElementAndFilter()
+    void verifyGetEventsWithProgramStageAndTextDataElementAndFilter()
     {
         mockEmptyRowSet();
 
@@ -331,7 +331,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetAggregatedEventQuery()
+    void verifyGetAggregatedEventQuery()
     {
         mockRowSet();
 
@@ -359,7 +359,7 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyGetAggregatedEventQueryWithFilter()
+    void verifyGetAggregatedEventQueryWithFilter()
     {
 
         when( rowSet.getString( "fWIAEtYVEGk" ) ).thenReturn( "2000" );
@@ -387,19 +387,19 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
     }
 
     @Test
-    public void verifyFirstAggregationTypeSubquery()
+    void verifyFirstAggregationTypeSubquery()
     {
         verifyFirstOrLastAggregationTypeSubquery( AnalyticsAggregationType.FIRST );
     }
 
     @Test
-    public void verifyLastAggregationTypeSubquery()
+    void verifyLastAggregationTypeSubquery()
     {
         verifyFirstOrLastAggregationTypeSubquery( AnalyticsAggregationType.LAST );
     }
 
     @Test
-    public void verifySortClauseHandlesProgramIndicators()
+    void verifySortClauseHandlesProgramIndicators()
     {
         Program program = createProgram( 'P' );
         ProgramIndicator piA = createProgramIndicator( 'A', program, ".", "." );

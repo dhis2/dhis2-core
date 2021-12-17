@@ -153,7 +153,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElement()
+    void testDataElement()
     {
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
@@ -163,7 +163,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElementAllowingNulls()
+    void testDataElementAllowingNulls()
     {
         when( dataElementService.getDataElement( dataElementA.getUid() ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageA.getUid() ) ).thenReturn( programStageA );
@@ -173,7 +173,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElementNotFound()
+    void testDataElementNotFound()
     {
         when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
         when( constantService.getConstant( constantA.getUid() ) ).thenReturn( constantA );
@@ -183,7 +183,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testAttribute()
+    void testAttribute()
     {
         when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
 
@@ -192,7 +192,7 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testAttributeAllowingNulls()
+    void testAttributeAllowingNulls()
     {
         when( attributeService.getTrackedEntityAttribute( attributeA.getUid() ) ).thenReturn( attributeA );
 
@@ -201,26 +201,26 @@ class ProgramSqlGeneratorItemsTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testAttributeNotFound()
+    void testAttributeNotFound()
     {
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "A{NoAttribute}" ) );
     }
 
     @Test
-    public void testConstant()
+    void testConstant()
     {
         String sql = test( "C{constant00A}" );
         assertThat( sql, is( "123.456" ) );
     }
 
     @Test
-    public void testConstantNotFound()
+    void testConstantNotFound()
     {
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "C{notConstant}" ) );
     }
 
     @Test
-    public void testInvalidItemType()
+    void testInvalidItemType()
     {
         assertThrows( org.hisp.dhis.antlr.ParserException.class, () -> test( "I{notValidItm}" ) );
     }

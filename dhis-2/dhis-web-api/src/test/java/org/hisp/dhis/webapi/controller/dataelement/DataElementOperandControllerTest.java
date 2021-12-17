@@ -98,7 +98,7 @@ import com.jayway.jsonpath.JsonPath;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class DataElementOperandControllerTest
+class DataElementOperandControllerTest
 {
 
     private MockMvc mockMvc;
@@ -165,7 +165,7 @@ public class DataElementOperandControllerTest
     }
 
     @Test
-    public void verifyPaginationGetFirstPage()
+    void verifyPaginationGetFirstPage()
         throws Exception
     {
         int pageSize = 15;
@@ -219,7 +219,7 @@ public class DataElementOperandControllerTest
     }
 
     @Test
-    public void verifyPaginationGetThirdPage()
+    void verifyPaginationGetThirdPage()
         throws Exception
     {
         int pageSize = 25;

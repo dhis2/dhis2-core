@@ -81,7 +81,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class UserControllerTest
+class UserControllerTest
 {
     @Mock
     private UserService userService;
@@ -130,9 +130,9 @@ public class UserControllerTest
         parsedUser.setGroups( new HashSet<>( Arrays.asList( userGroup1, userGroup2 ) ) );
     }
 
-    @Test
     @SuppressWarnings( "unchecked" )
-    public void updateUserGroups()
+    @Test
+    void updateUserGroups()
     {
         when( userService.getUser( "def2" ) ).thenReturn( user );
 
@@ -148,7 +148,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserGroupsNotOk()
+    void updateUserGroupsNotOk()
     {
         if ( isInStatusUpdatedOK( createReportWith( Status.ERROR, Stats::incUpdated ) ) )
         {
@@ -161,7 +161,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserGroupsNotUpdated()
+    void updateUserGroupsNotUpdated()
     {
         if ( isInStatusUpdatedOK( createReportWith( Status.OK, Stats::incCreated ) ) )
         {
@@ -173,9 +173,9 @@ public class UserControllerTest
         verifyNoInteractions( userGroupService );
     }
 
-    @Test
     @SuppressWarnings( "unchecked" )
-    public void updateUserGroupsSameUser()
+    @Test
+    void updateUserGroupsSameUser()
     {
         currentUser.setId( 1001 );
         currentUser.setUid( "def2" );
@@ -228,7 +228,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void expireUserInTheFutureDoesNotExpireSession()
+    void expireUserInTheFutureDoesNotExpireSession()
         throws Exception
     {
         setUpUserExpireScenarios();
@@ -241,7 +241,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void expireUserNowDoesExpireSession()
+    void expireUserNowDoesExpireSession()
         throws Exception
     {
         setUpUserExpireScenarios();
@@ -255,7 +255,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void unexpireUserDoesUpdateUserCredentials()
+    void unexpireUserDoesUpdateUserCredentials()
         throws Exception
     {
         setUpUserExpireScenarios();
@@ -266,7 +266,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserExpireRequiresUserCredentialBasedAuthority()
+    void updateUserExpireRequiresUserCredentialBasedAuthority()
     {
         setUpUserExpireScenarios();
         // executing user has no authorities
@@ -282,7 +282,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserExpireRequiresGroupBasedAuthority()
+    void updateUserExpireRequiresGroupBasedAuthority()
     {
         setUpUserExpireScenarios();
         when( userService.canAddOrUpdateUser( any(), any() ) ).thenReturn( false );
@@ -295,7 +295,7 @@ public class UserControllerTest
     }
 
     @Test
-    public void updateUserExpireRequiresShareBasedAuthority()
+    void updateUserExpireRequiresShareBasedAuthority()
     {
         setUpUserExpireScenarios();
         when( aclService.canUpdate( currentUser, user ) ).thenReturn( false );

@@ -109,7 +109,7 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class ExpressionService2Test extends DhisSpringTest
+class ExpressionService2Test extends DhisSpringTest
 {
 
     @Mock
@@ -405,7 +405,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionElementAndOptionComboIds()
+    void testGetExpressionElementAndOptionComboIds()
     {
         Set<String> ids = target.getExpressionElementAndOptionComboIds( expressionC, VALIDATION_RULE_EXPRESSION );
 
@@ -415,7 +415,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDimensionalItemIdsNullOrEmpty()
+    void testGetExpressionDimensionalItemIdsNullOrEmpty()
     {
         Set<DimensionalItemId> itemIds = target.getExpressionDimensionalItemIds( null, INDICATOR_EXPRESSION );
         assertEquals( 0, itemIds.size() );
@@ -425,7 +425,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDimensionalItemIds()
+    void testGetExpressionDimensionalItemIds()
     {
         when( constantService.getConstantMap() ).thenReturn(
             ImmutableMap.<String, Constant> builder()
@@ -444,7 +444,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDimensionalItemMapsNullOrEmpty()
+    void testGetExpressionDimensionalItemMapsNullOrEmpty()
     {
         Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
         Map<DimensionalItemId, DimensionalItemObject> sampleItemMap = new HashMap<>();
@@ -459,7 +459,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDimensionalItemMaps()
+    void testGetExpressionDimensionalItemMaps()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet(
             getId( opA ), getId( opB ), getId( opC ), getId( opD ) );
@@ -497,7 +497,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetIndicatorDimensionalItemMap()
+    void testGetIndicatorDimensionalItemMap()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet(
             getId( opA ), getId( opB ), getId( deB ), getId( pdeA ), getId( pteaA ), getId( piA ) );
@@ -532,7 +532,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDataElements()
+    void testGetExpressionDataElements()
     {
         when( dataElementService.getDataElement( opA.getDimensionItem().split( "\\." )[0] ) )
             .thenReturn( opA.getDataElement() );
@@ -560,7 +560,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testExpressionDimensionalItemMapsReportingRates()
+    void testExpressionDimensionalItemMapsReportingRates()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( reportingRate ), getId( opB ) );
 
@@ -581,7 +581,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionOptionComboIds()
+    void testGetExpressionOptionComboIds()
     {
         Set<String> comboIds = target.getExpressionOptionComboIds( expressionG, INDICATOR_EXPRESSION );
 
@@ -591,7 +591,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testExpressionIsValid()
+    void testExpressionIsValid()
     {
         when( constantService.getConstantMap() ).thenReturn(
             ImmutableMap.<String, Constant> builder()
@@ -661,7 +661,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDescription()
+    void testGetExpressionDescription()
     {
         when( constantService.getConstantMap() ).thenReturn(
             ImmutableMap.<String, Constant> builder()
@@ -695,7 +695,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionValue()
+    void testGetExpressionValue()
     {
         Map<DimensionalItemId, DimensionalItemObject> itemMap = ImmutableMap
             .<DimensionalItemId, DimensionalItemObject> builder()
@@ -725,7 +725,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetIndicatorDimensionalItemMap2()
+    void testGetIndicatorDimensionalItemMap2()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
@@ -767,7 +767,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetIndicatorDimensionalItemMap3()
+    void testGetIndicatorDimensionalItemMap3()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ), getId( opE ), getId( opF ) );
 
@@ -815,7 +815,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testSubstituteIndicatorExpressions()
+    void testSubstituteIndicatorExpressions()
     {
         String expressionZ = "if(\"A\" < 'B' and true,0,0)";
 
@@ -855,8 +855,10 @@ public class ExpressionService2Test extends DhisSpringTest
     // CRUD tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void verifyExpressionIsUpdated()
+    void verifyExpressionIsUpdated()
     {
         Expression expression = rnd.nextObject( Expression.class );
         target.updateExpression( expression );
@@ -864,7 +866,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void verifyExpressionIsDeleted()
+    void verifyExpressionIsDeleted()
     {
         Expression expression = rnd.nextObject( Expression.class );
         target.deleteExpression( expression );
@@ -872,7 +874,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void verifyExpressionIsAdded()
+    void verifyExpressionIsAdded()
     {
         Expression expression = rnd.nextObject( Expression.class );
         long id = target.addExpression( expression );
@@ -881,7 +883,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void verifyAllExpressionsCanBeFetched()
+    void verifyAllExpressionsCanBeFetched()
     {
         when( hibernateGenericStore.getAll() ).thenReturn( Lists.newArrayList( rnd.nextObject( Expression.class ) ) );
         List<Expression> expressions = target.getAllExpressions();
@@ -890,7 +892,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionOrgUnitGroups()
+    void testGetExpressionOrgUnitGroups()
     {
         when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
         Set<OrganisationUnitGroup> groups = target.getExpressionOrgUnitGroups( expressionH, INDICATOR_EXPRESSION );
@@ -904,7 +906,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testAnnualizedIndicatorValueWhenHavingMultiplePeriods()
+    void testAnnualizedIndicatorValueWhenHavingMultiplePeriods()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
@@ -958,7 +960,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testAnnualizedIndicatorValueWhenHavingNullPeriods()
+    void testAnnualizedIndicatorValueWhenHavingNullPeriods()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
@@ -1003,7 +1005,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetNullWithoutNumeratorDataWithDenominatorData()
+    void testGetNullWithoutNumeratorDataWithDenominatorData()
     {
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 
@@ -1026,7 +1028,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetNullWithNumeratorDataWithZeroDenominatorData()
+    void testGetNullWithNumeratorDataWithZeroDenominatorData()
     {
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 

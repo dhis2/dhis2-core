@@ -62,8 +62,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class AnalyticsManagerTest
-    extends DhisConvenienceTest
+class AnalyticsManagerTest extends DhisConvenienceTest
 {
     @Mock
     private QueryPlanner queryPlanner;
@@ -115,7 +114,7 @@ public class AnalyticsManagerTest
     }
 
     @Test
-    public void testReplaceDataPeriodsWithAggregationPeriods()
+    void testReplaceDataPeriodsWithAggregationPeriods()
     {
         AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
         Period y2012 = createPeriod( "2012" );

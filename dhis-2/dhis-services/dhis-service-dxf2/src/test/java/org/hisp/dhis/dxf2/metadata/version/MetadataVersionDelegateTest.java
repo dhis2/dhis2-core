@@ -68,7 +68,7 @@ import org.springframework.http.HttpStatus;
  * @author anilkumk
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataVersionDelegateTest
+class MetadataVersionDelegateTest
 {
     private MetadataVersionDelegate target;
 
@@ -116,7 +116,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenServerNotAvailable()
+    void testShouldThrowExceptionWhenServerNotAvailable()
     {
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( false, "test_message", null );
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
@@ -126,7 +126,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldGetRemoteVersionNullWhenDhisResponseReturnsNull()
+    void testShouldGetRemoteVersionNullWhenDhisResponseReturnsNull()
     {
 
         AvailabilityStatus availabilityStatus = new AvailabilityStatus( true, "test_message", null );
@@ -144,7 +144,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenHTTPRequestFails()
+    void testShouldThrowExceptionWhenHTTPRequestFails()
     {
         when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
         when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
@@ -165,8 +165,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldGetRemoteMetadataVersionWithStatusOk()
-        throws Exception
+    void testShouldGetRemoteMetadataVersionWithStatusOk()
     {
         when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
         when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
@@ -190,11 +189,14 @@ public class MetadataVersionDelegateTest
             assertEquals( metadataVersion.getName(), remoteMetadataVersion.getName() );
             assertEquals( metadataVersion, remoteMetadataVersion );
         }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
     }
 
     @Test
-    public void testShouldGetMetaDataDifferenceWithStatusOk()
-        throws Exception
+    void testShouldGetMetaDataDifferenceWithStatusOk()
     {
         when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
         when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
@@ -233,11 +235,14 @@ public class MetadataVersionDelegateTest
             assertEquals( metadataVersionList.get( 0 ).getName(), metaDataDifference.get( 0 ).getName() );
             assertEquals( metadataVersionList.get( 0 ).getHashCode(), metaDataDifference.get( 0 ).getHashCode() );
         }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
     }
 
     @Test
-    public void testShouldThrowExceptionWhenRenderServiceThrowsExceptionWhileGettingMetadataDifference()
-        throws Exception
+    void testShouldThrowExceptionWhenRenderServiceThrowsExceptionWhileGettingMetadataDifference()
     {
         when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
         when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
@@ -266,10 +271,14 @@ public class MetadataVersionDelegateTest
             assertThrows( MetadataVersionServiceException.class, () -> target.getMetaDataDifference( metadataVersion ),
                 "Exception occurred while trying to do JSON conversion. Caused by: " );
         }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
     }
 
     @Test
-    public void testShouldReturnEmptyMetadataDifference()
+    void testShouldReturnEmptyMetadataDifference()
     {
         when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
         when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
@@ -300,7 +309,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithClientError()
+    void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithClientError()
     {
         when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
         when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
@@ -330,7 +339,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithServerError()
+    void testShouldThrowExceptionWhenGettingRemoteMetadataVersionWithServerError()
     {
         when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
         when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
@@ -361,8 +370,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenRenderServiceThrowsException()
-        throws Exception
+    void testShouldThrowExceptionWhenRenderServiceThrowsException()
     {
         when( metadataSystemSettingService.getRemoteInstanceUserName() ).thenReturn( username );
         when( metadataSystemSettingService.getRemoteInstancePassword() ).thenReturn( password );
@@ -382,10 +390,14 @@ public class MetadataVersionDelegateTest
             assertThrows( MetadataVersionServiceException.class, () -> target.getRemoteMetadataVersion( "testVersion" ),
                 "Exception occurred while trying to do JSON conversion for metadata version" );
         }
+        catch ( IOException e )
+        {
+            e.printStackTrace();
+        }
     }
 
     @Test
-    public void testShouldDownloadMetadataVersion()
+    void testShouldDownloadMetadataVersion()
     {
         when( metadataSystemSettingService.getDownloadVersionSnapshotURL( "testVersion" ) )
             .thenReturn( downloadUrl );
@@ -411,7 +423,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldReturnNullOnInValidDHISResponse()
+    void testShouldReturnNullOnInValidDHISResponse()
     {
         when( metadataSystemSettingService.getDownloadVersionSnapshotURL( "testVersion" ) )
             .thenReturn( downloadUrl );
@@ -434,7 +446,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldNotGetMetadataVersionIfRemoteServerIsUnavailable()
+    void testShouldNotGetMetadataVersionIfRemoteServerIsUnavailable()
     {
         when( metadataSystemSettingService.getDownloadVersionSnapshotURL( "testVersion" ) )
             .thenReturn( downloadUrl );
@@ -456,7 +468,7 @@ public class MetadataVersionDelegateTest
     }
 
     @Test
-    public void testShouldAddNewMetadataVersion()
+    void testShouldAddNewMetadataVersion()
     {
         target.addNewMetadataVersion( metadataVersion );
 
