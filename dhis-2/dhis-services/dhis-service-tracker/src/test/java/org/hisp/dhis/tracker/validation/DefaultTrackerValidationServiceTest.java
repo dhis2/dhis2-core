@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 
@@ -38,21 +43,20 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.hooks.*;
+import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidationHook;
+import org.hisp.dhis.tracker.validation.hooks.TrackedEntityAttributeValidationHook;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-public class DefaultTrackerValidationServiceTest
+@ExtendWith( MockitoExtension.class )
+class DefaultTrackerValidationServiceTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @InjectMocks
     private DefaultTrackerValidationService trackerValidationService;
@@ -69,7 +73,7 @@ public class DefaultTrackerValidationServiceTest
     @Mock
     private User user;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         ReflectionTestUtils.setField( trackerValidationService, "validationHooks",
@@ -77,7 +81,7 @@ public class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldNotValidateMissingUser()
+    void shouldNotValidateMissingUser()
     {
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.SKIP );
         trackerValidationService.validate( bundle );
@@ -85,7 +89,7 @@ public class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldNotValidateSuperUserSkip()
+    void shouldNotValidateSuperUserSkip()
     {
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( true );
@@ -97,7 +101,7 @@ public class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldValidateSuperUserNoSkip()
+    void shouldValidateSuperUserNoSkip()
     {
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( true );
@@ -114,7 +118,7 @@ public class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldValidateHookNoError()
+    void shouldValidateHookNoError()
     {
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( false );
@@ -134,7 +138,7 @@ public class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldValidateHookWithErrors()
+    void shouldValidateHookWithErrors()
     {
         when( bundle.getUser() ).thenReturn( user );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );

@@ -32,14 +32,15 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.IdScheme.UID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,13 +70,12 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
@@ -84,8 +84,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class DataQueryServiceDimensionItemKeywordTest
+@ExtendWith( MockitoExtension.class )
+class DataQueryServiceDimensionItemKeywordTest
 {
+
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -113,9 +115,6 @@ public class DataQueryServiceDimensionItemKeywordTest
     @Mock
     private I18n i18n;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private DefaultDataQueryService target;
 
     private final static DataElement DATA_ELEMENT_1 = buildDataElement( "fbfJHSPpUQD", "D1" );
@@ -130,9 +129,11 @@ public class DataQueryServiceDimensionItemKeywordTest
 
     private OrganisationUnit rootOu;
 
-    private BeanRandomizer beanRandomizer;
+    private final BeanRandomizer rnd = BeanRandomizer.create( Map.of(
+        OrganisationUnitGroup.class, Set.of( "geometry" ),
+        OrganisationUnit.class, Set.of( "geometry", "parent", "groups", "children" ) ) );
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         target = new DefaultDataQueryService( idObjectManager, organisationUnitService, dimensionService,
@@ -146,8 +147,6 @@ public class DataQueryServiceDimensionItemKeywordTest
         rootOu = new OrganisationUnit( "Sierra Leone" );
         rootOu.setUid( CodeGenerator.generateUid() );
         rootOu.setCode( "OU_525" );
-
-        beanRandomizer = new BeanRandomizer();
     }
 
     private void mockDimensionService()
@@ -161,7 +160,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOuLevelToDataQueryParam()
+    void convertAnalyticsRequestWithOuLevelToDataQueryParam()
     {
         mockDimensionService();
 
@@ -191,7 +190,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithMultipleOuLevelToDataQueryParam()
+    void convertAnalyticsRequestWithMultipleOuLevelToDataQueryParam()
     {
         mockDimensionService();
 
@@ -231,7 +230,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithIndicatorGroup()
+    void convertAnalyticsRequestWithIndicatorGroup()
     {
         final String INDICATOR_GROUP_UID = "oehv9EO3vP7";
 
@@ -266,7 +265,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOrgUnitGroup()
+    void convertAnalyticsRequestWithOrgUnitGroup()
     {
         mockDimensionService();
 
@@ -286,7 +285,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOrgUnitGroupAsFilter()
+    void convertAnalyticsRequestWithOrgUnitGroupAsFilter()
     {
         mockDimensionService();
 
@@ -306,7 +305,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOrgUnitLevelAsFilter()
+    void convertAnalyticsRequestWithOrgUnitLevelAsFilter()
     {
         OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
         OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
@@ -346,7 +345,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOrgUnitLevelAndOrgUnitGroupAsFilter()
+    void convertAnalyticsRequestWithOrgUnitLevelAndOrgUnitGroupAsFilter()
     {
         OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
         OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
@@ -354,7 +353,7 @@ public class DataQueryServiceDimensionItemKeywordTest
         OrganisationUnit ou1Group = new OrganisationUnit( "ou1-group" );
         OrganisationUnit ou2Group = new OrganisationUnit( "ou2-group" );
 
-        OrganisationUnitGroup groupOu = beanRandomizer.randomObject( OrganisationUnitGroup.class, "geometry" );
+        OrganisationUnitGroup groupOu = rnd.nextObject( OrganisationUnitGroup.class );
 
         mockDimensionService();
 
@@ -400,7 +399,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithDataElementGroup()
+    void convertAnalyticsRequestWithDataElementGroup()
     {
         when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_2.getUid() ) )
             .thenReturn( DATA_ELEMENT_2 );
@@ -437,7 +436,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup()
+    void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup()
     {
         final String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
         final String INDICATOR_GROUP_UID = "iezv4GO4vD9";
@@ -487,7 +486,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithRelativePeriod()
+    void convertAnalyticsRequestWithRelativePeriod()
     {
         mockDimensionService();
         when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
@@ -514,7 +513,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithRelativePeriodAsFilter()
+    void convertAnalyticsRequestWithRelativePeriodAsFilter()
     {
         mockDimensionService();
         when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
@@ -542,7 +541,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void verifyGetOrgUnitsBasedOnUserOrgUnitType()
+    void verifyGetOrgUnitsBasedOnUserOrgUnitType()
     {
         testGetUserOrgUnits( UserOrgUnitType.DATA_CAPTURE );
         testGetUserOrgUnits( UserOrgUnitType.TEI_SEARCH );
@@ -554,9 +553,8 @@ public class DataQueryServiceDimensionItemKeywordTest
         int orgUnitSize = 10;
         User user = new User();
 
-        Set<OrganisationUnit> orgUnits = new HashSet<>(
-            beanRandomizer.randomObjects( OrganisationUnit.class, orgUnitSize, "geometry", "parent", "groups",
-                "children" ) );
+        Set<OrganisationUnit> orgUnits = rnd.objects( OrganisationUnit.class, orgUnitSize )
+            .collect( Collectors.toSet() );
 
         switch ( userOrgUnitType )
         {

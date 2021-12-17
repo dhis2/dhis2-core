@@ -57,7 +57,7 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.google.common.collect.ImmutableList;
@@ -65,8 +65,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceProgramDataElementTest
-    extends
+class AnalyticsServiceProgramDataElementTest extends
     AnalyticsServiceBaseTest
 {
     /**
@@ -75,7 +74,7 @@ public class AnalyticsServiceProgramDataElementTest
      * Analytics Service
      */
     @Test
-    public void verifyProgramDataElementInQueryCallsEventsAnalytics()
+    void verifyProgramDataElementInQueryCallsEventsAnalytics()
     {
         ArgumentCaptor<EventQueryParams> capturedParams = ArgumentCaptor.forClass( EventQueryParams.class );
 

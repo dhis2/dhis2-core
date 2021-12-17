@@ -45,7 +45,6 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.outbound.OutboundSms;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -76,12 +75,10 @@ public class SmsOutboundController extends AbstractCrudController<OutboundSms>
     public SmsOutboundController(
         @Qualifier( "smsMessageSender" ) MessageSender smsSender,
         RenderService renderService,
-        CurrentUserService currentUserService,
         OutboundSmsService outboundSmsService )
     {
         this.smsSender = smsSender;
         this.renderService = renderService;
-        this.currentUserService = currentUserService;
         this.outboundSmsService = outboundSmsService;
     }
 

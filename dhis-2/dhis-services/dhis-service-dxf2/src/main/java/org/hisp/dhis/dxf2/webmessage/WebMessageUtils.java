@@ -268,6 +268,15 @@ public final class WebMessageUtils
             .setResponse( new ErrorReportsWebMessageResponse( errorReports ) );
     }
 
+    public static TypeReport typeReport( Class clazz, List<ErrorReport> errorReports )
+    {
+        ObjectReport objectReport = new ObjectReport( clazz, 0 );
+        objectReport.addErrorReports( errorReports );
+        TypeReport typeReport = new TypeReport( clazz );
+        typeReport.addObjectReport( objectReport );
+        return typeReport;
+    }
+
     /**
      * Runs the provided validation and throws a {@link WebMessageException}
      * with the {@link #errorReports(List)} in case there are any.

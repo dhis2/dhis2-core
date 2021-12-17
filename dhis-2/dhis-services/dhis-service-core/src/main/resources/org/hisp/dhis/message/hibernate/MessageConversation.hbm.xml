@@ -22,7 +22,9 @@
     <property name="lastUpdated" type="timestamp"  not-null="true"/>
 
     <property name="subject" column="subject" not-null="true" />
-    
+
+    <property name="extMessageId" column="extmessageid" not-null="false" />
+
     <property name="messageType" column="messageType">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.message.MessageType</param>

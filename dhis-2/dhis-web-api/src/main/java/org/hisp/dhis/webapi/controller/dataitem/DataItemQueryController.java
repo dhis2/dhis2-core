@@ -55,6 +55,7 @@ import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -99,7 +100,7 @@ public class DataItemQueryController
      */
     @GetMapping( value = API_RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<RootNode> getJson( @RequestParam
-    final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
+    final Map<String, String> urlParameters, OrderParams orderParams, @CurrentUser User currentUser )
         throws QueryParserException
     {
         log.debug( "Looking for data items (JSON response)" );
@@ -114,7 +115,7 @@ public class DataItemQueryController
      */
     @GetMapping( value = API_RESOURCE_PATH + ".xml", produces = APPLICATION_XML_VALUE )
     public ResponseEntity<RootNode> getXml( @RequestParam
-    final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
+    final Map<String, String> urlParameters, OrderParams orderParams, @CurrentUser User currentUser )
     {
         log.debug( "Looking for data items (XML response)" );
 

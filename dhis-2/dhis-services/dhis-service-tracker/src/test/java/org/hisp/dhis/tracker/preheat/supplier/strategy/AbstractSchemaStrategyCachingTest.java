@@ -31,11 +31,17 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.tracker.TrackerIdentifierCollector.ID_WILDCARD;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -55,20 +61,18 @@ import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 import org.hisp.dhis.tracker.preheat.mappers.CopyMapper;
 import org.hisp.dhis.tracker.preheat.mappers.ProgramMapper;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AbstractSchemaStrategyCachingTest
+@ExtendWith( MockitoExtension.class )
+class AbstractSchemaStrategyCachingTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private PreheatCacheService cache;
@@ -84,23 +88,23 @@ public class AbstractSchemaStrategyCachingTest
 
     private TrackerPreheat preheat;
 
-    private BeanRandomizer rnd;
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         preheat = new TrackerPreheat();
-        rnd = new BeanRandomizer();
     }
 
     @Test
-    public void verifyFetchWildcardObjectsFromDbAndPutInCache()
+    void verifyFetchWildcardObjectsFromDbAndPutInCache()
     {
         // Given
         final Schema schema = new RelationshipTypeSchemaDescriptor().getSchema();
 
         when( manager.getAll( (Class<IdentifiableObject>) schema.getKlass() ) )
-            .thenReturn( (List<IdentifiableObject>) rnd.randomObjects( schema.getKlass(), 5 ) );
+            .thenReturn( (List<IdentifiableObject>) rnd.objects( schema.getKlass(), 5 )
+                .collect( Collectors.toList() ) );
 
         RelationshipTypeStrategy strategy = new RelationshipTypeStrategy( schemaService, queryService,
             manager, cache );
@@ -118,14 +122,14 @@ public class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyObjectInCacheIsReturned()
+    void verifyObjectInCacheIsReturned()
     {
         // Given
         final Schema schema = new ProgramSchemaDescriptor().getSchema();
 
         String UID = CodeGenerator.generateUid();
 
-        Program program = rnd.randomObject( Program.class );
+        Program program = rnd.nextObject( Program.class );
         when( cache.get( Program.class.getSimpleName(), UID ) ).thenReturn( Optional.of( program ) );
 
         ProgramStrategy strategy = new ProgramStrategy( schemaService, queryService,
@@ -140,14 +144,14 @@ public class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache()
+    void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache()
     {
         // Given
         final Schema schema = new ProgramSchemaDescriptor().getSchema();
 
         String UID = CodeGenerator.generateUid();
 
-        Program program = rnd.randomObject( Program.class );
+        Program program = rnd.nextObject( Program.class );
 
         when( cache.get( Program.class.getSimpleName(), UID ) ).thenReturn( Optional.empty() );
 

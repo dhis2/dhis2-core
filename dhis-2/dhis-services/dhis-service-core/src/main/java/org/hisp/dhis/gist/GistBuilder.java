@@ -892,6 +892,7 @@ final class GistBuilder
         case NOT_NULL:
             return "is not null";
         case EQ:
+        case IEQ:
             return "=";
         case NE:
             return "!=";
@@ -1032,6 +1033,10 @@ final class GistBuilder
     private Object getParameterValue( Property property, Filter filter, String value,
         BiFunction<String, Class<?>, Object> argumentParser )
     {
+        if ( isStringLengthFilter( filter, property ) )
+        {
+            return argumentParser.apply( value, Integer.class );
+        }
         if ( value == null || property.getKlass() == String.class )
         {
             return value;

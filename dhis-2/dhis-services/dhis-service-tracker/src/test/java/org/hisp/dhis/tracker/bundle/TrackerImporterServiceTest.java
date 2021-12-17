@@ -30,37 +30,39 @@ package org.hisp.dhis.tracker.bundle;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.tracker.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.ParamsConverter;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerUserService;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
-import org.hisp.dhis.tracker.report.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Zubair Asghar
  */
-public class TrackerImporterServiceTest
+@ExtendWith( MockitoExtension.class )
+class TrackerImporterServiceTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private TrackerBundleService trackerBundleService;
@@ -79,18 +81,18 @@ public class TrackerImporterServiceTest
 
     private DefaultTrackerImportService subject;
 
-    private BeanRandomizer rnd = new BeanRandomizer();
-
     private TrackerImportParams params = null;
 
-    @Before
+    private final BeanRandomizer rnd = BeanRandomizer.create();
+
+    @BeforeEach
     public void setUp()
     {
         subject = new DefaultTrackerImportService( trackerBundleService, trackerValidationService,
             trackerPreprocessService,
             trackerUserService, notifier );
 
-        final List<Event> events = rnd.randomObjects( Event.class, 3 );
+        final List<Event> events = rnd.objects( Event.class, 3 ).collect( Collectors.toList() );
 
         params = TrackerImportParams.builder()
             .events( events )
@@ -114,7 +116,7 @@ public class TrackerImporterServiceTest
     }
 
     @Test
-    public void testSkipSideEffect()
+    void testSkipSideEffect()
     {
         TrackerImportParams parameters = TrackerImportParams.builder()
             .events( params.getEvents() )
@@ -134,7 +136,7 @@ public class TrackerImporterServiceTest
     }
 
     @Test
-    public void testWithSideEffects()
+    void testWithSideEffects()
     {
         doAnswer( invocationOnMock -> null ).when( trackerBundleService ).handleTrackerSideEffects( anyList() );
         when( trackerBundleService.create( any( TrackerImportParams.class ) ) )

@@ -45,7 +45,7 @@ public class RedisEnabledCondition extends PropertiesAwareConfigurationCondition
     {
         if ( !isTestRun( context ) )
         {
-            return getConfiguration().getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
+            return getConfiguration().isEnabled( ConfigurationKey.REDIS_ENABLED );
         }
         return false;
     }

@@ -57,13 +57,9 @@ public enum DhisApiVersion
     V35( 35 ),
     V36( 36 ),
     V37( 37 ),
-    /**
-     * Note: When this becomes the DEFAULT version some e2e tests will start to
-     * fail because web API starts to wrap some responses in a WebMessage.
-     * Solution is to adopt the e2e tests.
-     */
     V38( 38 ),
-    DEFAULT( V37.getVersion() );
+    V39( 39 ),
+    DEFAULT( V38.getVersion() );
 
     final int version;
 

@@ -28,8 +28,23 @@
 package org.hisp.dhis.metadata.metadata_import;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.stringContainsInOrder;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -76,8 +91,8 @@ public class MetadataImportTest
     }
 
     @ParameterizedTest( name = "withImportStrategy[{0}]" )
-    @CsvSource( { "CREATE, ignored", "CREATE_AND_UPDATE, updated" } )
-    public void shouldUpdateExistingMetadata( String importStrategy, String expected )
+    @CsvSource( { "CREATE, ignored, 409", "CREATE_AND_UPDATE, updated, 200" } )
+    public void shouldUpdateExistingMetadata( String importStrategy, String expected, int expectedStatusCode )
     {
         // arrange
         JsonObject exported = metadataActions.get().getBody();
@@ -90,15 +105,16 @@ public class MetadataImportTest
 
         // assert
         response.validate()
-            .statusCode( 200 )
+            .statusCode( expectedStatusCode )
+            .rootPath( "response" )
             .body( "stats", notNullValue() )
-            .rootPath( "stats" )
+            .rootPath( "response.stats" )
             .body( "total", greaterThan( 0 ) )
             .body( "created", Matchers.equalTo( 0 ) )
             .body( "deleted", Matchers.equalTo( 0 ) )
-            .body( "total", equalTo( response.extract( "stats." + expected ) ) );
+            .body( "total", equalTo( response.extract( "response.stats." + expected ) ) );
 
-        List<HashMap> typeReports = response.extractList( "typeReports.stats" );
+        List<HashMap> typeReports = response.extractList( "response.typeReports.stats" );
 
         typeReports.forEach( x -> {
             assertEquals( x.get( expected ), x.get( "total" ), expected + " for " + x + " not equals to total" );
@@ -121,13 +137,14 @@ public class MetadataImportTest
         // assert
         response.validate()
             .statusCode( 200 )
+            .rootPath( "response" )
             .body( "stats", notNullValue() )
             .body( "stats.total", greaterThan( 0 ) )
             .body( "typeReports", notNullValue() )
             .body( "typeReports.stats", notNullValue() )
             .body( "typeReports.objectReports", Matchers.notNullValue() );
 
-        List<HashMap> stats = response.extractList( "typeReports.stats" );
+        List<HashMap> stats = response.extractList( "response.typeReports.stats" );
 
         stats.forEach( x -> {
             assertEquals( x.get( "total" ), x.get( "created" ) );
@@ -168,13 +185,14 @@ public class MetadataImportTest
 
         // assert
         response.validate()
-            .statusCode( 200 )
+            .statusCode( 409 )
+            .rootPath( "response" )
             .body( "stats", notNullValue() )
             .body( "stats.total", greaterThan( 1 ) )
             .body( "stats.ignored", equalTo( 1 ) )
-            .body( "stats.created", equalTo( (Integer) response.extract( "stats.total" ) - 1 ) );
+            .body( "stats.created", equalTo( (Integer) response.extract( "response.stats.total" ) - 1 ) );
 
-        int total = (int) response.extract( "stats.total" );
+        int total = (int) response.extract( "response.stats.total" );
 
         List<ObjectReport> objectReports = getObjectReports( response.getTypeReports() );
 
@@ -292,7 +310,8 @@ public class MetadataImportTest
 
         ApiResponse response = metadataActions.post( object, new QueryParamsBuilder().add( "skipSharing=false" ) );
 
-        response.validate().statusCode( 200 )
+        response.validate().statusCode( 409 )
+            .rootPath( "response" )
             .body( "status", equalTo( "ERROR" ) )
             .body( "stats.created", equalTo( 0 ) )
             .body( "typeReports[0].objectReports[0].errorReports[0].message",
@@ -307,6 +326,7 @@ public class MetadataImportTest
         ApiResponse response = metadataActions.post( metadata, new QueryParamsBuilder().add( "skipSharing=true" ) );
 
         response.validate().statusCode( 200 )
+            .rootPath( "response" )
             .body( "status", is( oneOf( "SUCCESS", "OK" ) ) )
             .body( "stats.created", equalTo( 1 ) );
 

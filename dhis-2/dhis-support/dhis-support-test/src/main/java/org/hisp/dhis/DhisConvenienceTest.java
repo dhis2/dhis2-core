@@ -44,6 +44,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -72,6 +73,7 @@ import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -87,6 +89,8 @@ import org.hisp.dhis.dataset.notifications.DataSetNotificationRecipient;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplate;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTrigger;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.eventvisualization.EventVisualization;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.Operator;
 import org.hisp.dhis.external.location.DefaultLocationManager;
@@ -221,6 +225,8 @@ public abstract class DhisConvenienceTest
 
     protected static final String BASE_TEI_UID = "teibcdefgh";
 
+    protected static final String BASE_PREDICTOR_GROUP_UID = "predictorg";
+
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
 
     public static final String DEFAULT_ADMIN_PASSWORD = "district";
@@ -244,7 +250,7 @@ public abstract class DhisConvenienceTest
 
     protected static CategoryService categoryService;
 
-    private char nextUserName = 'a';
+    private char nextUserName = 'k';
 
     @PostConstruct
     protected void initServices()
@@ -1248,6 +1254,7 @@ public abstract class DhisConvenienceTest
         predictor.setSampleSkipTest( skipTest );
         predictor.setPeriodType( periodType );
         predictor.setOrganisationUnitLevels( organisationUnitLevels );
+        predictor.setOrganisationUnitDescendants( OrganisationUnitDescendants.DESCENDANTS );
         predictor.setSequentialSampleCount( sequentialSampleCount );
         predictor.setAnnualSampleCount( annualSampleCount );
         predictor.setSequentialSkipCount( sequentialSkipCount );
@@ -1259,15 +1266,22 @@ public abstract class DhisConvenienceTest
      * Creates a Predictor Group
      *
      * @param uniqueCharacter A unique character to identify the object.
+     * @param predictors Predictors to add to the group.
      * @return PredictorGroup
      */
-    public static PredictorGroup createPredictorGroup( char uniqueCharacter )
+    public static PredictorGroup createPredictorGroup( char uniqueCharacter, Predictor... predictors )
     {
         PredictorGroup group = new PredictorGroup();
         group.setAutoFields();
 
         group.setName( "PredictorGroup" + uniqueCharacter );
         group.setDescription( "Description" + uniqueCharacter );
+        group.setUid( BASE_PREDICTOR_GROUP_UID + uniqueCharacter );
+
+        for ( Predictor p : predictors )
+        {
+            group.addPredictor( p );
+        }
 
         return group;
     }
@@ -1318,6 +1332,17 @@ public abstract class DhisConvenienceTest
         return visualization;
     }
 
+    public static EventVisualization createEventVisualization( char uniqueCharacter, Program program )
+    {
+        EventVisualization eventVisualization = new EventVisualization( "name-" + uniqueCharacter );
+        eventVisualization.setAutoFields();
+        eventVisualization.setProgram( program );
+        eventVisualization.setName( "EventVisualization" + uniqueCharacter );
+        eventVisualization.setType( EventVisualizationType.COLUMN );
+
+        return eventVisualization;
+    }
+
     public static User createUser( char uniqueCharacter )
     {
         return createUser( uniqueCharacter, Lists.newArrayList() );
@@ -1333,7 +1358,7 @@ public abstract class DhisConvenienceTest
         credentials.setCreatedBy( user );
         user.setUserCredentials( credentials );
 
-        credentials.setUsername( "username" + uniqueCharacter );
+        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
         credentials.setPassword( "password" + uniqueCharacter );
 
         if ( auths != null && !auths.isEmpty() )
@@ -1345,7 +1370,7 @@ public abstract class DhisConvenienceTest
 
         user.setFirstName( "FirstName" + uniqueCharacter );
         user.setSurname( "Surname" + uniqueCharacter );
-        user.setEmail( "Email" + uniqueCharacter );
+        user.setEmail( ("Email" + uniqueCharacter).toLowerCase() );
         user.setPhoneNumber( "PhoneNumber" + uniqueCharacter );
         user.setCode( "UserCode" + uniqueCharacter );
         user.setAutoFields();
@@ -1374,7 +1399,7 @@ public abstract class DhisConvenienceTest
     {
         UserCredentials credentials = new UserCredentials();
         credentials.setName( "UserCredentials" + uniqueCharacter );
-        credentials.setUsername( "Username" + uniqueCharacter );
+        credentials.setUsername( ("username" + uniqueCharacter).toLowerCase() );
         credentials.setPassword( "Password" + uniqueCharacter );
         credentials.setUserInfo( user );
         user.setUserCredentials( credentials );
@@ -2340,17 +2365,22 @@ public abstract class DhisConvenienceTest
         injectSecurityContext( user );
     }
 
+    protected User createUserWithId( String username, String uid, String... authorities )
+    {
+        return _createUser( username, Optional.of( uid ), null, authorities );
+    }
+
     protected User createUser( String username, String... authorities )
     {
-        return _createUser( username, null, authorities );
+        return _createUser( username, Optional.empty(), null, authorities );
     }
 
     protected User createOpenIDUser( String username, String openIDIdentifier )
     {
-        return _createUser( username, openIDIdentifier );
+        return _createUser( username, Optional.empty(), openIDIdentifier );
     }
 
-    private User _createUser( String username, String openIDIdentifier, String... authorities )
+    private User _createUser( String username, Optional<String> uid, String openIDIdentifier, String... authorities )
     {
         checkUserServiceWasInjected();
 
@@ -2358,7 +2388,7 @@ public abstract class DhisConvenienceTest
 
         userService.addUserAuthorityGroup( group );
 
-        User user = createUser( username );
+        User user = uid.isPresent() ? createUser( username, uid.get() ) : createUser( username );
 
         userService.addUser( user );
 
@@ -2417,6 +2447,11 @@ public abstract class DhisConvenienceTest
 
     protected void injectSecurityContext( User user )
     {
+        if ( user == null )
+        {
+            clearSecurityContext();
+            return;
+        }
         UserCredentials credentials = user.getUserCredentials();
         switchCurrentUserTo(
             credentials.getUsername(),
@@ -2498,6 +2533,16 @@ public abstract class DhisConvenienceTest
         SecurityContextHolder.setContext( context );
     }
 
+    private static User createUser( String username, String uid )
+    {
+        User user = new User();
+        user.setCode( username );
+        user.setFirstName( username );
+        user.setSurname( username );
+        user.setUid( uid );
+        return user;
+    }
+
     private static User createUser( String username )
     {
         User user = new User();
@@ -2514,7 +2559,7 @@ public abstract class DhisConvenienceTest
         credentials.setCode( username );
         credentials.setCreatedBy( user );
         credentials.setUserInfo( user );
-        credentials.setUsername( username );
+        credentials.setUsername( username.toLowerCase() );
         credentials.getUserAuthorityGroups().add( group );
 
         if ( !Strings.isNullOrEmpty( openIDIdentifier ) )

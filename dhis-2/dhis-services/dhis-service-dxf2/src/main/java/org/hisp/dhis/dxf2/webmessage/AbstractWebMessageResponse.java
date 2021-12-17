@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
+import org.hisp.dhis.webmessage.WebMessageResponse;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 

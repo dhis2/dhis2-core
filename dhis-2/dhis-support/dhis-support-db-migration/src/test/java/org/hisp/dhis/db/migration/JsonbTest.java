@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.db.migration;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.function.UnaryOperator;
 
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.SharingUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests database migration changes connected to use of JSONB columns and
@@ -41,7 +41,7 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class JsonbTest
+class JsonbTest
 {
 
     /**
@@ -51,7 +51,7 @@ public class JsonbTest
      * that the mapping from and to JSON happening around it also works.
      */
     @Test
-    public void updateSharing()
+    void updateSharing()
         throws Exception
     {
         String actual = SharingUtils.withAccess(

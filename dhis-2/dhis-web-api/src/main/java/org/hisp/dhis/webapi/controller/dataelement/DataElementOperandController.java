@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.dataelement;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import lombok.RequiredArgsConstructor;
 
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -59,7 +60,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.DataElementOperandSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -81,6 +82,7 @@ import com.google.common.collect.Lists;
 @Controller
 @RequestMapping( value = DataElementOperandSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequiredArgsConstructor
 public class DataElementOperandController
 {
     private final IdentifiableObjectManager manager;
@@ -97,42 +99,16 @@ public class DataElementOperandController
 
     private final CategoryService dataElementCategoryService;
 
-    private final CurrentUserService currentUserService;
-
     private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
     {
     }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
-    public DataElementOperandController( IdentifiableObjectManager manager, QueryService queryService,
-        FieldFilterService fieldFilterService, LinkService linkService, ContextService contextService,
-        SchemaService schemaService,
-        CategoryService dataElementCategoryService, CurrentUserService currentUserService )
-    {
-        checkNotNull( manager );
-        checkNotNull( queryService );
-        checkNotNull( fieldFilterService );
-        checkNotNull( linkService );
-        checkNotNull( contextService );
-        checkNotNull( schemaService );
-        checkNotNull( dataElementCategoryService );
-        checkNotNull( currentUserService );
-
-        this.manager = manager;
-        this.queryService = queryService;
-        this.fieldFilterService = fieldFilterService;
-        this.linkService = linkService;
-        this.contextService = contextService;
-        this.schemaService = schemaService;
-        this.dataElementCategoryService = dataElementCategoryService;
-        this.currentUserService = currentUserService;
-    }
-
     @GetMapping
     @SuppressWarnings( "unchecked" )
     public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters,
-        OrderParams orderParams )
+        OrderParams orderParams, @CurrentUser User currentUser )
         throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( DataElementOperand.class );
@@ -205,7 +181,7 @@ public class DataElementOperandController
 
             // fetch the count for the current query from a short-lived cache
             long cachedCountTotal = paginationCountCache.computeIfAbsent(
-                calculatePaginationCountKey( currentUserService.getCurrentUser(), filters, options ),
+                calculatePaginationCountKey( currentUser, filters, options ),
                 () -> countTotal );
             pager = new Pager( options.getPage(), cachedCountTotal, options.getPageSize() );
             linkService.generatePagerLinks( pager, DataElementOperand.class );

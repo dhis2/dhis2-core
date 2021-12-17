@@ -35,5 +35,6 @@ public enum MessageType
     PRIVATE,
     SYSTEM,
     VALIDATION_RESULT,
-    TICKET
+    TICKET,
+    SYSTEM_VERSION_UPDATE,
 }

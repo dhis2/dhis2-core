@@ -158,6 +158,28 @@ public class ConfigurationController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
+    @PostMapping( "/systemUpdateNotificationRecipients" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void setSystemUpdateNotificationRecipients( @RequestBody String uid )
+        throws NotFoundException
+    {
+        uid = trim( uid );
+
+        UserGroup group = identifiableObjectManager.get( UserGroup.class, uid );
+
+        if ( group == null )
+        {
+            throw new NotFoundException( "User group", uid );
+        }
+
+        Configuration config = configurationService.getConfiguration();
+
+        config.setSystemUpdateNotificationRecipients( group );
+
+        configurationService.setConfiguration( config );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
     @DeleteMapping( "/feedbackRecipients" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void removeFeedbackRecipients()

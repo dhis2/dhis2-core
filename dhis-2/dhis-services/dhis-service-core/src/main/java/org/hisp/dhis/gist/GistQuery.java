@@ -289,6 +289,7 @@ public final class GistQuery
         NULL( "null" ),
         NOT_NULL( "!null" ),
         EQ( "eq" ),
+        IEQ( "ieq" ),
         NE( "!eq", "ne", "neq" ),
 
         // numeric comparison
@@ -356,12 +357,12 @@ public final class GistQuery
 
         public boolean isIdentityCompare()
         {
-            return this == NULL || this == NOT_NULL || this == EQ || this == NE;
+            return this == NULL || this == NOT_NULL || this == EQ || this == IEQ || this == NE;
         }
 
         public boolean isOrderCompare()
         {
-            return this == EQ || this == NE || isNumericCompare();
+            return this == EQ || this == IEQ || this == NE || isNumericCompare();
         }
 
         public boolean isNumericCompare()
@@ -371,10 +372,10 @@ public final class GistQuery
 
         public boolean isCollectionCompare()
         {
-            return isContainsCompare() || isSizeCompare();
+            return isContainsCompare() || isEmptinessCompare();
         }
 
-        public boolean isSizeCompare()
+        public boolean isEmptinessCompare()
         {
             return this == EMPTY || this == NOT_EMPTY;
         }
@@ -396,7 +397,7 @@ public final class GistQuery
 
         public boolean isCaseInsensitive()
         {
-            return ordinal() >= ILIKE.ordinal() && ordinal() <= NOT_ENDS_WITH.ordinal();
+            return this == IEQ || ordinal() >= ILIKE.ordinal() && ordinal() <= NOT_ENDS_WITH.ordinal();
         }
     }
 

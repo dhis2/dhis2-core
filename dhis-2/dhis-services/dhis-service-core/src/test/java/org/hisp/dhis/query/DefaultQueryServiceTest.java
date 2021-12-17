@@ -43,21 +43,19 @@ import org.hisp.dhis.query.planner.DefaultQueryPlanner;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class DefaultQueryServiceTest
+@ExtendWith( MockitoExtension.class )
+class DefaultQueryServiceTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private DefaultQueryService subject;
 
@@ -73,7 +71,7 @@ public class DefaultQueryServiceTest
     @Mock
     private SchemaService schemaService;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         QueryPlanner queryPlanner = new DefaultQueryPlanner( schemaService );
@@ -81,7 +79,7 @@ public class DefaultQueryServiceTest
     }
 
     @Test
-    public void verifyQueryEngineUsesPaginationInformation()
+    void verifyQueryEngineUsesPaginationInformation()
     {
         Query query = Query.from( new OrganisationUnitSchemaDescriptor().getSchema() );
         query.setFirstResult( 100 );

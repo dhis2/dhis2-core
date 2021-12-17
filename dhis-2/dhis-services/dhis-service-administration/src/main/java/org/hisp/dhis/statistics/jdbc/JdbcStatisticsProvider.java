@@ -85,6 +85,7 @@ public class JdbcStatisticsProvider
         map.put( Objects.USER, query( "select count(*) from users;" ) );
         map.put( Objects.USERGROUP, query( "select count(*) from usergroup;" ) );
         map.put( Objects.VISUALIZATION, query( "select count(*) from visualization;" ) );
+        map.put( Objects.EVENTVISUALIZATION, query( "select count(*) from eventvisualization;" ) );
         map.put( Objects.MAP, query( "select count(*) from map;" ) );
         map.put( Objects.DASHBOARD, query( "select count(*) from dashboard;" ) );
 

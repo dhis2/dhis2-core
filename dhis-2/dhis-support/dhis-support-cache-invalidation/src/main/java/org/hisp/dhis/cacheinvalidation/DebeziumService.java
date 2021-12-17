@@ -175,7 +175,24 @@ public class DebeziumService
                 + "public.userroleauthorities,"
                 + "public.oauth_access_token,"
                 + "public.oauth_refresh_token,"
-                + "public.oauth_code," + excludeList );
+                + "public.userteisearchorgunits,"
+                + "public.usermembership,"
+                + "public.userdatavieworgunits,"
+                + "public.userteisearchorgunits,"
+                + "public.userrolemembers,"
+                + "public.usergroupmembers,"
+                + "public.previouspasswords,"
+                + "public.program_organisationunits,"
+                + "public.orgunitgroupmembers,"
+                + "public.orgunitgroupsetmembers,"
+                + "public.dataelementgroupmembers,"
+                + "public.programinstancecomments,"
+                + "public.programstageinstancecomments,"
+                + "public.messageconversation_usermessages,"
+                + "public.messageconversation_messages,"
+                + "public.oauth2clientgranttypes,"
+                + "public.trackedentityinstanceaudit,"
+                + excludeList );
 
         return props;
     }

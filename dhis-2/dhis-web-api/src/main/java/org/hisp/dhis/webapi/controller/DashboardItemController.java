@@ -39,6 +39,8 @@ import org.hisp.dhis.dashboard.DashboardService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.schema.descriptors.DashboardItemSchemaDescriptor;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -64,7 +66,7 @@ public class DashboardItemController
     @PutMapping( "/{uid}/shape/{shape}" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void putDashboardItemShape( @PathVariable String uid, @PathVariable DashboardItemShape shape,
-        HttpServletRequest request, HttpServletResponse response )
+        @CurrentUser User currentUser, HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
         DashboardItem item = dashboardService.getDashboardItem( uid );
@@ -76,7 +78,7 @@ public class DashboardItemController
 
         Dashboard dashboard = dashboardService.getDashboardFromDashboardItem( item );
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), dashboard ) )
+        if ( !aclService.canUpdate( currentUser, dashboard ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this dashboard." );
         }

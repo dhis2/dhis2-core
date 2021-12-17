@@ -63,6 +63,8 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.MergeParams;
 import org.hisp.dhis.schema.descriptors.MapSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -129,7 +131,8 @@ public class MapController
     @PutMapping( value = "/{uid}", consumes = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     @ResponseBody
-    public WebMessage putJsonObject( @PathVariable String uid, HttpServletRequest request )
+    public WebMessage putJsonObject( @PathVariable String uid, @CurrentUser User currentUser,
+        HttpServletRequest request )
         throws Exception
     {
         Map map = mappingService.getMap( uid );

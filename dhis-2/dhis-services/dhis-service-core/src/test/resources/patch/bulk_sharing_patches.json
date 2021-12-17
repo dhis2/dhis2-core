@@ -1,0 +1,54 @@
+{
+  "dataElements": {
+    "fbfJHSPpUQD": [
+      {
+        "op": "replace",
+        "path": "/sharing/users",
+        "value": {
+          "NOOF56dveaZ": {
+            "access": "rw------",
+            "id": "NOOF56dveaZ"
+          },
+          "Kh68cDMwZsg": {
+            "access": "rw------",
+            "id": "Kh68cDMwZsg"
+          }
+        }
+      }
+    ],
+    "cYeuwXTCPkU": [
+      {
+        "op": "replace",
+        "path": "/sharing/users",
+        "value": {
+          "NOOF56dveaZ": {
+            "access": "rw------",
+            "id": "NOOF56dveaZ"
+          },
+          "Kh68cDMwZsg": {
+            "access": "rw------",
+            "id": "Kh68cDMwZsg"
+          }
+        }
+      }
+    ]
+  },
+  "dataSets": {
+    "em8Bg4LCr5k": [
+      {
+        "op": "replace",
+        "path": "/sharing/users",
+        "value": {
+          "NOOF56dveaZ": {
+            "access": "rw------",
+            "id": "NOOF56dveaZ"
+          },
+          "Kh68cDMwZsg": {
+            "access": "rw------",
+            "id": "Kh68cDMwZsg"
+          }
+        }
+      }
+    ]
+  }
+}

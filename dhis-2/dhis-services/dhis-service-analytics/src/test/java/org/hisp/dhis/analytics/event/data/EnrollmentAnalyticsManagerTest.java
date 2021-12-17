@@ -32,7 +32,9 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
@@ -67,14 +69,15 @@ import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -83,8 +86,9 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Luciano Fiandesio
  */
-public class EnrollmentAnalyticsManagerTest
-    extends
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EnrollmentAnalyticsManagerTest extends
     EventAnalyticsTest
 {
 
@@ -102,14 +106,13 @@ public class EnrollmentAnalyticsManagerTest
     @Captor
     private ArgumentCaptor<String> sql;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode";
 
     private final String TABLE_NAME = "analytics_enrollment";
 
-    @Before
+    private final BeanRandomizer rnd = BeanRandomizer.create();
+
+    @BeforeEach
     public void setUp()
     {
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );
@@ -123,7 +126,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyWithProgramAndStartEndDate()
+    void verifyWithProgramAndStartEndDate()
     {
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
             .withStartDate( getDate( 2017, 1, 1 ) ).withEndDate( getDate( 2017, 12, 31 ) ).build();
@@ -140,7 +143,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyWithLastUpdatedTimeField()
+    void verifyWithLastUpdatedTimeField()
     {
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
             .withStartDate( getDate( 2017, 1, 1 ) ).withEndDate( getDate( 2017, 12, 31 ) )
@@ -159,13 +162,13 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyWithProgramStageAndNumericDataElement()
+    void verifyWithProgramStageAndNumericDataElement()
     {
         verifyWithProgramStageAndNumericDataElement( ValueType.NUMBER );
     }
 
     @Test
-    public void verifyWithProgramStageAndTextDataElement()
+    void verifyWithProgramStageAndTextDataElement()
     {
         verifyWithProgramStageAndNumericDataElement( ValueType.TEXT );
     }
@@ -195,7 +198,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyWithProgramStageAndTextualDataElementAndFilter()
+    void verifyWithProgramStageAndTextualDataElementAndFilter()
     {
 
         EventQueryParams params = createRequestParamsWithFilter( programStage, ValueType.TEXT );
@@ -217,7 +220,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyWithProgramStageAndNumericDataElementAndFilter2()
+    void verifyWithProgramStageAndNumericDataElementAndFilter2()
     {
 
         EventQueryParams params = createRequestParamsWithFilter( programStage, ValueType.NUMBER );
@@ -240,7 +243,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetEnrollmentsWithMissingValueEqFilter()
+    void verifyGetEnrollmentsWithMissingValueEqFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -254,7 +257,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetEnrollmentsWithMissingValueNeFilter()
+    void verifyGetEnrollmentsWithMissingValueNeFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -267,7 +270,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetEnrollmentsWithMissingValueAndNumericValuesInFilter()
+    void verifyGetEnrollmentsWithMissingValueAndNumericValuesInFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -283,7 +286,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetEnrollmentsWithoutMissingValueAndNumericValuesInFilter()
+    void verifyGetEnrollmentsWithoutMissingValueAndNumericValuesInFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -298,7 +301,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetEnrollmentsWithOnlyMissingValueInFilter()
+    void verifyGetEnrollmentsWithOnlyMissingValueInFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -326,7 +329,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei()
+    void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei()
     {
         Date startDate = getDate( 2015, 1, 1 );
         Date endDate = getDate( 2017, 4, 8 );
@@ -365,7 +368,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyWithProgramIndicatorAndRelationshipTypeDifferentConstraint()
+    void verifyWithProgramIndicatorAndRelationshipTypeDifferentConstraint()
     {
         Date startDate = getDate( 2015, 1, 1 );
         Date endDate = getDate( 2017, 4, 8 );
@@ -413,7 +416,7 @@ public class EnrollmentAnalyticsManagerTest
     private RelationshipType createRelationshipType( RelationshipEntity fromConstraint,
         RelationshipEntity toConstraint )
     {
-        RelationshipType relationshipTypeA = new BeanRandomizer().randomObject( RelationshipType.class );
+        RelationshipType relationshipTypeA = rnd.nextObject( RelationshipType.class );
 
         RelationshipConstraint from = new RelationshipConstraint();
         from.setRelationshipEntity( fromConstraint );
@@ -437,7 +440,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei2()
+    void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei2()
     {
         Date startDate = getDate( 2015, 1, 1 );
         Date endDate = getDate( 2017, 4, 8 );
@@ -476,7 +479,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetColumnOfTypeCoordinateAndNoProgramStages()
+    void verifyGetColumnOfTypeCoordinateAndNoProgramStages()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -492,7 +495,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetColumnOfTypeCoordinateAndWithProgramStages()
+    void verifyGetColumnOfTypeCoordinateAndWithProgramStages()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -514,7 +517,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetCoordinateColumnAndNoProgramStage()
+    void verifyGetCoordinateColumnAndNoProgramStage()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -541,7 +544,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetCoordinateColumnWithProgramStage()
+    void verifyGetCoordinateColumnWithProgramStage()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -568,7 +571,7 @@ public class EnrollmentAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetCoordinateColumnWithNoProgram()
+    void verifyGetCoordinateColumnWithNoProgram()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );

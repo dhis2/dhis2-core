@@ -53,6 +53,7 @@ import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenType;
+import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -104,14 +105,14 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
 
     @Override
     public void partialUpdateObject( String pvUid, Map<String, String> rpParameters,
-        HttpServletRequest request )
+        @CurrentUser User currentUser, HttpServletRequest request )
     {
         throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
     }
 
     @Override
     public void updateObjectProperty( String pvUid, String pvProperty, Map<String, String> rpParameters,
-        HttpServletRequest request )
+        @CurrentUser User currentUser, HttpServletRequest request )
     {
         throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
     }

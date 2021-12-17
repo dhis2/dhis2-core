@@ -181,39 +181,13 @@ public class DefaultSystemService
 
     private SystemInfo getFixedSystemInfo()
     {
-        SystemInfo info = new SystemInfo();
-
         Configuration config = configurationService.getConfiguration();
 
         // ---------------------------------------------------------------------
         // Version
         // ---------------------------------------------------------------------
 
-        ClassPathResource resource = new ClassPathResource( "build.properties" );
-
-        if ( resource.isReadable() )
-        {
-            try ( InputStream in = resource.getInputStream() )
-            {
-                Properties properties = new Properties();
-
-                properties.load( in );
-
-                info.setVersion( properties.getProperty( "build.version" ) );
-                info.setRevision( properties.getProperty( "build.revision" ) );
-                info.setJasperReportsVersion( properties.getProperty( "jasperreports.version" ) );
-
-                String buildTime = properties.getProperty( "build.time" );
-
-                DateTimeFormatter dateFormat = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" );
-
-                info.setBuildTime( new DateTime( dateFormat.parseDateTime( buildTime ) ).toDate() );
-            }
-            catch ( IOException ex )
-            {
-                // Do nothing
-            }
-        }
+        SystemInfo info = loadBuildProperties();
 
         // ---------------------------------------------------------------------
         // External directory
@@ -238,7 +212,7 @@ public class DefaultSystemService
         info.setSystemMonitoringUrl( dhisConfig.getProperty( ConfigurationKey.SYSTEM_MONITORING_URL ) );
         info.setSystemId( config.getSystemId() );
         info.setClusterHostname( dhisConfig.getProperty( ConfigurationKey.CLUSTER_HOSTNAME ) );
-        info.setRedisEnabled( Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.REDIS_ENABLED ) ) );
+        info.setRedisEnabled( dhisConfig.isEnabled( ConfigurationKey.REDIS_ENABLED ) );
 
         if ( info.isRedisEnabled() )
         {
@@ -276,6 +250,38 @@ public class DefaultSystemService
         info.setMemoryInfo( SystemUtils.getMemoryString() );
         info.setCpuCores( SystemUtils.getCpuCores() );
         info.setEncryption( dhisConfig.getEncryptionStatus().isOk() );
+
+        return info;
+    }
+
+    public static SystemInfo loadBuildProperties()
+    {
+        SystemInfo info = new SystemInfo();
+        ClassPathResource resource = new ClassPathResource( "build.properties" );
+
+        if ( resource.isReadable() )
+        {
+            try ( InputStream in = resource.getInputStream() )
+            {
+                Properties properties = new Properties();
+
+                properties.load( in );
+
+                info.setVersion( properties.getProperty( "build.version" ) );
+                info.setRevision( properties.getProperty( "build.revision" ) );
+                info.setJasperReportsVersion( properties.getProperty( "jasperreports.version" ) );
+
+                String buildTime = properties.getProperty( "build.time" );
+
+                DateTimeFormatter dateFormat = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ss" );
+
+                info.setBuildTime( new DateTime( dateFormat.parseDateTime( buildTime ) ).toDate() );
+            }
+            catch ( IOException ex )
+            {
+                // Do nothing
+            }
+        }
 
         return info;
     }

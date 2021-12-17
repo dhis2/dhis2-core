@@ -539,7 +539,7 @@ public class DefaultDataSetNotificationService
     {
         messages.forEach( m -> internalMessageService.sendMessage(
             new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(),
-                MessageType.SYSTEM )
+                MessageType.SYSTEM, null )
                     .build() ) );
     }
 

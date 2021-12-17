@@ -98,6 +98,20 @@ public class HibernateUserCredentialsStore
     }
 
     @Override
+    public List<UserCredentials> getHasAuthority( String authority )
+    {
+        String hql = "select distinct uc2 from UserCredentials uc2 " +
+            "inner join uc2.userAuthorityGroups ag2 " +
+            "inner join ag2.authorities a " +
+            "where :authority in elements(a)";
+
+        Query<UserCredentials> query = getQuery( hql );
+        query.setParameter( "authority", authority );
+
+        return query.getResultList();
+    }
+
+    @Override
     public List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames )
     {
         if ( usernames == null || usernames.isEmpty() )

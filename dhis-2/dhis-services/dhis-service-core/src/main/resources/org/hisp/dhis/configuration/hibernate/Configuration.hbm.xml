@@ -14,6 +14,9 @@
 
     <property name="systemId" column="systemid" />
 
+    <many-to-one name="systemUpdateNotificationRecipients" class="org.hisp.dhis.user.UserGroup"
+                 column="systemupdatenotificationrecipientsid" foreign-key="fk_configuration_systemupdatenotification_recipients" />
+
     <many-to-one name="feedbackRecipients" class="org.hisp.dhis.user.UserGroup"
         column="feedbackrecipientsid" foreign-key="fk_configuration_feedback_recipients" />
 

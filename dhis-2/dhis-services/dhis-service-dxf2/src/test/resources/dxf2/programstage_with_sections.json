@@ -133,6 +133,8 @@
         "F_DASHBOARD_PUBLIC_ADD",
         "F_METADATA_IMPORT",
         "F_VISUALIZATION_PUBLIC_ADD",
+        "F_EVENT_VISUALIZATION_PUBLIC_ADD",
+        "F_EVENT_VISUALIZATION_EXTERNAL",
         "F_VIEW_UNAPPROVED_DATA",
         "F_VISUALIZATION_EXTERNAL",
         "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
@@ -262,6 +264,17 @@
       "created": "2016-03-08T07:27:22.448+0000",
       "level": 1,
       "lastUpdated": "2016-03-08T07:27:22.449+0000"
+    }
+  ],
+  "programs": [
+    {
+      "id": "JEMRBUHgpqA",
+      "name": "test Program",
+      "shortName": "test Program",
+      "programType":"WITH_REGISTRATION",
+      "programStages": [
+        {"id": "NpsdDv6kKSO"}
+      ]
     }
   ],
   "programStages": [
