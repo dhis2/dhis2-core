@@ -89,11 +89,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.Sets;
 
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentSMSListenerTest
-    extends
+class EnrollmentSMSListenerTest extends
     CompressionSMSListenerTest
 {
-    // Needed for parent
 
     @Mock
     private UserService userService;
@@ -222,7 +220,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentNoEvents()
+    void testEnrollmentNoEvents()
     {
         when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
             .thenReturn( trackedEntityAttribute );
@@ -237,7 +235,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentWithEvents()
+    void testEnrollmentWithEvents()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
@@ -255,7 +253,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentWithEventsRepeat()
+    void testEnrollmentWithEventsRepeat()
     {
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
@@ -274,7 +272,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentWithNulls()
+    void testEnrollmentWithNulls()
     {
         when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
             .thenReturn( trackedEntityAttribute );
@@ -289,7 +287,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentNoAttribs()
+    void testEnrollmentNoAttribs()
     {
         subject.receive( incomingSmsEnrollmentNoAttribs );
 
@@ -301,7 +299,7 @@ public class EnrollmentSMSListenerTest
     }
 
     @Test
-    public void testEnrollmentEventWithNulls()
+    void testEnrollmentEventWithNulls()
     {
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
@@ -321,7 +319,7 @@ public class EnrollmentSMSListenerTest
     // For now there's no warning if an event within the event
     // list has no values. This might be changed in the future.
     @Test
-    public void testEnrollmentEventNoValues()
+    void testEnrollmentEventNoValues()
     {
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );

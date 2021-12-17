@@ -77,7 +77,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
+class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
 {
 
     private HibernateDataApprovalStore dataApprovalStore;
@@ -264,7 +264,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testGetDataApprovalStatusesWithOpenPeriodsAfterCoEndDate()
+    void testGetDataApprovalStatusesWithOpenPeriodsAfterCoEndDate()
     {
         transactionTemplate.execute( status -> {
 
@@ -332,7 +332,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithNoAccess()
+    void testApprovalStatusWithNoAccess()
     {
         transactionTemplate.execute( status -> {
 
@@ -343,7 +343,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithOtherUserAccess()
+    void testApprovalStatusWithOtherUserAccess()
     {
         transactionTemplate.execute( status -> {
 
@@ -363,7 +363,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithPublic()
+    void testApprovalStatusWithPublic()
     {
         transactionTemplate.execute( status -> {
 
@@ -377,7 +377,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithOwner()
+    void testApprovalStatusWithOwner()
     {
         transactionTemplate.execute( status -> {
 
@@ -391,7 +391,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithUserSharing()
+    void testApprovalStatusWithUserSharing()
     {
         transactionTemplate.execute( status -> {
 
@@ -405,7 +405,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testApprovalStatusWithUserGroupSharing()
+    void testApprovalStatusWithUserGroupSharing()
     {
         transactionTemplate.execute( status -> {
 

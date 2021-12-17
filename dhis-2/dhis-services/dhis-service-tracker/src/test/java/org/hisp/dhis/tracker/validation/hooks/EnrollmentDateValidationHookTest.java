@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentDateValidationHookTest
+class EnrollmentDateValidationHookTest
 {
 
     private EnrollmentDateValidationHook hookToTest;
@@ -72,7 +72,7 @@ public class EnrollmentDateValidationHookTest
     }
 
     @Test
-    public void testMandatoryDatesMustBePresent()
+    void testMandatoryDatesMustBePresent()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );
@@ -89,7 +89,7 @@ public class EnrollmentDateValidationHookTest
     }
 
     @Test
-    public void testDatesMustNotBeInTheFuture()
+    void testDatesMustNotBeInTheFuture()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );
@@ -110,7 +110,7 @@ public class EnrollmentDateValidationHookTest
     }
 
     @Test
-    public void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed()
+    void testDatesShouldBeAllowedOnSameDayIfFutureDatesAreNotAllowed()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );
@@ -129,7 +129,7 @@ public class EnrollmentDateValidationHookTest
     }
 
     @Test
-    public void testDatesCanBeInTheFuture()
+    void testDatesCanBeInTheFuture()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );
@@ -151,7 +151,7 @@ public class EnrollmentDateValidationHookTest
     }
 
     @Test
-    public void testFailOnMissingOccurredAtDate()
+    void testFailOnMissingOccurredAtDate()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( CodeGenerator.generateUid() );

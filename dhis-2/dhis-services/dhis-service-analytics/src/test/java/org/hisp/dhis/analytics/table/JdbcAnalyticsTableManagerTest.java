@@ -73,7 +73,7 @@ import com.google.common.collect.Lists;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class JdbcAnalyticsTableManagerTest
+class JdbcAnalyticsTableManagerTest
 {
 
     @Mock
@@ -95,7 +95,7 @@ public class JdbcAnalyticsTableManagerTest
     }
 
     @Test
-    public void testGetRegularAnalyticsTable()
+    void testGetRegularAnalyticsTable()
     {
         Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();
         List<Integer> dataYears = Lists.newArrayList( 2018, 2019 );
@@ -132,7 +132,7 @@ public class JdbcAnalyticsTableManagerTest
     }
 
     @Test
-    public void testGetLatestAnalyticsTable()
+    void testGetLatestAnalyticsTable()
     {
         Date lastFullTableUpdate = new DateTime( 2019, 3, 1, 2, 0 ).toDate();
         Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
@@ -171,7 +171,7 @@ public class JdbcAnalyticsTableManagerTest
     }
 
     @Test
-    public void testGetLatestAnalyticsTableNoFullTableUpdate()
+    void testGetLatestAnalyticsTableNoFullTableUpdate()
     {
         Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
         Date startTime = new DateTime( 2019, 3, 1, 10, 0 ).toDate();

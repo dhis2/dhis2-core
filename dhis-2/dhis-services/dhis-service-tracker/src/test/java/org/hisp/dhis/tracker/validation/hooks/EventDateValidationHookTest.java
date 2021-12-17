@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EventDateValidationHookTest extends DhisConvenienceTest
+class EventDateValidationHookTest extends DhisConvenienceTest
 {
 
     private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
@@ -98,7 +98,7 @@ public class EventDateValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testEventIsValid()
+    void testEventIsValid()
     {
         // given
         Event event = new Event();
@@ -120,7 +120,7 @@ public class EventDateValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration()
+    void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration()
     {
         // given
         Event event = new Event();
@@ -138,7 +138,7 @@ public class EventDateValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive()
+    void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive()
     {
         // given
         Event event = new Event();
@@ -156,7 +156,7 @@ public class EventDateValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted()
+    void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted()
     {
         // given
         Event event = new Event();
@@ -174,7 +174,7 @@ public class EventDateValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule()
+    void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule()
     {
         // given
         Event event = new Event();
@@ -193,7 +193,7 @@ public class EventDateValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testEventIsNotValidWhenCompletedAtIsNotPresentAndEventIsCompleted()
+    void testEventIsNotValidWhenCompletedAtIsNotPresentAndEventIsCompleted()
     {
         // given
         Event event = new Event();
@@ -212,7 +212,7 @@ public class EventDateValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted()
+    void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted()
     {
         // given
         Event event = new Event();
@@ -232,7 +232,7 @@ public class EventDateValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent()
+    void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent()
     {
         // given
         Event event = new Event();
@@ -252,7 +252,7 @@ public class EventDateValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testEventIsNotValidWhenDateBelongsToExpiredPeriod()
+    void testEventIsNotValidWhenDateBelongsToExpiredPeriod()
     {
         // given
         Event event = new Event();

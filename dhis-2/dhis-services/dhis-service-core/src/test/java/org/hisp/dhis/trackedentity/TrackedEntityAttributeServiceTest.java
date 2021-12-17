@@ -122,14 +122,14 @@ class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void shouldThrowWhenTeaIsNull()
+    void shouldThrowWhenTeaIsNull()
     {
         assertThrows( IllegalArgumentException.class,
             () -> trackedEntityAttributeService.validateValueType( null, "" ) );
     }
 
     @Test
-    public void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
+    void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
     {
         when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
@@ -143,7 +143,7 @@ class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void differentTeiWithTheSameUniqueAttributeExistsInSystem()
+    void differentTeiWithTheSameUniqueAttributeExistsInSystem()
     {
         when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
@@ -157,7 +157,7 @@ class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void attributeIsUniqueWithinTheSystem()
+    void attributeIsUniqueWithinTheSystem()
     {
         when( trackedEntityAttributeStore
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
@@ -171,7 +171,7 @@ class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void wrongValueToValueType()
+    void wrongValueToValueType()
     {
         tea.setValueType( ValueType.NUMBER );
         String teaValue = "Firstname";
@@ -185,7 +185,7 @@ class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void wrongValueToDateValueType()
+    void wrongValueToDateValueType()
     {
         tea.setValueType( ValueType.DATE );
         String teaValue = "Firstname";
@@ -194,7 +194,7 @@ class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void correctValueToValueType()
+    void correctValueToValueType()
     {
         String teaValue = "Firstname";
         tea.setValueType( ValueType.TEXT );
@@ -219,7 +219,7 @@ class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void successWhenTeaOptionValueIsValid()
+    void successWhenTeaOptionValueIsValid()
     {
         tea.setUid( "uid" );
 
@@ -237,7 +237,7 @@ class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void failWhenTeaOptionValueIsNotValid()
+    void failWhenTeaOptionValueIsNotValid()
     {
         tea.setUid( "uid" );
 
@@ -255,7 +255,7 @@ class TrackedEntityAttributeServiceTest
     }
 
     @Test
-    public void doNothingWhenTeaOptionValueIsNull()
+    void doNothingWhenTeaOptionValueIsNull()
     {
         tea.setUid( "uid" );
         assertNull( trackedEntityAttributeService.validateValueType( tea, "COE" ) );

@@ -54,7 +54,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author aamerm
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataSyncDelegateTest
+class MetadataSyncDelegateTest
 {
 
     @InjectMocks
@@ -70,7 +70,7 @@ public class MetadataSyncDelegateTest
     private RenderService renderService;
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInLocal()
+    void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInLocal()
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         SystemInfo systemInfo = new SystemInfo();
@@ -80,7 +80,7 @@ public class MetadataSyncDelegateTest
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInRemote()
+    void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInRemote()
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         SystemInfo systemInfo = new SystemInfo();
@@ -91,7 +91,7 @@ public class MetadataSyncDelegateTest
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnTrueIfDHISVersionMismatch()
+    void testShouldVerifyIfStopSyncReturnTrueIfDHISVersionMismatch()
         throws IOException
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\","
@@ -112,7 +112,7 @@ public class MetadataSyncDelegateTest
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfDHISVersionSame()
+    void testShouldVerifyIfStopSyncReturnFalseIfDHISVersionSame()
         throws IOException
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
@@ -131,7 +131,7 @@ public class MetadataSyncDelegateTest
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfStopSyncIsNotSet()
+    void testShouldVerifyIfStopSyncReturnFalseIfStopSyncIsNotSet()
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         SystemInfo systemInfo = new SystemInfo();

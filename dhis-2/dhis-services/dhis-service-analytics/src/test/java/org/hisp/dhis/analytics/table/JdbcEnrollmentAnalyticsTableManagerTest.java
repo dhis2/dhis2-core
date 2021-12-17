@@ -68,7 +68,7 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class JdbcEnrollmentAnalyticsTableManagerTest
+class JdbcEnrollmentAnalyticsTableManagerTest
 {
 
     @Mock
@@ -94,7 +94,7 @@ public class JdbcEnrollmentAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable()
+    void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );

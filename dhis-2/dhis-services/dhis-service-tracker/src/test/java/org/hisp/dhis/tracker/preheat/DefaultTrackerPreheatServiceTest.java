@@ -61,7 +61,7 @@ import com.google.common.collect.ImmutableList;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class DefaultTrackerPreheatServiceTest
+class DefaultTrackerPreheatServiceTest
 {
     @Mock
     private IdentifiableObjectManager manager;
@@ -96,7 +96,7 @@ public class DefaultTrackerPreheatServiceTest
     }
 
     @Test
-    public void shouldGetFromContextAndAdd()
+    void shouldGetFromContextAndAdd()
     {
         when( applicationContext.getBean( bean.capture(), preheatSupplierClassCaptor.capture() ) )
             .thenReturn( classBasedSupplier );
@@ -111,7 +111,7 @@ public class DefaultTrackerPreheatServiceTest
     }
 
     @Test
-    public void shouldDoNothingWhenSupplierBeanNotFound()
+    void shouldDoNothingWhenSupplierBeanNotFound()
     {
         when( applicationContext.getBean( bean.capture(), preheatSupplierClassCaptor.capture() ) )
             .thenThrow( new BeanCreationException( "e" ) );
@@ -124,7 +124,7 @@ public class DefaultTrackerPreheatServiceTest
     }
 
     @Test
-    public void shouldDoNothingWhenAddException()
+    void shouldDoNothingWhenAddException()
     {
         when( applicationContext.getBean( bean.capture(), preheatSupplierClassCaptor.capture() ) )
             .thenReturn( classBasedSupplier );

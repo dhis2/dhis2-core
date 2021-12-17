@@ -70,7 +70,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class JacksonRelationshipServiceTest
+class JacksonRelationshipServiceTest
 {
     @Mock
     protected DbmsManager dbmsManager;
@@ -129,7 +129,7 @@ public class JacksonRelationshipServiceTest
     }
 
     @Test
-    public void verifyRelationshipIsImportedIfDoesNotExist()
+    void verifyRelationshipIsImportedIfDoesNotExist()
     {
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
@@ -142,7 +142,7 @@ public class JacksonRelationshipServiceTest
     }
 
     @Test
-    public void verifyRelationshipIsNotImportedWhenDoesExist()
+    void verifyRelationshipIsNotImportedWhenDoesExist()
     {
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
         daoRelationship.setUid( "12345" );

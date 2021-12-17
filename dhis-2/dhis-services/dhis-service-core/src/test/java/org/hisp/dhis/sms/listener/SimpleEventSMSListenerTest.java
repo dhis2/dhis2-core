@@ -79,11 +79,9 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class SimpleEventSMSListenerTest
-    extends
+class SimpleEventSMSListenerTest extends
     CompressionSMSListenerTest
 {
-    // Needed for parent
 
     @Mock
     private UserService userService;
@@ -182,7 +180,7 @@ public class SimpleEventSMSListenerTest
     }
 
     @Test
-    public void testSimpleEvent()
+    void testSimpleEvent()
     {
         subject.receive( incomingSmsSimpleEvent );
 
@@ -194,7 +192,7 @@ public class SimpleEventSMSListenerTest
     }
 
     @Test
-    public void testSimpleEventRepeat()
+    void testSimpleEventRepeat()
     {
         subject.receive( incomingSmsSimpleEvent );
         subject.receive( incomingSmsSimpleEvent );
@@ -207,7 +205,7 @@ public class SimpleEventSMSListenerTest
     }
 
     @Test
-    public void testSimpleEventWithNulls()
+    void testSimpleEventWithNulls()
     {
         subject.receive( incomingSmsSimpleEventWithNulls );
 
@@ -219,7 +217,7 @@ public class SimpleEventSMSListenerTest
     }
 
     @Test
-    public void testSimpleEventNoValues()
+    void testSimpleEventNoValues()
     {
         subject.receive( incomingSmsSimpleEventNoValues );
 

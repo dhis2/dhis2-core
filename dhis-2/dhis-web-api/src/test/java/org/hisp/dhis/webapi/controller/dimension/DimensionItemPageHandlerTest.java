@@ -60,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author maikel arabori
  */
 @ExtendWith( MockitoExtension.class )
-public class DimensionItemPageHandlerTest
+class DimensionItemPageHandlerTest
 {
 
     @Mock
@@ -75,7 +75,7 @@ public class DimensionItemPageHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWithSuccess()
+    void testAddPaginationToNodeWithSuccess()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -96,7 +96,7 @@ public class DimensionItemPageHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenPagingIsFalse()
+    void testAddPaginationToNodeWhenPagingIsFalse()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -116,7 +116,7 @@ public class DimensionItemPageHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenNoPagingIsSet()
+    void testAddPaginationToNodeWhenNoPagingIsSet()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );

@@ -61,7 +61,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackerImporterServiceTest
+class TrackerImporterServiceTest
 {
 
     @Mock
@@ -116,7 +116,7 @@ public class TrackerImporterServiceTest
     }
 
     @Test
-    public void testSkipSideEffect()
+    void testSkipSideEffect()
     {
         TrackerImportParams parameters = TrackerImportParams.builder()
             .events( params.getEvents() )
@@ -136,7 +136,7 @@ public class TrackerImporterServiceTest
     }
 
     @Test
-    public void testWithSideEffects()
+    void testWithSideEffects()
     {
         doAnswer( invocationOnMock -> null ).when( trackerBundleService ).handleTrackerSideEffects( anyList() );
         when( trackerBundleService.create( any( TrackerImportParams.class ) ) )

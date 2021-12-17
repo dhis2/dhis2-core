@@ -80,7 +80,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class PredictionDataValueFetcherTest extends DhisConvenienceTest
+class PredictionDataValueFetcherTest extends DhisConvenienceTest
 {
 
     @Mock
@@ -230,8 +230,10 @@ public class PredictionDataValueFetcherTest extends DhisConvenienceTest
     // Tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testGetDataValues()
+    void testGetDataValues()
     {
         when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
         when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
@@ -257,7 +259,7 @@ public class PredictionDataValueFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testOrgUnitsOutOfOrder()
+    void testOrgUnitsOutOfOrder()
     {
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
@@ -272,7 +274,7 @@ public class PredictionDataValueFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testNoDataValues()
+    void testNoDataValues()
     {
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
@@ -290,7 +292,7 @@ public class PredictionDataValueFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testProducerException()
+    void testProducerException()
     {
         when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> {
             throw new ArithmeticException();

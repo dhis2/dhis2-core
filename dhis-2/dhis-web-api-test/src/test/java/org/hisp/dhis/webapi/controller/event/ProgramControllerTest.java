@@ -55,7 +55,7 @@ import com.google.common.net.HttpHeaders;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class ProgramControllerTest
+class ProgramControllerTest
 {
 
     @Mock
@@ -81,7 +81,7 @@ public class ProgramControllerTest
     }
 
     @Test
-    public void getWithDependenciesAsDownload()
+    void getWithDependenciesAsDownload()
         throws Exception
     {
         getWithDependencies( true );

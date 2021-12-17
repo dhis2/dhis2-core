@@ -47,14 +47,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith( MockitoExtension.class )
-public class TrackerValidationHookServiceTest
+class TrackerValidationHookServiceTest
 {
 
     @InjectMocks
     private TrackerValidationHookService trackerValidationHookService;
 
     @Test
-    public void shouldSortList()
+    void shouldSortList()
     {
         ReflectionTestUtils.setField( trackerValidationHookService, "validationOrder",
             Arrays.asList( PreCheckUidValidationHook.class, EnrollmentAttributeValidationHook.class,
@@ -85,7 +85,7 @@ public class TrackerValidationHookServiceTest
     }
 
     @Test
-    public void shouldFilterRuleEngineValidationHooks()
+    void shouldFilterRuleEngineValidationHooks()
     {
         ReflectionTestUtils.setField( trackerValidationHookService, "ruleEngineValidationHooks",
             Arrays.asList( EnrollmentRuleValidationHook.class, EventRuleValidationHook.class ) );
