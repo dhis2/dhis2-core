@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program.notification;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyLong;
@@ -72,12 +72,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
 
@@ -85,8 +84,10 @@ import com.google.common.collect.Sets;
  * @author Zubair Asghar.
  */
 @SuppressWarnings( "unchecked" )
+@ExtendWith( MockitoExtension.class )
 public class ProgramNotificationServiceTest extends DhisConvenienceTest
 {
+
     private static final String SUBJECT = "subject";
 
     private static final String MESSAGE = "message";
@@ -104,9 +105,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private static final String ATT_EMAIL = "attr@test.org";
 
     private String notificationTemplate = CodeGenerator.generateUid();
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ProgramMessageService programMessageService;
@@ -200,7 +198,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private ProgramNotificationInstance programNotificationInstaceForToday;
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         programNotificationService = new DefaultProgramNotificationService( this.programMessageService,

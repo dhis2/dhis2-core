@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.predictor;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,12 +48,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -59,9 +62,10 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
-public class PredictionWriterTest
-    extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+public class PredictionWriterTest extends DhisConvenienceTest
 {
+
     @Mock
     private DataValueService dataValueService;
 
@@ -70,9 +74,6 @@ public class PredictionWriterTest
 
     @Mock
     BatchHandler<DataValue> dataValueBatchHandler;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private DataElement dataElementA;
 
@@ -112,7 +113,7 @@ public class PredictionWriterTest
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         long id = 0;

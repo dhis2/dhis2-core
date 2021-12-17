@@ -69,14 +69,15 @@ import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -85,8 +86,9 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Luciano Fiandesio
  */
-public class EnrollmentAnalyticsManagerTest
-    extends
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+public class EnrollmentAnalyticsManagerTest extends
     EventAnalyticsTest
 {
 
@@ -104,16 +106,13 @@ public class EnrollmentAnalyticsManagerTest
     @Captor
     private ArgumentCaptor<String> sql;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private String DEFAULT_COLUMNS = "pi,tei,enrollmentdate,incidentdate,storedby,lastupdated,ST_AsGeoJSON(pigeometry),longitude,latitude,ouname,oucode";
 
     private final String TABLE_NAME = "analytics_enrollment";
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         when( jdbcTemplate.queryForRowSet( anyString() ) ).thenReturn( this.rowSet );

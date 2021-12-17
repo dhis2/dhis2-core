@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -39,17 +39,18 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class PredictionControllerTest extends DhisControllerConvenienceTest
+class PredictionControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testRunPredictors()
+    void testRunPredictors()
     {
         assertWebMessage( "OK", 200, "OK", null,
             POST( "/38/predictions?startDate=2020-01-01&endDate=2021-01-01" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testRunPredictors_Pre38()
+    void testRunPredictors_Pre38()
     {
         JsonObject summary = POST( "/37/predictions?startDate=2020-01-01&endDate=2021-01-01" ).content( HttpStatus.OK );
         assertEquals( "SUCCESS", summary.getString( "status" ).string() );
@@ -57,7 +58,7 @@ public class PredictionControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testRunPredictors_Async()
+    void testRunPredictors_Async()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated inMemoryPrediction",
             POST( "/predictions?startDate=2020-01-01&endDate=2021-01-01&async=true" ).content( HttpStatus.OK ) );

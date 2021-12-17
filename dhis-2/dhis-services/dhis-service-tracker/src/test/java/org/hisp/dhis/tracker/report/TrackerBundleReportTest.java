@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerBundleReportTest
+class TrackerBundleReportTest
 {
+
     @Test
-    public void testEmptyReport()
+    void testEmptyReport()
     {
         TrackerBundleReport report = new TrackerBundleReport();
         assertEquals( TrackerStatus.OK, report.getStatus() );

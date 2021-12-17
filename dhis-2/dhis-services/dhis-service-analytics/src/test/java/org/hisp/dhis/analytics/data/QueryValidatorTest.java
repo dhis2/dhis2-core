@@ -41,8 +41,8 @@ import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -68,20 +68,17 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.function.ThrowingRunnable;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Lars Helge Overland
  */
+@ExtendWith( MockitoExtension.class )
 public class QueryValidatorTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private DefaultQueryValidator queryValidator;
 
@@ -119,7 +116,7 @@ public class QueryValidatorTest
 
     private DataElementGroupSet dgsA;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         queryValidator = new DefaultQueryValidator( mock( SystemSettingManager.class ) );
@@ -395,8 +392,7 @@ public class QueryValidatorTest
      */
     private void assertValidatonError( final ErrorCode errorCode, final DataQueryParams params )
     {
-        ThrowingRunnable runnable = () -> queryValidator.validate( params );
-        IllegalQueryException ex = assertThrows( "Error code mismatch", IllegalQueryException.class, runnable );
+        IllegalQueryException ex = assertThrows( IllegalQueryException.class, () -> queryValidator.validate( params ) );
         assertEquals( errorCode, ex.getErrorCode() );
     }
 }

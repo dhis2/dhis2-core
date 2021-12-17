@@ -30,10 +30,9 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.Date;
 
@@ -58,14 +57,16 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith( MockitoExtension.class )
 public class DataValidatorTest
 {
+
     @Mock
     private CategoryService categoryService;
 
@@ -96,9 +97,6 @@ public class DataValidatorTest
     @Mock
     private DataValidator dataValidator;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private Period periodJan;
 
     private Period periodFeb;
@@ -117,7 +115,7 @@ public class DataValidatorTest
 
     private Date feb15;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         dataValidator = new DataValidator( categoryService, organisationUnitService, dataSetService,

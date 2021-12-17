@@ -34,8 +34,8 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.objectReference;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.objectReferences;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
@@ -44,7 +44,7 @@ import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonString;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -54,8 +54,9 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class DataIntegrityReportControllerTest extends DhisControllerConvenienceTest
+class DataIntegrityReportControllerTest extends DhisControllerConvenienceTest
 {
+
     /**
      * Needed to create cyclic references for org units
      */
@@ -63,7 +64,7 @@ public class DataIntegrityReportControllerTest extends DhisControllerConvenience
     private OrganisationUnitStore organisationUnitStore;
 
     @Test
-    public void testNoViolations()
+    void testNoViolations()
     {
         // if the report does not have any strings in the JSON tree there are no
         // errors since all collection/maps have string values
@@ -72,69 +73,57 @@ public class DataIntegrityReportControllerTest extends DhisControllerConvenience
     }
 
     @Test
-    public void testDataElementChecksOnly()
+    void testDataElementChecksOnly()
     {
         JsonDataIntegrityReport report = getDataIntegrityReport( "/dataIntegrity?checks=data-element*" );
-
         assertEquals( 5, report.size() );
-        assertTrue( report.has(
-            "dataElementsWithoutDataSet",
-            "dataElementsWithoutGroups",
-            "dataElementsAssignedToDataSetsWithDifferentPeriodTypes",
-            "dataElementsViolatingExclusiveGroupSets",
+        assertTrue( report.has( "dataElementsWithoutDataSet", "dataElementsWithoutGroups",
+            "dataElementsAssignedToDataSetsWithDifferentPeriodTypes", "dataElementsViolatingExclusiveGroupSets",
             "dataElementsInDataSetNotInForm" ) );
     }
 
     @Test
-    public void testExclusiveGroupsChecksOnly()
+    void testExclusiveGroupsChecksOnly()
     {
         JsonDataIntegrityReport report = getDataIntegrityReport( "/dataIntegrity?checks=*exclusive-group*" );
-
         assertEquals( 3, report.size() );
-        assertTrue( report.has(
-            "dataElementsViolatingExclusiveGroupSets",
-            "indicatorsViolatingExclusiveGroupSets",
+        assertTrue( report.has( "dataElementsViolatingExclusiveGroupSets", "indicatorsViolatingExclusiveGroupSets",
             "organisationUnitsViolatingExclusiveGroupSets" ) );
     }
 
     @Test
-    public void testPeriodsDuplicatesOnly()
+    void testPeriodsDuplicatesOnly()
     {
         JsonDataIntegrityReport report = getDataIntegrityReport( "/dataIntegrity?checks=PERIODS_DUPLICATES" );
-
         assertEquals( 1, report.size() );
         assertTrue( report.getArray( "duplicatePeriods" ).exists() );
     }
 
     @Test
-    public void testOrphanedOrganisationUnits()
+    void testOrphanedOrganisationUnits()
     {
         // should match:
         String ouId = addOrganisationUnit( "OrphanedUnit" );
-
         // should not match:
         String ouRootId = addOrganisationUnit( "root" );
         addOrganisationUnit( "leaf", ouRootId );
-
         assertEquals( singletonList( "OrphanedUnit:" + ouId ),
             getDataIntegrityReport().getOrphanedOrganisationUnits().toList( JsonString::string ) );
     }
 
     @Test
-    public void testOrganisationUnitsWithoutGroups()
+    void testOrganisationUnitsWithoutGroups()
     {
         // should match:
         String ouId = addOrganisationUnit( "noGroupSet" );
-
         // should not match:
         addOrganisationUnitGroup( "group", addOrganisationUnit( "hasGroupSet" ) );
-
         assertEquals( singletonList( "noGroupSet:" + ouId ),
             getDataIntegrityReport().getOrganisationUnitsWithoutGroups().toList( JsonString::string ) );
     }
 
     @Test
-    public void testOrganisationUnitsWithCyclicReferences()
+    void testOrganisationUnitsWithCyclicReferences()
     {
         String ouIdA = addOrganisationUnit( "A" );
         String ouIdB = addOrganisationUnit( "B", ouIdA );
@@ -144,30 +133,26 @@ public class DataIntegrityReportControllerTest extends DhisControllerConvenience
         ouA.setParent( ouB );
         ouB.getChildren().add( ouA );
         organisationUnitStore.save( ouB );
-
         assertContainsOnly(
             getDataIntegrityReport().getOrganisationUnitsWithCyclicReferences().toList( JsonString::string ),
             "A:" + ouIdA, "B:" + ouIdB );
     }
 
     @Test
-    public void testOrganisationUnitsViolatingExclusiveGroupSets()
+    void testOrganisationUnitsViolatingExclusiveGroupSets()
     {
         String ouIdA = addOrganisationUnit( "A" );
         String ouIdB = addOrganisationUnit( "B" );
         addOrganisationUnit( "C" );
-
         // all groups created are compulsory
         String groupA0Id = addOrganisationUnitGroup( "A0", ouIdA );
         String groupB1Id = addOrganisationUnitGroup( "B1", ouIdB );
         String groupB2Id = addOrganisationUnitGroup( "B2", ouIdB );
-
         addOrganisationUnitGroupSet( "K", groupA0Id );
         addOrganisationUnitGroupSet( "X", groupB1Id, groupB2Id );
-
         assertEquals( singletonMap( "B:" + ouIdB, asList( "B1:" + groupB1Id, "B2:" + groupB2Id ) ),
-            getDataIntegrityReport().getOrganisationUnitsViolatingExclusiveGroupSets()
-                .toMap( JsonString::string, String::compareTo ) );
+            getDataIntegrityReport().getOrganisationUnitsViolatingExclusiveGroupSets().toMap( JsonString::string,
+                String::compareTo ) );
     }
 
     private String addOrganisationUnit( String name )
@@ -178,17 +163,14 @@ public class DataIntegrityReportControllerTest extends DhisControllerConvenience
 
     private String addOrganisationUnit( String name, String parentId )
     {
-        return assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{'name':'" + name + "', 'shortName':'" + name + "', 'openingDate':'2021', 'parent': "
-                    + objectReference( parentId ) + " }" ) );
+        return assertStatus( HttpStatus.CREATED, POST( "/organisationUnits", "{'name':'" + name + "', 'shortName':'"
+            + name + "', 'openingDate':'2021', 'parent': " + objectReference( parentId ) + " }" ) );
     }
 
     private String addOrganisationUnitGroup( String name, String... memberIds )
     {
-        return assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnitGroups",
-                "{'name':'" + name + "', 'organisationUnits': " + objectReferences( memberIds ) + "}" ) );
+        return assertStatus( HttpStatus.CREATED, POST( "/organisationUnitGroups",
+            "{'name':'" + name + "', 'organisationUnits': " + objectReferences( memberIds ) + "}" ) );
     }
 
     private String addOrganisationUnitGroupSet( String name, String... groupIds )
@@ -207,12 +189,8 @@ public class DataIntegrityReportControllerTest extends DhisControllerConvenience
     private JsonDataIntegrityReport getDataIntegrityReport( String url )
     {
         JsonObject response = POST( url ).content().getObject( "response" );
-
         String id = response.getString( "id" ).string();
         String jobType = response.getString( "jobType" ).string();
-
-        return GET( "/system/taskSummaries/{type}/{id}", jobType, id )
-            .content().as( JsonDataIntegrityReport.class );
+        return GET( "/system/taskSummaries/{type}/{id}", jobType, id ).content().as( JsonDataIntegrityReport.class );
     }
-
 }

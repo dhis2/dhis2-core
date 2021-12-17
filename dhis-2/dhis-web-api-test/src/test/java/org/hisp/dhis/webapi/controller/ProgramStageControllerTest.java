@@ -28,45 +28,42 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
  * @author viet@dhis2.org
  */
-public class ProgramStageControllerTest
-    extends DhisControllerConvenienceTest
+class ProgramStageControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testCreateProgramStageWithoutProgram()
+    void testCreateProgramStageWithoutProgram()
     {
         JsonWebMessage message = POST( "/programStages/", "{'name':'test programStage'}" )
-            .content( HttpStatus.CONFLICT )
-            .as( JsonWebMessage.class );
+            .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
         JsonTypeReport response = message.get( "response", JsonTypeReport.class );
         assertEquals( 1, response.getErrorReports().size() );
         assertEquals( ErrorCode.E4053, response.getErrorReports().get( 0 ).getErrorCode() );
     }
 
     @Test
-    public void testCreateProgramStageOk()
+    void testCreateProgramStageOk()
     {
         POST( "/programs/",
             "{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION' }" )
                 .content( HttpStatus.CREATED );
-
         String programStageId = assertStatus( HttpStatus.CREATED,
             POST( "/programStages/", "{'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'}}" ) );
         JsonResponse programStage = GET( "/programStages/{id}", programStageId ).content();
         assertEquals( "VoZMWi7rBgj", programStage.getString( "program.id" ).string() );
-
         JsonResponse program = GET( "/programs/{id}", "VoZMWi7rBgj" ).content();
         assertEquals( programStageId, program.getJsonDocument().get( "$.programStages[0].id" ).value() );
     }

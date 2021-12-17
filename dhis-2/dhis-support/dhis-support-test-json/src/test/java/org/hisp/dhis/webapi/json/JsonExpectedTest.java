@@ -27,25 +27,27 @@
  */
 package org.hisp.dhis.webapi.json;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.NoSuchElementException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link Expected} annotation feature.
  *
  * @author Jan Bernitt
  */
-public class JsonExpectedTest
+class JsonExpectedTest
 {
+
     private interface JsonFoo extends JsonObject
     {
+
         @Expected
         default String getBar()
         {
@@ -55,6 +57,7 @@ public class JsonExpectedTest
 
     private interface JsonEntry extends JsonObject
     {
+
         @Expected
         default String getKey()
         {
@@ -85,7 +88,7 @@ public class JsonExpectedTest
     }
 
     @Test
-    public void testIsA()
+    void testIsA()
     {
         assertTrue( createJSON( "{'bar':'x'}" ).isA( JsonFoo.class ) );
         assertTrue( createJSON( "{'key':'x', 'value': 1}" ).isA( JsonEntry.class ) );
@@ -95,21 +98,21 @@ public class JsonExpectedTest
     }
 
     @Test
-    public void testIsA_MissingMember()
+    void testIsA_MissingMember()
     {
         assertFalse( createJSON( "{'bar':'x'}" ).isA( JsonEntry.class ) );
         assertFalse( createJSON( "{'key':'x', 'value': 1}" ).isA( JsonFoo.class ) );
     }
 
     @Test
-    public void testIsA_WrongNodeType()
+    void testIsA_WrongNodeType()
     {
         assertFalse( createJSON( "{'bar':true}" ).isA( JsonFoo.class ) );
         assertFalse( createJSON( "{'key':'x', 'value': '1'}" ).isA( JsonEntry.class ) );
     }
 
     @Test
-    public void testIsA_NotAnObject()
+    void testIsA_NotAnObject()
     {
         assertFalse( createJSON( "[]" ).isA( JsonEntry.class ) );
         assertFalse( createJSON( "'test'" ).isA( JsonEntry.class ) );
@@ -119,7 +122,7 @@ public class JsonExpectedTest
     }
 
     @Test
-    public void testAsObject()
+    void testAsObject()
     {
         assertAsObject( JsonFoo.class, "{'bar': 'yes'}" );
         assertAsObject( JsonEntry.class, "{'key':'x', 'value': 42}" );
@@ -129,64 +132,64 @@ public class JsonExpectedTest
     }
 
     @Test
-    public void testAsObject_Nullable()
+    void testAsObject_Nullable()
     {
         assertAsObject( JsonRoot.class, "{'a':null,'b':{'bar':'x'}}" );
     }
 
     @Test
-    public void testAsObject_NotAnObjectArray()
+    void testAsObject_NotAnObjectArray()
     {
         assertAsObjectThrows( JsonFoo.class, "[]", "Expected  JsonFoo node is not an object but a ARRAY" );
     }
 
     @Test
-    public void testAsObject_NotAnObjectString()
+    void testAsObject_NotAnObjectString()
     {
         assertAsObjectThrows( JsonFoo.class, "'nop'", "Expected  JsonFoo node is not an object but a STRING" );
     }
 
     @Test
-    public void testAsObject_NotAnObjectNumber()
+    void testAsObject_NotAnObjectNumber()
     {
         assertAsObjectThrows( JsonFoo.class, "13", "Expected  JsonFoo node is not an object but a NUMBER" );
     }
 
     @Test
-    public void testAsObject_NotAnObjectBoolean()
+    void testAsObject_NotAnObjectBoolean()
     {
         assertAsObjectThrows( JsonFoo.class, "true", "Expected  JsonFoo node is not an object but a BOOLEAN" );
     }
 
     @Test
-    public void testAsObject_NotAnObjectNull()
+    void testAsObject_NotAnObjectNull()
     {
         assertAsObjectThrows( JsonFoo.class, "null", "Expected  JsonFoo node is not an object but a NULL" );
     }
 
     @Test
-    public void testAsObject_NotAnObjectUndefined()
+    void testAsObject_NotAnObjectUndefined()
     {
         assertAsObjectThrows( () -> createJSON( "{}" ).getObject( "x" ).asObject( JsonFoo.class ),
             "Expected  JsonFoo node does not exist" );
     }
 
     @Test
-    public void testAsObject_MissingMemberUndefined()
+    void testAsObject_MissingMemberUndefined()
     {
         assertAsObjectThrows( JsonRoot.class, "{'b':{'bar':''}}",
             "Expected JsonRoot node member getA was not defined" );
     }
 
     @Test
-    public void testAsObject_MissingMemberRecursive()
+    void testAsObject_MissingMemberRecursive()
     {
         assertAsObjectThrows( JsonRoot.class, "{'a': {}, 'b':{'bar':''}}",
             "Expected JsonFoo node member getA.getBar was not defined" );
     }
 
     @Test
-    public void testAsObject_NotAnObjectRecursive()
+    void testAsObject_NotAnObjectRecursive()
     {
         assertAsObjectThrows( JsonRoot.class, "{'a': [], 'b':{'bar':''}}",
             "Expected getA JsonFoo node is not an object but a ARRAY" );

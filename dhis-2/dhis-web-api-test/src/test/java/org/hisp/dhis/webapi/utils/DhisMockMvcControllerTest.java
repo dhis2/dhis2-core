@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -61,12 +61,12 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
     public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
         JsonWebMessage actual )
     {
-        assertTrue( "response appears to be something other than a WebMessage: " + actual.toString(),
-            actual.has( "httpStatusCode", "httpStatus", "status" ) );
-        assertEquals( "unexpected HTTP status code", httpStatusCode, actual.getHttpStatusCode() );
-        assertEquals( "unexpected HTTP status", httpStatus, actual.getHttpStatus() );
-        assertEquals( "unexpected status", status, actual.getStatus() );
-        assertEquals( "unexpected message", message, actual.getMessage() );
+        assertTrue( actual.has( "httpStatusCode", "httpStatus", "status" ),
+            "response appears to be something other than a WebMessage: " + actual.toString() );
+        assertEquals( httpStatusCode, actual.getHttpStatusCode(), "unexpected HTTP status code" );
+        assertEquals( httpStatus, actual.getHttpStatus(), "unexpected HTTP status" );
+        assertEquals( status, actual.getStatus(), "unexpected status" );
+        assertEquals( message, actual.getMessage(), "unexpected message" );
         return actual;
     }
 
