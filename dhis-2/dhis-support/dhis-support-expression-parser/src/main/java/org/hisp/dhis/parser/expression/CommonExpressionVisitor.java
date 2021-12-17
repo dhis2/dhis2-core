@@ -185,6 +185,11 @@ public class CommonExpressionVisitor
     private List<Period> samplePeriods;
 
     /**
+     * Flag to check if a null date was found.
+     */
+    private boolean nullDateFound = false;
+
+    /**
      * Count of dimension items found.
      */
     private int itemsFound = 0;
@@ -348,8 +353,12 @@ public class CommonExpressionVisitor
         if ( replaceNulls )
         {
             itemsFound++;
-
-            if ( value == null )
+            if ( value == null && valueType.isDate() )
+            {
+                nullDateFound = true;
+                return null;
+            }
+            else if ( value == null )
             {
                 return ValidationUtils.getNullReplacementValue( valueType );
             }
@@ -657,6 +666,11 @@ public class CommonExpressionVisitor
     public void setItemValuesFound( int itemValuesFound )
     {
         this.itemValuesFound = itemValuesFound;
+    }
+
+    public boolean isNullDateFound()
+    {
+        return nullDateFound;
     }
 
     public MissingValueStrategy getMissingValueStrategy()
