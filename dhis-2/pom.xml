@@ -149,7 +149,7 @@
         <ant-compress.version>1.5</ant-compress.version>
         <sms-compression.version>0.2.1.1</sms-compression.version>
         <javacsv.version>2.0</javacsv.version>
-        <aerogear-otp-java.version>1.0.0.CR1</aerogear-otp-java.version>
+        <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
         <javax.interceptor-api.version>1.2.1</javax.interceptor-api.version>
         <jsmpp.version>2.3.7</jsmpp.version>
         <rxtx.version>2.1.7</rxtx.version>
