@@ -36,6 +36,7 @@ import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
 import static org.hisp.dhis.eventvisualization.SimpleEventDimension.Type.contains;
 import static org.hisp.dhis.eventvisualization.SimpleEventDimension.Type.from;
+import static org.springframework.util.Assert.isTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -108,7 +109,7 @@ public class SimpleEventDimensionHandler
         {
             for ( final DimensionalObject column : eventAnalyticalObject.getColumns() )
             {
-                if ( column != null && contains( column.getUid() ) )
+                if ( column != null )
                 {
                     eventAnalyticalObject.getSimpleEventDimensions()
                         .add( createSimpleEventDimensionFor( column, COLUMN ) );
@@ -120,7 +121,7 @@ public class SimpleEventDimensionHandler
         {
             for ( final DimensionalObject row : eventAnalyticalObject.getRows() )
             {
-                if ( row != null && contains( row.getUid() ) )
+                if ( row != null )
                 {
                     eventAnalyticalObject.getSimpleEventDimensions().add( createSimpleEventDimensionFor( row, ROW ) );
                 }
@@ -131,7 +132,7 @@ public class SimpleEventDimensionHandler
         {
             for ( final DimensionalObject filter : eventAnalyticalObject.getFilters() )
             {
-                if ( filter != null && contains( filter.getUid() ) )
+                if ( filter != null )
                 {
                     eventAnalyticalObject.getSimpleEventDimensions()
                         .add( createSimpleEventDimensionFor( filter, FILTER ) );
@@ -162,6 +163,8 @@ public class SimpleEventDimensionHandler
     private SimpleEventDimension createSimpleEventDimensionFor( final DimensionalObject dimensionalObject,
         final Attribute attribute )
     {
+        isTrue( contains( dimensionalObject.getUid() ), format( NOT_A_VALID_DIMENSION, dimensionalObject.getUid() ) );
+
         final SimpleEventDimension simpleEventDimension = new SimpleEventDimension();
         simpleEventDimension.setParent( attribute );
         simpleEventDimension.setDimension( dimensionalObject.getUid() );
