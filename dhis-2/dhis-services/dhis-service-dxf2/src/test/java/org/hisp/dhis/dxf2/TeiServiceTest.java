@@ -235,7 +235,7 @@ class TeiServiceTest
     }
 
     @Test
-    public void shouldAddTrackedEntityWithCreateStrategy()
+    void shouldAddTrackedEntityWithCreateStrategy()
     {
         List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
 
@@ -254,7 +254,7 @@ class TeiServiceTest
     }
 
     @Test
-    public void shouldUpdateTrackedEntityWithUpdateStrategy()
+    void shouldUpdateTrackedEntityWithUpdateStrategy()
     {
         List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
 
@@ -278,7 +278,7 @@ class TeiServiceTest
     }
 
     @Test
-    public void shouldDeleteTrackedEntityWithDeleteStrategy()
+    void shouldDeleteTrackedEntityWithDeleteStrategy()
     {
         List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
 

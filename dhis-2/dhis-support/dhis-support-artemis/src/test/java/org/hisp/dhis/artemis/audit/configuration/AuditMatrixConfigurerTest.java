@@ -59,7 +59,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class AuditMatrixConfigurerTest
+class AuditMatrixConfigurerTest
 {
     @Mock
     private DhisConfigurationProvider config;
@@ -75,7 +75,7 @@ public class AuditMatrixConfigurerTest
     }
 
     @Test
-    public void verifyConfigurationForMatrixIsIngested()
+    void verifyConfigurationForMatrixIsIngested()
     {
         when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "READ;" );
         when( config.getProperty( ConfigurationKey.AUDIT_TRACKER_MATRIX ) ).thenReturn( "CREATE;READ;UPDATE;DELETE" );
@@ -97,7 +97,7 @@ public class AuditMatrixConfigurerTest
     }
 
     @Test
-    public void allDisabled()
+    void allDisabled()
     {
         when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "DISABLED" );
         when( config.getProperty( ConfigurationKey.AUDIT_TRACKER_MATRIX ) ).thenReturn( "DISABLED" );
@@ -111,7 +111,7 @@ public class AuditMatrixConfigurerTest
     }
 
     @Test
-    public void verifyInvalidConfigurationIsIgnored()
+    void verifyInvalidConfigurationIsIgnored()
     {
         when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "READX;UPDATE" );
 
@@ -121,7 +121,7 @@ public class AuditMatrixConfigurerTest
     }
 
     @Test
-    public void verifyDefaultAuditingConfiguration()
+    void verifyDefaultAuditingConfiguration()
     {
         matrix = this.subject.configure();
         assertMatrixDisabled( METADATA, READ );

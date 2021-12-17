@@ -79,7 +79,7 @@ import com.google.common.collect.Sets;
  * @author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
+class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
 {
     private static final String TEI_REGISTRATION_COMMAND = "tei";
 
@@ -183,7 +183,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTeiRegistration()
+    void testTeiRegistration()
     {
         // Mock for trackedEntityInstanceService
         when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
@@ -206,7 +206,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfProgramHasNoOu()
+    void testIfProgramHasNoOu()
     {
         Program programA = createProgram( 'P' );
 

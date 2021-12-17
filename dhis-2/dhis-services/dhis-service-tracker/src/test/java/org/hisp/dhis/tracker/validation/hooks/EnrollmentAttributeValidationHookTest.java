@@ -66,7 +66,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentAttributeValidationHookTest
+class EnrollmentAttributeValidationHookTest
 {
 
     @InjectMocks
@@ -125,7 +125,7 @@ public class EnrollmentAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory()
+    void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory()
     {
         // given 1 attribute has null value
         Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
@@ -153,7 +153,7 @@ public class EnrollmentAttributeValidationHookTest
     }
 
     @Test
-    public void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory()
+    void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory()
     {
         // given 1 attribute has null value
         Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
@@ -180,7 +180,7 @@ public class EnrollmentAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei()
+    void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei()
     {
         // given 1 attribute has null value and do not exists in Tei
         Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
@@ -210,7 +210,7 @@ public class EnrollmentAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationWhenAttributeIsNotPresentInDB()
+    void shouldFailValidationWhenAttributeIsNotPresentInDB()
     {
         Attribute attribute = Attribute.builder()
             .attribute( "invalidAttribute" )

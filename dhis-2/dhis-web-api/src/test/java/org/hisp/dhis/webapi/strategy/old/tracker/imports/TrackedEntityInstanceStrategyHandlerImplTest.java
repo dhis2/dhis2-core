@@ -65,7 +65,7 @@ import org.springframework.http.MediaType;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class TrackedEntityInstanceStrategyHandlerImplTest
+class TrackedEntityInstanceStrategyHandlerImplTest
 {
     @InjectMocks
     private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;
@@ -103,7 +103,7 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldCallSyncTrackedEntityJsonSyncStrategy()
+    void shouldCallSyncTrackedEntityJsonSyncStrategy()
         throws IOException,
         BadRequestException
     {
@@ -123,9 +123,9 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldCallSyncTrackedEntityXmlSyncStrategy()
-        throws IOException,
-        BadRequestException
+    void shouldCallSyncTrackedEntityXmlSyncStrategy()
+        throws BadRequestException,
+        IOException
     {
         when( trackedEntityInstanceService.getTrackedEntityInstancesXml( any() ) )
             .thenReturn( trackedEntityInstanceList );
@@ -143,9 +143,9 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldCallAsyncTrackedEntityJsonAsyncStrategy()
-        throws IOException,
-        BadRequestException
+    void shouldCallAsyncTrackedEntityJsonAsyncStrategy()
+        throws BadRequestException,
+        IOException
     {
         when( trackedEntityInstanceService.getTrackedEntityInstancesJson( any() ) )
             .thenReturn( trackedEntityInstanceList );
@@ -162,7 +162,7 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldCallAsyncTrackedEntityXmlAsyncStrategy()
+    void shouldCallAsyncTrackedEntityXmlAsyncStrategy()
         throws IOException,
         BadRequestException
     {
@@ -181,7 +181,7 @@ public class TrackedEntityInstanceStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldThrowMediaTypeNotAllowed()
+    void shouldThrowMediaTypeNotAllowed()
         throws IOException
     {
         when( trackedEntityInstanceService.getTrackedEntityInstancesJson( any() ) )

@@ -65,7 +65,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * Unit tests for {@link DefaultFieldFilterService}.
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultFieldFilterServiceTest
+class DefaultFieldFilterServiceTest
 {
     private FieldParser fieldParser = new DefaultFieldParser();
 
@@ -100,7 +100,7 @@ public class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void toCollectionNodeSkipSharingNoFields()
+    void toCollectionNodeSkipSharingNoFields()
         throws Exception
     {
         final Attribute attribute = new Attribute();
@@ -134,7 +134,7 @@ public class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void toCollectionNodeSkipSharingOwner()
+    void toCollectionNodeSkipSharingOwner()
         throws Exception
     {
         final Attribute attribute = new Attribute();

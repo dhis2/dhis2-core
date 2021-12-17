@@ -35,10 +35,10 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-public class QueryKeyTest
+class QueryKeyTest
 {
     @Test
-    public void testAsPlainKey()
+    void testAsPlainKey()
     {
         String key = new QueryKey()
             .add( "dimension", "dx" )
@@ -62,7 +62,7 @@ public class QueryKeyTest
     }
 
     @Test
-    public void testAsPlainKeyIgnoreNull()
+    void testAsPlainKeyIgnoreNull()
     {
         String key = new QueryKey()
             .add( "dimension", "dx" )
@@ -74,7 +74,7 @@ public class QueryKeyTest
     }
 
     @Test
-    public void testNoCollision()
+    void testNoCollision()
     {
         String keyA = new QueryKey()
             .add( "dimension", "dx" )

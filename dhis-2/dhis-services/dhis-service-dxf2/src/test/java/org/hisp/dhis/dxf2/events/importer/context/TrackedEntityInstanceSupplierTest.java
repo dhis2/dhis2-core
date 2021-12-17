@@ -80,7 +80,7 @@ class TrackedEntityInstanceSupplierTest
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
         throws SQLException
     {
         // mock resultset data

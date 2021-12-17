@@ -54,7 +54,7 @@ import org.springframework.security.access.AccessDeniedException;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class SharingControllerTest
+class SharingControllerTest
 {
 
     @Mock
@@ -72,7 +72,7 @@ public class SharingControllerTest
     private SharingController sharingController;
 
     @Test
-    public void notSystemDefaultMetadataNoAccess()
+    void notSystemDefaultMetadataNoAccess()
     {
         final OrganisationUnit organisationUnit = new OrganisationUnit();
 
@@ -84,7 +84,7 @@ public class SharingControllerTest
     }
 
     @Test
-    public void systemDefaultMetadataNoAccess()
+    void systemDefaultMetadataNoAccess()
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME + "x" );
@@ -97,7 +97,7 @@ public class SharingControllerTest
     }
 
     @Test
-    public void systemDefaultMetadata()
+    void systemDefaultMetadata()
         throws Exception
     {
         final Category category = new Category();

@@ -76,7 +76,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
+class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 {
 
     @BeforeEach
@@ -88,9 +88,9 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
     }
 
-    @Test
     @SuppressWarnings( "unchecked" )
-    public void metadataContainsOuLevelData()
+    @Test
+    void metadataContainsOuLevelData()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             // PERIOD
@@ -126,9 +126,9 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             hasProperty( "code", is( "OU_12345" ) ) ) );
     }
 
-    @Test
     @SuppressWarnings( "unchecked" )
-    public void metadataContainsIndicatorGroupMetadata()
+    @Test
+    void metadataContainsIndicatorGroupMetadata()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
         periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
@@ -164,9 +164,9 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 hasProperty( "code", is( indicatorGroup.getCode() ) ) ) );
     }
 
-    @Test
     @SuppressWarnings( "unchecked" )
-    public void metadataContainsOuGroupData()
+    @Test
+    void metadataContainsOuGroupData()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             // PERIOD
@@ -191,9 +191,9 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             hasProperty( "uid", is( "tTUf91fCytl" ) ), hasProperty( "code", is( "OU_12345" ) ) ) );
     }
 
-    @Test
     @SuppressWarnings( "unchecked" )
-    public void metadataContainsDataElementGroupMetadata()
+    @Test
+    void metadataContainsDataElementGroupMetadata()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
         periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
@@ -229,9 +229,9 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 hasProperty( "code", is( dataElementGroup.getCode() ) ) ) );
     }
 
-    @Test
     @SuppressWarnings( "unchecked" )
-    public void metadataContainsRelativePeriodItem()
+    @Test
+    void metadataContainsRelativePeriodItem()
     {
 
         List<DimensionalItemObject> periods = new ArrayList<>();

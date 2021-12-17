@@ -50,7 +50,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public abstract class AbstractSupplierTest<T, R>
+abstract class AbstractSupplierTest<T, R>
+
 {
     @Mock
     protected NamedParameterJdbcTemplate jdbcTemplate;

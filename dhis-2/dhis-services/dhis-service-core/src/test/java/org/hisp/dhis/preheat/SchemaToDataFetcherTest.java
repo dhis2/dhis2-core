@@ -68,7 +68,7 @@ import com.google.common.collect.Lists;
 @SuppressWarnings( "unchecked" )
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class SchemaToDataFetcherTest extends DhisConvenienceTest
+class SchemaToDataFetcherTest extends DhisConvenienceTest
 {
 
     private SchemaToDataFetcher subject;
@@ -90,13 +90,13 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyInput()
+    void verifyInput()
     {
         assertThat( subject.fetch( null ), hasSize( 0 ) );
     }
 
     @Test
-    public void verifyUniqueFieldsAreMappedToHibernateObject()
+    void verifyUniqueFieldsAreMappedToHibernateObject()
     {
         Schema schema = createSchema( DataElement.class, "dataElement",
             Stream.of(
@@ -134,7 +134,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyUniqueFieldsAreSkippedOnReflectionError()
+    void verifyUniqueFieldsAreSkippedOnReflectionError()
     {
         Schema schema = createSchema( DummyDataElement.class, "dummyDataElement",
             Stream.of(
@@ -165,7 +165,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyUniqueFieldsAre()
+    void verifyUniqueFieldsAre()
     {
         Schema schema = createSchema( DummyDataElement.class, "dummyDataElement",
             Stream.of(
@@ -198,7 +198,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyNoSqlWhenUniquePropertiesListIsEmpty()
+    void verifyNoSqlWhenUniquePropertiesListIsEmpty()
     {
         Schema schema = createSchema( SMSCommand.class, "smsCommand", Lists.newArrayList() );
 
@@ -208,7 +208,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyNoSqlWhenNoUniquePropertyExist()
+    void verifyNoSqlWhenNoUniquePropertyExist()
     {
         Schema schema = createSchema( SMSCommand.class, "smsCommand",
             Stream.of(

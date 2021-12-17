@@ -82,7 +82,7 @@ class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance, 
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
         throws SQLException
     {
         // mock resultset data

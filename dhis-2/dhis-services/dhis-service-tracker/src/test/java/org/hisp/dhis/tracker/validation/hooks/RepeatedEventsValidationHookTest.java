@@ -65,7 +65,7 @@ import com.google.common.collect.Lists;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
+class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 {
 
     private final static String NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION = "NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";
@@ -109,7 +109,7 @@ public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSingleEventIsPassingValidation()
+    void testSingleEventIsPassingValidation()
     {
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ) );
         bundle.setEvents( events );
@@ -121,7 +121,7 @@ public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testOneEventInNotRepeatableProgramStageAndOneAlreadyOnDBAreNotPassingValidation()
+    void testOneEventInNotRepeatableProgramStageAndOneAlreadyOnDBAreNotPassingValidation()
     {
         // given
         Event event = notRepeatableEvent( "A" );
@@ -146,7 +146,7 @@ public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTwoEventInNotRepeatableProgramStageAreNotPassingValidation()
+    void testTwoEventInNotRepeatableProgramStageAreNotPassingValidation()
     {
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ), notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
@@ -166,7 +166,7 @@ public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTwoEventInRepeatableProgramStageArePassingValidation()
+    void testTwoEventInRepeatableProgramStageArePassingValidation()
     {
         List<Event> events = Lists.newArrayList( repeatableEvent( "A" ), repeatableEvent( "B" ) );
         bundle.setEvents( events );
@@ -178,7 +178,7 @@ public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTwoEventsInNotRepeatableProgramStageWhenOneIsInvalidArePassingValidation()
+    void testTwoEventsInNotRepeatableProgramStageWhenOneIsInvalidArePassingValidation()
     {
         Event invalidEvent = notRepeatableEvent( "A" );
         List<Event> events = Lists.newArrayList( invalidEvent, notRepeatableEvent( "B" ) );
@@ -192,7 +192,7 @@ public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTwoEventsInNotRepeatableProgramStageButInDifferentEnrollmentsArePassingValidation()
+    void testTwoEventsInNotRepeatableProgramStageButInDifferentEnrollmentsArePassingValidation()
     {
         Event eventEnrollmentA = notRepeatableEvent( "A" );
         Event eventEnrollmentB = notRepeatableEvent( "B" );
@@ -207,7 +207,7 @@ public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTwoProgramEventsInSameProgramStageArePassingValidation()
+    void testTwoProgramEventsInSameProgramStageArePassingValidation()
     {
         Event eventProgramA = programEvent( "A" );
         Event eventProgramB = programEvent( "B" );

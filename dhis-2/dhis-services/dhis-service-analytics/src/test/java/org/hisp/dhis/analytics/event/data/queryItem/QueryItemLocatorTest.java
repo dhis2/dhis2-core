@@ -80,7 +80,7 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class QueryItemLocatorTest
+class QueryItemLocatorTest
 {
 
     @Mock
@@ -122,7 +122,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyExceptionOnEmptyDimension()
+    void verifyExceptionOnEmptyDimension()
     {
         assertThrows( IllegalQueryException.class,
             () -> subject.getQueryItemFromDimension( "", programA, EventOutputType.ENROLLMENT ),
@@ -130,7 +130,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyExceptionOnEmptyProgram()
+    void verifyExceptionOnEmptyProgram()
     {
         assertThrows( NullPointerException.class,
             () -> subject.getQueryItemFromDimension( dimension, null, EventOutputType.ENROLLMENT ),
@@ -138,7 +138,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionReturnsDataElementForEventQuery()
+    void verifyDimensionReturnsDataElementForEventQuery()
     {
         DataElement dataElementA = createDataElement( 'A' );
 
@@ -161,7 +161,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void getQueryItemFromDimensionThrowsRightExceptionWhenElementDoesNotBelongToProgram()
+    void getQueryItemFromDimensionThrowsRightExceptionWhenElementDoesNotBelongToProgram()
     {
         // Arrange
         DataElement iBelongDataElement = createDataElement( 'A' );
@@ -180,7 +180,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
+    void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
     {
         DataElement dataElementA = createDataElement( 'A' );
 
@@ -199,7 +199,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionReturnsDataElementForEnrollmentQuery()
+    void verifyDimensionReturnsDataElementForEnrollmentQuery()
     {
         DataElement dataElementA = createDataElement( 'A' );
 
@@ -223,7 +223,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionWithLegendSetReturnsDataElement()
+    void verifyDimensionWithLegendSetReturnsDataElement()
     {
         String legendSetUid = CodeGenerator.generateUid();
 
@@ -252,7 +252,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionWithLegendSetAndProgramStageReturnsDataElement()
+    void verifyDimensionWithLegendSetAndProgramStageReturnsDataElement()
     {
         String legendSetUid = CodeGenerator.generateUid();
 
@@ -287,7 +287,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionReturnsTrackedEntityAttribute()
+    void verifyDimensionReturnsTrackedEntityAttribute()
     {
         OptionSet optionSetA = createOptionSet( 'A' );
 
@@ -314,7 +314,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionReturnsProgramIndicator()
+    void verifyDimensionReturnsProgramIndicator()
     {
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
         programIndicatorA.setUid( dimension );
@@ -333,7 +333,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionReturnsProgramIndicatorWithRelationship()
+    void verifyDimensionReturnsProgramIndicatorWithRelationship()
     {
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
         programIndicatorA.setUid( dimension );
@@ -357,7 +357,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyForeignProgramIndicatorWithoutRelationshipIsNotAccepted()
+    void verifyForeignProgramIndicatorWithoutRelationshipIsNotAccepted()
     {
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
@@ -372,7 +372,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyForeignProgramIndicatorWithRelationshipIsAccepted()
+    void verifyForeignProgramIndicatorWithRelationshipIsAccepted()
     {
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );

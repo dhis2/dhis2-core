@@ -62,7 +62,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EventNoteValidationHookTest
+class EventNoteValidationHookTest
 {
 
     // Class under test
@@ -80,7 +80,7 @@ public class EventNoteValidationHookTest
     }
 
     @Test
-    public void testNoteWithExistingUidWarnings()
+    void testNoteWithExistingUidWarnings()
     {
         // Given
         final Note note = rnd.nextObject( Note.class );
@@ -106,7 +106,7 @@ public class EventNoteValidationHookTest
     }
 
     @Test
-    public void testNoteWithExistingUidAndNoTextIsIgnored()
+    void testNoteWithExistingUidAndNoTextIsIgnored()
     {
         // Given
         final Note note = rnd.nextObject( Note.class );
@@ -130,7 +130,7 @@ public class EventNoteValidationHookTest
     }
 
     @Test
-    public void testNotesAreValidWhenUidDoesNotExist()
+    void testNotesAreValidWhenUidDoesNotExist()
     {
         // Given
         final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );

@@ -56,7 +56,7 @@ import com.google.common.collect.ImmutableList;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class JdbcEventCommentStoreTest
+class JdbcEventCommentStoreTest
 {
 
     private JdbcEventCommentStore jdbcEventCommentStore;
@@ -72,7 +72,7 @@ public class JdbcEventCommentStoreTest
     }
 
     @Test
-    public void verifyPSITableIsNotQueriedWhenNoComments()
+    void verifyPSITableIsNotQueriedWhenNoComments()
     {
         List<ProgramStageInstance> programStageInstanceList = getProgramStageList( false );
         jdbcEventCommentStore.saveAllComments( programStageInstanceList );
@@ -80,7 +80,7 @@ public class JdbcEventCommentStoreTest
     }
 
     @Test
-    public void verifyPSITableIsNotQueriedWhenCommentsTextEmpty()
+    void verifyPSITableIsNotQueriedWhenCommentsTextEmpty()
     {
         List<ProgramStageInstance> programStageInstanceList = getProgramStageList( true, true );
         jdbcEventCommentStore.saveAllComments( programStageInstanceList );
@@ -88,7 +88,7 @@ public class JdbcEventCommentStoreTest
     }
 
     @Test
-    public void verifyPSITableIsQueriedWhenComments()
+    void verifyPSITableIsQueriedWhenComments()
     {
         List<ProgramStageInstance> programStageInstanceList = getProgramStageList( true );
         jdbcEventCommentStore.saveAllComments( programStageInstanceList );

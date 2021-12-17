@@ -57,7 +57,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class UserSupplierTest
+class UserSupplierTest
 {
 
     @InjectMocks
@@ -69,7 +69,7 @@ public class UserSupplierTest
     private final BeanRandomizer rnd = BeanRandomizer.create( Event.class, "assignedUser" );
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
         final List<Event> events = rnd.objects( Event.class, 5 ).collect( Collectors.toList() );
         events.forEach( e -> e.setAssignedUser( CodeGenerator.generateUid() ) );

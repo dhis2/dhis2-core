@@ -60,7 +60,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class GeoFeatureControllerTest
+class GeoFeatureControllerTest
 {
     private MockMvc mockMvc;
 
@@ -92,7 +92,7 @@ public class GeoFeatureControllerTest
     }
 
     @Test
-    public void verifyGeoFeaturesReturnsOuData()
+    void verifyGeoFeaturesReturnsOuData()
         throws Exception
     {
         OrganisationUnit ouA = createOrgUnitWithCoordinates();

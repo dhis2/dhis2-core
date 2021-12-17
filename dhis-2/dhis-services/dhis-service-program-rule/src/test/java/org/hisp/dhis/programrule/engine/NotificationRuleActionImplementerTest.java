@@ -75,7 +75,7 @@ import org.springframework.context.ApplicationEventPublisher;
  * Created by zubair@dhis2.org on 05.02.18.
  */
 @ExtendWith( MockitoExtension.class )
-public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
+class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 {
 
     private static final String NOTIFICATION_UID = "123abc";
@@ -123,19 +123,19 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_acceptBehaviorForActionAssign()
+    void test_acceptBehaviorForActionAssign()
     {
         assertFalse( implementer.accept( setMandatoryFieldFalse ) );
     }
 
     @Test
-    public void test_acceptBehaviorForActionSendMessage()
+    void test_acceptBehaviorForActionSendMessage()
     {
         assertTrue( implementer.accept( ruleActionSendMessage ) );
     }
 
     @Test
-    public void test_implementWithProgramInstanceWithTemplate()
+    void test_implementWithProgramInstanceWithTemplate()
     {
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
@@ -165,7 +165,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_implementWithProgramStageInstanceWithTemplate()
+    void test_implementWithProgramStageInstanceWithTemplate()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
@@ -195,7 +195,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_loggingServiceKey()
+    void test_loggingServiceKey()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
@@ -221,7 +221,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendRepeatableFlag()
+    void testSendRepeatableFlag()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
@@ -249,7 +249,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_NothingHappensIfTemplateDoesNotExist()
+    void test_NothingHappensIfTemplateDoesNotExist()
     {
         // overriding stub to check null templates
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
@@ -261,7 +261,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_NothingHappensIfTemplateDoesNotExistForPSI()
+    void test_NothingHappensIfTemplateDoesNotExistForPSI()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
@@ -271,7 +271,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void test_NothingHappensIfActionIsNull()
+    void test_NothingHappensIfActionIsNull()
     {
         assertThrows( NullPointerException.class,
             () -> implementer.implement( null, programInstance ), "Rule Effect cannot be null" );

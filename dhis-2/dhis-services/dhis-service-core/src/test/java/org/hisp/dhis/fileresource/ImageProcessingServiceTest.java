@@ -48,7 +48,7 @@ import org.springframework.core.io.ClassPathResource;
  * @Author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-public class ImageProcessingServiceTest
+class ImageProcessingServiceTest
 {
     private static final int SMALL_IMAGE_WIDTH = 256;
 
@@ -65,7 +65,7 @@ public class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_images_with_null_values()
+    void test_create_images_with_null_values()
     {
         Map<ImageFileDimension, File> images = subject.createImages( new FileResource(), null );
 
@@ -73,7 +73,7 @@ public class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_images_with_wrong_file_content_type()
+    void test_create_images_with_wrong_file_content_type()
         throws IOException
     {
         FileResource fileResource = new FileResource();
@@ -90,7 +90,7 @@ public class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_image()
+    void test_create_image()
         throws IOException
     {
         FileResource fileResource = new FileResource();
