@@ -75,7 +75,7 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid) AS pscouga " +
         "GROUP  BY programstageid,name,usergroupid HAVING count(*) > 1";
 
-    private static final String GET_ACCESS_STRING_FOR_PS_UG_COMBO = "SELECT usergroupaccessid,usergroupid,programid as programstageid, "
+    private static final String GET_ACCESS_STRING_FOR_PS_UG_COMBO = "SELECT usergroupaccessid,usergroupid,programstageid, "
         +
         "CASE " +
         "WHEN access = '--------' THEN 1 " +
@@ -89,7 +89,7 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         "       FROM  programstageusergroupaccesses psuga " +
         "       LEFT JOIN usergroupaccess uga " +
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid " +
-        " WHERE  programid IN (%s)  and usergroupid IN (%s)) AS pstguga order by accesslevel desc";
+        " WHERE  programstageid IN (%s)  and usergroupid IN (%s)) AS pstguga order by accesslevel desc";
 
     private static final String DELETE_PS_USRGRP_ACCESS = "delete from programstageusergroupaccesses where usergroupaccessid in (%s)";
 
