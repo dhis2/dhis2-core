@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -52,25 +52,25 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class EnrollmentAttributeValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EnrollmentAttributeValidationHookTest
 {
 
     @InjectMocks
     private EnrollmentAttributeValidationHook hookToTest;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private TrackerImportValidationContext validationContext;
@@ -99,7 +99,7 @@ public class EnrollmentAttributeValidationHookTest
 
     private TrackedEntityAttribute trackedEntityAttribute1;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
 
@@ -125,7 +125,7 @@ public class EnrollmentAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory()
+    void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory()
     {
         // given 1 attribute has null value
         Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
@@ -153,7 +153,7 @@ public class EnrollmentAttributeValidationHookTest
     }
 
     @Test
-    public void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory()
+    void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory()
     {
         // given 1 attribute has null value
         Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
@@ -180,7 +180,7 @@ public class EnrollmentAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei()
+    void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei()
     {
         // given 1 attribute has null value and do not exists in Tei
         Attribute attribute = Attribute.builder().attribute( trackedAttribute ).valueType( ValueType.TEXT )
@@ -210,7 +210,7 @@ public class EnrollmentAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationWhenAttributeIsNotPresentInDB()
+    void shouldFailValidationWhenAttributeIsNotPresentInDB()
     {
         Attribute attribute = Attribute.builder()
             .attribute( "invalidAttribute" )

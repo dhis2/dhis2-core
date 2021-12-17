@@ -29,7 +29,9 @@ package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -41,24 +43,24 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramIndicatorSubqueryBuilderTest
+@ExtendWith( MockitoExtension.class )
+class ProgramIndicatorSubqueryBuilderTest
 {
+
     private final static String DUMMY_EXPRESSION = "#{1234567}";
 
     private final static String DUMMY_FILTER_EXPRESSION = "#{1234567.filter}";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private final static BeanRandomizer rnd = BeanRandomizer.create();
 
     @Mock
     private ProgramIndicatorService programIndicatorService;
@@ -69,22 +71,19 @@ public class ProgramIndicatorSubqueryBuilderTest
 
     private Date endDate;
 
-    private BeanRandomizer beanRandomizer;
-
     private DefaultProgramIndicatorSubqueryBuilder subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         program = createProgram( 'A' );
         startDate = getDate( 2018, 1, 1 );
         endDate = getDate( 2018, 6, 30 );
-        beanRandomizer = new BeanRandomizer();
         subject = new DefaultProgramIndicatorSubqueryBuilder( programIndicatorService );
     }
 
     @Test
-    public void verifyProgramIndicatorSubQueryWithAliasTable()
+    void verifyProgramIndicatorSubQueryWithAliasTable()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -102,7 +101,7 @@ public class ProgramIndicatorSubqueryBuilderTest
      * join is type EVENT
      */
     @Test
-    public void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
+    void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setAggregationType( null );
@@ -117,7 +116,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyJoinWhenOuterQueryIsEnrollment()
+    void verifyJoinWhenOuterQueryIsEnrollment()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -131,12 +130,12 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyJoinWhenRelationshipTypeIsPresent()
+    void verifyJoinWhenRelationshipTypeIsPresent()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
         // Create a TEI to TEI relationship
-        RelationshipType relationshipType = beanRandomizer.randomObject( RelationshipType.class );
+        RelationshipType relationshipType = rnd.nextObject( RelationshipType.class );
         relationshipType.getFromConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         relationshipType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
 
@@ -157,7 +156,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyProgramIndicatorWithFilter()
+    void verifyProgramIndicatorWithFilter()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setFilter( DUMMY_FILTER_EXPRESSION );

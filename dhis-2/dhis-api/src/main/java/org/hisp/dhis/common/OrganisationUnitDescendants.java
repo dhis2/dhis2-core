@@ -25,61 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.common;
 
-import java.util.Collection;
-
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
-@Data
-@With
-@AllArgsConstructor
-@NoArgsConstructor
-public class PagingWrapper<T>
+/**
+ * Defines the selection of organisation unit descendants.
+ *
+ * <ul>
+ * <li>SELECTED: specified units only.</li>
+ * <li>DESCENDANTS: all units in sub-hierarchy of specified units, including
+ * specified units.</li>
+ * </ul>
+ *
+ * @author Jim Grace
+ */
+public enum OrganisationUnitDescendants
 {
-    @JsonProperty
-    private Collection<T> instances;
-
-    @JsonUnwrapped
-    private Pager pager;
-
-    @Data
-    @Builder
-    public static class Pager
-    {
-        @Builder.Default
-        @JsonProperty
-        private Integer page = 1;
-
-        @JsonProperty
-        private Long total;
-
-        @Builder.Default
-        @JsonProperty
-        private Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-
-        @JsonProperty
-        private String nextPage;
-
-        @JsonProperty
-        private String prevPage;
-
-        public static Pager fromLegacy( PagingCriteria pagingCriteria, org.hisp.dhis.common.Pager pager )
-        {
-            return Pager.builder()
-                .prevPage( pager.getPrevPage() )
-                .page( pager.getPage() )
-                .pageSize( pager.getPageSize() )
-                .total( pagingCriteria.isTotalPages() ? pager.getTotal() : null )
-                .nextPage( pager.getNextPage() )
-                .build();
-        }
-    }
+    SELECTED,
+    DESCENDANTS
 }

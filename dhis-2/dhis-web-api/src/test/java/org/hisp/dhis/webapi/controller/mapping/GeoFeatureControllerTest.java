@@ -47,33 +47,28 @@ import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 /**
  * @author Luciano Fiandesio
  */
-public class GeoFeatureControllerTest
+@ExtendWith( MockitoExtension.class )
+class GeoFeatureControllerTest
 {
     private MockMvc mockMvc;
 
     @Mock
     private DataQueryService dataQueryService;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Mock
     private CurrentUserService currentUserService;
-
-    private BeanRandomizer beanRandomizer = new BeanRandomizer();
 
     private final static String POINT = "{" +
         "\"type\": \"Point\"," +
@@ -88,14 +83,16 @@ public class GeoFeatureControllerTest
 
     private final static String ENDPOINT = "/geoFeatures";
 
-    @Before
+    private final BeanRandomizer rnd = BeanRandomizer.create( OrganisationUnit.class, "parent", "geometry" );
+
+    @BeforeEach
     public void setUp()
     {
         mockMvc = MockMvcBuilders.standaloneSetup( geoFeatureController ).build();
     }
 
     @Test
-    public void verifyGeoFeaturesReturnsOuData()
+    void verifyGeoFeaturesReturnsOuData()
         throws Exception
     {
         OrganisationUnit ouA = createOrgUnitWithCoordinates();
@@ -104,7 +101,7 @@ public class GeoFeatureControllerTest
         // This ou should be filtered out since it has no Coordinates
         OrganisationUnit ouD = createOrgUnitWithoutCoordinates();
 
-        User user = beanRandomizer.randomObject( User.class );
+        User user = rnd.nextObject( User.class );
         DataQueryParams params = DataQueryParams.newBuilder().withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
             .build();
 
@@ -120,7 +117,7 @@ public class GeoFeatureControllerTest
 
     private OrganisationUnit createOrgUnitWithoutCoordinates()
     {
-        return beanRandomizer.randomObject( OrganisationUnit.class, "parent", "geometry" );
+        return rnd.nextObject( OrganisationUnit.class );
     }
 
     private OrganisationUnit createOrgUnitWithCoordinates()

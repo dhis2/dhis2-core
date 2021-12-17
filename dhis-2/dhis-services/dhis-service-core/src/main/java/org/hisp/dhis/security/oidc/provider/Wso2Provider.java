@@ -39,6 +39,7 @@ import java.util.Objects;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
@@ -110,7 +111,7 @@ public class Wso2Provider extends AbstractOidcProvider
         builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
 
-        if ( Boolean.parseBoolean( config.getProperty( OIDC_PROVIDER_WSO2_ENABLE_LOGOUT.getKey() ) ) )
+        if ( DhisConfigurationProvider.isOn( config.getProperty( OIDC_PROVIDER_WSO2_ENABLE_LOGOUT.getKey() ) ) )
         {
             builder.providerConfigurationMetadata( ImmutableMap
                 .of( "end_session_endpoint", providerBaseUrl + "/oidc/logout" ) );

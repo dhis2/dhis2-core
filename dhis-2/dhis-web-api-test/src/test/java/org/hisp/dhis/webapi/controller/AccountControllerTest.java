@@ -28,12 +28,12 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonResponse;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -41,10 +41,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class AccountControllerTest extends DhisControllerConvenienceTest
+class AccountControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testRecoverAccount_NotEnabled()
+    void testRecoverAccount_NotEnabled()
     {
         User test = switchToNewUser( "test" );
         switchToSuperuser();
@@ -53,79 +54,77 @@ public class AccountControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testRestoreAccount_InvalidTokenPassword()
+    void testRestoreAccount_InvalidTokenPassword()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Account recovery failed",
             POST( "/account/restore?token=xyz&password=secret" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testCreateAccount()
+    void testCreateAccount()
     {
-        assertWebMessage( "Bad Request", 400, "ERROR", "User self registration is not allowed",
-            POST(
-                "/account?username=test&firstName=fn&surname=sn&password=secret&email=test@example.com&phoneNumber=0123456789&employer=em" )
-                    .content( HttpStatus.BAD_REQUEST ) );
+        assertWebMessage( "Bad Request", 400, "ERROR", "User self registration is not allowed", POST(
+            "/account?username=test&firstName=fn&surname=sn&password=secret&email=test@example.com&phoneNumber=0123456789&employer=em" )
+                .content( HttpStatus.BAD_REQUEST ) );
     }
 
     @Test
-    public void testUpdatePassword_NonExpired()
+    void testUpdatePassword_NonExpired()
     {
         assertMessage( "status", "NON_EXPIRED", "Account is not expired, redirecting to login.",
             POST( "/account/password?oldPassword=xyz&password=abc" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
     @Test
-    public void testValidateUserNameGet_UserNameAvailable()
+    void testValidateUserNameGet_UserNameAvailable()
     {
-        assertMessage( "response", "success", "",
-            GET( "/account/username?username=abc" ).content( HttpStatus.OK ) );
+        assertMessage( "response", "success", "", GET( "/account/username?username=abcd" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidateUserNameGet_UserNameTaken()
+    void testValidateUserNameGet_UserNameTaken()
     {
         assertMessage( "response", "error", "Username is already taken",
             GET( "/account/username?username=admin" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidateUserNamePost_UserNameAvailable()
+    void testValidateUserNamePost_UserNameAvailable()
     {
         assertMessage( "response", "success", "",
-            POST( "/account/validateUsername?username=abc" ).content( HttpStatus.OK ) );
+            POST( "/account/validateUsername?username=abcd" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidateUserNamePost_UserNameTaken()
+    void testValidateUserNamePost_UserNameTaken()
     {
         assertMessage( "response", "error", "Username is already taken",
             POST( "/account/validateUsername?username=admin" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidatePasswordGet_PasswordValid()
+    void testValidatePasswordGet_PasswordValid()
     {
         assertMessage( "response", "success", "",
             GET( "/account/password?password=Sup€rSecre1" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidatePasswordGet_PasswordNotValid()
+    void testValidatePasswordGet_PasswordNotValid()
     {
         assertMessage( "response", "error", "Password must have at least 8, and at most 40 characters",
             GET( "/account/password?password=xyz" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidatePasswordPost_PasswordValid()
+    void testValidatePasswordPost_PasswordValid()
     {
         assertMessage( "response", "success", "",
             POST( "/account/validatePassword?password=Sup€rSecre1" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidatePasswordPost_PasswordNotValid()
+    void testValidatePasswordPost_PasswordNotValid()
     {
         assertMessage( "response", "error", "Password must have at least 8, and at most 40 characters",
             POST( "/account/validatePassword?password=xyz" ).content( HttpStatus.OK ) );

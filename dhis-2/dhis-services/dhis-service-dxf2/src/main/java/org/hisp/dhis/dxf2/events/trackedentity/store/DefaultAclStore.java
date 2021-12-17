@@ -106,7 +106,7 @@ public class DefaultAclStore
     private List<Long> executeAclQuery( String userUID, List<String> userGroupUIDs, String sql, String primaryKey )
     {
         MapSqlParameterSource parameterMap = new MapSqlParameterSource();
-        parameterMap.addValue( USER_SQL_PARAM_NAME, "'" + userUID + "'" );
+        parameterMap.addValue( USER_SQL_PARAM_NAME, userUID );
 
         if ( !CollectionUtils.isEmpty( userGroupUIDs ) )
         {

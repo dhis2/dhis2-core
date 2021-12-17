@@ -30,9 +30,11 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1127;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1128;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -49,18 +51,22 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-public class PreCheckUpdatableFieldsValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class PreCheckUpdatableFieldsValidationHookTest
 {
+
     private final static String TRACKED_ENTITY_TYPE_ID = "TrackedEntityTypeId";
 
     private final static String PROGRAM_ID = "ProgramId";
@@ -75,16 +81,13 @@ public class PreCheckUpdatableFieldsValidationHookTest
 
     private PreCheckUpdatableFieldsValidationHook validationHook;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private TrackerImportValidationContext ctx;
 
     @Mock
     private TrackerBundle bundle;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         validationHook = new PreCheckUpdatableFieldsValidationHook();
@@ -102,7 +105,7 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccess()
+    void verifyTrackedEntityValidationSuccess()
     {
         // given
         TrackedEntity trackedEntity = validTei();
@@ -116,7 +119,7 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenUpdateTrackedEntityType()
+    void verifyTrackedEntityValidationFailsWhenUpdateTrackedEntityType()
     {
         // given
         TrackedEntity trackedEntity = validTei();
@@ -132,7 +135,7 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccess()
+    void verifyEnrollmentValidationSuccess()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -146,7 +149,7 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenUpdateProgram()
+    void verifyEnrollmentValidationFailsWhenUpdateProgram()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -163,7 +166,7 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenUpdateTrackedEntity()
+    void verifyEnrollmentValidationFailsWhenUpdateTrackedEntity()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -180,7 +183,7 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccess()
+    void verifyEventValidationSuccess()
     {
         // given
         Event event = validEvent();
@@ -194,7 +197,7 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenUpdateProgramStage()
+    void verifyEventValidationFailsWhenUpdateProgramStage()
     {
         // given
         Event event = validEvent();
@@ -211,7 +214,7 @@ public class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenUpdateEnrollment()
+    void verifyEventValidationFailsWhenUpdateEnrollment()
     {
         // given
         Event event = validEvent();

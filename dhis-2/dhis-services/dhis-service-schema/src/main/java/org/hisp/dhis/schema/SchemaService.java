@@ -35,6 +35,8 @@ import java.util.Set;
  */
 public interface SchemaService
 {
+    String PROPERTY_SCHEMA = "__schema__";
+
     void register( SchemaDescriptor descriptor );
 
     /**

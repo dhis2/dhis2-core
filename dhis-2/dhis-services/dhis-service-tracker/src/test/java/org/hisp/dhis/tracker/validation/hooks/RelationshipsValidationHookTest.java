@@ -31,9 +31,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -58,22 +60,23 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-public class RelationshipsValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class RelationshipsValidationHookTest
 {
-    private RelationshipsValidationHook validationHook;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private RelationshipsValidationHook validationHook;
 
     @Mock
     private TrackerBundle bundle;
@@ -86,7 +89,7 @@ public class RelationshipsValidationHookTest
 
     private ValidationErrorReporter reporter;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         validationHook = new RelationshipsValidationHook();
@@ -98,7 +101,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidRelationshipType()
+    void verifyValidationFailsOnInvalidRelationshipType()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -119,7 +122,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnFromWithMultipleDataset()
+    void verifyValidationFailsOnFromWithMultipleDataset()
     {
         String relationshipUid = "nBx6auGDUHG";
         Relationship relationship = Relationship.builder()
@@ -153,7 +156,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnFromWithNoDataset()
+    void verifyValidationFailsOnFromWithNoDataset()
     {
         String relationshipUid = "nBx6auGDUHG";
         Relationship relationship = Relationship.builder()
@@ -185,7 +188,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnToWithMultipleDataset()
+    void verifyValidationFailsOnToWithMultipleDataset()
     {
         String relationshipUid = "nBx6auGDUHG";
         Relationship relationship = Relationship.builder()
@@ -219,7 +222,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidToConstraint()
+    void verifyValidationFailsOnInvalidToConstraint()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -247,7 +250,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidToConstraintOfTypeProgramStage()
+    void verifyValidationFailsOnInvalidToConstraintOfTypeProgramStage()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, PROGRAM_STAGE_INSTANCE );
 
@@ -275,7 +278,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidFromConstraint()
+    void verifyValidationFailsOnInvalidFromConstraint()
     {
         RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -303,7 +306,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidToTrackedEntityType()
+    void verifyValidationFailsOnInvalidToTrackedEntityType()
     {
         RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE );
         String trackedEntityUid = CodeGenerator.generateUid();
@@ -346,7 +349,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidFromTrackedEntityType()
+    void verifyValidationFailsOnInvalidFromTrackedEntityType()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, PROGRAM_INSTANCE );
         String trackedEntityUid = CodeGenerator.generateUid();
@@ -390,7 +393,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsWhenParentObjectFailed()
+    void verifyValidationFailsWhenParentObjectFailed()
     {
         reporter = new ValidationErrorReporter( ctx );
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
@@ -432,7 +435,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationSuccessWhenSomeObjectsFailButNoParentObject()
+    void verifyValidationSuccessWhenSomeObjectsFailButNoParentObject()
     {
         reporter = new ValidationErrorReporter( ctx );
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
@@ -468,7 +471,7 @@ public class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyFailAuto()
+    void verifyFailAuto()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
         String uid = CodeGenerator.generateUid();

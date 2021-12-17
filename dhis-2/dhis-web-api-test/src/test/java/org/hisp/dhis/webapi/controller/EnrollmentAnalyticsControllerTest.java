@@ -28,13 +28,13 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonString;
 import org.hisp.dhis.webapi.json.domain.JsonGrid;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -45,31 +45,29 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class EnrollmentAnalyticsControllerTest extends DhisControllerConvenienceTest
+class EnrollmentAnalyticsControllerTest extends DhisControllerConvenienceTest
 {
+
     private String programId;
 
     private String orgUnitId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         orgUnitId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        programId = assertStatus( HttpStatus.CREATED,
-            POST( "/programs/",
-                "{'name':'My Program', 'shortName':'MPX1', 'programType': 'WITHOUT_REGISTRATION', 'organisationUnits': [{'id': '"
-                    + orgUnitId + "'}]}" ) );
+        programId = assertStatus( HttpStatus.CREATED, POST( "/programs/",
+            "{'name':'My Program', 'shortName':'MPX1', 'programType': 'WITHOUT_REGISTRATION', 'organisationUnits': [{'id': '"
+                + orgUnitId + "'}]}" ) );
     }
 
     @Test
-    public void testGetQueryJson()
+    void testGetQueryJson()
     {
         JsonGrid grid = GET(
             "/analytics/enrollments/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
             programId, orgUnitId ).content().as( JsonGrid.class );
-
         assertEquals( grid.getHeaderWidth(), grid.getHeaders().size() );
         assertEquals( "My Program", grid.getMetaData().getItems().get( programId ).getString( "name" ).string() );
         assertEquals( orgUnitId,

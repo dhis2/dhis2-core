@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
@@ -42,11 +41,11 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.utils.Assertions.assertMapEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -94,12 +93,11 @@ import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.random.BeanRandomizer;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.ImmutableList;
@@ -110,8 +108,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class ExpressionService2Test extends DhisSpringTest
+@ExtendWith( MockitoExtension.class )
+class ExpressionService2Test extends DhisSpringTest
 {
+
     @Mock
     private HibernateGenericStore<Expression> hibernateGenericStore;
 
@@ -135,9 +135,6 @@ public class ExpressionService2Test extends DhisSpringTest
 
     @Mock
     private IdentifiableObjectManager idObjectManager;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Autowired
     private CacheProvider cacheProvider;
@@ -244,17 +241,15 @@ public class ExpressionService2Test extends DhisSpringTest
 
     private String expressionR;
 
-    private BeanRandomizer rnd;
-
     private static final double DELTA = 0.01;
 
-    @Before
+    private final BeanRandomizer rnd = BeanRandomizer.create();
+
+    @BeforeEach
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
             organisationUnitService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
-
-        rnd = new BeanRandomizer();
 
         categoryOptionA = new CategoryOption( "Under 5" );
         categoryOptionB = new CategoryOption( "Over 5" );
@@ -287,7 +282,7 @@ public class ExpressionService2Test extends DhisSpringTest
         deD = createDataElement( 'D' );
         deE = createDataElement( 'E', categoryCombo );
 
-        coc = rnd.randomObject( CategoryOptionCombo.class );
+        coc = rnd.nextObject( CategoryOptionCombo.class );
         coc.setName( DEFAULT_CATEGORY_COMBO_NAME );
 
         optionCombos.add( coc );
@@ -301,19 +296,19 @@ public class ExpressionService2Test extends DhisSpringTest
 
         period = createPeriod( getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
 
-        pteaA = rnd.randomObject( ProgramTrackedEntityAttributeDimensionItem.class );
-        pdeA = rnd.randomObject( ProgramDataElementDimensionItem.class );
-        piA = rnd.randomObject( ProgramIndicator.class );
+        pteaA = rnd.nextObject( ProgramTrackedEntityAttributeDimensionItem.class );
+        pdeA = rnd.nextObject( ProgramDataElementDimensionItem.class );
+        piA = rnd.nextObject( ProgramIndicator.class );
 
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C' );
 
-        constantA = rnd.randomObject( Constant.class );
+        constantA = rnd.nextObject( Constant.class );
         constantA.setName( "ConstantA" );
         constantA.setValue( 2.0 );
 
-        constantB = rnd.randomObject( Constant.class );
+        constantB = rnd.nextObject( Constant.class );
         constantB.setName( "ConstantB" );
         constantB.setValue( 5.0 );
 
@@ -410,7 +405,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionElementAndOptionComboIds()
+    void testGetExpressionElementAndOptionComboIds()
     {
         Set<String> ids = target.getExpressionElementAndOptionComboIds( expressionC, VALIDATION_RULE_EXPRESSION );
 
@@ -420,7 +415,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDimensionalItemIdsNullOrEmpty()
+    void testGetExpressionDimensionalItemIdsNullOrEmpty()
     {
         Set<DimensionalItemId> itemIds = target.getExpressionDimensionalItemIds( null, INDICATOR_EXPRESSION );
         assertEquals( 0, itemIds.size() );
@@ -430,7 +425,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDimensionalItemIds()
+    void testGetExpressionDimensionalItemIds()
     {
         when( constantService.getConstantMap() ).thenReturn(
             ImmutableMap.<String, Constant> builder()
@@ -449,7 +444,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDimensionalItemMapsNullOrEmpty()
+    void testGetExpressionDimensionalItemMapsNullOrEmpty()
     {
         Map<DimensionalItemId, DimensionalItemObject> itemMap = new HashMap<>();
         Map<DimensionalItemId, DimensionalItemObject> sampleItemMap = new HashMap<>();
@@ -464,7 +459,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDimensionalItemMaps()
+    void testGetExpressionDimensionalItemMaps()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet(
             getId( opA ), getId( opB ), getId( opC ), getId( opD ) );
@@ -502,12 +497,10 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetIndicatorDimensionalItemMap()
+    void testGetIndicatorDimensionalItemMap()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet(
             getId( opA ), getId( opB ), getId( deB ), getId( pdeA ), getId( pteaA ), getId( piA ) );
-
-        Set<DimensionalItemObject> itemObjects = Sets.newHashSet( opA, opB, deB, pdeA, pteaA, piA );
 
         ImmutableMap<DimensionalItemId, DimensionalItemObject> itemMap = ImmutableMap
             .<DimensionalItemId, DimensionalItemObject> builder()
@@ -539,7 +532,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDataElements()
+    void testGetExpressionDataElements()
     {
         when( dataElementService.getDataElement( opA.getDimensionItem().split( "\\." )[0] ) )
             .thenReturn( opA.getDataElement() );
@@ -567,7 +560,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testExpressionDimensionalItemMapsReportingRates()
+    void testExpressionDimensionalItemMapsReportingRates()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( reportingRate ), getId( opB ) );
 
@@ -588,7 +581,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionOptionComboIds()
+    void testGetExpressionOptionComboIds()
     {
         Set<String> comboIds = target.getExpressionOptionComboIds( expressionG, INDICATOR_EXPRESSION );
 
@@ -598,7 +591,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testExpressionIsValid()
+    void testExpressionIsValid()
     {
         when( constantService.getConstantMap() ).thenReturn(
             ImmutableMap.<String, Constant> builder()
@@ -668,7 +661,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionDescription()
+    void testGetExpressionDescription()
     {
         when( constantService.getConstantMap() ).thenReturn(
             ImmutableMap.<String, Constant> builder()
@@ -702,7 +695,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetExpressionValue()
+    void testGetExpressionValue()
     {
         Map<DimensionalItemId, DimensionalItemObject> itemMap = ImmutableMap
             .<DimensionalItemId, DimensionalItemObject> builder()
@@ -732,7 +725,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetIndicatorDimensionalItemMap2()
+    void testGetIndicatorDimensionalItemMap2()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
@@ -757,8 +750,6 @@ public class ExpressionService2Test extends DhisSpringTest
 
         Map<DimensionalItemId, DimensionalItemObject> itemMap = target.getIndicatorDimensionalItemMap( indicators );
 
-        List<Period> periods = Collections.singletonList( period );
-
         Map<DimensionalItemObject, Object> valueMap = new HashMap<>();
 
         valueMap.put( new DataElementOperand( deA, coc ), 12d );
@@ -776,7 +767,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetIndicatorDimensionalItemMap3()
+    void testGetIndicatorDimensionalItemMap3()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ), getId( opE ), getId( opF ) );
 
@@ -824,7 +815,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testSubstituteIndicatorExpressions()
+    void testSubstituteIndicatorExpressions()
     {
         String expressionZ = "if(\"A\" < 'B' and true,0,0)";
 
@@ -864,42 +855,44 @@ public class ExpressionService2Test extends DhisSpringTest
     // CRUD tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void verifyExpressionIsUpdated()
+    void verifyExpressionIsUpdated()
     {
-        Expression expression = rnd.randomObject( Expression.class );
+        Expression expression = rnd.nextObject( Expression.class );
         target.updateExpression( expression );
         verify( hibernateGenericStore ).update( expression );
     }
 
     @Test
-    public void verifyExpressionIsDeleted()
+    void verifyExpressionIsDeleted()
     {
-        Expression expression = rnd.randomObject( Expression.class );
+        Expression expression = rnd.nextObject( Expression.class );
         target.deleteExpression( expression );
         verify( hibernateGenericStore ).delete( expression );
     }
 
     @Test
-    public void verifyExpressionIsAdded()
+    void verifyExpressionIsAdded()
     {
-        Expression expression = rnd.randomObject( Expression.class );
+        Expression expression = rnd.nextObject( Expression.class );
         long id = target.addExpression( expression );
         assertThat( id, is( expression.getId() ) );
         verify( hibernateGenericStore ).save( expression );
     }
 
     @Test
-    public void verifyAllExpressionsCanBeFetched()
+    void verifyAllExpressionsCanBeFetched()
     {
-        when( hibernateGenericStore.getAll() ).thenReturn( Lists.newArrayList( rnd.randomObject( Expression.class ) ) );
+        when( hibernateGenericStore.getAll() ).thenReturn( Lists.newArrayList( rnd.nextObject( Expression.class ) ) );
         List<Expression> expressions = target.getAllExpressions();
         assertThat( expressions, hasSize( 1 ) );
         verify( hibernateGenericStore ).getAll();
     }
 
     @Test
-    public void testGetExpressionOrgUnitGroups()
+    void testGetExpressionOrgUnitGroups()
     {
         when( organisationUnitGroupService.getOrganisationUnitGroup( groupA.getUid() ) ).thenReturn( groupA );
         Set<OrganisationUnitGroup> groups = target.getExpressionOrgUnitGroups( expressionH, INDICATOR_EXPRESSION );
@@ -913,7 +906,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testAnnualizedIndicatorValueWhenHavingMultiplePeriods()
+    void testAnnualizedIndicatorValueWhenHavingMultiplePeriods()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
@@ -967,7 +960,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testAnnualizedIndicatorValueWhenHavingNullPeriods()
+    void testAnnualizedIndicatorValueWhenHavingNullPeriods()
     {
         Set<DimensionalItemId> itemIds = Sets.newHashSet( getId( opA ) );
 
@@ -1012,7 +1005,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetNullWithoutNumeratorDataWithDenominatorData()
+    void testGetNullWithoutNumeratorDataWithDenominatorData()
     {
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 
@@ -1035,7 +1028,7 @@ public class ExpressionService2Test extends DhisSpringTest
     }
 
     @Test
-    public void testGetNullWithNumeratorDataWithZeroDenominatorData()
+    void testGetNullWithNumeratorDataWithZeroDenominatorData()
     {
         IndicatorType indicatorType = new IndicatorType( "A", 100, false );
 

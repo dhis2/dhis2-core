@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.period.Period;
@@ -41,19 +42,23 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.DefaultPreheatCacheService;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
  */
-public class PeriodTypeSupplierTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class PeriodTypeSupplierTest
 {
+
     private PeriodTypeSupplier supplier;
 
     @Mock
@@ -65,12 +70,9 @@ public class PeriodTypeSupplierTest
     @Mock
     private Environment env;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    private BeanRandomizer rnd = new BeanRandomizer();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         final PreheatCacheService cache = new DefaultPreheatCacheService( conf, env );
@@ -79,9 +81,9 @@ public class PeriodTypeSupplierTest
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
-        final List<Period> periods = rnd.randomObjects( Period.class, 20 );
+        final List<Period> periods = rnd.objects( Period.class, 20 ).collect( Collectors.toList() );
         when( periodStore.getAll() ).thenReturn( periods );
 
         final TrackerImportParams params = TrackerImportParams.builder().build();
