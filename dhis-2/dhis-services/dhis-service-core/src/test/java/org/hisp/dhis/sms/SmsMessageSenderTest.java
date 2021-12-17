@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.sms;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anySet;
 import static org.mockito.Mockito.anyString;
@@ -65,20 +65,20 @@ import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Zubair Asghar.
  */
+@ExtendWith( MockitoExtension.class )
 public class SmsMessageSenderTest
 {
     private static final Integer MAX_ALLOWED_RECIPIENTS = 200;
@@ -98,9 +98,6 @@ public class SmsMessageSenderTest
 
     @Mock
     private BulkSmsHttpGateway bulkSmsGateway;
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     private ArrayList<SmsGateway> smsGateways;
 
@@ -132,7 +129,7 @@ public class SmsMessageSenderTest
 
     private String footer = "footer";
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
 

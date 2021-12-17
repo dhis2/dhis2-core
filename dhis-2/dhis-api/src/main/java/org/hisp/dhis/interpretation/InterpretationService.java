@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
@@ -55,6 +56,8 @@ public interface InterpretationService
     List<Interpretation> getInterpretations();
 
     List<Interpretation> getInterpretations( Visualization visualization );
+
+    List<Interpretation> getInterpretations( EventVisualization eventVisualization );
 
     List<Interpretation> getInterpretations( Map map );
 

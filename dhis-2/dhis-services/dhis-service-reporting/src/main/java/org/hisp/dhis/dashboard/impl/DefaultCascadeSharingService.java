@@ -53,6 +53,7 @@ import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -117,6 +118,11 @@ public class DefaultCascadeSharingService
                 break;
             case EVENT_CHART:
                 handleEventChart( dashboard.getSharing(), dashboardItem.getEventChart(), itemCanMergeObjects,
+                    parameters );
+                break;
+            case EVENT_VISUALIZATION:
+                handleEventVisualization( dashboard.getSharing(), dashboardItem.getEventVisualization(),
+                    itemCanMergeObjects,
                     parameters );
                 break;
             default:
@@ -255,6 +261,38 @@ public class DefaultCascadeSharingService
             parameters );
 
         handleBaseAnalyticObject( sourceSharing, eventChart, updateObjects, parameters );
+    }
+
+    /**
+     * Handles the sharing cascade for the given Dashboard and
+     * EventVisualization
+     *
+     * @param sourceSharing {@link Sharing}
+     * @param eventVisualization {@link EventVisualization}
+     * @param updateObjects Set of objects need to be updated
+     * @param parameters {@link CascadeSharingParameters}
+     */
+    private void handleEventVisualization( final Sharing sourceSharing, EventVisualization eventVisualization,
+        Set<IdentifiableObject> updateObjects, CascadeSharingParameters parameters )
+    {
+        if ( eventVisualization == null )
+        {
+            return;
+        }
+
+        if ( handleIdentifiableObject( sourceSharing, EventVisualization.class, eventVisualization, updateObjects,
+            parameters ) )
+        {
+            updateObjects.add( eventVisualization );
+        }
+
+        handleIdentifiableObject( sourceSharing, TrackedEntityAttribute.class,
+            eventVisualization.getAttributeValueDimension(), updateObjects, parameters );
+
+        handleIdentifiableObject( sourceSharing, DataElement.class, eventVisualization.getDataElementValueDimension(),
+            updateObjects, parameters );
+
+        handleBaseAnalyticObject( sourceSharing, eventVisualization, updateObjects, parameters );
     }
 
     /**

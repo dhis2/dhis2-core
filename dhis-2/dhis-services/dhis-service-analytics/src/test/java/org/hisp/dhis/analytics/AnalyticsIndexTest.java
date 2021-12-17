@@ -29,16 +29,17 @@ package org.hisp.dhis.analytics;
 
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 
-public class AnalyticsIndexTest
+class AnalyticsIndexTest
 {
+
     @Test
-    public void testGetIndexName()
+    void testGetIndexName()
     {
         AnalyticsIndex indexA = new AnalyticsIndex( "analytics_2017_temp", Lists.newArrayList( quote( "quarterly" ) ),
             null );
@@ -46,7 +47,6 @@ public class AnalyticsIndexTest
             Lists.newArrayList( quote( "ax" ), quote( "co" ) ), null );
         AnalyticsIndex indexC = new AnalyticsIndex( "analytics_2019_temp", Lists.newArrayList( quote( "YtbsuPPo010" ) ),
             null );
-
         assertTrue(
             indexA.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_quarterly_ax_2017_" ) );
         assertTrue( indexB.getIndexName( AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_ax_co_ax_2018_" ) );

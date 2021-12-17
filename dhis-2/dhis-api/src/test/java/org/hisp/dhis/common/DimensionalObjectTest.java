@@ -27,27 +27,27 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class DimensionalObjectTest
+class DimensionalObjectTest
 {
+
     @Test
-    public void testGetFilterItemsAsList()
+    void testGetFilterItemsAsList()
     {
         BaseDimensionalObject objectA = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null,
             null, null, null, "IN:uidA;uidB;uidC" );
         List<String> expectedA = new ArrayList<>( Arrays.asList( "uidA", "uidB", "uidC" ) );
         assertEquals( expectedA, objectA.getFilterItemsAsList() );
-
         BaseDimensionalObject objectB = new BaseDimensionalObject( "dimA", DimensionType.PROGRAM_DATA_ELEMENT, null,
             null, null, null, "EQ:uidA" );
         assertEquals( null, objectB.getFilterItemsAsList() );

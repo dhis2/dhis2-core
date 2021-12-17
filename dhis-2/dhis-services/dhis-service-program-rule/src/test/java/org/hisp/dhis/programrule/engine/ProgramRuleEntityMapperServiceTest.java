@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
@@ -76,11 +76,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.util.ObjectUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import com.google.api.client.util.Lists;
 import com.google.common.collect.Sets;
@@ -88,8 +87,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Zubair Asghar.
  */
+@ExtendWith( org.mockito.junit.jupiter.MockitoExtension.class )
 public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 {
+
     private static final String SAMPLE_VALUE_A = "textValueA";
 
     private static final String SAMPLE_VALUE_B = "textValueB";
@@ -146,9 +147,6 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private ProgramStageInstance programStageInstanceC;
 
-    @org.junit.Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private ProgramRuleService programRuleService;
 
@@ -169,7 +167,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private DefaultProgramRuleEntityMapperService subject;
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         subject = new DefaultProgramRuleEntityMapperService( programRuleService, programRuleVariableService,
@@ -256,8 +254,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( null );
 
-        assertThrows( "Required DataElement(" + dataElement.getUid() + ") was not found.", RuntimeException.class,
-            () -> subject.toMappedRuleEvent( programStageInstanceA ) );
+        assertThrows( RuntimeException.class, () -> subject.toMappedRuleEvent( programStageInstanceA ),
+            "Required DataElement(" + dataElement.getUid() + ") was not found." );
 
     }
 

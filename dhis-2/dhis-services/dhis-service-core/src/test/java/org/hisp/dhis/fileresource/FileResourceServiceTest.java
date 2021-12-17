@@ -30,8 +30,12 @@ package org.hisp.dhis.fileresource;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.Map;
@@ -42,14 +46,13 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.util.MimeTypeUtils;
 
@@ -58,6 +61,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author Luciano Fiandesio
  */
+@ExtendWith( MockitoExtension.class )
 public class FileResourceServiceTest
 {
     @Mock
@@ -87,12 +91,9 @@ public class FileResourceServiceTest
     @Captor
     private ArgumentCaptor<FileDeletedEvent> fileDeletedEventCaptor;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private FileResourceService subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new DefaultFileResourceService( fileResourceStore, sessionFactory, fileResourceContentStore,
@@ -124,26 +125,24 @@ public class FileResourceServiceTest
         assertThat( event.getFile(), is( file ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void verifySaveIllegalFileTypeResourceA()
     {
         FileResource fileResource = new FileResource( "very_evil_script.html", "text/html", 1024, "md5",
             FileResourceDomain.USER_AVATAR );
 
         File file = new File( "very_evil_script.html" );
-
-        subject.saveFileResource( fileResource, file );
+        assertThrows( IllegalQueryException.class, () -> subject.saveFileResource( fileResource, file ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void verifySaveIllegalFileTypeResourceB()
     {
         FileResource fileResource = new FileResource( "suspicious_program.rpm", "application/x-rpm", 2048, "md5",
             FileResourceDomain.MESSAGE_ATTACHMENT );
 
         File file = new File( "suspicious_program.rpm" );
-
-        subject.saveFileResource( fileResource, file );
+        assertThrows( IllegalQueryException.class, () -> subject.saveFileResource( fileResource, file ) );
     }
 
     @Test

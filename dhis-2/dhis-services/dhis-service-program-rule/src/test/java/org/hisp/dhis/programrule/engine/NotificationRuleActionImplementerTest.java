@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -61,28 +61,26 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
 import org.hisp.dhis.rules.models.RuleEffect;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * Created by zubair@dhis2.org on 05.02.18.
  */
+@ExtendWith( MockitoExtension.class )
 public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 {
+
     private static final String NOTIFICATION_UID = "123abc";
 
     private static final String MANDATORY_FIELD = "fname";
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     // -------------------------------------------------------------------------
     // Mocking Dependencies
@@ -118,7 +116,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private ProgramRule programRuleA;
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         setUpInstances();
@@ -275,8 +273,8 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     @Test
     public void test_NothingHappensIfActionIsNull()
     {
-        assertThrows( "Rule Effect cannot be null", NullPointerException.class,
-            () -> implementer.implement( null, programInstance ) );
+        assertThrows( NullPointerException.class,
+            () -> implementer.implement( null, programInstance ), "Rule Effect cannot be null" );
     }
 
     // -------------------------------------------------------------------------

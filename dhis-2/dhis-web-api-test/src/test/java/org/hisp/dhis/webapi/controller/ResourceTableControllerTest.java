@@ -30,9 +30,9 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.WebTestConfiguration.TestSchedulingManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -41,39 +41,40 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class ResourceTableControllerTest extends DhisControllerConvenienceTest
+class ResourceTableControllerTest extends DhisControllerConvenienceTest
 {
+
     @Autowired
     private SchedulingManager schedulingManager;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         ((TestSchedulingManager) schedulingManager).setEnabled( false );
     }
 
-    @After
-    public void tearDown()
+    @AfterEach
+    void tearDown()
     {
         ((TestSchedulingManager) schedulingManager).setEnabled( true );
     }
 
     @Test
-    public void testAnalytics()
+    void testAnalytics()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated inMemoryAnalyticsJob",
             POST( "/resourceTables/analytics" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testResourceTables()
+    void testResourceTables()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated inMemoryResourceTableJob",
             POST( "/resourceTables" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testMonitoring()
+    void testMonitoring()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated inMemoryMonitoringJob",
             POST( "/resourceTables/monitoring" ).content( HttpStatus.OK ) );

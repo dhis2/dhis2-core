@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.sms.config;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
@@ -41,18 +41,18 @@ import static org.mockito.Mockito.when;
 import java.util.function.Consumer;
 
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Zubair Asghar.
  */
+@ExtendWith( MockitoExtension.class )
 public class GatewayAdministrationServiceTest
 {
     private static final String BULKSMS = BulkSmsGatewayConfig.class.getName();
@@ -73,9 +73,6 @@ public class GatewayAdministrationServiceTest
     // Mocking Dependencies
     // -------------------------------------------------------------------------
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Mock
     private SmsConfigurationManager smsConfigurationManager;
 
@@ -84,7 +81,7 @@ public class GatewayAdministrationServiceTest
 
     private DefaultGatewayAdministrationService subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
 
@@ -248,7 +245,7 @@ public class GatewayAdministrationServiceTest
 
         assertTrue( subject.removeGatewayByUid( bulkId ) );
         assertGateways( 1 );
-        assertGateway( BULKSMS, Assert::assertNull );
+        assertGateway( BULKSMS, Assertions::assertNull );
         assertEquals( clickatellConfig, subject.getDefaultGateway() );
     }
 
@@ -265,7 +262,7 @@ public class GatewayAdministrationServiceTest
 
         assertTrue( subject.removeGatewayByUid( clickatelId ) );
         assertGateways( 1 );
-        assertGateway( CLICKATELL, Assert::assertNull );
+        assertGateway( CLICKATELL, Assertions::assertNull );
         assertEquals( bulkConfig, subject.getDefaultGateway() );
     }
 

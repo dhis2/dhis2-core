@@ -27,20 +27,29 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -49,6 +58,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  */
 public abstract class EventAnalyticsTest
 {
+
     @Mock
     protected SqlRowSet rowSet;
 
@@ -58,13 +68,11 @@ public abstract class EventAnalyticsTest
 
     protected DataElement dataElementA;
 
-    @Before
-    public void setUpData()
+    @BeforeEach
+    void setUpData()
     {
         programA = createProgram( 'A' );
-
         programStage = createProgramStage( 'B', programA );
-
         dataElementA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM );
         dataElementA.setUid( "fWIAEtYVEGk" );
     }
@@ -73,10 +81,8 @@ public abstract class EventAnalyticsTest
         RelationshipType relationshipType )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
-
         params.addItem( new QueryItem( programIndicator, programIndicator.getProgram(), null, ValueType.NUMBER,
             programIndicator.getAggregationType(), null, relationshipType ) );
-
         return params.build();
     }
 
@@ -87,15 +93,12 @@ public abstract class EventAnalyticsTest
     }
 
     protected EventQueryParams createRequestParamsWithFilter( ProgramStage withProgramStage,
-        ValueType withQueryItemValueType,
-        QueryOperator withOperator,
-        String withQueryFilter )
+        ValueType withQueryItemValueType, QueryOperator withOperator, String withQueryFilter )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder(
             createRequestParams( withProgramStage, withQueryItemValueType ) );
         QueryItem queryItem = params.build().getItems().get( 0 );
         queryItem.addFilter( new QueryFilter( withOperator, withQueryFilter ) );
-
         return params.build();
     }
 
@@ -117,9 +120,7 @@ public abstract class EventAnalyticsTest
     protected EventQueryParams createRequestParams( QueryItem queryItem )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
-
         params.addItem( queryItem );
-
         return params.build();
     }
 
@@ -127,31 +128,23 @@ public abstract class EventAnalyticsTest
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         ouA.setPath( "/" + ouA.getUid() );
-
         EventQueryParams.Builder params = new EventQueryParams.Builder();
-
         params.withPeriods( getList( createPeriod( "2000Q1" ) ), "monthly" );
         params.withOrganisationUnits( getList( ouA ) );
         params.withTableName( getTableName() + "_" + programA.getUid() );
-
         params.withProgram( programA );
-
         return params.build();
     }
 
     protected EventQueryParams createRequestParams( ProgramStage withProgramStage, ValueType withQueryItemValueType )
     {
         EventQueryParams.Builder params = new EventQueryParams.Builder( _createRequestParams() );
-
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
-
         params.withProgram( programA );
-
         if ( withProgramStage != null )
         {
             params.withProgramStage( programStage );
         }
-
         if ( withQueryItemValueType != null )
         {
             QueryItem queryItem = new QueryItem( dio );
@@ -162,7 +155,6 @@ public abstract class EventAnalyticsTest
             queryItem.setProgram( programA );
             queryItem.setValueType( withQueryItemValueType );
             params.addItem( queryItem );
-
         }
         return params.build();
     }
@@ -175,7 +167,6 @@ public abstract class EventAnalyticsTest
     String getTable( String uid )
     {
         return getTableName() + "_" + uid;
-
     }
 
     abstract String getTableName();

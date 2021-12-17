@@ -30,9 +30,18 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1032;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1063;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1080;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1081;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -47,18 +56,22 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class PreCheckExistenceValidationHookTest
 {
+
     private PreCheckExistenceValidationHook validationHook;
 
     private final static String SOFT_DELETED_TEI_UID = "SoftDeletedTEIId";
@@ -83,16 +96,13 @@ public class PreCheckExistenceValidationHookTest
 
     private final static String RELATIONSHIP_UID = "RelationshipId";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private TrackerBundle bundle;
 
     @Mock
     private TrackerImportValidationContext ctx;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         validationHook = new PreCheckExistenceValidationHook();

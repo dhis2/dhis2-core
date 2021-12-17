@@ -30,21 +30,18 @@ package org.hisp.dhis.system.notification;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
+@ExtendWith( MockitoExtension.class )
 public class NotificationLoggerUtilTest
 {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     Logger logger;

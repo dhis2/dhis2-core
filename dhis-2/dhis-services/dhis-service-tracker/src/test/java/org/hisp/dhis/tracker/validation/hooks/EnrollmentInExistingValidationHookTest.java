@@ -28,12 +28,16 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,20 +55,20 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class EnrollmentInExistingValidationHookTest
 {
 
     private EnrollmentInExistingValidationHook hookToTest;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private TrackerImportValidationContext validationContext;
@@ -89,7 +93,7 @@ public class EnrollmentInExistingValidationHookTest
 
     private static final String enrollmentUid = "enrollment";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         hookToTest = new EnrollmentInExistingValidationHook();
@@ -123,11 +127,12 @@ public class EnrollmentInExistingValidationHookTest
         verify( validationContext, times( 0 ) ).getProgram( programUid );
     }
 
-    @Test( expected = NullPointerException.class )
+    @Test
     public void shouldThrowProgramNotFound()
     {
         when( enrollment.getProgram() ).thenReturn( null );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        assertThrows( NullPointerException.class,
+            () -> hookToTest.validateEnrollment( validationErrorReporter, enrollment ) );
     }
 
     @Test
@@ -143,7 +148,7 @@ public class EnrollmentInExistingValidationHookTest
         verify( validationContext.getBundle(), times( 0 ) ).getPreheat();
     }
 
-    @Test( expected = NullPointerException.class )
+    @Test
     public void shouldThrowTrackedEntityNotFound()
     {
         Program program = new Program();
@@ -152,7 +157,8 @@ public class EnrollmentInExistingValidationHookTest
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
 
         when( enrollment.getTrackedEntity() ).thenReturn( null );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        assertThrows( NullPointerException.class,
+            () -> hookToTest.validateEnrollment( validationErrorReporter, enrollment ) );
     }
 
     @Test

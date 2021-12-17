@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
 import java.util.Collection;
@@ -56,20 +56,23 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.UserService;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
-public class OrgUnitProfileServiceTest
-    extends DhisSpringTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+public class OrgUnitProfileServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private OrgUnitProfileService service;
 
@@ -93,9 +96,6 @@ public class OrgUnitProfileServiceTest
 
     @Autowired
     private ObjectMapper jsonMapper;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private OrgUnitProfileService mockService;
 

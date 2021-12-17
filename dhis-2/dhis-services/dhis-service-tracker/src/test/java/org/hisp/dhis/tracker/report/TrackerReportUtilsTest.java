@@ -38,45 +38,42 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class TrackerReportUtilsTest
+class TrackerReportUtilsTest
 {
 
     private TrackerBundle bundle;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         bundle = TrackerBundle.builder().build();
     }
 
     @Test
-    public void buildArgumentListShouldTurnInstantIntoArgument()
+    void buildArgumentListShouldTurnInstantIntoArgument()
     {
         final Instant now = Instant.now();
         List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
-
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateFormat.getInstance().format( Date.from( now ) ) ) );
     }
 
     @Test
-    public void buildArgumentListShouldTurnDateIntoArgument()
+    void buildArgumentListShouldTurnDateIntoArgument()
     {
         final Date now = Date.from( Instant.now() );
         List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( now ) );
-
         assertThat( args.size(), is( 1 ) );
         assertThat( args.get( 0 ), is( DateFormat.getInstance().format( now ) ) );
     }
 
     @Test
-    public void buildArgumentListShouldTurnStringsIntoArguments()
+    void buildArgumentListShouldTurnStringsIntoArguments()
     {
         List<String> args = TrackerReportUtils.buildArgumentList( bundle, Arrays.asList( "foo", "faa" ) );
-
         assertThat( args, contains( "foo", "faa" ) );
     }
 }

@@ -29,30 +29,29 @@ package org.hisp.dhis.node.types;
 
 import org.hisp.dhis.node.AbstractNodeTest;
 import org.hisp.dhis.schema.Property;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link ComplexNode}.
  *
  * @author Volker Schmidt
  */
-public class ComplexNodeTest
+class ComplexNodeTest
 {
+
     @Test
-    public void createSingleChild()
+    void createSingleChild()
     {
         final Property property = new Property( AbstractNodeTest.TestClass.class );
         property.setName( "tests" );
         property.setNamespace( "testUri" );
-
         final SimpleNode simpleNode = new SimpleNode( "id", "My Test" );
-
         final ComplexNode testNode = new ComplexNode( property, simpleNode );
-        Assert.assertEquals( "tests", testNode.getName() );
-        Assert.assertEquals( "testUri", testNode.getNamespace() );
-        Assert.assertEquals( AbstractNodeTest.TestClass.class, testNode.getProperty().getKlass() );
-        Assert.assertEquals( 1, testNode.getUnorderedChildren().size() );
-        Assert.assertSame( simpleNode, testNode.getUnorderedChildren().get( 0 ) );
+        Assertions.assertEquals( "tests", testNode.getName() );
+        Assertions.assertEquals( "testUri", testNode.getNamespace() );
+        Assertions.assertEquals( AbstractNodeTest.TestClass.class, testNode.getProperty().getKlass() );
+        Assertions.assertEquals( 1, testNode.getUnorderedChildren().size() );
+        Assertions.assertSame( simpleNode, testNode.getUnorderedChildren().get( 0 ) );
     }
 }

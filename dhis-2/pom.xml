@@ -68,7 +68,7 @@
 
         <!-- Security-->
         <spring-security.version>5.6.0</spring-security.version>
-        <spring-security-oauth2.version>2.5.0.RELEASE</spring-security-oauth2.version>
+        <spring-security-oauth2.version>2.5.1.RELEASE</spring-security-oauth2.version>
         <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
         <bcprov-jdk15on.version>1.69</bcprov-jdk15on.version>
         <jasypt.version>1.9.3</jasypt.version>
@@ -76,23 +76,23 @@
 
         <!-- Spring-->
         <spring.version>5.3.13</spring.version>
-        <spring-data-redis.version>2.3.2.RELEASE</spring-data-redis.version>
-        <spring-session-data-redis.version>2.3.0.RELEASE</spring-session-data-redis.version>
+        <spring-data-redis.version>2.6.0</spring-data-redis.version>
+        <spring-session-data-redis.version>2.6.0</spring-session-data-redis.version>
         <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
         <spring-hateoas.version>1.4.0</spring-hateoas.version>
         <spring-retry.version>1.2.4.RELEASE</spring-retry.version>
         <spring-restdocs-mockmvc.version>2.0.4.RELEASE</spring-restdocs-mockmvc.version>
         <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-        <lettuce.version>5.2.0.RELEASE</lettuce.version>
+        <lettuce.version>6.1.5.RELEASE</lettuce.version>
 
         <!--DBMS -->
-        <flyway-core.version>8.0.4</flyway-core.version>
+        <flyway-core.version>8.2.2</flyway-core.version>
         <hibernate.version>5.4.28.Final</hibernate.version>
         <hibernate-types.version>2.14.0</hibernate-types.version>
         <!-- Data sources,db pools and db drivers-->
         <c3p0.version>0.9.5.5</c3p0.version>
         <HikariCP.version>5.0.0</HikariCP.version>
-        <postgresql-driver.version>42.2.19</postgresql-driver.version>
+        <postgresql-driver.version>42.3.1</postgresql-driver.version>
         <postgis-jdbc.version>2.5.0</postgis-jdbc.version>
         <datasource-proxy.version>1.7</datasource-proxy.version>
 
@@ -108,11 +108,11 @@
         <jackson.version>2.13.0</jackson.version>
         <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
         <jackson-datatype-hibernate5.version>2.11.2</jackson-datatype-hibernate5.version>
-        <classmate.version>1.3.2</classmate.version>
+        <classmate.version>1.5.1</classmate.version>
 
         <!-- JAXB -->
         <jaxb-api.version>2.4.0-b180830.0359</jaxb-api.version>
-        <jaxb-impl.version>2.4.0-b180830.0438</jaxb-impl.version>
+        <jaxb-impl.version>3.0.2</jaxb-impl.version>
         <jaxb-osgi.version>2.4.0-b180830.0438</jaxb-osgi.version>
         <jaxws-ri.version>2.3.2</jaxws-ri.version>
         <jakarta.xml.ws-api.version>3.0.1</jakarta.xml.ws-api.version>
@@ -120,7 +120,7 @@
         <xercesImpl.version>2.12.1</xercesImpl.version>
 
         <!--Reporting -->
-        <jasperreports.version>6.3.1</jasperreports.version>
+        <jasperreports.version>6.18.1</jasperreports.version>
         <jasperreports-fonts.version>6.18.1</jasperreports-fonts.version>
         <jfreechart.version>1.5.3</jfreechart.version>
         <htmlparser.version>2.1</htmlparser.version>
@@ -133,7 +133,7 @@
 
         <!-- GIS -->
         <batik-transcoder.version>1.13</batik-transcoder.version>
-        <batik-codec.version>1.13</batik-codec.version>
+        <batik-codec.version>1.14</batik-codec.version>
         <fop.version>2.5</fop.version>
         <mapstruct.version>1.4.2.Final</mapstruct.version>
         <geotools.version>26.1</geotools.version>
@@ -149,7 +149,7 @@
         <ant-compress.version>1.5</ant-compress.version>
         <sms-compression.version>0.2.1.1</sms-compression.version>
         <javacsv.version>2.0</javacsv.version>
-        <aerogear-otp-java.version>1.0.0.CR1</aerogear-otp-java.version>
+        <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
         <javax.interceptor-api.version>1.2.1</javax.interceptor-api.version>
         <jsmpp.version>2.3.7</jsmpp.version>
         <rxtx.version>2.1.7</rxtx.version>
@@ -160,14 +160,14 @@
         <jetty.version>10.0.7</jetty.version>
 
         <!-- Div. utils -->
-        <version.debezium>1.7.1.Final</version.debezium>
+        <version.debezium>1.7.2.Final</version.debezium>
         <guava.version>31.0.1-jre</guava.version>
         <jsr305.version>3.0.2</jsr305.version>
         <imgscalr-lib.version>4.2</imgscalr-lib.version>
         <google-api-client.version>1.32.2</google-api-client.version>
-        <lombok.version>1.18.20</lombok.version>
+        <lombok.version>1.18.22</lombok.version>
         <lombok-maven-plugin.version>1.18.16.0</lombok-maven-plugin.version>
-        <joda-time.version>2.10.5</joda-time.version>
+        <joda-time.version>2.10.13</joda-time.version>
         <cron-utils.version>9.1.6</cron-utils.version>
         <validation-api.version>2.0.1.Final</validation-api.version>
         <hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
@@ -178,7 +178,7 @@
         <commons-beanutils.version>1.9.4</commons-beanutils.version>
         <commons-digester3.version>3.2</commons-digester3.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
-        <commons-text.version>1.8</commons-text.version>
+        <commons-text.version>1.9</commons-text.version>
         <commons-fileupload.version>1.4</commons-fileupload.version>
         <commons-math3.version>3.6.1</commons-math3.version>
         <commons-validator.version>1.7</commons-validator.version>
@@ -192,16 +192,16 @@
         <micrometer-registry-prometheus.version>1.3.5</micrometer-registry-prometheus.version>
 
         <!-- Logging-->
-        <log4j.version>2.14.1</log4j.version>
+        <log4j.version>2.16.0</log4j.version>
         <slf4j.version>1.7.32</slf4j.version>
 
         <!-- Test -->
-        <junit.version>4.13.2</junit.version>
-        <mockito-core.version>3.4.6</mockito-core.version>
+        <junit.version>5.8.2</junit.version>
+        <mockito.version>4.1.0</mockito.version>
         <powermock.version>2.0.9</powermock.version>
         <hamcrest.version>2.2</hamcrest.version>
         <hamcrest-date.version>2.0.7</hamcrest-date.version>
-        <testcontainers.version>1.15.1</testcontainers.version>
+        <testcontainers.version>1.16.2</testcontainers.version>
         <objenesis.version>3.2</objenesis.version>
         <jsonassert.version>1.5.0</jsonassert.version>
         <awaitility.version>4.0.2</awaitility.version>
@@ -356,12 +356,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
                         <configuration>
                             <skipTests>${skipTests}</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
+                            <excludedGroups>integration</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -383,12 +382,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
                         <configuration>
                             <skipTests>false</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <groups>org.hisp.dhis.IntegrationTest</groups>
+                            <groups>integration</groups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -409,12 +407,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
                         <configuration>
                             <skipTests>true</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${argLine}${surefireArgLine}</argLine>
-                            <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
+                            <excludedGroups>integration</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -456,12 +453,11 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${maven-surefire-plugin.version}</version>
                         <configuration>
                             <skipTests>true</skipTests>
                             <trimStackTrace>false</trimStackTrace>
                             <argLine>${surefireArgLine}</argLine>
-                            <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
+                            <excludedGroups>integration</excludedGroups>
                         </configuration>
                         <dependencies>
                             <dependency>
@@ -540,6 +536,11 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven-failsafe-plugin.version}</version>
                     <configuration>
@@ -566,6 +567,11 @@
                     </executions>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                </plugin>
+                <plugin>
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin</artifactId>
                     <version>${spotbugs-maven-plugin.version}</version>
@@ -573,7 +579,7 @@
                         <dependency>
                             <groupId>com.github.spotbugs</groupId>
                             <artifactId>spotbugs</artifactId>
-                            <version>4.5.0</version>
+                            <version>4.5.1</version>
                         </dependency>
                     </dependencies>
                     <configuration>
@@ -685,10 +691,6 @@
                     <configuration>
                         <ignoredUnusedDeclaredDependencies>
                             <ignoredUnusedDeclaredDependency>org.projectlombok:lombok</ignoredUnusedDeclaredDependency>
-                            <!-- dependency on hamcrest-library and this config can be removed once we are on Junit 5 as
-                            it does not depend on hamcrest anymore. See
-                            http://hamcrest.org/JavaHamcrest/distributables#maven-upgrade-example -->
-                            <ignoredUnusedDeclaredDependency>org.hamcrest:hamcrest-library</ignoredUnusedDeclaredDependency>
                         </ignoredUnusedDeclaredDependencies>
                     </configuration>
                 </plugin>
@@ -699,7 +701,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${maven-enforcer-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>enforce-maven</id>
@@ -1843,6 +1844,11 @@
                 <version>${jackson.version}</version>
             </dependency>
             <dependency>
+                <groupId>com.fasterxml.jackson.dataformat</groupId>
+                <artifactId>jackson-dataformat-yaml</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>com.fasterxml.jackson.datatype</groupId>
                 <artifactId>jackson-datatype-jdk8</artifactId>
                 <version>${jackson.version}</version>
@@ -2151,6 +2157,12 @@
                 <groupId>org.locationtech.jts.io</groupId>
                 <artifactId>jts-io-common</artifactId>
                 <version>${jts.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.jsoup</groupId>
@@ -2217,17 +2229,9 @@
 
 
             <!-- Test -->
-            <!-- hamcrest, hamcrest-library and junit order matters
-            See http://hamcrest.org/JavaHamcrest/distributables Maven Upgrade Example -->
             <dependency>
                 <groupId>org.hamcrest</groupId>
                 <artifactId>hamcrest</artifactId>
-                <version>${hamcrest.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.hamcrest</groupId>
-                <artifactId>hamcrest-library</artifactId>
                 <version>${hamcrest.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -2238,10 +2242,11 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
                 <version>${junit.version}</version>
-                <scope>test</scope>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.objenesis</groupId>
@@ -2252,33 +2257,21 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>${mockito-core.version}</version>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <!-- Depend only on mockito-inline (includes mockito-core already) if you must use mockStatic (can you
+            rewrite your code, so it's not necessary ;)), otherwise depend on mockito-core only -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-inline</artifactId>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.javassist</groupId>
-                        <artifactId>javassist</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.bytebuddy</groupId>
-                        <artifactId>byte-buddy-agent</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>net.bytebuddy</groupId>
-                        <artifactId>byte-buddy</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>${powermock.version}</version>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

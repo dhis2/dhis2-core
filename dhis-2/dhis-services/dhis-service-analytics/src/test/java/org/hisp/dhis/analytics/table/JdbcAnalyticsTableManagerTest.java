@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.analytics.table;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,14 +54,15 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.google.common.collect.ImmutableMap;
@@ -69,20 +71,20 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
 public class JdbcAnalyticsTableManagerTest
 {
+
     @Mock
     private SystemSettingManager systemSettingManager;
 
     @Mock
     private JdbcTemplate jdbcTemplate;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private AnalyticsTableManager subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new JdbcAnalyticsTableManager( mock( IdentifiableObjectManager.class ),
@@ -168,7 +170,7 @@ public class JdbcAnalyticsTableManagerTest
         assertEquals( startTime, partition.getEndDate() );
     }
 
-    @Test( expected = IllegalArgumentException.class )
+    @Test
     public void testGetLatestAnalyticsTableNoFullTableUpdate()
     {
         Date lastLatestPartitionUpdate = new DateTime( 2019, 3, 1, 9, 0 ).toDate();
@@ -183,7 +185,6 @@ public class JdbcAnalyticsTableManagerTest
             .thenReturn( null );
         when( systemSettingManager.getDateSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE ) )
             .thenReturn( lastLatestPartitionUpdate );
-
-        subject.getAnalyticsTables( params );
+        assertThrows( IllegalArgumentException.class, () -> subject.getAnalyticsTables( params ) );
     }
 }

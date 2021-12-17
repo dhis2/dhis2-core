@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -43,33 +43,37 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<TrackedEntityInstance>
+@MockitoSettings( strictness = Strictness.LENIENT )
+class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<TrackedEntityInstance>
 {
+
     private TrackedEntityInstanceSupplier subject;
 
     @Mock
     private AclService aclService;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         this.subject = new TrackedEntityInstanceSupplier( jdbcTemplate, aclService );
     }
 
     @Test
-    public void handleNullEvents()
+    void handleNullEvents()
     {
         assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
     }
 
-    @Override
+    @Test
     public void verifySupplier()
         throws SQLException
     {
@@ -77,18 +81,14 @@ public class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<Trac
         when( mockResultSet.getLong( "trackedentityinstanceid" ) ).thenReturn( 100L );
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
         when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
-
         // create event to import
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setTrackedEntityInstance( "abcded" );
-
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
-
         Map<String, Pair<TrackedEntityInstance, Boolean>> map = subject.get( ImportOptions.getDefaultImportOptions(),
             Collections.singletonList( event ) );
-
         TrackedEntityInstance trackedEntityInstance = map.get( event.getUid() ).getKey();
         assertThat( trackedEntityInstance, is( notNullValue() ) );
         assertThat( trackedEntityInstance.getId(), is( 100L ) );

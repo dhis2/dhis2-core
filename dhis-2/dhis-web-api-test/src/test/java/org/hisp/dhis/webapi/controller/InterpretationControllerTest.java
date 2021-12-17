@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -38,8 +38,8 @@ import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -48,8 +48,9 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class InterpretationControllerTest extends DhisControllerConvenienceTest
+class InterpretationControllerTest extends DhisControllerConvenienceTest
 {
+
     @Autowired
     private VisualizationService visualizationService;
 
@@ -63,8 +64,8 @@ public class InterpretationControllerTest extends DhisControllerConvenienceTest
 
     private String ouId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
         manager.save( ouA );
@@ -72,26 +73,25 @@ public class InterpretationControllerTest extends DhisControllerConvenienceTest
         visualizationService.save( vzA );
         Interpretation ipA = new Interpretation( vzA, ouA, "Interpration of visualization A" );
         interpretationService.saveInterpretation( ipA );
-
         uid = ipA.getUid();
         ouId = ouA.getUid();
     }
 
     @Test
-    public void testDeleteObject()
+    void testDeleteObject()
     {
         assertStatus( HttpStatus.NO_CONTENT, DELETE( "/interpretations/" + uid ) );
     }
 
     @Test
-    public void testDeleteObject_NotFound()
+    void testDeleteObject_NotFound()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Interpretation does not exist: xyz",
             DELETE( "/interpretations/xyz" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testWriteVisualizationInterpretation()
+    void testWriteVisualizationInterpretation()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Visualization does not exist or is not accessible: xyz",
             POST( "/interpretations/visualization/xyz?pe=2021&ou=" + ouId, "text/plain:text" )
@@ -99,15 +99,22 @@ public class InterpretationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testWriteMapInterpretation()
+    void testWriteEventVisualizationInterpretation()
     {
-        assertWebMessage( "Conflict", 409, "ERROR", "Map does not exist or is not accessible: xyz",
-            POST( "/interpretations/map/xyz?pe=2021&ou=" + ouId, "text/plain:text" )
+        assertWebMessage( "Conflict", 409, "ERROR", "EventVisualization does not exist or is not accessible: xyz",
+            POST( "/interpretations/eventVisualization/xyz?pe=2021&ou=" + ouId, "text/plain:text" )
                 .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testWriteEventReportInterpretation()
+    void testWriteMapInterpretation()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR", "Map does not exist or is not accessible: xyz",
+            POST( "/interpretations/map/xyz?pe=2021&ou=" + ouId, "text/plain:text" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void testWriteEventReportInterpretation()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Event report does not exist or is not accessible: xyz",
             POST( "/interpretations/eventReport/xyz?pe=2021&ou=" + ouId, "text/plain:text" )
@@ -115,7 +122,7 @@ public class InterpretationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testWriteEventChartInterpretation()
+    void testWriteEventChartInterpretation()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Event chart does not exist or is not accessible: xyz",
             POST( "/interpretations/eventChart/xyz?pe=2021&ou=" + ouId, "text/plain:text" )
@@ -123,7 +130,7 @@ public class InterpretationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testWriteDataSetReportInterpretation()
+    void testWriteDataSetReportInterpretation()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Data set does not exist or is not accessible: xyz",
             POST( "/interpretations/dataSetReport/xyz?pe=2021&ou=" + ouId, "text/plain:text" )
@@ -131,115 +138,108 @@ public class InterpretationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testUpdateInterpretation()
+    void testUpdateInterpretation()
     {
         assertStatus( HttpStatus.NO_CONTENT, PUT( "/interpretations/" + uid, "text/plain:text" ) );
     }
 
     @Test
-    public void testUpdateInterpretation_NoSuchObject()
+    void testUpdateInterpretation_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Interpretation does not exist: xyz",
             PUT( "/interpretations/xyz", "text/plain:text" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testPostComment()
+    void testPostComment()
     {
         assertWebMessage( "Created", 201, "OK", "Commented created",
             POST( "/interpretations/" + uid + "/comments", "text/plain:comment" ).content( HttpStatus.CREATED ) );
-
         JsonObject comments = GET( "/interpretations/{uid}/comments", uid ).content( HttpStatus.OK );
         assertEquals( 1, comments.getArray( "comments" ).size() );
     }
 
     @Test
-    public void testPostComment_NoSuchObject()
+    void testPostComment_NoSuchObject()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Interpretation does not exist: xyz",
             POST( "/interpretations/xyz/comments", "text/plain:comment" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testUpdateComment()
+    void testUpdateComment()
     {
         String cuid = assertStatus( HttpStatus.CREATED,
             POST( "/interpretations/" + uid + "/comments", "text/plain:comment" ) );
-
         assertStatus( HttpStatus.NO_CONTENT,
             PUT( "/interpretations/" + uid + "/comments/" + cuid, "text/plain:new comment" ) );
-
         JsonObject comments = GET( "/interpretations/{uid}/comments/", uid ).content();
         assertEquals( "new comment", comments.getArray( "comments" ).getObject( 0 ).getString( "text" ).string() );
     }
 
     @Test
-    public void testUpdateComment_NoSuchObject()
+    void testUpdateComment_NoSuchObject()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Interpretation does not exist: xyz",
             PUT( "/interpretations/xyz/comments/abc", "text/plain:comment" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testDeleteComment()
+    void testDeleteComment()
     {
         String cuid = assertStatus( HttpStatus.CREATED,
             POST( "/interpretations/" + uid + "/comments", "text/plain:comment" ) );
-
         assertStatus( HttpStatus.NO_CONTENT, DELETE( "/interpretations/" + uid + "/comments/" + cuid ) );
-
         JsonObject comments = GET( "/interpretations/{uid}/comments", uid ).content( HttpStatus.OK );
         assertEquals( 0, comments.getArray( "comments" ).size() );
     }
 
     @Test
-    public void testDeleteComment_NoSuchObject()
+    void testDeleteComment_NoSuchObject()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Interpretation does not exist: xyz",
             DELETE( "/interpretations/xyz/comments/abc" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testLike()
+    void testLike()
     {
         assertWebMessage( "Created", 201, "OK", "Like added to interpretation",
             POST( "/interpretations/" + uid + "/like" ).content( HttpStatus.CREATED ) );
     }
 
     @Test
-    public void testLike_NoSuchObject()
+    void testLike_NoSuchObject()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Interpretation does not exist: xyz",
             POST( "/interpretations/xyz/like" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testLike_AlreadyLiked()
+    void testLike_AlreadyLiked()
     {
         assertStatus( HttpStatus.CREATED, POST( "/interpretations/" + uid + "/like" ) );
-
         assertWebMessage( "Conflict", 409, "ERROR", "Could not add like, user had already liked interpretation",
             POST( "/interpretations/" + uid + "/like" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testUnlike()
+    void testUnlike()
     {
         assertStatus( HttpStatus.CREATED, POST( "/interpretations/" + uid + "/like" ) );
-
         assertWebMessage( "Created", 201, "OK", "Like removed from interpretation",
             DELETE( "/interpretations/" + uid + "/like" ).content( HttpStatus.CREATED ) );
     }
 
     @Test
-    public void testUnlike_NoSuchObject()
+    void testUnlike_NoSuchObject()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Interpretation does not exist: xyz",
             DELETE( "/interpretations/xyz/like" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testUnlike_NotYetLiked()
+    void testUnlike_NotYetLiked()
     {
         assertWebMessage( "Conflict", 409, "ERROR",
             "Could not remove like, user had not previously liked interpretation",

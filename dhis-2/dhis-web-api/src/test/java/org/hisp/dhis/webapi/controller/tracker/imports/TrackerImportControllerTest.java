@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController.TRACKER_JOB_ADDED;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -67,12 +67,11 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -80,8 +79,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
+@ExtendWith( MockitoExtension.class )
 public class TrackerImportControllerTest
 {
+
     private final static String ENDPOINT = "/" + TrackerControllerSupport.RESOURCE_PATH;
 
     private MockMvc mockMvc;
@@ -98,12 +99,9 @@ public class TrackerImportControllerTest
     @Mock
     private Notifier notifier;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private RenderService renderService;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         renderService = new DefaultRenderService( JacksonObjectMapperConfig.jsonMapper,
