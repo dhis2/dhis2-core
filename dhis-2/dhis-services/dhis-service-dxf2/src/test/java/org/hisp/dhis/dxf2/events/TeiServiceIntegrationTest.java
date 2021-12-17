@@ -28,12 +28,12 @@
 package org.hisp.dhis.dxf2.events;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -82,8 +82,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -95,6 +95,7 @@ import com.google.common.collect.Sets;
 public class TeiServiceIntegrationTest
     extends IntegrationTestBase
 {
+
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
 
@@ -244,7 +245,7 @@ public class TeiServiceIntegrationTest
     }
 
     @Test
-    public void getPersonByUid()
+    void getPersonByUid()
     {
         assertEquals( maleA.getUid(),
             trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ).getTrackedEntityInstance() );
@@ -257,7 +258,7 @@ public class TeiServiceIntegrationTest
     }
 
     @Test
-    public void getPersonByPatient()
+    void getPersonByPatient()
     {
         assertEquals( maleA.getUid(),
             trackedEntityInstanceService.getTrackedEntityInstance( maleA ).getTrackedEntityInstance() );
@@ -270,29 +271,26 @@ public class TeiServiceIntegrationTest
     }
 
     @Test
-    @Ignore
-    public void testUpdatePerson()
+    @Disabled
+    void testUpdatePerson()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
             .getTrackedEntityInstance( maleA.getUid() );
         // person.setName( "UPDATED_NAME" );
-
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
         // assertEquals( "UPDATED_NAME", personService.getTrackedEntityInstance(
         // maleA.getUid() ).getName() );
     }
 
     @Test
-    public void testUpdateTeiByCompletingExistingEnrollmentAndOpeningNewEnrollment()
+    void testUpdateTeiByCompletingExistingEnrollmentAndOpeningNewEnrollment()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
             .getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-
         Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
         enrollment1.setStatus( EnrollmentStatus.COMPLETED );
         enrollment1.setCompletedBy( "test" );
@@ -310,24 +308,22 @@ public class TeiServiceIntegrationTest
         enrollment2.setOrgUnit( organisationUnitA.getUid() );
         enrollment2.setProgram( programA.getUid() );
         enrollment2.setStatus( EnrollmentStatus.ACTIVE );
-
         trackedEntityInstance.getEnrollments().add( enrollment2 );
 
         importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, ImportOptions.getDefaultImportOptions(), true );
+
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
-
     }
 
     @Test
-    public void testUpdateTeiAfterChangingTextPatternForGeneratedAttribute()
+    void testUpdateTeiAfterChangingTextPatternForGeneratedAttribute()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
             .getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-
         Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
         enrollment1.setStatus( EnrollmentStatus.COMPLETED );
         enrollment1.setCompletedBy( "test" );
@@ -341,171 +337,140 @@ public class TeiServiceIntegrationTest
 
         Enrollment enrollment2 = new Enrollment();
         enrollment2.setTrackedEntityInstance( maleA.getUid() );
-
         TextPattern textPattern = new TextPattern(
             Lists.newArrayList( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#######)" ) ) );
         textPattern.setOwnerUid( "owneruid" );
         textPattern.setOwnerObject( Objects.CONSTANT );
         uniqueIdAttribute.setTextPattern( textPattern );
         trackedEntityAttributeService.updateTrackedEntityAttribute( uniqueIdAttribute );
-
         enrollment2.setEnrollmentDate( new Date() );
         enrollment2.setOrgUnit( organisationUnitA.getUid() );
         enrollment2.setProgram( programA.getUid() );
         enrollment2.setStatus( EnrollmentStatus.ACTIVE );
-
         trackedEntityInstance.getEnrollments().add( enrollment2 );
 
         importSummary = trackedEntityInstanceService
             .updateTrackedEntityInstance( trackedEntityInstance, null, ImportOptions.getDefaultImportOptions(), true );
+
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
-
     }
 
     @Test
-    public void testUpdateTeiByCompletingExistingEnrollmentAndAddNewEventsToSameEnrollment()
+    void testUpdateTeiByCompletingExistingEnrollmentAndAddNewEventsToSameEnrollment()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
             .getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-
         Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
         enrollment1.setStatus( EnrollmentStatus.COMPLETED );
         enrollment1.setCompletedBy( "test" );
         enrollment1.setCompletedDate( new Date() );
-
         Event event1 = new Event();
         event1.setEnrollment( enrollment1.getEnrollment() );
         event1
             .setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
-
         event1.setOrgUnit( organisationUnitA.getUid() );
-
         event1.setProgram( programA.getUid() );
         event1.setProgramStage( programStageA1.getUid() );
         event1.setStatus( EventStatus.COMPLETED );
         event1.setTrackedEntityInstance( maleA.getUid() );
-
         Event event2 = new Event();
         event2.setEnrollment( enrollment1.getEnrollment() );
         event2
             .setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
-
         event2.setOrgUnit( organisationUnitA.getUid() );
-
         event2.setProgram( programA.getUid() );
         event2.setProgramStage( programStageA2.getUid() );
         event2.setStatus( EventStatus.ACTIVE );
         event2.setTrackedEntityInstance( maleA.getUid() );
-
         enrollment1.setEvents( Arrays.asList( event1, event2 ) );
-
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, ImportOptions.getDefaultImportOptions(), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS,
             importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
-
     }
 
     @Test
-    public void testSyncTeiFutureDatesForEnrollmentAndIncident()
+    void testSyncTeiFutureDatesForEnrollmentAndIncident()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
             .getTrackedEntityInstance( dateConflictsMaleA.getUid() );
-
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, new ImportOptions().setImportStrategy( ImportStrategy.SYNC ), true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( 2, importSummary.getEnrollments().getImportSummaries().get( 0 ).getConflictCount() );
         assertEquals( trackedEntityInstance.getEnrollments().get( 0 ).getEnrollment(),
             importSummary.getEnrollments().getImportSummaries().get( 0 ).getReference() );
-
     }
 
     /**
      * FIXME luciano: this is ignored because there is a bug in tracker, so that
      * new events that fail to validate are reported as success.
      */
-    @Ignore
+    @Disabled
     @Test
-    public void testUpdateTeiByCompletingExistingEnrollmentAndUpdateExistingEventsInSameEnrollment()
+    void testUpdateTeiByCompletingExistingEnrollmentAndUpdateExistingEventsInSameEnrollment()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
             .getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-
         Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
-
         Event event1 = new Event();
         event1.setEnrollment( enrollment1.getEnrollment() );
         event1
             .setEventDate( DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
-
         event1.setOrgUnit( organisationUnitA.getUid() );
-
         event1.setProgram( programA.getUid() );
         event1.setProgramStage( programStageA1.getUid() );
         event1.setStatus( EventStatus.ACTIVE );
         event1.setTrackedEntityInstance( maleA.getUid() );
-
         enrollment1.setEvents( singletonList( event1 ) );
-
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS,
             importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
-
         // This is required because the Event creation takes place using JDBC,
         // therefore Hibernate does not
         // "see" the new event in the context of this session
         sessionFactory.getCurrentSession().clear();
-
         trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
-
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-
         assertNotNull( trackedEntityInstance.getEnrollments().get( 0 ).getEvents() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().get( 0 ).getEvents().size() );
-
         enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
         enrollment1.setStatus( EnrollmentStatus.COMPLETED );
         enrollment1.setCompletedBy( "test" );
         enrollment1.setCompletedDate( new Date() );
-
         event1 = enrollment1.getEvents().get( 0 );
         event1.setStatus( EventStatus.COMPLETED );
         event1.setCompletedBy( "test" );
         event1.setCompletedDate(
             DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
-
         importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null, null,
             true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS,
             importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
-
     }
 
     @Test
-    public void testUpdateTeiByDeletingExistingEventAndAddNewEventForSameProgramStage()
+    void testUpdateTeiByDeletingExistingEventAndAddNewEventForSameProgramStage()
     {
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
             .getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-
         Enrollment enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
-
         Event event1 = new Event();
         event1.setEnrollment( enrollment1.getEnrollment() );
         event1
@@ -528,7 +493,6 @@ public class TeiServiceIntegrationTest
         event2.setDueDate(
             DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now().plusDays( 10 ) ) );
         event2.setTrackedEntityInstance( maleA.getUid() );
-
         enrollment1.setEvents( Arrays.asList( event1, event2 ) );
 
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
@@ -539,23 +503,17 @@ public class TeiServiceIntegrationTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
         assertEquals( ImportStatus.SUCCESS,
             importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
-
         manager.flush();
         sessionFactory.getCurrentSession().clear();
-
         trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() );
         assertNotNull( trackedEntityInstance.getEnrollments() );
         assertEquals( 1, trackedEntityInstance.getEnrollments().size() );
-
         assertNotNull( trackedEntityInstance.getEnrollments().get( 0 ).getEvents() );
         assertEquals( 2, trackedEntityInstance.getEnrollments().get( 0 ).getEvents().size() );
-
         enrollment1 = trackedEntityInstance.getEnrollments().get( 0 );
-
         event2 = enrollment1.getEvents().stream().filter( e -> e.getProgramStage().equals( programStageA2.getUid() ) )
             .findFirst().get();
         event2.setDeleted( true );
-
         Event event3 = new Event();
         event3.setEnrollment( enrollment1.getEnrollment() );
         event3.setOrgUnit( organisationUnitA.getUid() );
@@ -565,23 +523,20 @@ public class TeiServiceIntegrationTest
         event3.setDueDate(
             DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now().plusDays( 11 ) ) );
         event3.setTrackedEntityInstance( maleA.getUid() );
-
         enrollment1.getEvents().add( event3 );
 
         importOptions.setImportStrategy( ImportStrategy.SYNC );
-
         importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance, null,
             importOptions, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getEnrollments().getStatus() );
-
         assertEquals( ImportStatus.SUCCESS,
             importSummary.getEnrollments().getImportSummaries().get( 0 ).getEvents().getStatus() );
     }
 
     @Test
-    @Ignore
-    public void testSavePerson()
+    @Disabled
+    void testSavePerson()
     {
         TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
         // person.setName( "NAME" );
@@ -591,32 +546,31 @@ public class TeiServiceIntegrationTest
             .mergeOrDeleteTrackedEntityInstances( Collections.singletonList( trackedEntityInstance ),
                 ImportOptions.getDefaultImportOptions(), null )
             .getImportSummaries().get( 0 );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         // assertEquals( "NAME", personService.getTrackedEntityInstance(
         // importSummary.getReference() ).getName() );
     }
 
     @Test
-    public void testDeletePerson()
+    void testDeletePerson()
     {
         trackedEntityInstanceService.deleteTrackedEntityInstance( maleA.getUid() );
-
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ) );
         assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
-
         boolean existsDeleted = teiDaoService.trackedEntityInstanceExistsIncludingDeleted( maleA.getUid() );
         assertTrue( existsDeleted );
     }
 
     @Test
-    public void testDeleteTrackedEntityInstances()
+    void testDeleteTrackedEntityInstances()
     {
         List<TrackedEntityInstance> teis = Lists.newArrayList(
             trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ),
             trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.DELETE );
+
         trackedEntityInstanceService.deleteTrackedEntityInstances( teis,
             WorkContext.builder().importOptions( importOptions ).build() );
 

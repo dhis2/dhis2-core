@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -42,17 +42,22 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceSupplierTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class TrackedEntityInstanceSupplierTest
     extends AbstractSupplierTest<TrackedEntityInstance, Set<TrackedEntityInstance>>
+
 {
+
     private TrackedEntityInstanceSupplier subject;
 
     @Mock
@@ -61,19 +66,20 @@ public class TrackedEntityInstanceSupplierTest
     @Mock
     private Environment environment;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         this.subject = new TrackedEntityInstanceSupplier( jdbcTemplate, environment );
+        when( environment.getActiveProfiles() ).thenReturn( new String[] {} );
     }
 
     @Test
-    public void handleNullEvents()
+    void handleNullEvents()
     {
         assertNotNull( subject.get( null ) );
     }
 
-    @Override
+    @Test
     public void verifySupplier()
         throws SQLException
     {
@@ -81,12 +87,10 @@ public class TrackedEntityInstanceSupplierTest
         when( mockResultSet.getLong( "trackedentityinstanceid" ) ).thenReturn( 100L );
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
         when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
-
         // create event to import
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setTrackedEntityInstance( "abcded" );
-
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
@@ -94,6 +98,7 @@ public class TrackedEntityInstanceSupplierTest
             new HashSet<>( Arrays.asList( event.getUid() ) ) );
 
         TrackedEntityInstance trackedEntityInstance = map.iterator().next();
+
         assertThat( trackedEntityInstance, is( notNullValue() ) );
         assertThat( trackedEntityInstance.getId(), is( 100L ) );
         assertThat( trackedEntityInstance.getUid(), is( "abcded" ) );

@@ -34,13 +34,13 @@ import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -57,13 +57,15 @@ import org.springframework.web.context.WebApplicationContext;
  *
  * @author Morten Svanæs
  */
-@RunWith( SpringRunner.class )
+
+@ExtendWith( SpringExtension.class )
 @WebAppConfiguration
 @ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithAuth.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcControllerTest
 {
+
     @Autowired
     private WebApplicationContext webApplicationContext;
 
@@ -75,15 +77,13 @@ public abstract class DhisControllerWithApiTokenAuthTest extends DhisMockMvcCont
 
     protected MockMvc mvc;
 
-    @Before
+    @BeforeEach
     public void setup()
         throws Exception
     {
         userService = _userService;
-
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
-            .addFilter( springSecurityFilterChain ).build();
-
+        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).addFilter( springSecurityFilterChain )
+            .build();
         TestUtils.executeStartupRoutines( webApplicationContext );
     }
 

@@ -29,8 +29,8 @@ package org.hisp.dhis.relationship;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.atLeastOnce;
@@ -42,24 +42,22 @@ import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.system.deletion.DefaultDeletionManager;
 import org.hisp.dhis.system.deletion.DeletionManager;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith( MockitoExtension.class )
 public class RelationshipDeletionHandlerTest
 {
+
     @Mock
     private RelationshipService relationshipService;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private final DeletionManager deletionManager = new DefaultDeletionManager();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         RelationshipDeletionHandler handler = new RelationshipDeletionHandler( relationshipService );

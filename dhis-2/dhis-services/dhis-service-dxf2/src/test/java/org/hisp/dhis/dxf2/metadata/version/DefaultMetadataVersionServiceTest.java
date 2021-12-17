@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata.version;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
@@ -48,15 +48,15 @@ import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author sultanm
  */
+@ExtendWith( MockitoExtension.class )
 public class DefaultMetadataVersionServiceTest
     extends TransactionalIntegrationTest
 {
@@ -71,9 +71,6 @@ public class DefaultMetadataVersionServiceTest
 
     @Autowired
     private MetadataSystemSettingService metadataSystemSettingService;
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     private MetadataVersion versionA;
 

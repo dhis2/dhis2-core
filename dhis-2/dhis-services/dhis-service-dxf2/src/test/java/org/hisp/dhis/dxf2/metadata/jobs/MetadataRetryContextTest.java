@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.jobs;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -37,24 +37,21 @@ import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.metadata.version.MetadataVersion;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.retry.RetryContext;
 
 /**
  * @author aamerm
  */
+@ExtendWith( MockitoExtension.class )
 public class MetadataRetryContextTest
     extends DhisSpringTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Mock
     RetryContext retryContext;
 
@@ -67,7 +64,7 @@ public class MetadataRetryContextTest
 
     private String testMessage = "testMessage";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         mockVersion = mock( MetadataVersion.class );

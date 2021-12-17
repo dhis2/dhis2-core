@@ -31,14 +31,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -46,14 +46,20 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 @RunWith( Parameterized.class )
-public class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<String, Program>>
+@MockitoSettings( strictness = Strictness.LENIENT )
+class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<String, Program>>
 {
     private ProgramEventSupplier subject;
 
@@ -67,28 +73,26 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<Strin
     private Environment environment;
 
     @Parameterized.Parameters
-    public static Collection<String> data()
+    private static Stream<Arguments> data()
     {
-        return Arrays.asList( IdScheme.UID.name(), IdScheme.ID.name(), IdScheme.CODE.name(), IdScheme.NAME.name() );
+        return Stream.of( arguments( IdScheme.UID.name() ), arguments( IdScheme.ID.name() ),
+            arguments( IdScheme.CODE.name() ), arguments( IdScheme.NAME.name() ) );
     }
 
-    @Parameterized.Parameter
-    public String idScheme;
-
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         when( cacheProvider.createProgramCache() ).thenReturn( cache );
         when( cache.get( anyString() ) ).thenReturn( Optional.empty() );
         this.subject = new ProgramEventSupplier( jdbcTemplate, cacheProvider, environment );
     }
 
-    @Override
-    public void verifySupplier()
+    @ParameterizedTest
+    @MethodSource( "data" )
+    public void verifySupplier( String idScheme )
         throws SQLException
     {
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
-
         when( mockResultSet.getLong( "id" ) ).thenReturn( 100L );
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
         when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
@@ -96,12 +100,10 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<Strin
         when( mockResultSet.getString( "type" ) ).thenReturn( ProgramType.WITHOUT_REGISTRATION.getValue() );
         when( mockResultSet.getString( "program_sharing" ) ).thenReturn( generateSharing( null, "rw------", false ) );
         when( mockResultSet.getInt( "opendaysaftercoenddate" ) ).thenReturn( 42 );
-
         when( mockResultSet.getLong( "catcombo_id" ) ).thenReturn( 200L );
         when( mockResultSet.getString( "catcombo_uid" ) ).thenReturn( "389dh83" );
         when( mockResultSet.getString( "catcombo_code" ) ).thenReturn( "BETA" );
         when( mockResultSet.getString( "catcombo_name" ) ).thenReturn( "My CatCombo" );
-
         when( mockResultSet.getLong( "ps_id" ) ).thenReturn( 5L, 6L );
         when( mockResultSet.getString( "ps_uid" ) ).thenReturn( "abcd5", "abcd6" );
         when( mockResultSet.getString( "ps_code" ) ).thenReturn( "cod5", "cod6" );
@@ -111,21 +113,18 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<Strin
         when( mockResultSet.getString( "ps_feature_type" ) ).thenReturn( null, "POINT" );
         when( mockResultSet.getBoolean( "ps_repeatable" ) ).thenReturn( true, false );
         when( mockResultSet.getString( "validationstrategy" ) ).thenReturn( "ON_COMPLETE" );
-
         when( mockResultSet.getObject( "uid" ) ).thenReturn( "abcded" );
         when( mockResultSet.getObject( "id" ) ).thenReturn( 100L );
         when( mockResultSet.getObject( "name" ) ).thenReturn( "My Program" );
         when( mockResultSet.getObject( "code" ) ).thenReturn( "ALFA" );
-
         // mock resultset extraction
         mockResultSetExtractorWithoutParameters( mockResultSet );
-
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
-        importOptions.getIdSchemes().setProgramIdScheme( this.idScheme );
+        importOptions.getIdSchemes().setProgramIdScheme( idScheme );
 
         final Map<String, Program> map = subject.get( importOptions, null );
 
-        Program program = map.get( getIdByScheme() );
+        Program program = map.get( getIdByScheme( idScheme ) );
         assertThat( program, is( notNullValue() ) );
         assertThat( program.getProgramStages(), hasSize( 2 ) );
         assertThat( program.getId(), is( 100L ) );
@@ -142,21 +141,21 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program, Map<Strin
         // TODO assert more data
     }
 
-    private String getIdByScheme()
+    private String getIdByScheme( String idScheme )
     {
-        if ( this.idScheme.equals( IdScheme.UID.name() ) )
+        if ( idScheme.equals( IdScheme.UID.name() ) )
         {
             return "abcded";
         }
-        else if ( this.idScheme.equals( IdScheme.ID.name() ) )
+        else if ( idScheme.equals( IdScheme.ID.name() ) )
         {
             return "100";
         }
-        else if ( this.idScheme.equals( IdScheme.CODE.name() ) )
+        else if ( idScheme.equals( IdScheme.CODE.name() ) )
         {
             return "ALFA";
         }
-        else if ( this.idScheme.equals( IdScheme.NAME.name() ) )
+        else if ( idScheme.equals( IdScheme.NAME.name() ) )
         {
             return "My Program";
         }

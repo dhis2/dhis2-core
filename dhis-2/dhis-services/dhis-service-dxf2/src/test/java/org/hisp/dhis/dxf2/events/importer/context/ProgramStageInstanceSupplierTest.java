@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -42,9 +42,11 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -52,9 +54,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceSupplierTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class ProgramStageInstanceSupplierTest
     extends AbstractSupplierTest<ProgramStageInstance, Map<String, ProgramStageInstance>>
+
 {
+
     private ProgramStageInstanceSupplier subject;
 
     @Mock
@@ -63,20 +68,20 @@ public class ProgramStageInstanceSupplierTest
     @Mock
     private Environment environment;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         JsonMapper mapper = new JsonMapper();
         this.subject = new ProgramStageInstanceSupplier( jdbcTemplate, mapper, programSupplier, environment );
     }
 
     @Test
-    public void handleNullEvents()
+    void handleNullEvents()
     {
         assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null ) );
     }
 
-    @Override
+    @Test
     public void verifySupplier()
         throws SQLException
     {
@@ -85,18 +90,14 @@ public class ProgramStageInstanceSupplierTest
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
         when( mockResultSet.getString( "status" ) ).thenReturn( "ACTIVE" );
         when( mockResultSet.getBoolean( "deleted" ) ).thenReturn( false );
-
         // create event to import
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setEnrollment( "abcded" );
-
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
-
         Map<String, ProgramStageInstance> map = subject.get( ImportOptions.getDefaultImportOptions(),
             Collections.singletonList( event ) );
-
         ProgramStageInstance programStageInstance = map.get( "abcded" );
         assertThat( programStageInstance, is( notNullValue() ) );
         assertThat( programStageInstance.getId(), is( 100L ) );

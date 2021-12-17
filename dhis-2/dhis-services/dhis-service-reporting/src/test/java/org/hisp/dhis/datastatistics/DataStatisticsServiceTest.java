@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.datastatistics;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -37,16 +37,16 @@ import org.hisp.dhis.DhisSpringTest;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-public class DataStatisticsServiceTest
-    extends DhisSpringTest
+class DataStatisticsServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private DataStatisticsService dataStatisticsService;
 
@@ -69,18 +69,16 @@ public class DataStatisticsServiceTest
         fmt = DateTimeFormat.forPattern( "yyyy-mm-dd" );
         formatdate = fmt.parseDateTime( "2016-03-22" );
         Date now = formatdate.toDate();
-
         dse1 = new DataStatisticsEvent();
         dse2 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, now, "TestUser" );
-        DataStatistics ds = new DataStatistics( 1.0, 1.5, 4.0, 5.0, 3.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0,
-            13.0, 20.0, 14.0, 17.0, 11.0, 10, 18 );
-
+        DataStatistics ds = new DataStatistics( 1.0, 1.5, 4.0, 5.0, 3.0, 6.0, 7.0, 8.0, 11.0, 10.0, 12.0, 11.0, 13.0,
+            20.0, 14.0, 17.0, 11.0, 10, 18 );
         hibernateDataStatisticsStore.save( ds );
         snapId1 = ds.getId();
     }
 
     @Test
-    public void testAddEvent()
+    void testAddEvent()
         throws Exception
     {
         int id = dataStatisticsService.addEvent( dse1 );
@@ -88,7 +86,7 @@ public class DataStatisticsServiceTest
     }
 
     @Test
-    public void testAddEventWithParams()
+    void testAddEventWithParams()
         throws Exception
     {
         int id = dataStatisticsService.addEvent( dse2 );
@@ -96,7 +94,7 @@ public class DataStatisticsServiceTest
     }
 
     @Test
-    public void testSaveSnapshot()
+    void testSaveSnapshot()
         throws Exception
     {
         Calendar c = Calendar.getInstance();
@@ -105,12 +103,10 @@ public class DataStatisticsServiceTest
         c.add( Calendar.DAY_OF_MONTH, -2 );
         formatdate = fmt.parseDateTime( "2016-03-21" );
         Date startDate = formatdate.toDate();
-
         dse1 = new DataStatisticsEvent( DataStatisticsEventType.VISUALIZATION_VIEW, startDate, "TestUser" );
         dataStatisticsService.addEvent( dse1 );
         dataStatisticsService.addEvent( dse2 );
         long snapId2 = dataStatisticsService.saveDataStatisticsSnapshot();
-
         assertTrue( snapId2 != 0 );
         assertTrue( snapId1 != snapId2 );
     }

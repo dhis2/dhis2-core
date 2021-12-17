@@ -53,21 +53,18 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoJUnitRunner;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit tests for {@link DefaultFieldFilterService}.
  */
-@RunWith( MockitoJUnitRunner.class )
+@ExtendWith( MockitoExtension.class )
 public class DefaultFieldFilterServiceTest
 {
     private FieldParser fieldParser = new DefaultFieldParser();
@@ -92,10 +89,7 @@ public class DefaultFieldFilterServiceTest
 
     private DefaultFieldFilterService service;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
         throws Exception
     {
@@ -129,14 +123,14 @@ public class DefaultFieldFilterServiceTest
             Collections.emptyList(), Defaults.INCLUDE, true );
 
         CollectionNode node = service.toCollectionNode( Attribute.class, params );
-        Assert.assertEquals( 1, node.getChildren().size() );
+        Assertions.assertEquals( 1, node.getChildren().size() );
         Set<String> names = extractNodeNames( node.getChildren().get( 0 ).getChildren() );
-        Assert.assertTrue( names.contains( "dataElementAttribute" ) );
-        Assert.assertFalse( names.contains( "user" ) );
-        Assert.assertFalse( names.contains( "publicAccess" ) );
-        Assert.assertFalse( names.contains( "userGroupAccesses" ) );
-        Assert.assertFalse( names.contains( "userAccesses" ) );
-        Assert.assertFalse( names.contains( "externalAccess" ) );
+        Assertions.assertTrue( names.contains( "dataElementAttribute" ) );
+        Assertions.assertFalse( names.contains( "user" ) );
+        Assertions.assertFalse( names.contains( "publicAccess" ) );
+        Assertions.assertFalse( names.contains( "userGroupAccesses" ) );
+        Assertions.assertFalse( names.contains( "userAccesses" ) );
+        Assertions.assertFalse( names.contains( "externalAccess" ) );
     }
 
     @Test
@@ -166,15 +160,15 @@ public class DefaultFieldFilterServiceTest
             Collections.singletonList( ":owner" ), Defaults.INCLUDE, true );
 
         CollectionNode node = service.toCollectionNode( Attribute.class, params );
-        Assert.assertEquals( 1, node.getChildren().size() );
+        Assertions.assertEquals( 1, node.getChildren().size() );
         Set<String> names = extractNodeNames( node.getChildren().get( 0 ).getChildren() );
-        Assert.assertFalse( names.contains( "dataElementAttribute" ) );
-        Assert.assertTrue( names.contains( "dataSetAttribute" ) );
-        Assert.assertFalse( names.contains( "user" ) );
-        Assert.assertFalse( names.contains( "publicAccess" ) );
-        Assert.assertFalse( names.contains( "userGroupAccesses" ) );
-        Assert.assertFalse( names.contains( "userAccesses" ) );
-        Assert.assertFalse( names.contains( "externalAccess" ) );
+        Assertions.assertFalse( names.contains( "dataElementAttribute" ) );
+        Assertions.assertTrue( names.contains( "dataSetAttribute" ) );
+        Assertions.assertFalse( names.contains( "user" ) );
+        Assertions.assertFalse( names.contains( "publicAccess" ) );
+        Assertions.assertFalse( names.contains( "userGroupAccesses" ) );
+        Assertions.assertFalse( names.contains( "userAccesses" ) );
+        Assertions.assertFalse( names.contains( "externalAccess" ) );
     }
 
     private static Set<String> extractNodeNames( Collection<Node> nodes )

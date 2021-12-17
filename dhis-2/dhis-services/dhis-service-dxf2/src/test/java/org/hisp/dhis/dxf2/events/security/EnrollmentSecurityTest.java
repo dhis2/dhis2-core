@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.events.security;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Collections;
 import java.util.Date;
@@ -63,7 +63,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -71,9 +71,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EnrollmentSecurityTest
-    extends TransactionalIntegrationTest
+class EnrollmentSecurityTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private EnrollmentService enrollmentService;
 
@@ -121,71 +121,54 @@ public class EnrollmentSecurityTest
     protected void setUpTest()
     {
         userService = _userService;
-
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
-
         manager.save( organisationUnitA );
         manager.save( organisationUnitB );
-
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityType.getSharing().setPublicAccess( AccessStringHelper.FULL );
         manager.save( trackedEntityType, false );
-
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
         dataElementA.setValueType( ValueType.INTEGER );
         dataElementB.setValueType( ValueType.INTEGER );
-
         manager.save( dataElementA );
         manager.save( dataElementB );
-
         programStageA = createProgramStage( 'A', 0 );
         programStageB = createProgramStage( 'B', 0 );
         programStageB.setRepeatable( true );
-
         manager.save( programStageA );
         manager.save( programStageB );
-
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         programA.setTrackedEntityType( trackedEntityType );
         manager.save( programA );
-
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementA );
         programStageDataElement.setProgramStage( programStageA );
         programStageDataElementService.addProgramStageDataElement( programStageDataElement );
-
         programStageA.getProgramStageDataElements().add( programStageDataElement );
         programStageA.setProgram( programA );
-
         programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementB );
         programStageDataElement.setProgramStage( programStageB );
         programStageDataElementService.addProgramStageDataElement( programStageDataElement );
-
         programStageB.getProgramStageDataElements().add( programStageDataElement );
         programStageB.setProgram( programA );
         programStageB.setMinDaysFromStart( 2 );
-
         programA.getProgramStages().add( programStageA );
         programA.getProgramStages().add( programStageB );
-
         manager.update( programStageA );
         manager.update( programStageB );
         manager.update( programA );
-
         maleA = createTrackedEntityInstance( organisationUnitA );
         maleB = createTrackedEntityInstance( organisationUnitB );
         femaleA = createTrackedEntityInstance( organisationUnitA );
         femaleB = createTrackedEntityInstance( organisationUnitB );
-
         maleA.setTrackedEntityType( trackedEntityType );
         maleB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
         femaleB.setTrackedEntityType( trackedEntityType );
-
         manager.save( maleA );
         manager.save( maleB );
         manager.save( femaleA );
@@ -197,17 +180,13 @@ public class EnrollmentSecurityTest
      * program = DATA READ/WRITE orgUnit = Accessible status = SUCCESS
      */
     @Test
-    public void testUserWithDataReadWrite()
+    void testUserWithDataReadWrite()
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.FULL );
         manager.updateNoAcl( programA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
-
         userService.addUser( user );
-
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.SUCCESS, enrollmentService.mergeOrDeleteEnrollments(
@@ -233,19 +212,18 @@ public class EnrollmentSecurityTest
             ImportOptions.getDefaultImportOptions(),
             null, false )
             .getStatus() );
+
     }
 
     /**
      * program = DATA READ/WRITE orgUnit = Not Accessible status = ERROR
      */
     @Test
-    public void testUserWithDataReadWriteNoOrgUnit()
+    void testUserWithDataReadWriteNoOrgUnit()
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.updateNoAcl( programA );
-
         User user = createUser( "user1" );
-
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
@@ -271,20 +249,18 @@ public class EnrollmentSecurityTest
             ImportOptions.getDefaultImportOptions(),
             null, false )
             .getStatus() );
+
     }
 
     /**
      * program = DATA READ orgUnit = Accessible status = ERROR
      */
     @Test
-    public void testUserWithDataReadOrgUnit()
+    void testUserWithDataReadOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
@@ -310,20 +286,18 @@ public class EnrollmentSecurityTest
             ImportOptions.getDefaultImportOptions(),
             null, false )
             .getStatus() );
+
     }
 
     /**
      * program = orgUnit = Accessible status = ERROR
      */
     @Test
-    public void testUserNoDataAccessOrgUnit()
+    void testUserNoDataAccessOrgUnit()
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( programA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
@@ -355,13 +329,11 @@ public class EnrollmentSecurityTest
      * program = orgUnit = Not Accessible status = ERROR
      */
     @Test
-    public void testUserNoDataAccessNoOrgUnit()
+    void testUserNoDataAccessNoOrgUnit()
     {
         programA.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.update( programA );
-
         User user = createUser( "user1" );
-
         injectSecurityContext( user );
 
         assertEquals( ImportStatus.ERROR, enrollmentService.mergeOrDeleteEnrollments(
@@ -387,13 +359,14 @@ public class EnrollmentSecurityTest
             ImportOptions.getDefaultImportOptions(),
             null, false )
             .getStatus() );
+
     }
 
     /**
      * program = DATA READ/WRITE orgUnit = Accessible status = SUCCESS
      */
     @Test
-    public void testGetEnrollmentUserWithDataReadWrite()
+    void testGetEnrollmentUserWithDataReadWrite()
     {
         ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
             Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
@@ -401,15 +374,10 @@ public class EnrollmentSecurityTest
             null, true ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.updateNoAcl( programA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-
         Enrollment enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
         assertNotNull( enrollment );
         assertEquals( enrollment.getEnrollment(), importSummary.getReference() );
@@ -419,7 +387,7 @@ public class EnrollmentSecurityTest
      * program = DATA READ orgUnit = Accessible status = SUCCESS
      */
     @Test
-    public void testGetEnrollmentUserWithDataRead()
+    void testGetEnrollmentUserWithDataRead()
     {
         ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
             Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
@@ -427,15 +395,10 @@ public class EnrollmentSecurityTest
             null, true ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-
         Enrollment enrollment = enrollmentService.getEnrollment( importSummary.getReference() );
         assertNotNull( enrollment );
         assertEquals( enrollment.getEnrollment(), importSummary.getReference() );
@@ -445,29 +408,24 @@ public class EnrollmentSecurityTest
      * program = DATA READ orgUnit = Accessible in search scope status = SUCCESS
      */
     @Test
-    public void testGetEnrollmentsInSearchScopeForUser()
+    void testGetEnrollmentsInSearchScopeForUser()
     {
         ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
             Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
             ImportOptions.getDefaultImportOptions(), null, true ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.update( programA );
-
         User user = createUser( "user1" );
         user.setOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
         user.setDataViewOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
-
         injectSecurityContext( user );
-
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setProgram( programA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
         params.setUser( user );
-
         Enrollments enrollments = enrollmentService.getEnrollments( params );
         assertNotNull( enrollments );
         assertNotNull( enrollments.getEnrollments() );
@@ -479,7 +437,7 @@ public class EnrollmentSecurityTest
      * program = DATA READ orgUnit = Not Accessible status = ERROR
      */
     @Test
-    public void testGetEnrollmentUserWithDataReadNoOrgUnit()
+    void testGetEnrollmentUserWithDataReadNoOrgUnit()
     {
         ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
             Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
@@ -487,12 +445,9 @@ public class EnrollmentSecurityTest
             null, false ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
-
         User user = createUser( "user1" );
-
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
             () -> enrollmentService.getEnrollment( importSummary.getReference() ) );
@@ -502,7 +457,7 @@ public class EnrollmentSecurityTest
      * program = DATA READ/WRITE orgUnit = Not Accessible status = ERROR
      */
     @Test
-    public void testGetEnrollmentUserWithDataReadWriteNoOrgUnit()
+    void testGetEnrollmentUserWithDataReadWriteNoOrgUnit()
     {
         ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
             Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
@@ -510,12 +465,9 @@ public class EnrollmentSecurityTest
             null, false ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
-
         User user = createUser( "user1" );
-
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
             () -> enrollmentService.getEnrollment( importSummary.getReference() ) );
@@ -525,7 +477,7 @@ public class EnrollmentSecurityTest
      * program = orgUnit = Accessible status = ERROR
      */
     @Test
-    public void testGetEnrollmentUserWithNoDataReadWriteOrgUnit()
+    void testGetEnrollmentUserWithNoDataReadWriteOrgUnit()
     {
         ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
             Collections.singletonList( createEnrollment( programA.getUid(), maleA.getUid() ) ),
@@ -533,25 +485,22 @@ public class EnrollmentSecurityTest
             null, false ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( programA );
-
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertThrows( IllegalQueryException.class,
             () -> enrollmentService.getEnrollment( importSummary.getReference() ) );
     }
 
     @Test
-    public void testAddEnrollmentToOrgUnitWithoutProgramAccess()
+    void testAddEnrollmentToOrgUnitWithoutProgramAccess()
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( programA );
         Enrollment en = createEnrollment( programA.getUid(), maleA.getUid() );
         en.setOrgUnit( organisationUnitB.getUid() );
+
         ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
             Collections.singletonList( en ), ImportOptions.getDefaultImportOptions(), null, false ).getImportSummaries()
             .get( 0 );
@@ -559,7 +508,6 @@ public class EnrollmentSecurityTest
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertEquals( "Program is not assigned to this Organisation Unit: " + organisationUnitB.getUid(),
             importSummary.getDescription() );
-
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         programA.getOrganisationUnits().add( organisationUnitB );
         manager.updateNoAcl( programA );
@@ -567,12 +515,12 @@ public class EnrollmentSecurityTest
         importSummary = enrollmentService.mergeOrDeleteEnrollments(
             Collections.singletonList( en ), ImportOptions.getDefaultImportOptions(), null, false ).getImportSummaries()
             .get( 0 );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
 
     @Test
-    public void testAddEnrollmentWithOrgUnitIdSchemeToOrgUnitWithoutProgramAccess()
+    void testAddEnrollmentWithOrgUnitIdSchemeToOrgUnitWithoutProgramAccess()
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( programA );
@@ -584,32 +532,30 @@ public class EnrollmentSecurityTest
         attribute.setOrganisationUnitAttribute( true );
         attribute.setName( "OrgUnitAttribute" );
         attributeService.addAttribute( attribute );
-
         AttributeValue av = new AttributeValue();
         av.setAttribute( attribute );
         av.setValue( "1025" );
         organisationUnitB.setAttributeValues( Collections.singleton( av ) );
         manager.updateNoAcl( organisationUnitB );
-
         en.setOrgUnit( av.getValue() );
         ImportOptions importOptions = new ImportOptions();
         importOptions.getIdSchemes().setOrgUnitIdScheme( "ATTRIBUTE" );
         importOptions.getIdSchemes().getOrgUnitIdScheme().setAttribute( "D1DDOl5hTsL" );
+
         ImportSummary importSummary = enrollmentService.mergeOrDeleteEnrollments(
             List.of( en ), importOptions, null, true ).getImportSummaries().get( 0 );
 
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertEquals( "Program is not assigned to this Organisation Unit: " + av.getValue(),
             importSummary.getDescription() );
-
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         programA.getOrganisationUnits().add( organisationUnitB );
         manager.updateNoAcl( programA );
 
         importSummary = enrollmentService.mergeOrDeleteEnrollments(
             List.of( en ), importOptions, null, true ).getImportSummaries().get( 0 );
-        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
 
     private Enrollment createEnrollment( String program, String person )
@@ -621,7 +567,6 @@ public class EnrollmentSecurityTest
         enrollment.setTrackedEntityInstance( person );
         enrollment.setEnrollmentDate( new Date() );
         enrollment.setIncidentDate( new Date() );
-
         return enrollment;
     }
 }

@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -43,16 +43,24 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance, Map<String, ProgramInstance>>
+
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance, Map<String, ProgramInstance>>
 {
+
     private ProgramInstanceEventSupplier subject;
 
     @Mock
@@ -61,19 +69,19 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
     @Mock
     private Environment environment;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         this.subject = new ProgramInstanceEventSupplier( jdbcTemplate, programSupplier, environment );
     }
 
     @Test
-    public void handleNullEvents()
+    void handleNullEvents()
     {
         assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), new HashMap<>(), null ) );
     }
 
-    @Override
+    @Test
     public void verifySupplier()
         throws SQLException
     {
@@ -84,30 +92,23 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
         when( mockResultSet.getString( "tei_ou_uid" ) ).thenReturn( "ouabcde" );
         when( mockResultSet.getString( "tei_ou_path" ) ).thenReturn( "/ouabcde" );
         when( mockResultSet.getLong( "programid" ) ).thenReturn( 999L );
-
         // create event to import
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setEnrollment( "abcded" );
-
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
-
         // create a Program for the ProgramSupplier
         Program program = new Program();
         program.setId( 999L );
         program.setUid( "prabcde" );
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( "prabcde", program );
-
         final ImportOptions defaultImportOptions = ImportOptions.getDefaultImportOptions();
-
         when( programSupplier.get( defaultImportOptions, Collections.singletonList( event ) ) )
             .thenReturn( programMap );
-
         Map<String, ProgramInstance> map = subject.get( defaultImportOptions, new HashMap<>(),
             Collections.singletonList( event ) );
-
         ProgramInstance programInstance = map.get( event.getUid() );
         assertThat( programInstance, is( notNullValue() ) );
         assertThat( programInstance.getId(), is( 100L ) );

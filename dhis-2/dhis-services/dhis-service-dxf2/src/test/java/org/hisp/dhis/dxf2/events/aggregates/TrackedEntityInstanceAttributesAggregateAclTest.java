@@ -46,7 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -57,7 +57,9 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerBaseIntegrationTest
+
 {
+
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
@@ -71,18 +73,15 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerBase
     protected void mockCurrentUserService()
     {
         User user = createUser( "testUser" );
-
         setUserAuthorityToNonSuper( user );
-
         currentUserService = new MockCurrentUserService( user );
-
         ReflectionTestUtils.setField( trackedEntityInstanceAggregate, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( trackedEntityInstanceService, "currentUserService", currentUserService );
         ReflectionTestUtils.setField( teiService, "currentUserService", currentUserService );
     }
 
     @Test
-    public void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType()
+    void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType()
     {
         doInTransaction( () -> {
             this.persistTrackedEntityInstance();
@@ -90,31 +89,25 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerBase
             this.persistTrackedEntityInstance();
             this.persistTrackedEntityInstance();
         } );
-
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
-
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
-
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
-
         assertThat( trackedEntityInstances, hasSize( 0 ) );
     }
 
     @Test
-    public void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
+    void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
     {
         final String tetUid = CodeGenerator.generateUid();
         doInTransaction( () -> {
-
             TrackedEntityType trackedEntityTypeZ = createTrackedEntityType( 'Z' );
             trackedEntityTypeZ.setUid( tetUid );
             trackedEntityTypeZ.setName( "TrackedEntityTypeZ" + trackedEntityTypeZ.getUid() );
             trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeZ );
-
             // When saving the trackedEntityType using addTrackedEntityType, the
             // public access value is ignored
             // therefore we need to update the previously saved TeiType
@@ -122,25 +115,19 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerBase
                 .getTrackedEntityType( trackedEntityTypeZ.getUid() );
             trackedEntityType.setPublicAccess( DATA_READ );
             trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-
             this.persistTrackedEntityInstance( ImmutableMap.of( "trackedEntityType", trackedEntityType ) );
             this.persistTrackedEntityInstance( ImmutableMap.of( "trackedEntityType", trackedEntityType ) );
             this.persistTrackedEntityInstance();
             this.persistTrackedEntityInstance();
         } );
-
-        final TrackedEntityType trackedEntityType = trackedEntityTypeService
-            .getTrackedEntityType( tetUid );
+        final TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( tetUid );
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityType );
         queryParams.setIncludeAllAttributes( true );
-
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
-
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
-
         assertThat( trackedEntityInstances, hasSize( 2 ) );
     }
 
@@ -149,8 +136,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerBase
         UserCredentials userCredentials = new UserCredentials();
         UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
         userAuthorityGroup.setUid( CodeGenerator.generateUid() );
-        userAuthorityGroup
-            .setAuthorities( new HashSet<>( Collections.singletonList( "user" ) ) );
+        userAuthorityGroup.setAuthorities( new HashSet<>( Collections.singletonList( "user" ) ) );
         userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup ) );
         user.setUserCredentials( userCredentials );
     }

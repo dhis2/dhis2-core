@@ -27,26 +27,27 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.web.client.HttpClientErrorException;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class TrackerBundleReportModeTest
+class TrackerBundleReportModeTest
 {
+
     @Test
-    public void shouldFindReportMode()
+    void shouldFindReportMode()
     {
         assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
     }
 
     @Test
-    public void shouldThrowWhenReportModeNotFound()
+    void shouldThrowWhenReportModeNotFound()
     {
         assertThrows( HttpClientErrorException.class,
             () -> TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" ) );

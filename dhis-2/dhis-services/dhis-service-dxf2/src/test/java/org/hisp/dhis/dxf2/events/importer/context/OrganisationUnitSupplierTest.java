@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -45,9 +45,11 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.core.env.Environment;
 
 import com.google.common.collect.HashMultimap;
@@ -56,8 +58,11 @@ import com.google.common.collect.Multimap;
 /**
  * @author Luciano Fiandesio
  */
-public class OrganisationUnitSupplierTest extends AbstractSupplierTest<OrganisationUnit, Set<OrganisationUnit>>
+@MockitoSettings( strictness = Strictness.LENIENT )
+class OrganisationUnitSupplierTest extends AbstractSupplierTest<OrganisationUnit, Set<OrganisationUnit>>
+
 {
+
     private OrganisationUnitSupplier subject;
 
     private static final String uid = CodeGenerator.generateUid();
@@ -65,18 +70,17 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
     @Mock
     private Environment environment;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
         throws SQLException
     {
         this.subject = new OrganisationUnitSupplier( jdbcTemplate, environment );
         reset( mockResultSet );
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( false );
-
     }
 
     @Test
-    public void handleNullEvents()
+    void handleNullEvents()
     {
         assertNotNull( subject.get( ImportOptions.getDefaultImportOptions(), null, null ) );
     }
@@ -87,7 +91,7 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
     }
 
     @Test
-    public void verifyOuWith4LevelHierarchyIsHandledCorrectly()
+    void verifyOuWith4LevelHierarchyIsHandledCorrectly()
         throws SQLException
     {
         // mock resultset data
@@ -96,12 +100,10 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
         when( mockResultSet.getString( "path" ) ).thenReturn( "/aaaa/bbbb/cccc/abcded" );
         when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 4 );
-
         // create event to import
         Event event = new Event();
         event.setUid( uid );
         event.setOrgUnit( "abcded" );
-
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
@@ -121,7 +123,7 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
     }
 
     @Test
-    public void verifyOuWith1LevelHierarchyIsHandledCorrectly()
+    void verifyOuWith1LevelHierarchyIsHandledCorrectly()
         throws SQLException
     {
         // mock resultset data
@@ -130,12 +132,10 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         when( mockResultSet.getString( "code" ) ).thenReturn( "ALFA" );
         when( mockResultSet.getString( "path" ) ).thenReturn( "/abcded" );
         when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 1 );
-
         // create event to import
         Event event = new Event();
         event.setUid( uid );
         event.setOrgUnit( "abcded" );
-
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
 
@@ -144,7 +144,6 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
 
         Map<String, OrganisationUnit> map = subject.get( ImportOptions.getDefaultImportOptions(),
             new HashSet<>( List.of( event.getUid() ) ), orgUnitToEntity );
-
         OrganisationUnit organisationUnit = map.get( event.getUid() );
 
         assertThat( organisationUnit, is( notNullValue() ) );
@@ -153,11 +152,10 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         assertThat( organisationUnit.getCode(), is( "ALFA" ) );
         assertThat( organisationUnit.getPath(), is( "/abcded" ) );
         assertThat( organisationUnit.getHierarchyLevel(), is( 1 ) );
-
     }
 
     @Test
-    public void verifyCodeSchemaForOu()
+    void verifyCodeSchemaForOu()
         throws SQLException
     {
         // mock resultset data
@@ -166,15 +164,12 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         when( mockResultSet.getString( "code" ) ).thenReturn( "CODE1" );
         when( mockResultSet.getString( "path" ) ).thenReturn( "/abcded" );
         when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 1 );
-
         // create event to import
         Event event = new Event();
         event.setUid( uid );
         event.setOrgUnit( "CODE1" );
-
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
-
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( IdScheme.CODE.name() );
 
@@ -194,7 +189,7 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
     }
 
     @Test
-    public void verifyAttributeSchemaForOu()
+    void verifyAttributeSchemaForOu()
         throws SQLException
     {
         // mock resultset data
@@ -204,12 +199,10 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         when( mockResultSet.getString( "path" ) ).thenReturn( "/abcded" );
         when( mockResultSet.getInt( "hierarchylevel" ) ).thenReturn( 1 );
         when( mockResultSet.getString( "attributevalues" ) ).thenReturn( "someattributevalue" );
-
         // create event to import
         Event event = new Event();
         event.setUid( uid );
         event.setOrgUnit( "someattributevalue" );
-
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
         final String attributeId = CodeGenerator.generateUid();
@@ -223,7 +216,6 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
             new HashSet<>( List.of( event.getUid() ) ), orgUnitToEntity );
 
         final String executedSql = sql.getValue();
-
         OrganisationUnit organisationUnit = map.get( event.getUid() );
         assertThat( organisationUnit, is( notNullValue() ) );
         assertThat( organisationUnit.getId(), is( 100L ) );
@@ -231,11 +223,9 @@ public class OrganisationUnitSupplierTest extends AbstractSupplierTest<Organisat
         assertThat( organisationUnit.getCode(), is( "CODE1" ) );
         assertThat( organisationUnit.getPath(), is( "/abcded" ) );
         assertThat( organisationUnit.getHierarchyLevel(), is( 1 ) );
-
         assertThat( executedSql,
             is( "select ou.organisationunitid, ou.uid, ou.code, ou.name, ou.path, ou.hierarchylevel ,attributevalues->'"
-                + attributeId +
-                "'->>'value' as attributevalues from organisationunit ou where ou.attributevalues#>>'{" + attributeId
-                + ",value}' in (:ids)" ) );
+                + attributeId + "'->>'value' as attributevalues from organisationunit ou where ou.attributevalues#>>'{"
+                + attributeId + ",value}' in (:ids)" ) );
     }
 }

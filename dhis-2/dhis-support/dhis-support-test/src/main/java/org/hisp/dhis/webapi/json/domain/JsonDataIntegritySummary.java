@@ -25,11 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.webapi.json.domain;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * JSON API equivalent of
+ * {@link org.hisp.dhis.dataintegrity.DataIntegritySummary}.
+ *
+ * @author Jan Bernitt
  */
-public interface IntegrationTest
+public interface JsonDataIntegritySummary extends JsonDataIntegrityCheck
 {
+
+    default int getCount()
+    {
+        return getNumber( "count" ).intValue();
+    }
+
+    default Number getPercentage()
+    {
+        return getNumber( "percentage" ).number();
+    }
 }
