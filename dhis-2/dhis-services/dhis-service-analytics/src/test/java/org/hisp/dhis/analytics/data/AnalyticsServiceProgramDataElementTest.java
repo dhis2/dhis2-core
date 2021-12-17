@@ -57,7 +57,7 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import com.google.common.collect.ImmutableList;
