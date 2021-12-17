@@ -71,7 +71,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EventDataValuesValidationHookTest
+class EventDataValuesValidationHookTest
 {
 
     private EventDataValuesValidationHook hookToTest;

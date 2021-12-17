@@ -70,7 +70,7 @@ import com.google.common.collect.Lists;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class OrgUnitProfileServiceTest extends DhisSpringTest
+class OrgUnitProfileServiceTest extends DhisSpringTest
 {
 
     @Autowired

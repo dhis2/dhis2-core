@@ -61,7 +61,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author anilkumk
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataSyncImportHandlerTest
+class MetadataSyncImportHandlerTest
 {
     @Mock
     MetadataImportService metadataImportService;

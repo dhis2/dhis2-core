@@ -40,7 +40,7 @@ import org.slf4j.Logger;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-public class NotificationLoggerUtilTest
+class NotificationLoggerUtilTest
 {
 
     @Mock

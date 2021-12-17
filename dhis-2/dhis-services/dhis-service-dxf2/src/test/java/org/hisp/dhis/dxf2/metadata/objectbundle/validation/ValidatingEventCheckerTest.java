@@ -63,7 +63,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class ValidatingEventCheckerTest
+class ValidatingEventCheckerTest
 {
     @Mock
     private SchemaValidator schemaValidator;

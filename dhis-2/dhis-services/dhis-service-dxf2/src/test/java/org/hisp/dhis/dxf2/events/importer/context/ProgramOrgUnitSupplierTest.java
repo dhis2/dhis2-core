@@ -49,7 +49,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
+class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
 {
 
     private ProgramOrgUnitSupplier subject;

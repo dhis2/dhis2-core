@@ -65,7 +65,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * Unit tests for {@link DefaultFieldFilterService}.
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultFieldFilterServiceTest
+class DefaultFieldFilterServiceTest
 {
     private FieldParser fieldParser = new DefaultFieldParser();
 

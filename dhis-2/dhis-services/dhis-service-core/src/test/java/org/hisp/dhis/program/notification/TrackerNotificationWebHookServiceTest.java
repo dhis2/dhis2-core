@@ -74,7 +74,7 @@ import com.google.common.collect.Sets;
  */
 
 @ExtendWith( MockitoExtension.class )
-public class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
+class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
 {
 
     private static final String URL = "https://www.google.com";

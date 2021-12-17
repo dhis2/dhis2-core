@@ -75,7 +75,7 @@ import org.springframework.context.ApplicationEventPublisher;
  * Created by zubair@dhis2.org on 05.02.18.
  */
 @ExtendWith( MockitoExtension.class )
-public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
+class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 {
 
     private static final String NOTIFICATION_UID = "123abc";

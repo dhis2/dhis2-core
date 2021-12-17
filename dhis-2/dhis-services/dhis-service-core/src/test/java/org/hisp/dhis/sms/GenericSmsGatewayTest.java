@@ -74,7 +74,7 @@ import com.google.common.collect.Sets;
  * @author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-public class GenericSmsGatewayTest
+class GenericSmsGatewayTest
 {
 
     private static final String GATEWAY_URL = "http://gateway.com/messages";

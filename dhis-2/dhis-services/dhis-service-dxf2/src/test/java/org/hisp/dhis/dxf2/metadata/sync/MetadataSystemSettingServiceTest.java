@@ -43,8 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author anilkumk
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataSystemSettingServiceTest
-    extends DhisSpringTest
+class MetadataSystemSettingServiceTest extends DhisSpringTest
 {
     @Autowired
     SystemSettingManager systemSettingManager;

@@ -79,11 +79,9 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class SimpleEventSMSListenerTest
-    extends
+class SimpleEventSMSListenerTest extends
     CompressionSMSListenerTest
 {
-    // Needed for parent
 
     @Mock
     private UserService userService;

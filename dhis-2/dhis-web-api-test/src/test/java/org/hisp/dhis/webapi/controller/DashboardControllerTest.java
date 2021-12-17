@@ -56,7 +56,7 @@ import com.google.common.net.HttpHeaders;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class DashboardControllerTest
+class DashboardControllerTest
 {
 
     @Mock

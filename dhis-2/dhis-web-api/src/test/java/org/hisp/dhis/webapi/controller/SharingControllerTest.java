@@ -54,7 +54,7 @@ import org.springframework.security.access.AccessDeniedException;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class SharingControllerTest
+class SharingControllerTest
 {
 
     @Mock

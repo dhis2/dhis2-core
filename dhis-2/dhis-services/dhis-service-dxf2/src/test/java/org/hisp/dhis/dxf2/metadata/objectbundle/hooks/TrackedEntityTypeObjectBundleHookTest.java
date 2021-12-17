@@ -53,7 +53,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class TrackedEntityTypeObjectBundleHookTest
+class TrackedEntityTypeObjectBundleHookTest
 {
 
     @InjectMocks

@@ -61,7 +61,7 @@ import com.google.common.collect.ImmutableList;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class DefaultTrackerPreheatServiceTest
+class DefaultTrackerPreheatServiceTest
 {
     @Mock
     private IdentifiableObjectManager manager;

@@ -59,7 +59,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-public class VisualizationGridServiceTest
+class VisualizationGridServiceTest
 {
     @Mock
     private VisualizationService visualizationService;

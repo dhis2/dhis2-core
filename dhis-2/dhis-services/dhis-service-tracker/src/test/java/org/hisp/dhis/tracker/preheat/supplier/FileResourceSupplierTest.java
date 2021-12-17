@@ -59,7 +59,7 @@ import com.google.common.collect.Sets;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-public class FileResourceSupplierTest extends DhisConvenienceTest
+class FileResourceSupplierTest extends DhisConvenienceTest
 {
 
     private static final String NUMERIC_DATA_ELEMENT_UID = "numericDataElement";

@@ -77,7 +77,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class QueryValidatorTest
+class QueryValidatorTest
 {
 
     private DefaultQueryValidator queryValidator;

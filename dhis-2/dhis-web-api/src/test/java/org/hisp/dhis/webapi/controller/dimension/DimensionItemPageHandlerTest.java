@@ -60,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author maikel arabori
  */
 @ExtendWith( MockitoExtension.class )
-public class DimensionItemPageHandlerTest
+class DimensionItemPageHandlerTest
 {
 
     @Mock

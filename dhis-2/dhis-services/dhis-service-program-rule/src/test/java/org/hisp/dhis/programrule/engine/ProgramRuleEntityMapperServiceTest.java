@@ -88,7 +88,7 @@ import com.google.common.collect.Sets;
  * @author Zubair Asghar.
  */
 @ExtendWith( org.mockito.junit.jupiter.MockitoExtension.class )
-public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
+class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 {
 
     private static final String SAMPLE_VALUE_A = "textValueA";

@@ -65,7 +65,7 @@ import com.google.common.collect.Lists;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class RepeatedEventsValidationHookTest extends DhisConvenienceTest
+class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 {
 
     private final static String NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION = "NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";

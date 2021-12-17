@@ -64,7 +64,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.CacheControl;
 
 @ExtendWith( MockitoExtension.class )
-public class WebCacheTest
+class WebCacheTest
 {
 
     @Mock

@@ -66,7 +66,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentAttributeValidationHookTest
+class EnrollmentAttributeValidationHookTest
 {
 
     @InjectMocks

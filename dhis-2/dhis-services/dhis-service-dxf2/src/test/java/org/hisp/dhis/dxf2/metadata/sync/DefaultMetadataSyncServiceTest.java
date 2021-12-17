@@ -61,7 +61,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author sultanm
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultMetadataSyncServiceTest
+class DefaultMetadataSyncServiceTest
 {
 
     private MetadataSyncService metadataSyncService;

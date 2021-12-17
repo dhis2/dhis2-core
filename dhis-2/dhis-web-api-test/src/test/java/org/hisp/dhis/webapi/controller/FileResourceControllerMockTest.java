@@ -47,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith( MockitoExtension.class )
-public class FileResourceControllerMockTest
+class FileResourceControllerMockTest
 {
 
     private FileResourceController controller;

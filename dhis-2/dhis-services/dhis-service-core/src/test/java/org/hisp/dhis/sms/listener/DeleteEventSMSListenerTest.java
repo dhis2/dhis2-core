@@ -61,11 +61,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-public class DeleteEventSMSListenerTest
-    extends
+class DeleteEventSMSListenerTest extends
     CompressionSMSListenerTest
 {
-    // Needed for all
 
     @Mock
     private UserService userService;

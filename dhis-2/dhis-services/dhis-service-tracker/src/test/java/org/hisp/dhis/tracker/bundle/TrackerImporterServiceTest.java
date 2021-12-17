@@ -61,7 +61,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackerImporterServiceTest
+class TrackerImporterServiceTest
 {
 
     @Mock

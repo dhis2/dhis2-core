@@ -52,7 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackedEntityInstanceStrategyHandlerTest
+class TrackedEntityInstanceStrategyHandlerTest
 {
 
     @InjectMocks

@@ -70,7 +70,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class JacksonRelationshipServiceTest
+class JacksonRelationshipServiceTest
 {
     @Mock
     protected DbmsManager dbmsManager;

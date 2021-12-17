@@ -62,7 +62,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentNoteValidationHookTest
+class EnrollmentNoteValidationHookTest
 {
 
     // Class under test

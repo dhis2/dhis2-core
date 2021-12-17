@@ -76,7 +76,7 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class QueryPlannerGroupByAggregationTypeTest
+class QueryPlannerGroupByAggregationTypeTest
 {
 
     private QueryPlanner subject;

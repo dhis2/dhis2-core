@@ -64,7 +64,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class PreCheckUpdatableFieldsValidationHookTest
+class PreCheckUpdatableFieldsValidationHookTest
 {
 
     private final static String TRACKED_ENTITY_TYPE_ID = "TrackedEntityTypeId";

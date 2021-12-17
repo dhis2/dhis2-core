@@ -57,8 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author sultanm
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultMetadataVersionServiceTest
-    extends TransactionalIntegrationTest
+class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private MetadataVersionService versionService;

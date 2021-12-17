@@ -73,7 +73,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class RelationshipsValidationHookTest
+class RelationshipsValidationHookTest
 {
 
     private RelationshipsValidationHook validationHook;

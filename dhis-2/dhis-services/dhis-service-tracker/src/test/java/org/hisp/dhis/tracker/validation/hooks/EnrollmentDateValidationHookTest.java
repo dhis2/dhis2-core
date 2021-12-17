@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentDateValidationHookTest
+class EnrollmentDateValidationHookTest
 {
 
     private EnrollmentDateValidationHook hookToTest;

@@ -65,8 +65,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class ProgramSqlGeneratorVariablesTest
-    extends DhisConvenienceTest
+class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
 {
     private final String SQL_CASE_NOT_NULL = "case when \"%s\" is not null then 1 else 0 end";
 

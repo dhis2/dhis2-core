@@ -61,7 +61,7 @@ import org.springframework.beans.factory.ObjectFactory;
  * @author Zubair Asghar
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackerNotificationMessageManagerTest
+class TrackerNotificationMessageManagerTest
 {
 
     @Mock

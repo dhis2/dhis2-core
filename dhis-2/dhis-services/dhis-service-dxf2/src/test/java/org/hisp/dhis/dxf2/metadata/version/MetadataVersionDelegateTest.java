@@ -68,7 +68,7 @@ import org.springframework.http.HttpStatus;
  * @author anilkumk
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataVersionDelegateTest
+class MetadataVersionDelegateTest
 {
     private MetadataVersionDelegate target;
 

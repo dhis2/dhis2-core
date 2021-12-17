@@ -48,7 +48,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataOrgUnitSplitHandlerTest
+class MetadataOrgUnitSplitHandlerTest
 {
 
     private MetadataOrgUnitSplitHandler handler;

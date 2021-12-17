@@ -54,7 +54,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author aamerm
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataSyncDelegateTest
+class MetadataSyncDelegateTest
 {
 
     @InjectMocks

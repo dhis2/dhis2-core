@@ -35,7 +35,7 @@ import com.google.common.base.MoreObjects;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DeserializeTest
+class DeserializeTest
 {
     private String a;
 

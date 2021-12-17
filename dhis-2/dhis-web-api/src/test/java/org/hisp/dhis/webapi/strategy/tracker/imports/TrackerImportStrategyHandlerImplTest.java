@@ -52,7 +52,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-public class TrackerImportStrategyHandlerImplTest
+class TrackerImportStrategyHandlerImplTest
 {
     @InjectMocks
     TrackerImportAsyncStrategyImpl importAsyncStrategy;

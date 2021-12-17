@@ -98,7 +98,7 @@ import com.google.common.collect.ImmutableList;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EventsAnalyticsManagerTest extends EventAnalyticsTest
+class EventsAnalyticsManagerTest extends EventAnalyticsTest
 {
 
     @Mock

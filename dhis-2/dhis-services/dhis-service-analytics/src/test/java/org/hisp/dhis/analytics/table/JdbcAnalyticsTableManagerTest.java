@@ -73,7 +73,7 @@ import com.google.common.collect.Lists;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class JdbcAnalyticsTableManagerTest
+class JdbcAnalyticsTableManagerTest
 {
 
     @Mock

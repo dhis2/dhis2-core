@@ -54,7 +54,7 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackerEntityInstanceStrategyTest
+class TrackerEntityInstanceStrategyTest
 {
     @InjectMocks
     private TrackerEntityInstanceStrategy strategy;

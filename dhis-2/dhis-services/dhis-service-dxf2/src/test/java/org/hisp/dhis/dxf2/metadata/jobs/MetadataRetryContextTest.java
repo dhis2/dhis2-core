@@ -49,8 +49,7 @@ import org.springframework.retry.RetryContext;
  * @author aamerm
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataRetryContextTest
-    extends DhisSpringTest
+class MetadataRetryContextTest extends DhisSpringTest
 {
     @Mock
     RetryContext retryContext;

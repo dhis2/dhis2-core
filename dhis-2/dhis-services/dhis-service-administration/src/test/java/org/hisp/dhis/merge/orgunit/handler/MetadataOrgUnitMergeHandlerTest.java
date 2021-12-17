@@ -50,7 +50,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataOrgUnitMergeHandlerTest
+class MetadataOrgUnitMergeHandlerTest
 {
 
     private MetadataOrgUnitMergeHandler handler;

@@ -76,7 +76,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultFieldFilterServiceTest
+class DefaultFieldFilterServiceTest
 {
     @Mock
     private SessionFactory sessionFactory;

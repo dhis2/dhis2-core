@@ -67,8 +67,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceReportingRateTest
-    extends AnalyticsServiceBaseTest
+class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 {
     @Test
     public void verifyReportingRatesValueWhenPeriodIsFilter()

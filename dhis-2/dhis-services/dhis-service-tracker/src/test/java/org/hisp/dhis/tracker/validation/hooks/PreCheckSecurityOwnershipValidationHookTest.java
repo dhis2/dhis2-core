@@ -77,7 +77,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
+class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 {
 
     private static final String ORG_UNIT_ID = "ORG_UNIT_ID";

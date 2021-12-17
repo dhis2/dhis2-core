@@ -56,7 +56,7 @@ import org.springframework.core.env.Environment;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class PeriodTypeSupplierTest
+class PeriodTypeSupplierTest
 {
 
     private PeriodTypeSupplier supplier;

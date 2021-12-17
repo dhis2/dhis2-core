@@ -67,7 +67,7 @@ import org.springframework.jdbc.core.RowMapper;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class AttributeOptionComboLoaderTest
+class AttributeOptionComboLoaderTest
 {
     @Mock
     protected JdbcTemplate jdbcTemplate;

@@ -56,7 +56,7 @@ import org.springframework.context.ApplicationContext;
  * @author Cambi Luca
  */
 @ExtendWith( MockitoExtension.class )
-public class ClassBasedSupplierTest
+class ClassBasedSupplierTest
 {
     private ClassBasedSupplier classBasedSupplier;
 

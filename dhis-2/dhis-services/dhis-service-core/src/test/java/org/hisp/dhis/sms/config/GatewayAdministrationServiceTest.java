@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-public class GatewayAdministrationServiceTest
+class GatewayAdministrationServiceTest
 {
     private static final String BULKSMS = BulkSmsGatewayConfig.class.getName();
 

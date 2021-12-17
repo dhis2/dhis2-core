@@ -82,7 +82,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
+class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 {
 
     private static final String NOTIFICATION_UID = "abc123";

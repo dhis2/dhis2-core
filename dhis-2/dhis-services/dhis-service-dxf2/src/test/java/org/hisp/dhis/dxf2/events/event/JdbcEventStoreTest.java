@@ -63,7 +63,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class JdbcEventStoreTest
+class JdbcEventStoreTest
 {
     private JdbcEventStore subject;
 

@@ -55,7 +55,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class OutlierDetectionServiceValidationTest
+class OutlierDetectionServiceValidationTest
 {
 
     @Mock

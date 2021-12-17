@@ -52,7 +52,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-public class PasswordValidationRuleTest
+class PasswordValidationRuleTest
 {
     private static final int MIN_LENGTH = 8;
 

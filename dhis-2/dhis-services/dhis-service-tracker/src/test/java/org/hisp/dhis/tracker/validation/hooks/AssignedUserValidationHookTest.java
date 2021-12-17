@@ -52,7 +52,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-public class AssignedUserValidationHookTest
+class AssignedUserValidationHookTest
 {
 
     private static final String USER_ID = "ABCDEF12345";

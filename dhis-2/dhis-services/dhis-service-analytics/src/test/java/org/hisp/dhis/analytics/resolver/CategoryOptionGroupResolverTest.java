@@ -61,7 +61,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class CategoryOptionGroupResolverTest
+class CategoryOptionGroupResolverTest
 {
 
     @Mock

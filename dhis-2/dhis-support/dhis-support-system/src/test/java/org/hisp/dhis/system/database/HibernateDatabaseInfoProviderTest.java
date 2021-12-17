@@ -51,7 +51,7 @@ import org.springframework.mock.env.MockEnvironment;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class HibernateDatabaseInfoProviderTest
+class HibernateDatabaseInfoProviderTest
 {
 
     @Mock

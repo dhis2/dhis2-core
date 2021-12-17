@@ -85,7 +85,7 @@ import com.google.common.collect.Sets;
  */
 @SuppressWarnings( "unchecked" )
 @ExtendWith( MockitoExtension.class )
-public class ProgramNotificationServiceTest extends DhisConvenienceTest
+class ProgramNotificationServiceTest extends DhisConvenienceTest
 {
 
     private static final String SUBJECT = "subject";

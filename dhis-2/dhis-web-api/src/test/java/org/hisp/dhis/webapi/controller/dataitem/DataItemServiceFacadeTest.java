@@ -74,7 +74,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  * @author maikel arabori
  */
 @ExtendWith( MockitoExtension.class )
-public class DataItemServiceFacadeTest
+class DataItemServiceFacadeTest
 {
 
     @Mock

@@ -109,7 +109,7 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class ExpressionService2Test extends DhisSpringTest
+class ExpressionService2Test extends DhisSpringTest
 {
 
     @Mock

@@ -61,7 +61,7 @@ import com.google.common.collect.ImmutableList;
  * @author Luca Cambi
  */
 @ExtendWith( MockitoExtension.class )
-public class ProgramRuleVariableObjectBundleHookTest
+class ProgramRuleVariableObjectBundleHookTest
 {
 
     @InjectMocks

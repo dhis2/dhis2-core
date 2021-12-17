@@ -72,7 +72,7 @@ import org.springframework.http.ResponseEntity;
  * @author maikel arabori
  */
 @ExtendWith( MockitoExtension.class )
-public class DataItemQueryControllerTest
+class DataItemQueryControllerTest
 {
 
     @Mock

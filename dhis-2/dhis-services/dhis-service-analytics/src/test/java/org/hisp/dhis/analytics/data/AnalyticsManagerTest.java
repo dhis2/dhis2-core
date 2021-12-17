@@ -62,8 +62,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class AnalyticsManagerTest
-    extends DhisConvenienceTest
+class AnalyticsManagerTest extends DhisConvenienceTest
 {
     @Mock
     private QueryPlanner queryPlanner;

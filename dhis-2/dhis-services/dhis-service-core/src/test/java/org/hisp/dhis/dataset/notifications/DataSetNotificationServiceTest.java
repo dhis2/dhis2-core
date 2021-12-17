@@ -76,7 +76,7 @@ import com.google.common.collect.Sets;
  * @author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-public class DataSetNotificationServiceTest extends DhisConvenienceTest
+class DataSetNotificationServiceTest extends DhisConvenienceTest
 {
     public static final String TEMPALTE_A_UID = "smsTemplateA";
 

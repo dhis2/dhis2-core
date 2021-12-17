@@ -69,7 +69,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EventRequestToParamsMapperTest
+class EventRequestToParamsMapperTest
 {
 
     @Mock

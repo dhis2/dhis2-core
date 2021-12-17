@@ -55,7 +55,7 @@ import org.springframework.web.util.NestedServletException;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-public class RelationshipControllerTest
+class RelationshipControllerTest
 {
     private MockMvc mockMvc;
 

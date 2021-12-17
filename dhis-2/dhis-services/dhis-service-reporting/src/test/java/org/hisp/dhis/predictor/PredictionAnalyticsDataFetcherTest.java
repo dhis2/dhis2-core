@@ -70,7 +70,7 @@ import com.google.common.collect.Lists;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class PredictionAnalyticsDataFetcherTest extends DhisConvenienceTest
+class PredictionAnalyticsDataFetcherTest extends DhisConvenienceTest
 {
 
     @Mock

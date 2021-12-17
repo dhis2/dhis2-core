@@ -65,8 +65,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceProgramDataElementTest
-    extends
+class AnalyticsServiceProgramDataElementTest extends
     AnalyticsServiceBaseTest
 {
     /**

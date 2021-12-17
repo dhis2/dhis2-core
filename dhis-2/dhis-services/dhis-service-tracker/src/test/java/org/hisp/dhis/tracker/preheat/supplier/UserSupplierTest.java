@@ -57,7 +57,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class UserSupplierTest
+class UserSupplierTest
 {
 
     @InjectMocks

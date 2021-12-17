@@ -68,7 +68,7 @@ import com.google.common.collect.Lists;
 @SuppressWarnings( "unchecked" )
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class SchemaToDataFetcherTest extends DhisConvenienceTest
+class SchemaToDataFetcherTest extends DhisConvenienceTest
 {
 
     private SchemaToDataFetcher subject;

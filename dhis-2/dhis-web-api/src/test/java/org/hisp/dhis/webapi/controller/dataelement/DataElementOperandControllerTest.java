@@ -98,7 +98,7 @@ import com.jayway.jsonpath.JsonPath;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class DataElementOperandControllerTest
+class DataElementOperandControllerTest
 {
 
     private MockMvc mockMvc;

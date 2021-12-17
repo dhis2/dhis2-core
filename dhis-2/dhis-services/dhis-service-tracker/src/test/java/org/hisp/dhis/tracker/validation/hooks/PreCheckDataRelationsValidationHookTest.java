@@ -83,7 +83,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
+class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 {
 
     private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "PROGRAM_WITHOUT_REGISTRATION_ID";

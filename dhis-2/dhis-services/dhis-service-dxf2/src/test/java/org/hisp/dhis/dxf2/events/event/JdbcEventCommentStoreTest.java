@@ -56,7 +56,7 @@ import com.google.common.collect.ImmutableList;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class JdbcEventCommentStoreTest
+class JdbcEventCommentStoreTest
 {
 
     private JdbcEventCommentStore jdbcEventCommentStore;

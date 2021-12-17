@@ -61,7 +61,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackedEntityInstanceControllerTest
+class TrackedEntityInstanceControllerTest
 {
 
     private MockMvc mockMvc;

@@ -81,7 +81,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class TrackerCrudTest
+class TrackerCrudTest
 {
 
     @Mock

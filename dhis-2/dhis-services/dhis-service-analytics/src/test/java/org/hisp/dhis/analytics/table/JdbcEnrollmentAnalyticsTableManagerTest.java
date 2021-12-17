@@ -68,7 +68,7 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class JdbcEnrollmentAnalyticsTableManagerTest
+class JdbcEnrollmentAnalyticsTableManagerTest
 {
 
     @Mock

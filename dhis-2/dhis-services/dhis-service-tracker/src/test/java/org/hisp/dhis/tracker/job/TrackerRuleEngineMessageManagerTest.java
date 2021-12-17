@@ -62,7 +62,7 @@ import org.springframework.beans.factory.ObjectFactory;
  * @author Zubair Asghar
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackerRuleEngineMessageManagerTest
+class TrackerRuleEngineMessageManagerTest
 {
 
     @Mock

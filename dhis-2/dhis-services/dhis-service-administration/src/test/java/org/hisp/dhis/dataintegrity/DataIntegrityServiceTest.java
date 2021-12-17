@@ -106,7 +106,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class DataIntegrityServiceTest
+class DataIntegrityServiceTest
 {
 
     private static final String INVALID_EXPRESSION = "INVALID_EXPRESSION";

@@ -63,7 +63,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class PredictionWriterTest extends DhisConvenienceTest
+class PredictionWriterTest extends DhisConvenienceTest
 {
 
     @Mock

@@ -77,7 +77,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class AbstractJdbcEventAnalyticsManagerTest extends
+class AbstractJdbcEventAnalyticsManagerTest extends
     EventAnalyticsTest
 {
 

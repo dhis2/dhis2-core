@@ -66,7 +66,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class JdbcAnalyticsManagerTest
+class JdbcAnalyticsManagerTest
 {
 
     @Mock

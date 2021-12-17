@@ -77,7 +77,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
+class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTest
 {
 
     private HibernateDataApprovalStore dataApprovalStore;

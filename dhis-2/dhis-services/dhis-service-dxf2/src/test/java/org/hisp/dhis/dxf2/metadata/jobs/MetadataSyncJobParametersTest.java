@@ -62,7 +62,7 @@ import org.springframework.retry.support.RetryTemplate;
  * @author aamerm
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataSyncJobParametersTest
+class MetadataSyncJobParametersTest
 {
     @Mock
     private SystemSettingManager systemSettingManager;

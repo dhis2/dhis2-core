@@ -54,7 +54,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Dang Duy Hieu
  */
 @ExtendWith( MockitoExtension.class )
-public class SqlViewServiceTest extends DhisSpringTest
+class SqlViewServiceTest extends DhisSpringTest
 {
 
     @Mock

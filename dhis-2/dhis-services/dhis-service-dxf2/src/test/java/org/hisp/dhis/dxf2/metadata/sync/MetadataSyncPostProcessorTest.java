@@ -52,7 +52,7 @@ import org.springframework.retry.RetryContext;
  * @author aamerm
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataSyncPostProcessorTest
+class MetadataSyncPostProcessorTest
 {
     @Mock
     private EmailService emailService;

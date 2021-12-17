@@ -73,7 +73,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class FileResourceCleanUpJobTest extends IntegrationTestBase
+class FileResourceCleanUpJobTest extends IntegrationTestBase
 {
 
     private FileResourceCleanUpJob cleanUpJob;

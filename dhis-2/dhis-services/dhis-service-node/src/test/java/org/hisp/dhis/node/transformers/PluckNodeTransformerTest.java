@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class PluckNodeTransformerTest
+class PluckNodeTransformerTest
 {
     private final PluckNodeTransformer transformer = new PluckNodeTransformer();
 

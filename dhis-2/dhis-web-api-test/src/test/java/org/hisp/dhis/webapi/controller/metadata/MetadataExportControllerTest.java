@@ -47,7 +47,7 @@ import org.springframework.http.ResponseEntity;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataExportControllerTest
+class MetadataExportControllerTest
 {
     @Mock
     private MetadataExportService metadataExportService;

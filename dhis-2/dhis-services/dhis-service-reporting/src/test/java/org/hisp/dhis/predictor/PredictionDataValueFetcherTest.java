@@ -80,7 +80,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class PredictionDataValueFetcherTest extends DhisConvenienceTest
+class PredictionDataValueFetcherTest extends DhisConvenienceTest
 {
 
     @Mock

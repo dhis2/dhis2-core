@@ -68,7 +68,7 @@ import com.google.common.collect.Lists;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( { MockitoExtension.class } )
-public class DeduplicationHelperTest extends DhisConvenienceTest
+class DeduplicationHelperTest extends DhisConvenienceTest
 {
     @InjectMocks
     private DeduplicationHelper deduplicationHelper;

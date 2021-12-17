@@ -73,7 +73,7 @@ import org.springframework.web.client.RestTemplate;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class BulkSmsGatewayTest extends DhisConvenienceTest
+class BulkSmsGatewayTest extends DhisConvenienceTest
 {
 
     private static final String MESSAGE = "text-MESSAGE";

@@ -62,7 +62,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class PreCheckMandatoryFieldsValidationHookTest
+class PreCheckMandatoryFieldsValidationHookTest
 {
 
     private PreCheckMandatoryFieldsValidationHook validationHook;

@@ -42,8 +42,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public abstract class AbstractImportValidationTest
-    extends TrackerTest
+public abstract class AbstractImportValidationTest extends TrackerTest
 {
     @Autowired
     protected TrackerBundleService trackerBundleService;

@@ -58,7 +58,7 @@ import com.google.common.collect.Sets;
 
 @Disabled( "Test to run manually" )
 @ExtendWith( MockitoExtension.class )
-public class SMPPClientTest
+class SMPPClientTest
 {
     private static final String SYSTEM_ID = "smppclient1";
 

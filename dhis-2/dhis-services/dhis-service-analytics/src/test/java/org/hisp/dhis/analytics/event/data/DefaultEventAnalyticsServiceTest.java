@@ -68,7 +68,7 @@ import com.google.common.collect.Sets;
  * @author maikel arabori
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultEventAnalyticsServiceTest
+class DefaultEventAnalyticsServiceTest
 {
 
     private DefaultEventAnalyticsService defaultEventAnalyticsService;

@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class JobConfigurationObjectBundleHookTest
+class JobConfigurationObjectBundleHookTest
 {
     private static final String CRON_HOURLY = "0 0 * ? * *";
 

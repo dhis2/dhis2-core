@@ -116,7 +116,7 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class JdbcEventAnalyticsTableManagerTest
+class JdbcEventAnalyticsTableManagerTest
 {
 
     @Mock

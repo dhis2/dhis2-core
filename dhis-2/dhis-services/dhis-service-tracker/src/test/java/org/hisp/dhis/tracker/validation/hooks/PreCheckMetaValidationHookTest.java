@@ -69,7 +69,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-public class PreCheckMetaValidationHookTest
+class PreCheckMetaValidationHookTest
 {
 
     private static final String ORG_UNIT_UID = "OrgUnitUid";

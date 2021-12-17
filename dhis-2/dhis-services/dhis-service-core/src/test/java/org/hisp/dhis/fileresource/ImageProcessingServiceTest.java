@@ -48,7 +48,7 @@ import org.springframework.core.io.ClassPathResource;
  * @Author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-public class ImageProcessingServiceTest
+class ImageProcessingServiceTest
 {
     private static final int SMALL_IMAGE_WIDTH = 256;
 

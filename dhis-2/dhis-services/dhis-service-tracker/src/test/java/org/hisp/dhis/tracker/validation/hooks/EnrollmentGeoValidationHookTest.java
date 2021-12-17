@@ -55,7 +55,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentGeoValidationHookTest
+class EnrollmentGeoValidationHookTest
 {
 
     private static final String PROGRAM = "Program";

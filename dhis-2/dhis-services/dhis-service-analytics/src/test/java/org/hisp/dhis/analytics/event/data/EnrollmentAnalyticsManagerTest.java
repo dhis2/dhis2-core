@@ -88,7 +88,7 @@ import com.google.common.collect.ImmutableList;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentAnalyticsManagerTest extends
+class EnrollmentAnalyticsManagerTest extends
     EventAnalyticsTest
 {
 

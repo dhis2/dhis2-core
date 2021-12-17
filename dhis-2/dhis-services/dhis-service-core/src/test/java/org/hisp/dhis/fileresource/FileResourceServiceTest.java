@@ -62,7 +62,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class FileResourceServiceTest
+class FileResourceServiceTest
 {
     @Mock
     private FileResourceStore fileResourceStore;

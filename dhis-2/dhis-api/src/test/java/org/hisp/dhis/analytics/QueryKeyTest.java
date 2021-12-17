@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-public class QueryKeyTest
+class QueryKeyTest
 {
     @Test
     public void testAsPlainKey()

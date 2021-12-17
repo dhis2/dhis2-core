@@ -57,7 +57,7 @@ import org.slf4j.MDC;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class RequestIdentifierFilterTest
+class RequestIdentifierFilterTest
 {
 
     @Mock

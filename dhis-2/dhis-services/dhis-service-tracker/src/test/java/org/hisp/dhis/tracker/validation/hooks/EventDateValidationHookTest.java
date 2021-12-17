@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EventDateValidationHookTest extends DhisConvenienceTest
+class EventDateValidationHookTest extends DhisConvenienceTest
 {
 
     private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";

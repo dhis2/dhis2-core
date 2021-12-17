@@ -76,7 +76,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
+class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
 {
 
     @BeforeEach

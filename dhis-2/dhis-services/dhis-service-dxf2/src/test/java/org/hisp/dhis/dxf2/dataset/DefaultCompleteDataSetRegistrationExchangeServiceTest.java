@@ -105,7 +105,7 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultCompleteDataSetRegistrationExchangeServiceTest
+class DefaultCompleteDataSetRegistrationExchangeServiceTest
 {
     @Mock
     private CompleteDataSetRegistrationExchangeStore cdsrStore;

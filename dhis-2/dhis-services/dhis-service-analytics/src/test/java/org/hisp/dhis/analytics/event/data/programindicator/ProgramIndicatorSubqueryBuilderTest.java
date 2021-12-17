@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class ProgramIndicatorSubqueryBuilderTest
+class ProgramIndicatorSubqueryBuilderTest
 {
 
     private final static String DUMMY_EXPRESSION = "#{1234567}";

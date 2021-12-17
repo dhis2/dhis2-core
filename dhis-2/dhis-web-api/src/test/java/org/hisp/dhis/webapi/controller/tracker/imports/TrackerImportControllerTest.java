@@ -80,7 +80,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
 @ExtendWith( MockitoExtension.class )
-public class TrackerImportControllerTest
+class TrackerImportControllerTest
 {
 
     private final static String ENDPOINT = "/" + TrackerControllerSupport.RESOURCE_PATH;

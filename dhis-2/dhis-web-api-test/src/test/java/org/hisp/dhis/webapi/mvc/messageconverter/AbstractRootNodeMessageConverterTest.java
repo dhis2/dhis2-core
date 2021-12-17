@@ -58,7 +58,7 @@ import com.google.common.net.HttpHeaders;
  * @author Volker Schmidt <volker@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-public class AbstractRootNodeMessageConverterTest
+class AbstractRootNodeMessageConverterTest
 {
     @Mock
     private NodeService nodeService;

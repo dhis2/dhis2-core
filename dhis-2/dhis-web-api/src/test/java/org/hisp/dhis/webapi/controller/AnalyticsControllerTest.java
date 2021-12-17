@@ -78,7 +78,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class AnalyticsControllerTest
+class AnalyticsControllerTest
 {
 
     private final static String ENDPOINT = "/analytics";

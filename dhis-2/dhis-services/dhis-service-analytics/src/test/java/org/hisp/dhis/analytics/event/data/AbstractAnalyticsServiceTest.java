@@ -71,7 +71,7 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class AbstractAnalyticsServiceTest
+class AbstractAnalyticsServiceTest
 {
 
     private Period peA;

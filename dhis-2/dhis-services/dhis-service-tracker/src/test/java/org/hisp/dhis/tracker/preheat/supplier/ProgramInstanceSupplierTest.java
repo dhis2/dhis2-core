@@ -61,7 +61,7 @@ import com.google.common.collect.Lists;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class ProgramInstanceSupplierTest extends DhisConvenienceTest
+class ProgramInstanceSupplierTest extends DhisConvenienceTest
 {
 
     @InjectMocks

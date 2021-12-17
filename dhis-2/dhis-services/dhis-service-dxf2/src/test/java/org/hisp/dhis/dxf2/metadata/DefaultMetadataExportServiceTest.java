@@ -64,7 +64,7 @@ import org.mockito.stubbing.Answer;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultMetadataExportServiceTest
+class DefaultMetadataExportServiceTest
 {
     @Mock
     private SchemaService schemaService;

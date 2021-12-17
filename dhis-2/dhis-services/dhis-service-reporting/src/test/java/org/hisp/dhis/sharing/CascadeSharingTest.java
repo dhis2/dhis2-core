@@ -45,8 +45,7 @@ import org.hisp.dhis.user.sharing.Sharing;
 
 import com.google.common.collect.Lists;
 
-public abstract class CascadeSharingTest
-    extends DhisSpringTest
+abstract class CascadeSharingTest extends DhisSpringTest
 {
     protected DimensionalItemObject baseDimensionalItemObject( final String dimensionItem, DimensionItemType type )
     {

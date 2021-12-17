@@ -67,7 +67,7 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class EventQueryValidatorTest extends DhisSpringTest
+class EventQueryValidatorTest extends DhisSpringTest
 {
 
     private Program prA;

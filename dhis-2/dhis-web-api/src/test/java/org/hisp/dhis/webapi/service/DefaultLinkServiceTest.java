@@ -55,7 +55,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class DefaultLinkServiceTest
+class DefaultLinkServiceTest
 {
     @Mock
     private SchemaService schemaService;
