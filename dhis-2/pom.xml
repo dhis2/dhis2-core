@@ -2058,7 +2058,7 @@
     <junit5.version>5.8.2</junit5.version>
     <mockito.version>4.1.0</mockito.version>
     <jackson.version>2.11.2</jackson.version>
-    <log4j.version>2.15.0</log4j.version>
+    <log4j.version>2.16.0</log4j.version>
     <slf4j.version>1.7.32</slf4j.version>
     <testcontainers.version>1.15.1</testcontainers.version>
     <geotools.version>18.0</geotools.version>
