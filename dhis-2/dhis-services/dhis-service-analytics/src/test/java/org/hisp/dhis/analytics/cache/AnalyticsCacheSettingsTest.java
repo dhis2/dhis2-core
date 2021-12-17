@@ -59,7 +59,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class AnalyticsCacheSettingsTest
+class AnalyticsCacheSettingsTest
 {
 
     @Mock
@@ -74,7 +74,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenProgressiveCachingIsEnabled()
+    void testWhenProgressiveCachingIsEnabled()
     {
         given( PROGRESSIVE, CACHE_1_MINUTE );
 
@@ -82,7 +82,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenFixedCachingIsEnabled()
+    void testWhenFixedCachingIsEnabled()
     {
         given( FIXED, CACHE_1_MINUTE );
 
@@ -90,7 +90,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenProgressiveCachingIsEnabledButStrategyIsNoCache()
+    void testWhenProgressiveCachingIsEnabledButStrategyIsNoCache()
     {
         given( PROGRESSIVE, NO_CACHE );
 
@@ -98,7 +98,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenFixedCachingIsEnabledButStrategyIsNoCache()
+    void testWhenFixedCachingIsEnabledButStrategyIsNoCache()
     {
         given( FIXED, NO_CACHE );
 
@@ -106,7 +106,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSet()
+    void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSet()
     {
         // Given
         final int aTtlFactor = 20;
@@ -125,7 +125,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsNotSet()
+    void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsNotSet()
     {
         // Given
         final int theDefaultTtlFactor = (Integer) ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR.getDefaultValue();
@@ -144,7 +144,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSetWithNegativeNumber()
+    void testProgressiveExpirationTimeOrDefaultWhenTheTtlFactorIsSetWithNegativeNumber()
     {
         // Given
         final int aTtlFactor = -20;
@@ -160,7 +160,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenFixedExpirationTimeOrDefaultIsSet()
+    void testWhenFixedExpirationTimeOrDefaultIsSet()
     {
         given( CACHE_10_MINUTES );
 
@@ -168,7 +168,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testWhenFixedExpirationTimeOrDefaultIsNotCache()
+    void testWhenFixedExpirationTimeOrDefaultIsNotCache()
     {
         given( NO_CACHE );
 
@@ -177,7 +177,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testIsCachingEnabledWhenFixedExpirationTimeIsSet()
+    void testIsCachingEnabledWhenFixedExpirationTimeIsSet()
     {
         given( FIXED, CACHE_10_MINUTES );
 
@@ -185,7 +185,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testIsCachingEnabledWhenProgressiveExpirationTimeIsSet()
+    void testIsCachingEnabledWhenProgressiveExpirationTimeIsSet()
     {
         given( PROGRESSIVE, CACHE_10_MINUTES );
 
@@ -193,7 +193,7 @@ public class AnalyticsCacheSettingsTest
     }
 
     @Test
-    public void testIsCachingEnabledWhenFixedExpirationTimeIsSetAndStrategyIsNoCache()
+    void testIsCachingEnabledWhenFixedExpirationTimeIsSetAndStrategyIsNoCache()
     {
         given( FIXED, NO_CACHE );
 

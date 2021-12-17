@@ -281,7 +281,7 @@ class MathUtilsTest
     }
 
     @Test
-    public void testGetRounded()
+    void testGetRounded()
     {
         assertEquals( 10, MathUtils.getRounded( 10.00 ), DELTA );
         assertEquals( 10, MathUtils.getRounded( 10 ), DELTA );
@@ -293,7 +293,7 @@ class MathUtilsTest
     }
 
     @Test
-    public void testRoundToSignificantDigits()
+    void testRoundToSignificantDigits()
     {
         assertEquals( 0.1, MathUtils.roundToSignificantDigits( .1357, 1 ), DELTA );
         assertEquals( 0.14, MathUtils.roundToSignificantDigits( .1357, 2 ), DELTA );
@@ -317,7 +317,7 @@ class MathUtilsTest
     }
 
     @Test
-    public void testRoundFraction()
+    void testRoundFraction()
     {
         assertEquals( 1.0, MathUtils.roundFraction( 1.357, 1 ), DELTA );
         assertEquals( 1.4, MathUtils.roundFraction( 1.357, 2 ), DELTA );

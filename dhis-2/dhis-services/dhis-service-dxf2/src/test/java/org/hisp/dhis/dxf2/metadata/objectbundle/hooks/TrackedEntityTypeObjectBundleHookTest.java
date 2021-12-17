@@ -53,7 +53,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class TrackedEntityTypeObjectBundleHookTest
+class TrackedEntityTypeObjectBundleHookTest
 {
 
     @InjectMocks
@@ -79,7 +79,7 @@ public class TrackedEntityTypeObjectBundleHookTest
     }
 
     @Test
-    public void shouldReportNoErrorTetHasNoTeas()
+    void shouldReportNoErrorTetHasNoTeas()
     {
 
         assertEquals( 0, trackedEntityTypeObjectBundleHook.validate( trackedEntityType, bundle ).size() );
@@ -87,7 +87,7 @@ public class TrackedEntityTypeObjectBundleHookTest
     }
 
     @Test
-    public void shouldReportNoErrorTeaExists()
+    void shouldReportNoErrorTeaExists()
     {
 
         when( preheat.get( any(), any() ) ).thenReturn( new TrackedEntityAttribute() );
@@ -103,7 +103,7 @@ public class TrackedEntityTypeObjectBundleHookTest
     }
 
     @Test
-    public void shouldReportErrorTeaNotExists()
+    void shouldReportErrorTeaNotExists()
     {
 
         trackedEntityAttribute = new TrackedEntityAttribute();

@@ -59,7 +59,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-public class VisualizationGridServiceTest
+class VisualizationGridServiceTest
 {
     @Mock
     private VisualizationService visualizationService;
@@ -86,7 +86,7 @@ public class VisualizationGridServiceTest
     }
 
     @Test
-    public void getVisualizationGridByUserWhenItHasOrganisationUnitLevels()
+    void getVisualizationGridByUserWhenItHasOrganisationUnitLevels()
     {
         // Given
         final String anyVisualizationUid = "adbet5RTs";
@@ -121,7 +121,7 @@ public class VisualizationGridServiceTest
     }
 
     @Test
-    public void getVisualizationGridByUserWhenItHasItemOrganisationUnitGroups()
+    void getVisualizationGridByUserWhenItHasItemOrganisationUnitGroups()
     {
         // Given
         final String anyVisualizationUid = "adbet5RTs";

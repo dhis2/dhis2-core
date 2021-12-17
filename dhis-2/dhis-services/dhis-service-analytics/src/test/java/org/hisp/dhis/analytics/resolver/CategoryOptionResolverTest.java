@@ -56,7 +56,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class CategoryOptionResolverTest
+class CategoryOptionResolverTest
 {
 
     @Mock
@@ -112,7 +112,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsResolvedProperly()
+    void verifyExpressionIsResolvedProperly()
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
@@ -134,7 +134,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
+    void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
@@ -156,7 +156,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
+    void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
@@ -177,7 +177,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
+    void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,

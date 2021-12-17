@@ -74,7 +74,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class DataValidationTaskTest
+class DataValidationTaskTest
 {
     @Mock
     private ExpressionService expressionService;
@@ -143,7 +143,7 @@ public class DataValidationTaskTest
      * Verify that a single rule passes against a Data Element
      */
     @Test
-    public void verifySimpleValidation_oneRule_noErrors()
+    void verifySimpleValidation_oneRule_noErrors()
     {
         Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
         Expression rightExpression = createExpression2( 'B', "-10" );
@@ -192,7 +192,7 @@ public class DataValidationTaskTest
     }
 
     @Test
-    public void verifyValidationSkippedOnNoData()
+    void verifyValidationSkippedOnNoData()
     {
         Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
         Expression rightExpression = createExpression2( 'B', "-10" );

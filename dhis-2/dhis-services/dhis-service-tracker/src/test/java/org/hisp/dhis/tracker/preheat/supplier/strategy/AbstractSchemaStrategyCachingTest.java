@@ -71,7 +71,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class AbstractSchemaStrategyCachingTest
+class AbstractSchemaStrategyCachingTest
 {
 
     @Mock
@@ -97,7 +97,7 @@ public class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyFetchWildcardObjectsFromDbAndPutInCache()
+    void verifyFetchWildcardObjectsFromDbAndPutInCache()
     {
         // Given
         final Schema schema = new RelationshipTypeSchemaDescriptor().getSchema();
@@ -122,7 +122,7 @@ public class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyObjectInCacheIsReturned()
+    void verifyObjectInCacheIsReturned()
     {
         // Given
         final Schema schema = new ProgramSchemaDescriptor().getSchema();
@@ -144,7 +144,7 @@ public class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache()
+    void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache()
     {
         // Given
         final Schema schema = new ProgramSchemaDescriptor().getSchema();

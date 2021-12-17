@@ -80,7 +80,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  * @author maikel arabori
  */
 @ExtendWith( MockitoExtension.class )
-public class ResponseHandlerTest
+class ResponseHandlerTest
 {
 
     @Mock
@@ -105,7 +105,7 @@ public class ResponseHandlerTest
     }
 
     @Test
-    public void testAddResultsToNodeWithSuccess()
+    void testAddResultsToNodeWithSuccess()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -127,7 +127,7 @@ public class ResponseHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWithSuccess()
+    void testAddPaginationToNodeWithSuccess()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -150,7 +150,7 @@ public class ResponseHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenPagingIsFalse()
+    void testAddPaginationToNodeWhenPagingIsFalse()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -171,7 +171,7 @@ public class ResponseHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenTargetEntitiesIsEmpty()
+    void testAddPaginationToNodeWhenTargetEntitiesIsEmpty()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );

@@ -77,7 +77,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
+class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 {
 
     private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
@@ -143,7 +143,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForTrackedEntity()
+    void verifyValidationSuccessForTrackedEntity()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( CodeGenerator.generateUid() )
@@ -162,7 +162,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForTrackedEntityWithNoProgramInstancesUsingDeleteStrategy()
+    void verifyValidationSuccessForTrackedEntityWithNoProgramInstancesUsingDeleteStrategy()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -182,7 +182,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyCaptureScopeIsCheckedForTrackedEntityCreation()
+    void verifyCaptureScopeIsCheckedForTrackedEntityCreation()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -203,7 +203,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifySearchScopeIsCheckedForTrackedEntityUpdation()
+    void verifySearchScopeIsCheckedForTrackedEntityUpdation()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -225,7 +225,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifySearchScopeIsCheckedForTrackedEntityDeletion()
+    void verifySearchScopeIsCheckedForTrackedEntityDeletion()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -247,7 +247,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForTrackedEntityWithDeletedProgramInstancesUsingDeleteStrategy()
+    void verifyValidationSuccessForTrackedEntityWithDeletedProgramInstancesUsingDeleteStrategy()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -267,7 +267,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForTrackedEntityUsingDeleteStrategyAndUserWithCascadeAuthority()
+    void verifyValidationSuccessForTrackedEntityUsingDeleteStrategyAndUserWithCascadeAuthority()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -288,7 +288,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationFailsForTrackedEntityUsingDeleteStrategyAndUserWithoutCascadeAuthority()
+    void verifyValidationFailsForTrackedEntityUsingDeleteStrategyAndUserWithoutCascadeAuthority()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -309,7 +309,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForEnrollment()
+    void verifyValidationSuccessForEnrollment()
     {
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -331,7 +331,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyCaptureScopeIsCheckedForEnrollmentCreation()
+    void verifyCaptureScopeIsCheckedForEnrollmentCreation()
     {
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -354,7 +354,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyCaptureScopeIsCheckedForEnrollmentDeletion()
+    void verifyCaptureScopeIsCheckedForEnrollmentDeletion()
     {
         String enrollmentUid = CodeGenerator.generateUid();
         Enrollment enrollment = Enrollment.builder()
@@ -379,7 +379,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyCaptureScopeIsCheckedForEnrollmentProgramWithoutRegistration()
+    void verifyCaptureScopeIsCheckedForEnrollmentProgramWithoutRegistration()
     {
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
 
@@ -406,7 +406,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForEnrollmentWithoutEventsUsingDeleteStrategy()
+    void verifyValidationSuccessForEnrollmentWithoutEventsUsingDeleteStrategy()
     {
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -429,7 +429,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForEnrollmentUsingDeleteStrategyAndUserWithCascadeAuthority()
+    void verifyValidationSuccessForEnrollmentUsingDeleteStrategyAndUserWithCascadeAuthority()
     {
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -453,7 +453,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationFailsForEnrollmentUsingDeleteStrategyAndUserWithoutCascadeAuthority()
+    void verifyValidationFailsForEnrollmentUsingDeleteStrategyAndUserWithoutCascadeAuthority()
     {
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -477,7 +477,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForEventUsingDeleteStrategy()
+    void verifyValidationSuccessForEventUsingDeleteStrategy()
     {
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -502,7 +502,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForNonTrackerEventUsingCreateStrategy()
+    void verifyValidationSuccessForNonTrackerEventUsingCreateStrategy()
     {
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         Event event = Event.builder()
@@ -526,7 +526,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForTrackerEventCreation()
+    void verifyValidationSuccessForTrackerEventCreation()
     {
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -552,7 +552,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForTrackerEventUpdation()
+    void verifyValidationSuccessForTrackerEventUpdation()
     {
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -576,7 +576,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForEventUsingUpdateStrategy()
+    void verifyValidationSuccessForEventUsingUpdateStrategy()
     {
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -601,7 +601,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationSuccessForEventUsingUpdateStrategyAndUserWithAuthority()
+    void verifyValidationSuccessForEventUsingUpdateStrategyAndUserWithAuthority()
     {
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -627,7 +627,7 @@ public class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenience
     }
 
     @Test
-    public void verifyValidationFailsForEventUsingUpdateStrategyAndUserWithoutAuthority()
+    void verifyValidationFailsForEventUsingUpdateStrategyAndUserWithoutAuthority()
     {
         Event event = Event.builder()
             .enrollment( CodeGenerator.generateUid() )

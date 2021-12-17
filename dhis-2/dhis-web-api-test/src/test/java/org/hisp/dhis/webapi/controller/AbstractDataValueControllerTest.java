@@ -35,7 +35,7 @@ import org.hisp.dhis.webapi.json.JsonObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.http.HttpStatus;
 
-public abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest
+abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest
 {
 
     protected String dataElementId;

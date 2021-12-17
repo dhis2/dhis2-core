@@ -68,7 +68,7 @@ import com.google.common.collect.Sets;
  * @author maikel arabori
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultEventAnalyticsServiceTest
+class DefaultEventAnalyticsServiceTest
 {
 
     private DefaultEventAnalyticsService defaultEventAnalyticsService;
@@ -115,7 +115,7 @@ public class DefaultEventAnalyticsServiceTest
     }
 
     @Test
-    public void testOutputSchemeWhenSchemeIsSet()
+    void testOutputSchemeWhenSchemeIsSet()
     {
         // Given mock variables
         final IdScheme codeScheme = IdScheme.CODE;
@@ -137,7 +137,7 @@ public class DefaultEventAnalyticsServiceTest
     }
 
     @Test
-    public void testOutputSchemeWhenNoSchemeIsSet()
+    void testOutputSchemeWhenNoSchemeIsSet()
     {
         // Given mock variables
         final IdScheme noScheme = null;

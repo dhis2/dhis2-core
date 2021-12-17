@@ -63,7 +63,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class ValidatingEventCheckerTest
+class ValidatingEventCheckerTest
 {
     @Mock
     private SchemaValidator schemaValidator;
@@ -90,7 +90,7 @@ public class ValidatingEventCheckerTest
     }
 
     @Test
-    public void verifyValidationFactoryProcessValidationCheck()
+    void verifyValidationFactoryProcessValidationCheck()
     {
         ObjectBundle bundle = createObjectBundle();
 

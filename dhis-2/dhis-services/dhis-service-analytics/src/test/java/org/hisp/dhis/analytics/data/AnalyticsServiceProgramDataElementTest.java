@@ -65,8 +65,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceProgramDataElementTest
-    extends
+class AnalyticsServiceProgramDataElementTest extends
     AnalyticsServiceBaseTest
 {
     /**
@@ -75,7 +74,7 @@ public class AnalyticsServiceProgramDataElementTest
      * Analytics Service
      */
     @Test
-    public void verifyProgramDataElementInQueryCallsEventsAnalytics()
+    void verifyProgramDataElementInQueryCallsEventsAnalytics()
     {
         ArgumentCaptor<EventQueryParams> capturedParams = ArgumentCaptor.forClass( EventQueryParams.class );
 

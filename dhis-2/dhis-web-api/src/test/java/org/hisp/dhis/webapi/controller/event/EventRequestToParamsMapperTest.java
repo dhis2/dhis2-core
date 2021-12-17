@@ -69,7 +69,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EventRequestToParamsMapperTest
+class EventRequestToParamsMapperTest
 {
 
     @Mock
@@ -127,7 +127,7 @@ public class EventRequestToParamsMapperTest
     }
 
     @Test
-    public void testEventRequestToSearchParamsMapperSuccess()
+    void testEventRequestToSearchParamsMapperSuccess()
     {
 
         EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( "programuid",

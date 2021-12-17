@@ -56,7 +56,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class EventAnalyticsTest
+abstract class EventAnalyticsTest
 {
 
     @Mock

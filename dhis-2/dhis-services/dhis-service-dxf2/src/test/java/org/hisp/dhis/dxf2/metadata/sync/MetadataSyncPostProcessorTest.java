@@ -52,7 +52,7 @@ import org.springframework.retry.RetryContext;
  * @author aamerm
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataSyncPostProcessorTest
+class MetadataSyncPostProcessorTest
 {
     @Mock
     private EmailService emailService;
@@ -80,7 +80,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendSuccessEmailIfSyncSummaryIsOk()
+    void testShouldSendSuccessEmailIfSyncSummaryIsOk()
     {
         metadataSyncSummary.setImportReport( new ImportReport() );
         metadataSyncSummary.getImportReport().setStatus( Status.OK );
@@ -94,7 +94,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendSuccessEmailIfSyncSummaryIsWarning()
+    void testShouldSendSuccessEmailIfSyncSummaryIsWarning()
     {
         metadataSyncSummary.setImportReport( new ImportReport() );
         metadataSyncSummary.getImportReport().setStatus( Status.WARNING );
@@ -109,7 +109,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendSuccessEmailIfSyncSummaryIsError()
+    void testShouldSendSuccessEmailIfSyncSummaryIsError()
     {
         metadataSyncSummary.setImportReport( new ImportReport() );
         metadataSyncSummary.getImportReport().setStatus( Status.ERROR );
@@ -125,7 +125,7 @@ public class MetadataSyncPostProcessorTest
     }
 
     @Test
-    public void testShouldSendEmailToAdminWithProperSubjectAndBody()
+    void testShouldSendEmailToAdminWithProperSubjectAndBody()
     {
         ImportReport importReport = mock( ImportReport.class );
 

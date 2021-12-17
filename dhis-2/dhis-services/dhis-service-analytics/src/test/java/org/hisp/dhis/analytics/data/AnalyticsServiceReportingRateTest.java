@@ -67,11 +67,10 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceReportingRateTest
-    extends AnalyticsServiceBaseTest
+class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 {
     @Test
-    public void verifyReportingRatesValueWhenPeriodIsFilter()
+    void verifyReportingRatesValueWhenPeriodIsFilter()
     {
         int timeUnit = 10;
         double expectedReports = 100D;
@@ -126,7 +125,7 @@ public class AnalyticsServiceReportingRateTest
     }
 
     @Test
-    public void verifyNullValueIsZeroForReportingRate()
+    void verifyNullValueIsZeroForReportingRate()
     {
         double expectedReports = 100D;
         DataSet dataSetA = createDataSet( 'A' );
@@ -165,7 +164,7 @@ public class AnalyticsServiceReportingRateTest
     }
 
     @Test
-    public void verifyNullTargetIsNullForReportingRate()
+    void verifyNullTargetIsNullForReportingRate()
     {
         DataSet dataSetA = createDataSet( 'A' );
         ReportingRate reportingRateA = new ReportingRate( dataSetA );
@@ -205,7 +204,7 @@ public class AnalyticsServiceReportingRateTest
     }
 
     @Test
-    public void verifyReportingRatesForMonthsWithLessThen30DaysAreComputedCorrectly()
+    void verifyReportingRatesForMonthsWithLessThen30DaysAreComputedCorrectly()
     {
         // Create a Dataset with a Daily period type
         DataSet dataSetA = createDataSet( 'A' );
@@ -253,7 +252,7 @@ public class AnalyticsServiceReportingRateTest
     }
 
     @Test
-    public void verifyReportingRatesForMonthsWithMoreThen30DaysAreComputedCorrectly()
+    void verifyReportingRatesForMonthsWithMoreThen30DaysAreComputedCorrectly()
     {
         // Create a Dataset with a Daily period type
         DataSet dataSetA = createDataSet( 'A' );

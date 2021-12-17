@@ -82,7 +82,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
+class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 {
 
     private static final String NOTIFICATION_UID = "abc123";
@@ -151,7 +151,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWhenNoImplementableActionExist_programInstance()
+    void testWhenNoImplementableActionExist_programInstance()
     {
         setProgramRuleActionType_ShowError();
 
@@ -160,7 +160,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWithImplementableActionExist_programInstance()
+    void testWithImplementableActionExist_programInstance()
     {
         doAnswer( invocationOnMock -> {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
@@ -200,7 +200,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWithImplementableActionExist_programStageInstance()
+    void testWithImplementableActionExist_programStageInstance()
     {
         doAnswer( invocationOnMock -> {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
@@ -234,7 +234,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testGetDescription()
+    void testGetDescription()
     {
         RuleValidationResult result = RuleValidationResult.builder().isValid( true ).build();
         when( programRuleService.getProgramRule( anyString() ) ).thenReturn( programRuleA );

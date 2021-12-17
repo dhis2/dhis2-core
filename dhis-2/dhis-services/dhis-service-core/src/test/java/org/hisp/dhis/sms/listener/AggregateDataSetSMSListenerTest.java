@@ -75,11 +75,9 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class AggregateDataSetSMSListenerTest
-    extends
+class AggregateDataSetSMSListenerTest extends
     CompressionSMSListenerTest
 {
-    // Needed for parent
 
     @Mock
     private UserService userService;
@@ -182,7 +180,7 @@ public class AggregateDataSetSMSListenerTest
     }
 
     @Test
-    public void testAggregateDatasetListener()
+    void testAggregateDatasetListener()
     {
         subject.receive( incomingSmsAggregate );
 
@@ -194,7 +192,7 @@ public class AggregateDataSetSMSListenerTest
     }
 
     @Test
-    public void testAggregateDatasetListenerRepeat()
+    void testAggregateDatasetListenerRepeat()
     {
         subject.receive( incomingSmsAggregate );
         subject.receive( incomingSmsAggregate );
@@ -207,7 +205,7 @@ public class AggregateDataSetSMSListenerTest
     }
 
     @Test
-    public void testAggregateDatasetListenerNoValues()
+    void testAggregateDatasetListenerNoValues()
     {
         subject.receive( incomingSmsAggregateNoValues );
 
