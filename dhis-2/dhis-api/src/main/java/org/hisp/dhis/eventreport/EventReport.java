@@ -53,8 +53,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventvisualization.Attribute;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
-import org.hisp.dhis.eventvisualization.SimpleEventDimension;
-import org.hisp.dhis.eventvisualization.SimpleEventDimensionHandler;
+import org.hisp.dhis.eventvisualization.SimpleDimension;
+import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -207,7 +207,7 @@ public class EventReport
     /**
      * The non-typed dimensions for this event report.
      */
-    private List<SimpleEventDimension> simpleEventDimensions = new ArrayList<>();
+    private List<SimpleDimension> simpleDimensions = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // BACKWARD compatible attributes.
@@ -289,7 +289,7 @@ public class EventReport
      * be persisted and managed). If a concrete dimension is not found, then it
      * will try to find a "String" dimension (one that is not defined anywhere
      * and only exists for very specific use cases. See
-     * {@link SimpleEventDimension}).
+     * {@link SimpleDimension}).
      *
      * @param dimension the dimension, ie: dx, pe, eventDate
      * @param parent the parent attribute
@@ -306,13 +306,13 @@ public class EventReport
         }
         else
         {
-            return new SimpleEventDimensionHandler( this ).getDimensionalObject( dimension, parent );
+            return new SimpleDimensionHandler( this ).getDimensionalObject( dimension, parent );
         }
     }
 
-    public void associateSimpleDimensions()
+    public void associateEventSimpleDimensions()
     {
-        new SimpleEventDimensionHandler( this ).associateDimensions();
+        new SimpleDimensionHandler( this ).associateDimensions();
     }
 
     // -------------------------------------------------------------------------
@@ -416,14 +416,14 @@ public class EventReport
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public List<SimpleEventDimension> getSimpleEventDimensions()
+    public List<SimpleDimension> getSimpleDimensions()
     {
-        return simpleEventDimensions;
+        return simpleDimensions;
     }
 
-    public void setSimpleEventDimensions( final List<SimpleEventDimension> simpleEventDimensions )
+    public void setSimpleDimensions( final List<SimpleDimension> simpleDimensions )
     {
-        this.simpleEventDimensions = simpleEventDimensions;
+        this.simpleDimensions = simpleDimensions;
     }
 
     @JsonProperty

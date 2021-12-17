@@ -186,7 +186,7 @@ public class EventVisualization extends BaseAnalyticalObject
     /**
      * The non-typed dimensions for this event visualization.
      */
-    private List<SimpleEventDimension> simpleEventDimensions = new ArrayList<>();
+    private List<SimpleDimension> simpleDimensions = new ArrayList<>();
 
     /**
      * Indicates output type.
@@ -728,7 +728,7 @@ public class EventVisualization extends BaseAnalyticalObject
      * be persisted and managed). If a concrete dimension is not found, then it
      * will try to find a "String" dimension (one that is not defined anywhere
      * and only exists for very specific use cases. See
-     * {@link SimpleEventDimension}).
+     * {@link SimpleDimension}).
      *
      * @param dimension the dimension, ie: dx, pe, eventDate
      * @param parent the parent attribute
@@ -745,13 +745,13 @@ public class EventVisualization extends BaseAnalyticalObject
         }
         else
         {
-            return new SimpleEventDimensionHandler( this ).getDimensionalObject( dimension, parent );
+            return new SimpleDimensionHandler( this ).getDimensionalObject( dimension, parent );
         }
     }
 
-    public void associateSimpleDimensions()
+    public void associateEventSimpleDimensions()
     {
-        new SimpleEventDimensionHandler( this ).associateDimensions();
+        new SimpleDimensionHandler( this ).associateDimensions();
     }
 
     public List<DimensionalItemObject> series()
@@ -870,14 +870,14 @@ public class EventVisualization extends BaseAnalyticalObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    public List<SimpleEventDimension> getSimpleEventDimensions()
+    public List<SimpleDimension> getSimpleDimensions()
     {
-        return simpleEventDimensions;
+        return simpleDimensions;
     }
 
-    public void setSimpleEventDimensions( final List<SimpleEventDimension> simpleEventDimensions )
+    public void setSimpleDimensions( final List<SimpleDimension> simpleDimensions )
     {
-        this.simpleEventDimensions = simpleEventDimensions;
+        this.simpleDimensions = simpleDimensions;
     }
 
     @Override

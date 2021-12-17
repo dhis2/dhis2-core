@@ -31,7 +31,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 
@@ -42,8 +42,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonNode;
 import org.hisp.dhis.webapi.json.JsonResponse;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -52,14 +52,15 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author maikel arabori
  */
-public class EventVisualizationControllerTest extends DhisControllerConvenienceTest
+class EventVisualizationControllerTest extends DhisControllerConvenienceTest
 {
+
     @Autowired
     private IdentifiableObjectManager manager;
 
     private Program mockProgram;
 
-    @Before
+    @BeforeEach
     public void beforeEach()
     {
         mockProgram = createProgram( 'A' );
@@ -67,7 +68,7 @@ public class EventVisualizationControllerTest extends DhisControllerConvenienceT
     }
 
     @Test
-    public void testPostWithSingleEventDate()
+    void testPostForSingleEventDate()
     {
         // Given
         final String eventDateDimension = "eventDate";
@@ -84,16 +85,16 @@ public class EventVisualizationControllerTest extends DhisControllerConvenienceT
         final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
         final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
-        assertThat( nodeMap.get( "simpleEventDimensions" ).toString(), containsString( "COLUMN" ) );
-        assertThat( nodeMap.get( "simpleEventDimensions" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "simpleEventDimensions" ).toString(), containsString( eventDate ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "COLUMN" ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDateDimension ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
         assertThat( nodeMap.get( "columns" ).toString(), containsString( eventDateDimension ) );
         assertThat( nodeMap.get( "rows" ).toString(), not( containsString( eventDateDimension ) ) );
         assertThat( nodeMap.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
     }
 
     @Test
-    public void testPostWithMultiEventDates()
+    void testPostForMultiEventDates()
     {
         // Given
         final String eventDateDimension = "eventDate";
@@ -115,9 +116,9 @@ public class EventVisualizationControllerTest extends DhisControllerConvenienceT
         final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
         final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
-        assertThat( nodeMap.get( "simpleEventDimensions" ).toString(), containsString( "ROW" ) );
-        assertThat( nodeMap.get( "simpleEventDimensions" ).toString(), containsString( eventDate ) );
-        assertThat( nodeMap.get( "simpleEventDimensions" ).toString(), containsString( incidentDate ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "ROW" ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( incidentDate ) );
         assertThat( nodeMap.get( "rows" ).toString(), containsString( eventDateDimension ) );
         assertThat( nodeMap.get( "rows" ).toString(), containsString( incidentDateDimension ) );
         assertThat( nodeMap.get( "columns" ).toString(), not( containsString( eventDateDimension ) ) );
@@ -127,7 +128,7 @@ public class EventVisualizationControllerTest extends DhisControllerConvenienceT
     }
 
     @Test
-    public void testPostWithInvalidEventDimension()
+    void testPostForInvalidEventDimension()
     {
         // Given
         final String invalidDimension = "invalidDimension";

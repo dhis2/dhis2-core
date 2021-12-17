@@ -55,7 +55,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author maikel arabori
  */
 @Data
-public class SimpleEventDimension implements Serializable
+public class SimpleDimension implements Serializable
 {
     enum Type
     {

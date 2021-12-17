@@ -34,8 +34,8 @@ import static org.hisp.dhis.common.BaseAnalyticalObject.NOT_A_VALID_DIMENSION;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
-import static org.hisp.dhis.eventvisualization.SimpleEventDimension.Type.contains;
-import static org.hisp.dhis.eventvisualization.SimpleEventDimension.Type.from;
+import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.contains;
+import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.from;
 import static org.springframework.util.Assert.isTrue;
 
 import java.util.ArrayList;
@@ -52,7 +52,7 @@ import org.hisp.dhis.common.EventAnalyticalObject;
  *
  * @author maikel arabori
  */
-public class SimpleEventDimensionHandler
+public class SimpleDimensionHandler
 {
     /**
      * We use the EventAnalyticalObject interface because this handler is also
@@ -64,7 +64,7 @@ public class SimpleEventDimensionHandler
      */
     private final EventAnalyticalObject eventAnalyticalObject;
 
-    public SimpleEventDimensionHandler( final EventAnalyticalObject eventAnalyticalObject )
+    public SimpleDimensionHandler( final EventAnalyticalObject eventAnalyticalObject )
     {
         this.eventAnalyticalObject = eventAnalyticalObject;
     }
@@ -78,7 +78,7 @@ public class SimpleEventDimensionHandler
      * @param parent the parent attribute
      * @return the respective dimensional object
      * @throws IllegalArgumentException if the dimension does not exist in
-     *         {@link SimpleEventDimension.Type}
+     *         {@link SimpleDimension.Type}
      */
     public DimensionalObject getDimensionalObject( final String dimension, final Attribute parent )
     {
@@ -111,7 +111,7 @@ public class SimpleEventDimensionHandler
             {
                 if ( column != null )
                 {
-                    eventAnalyticalObject.getSimpleEventDimensions()
+                    eventAnalyticalObject.getSimpleDimensions()
                         .add( createSimpleEventDimensionFor( column, COLUMN ) );
                 }
             }
@@ -123,7 +123,7 @@ public class SimpleEventDimensionHandler
             {
                 if ( row != null )
                 {
-                    eventAnalyticalObject.getSimpleEventDimensions().add( createSimpleEventDimensionFor( row, ROW ) );
+                    eventAnalyticalObject.getSimpleDimensions().add( createSimpleEventDimensionFor( row, ROW ) );
                 }
             }
         }
@@ -134,7 +134,7 @@ public class SimpleEventDimensionHandler
             {
                 if ( filter != null )
                 {
-                    eventAnalyticalObject.getSimpleEventDimensions()
+                    eventAnalyticalObject.getSimpleDimensions()
                         .add( createSimpleEventDimensionFor( filter, FILTER ) );
                 }
             }
@@ -146,13 +146,13 @@ public class SimpleEventDimensionHandler
     {
         final List<BaseDimensionalItemObject> items = new ArrayList<>();
 
-        for ( final SimpleEventDimension simpleEventDimension : eventAnalyticalObject.getSimpleEventDimensions() )
+        for ( final SimpleDimension simpleDimension : eventAnalyticalObject.getSimpleDimensions() )
         {
-            final boolean hasSameDimension = simpleEventDimension.getDimension().equals( dimension );
+            final boolean hasSameDimension = simpleDimension.getDimension().equals( dimension );
 
-            if ( simpleEventDimension.belongsTo( parent ) && hasSameDimension )
+            if ( simpleDimension.belongsTo( parent ) && hasSameDimension )
             {
-                items.addAll( simpleEventDimension.getValues().stream()
+                items.addAll( simpleDimension.getValues().stream()
                     .map( value -> new BaseDimensionalItemObject( value ) ).collect( toList() ) );
             }
         }
@@ -160,21 +160,21 @@ public class SimpleEventDimensionHandler
         return items;
     }
 
-    private SimpleEventDimension createSimpleEventDimensionFor( final DimensionalObject dimensionalObject,
+    private SimpleDimension createSimpleEventDimensionFor( final DimensionalObject dimensionalObject,
         final Attribute attribute )
     {
         isTrue( contains( dimensionalObject.getUid() ), format( NOT_A_VALID_DIMENSION, dimensionalObject.getUid() ) );
 
-        final SimpleEventDimension simpleEventDimension = new SimpleEventDimension();
-        simpleEventDimension.setParent( attribute );
-        simpleEventDimension.setDimension( dimensionalObject.getUid() );
+        final SimpleDimension simpleDimension = new SimpleDimension();
+        simpleDimension.setParent( attribute );
+        simpleDimension.setDimension( dimensionalObject.getUid() );
 
         if ( isNotEmpty( dimensionalObject.getItems() ) )
         {
-            simpleEventDimension
+            simpleDimension
                 .setValues( dimensionalObject.getItems().stream().map( v -> v.getUid() ).collect( toList() ) );
         }
 
-        return simpleEventDimension;
+        return simpleDimension;
     }
 }

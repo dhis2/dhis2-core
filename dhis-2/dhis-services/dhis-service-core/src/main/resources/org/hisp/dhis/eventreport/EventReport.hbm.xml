@@ -190,7 +190,7 @@
             <element type="string" column="dimension"/>
         </list>
 
-        <property name="simpleEventDimensions" type="jblSimpleEventDimensions"/>
+        <property name="simpleDimensions" type="jblSimpleEventDimensions"/>
 
         <property name="rowTotals"/>
 

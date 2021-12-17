@@ -44,7 +44,7 @@ import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventvisualization.SimpleEventDimension;
+import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -340,7 +340,7 @@ public class EventChart
      * This method is not used/implemented in EventChart.
      */
     @Override
-    public List<SimpleEventDimension> getSimpleEventDimensions()
+    public List<SimpleDimension> getSimpleDimensions()
     {
         return Collections.emptyList();
     }
