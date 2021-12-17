@@ -85,7 +85,7 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         "WHEN access LIKE '___w----' THEN 5 " +
         "ELSE 0 " +
         "END as accesslevel " +
-        "FROM   (SELECT psuga.programid,uga.*  " +
+        "FROM   (SELECT psuga.programstageid,uga.*  " +
         "       FROM  programstageusergroupaccesses psuga " +
         "       LEFT JOIN usergroupaccess uga " +
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid " +
