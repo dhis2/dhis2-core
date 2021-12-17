@@ -122,7 +122,7 @@ class FileResourceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
         FileResource fileResource = createFileResource( 'A', "FileResource".getBytes() );
         fileResource.setUid( FILE_RESOURCE_UID );

@@ -92,7 +92,7 @@ class DataItemServiceFacadeTest
     }
 
     @Test
-    public void testRetrieveDataItemEntities()
+    void testRetrieveDataItemEntities()
     {
         // Given
         final Class<? extends BaseIdentifiableObject> targetEntity = Indicator.class;
@@ -119,7 +119,7 @@ class DataItemServiceFacadeTest
     }
 
     @Test
-    public void testRetrieveDataItemEntitiesWhenTargetEntitiesIsEmpty()
+    void testRetrieveDataItemEntitiesWhenTargetEntitiesIsEmpty()
     {
         // Given
         final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = emptySet();
@@ -137,7 +137,7 @@ class DataItemServiceFacadeTest
     }
 
     @Test
-    public void testExtractTargetEntitiesUsingEqualsFilter()
+    void testExtractTargetEntitiesUsingEqualsFilter()
     {
         // Given
         final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities = new HashSet<>(
@@ -153,7 +153,7 @@ class DataItemServiceFacadeTest
     }
 
     @Test
-    public void testExtractTargetEntitiesUsingInFilter()
+    void testExtractTargetEntitiesUsingInFilter()
     {
         // Given
         final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities = new HashSet<>(
@@ -169,7 +169,7 @@ class DataItemServiceFacadeTest
     }
 
     @Test
-    public void testExtractTargetEntitiesWhenThereIsNoExplicitTargetSet()
+    void testExtractTargetEntitiesWhenThereIsNoExplicitTargetSet()
     {
         // Given
         final Set<String> noTargetEntitiesFilters = emptySet();

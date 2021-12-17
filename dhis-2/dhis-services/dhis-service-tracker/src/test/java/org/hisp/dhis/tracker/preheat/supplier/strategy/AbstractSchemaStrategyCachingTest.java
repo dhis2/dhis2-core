@@ -97,7 +97,7 @@ class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyFetchWildcardObjectsFromDbAndPutInCache()
+    void verifyFetchWildcardObjectsFromDbAndPutInCache()
     {
         // Given
         final Schema schema = new RelationshipTypeSchemaDescriptor().getSchema();
@@ -122,7 +122,7 @@ class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyObjectInCacheIsReturned()
+    void verifyObjectInCacheIsReturned()
     {
         // Given
         final Schema schema = new ProgramSchemaDescriptor().getSchema();
@@ -144,7 +144,7 @@ class AbstractSchemaStrategyCachingTest
     }
 
     @Test
-    public void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache()
+    void verifyObjectNotInCacheIsFetchedFromDbAndPutInCache()
     {
         // Given
         final Schema schema = new ProgramSchemaDescriptor().getSchema();

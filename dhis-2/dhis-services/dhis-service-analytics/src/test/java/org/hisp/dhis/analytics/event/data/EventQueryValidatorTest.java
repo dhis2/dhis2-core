@@ -161,7 +161,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateSuccesA()
+    void validateSuccesA()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -173,7 +173,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateValidTimeField()
+    void validateValidTimeField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -186,7 +186,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateSingleDataElementMultipleProgramsQueryItemSuccess()
+    void validateSingleDataElementMultipleProgramsQueryItemSuccess()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -201,7 +201,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateDuplicateQueryItems()
+    void validateDuplicateQueryItems()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -218,7 +218,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateFailureNoStartEndDatePeriods()
+    void validateFailureNoStartEndDatePeriods()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -228,7 +228,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateErrorNoStartEndDatePeriods()
+    void validateErrorNoStartEndDatePeriods()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -240,7 +240,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateInvalidQueryItemBothLegendSetAndOptionSet()
+    void validateInvalidQueryItemBothLegendSetAndOptionSet()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -253,7 +253,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateInvalidTimeField()
+    void validateInvalidTimeField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -266,7 +266,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateInvalidOrgUnitField()
+    void validateInvalidOrgUnitField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -279,7 +279,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateErrorPage()
+    void validateErrorPage()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -294,7 +294,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateErrorPageSize()
+    void validateErrorPageSize()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -309,7 +309,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateErrorMaxLimit()
+    void validateErrorMaxLimit()
     {
         when( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) )
             .thenReturn( 100 );
@@ -327,7 +327,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateErrorFallbackCoordinateField()
+    void validateErrorFallbackCoordinateField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -344,7 +344,7 @@ class EventQueryValidatorTest extends DhisSpringTest
     }
 
     @Test
-    public void validateErrorClusterSize()
+    void validateErrorClusterSize()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )

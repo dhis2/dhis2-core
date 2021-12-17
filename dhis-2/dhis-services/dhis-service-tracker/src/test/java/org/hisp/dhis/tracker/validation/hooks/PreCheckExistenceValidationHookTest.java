@@ -121,7 +121,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccessWhenIsCreateAndTeiIsNotPresent()
+    void verifyTrackedEntityValidationSuccessWhenIsCreateAndTeiIsNotPresent()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -139,7 +139,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccessWhenTeiIsNotPresent()
+    void verifyTrackedEntityValidationSuccessWhenTeiIsNotPresent()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -155,7 +155,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccessWhenIsUpdate()
+    void verifyTrackedEntityValidationSuccessWhenIsUpdate()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -171,7 +171,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenIsSoftDeleted()
+    void verifyTrackedEntityValidationFailsWhenIsSoftDeleted()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -188,7 +188,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenIsCreateAndTEIIsAlreadyPresent()
+    void verifyTrackedEntityValidationFailsWhenIsCreateAndTEIIsAlreadyPresent()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -207,7 +207,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenIsUpdateAndTEIIsNotPresent()
+    void verifyTrackedEntityValidationFailsWhenIsUpdateAndTEIIsNotPresent()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -226,7 +226,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent()
+    void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -244,7 +244,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent()
+    void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -260,7 +260,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccessWhenIsUpdate()
+    void verifyEnrollmentValidationSuccessWhenIsUpdate()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -276,7 +276,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenIsSoftDeleted()
+    void verifyEnrollmentValidationFailsWhenIsSoftDeleted()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -293,7 +293,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent()
+    void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -312,7 +312,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent()
+    void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -331,7 +331,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent()
+    void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent()
     {
         // given
         Event event = Event.builder()
@@ -349,7 +349,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccessWhenEventIsNotPresent()
+    void verifyEventValidationSuccessWhenEventIsNotPresent()
     {
         // given
         Event event = Event.builder()
@@ -365,7 +365,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccessWhenIsUpdate()
+    void verifyEventValidationSuccessWhenIsUpdate()
     {
         // given
         Event event = Event.builder()
@@ -381,7 +381,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenIsSoftDeleted()
+    void verifyEventValidationFailsWhenIsSoftDeleted()
     {
         // given
         Event event = Event.builder()
@@ -398,7 +398,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent()
+    void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent()
     {
         // given
         Event event = Event.builder()
@@ -417,7 +417,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent()
+    void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent()
     {
         // given
         Event event = Event.builder()
@@ -436,7 +436,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationSuccessWhenIsCreate()
+    void verifyRelationshipValidationSuccessWhenIsCreate()
     {
         // given
         Relationship rel = Relationship.builder()
@@ -453,7 +453,7 @@ class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsWhenUpdate()
+    void verifyRelationshipValidationFailsWhenUpdate()
     {
         // given
         Relationship rel = getPayloadRelationship();

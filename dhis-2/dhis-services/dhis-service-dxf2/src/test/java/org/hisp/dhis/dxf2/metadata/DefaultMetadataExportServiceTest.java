@@ -91,7 +91,7 @@ class DefaultMetadataExportServiceTest
     private DefaultMetadataExportService service;
 
     @Test
-    public void getMetadataWithDependenciesAsNodeSharing()
+    void getMetadataWithDependenciesAsNodeSharing()
     {
         Attribute attribute = new Attribute();
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
@@ -115,7 +115,7 @@ class DefaultMetadataExportServiceTest
     }
 
     @Test
-    public void getMetadataWithDependenciesAsNodeSkipSharing()
+    void getMetadataWithDependenciesAsNodeSkipSharing()
     {
         Attribute attribute = new Attribute();
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
@@ -140,7 +140,7 @@ class DefaultMetadataExportServiceTest
     }
 
     @Test
-    public void getParamsFromMapIncludedSecondary()
+    void getParamsFromMapIncludedSecondary()
     {
         Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
             .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
@@ -157,7 +157,7 @@ class DefaultMetadataExportServiceTest
     }
 
     @Test
-    public void getParamsFromMapNotIncludedSecondary()
+    void getParamsFromMapNotIncludedSecondary()
     {
         Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "jobConfigurations" ) ) )
             .thenReturn( new Schema( JobConfiguration.class, "jobConfiguration", "jobConfigurations" ) );
@@ -174,7 +174,7 @@ class DefaultMetadataExportServiceTest
     }
 
     @Test
-    public void getParamsFromMapNoSecondary()
+    void getParamsFromMapNoSecondary()
     {
         Mockito.when( schemaService.getSchemaByPluralName( Mockito.eq( "options" ) ) )
             .thenReturn( new Schema( Option.class, "option", "options" ) );

@@ -84,7 +84,7 @@ class AttributeOptionComboLoaderTest
     }
 
     @Test
-    public void verifyGetDefaultCategoryOptionCombo()
+    void verifyGetDefaultCategoryOptionCombo()
     {
         when( jdbcTemplate.queryForObject( anyString(), any( RowMapper.class ) ) )
             .thenReturn( new CategoryOptionCombo() );
@@ -101,7 +101,7 @@ class AttributeOptionComboLoaderTest
     }
 
     @Test
-    public void verifyGetCategoryOption()
+    void verifyGetCategoryOption()
     {
         get( IdScheme.ID, "12345", "categoryoptioncomboid = 12345" );
         get( IdScheme.UID, "abcdef", "uid = 'abcdef'" );
@@ -110,7 +110,7 @@ class AttributeOptionComboLoaderTest
     }
 
     @Test
-    public void verifyGetAttributeOptionComboWithNullCategoryCombo()
+    void verifyGetAttributeOptionComboWithNullCategoryCombo()
     {
         assertThrows( IllegalQueryException.class,
             () -> subject.getAttributeOptionCombo( null, "", "", IdScheme.UID ),
@@ -118,7 +118,7 @@ class AttributeOptionComboLoaderTest
     }
 
     @Test
-    public void verifyGetAttributeOptionComboWithNonExistingCategoryOption()
+    void verifyGetAttributeOptionComboWithNonExistingCategoryOption()
     {
         CategoryCombo cc = new CategoryCombo();
 
@@ -128,7 +128,7 @@ class AttributeOptionComboLoaderTest
     }
 
     @Test
-    public void verifyGetAttributeOptionCombo()
+    void verifyGetAttributeOptionCombo()
     {
         // prepare data
         CategoryCombo cc = createCategoryCombo( 'B' );

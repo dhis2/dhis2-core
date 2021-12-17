@@ -100,7 +100,7 @@ class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void toCollectionNodeSkipSharingNoFields()
+    void toCollectionNodeSkipSharingNoFields()
         throws Exception
     {
         final Attribute attribute = new Attribute();
@@ -134,7 +134,7 @@ class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void toCollectionNodeSkipSharingOwner()
+    void toCollectionNodeSkipSharingOwner()
         throws Exception
     {
         final Attribute attribute = new Attribute();

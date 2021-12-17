@@ -115,7 +115,7 @@ class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void baseIdentifiableIdOnly()
+    void baseIdentifiableIdOnly()
     {
         final OrganisationUnit ou1 = new OrganisationUnit();
         ou1.setUid( "abc1" );
@@ -165,7 +165,7 @@ class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void baseIdentifiableName()
+    void baseIdentifiableName()
     {
         final OrganisationUnit ou1 = new OrganisationUnit();
         ou1.setUid( "abc1" );
@@ -209,7 +209,7 @@ class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void defaultClass()
+    void defaultClass()
     {
         final CategoryOption co1 = new CategoryOption();
         co1.setUid( "abc1" );
@@ -266,7 +266,7 @@ class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void baseIdentifiable()
+    void baseIdentifiable()
     {
         final OrganisationUnit ou1 = new OrganisationUnit();
         ou1.setUid( "abc1" );

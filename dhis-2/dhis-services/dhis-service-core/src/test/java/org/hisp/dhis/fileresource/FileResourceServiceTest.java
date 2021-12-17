@@ -101,7 +101,7 @@ class FileResourceServiceTest
     }
 
     @Test
-    public void verifySaveFile()
+    void verifySaveFile()
     {
         FileResource fileResource = new FileResource( "mycat.pdf", "application/pdf", 1000, "md5",
             FileResourceDomain.PUSH_ANALYSIS );
@@ -126,7 +126,7 @@ class FileResourceServiceTest
     }
 
     @Test
-    public void verifySaveIllegalFileTypeResourceA()
+    void verifySaveIllegalFileTypeResourceA()
     {
         FileResource fileResource = new FileResource( "very_evil_script.html", "text/html", 1024, "md5",
             FileResourceDomain.USER_AVATAR );
@@ -136,7 +136,7 @@ class FileResourceServiceTest
     }
 
     @Test
-    public void verifySaveIllegalFileTypeResourceB()
+    void verifySaveIllegalFileTypeResourceB()
     {
         FileResource fileResource = new FileResource( "suspicious_program.rpm", "application/x-rpm", 2048, "md5",
             FileResourceDomain.MESSAGE_ATTACHMENT );
@@ -146,7 +146,7 @@ class FileResourceServiceTest
     }
 
     @Test
-    public void verifySaveImageFile()
+    void verifySaveImageFile()
     {
         FileResource fileResource = new FileResource( "test.jpeg", MimeTypeUtils.IMAGE_JPEG.toString(), 1000, "md5",
             FileResourceDomain.DATA_VALUE );
@@ -177,7 +177,7 @@ class FileResourceServiceTest
     }
 
     @Test
-    public void verifyDeleteFile()
+    void verifyDeleteFile()
     {
         FileResource fileResource = new FileResource( "test.pdf", "application/pdf", 1000, "md5",
             FileResourceDomain.DOCUMENT );
@@ -199,7 +199,7 @@ class FileResourceServiceTest
     }
 
     @Test
-    public void verifySaveOrgUnitImageFile()
+    void verifySaveOrgUnitImageFile()
     {
         FileResource fileResource = new FileResource( "test.jpeg", MimeTypeUtils.IMAGE_JPEG.toString(), 1000, "md5",
             FileResourceDomain.ORG_UNIT );

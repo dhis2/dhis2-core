@@ -56,7 +56,7 @@ class TimeToLiveTest
     private DefaultSystemSettingManager systemSettingManager;
 
     @Test
-    public void testComputeForCurrentDayWhenCacheFactorIsNegative()
+    void testComputeForCurrentDayWhenCacheFactorIsNegative()
     {
         // Given
         final int aNegativeCachingFactor = -1;
@@ -66,7 +66,7 @@ class TimeToLiveTest
     }
 
     @Test
-    public void testComputeForZeroDayDiffWhenCacheFactorIsPositive()
+    void testComputeForZeroDayDiffWhenCacheFactorIsPositive()
     {
         // Given
 
@@ -83,7 +83,7 @@ class TimeToLiveTest
     }
 
     @Test
-    public void testComputeForOneDayBeforeWhenCacheFactorIsPositive()
+    void testComputeForOneDayBeforeWhenCacheFactorIsPositive()
     {
         // Given
         final int oneDayDiff = 1;
@@ -99,7 +99,7 @@ class TimeToLiveTest
     }
 
     @Test
-    public void testComputeEndingDateIsAheadOfNowAndCacheFactorIsPositive()
+    void testComputeEndingDateIsAheadOfNowAndCacheFactorIsPositive()
     {
         // Given
         final int tenDaysAhead = 10;
@@ -117,7 +117,7 @@ class TimeToLiveTest
     }
 
     @Test
-    public void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive()
+    void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive()
     {
         // Given
         final int tenDays = 10;

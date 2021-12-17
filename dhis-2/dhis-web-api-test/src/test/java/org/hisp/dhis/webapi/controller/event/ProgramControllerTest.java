@@ -81,7 +81,7 @@ class ProgramControllerTest
     }
 
     @Test
-    public void getWithDependenciesAsDownload()
+    void getWithDependenciesAsDownload()
         throws Exception
     {
         getWithDependencies( true );

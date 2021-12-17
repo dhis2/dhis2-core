@@ -123,7 +123,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testAccept()
+    void testAccept()
     {
         boolean result = bulkSmsGateway.accept( smsGatewayConfig );
 
@@ -136,7 +136,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSuccessful()
+    void testSuccessful()
     {
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
@@ -151,7 +151,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testBulkSend()
+    void testBulkSend()
     {
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
@@ -166,7 +166,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testFailureCode()
+    void testFailureCode()
     {
         ResponseEntity<String> errorResponse = new ResponseEntity<>( ERROR_RESPONSE_STRING, HttpStatus.CONFLICT );
 
@@ -182,7 +182,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWhenServerResponseIsNull()
+    void testWhenServerResponseIsNull()
     {
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
             eq( String.class ) ) )
@@ -196,7 +196,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testException()
+    void testException()
     {
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
             eq( String.class ) ) )

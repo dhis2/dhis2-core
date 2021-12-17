@@ -180,7 +180,7 @@ class SimpleEventSMSListenerTest extends
     }
 
     @Test
-    public void testSimpleEvent()
+    void testSimpleEvent()
     {
         subject.receive( incomingSmsSimpleEvent );
 
@@ -192,7 +192,7 @@ class SimpleEventSMSListenerTest extends
     }
 
     @Test
-    public void testSimpleEventRepeat()
+    void testSimpleEventRepeat()
     {
         subject.receive( incomingSmsSimpleEvent );
         subject.receive( incomingSmsSimpleEvent );
@@ -205,7 +205,7 @@ class SimpleEventSMSListenerTest extends
     }
 
     @Test
-    public void testSimpleEventWithNulls()
+    void testSimpleEventWithNulls()
     {
         subject.receive( incomingSmsSimpleEventWithNulls );
 
@@ -217,7 +217,7 @@ class SimpleEventSMSListenerTest extends
     }
 
     @Test
-    public void testSimpleEventNoValues()
+    void testSimpleEventNoValues()
     {
         subject.receive( incomingSmsSimpleEventNoValues );
 

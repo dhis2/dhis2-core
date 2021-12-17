@@ -65,7 +65,7 @@ class TrackerEntityInstanceStrategyTest
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Test
-    public void verifyStrategyFiltersOutNonRootTei()
+    void verifyStrategyFiltersOutNonRootTei()
     {
         // Create preheat params
         final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )
@@ -93,7 +93,7 @@ class TrackerEntityInstanceStrategyTest
     }
 
     @Test
-    public void verifyStrategyIgnoresPersistedTei()
+    void verifyStrategyIgnoresPersistedTei()
     {
         // Create preheat params
         final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )

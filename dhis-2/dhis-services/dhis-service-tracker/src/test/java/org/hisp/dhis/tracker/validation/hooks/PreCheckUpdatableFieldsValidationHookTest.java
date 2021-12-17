@@ -105,7 +105,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccess()
+    void verifyTrackedEntityValidationSuccess()
     {
         // given
         TrackedEntity trackedEntity = validTei();
@@ -119,7 +119,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenUpdateTrackedEntityType()
+    void verifyTrackedEntityValidationFailsWhenUpdateTrackedEntityType()
     {
         // given
         TrackedEntity trackedEntity = validTei();
@@ -135,7 +135,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccess()
+    void verifyEnrollmentValidationSuccess()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -149,7 +149,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenUpdateProgram()
+    void verifyEnrollmentValidationFailsWhenUpdateProgram()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -166,7 +166,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenUpdateTrackedEntity()
+    void verifyEnrollmentValidationFailsWhenUpdateTrackedEntity()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -183,7 +183,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccess()
+    void verifyEventValidationSuccess()
     {
         // given
         Event event = validEvent();
@@ -197,7 +197,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenUpdateProgramStage()
+    void verifyEventValidationFailsWhenUpdateProgramStage()
     {
         // given
         Event event = validEvent();
@@ -214,7 +214,7 @@ class PreCheckUpdatableFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenUpdateEnrollment()
+    void verifyEventValidationFailsWhenUpdateEnrollment()
     {
         // given
         Event event = validEvent();

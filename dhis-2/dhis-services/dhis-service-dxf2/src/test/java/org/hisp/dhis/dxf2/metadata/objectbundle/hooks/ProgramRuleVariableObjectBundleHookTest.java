@@ -97,7 +97,7 @@ class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldFailInsertAlreadyExisting()
+    void shouldFailInsertAlreadyExisting()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE );
@@ -111,7 +111,7 @@ class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldNotFailUpdateExistingSameUid()
+    void shouldNotFailUpdateExistingSameUid()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
@@ -132,7 +132,7 @@ class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldNotFailUpdateExistingMoreThanOneSameUid()
+    void shouldNotFailUpdateExistingMoreThanOneSameUid()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
@@ -158,7 +158,7 @@ class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldFailUpdateExistingDifferentUid()
+    void shouldFailUpdateExistingDifferentUid()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
@@ -180,7 +180,7 @@ class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldFailValidationInvalidCountAndInvalidName()
+    void shouldFailValidationInvalidCountAndInvalidName()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE );
@@ -197,7 +197,7 @@ class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldFailValidationInvalidName()
+    void shouldFailValidationInvalidName()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
@@ -226,7 +226,7 @@ class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldPassValidationWithValidName()
+    void shouldPassValidationWithValidName()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( programRuleVariable.getName() ).thenReturn( "WordAndWord" );

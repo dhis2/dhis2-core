@@ -61,7 +61,7 @@ class ProgramOrgUnitSupplierTest extends AbstractSupplierTest<Long>
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
         throws SQLException
     {
         // Org Unit //

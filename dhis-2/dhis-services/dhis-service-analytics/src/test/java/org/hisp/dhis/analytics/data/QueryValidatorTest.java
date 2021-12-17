@@ -153,7 +153,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccessA()
+    void validateSuccessA()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -166,7 +166,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccessB()
+    void validateSuccessB()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -180,7 +180,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccessSingleIndicatorFilter()
+    void validateSuccessSingleIndicatorFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -192,7 +192,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccessSingleProgramIndicatorFilter()
+    void validateSuccessSingleProgramIndicatorFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -205,7 +205,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateFailureSingleIndicatorAsFilter()
+    void validateFailureSingleIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -217,7 +217,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateFailureSingleProgramIndicatorAsFilter()
+    void validateFailureSingleProgramIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -231,7 +231,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateErrorSingleIndicatorAsFilter()
+    void validateErrorSingleIndicatorAsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -245,7 +245,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateFailureMultipleIndicatorsFilter()
+    void validateFailureMultipleIndicatorsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -257,7 +257,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateErrorMultipleIndicatorsFilter()
+    void validateErrorMultipleIndicatorsFilter()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -271,7 +271,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateFailureReportingRatesAndDataElementGroupSetAsDimensions()
+    void validateFailureReportingRatesAndDataElementGroupSetAsDimensions()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -286,7 +286,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateErrorReportingRatesAndDataElementGroupSetAsDimensions()
+    void validateErrorReportingRatesAndDataElementGroupSetAsDimensions()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -303,7 +303,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateFailureReportingRatesAndStartEndDates()
+    void validateFailureReportingRatesAndStartEndDates()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(
@@ -316,7 +316,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateFailureValueType()
+    void validateFailureValueType()
     {
         deB.setValueType( ValueType.FILE_RESOURCE );
 
@@ -331,7 +331,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateFailureAggregationType()
+    void validateFailureAggregationType()
     {
         deB.setAggregationType( AggregationType.CUSTOM );
 
@@ -346,7 +346,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateFailureOptionCombosWithIndicators()
+    void validateFailureOptionCombosWithIndicators()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, inA ) ) )
@@ -360,7 +360,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateMissingOrgUnitDimensionOutputFormatDataValueSet()
+    void validateMissingOrgUnitDimensionOutputFormatDataValueSet()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension( new BaseDimensionalObject( DATA_X_DIM_ID, DimensionType.DATA_X, getList( deA, deB ) ) )
@@ -371,7 +371,7 @@ class QueryValidatorTest
     }
 
     @Test
-    public void validateSuccessWithSkipDataDimensionCheck()
+    void validateSuccessWithSkipDataDimensionCheck()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .addDimension(

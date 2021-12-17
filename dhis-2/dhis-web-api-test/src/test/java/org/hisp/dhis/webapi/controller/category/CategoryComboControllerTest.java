@@ -74,14 +74,14 @@ class CategoryComboControllerTest
     private CategoryComboController controller;
 
     @Test
-    public void getWithDependencies()
+    void getWithDependencies()
         throws Exception
     {
         getWithDependencies( false );
     }
 
     @Test
-    public void getWithDependenciesAsDownload()
+    void getWithDependenciesAsDownload()
         throws Exception
     {
         getWithDependencies( true );

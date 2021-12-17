@@ -96,7 +96,7 @@ class ClassBasedSupplierTest
     }
 
     @Test
-    public void verifyGenericStrategy()
+    void verifyGenericStrategy()
     {
         when( strategiesMap.getOrDefault( anyString(), anyString() ) )
             .thenReturn( Constant.GENERIC_STRATEGY_BEAN );
@@ -109,7 +109,7 @@ class ClassBasedSupplierTest
     }
 
     @Test
-    public void verifyClassBasedSupplierStrategy()
+    void verifyClassBasedSupplierStrategy()
     {
         when( strategiesMap.getOrDefault( anyString(), anyString() ) )
             .thenReturn( "classbasedstrategy" );

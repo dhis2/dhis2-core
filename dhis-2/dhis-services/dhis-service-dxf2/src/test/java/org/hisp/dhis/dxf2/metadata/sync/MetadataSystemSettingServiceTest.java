@@ -61,7 +61,7 @@ class MetadataSystemSettingServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testShouldGetRemoteUserName()
+    void testShouldGetRemoteUserName()
     {
         String remoteInstanceUserName = metadataSystemSettingService.getRemoteInstanceUserName();
 
@@ -69,7 +69,7 @@ class MetadataSystemSettingServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testShouldGetRemotePassword()
+    void testShouldGetRemotePassword()
     {
         String remoteInstancePassword = metadataSystemSettingService.getRemoteInstancePassword();
 
@@ -77,7 +77,7 @@ class MetadataSystemSettingServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testShouldDownloadMetadataVersionForGivenVersionName()
+    void testShouldDownloadMetadataVersionForGivenVersionName()
     {
         String downloadVersionUrl = metadataSystemSettingService.getVersionDetailsUrl( "Version_Name" );
 
@@ -85,7 +85,7 @@ class MetadataSystemSettingServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testShouldDownloadMetadataVersionSnapshotForGivenVersionName()
+    void testShouldDownloadMetadataVersionSnapshotForGivenVersionName()
     {
         String downloadVersionUrl = metadataSystemSettingService.getDownloadVersionSnapshotURL( "Version_Name" );
 
@@ -93,7 +93,7 @@ class MetadataSystemSettingServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testShouldGetAllVersionsCreatedAfterTheGivenVersionName()
+    void testShouldGetAllVersionsCreatedAfterTheGivenVersionName()
     {
         String metadataDifferenceUrl = metadataSystemSettingService.getMetaDataDifferenceURL( "Version_Name" );
 
@@ -102,7 +102,7 @@ class MetadataSystemSettingServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testShouldGetEntireVersionHistoryWhenNoVersionNameIsGiven()
+    void testShouldGetEntireVersionHistoryWhenNoVersionNameIsGiven()
     {
         String versionHistoryUrl = metadataSystemSettingService.getEntireVersionHistory();
 
@@ -110,7 +110,7 @@ class MetadataSystemSettingServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testShouldGetStopMetadataSyncSettingValue()
+    void testShouldGetStopMetadataSyncSettingValue()
     {
         Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();
 
@@ -118,7 +118,7 @@ class MetadataSystemSettingServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
+    void testShouldReturnFalseIfStopMetadataSyncSettingValueIsNull()
     {
         systemSettingManager.saveSystemSetting( SettingKey.STOP_METADATA_SYNC, null );
         Boolean stopMetadataSync = metadataSystemSettingService.getStopMetadataSyncSetting();

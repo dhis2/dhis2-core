@@ -86,7 +86,7 @@ class VisualizationGridServiceTest
     }
 
     @Test
-    public void getVisualizationGridByUserWhenItHasOrganisationUnitLevels()
+    void getVisualizationGridByUserWhenItHasOrganisationUnitLevels()
     {
         // Given
         final String anyVisualizationUid = "adbet5RTs";
@@ -121,7 +121,7 @@ class VisualizationGridServiceTest
     }
 
     @Test
-    public void getVisualizationGridByUserWhenItHasItemOrganisationUnitGroups()
+    void getVisualizationGridByUserWhenItHasItemOrganisationUnitGroups()
     {
         // Given
         final String anyVisualizationUid = "adbet5RTs";

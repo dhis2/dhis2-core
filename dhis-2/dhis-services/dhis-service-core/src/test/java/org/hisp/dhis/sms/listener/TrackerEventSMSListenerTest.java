@@ -186,7 +186,7 @@ class TrackerEventSMSListenerTest extends
     }
 
     @Test
-    public void testTrackerEvent()
+    void testTrackerEvent()
     {
         subject.receive( incomingSmsTrackerEvent );
 
@@ -198,7 +198,7 @@ class TrackerEventSMSListenerTest extends
     }
 
     @Test
-    public void testTrackerEventRepeat()
+    void testTrackerEventRepeat()
     {
         subject.receive( incomingSmsTrackerEvent );
         subject.receive( incomingSmsTrackerEvent );
@@ -211,7 +211,7 @@ class TrackerEventSMSListenerTest extends
     }
 
     @Test
-    public void testTrackerEventWithNulls()
+    void testTrackerEventWithNulls()
     {
         subject.receive( incomingSmsTrackerEventWithNulls );
 
@@ -223,7 +223,7 @@ class TrackerEventSMSListenerTest extends
     }
 
     @Test
-    public void testTrackerEventNoValues()
+    void testTrackerEventNoValues()
     {
         subject.receive( incomingSmsTrackerEventNoValues );
 

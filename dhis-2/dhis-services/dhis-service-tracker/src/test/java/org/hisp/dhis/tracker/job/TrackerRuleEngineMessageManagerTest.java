@@ -96,7 +96,7 @@ class TrackerRuleEngineMessageManagerTest
     private ArgumentCaptor<Runnable> runnableArgumentCaptor;
 
     @Test
-    public void test_add_job()
+    void test_add_job()
     {
         doNothing().when( messageManager ).sendQueue( anyString(), any( TrackerSideEffectDataBundle.class ) );
 
@@ -112,7 +112,7 @@ class TrackerRuleEngineMessageManagerTest
     }
 
     @Test
-    public void test_message_consumer()
+    void test_message_consumer()
         throws JMSException,
         IOException
     {

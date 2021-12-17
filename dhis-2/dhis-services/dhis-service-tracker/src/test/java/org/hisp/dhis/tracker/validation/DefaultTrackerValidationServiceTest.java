@@ -81,7 +81,7 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldNotValidateMissingUser()
+    void shouldNotValidateMissingUser()
     {
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.SKIP );
         trackerValidationService.validate( bundle );
@@ -89,7 +89,7 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldNotValidateSuperUserSkip()
+    void shouldNotValidateSuperUserSkip()
     {
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( true );
@@ -101,7 +101,7 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldValidateSuperUserNoSkip()
+    void shouldValidateSuperUserNoSkip()
     {
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( true );
@@ -118,7 +118,7 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldValidateHookNoError()
+    void shouldValidateHookNoError()
     {
         when( bundle.getUser() ).thenReturn( user );
         when( user.isSuper() ).thenReturn( false );
@@ -138,7 +138,7 @@ class DefaultTrackerValidationServiceTest
     }
 
     @Test
-    public void shouldValidateHookWithErrors()
+    void shouldValidateHookWithErrors()
     {
         when( bundle.getUser() ).thenReturn( user );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );

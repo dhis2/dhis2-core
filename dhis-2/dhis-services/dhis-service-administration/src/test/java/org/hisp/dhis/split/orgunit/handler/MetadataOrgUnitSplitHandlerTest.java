@@ -71,7 +71,7 @@ class MetadataOrgUnitSplitHandlerTest
     }
 
     @Test
-    public void testSplitDataSets()
+    void testSplitDataSets()
     {
         DataSet dsA = createDataSet( 'A' );
         dsA.addOrganisationUnit( ouA );
@@ -98,7 +98,7 @@ class MetadataOrgUnitSplitHandlerTest
     }
 
     @Test
-    public void testSplitPrograms()
+    void testSplitPrograms()
     {
         Program prA = createProgram( 'A' );
         prA.addOrganisationUnit( ouA );

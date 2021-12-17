@@ -65,7 +65,7 @@ class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_images_with_null_values()
+    void test_create_images_with_null_values()
     {
         Map<ImageFileDimension, File> images = subject.createImages( new FileResource(), null );
 
@@ -73,7 +73,7 @@ class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_images_with_wrong_file_content_type()
+    void test_create_images_with_wrong_file_content_type()
         throws IOException
     {
         FileResource fileResource = new FileResource();
@@ -90,7 +90,7 @@ class ImageProcessingServiceTest
     }
 
     @Test
-    public void test_create_image()
+    void test_create_image()
         throws IOException
     {
         FileResource fileResource = new FileResource();

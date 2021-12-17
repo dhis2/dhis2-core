@@ -53,7 +53,7 @@ class ImportOptionsPreProcessorTest
     }
 
     @Test
-    public void verifyExceptionIsThrownOnMissingImportOptions()
+    void verifyExceptionIsThrownOnMissingImportOptions()
     {
         WorkContext wc = WorkContext.builder().build();
 

@@ -72,7 +72,7 @@ class RequestIdentifierFilterTest
     }
 
     @Test
-    public void testIsDisabled()
+    void testIsDisabled()
         throws ServletException,
         IOException
     {
@@ -83,7 +83,7 @@ class RequestIdentifierFilterTest
     }
 
     @Test
-    public void testIsEnabled()
+    void testIsEnabled()
         throws ServletException,
         IOException
     {

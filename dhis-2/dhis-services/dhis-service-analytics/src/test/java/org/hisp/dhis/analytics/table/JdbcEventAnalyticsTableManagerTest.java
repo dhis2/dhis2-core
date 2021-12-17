@@ -170,13 +170,13 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTableType()
+    void verifyTableType()
     {
         assertThat( subject.getAnalyticsTableType(), is( AnalyticsTableType.EVENT ) );
     }
 
     @Test
-    public void verifyGetLatestAnalyticsTables()
+    void verifyGetLatestAnalyticsTables()
     {
         Program prA = createProgram( 'A' );
         Program prB = createProgram( 'B' );
@@ -229,7 +229,7 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetTableWithCategoryCombo()
+    void verifyGetTableWithCategoryCombo()
     {
         Program program = createProgram( 'A' );
 
@@ -265,7 +265,7 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetTableWithDataElements()
+    void verifyGetTableWithDataElements()
     {
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program program = createProgram( 'A' );
@@ -335,7 +335,7 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetTableWithTrackedEntityAttribute()
+    void verifyGetTableWithTrackedEntityAttribute()
     {
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
         Program program = createProgram( 'A' );
@@ -386,7 +386,7 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    void verifyDataElementTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
@@ -421,7 +421,7 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    void verifyTeiTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );
@@ -458,7 +458,7 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetAnalyticsTableWithOuLevels()
+    void verifyGetAnalyticsTableWithOuLevels()
     {
         List<OrganisationUnitLevel> ouLevels = rnd.objects( OrganisationUnitLevel.class, 2 )
             .collect( Collectors.toList() );
@@ -488,7 +488,7 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetAnalyticsTableWithOuGroupSet()
+    void verifyGetAnalyticsTableWithOuGroupSet()
     {
         List<OrganisationUnitGroupSet> ouGroupSet = rnd.objects( OrganisationUnitGroupSet.class, 2 )
             .collect( Collectors.toList() );
@@ -517,7 +517,7 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyGetAnalyticsTableWithOptionGroupSets()
+    void verifyGetAnalyticsTableWithOptionGroupSets()
     {
         List<CategoryOptionGroupSet> cogs = rnd.objects( CategoryOptionGroupSet.class, 2 )
             .collect( Collectors.toList() );
@@ -583,7 +583,7 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
+    void verifyTeaTypeOrgUnitFetchesOuNameWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );

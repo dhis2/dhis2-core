@@ -165,7 +165,7 @@ class DataElementOperandControllerTest
     }
 
     @Test
-    public void verifyPaginationGetFirstPage()
+    void verifyPaginationGetFirstPage()
         throws Exception
     {
         int pageSize = 15;
@@ -219,7 +219,7 @@ class DataElementOperandControllerTest
     }
 
     @Test
-    public void verifyPaginationGetThirdPage()
+    void verifyPaginationGetThirdPage()
         throws Exception
     {
         int pageSize = 25;

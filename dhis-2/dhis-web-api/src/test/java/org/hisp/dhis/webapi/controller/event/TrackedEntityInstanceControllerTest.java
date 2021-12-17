@@ -108,7 +108,7 @@ class TrackedEntityInstanceControllerTest
     }
 
     @Test
-    public void shouldCallSyncStrategy()
+    void shouldCallSyncStrategy()
         throws Exception
     {
 
@@ -126,7 +126,7 @@ class TrackedEntityInstanceControllerTest
     }
 
     @Test
-    public void shouldCallAsyncStrategy()
+    void shouldCallAsyncStrategy()
         throws Exception
     {
         mockMvc.perform( post( ENDPOINT )

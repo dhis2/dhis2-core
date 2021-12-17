@@ -74,7 +74,7 @@ class AnalyticsServiceProgramDataElementTest extends
      * Analytics Service
      */
     @Test
-    public void verifyProgramDataElementInQueryCallsEventsAnalytics()
+    void verifyProgramDataElementInQueryCallsEventsAnalytics()
     {
         ArgumentCaptor<EventQueryParams> capturedParams = ArgumentCaptor.forClass( EventQueryParams.class );
 

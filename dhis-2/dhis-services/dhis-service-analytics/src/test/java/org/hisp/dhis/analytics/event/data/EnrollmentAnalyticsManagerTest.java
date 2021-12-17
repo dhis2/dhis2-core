@@ -126,7 +126,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyWithProgramAndStartEndDate()
+    void verifyWithProgramAndStartEndDate()
     {
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
             .withStartDate( getDate( 2017, 1, 1 ) ).withEndDate( getDate( 2017, 12, 31 ) ).build();
@@ -143,7 +143,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyWithLastUpdatedTimeField()
+    void verifyWithLastUpdatedTimeField()
     {
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
             .withStartDate( getDate( 2017, 1, 1 ) ).withEndDate( getDate( 2017, 12, 31 ) )
@@ -162,13 +162,13 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyWithProgramStageAndNumericDataElement()
+    void verifyWithProgramStageAndNumericDataElement()
     {
         verifyWithProgramStageAndNumericDataElement( ValueType.NUMBER );
     }
 
     @Test
-    public void verifyWithProgramStageAndTextDataElement()
+    void verifyWithProgramStageAndTextDataElement()
     {
         verifyWithProgramStageAndNumericDataElement( ValueType.TEXT );
     }
@@ -198,7 +198,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyWithProgramStageAndTextualDataElementAndFilter()
+    void verifyWithProgramStageAndTextualDataElementAndFilter()
     {
 
         EventQueryParams params = createRequestParamsWithFilter( programStage, ValueType.TEXT );
@@ -220,7 +220,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyWithProgramStageAndNumericDataElementAndFilter2()
+    void verifyWithProgramStageAndNumericDataElementAndFilter2()
     {
 
         EventQueryParams params = createRequestParamsWithFilter( programStage, ValueType.NUMBER );
@@ -243,7 +243,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetEnrollmentsWithMissingValueEqFilter()
+    void verifyGetEnrollmentsWithMissingValueEqFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -257,7 +257,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetEnrollmentsWithMissingValueNeFilter()
+    void verifyGetEnrollmentsWithMissingValueNeFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -270,7 +270,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetEnrollmentsWithMissingValueAndNumericValuesInFilter()
+    void verifyGetEnrollmentsWithMissingValueAndNumericValuesInFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -286,7 +286,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetEnrollmentsWithoutMissingValueAndNumericValuesInFilter()
+    void verifyGetEnrollmentsWithoutMissingValueAndNumericValuesInFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -301,7 +301,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetEnrollmentsWithOnlyMissingValueInFilter()
+    void verifyGetEnrollmentsWithOnlyMissingValueInFilter()
     {
         String subSelect = "(select \"fWIAEtYVEGk\" from analytics_event_" + programA.getUid()
             + " where analytics_event_"
@@ -329,7 +329,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei()
+    void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei()
     {
         Date startDate = getDate( 2015, 1, 1 );
         Date endDate = getDate( 2017, 4, 8 );
@@ -368,7 +368,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyWithProgramIndicatorAndRelationshipTypeDifferentConstraint()
+    void verifyWithProgramIndicatorAndRelationshipTypeDifferentConstraint()
     {
         Date startDate = getDate( 2015, 1, 1 );
         Date endDate = getDate( 2017, 4, 8 );
@@ -440,7 +440,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei2()
+    void verifyWithProgramIndicatorAndRelationshipTypeBothSidesTei2()
     {
         Date startDate = getDate( 2015, 1, 1 );
         Date endDate = getDate( 2017, 4, 8 );
@@ -479,7 +479,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetColumnOfTypeCoordinateAndNoProgramStages()
+    void verifyGetColumnOfTypeCoordinateAndNoProgramStages()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -495,7 +495,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetColumnOfTypeCoordinateAndWithProgramStages()
+    void verifyGetColumnOfTypeCoordinateAndWithProgramStages()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -517,7 +517,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetCoordinateColumnAndNoProgramStage()
+    void verifyGetCoordinateColumnAndNoProgramStage()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -544,7 +544,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetCoordinateColumnWithProgramStage()
+    void verifyGetCoordinateColumnWithProgramStage()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -571,7 +571,7 @@ class EnrollmentAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetCoordinateColumnWithNoProgram()
+    void verifyGetCoordinateColumnWithNoProgram()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );

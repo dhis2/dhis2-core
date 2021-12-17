@@ -67,7 +67,7 @@ class TrackerImportStrategyHandlerImplTest
     MessageManager messageManager;
 
     @Test
-    public void shouldCreateReportAsyncFalse()
+    void shouldCreateReportAsyncFalse()
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()
@@ -88,7 +88,7 @@ class TrackerImportStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldSendMessageToQueueAsync()
+    void shouldSendMessageToQueueAsync()
     {
         ArgumentCaptor<String> queueNameCaptor = ArgumentCaptor.forClass( String.class );
         ArgumentCaptor<TrackerMessage> trackerMessageCaptor = ArgumentCaptor.forClass( TrackerMessage.class );

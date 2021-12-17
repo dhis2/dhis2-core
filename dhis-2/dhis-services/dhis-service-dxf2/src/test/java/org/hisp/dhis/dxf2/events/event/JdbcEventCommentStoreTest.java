@@ -72,7 +72,7 @@ class JdbcEventCommentStoreTest
     }
 
     @Test
-    public void verifyPSITableIsNotQueriedWhenNoComments()
+    void verifyPSITableIsNotQueriedWhenNoComments()
     {
         List<ProgramStageInstance> programStageInstanceList = getProgramStageList( false );
         jdbcEventCommentStore.saveAllComments( programStageInstanceList );
@@ -80,7 +80,7 @@ class JdbcEventCommentStoreTest
     }
 
     @Test
-    public void verifyPSITableIsNotQueriedWhenCommentsTextEmpty()
+    void verifyPSITableIsNotQueriedWhenCommentsTextEmpty()
     {
         List<ProgramStageInstance> programStageInstanceList = getProgramStageList( true, true );
         jdbcEventCommentStore.saveAllComments( programStageInstanceList );
@@ -88,7 +88,7 @@ class JdbcEventCommentStoreTest
     }
 
     @Test
-    public void verifyPSITableIsQueriedWhenComments()
+    void verifyPSITableIsQueriedWhenComments()
     {
         List<ProgramStageInstance> programStageInstanceList = getProgramStageList( true );
         jdbcEventCommentStore.saveAllComments( programStageInstanceList );

@@ -63,7 +63,7 @@ class MetadataExportControllerUtilsTest
     private MetadataExportService exportService;
 
     @Test
-    public void getWithDependencies()
+    void getWithDependencies()
     {
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
@@ -85,7 +85,7 @@ class MetadataExportControllerUtilsTest
     }
 
     @Test
-    public void getWithDependenciesAsDownload()
+    void getWithDependenciesAsDownload()
     {
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
@@ -108,7 +108,7 @@ class MetadataExportControllerUtilsTest
     }
 
     @Test
-    public void createResponseEntity()
+    void createResponseEntity()
     {
         final RootNode rootNode = new RootNode( "test" );
         final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils.createResponseEntity( rootNode,
@@ -119,7 +119,7 @@ class MetadataExportControllerUtilsTest
     }
 
     @Test
-    public void createResponseEntityAsDownload()
+    void createResponseEntityAsDownload()
     {
         final RootNode rootNode = new RootNode( "test" );
         final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils.createResponseEntity( rootNode,

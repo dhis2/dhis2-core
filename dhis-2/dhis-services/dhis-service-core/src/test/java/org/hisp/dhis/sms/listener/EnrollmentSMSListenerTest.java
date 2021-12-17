@@ -220,7 +220,7 @@ class EnrollmentSMSListenerTest extends
     }
 
     @Test
-    public void testEnrollmentNoEvents()
+    void testEnrollmentNoEvents()
     {
         when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
             .thenReturn( trackedEntityAttribute );
@@ -235,7 +235,7 @@ class EnrollmentSMSListenerTest extends
     }
 
     @Test
-    public void testEnrollmentWithEvents()
+    void testEnrollmentWithEvents()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
@@ -253,7 +253,7 @@ class EnrollmentSMSListenerTest extends
     }
 
     @Test
-    public void testEnrollmentWithEventsRepeat()
+    void testEnrollmentWithEventsRepeat()
     {
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
@@ -272,7 +272,7 @@ class EnrollmentSMSListenerTest extends
     }
 
     @Test
-    public void testEnrollmentWithNulls()
+    void testEnrollmentWithNulls()
     {
         when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
             .thenReturn( trackedEntityAttribute );
@@ -287,7 +287,7 @@ class EnrollmentSMSListenerTest extends
     }
 
     @Test
-    public void testEnrollmentNoAttribs()
+    void testEnrollmentNoAttribs()
     {
         subject.receive( incomingSmsEnrollmentNoAttribs );
 
@@ -299,7 +299,7 @@ class EnrollmentSMSListenerTest extends
     }
 
     @Test
-    public void testEnrollmentEventWithNulls()
+    void testEnrollmentEventWithNulls()
     {
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
@@ -319,7 +319,7 @@ class EnrollmentSMSListenerTest extends
     // For now there's no warning if an event within the event
     // list has no values. This might be changed in the future.
     @Test
-    public void testEnrollmentEventNoValues()
+    void testEnrollmentEventNoValues()
     {
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
         when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );

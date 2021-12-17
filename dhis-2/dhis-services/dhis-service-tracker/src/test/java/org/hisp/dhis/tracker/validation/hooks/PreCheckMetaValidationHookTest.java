@@ -100,7 +100,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccess()
+    void verifyTrackedEntityValidationSuccess()
     {
         // given
         TrackedEntity tei = validTei();
@@ -118,7 +118,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenOrgUnitIsNotPresentInDb()
+    void verifyTrackedEntityValidationFailsWhenOrgUnitIsNotPresentInDb()
     {
         // given
         TrackedEntity tei = validTei();
@@ -136,7 +136,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb()
+    void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb()
     {
         // given
         TrackedEntity tei = validTei();
@@ -154,7 +154,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccess()
+    void verifyEnrollmentValidationSuccess()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -173,7 +173,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccessWhenTeiIsInPayload()
+    void verifyEnrollmentValidationSuccessWhenTeiIsInPayload()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -193,7 +193,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenOrgUnitIsNotPresentInDb()
+    void verifyEnrollmentValidationFailsWhenOrgUnitIsNotPresentInDb()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -212,7 +212,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenTrackedEntityIsNotPresentInDbOrPayload()
+    void verifyEnrollmentValidationFailsWhenTrackedEntityIsNotPresentInDbOrPayload()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -231,7 +231,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenProgramIsNotPresentInDb()
+    void verifyEnrollmentValidationFailsWhenProgramIsNotPresentInDb()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -250,7 +250,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccess()
+    void verifyEventValidationSuccess()
     {
         // given
         Event event = validEvent();
@@ -269,7 +269,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenProgramIsNotPresentInDb()
+    void verifyEventValidationFailsWhenProgramIsNotPresentInDb()
     {
         // given
         Event event = validEvent();
@@ -288,7 +288,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenProgramStageIsNotPresentInDb()
+    void verifyEventValidationFailsWhenProgramStageIsNotPresentInDb()
     {
         // given
         Event event = validEvent();
@@ -307,7 +307,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenOrgUnitIsNotPresentInDb()
+    void verifyEventValidationFailsWhenOrgUnitIsNotPresentInDb()
     {
         // given
         Event event = validEvent();
@@ -326,7 +326,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationSuccess()
+    void verifyRelationshipValidationSuccess()
     {
         // given
         Relationship relationship = validRelationship();
@@ -343,7 +343,7 @@ class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsWhenRelationshipTypeIsNotPresentInDb()
+    void verifyRelationshipValidationFailsWhenRelationshipTypeIsNotPresentInDb()
     {
         // given
         Relationship relationship = validRelationship();

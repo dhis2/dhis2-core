@@ -83,7 +83,7 @@ class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyProgramIndicatorSubQueryWithAliasTable()
+    void verifyProgramIndicatorSubQueryWithAliasTable()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -101,7 +101,7 @@ class ProgramIndicatorSubqueryBuilderTest
      * join is type EVENT
      */
     @Test
-    public void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
+    void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setAggregationType( null );
@@ -116,7 +116,7 @@ class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyJoinWhenOuterQueryIsEnrollment()
+    void verifyJoinWhenOuterQueryIsEnrollment()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -130,7 +130,7 @@ class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyJoinWhenRelationshipTypeIsPresent()
+    void verifyJoinWhenRelationshipTypeIsPresent()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -156,7 +156,7 @@ class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyProgramIndicatorWithFilter()
+    void verifyProgramIndicatorWithFilter()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setFilter( DUMMY_FILTER_EXPRESSION );

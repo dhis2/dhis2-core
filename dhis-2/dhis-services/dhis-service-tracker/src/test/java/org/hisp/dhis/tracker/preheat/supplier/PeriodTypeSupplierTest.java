@@ -81,7 +81,7 @@ class PeriodTypeSupplierTest
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
         final List<Period> periods = rnd.objects( Period.class, 20 ).collect( Collectors.toList() );
         when( periodStore.getAll() ).thenReturn( periods );

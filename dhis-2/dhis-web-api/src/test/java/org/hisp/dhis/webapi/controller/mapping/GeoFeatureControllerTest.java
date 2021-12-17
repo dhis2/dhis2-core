@@ -92,7 +92,7 @@ class GeoFeatureControllerTest
     }
 
     @Test
-    public void verifyGeoFeaturesReturnsOuData()
+    void verifyGeoFeaturesReturnsOuData()
         throws Exception
     {
         OrganisationUnit ouA = createOrgUnitWithCoordinates();

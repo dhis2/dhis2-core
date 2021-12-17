@@ -320,8 +320,10 @@ class DataIntegrityServiceTest
     // Tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testGetDataElementsWithoutDataSet()
+    void testGetDataElementsWithoutDataSet()
     {
         subject.getDataElementsWithoutDataSet();
         verify( dataElementService ).getDataElementsWithoutDataSets();
@@ -329,7 +331,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetDataElementsWithoutGroups()
+    void testGetDataElementsWithoutGroups()
     {
         subject.getDataElementsWithoutGroups();
         verify( dataElementService ).getDataElementsWithoutGroups();
@@ -337,7 +339,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetDataElementsAssignedToDataSetsWithDifferentPeriodType()
+    void testGetDataElementsAssignedToDataSetsWithDifferentPeriodType()
     {
         String seed = "abcde";
         Map<String, DataElement> dataElements = createRandomDataElements( 6, seed );
@@ -372,7 +374,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetDataElementsAssignedToDataSetsWithDifferentPeriodTypeNoResult()
+    void testGetDataElementsAssignedToDataSetsWithDifferentPeriodTypeNoResult()
     {
 
         String seed = "abcde";
@@ -397,7 +399,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetDataSetsNotAssignedToOrganisationUnits()
+    void testGetDataSetsNotAssignedToOrganisationUnits()
     {
         clearInvocations( dataSetService );
         subject.getDataSetsNotAssignedToOrganisationUnits();
@@ -406,7 +408,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetIndicatorsWithIdenticalFormulas()
+    void testGetIndicatorsWithIdenticalFormulas()
     {
         when( indicatorService.getAllIndicators() ).thenReturn( List.of( indicatorA, indicatorB, indicatorC ) );
         List<DataIntegrityIssue> issues = subject.getIndicatorsWithIdenticalFormulas();
@@ -417,7 +419,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetIndicatorsWithoutGroups()
+    void testGetIndicatorsWithoutGroups()
     {
         subject.getIndicatorsWithoutGroups();
         verify( indicatorService ).getIndicatorsWithoutGroups();
@@ -425,7 +427,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetOrganisationUnitsWithCyclicReferences()
+    void testGetOrganisationUnitsWithCyclicReferences()
     {
         subject.getOrganisationUnitsWithCyclicReferences();
         verify( organisationUnitService ).getOrganisationUnitsWithCyclicReferences();
@@ -433,7 +435,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetOrphanedOrganisationUnits()
+    void testGetOrphanedOrganisationUnits()
     {
         subject.getOrphanedOrganisationUnits();
         verify( organisationUnitService ).getOrphanedOrganisationUnits();
@@ -441,7 +443,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetOrganisationUnitsWithoutGroups()
+    void testGetOrganisationUnitsWithoutGroups()
     {
         subject.getOrganisationUnitsWithoutGroups();
         verify( organisationUnitService ).getOrganisationUnitsWithoutGroups();
@@ -449,7 +451,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetProgramRulesWithNoExpression()
+    void testGetProgramRulesWithNoExpression()
     {
         programRuleB.setCondition( null );
         when( programRuleService.getProgramRulesWithNoCondition() ).thenReturn( List.of( programRuleB ) );
@@ -466,7 +468,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetProgramRulesVariableWithNoDataElement()
+    void testGetProgramRulesVariableWithNoDataElement()
     {
         programRuleVariableA.setProgram( programA );
 
@@ -485,7 +487,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testGetProgramRuleActionsWithNoDataObject()
+    void testGetProgramRuleActionsWithNoDataObject()
     {
         programRuleActionA.setProgramRule( programRuleA );
 
@@ -504,7 +506,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testInvalidProgramIndicatorExpression()
+    void testInvalidProgramIndicatorExpression()
     {
         ProgramIndicator programIndicator = new ProgramIndicator();
         programIndicator.setName( "Test-PI" );
@@ -526,7 +528,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testInvalidProgramIndicatorFilter()
+    void testInvalidProgramIndicatorFilter()
     {
         ProgramIndicator programIndicator = new ProgramIndicator();
         programIndicator.setName( "Test-PI" );
@@ -547,7 +549,7 @@ class DataIntegrityServiceTest
     }
 
     @Test
-    public void testValidProgramIndicatorFilter()
+    void testValidProgramIndicatorFilter()
     {
         ProgramIndicator programIndicator = new ProgramIndicator();
         programIndicator.setName( "Test-PI" );

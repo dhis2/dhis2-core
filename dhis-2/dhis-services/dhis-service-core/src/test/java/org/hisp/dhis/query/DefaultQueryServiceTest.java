@@ -79,7 +79,7 @@ class DefaultQueryServiceTest
     }
 
     @Test
-    public void verifyQueryEngineUsesPaginationInformation()
+    void verifyQueryEngineUsesPaginationInformation()
     {
         Query query = Query.from( new OrganisationUnitSchemaDescriptor().getSchema() );
         query.setFirstResult( 100 );

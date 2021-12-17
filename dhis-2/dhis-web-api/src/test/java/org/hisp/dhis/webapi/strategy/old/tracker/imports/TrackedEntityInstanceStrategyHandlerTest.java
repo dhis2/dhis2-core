@@ -68,9 +68,9 @@ class TrackedEntityInstanceStrategyHandlerTest
     private ImportOptions importOptions;
 
     @Test
-    public void shouldCallSyncTrackedEntitySyncStrategy()
-        throws IOException,
-        BadRequestException
+    void shouldCallSyncTrackedEntitySyncStrategy()
+        throws BadRequestException,
+        IOException
     {
         when( importOptions.isAsync() ).thenReturn( false );
 
@@ -84,9 +84,9 @@ class TrackedEntityInstanceStrategyHandlerTest
     }
 
     @Test
-    public void shouldCallAsyncTrackedEntitySyncStrategy()
-        throws IOException,
-        BadRequestException
+    void shouldCallAsyncTrackedEntitySyncStrategy()
+        throws BadRequestException,
+        IOException
     {
         when( importOptions.isAsync() ).thenReturn( true );
 

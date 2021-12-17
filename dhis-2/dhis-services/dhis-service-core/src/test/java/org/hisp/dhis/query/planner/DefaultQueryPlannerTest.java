@@ -68,7 +68,7 @@ class DefaultQueryPlannerTest
     }
 
     @Test
-    public void verifyPlanQueryReturnsPersistedAndNotPersistedQueries()
+    void verifyPlanQueryReturnsPersistedAndNotPersistedQueries()
         throws Exception
     {
         // Create schema with attributes
@@ -107,7 +107,7 @@ class DefaultQueryPlannerTest
      * the target table
      */
     @Test
-    public void verifyPlanQueryReturnsNonPersistedQueryWithCriterion()
+    void verifyPlanQueryReturnsNonPersistedQueryWithCriterion()
         throws Exception
     {
         // Create schema with attributes
@@ -144,7 +144,7 @@ class DefaultQueryPlannerTest
     }
 
     @Test
-    public void verifyPlanQueryReturnsNonPersistedQueryWithCriterion2()
+    void verifyPlanQueryReturnsNonPersistedQueryWithCriterion2()
         throws Exception
     {
         // Create schema with attributes

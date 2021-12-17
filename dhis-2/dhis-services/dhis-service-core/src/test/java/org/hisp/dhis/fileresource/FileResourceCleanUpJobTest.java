@@ -135,7 +135,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase
     }
 
     @Test
-    public void testNoRetention()
+    void testNoRetention()
     {
         when( fileResourceContentStore.fileResourceContentExists( any( String.class ) ) ).thenReturn( true );
 
@@ -154,7 +154,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase
     }
 
     @Test
-    public void testRetention()
+    void testRetention()
     {
         when( fileResourceContentStore.fileResourceContentExists( any( String.class ) ) ).thenReturn( true );
 
@@ -189,7 +189,7 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase
     }
 
     @Test
-    public void testOrphan()
+    void testOrphan()
     {
         when( fileResourceContentStore.fileResourceContentExists( any( String.class ) ) ).thenReturn( false );
 
@@ -226,9 +226,9 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase
         userService.updateUser( userB );
     }
 
-    @Test
     @Disabled
-    public void testFalsePositive()
+    @Test
+    void testFalsePositive()
     {
         systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
             FileResourceRetentionStrategy.THREE_MONTHS );
@@ -247,9 +247,9 @@ class FileResourceCleanUpJobTest extends IntegrationTestBase
         assertTrue( fileResourceService.getFileResource( uid ).isAssigned() );
     }
 
-    @Test
     @Disabled
-    public void testFailedUpload()
+    @Test
+    void testFailedUpload()
     {
         systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
             FileResourceRetentionStrategy.THREE_MONTHS );

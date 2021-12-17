@@ -127,7 +127,7 @@ class EventRequestToParamsMapperTest
     }
 
     @Test
-    public void testEventRequestToSearchParamsMapperSuccess()
+    void testEventRequestToSearchParamsMapperSuccess()
     {
 
         EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( "programuid",

@@ -148,7 +148,7 @@ class GenericSmsGatewayTest
     }
 
     @Test
-    public void testSendSms_Json()
+    void testSendSms_Json()
     {
         strSubstitutor = new StringSubstitutor( valueStore );
         body = strSubstitutor.replace( CONFIG_TEMPLATE_JSON );
@@ -191,7 +191,7 @@ class GenericSmsGatewayTest
     }
 
     @Test
-    public void testSendSms_Url()
+    void testSendSms_Url()
     {
         username.setHeader( false );
         password.setHeader( false );

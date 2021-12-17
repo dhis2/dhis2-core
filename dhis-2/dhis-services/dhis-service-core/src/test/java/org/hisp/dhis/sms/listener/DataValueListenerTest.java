@@ -277,7 +277,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testAccept()
+    void testAccept()
     {
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
@@ -294,7 +294,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testReceive()
+    void testReceive()
     {
         mockServices();
         incomingSms.setCreatedBy( user );
@@ -306,7 +306,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfDataSetIsLocked()
+    void testIfDataSetIsLocked()
     {
         ArgumentCaptor<IncomingSms> incomingSmsCaptor = ArgumentCaptor.forClass( IncomingSms.class );
 
@@ -333,7 +333,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfUserHasNoOu()
+    void testIfUserHasNoOu()
     {
         mockSmsSender();
 
@@ -354,7 +354,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfUserHasMultipleOUs()
+    void testIfUserHasMultipleOUs()
     {
         mockSmsSender();
 
@@ -385,7 +385,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfDiffUsersHasSameOU()
+    void testIfDiffUsersHasSameOU()
     {
         mockSmsSender();
         mockServices();
@@ -408,7 +408,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfCommandHasCorrectFormat()
+    void testIfCommandHasCorrectFormat()
     {
         mockSmsSender();
 
@@ -429,7 +429,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfMandatoryParameterMissing()
+    void testIfMandatoryParameterMissing()
     {
         mockSmsSender();
         mockServices();
@@ -456,7 +456,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDefaultSeparator()
+    void testDefaultSeparator()
     {
         mockServices();
         keyValueCommand.setSeparator( null );
@@ -471,7 +471,7 @@ class DataValueListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCustomSeparator()
+    void testCustomSeparator()
     {
         mockSmsSender();
         mockServices();

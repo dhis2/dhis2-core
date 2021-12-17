@@ -177,7 +177,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedProgramRules()
+    void testMappedProgramRules()
     {
         when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
 
@@ -187,7 +187,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWhenProgramRuleConditionIsNull()
+    void testWhenProgramRuleConditionIsNull()
     {
         when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
 
@@ -201,7 +201,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWhenProgramRuleActionIsNull()
+    void testWhenProgramRuleActionIsNull()
     {
         when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
 
@@ -215,7 +215,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedRuleVariableValues()
+    void testMappedRuleVariableValues()
     {
         when( programRuleVariableService.getAllProgramRuleVariable() ).thenReturn( programRuleVariables );
         RuleVariableAttribute ruleVariableAttribute;
@@ -244,13 +244,13 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testExceptionWhenMandatoryFieldIsMissingInRuleEvent()
+    void testExceptionWhenMandatoryFieldIsMissingInRuleEvent()
     {
         assertThrows( IllegalStateException.class, () -> subject.toMappedRuleEvent( programStageInstanceC ) );
     }
 
     @Test
-    public void testExceptionIfDataElementIsNull()
+    void testExceptionIfDataElementIsNull()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( null );
 
@@ -260,7 +260,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedRuleEvent()
+    void testMappedRuleEvent()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
@@ -282,7 +282,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedRuleEventsWithFilter()
+    void testMappedRuleEventsWithFilter()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
@@ -308,7 +308,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedRuleEvents()
+    void testMappedRuleEvents()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
@@ -319,7 +319,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testExceptionWhenMandatoryValueMissingMappedEnrollment()
+    void testExceptionWhenMandatoryValueMissingMappedEnrollment()
     {
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues = Lists.newArrayList();
         assertThrows( IllegalStateException.class,
@@ -327,7 +327,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedEnrollment()
+    void testMappedEnrollment()
     {
         RuleEnrollment ruleEnrollment = subject.toMappedRuleEnrollment( programInstance, Lists.newArrayList() );
 
@@ -338,7 +338,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testGetItemStore()
+    void testGetItemStore()
     {
         String env_variable = "Completed date";
         Constant constant = new Constant();

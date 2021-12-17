@@ -100,7 +100,7 @@ class ProgramObjectBundleHookTest
     }
 
     @Test
-    public void verifyNullObjectIsIgnored()
+    void verifyNullObjectIsIgnored()
     {
         subject.preCreate( null, null );
 
@@ -108,7 +108,7 @@ class ProgramObjectBundleHookTest
     }
 
     @Test
-    public void verifyMissingBundleIsIgnored()
+    void verifyMissingBundleIsIgnored()
     {
         subject.preCreate( programA, null );
 
@@ -116,7 +116,7 @@ class ProgramObjectBundleHookTest
     }
 
     @Test
-    public void verifyProgramInstanceIsSavedForEventProgram()
+    void verifyProgramInstanceIsSavedForEventProgram()
     {
         ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass( ProgramInstance.class );
 
@@ -133,7 +133,7 @@ class ProgramObjectBundleHookTest
     }
 
     @Test
-    public void verifyProgramInstanceIsNotSavedForTrackerProgram()
+    void verifyProgramInstanceIsNotSavedForTrackerProgram()
     {
         ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass( ProgramInstance.class );
 
@@ -144,13 +144,13 @@ class ProgramObjectBundleHookTest
     }
 
     @Test
-    public void verifyProgramValidates()
+    void verifyProgramValidates()
     {
         assertEquals( 0, subject.validate( programA, null ).size() );
     }
 
     @Test
-    public void verifyProgramFailsValidation()
+    void verifyProgramFailsValidation()
     {
         ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
         programInstanceQueryParams.setProgram( programA );
@@ -167,7 +167,7 @@ class ProgramObjectBundleHookTest
     }
 
     @Test
-    public void verifyValidationIsSkippedWhenObjectIsTransient()
+    void verifyValidationIsSkippedWhenObjectIsTransient()
     {
         Program transientObj = createProgram( 'A' );
         subject.validate( transientObj, null );
@@ -176,7 +176,7 @@ class ProgramObjectBundleHookTest
     }
 
     @Test
-    public void verifyUpdateProgramStage()
+    void verifyUpdateProgramStage()
     {
         ProgramStage programStage = createProgramStage( 'A', 1 );
         programA.getProgramStages().add( programStage );

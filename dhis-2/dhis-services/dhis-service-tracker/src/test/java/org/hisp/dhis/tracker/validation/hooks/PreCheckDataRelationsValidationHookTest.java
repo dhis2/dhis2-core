@@ -217,7 +217,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationSuccessForEnrollment()
+    void verifyValidationSuccessForEnrollment()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -235,7 +235,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentIsNotARegistration()
+    void verifyValidationFailsWhenEnrollmentIsNotARegistration()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -254,7 +254,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
+    void verifyValidationFailsWhenEnrollmentAndProgramOrganisationUnitDontMatch()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -273,7 +273,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
+    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatch()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -292,7 +292,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
+    void verifyValidationFailsWhenEnrollmentAndProgramTeiTypeDontMatchAndTEIIsInPayload()
     {
         setupEnrollments();
         Enrollment enrollment = Enrollment.builder()
@@ -320,7 +320,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationSuccessForEvent()
+    void verifyValidationSuccessForEvent()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -339,7 +339,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEventAndProgramStageProgramDontMatch()
+    void verifyValidationFailsWhenEventAndProgramStageProgramDontMatch()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -360,7 +360,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
+    void verifyValidationFailsWhenProgramIsRegistrationAndEnrollmentIsMissing()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -381,7 +381,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEventAndEnrollmentProgramDontMatch()
+    void verifyValidationFailsWhenEventAndEnrollmentProgramDontMatch()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -403,7 +403,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
+    void verifyValidationFailsWhenEventAndProgramOrganisationUnitDontMatch()
     {
         setupForEvents();
         Event event = Event.builder()
@@ -425,7 +425,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound()
+    void verifyValidationFailsWhenLinkedTrackedEntityIsNotFound()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -457,7 +457,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyValidationSuccessWhenLinkedTrackedEntityIsFound()
+    void verifyValidationSuccessWhenLinkedTrackedEntityIsFound()
     {
 
         TrackedEntityInstance validTrackedEntity = new TrackedEntityInstance();

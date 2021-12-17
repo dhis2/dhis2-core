@@ -95,7 +95,7 @@ class ProgramStageObjectBundleHookTest
     }
 
     @Test
-    public void testValidateDataElementAcl()
+    void testValidateDataElementAcl()
     {
         ObjectBundleParams objectBundleParams = new ObjectBundleParams();
         objectBundleParams.setPreheatIdentifier( PreheatIdentifier.UID );

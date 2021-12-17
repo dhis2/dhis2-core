@@ -78,14 +78,14 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldThrowWhenTeaIsNull()
+    void shouldThrowWhenTeaIsNull()
     {
         assertThrows( IllegalArgumentException.class,
             () -> trackedEntityAttributeService.validateValueType( null, "" ) );
     }
 
     @Test
-    public void shouldThrowWhenNotAValidDate()
+    void shouldThrowWhenNotAValidDate()
     {
         tea.setValueType( ValueType.DATE );
         String teaValue = "Firstname";
@@ -94,14 +94,14 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldThrowWhenNullValue()
+    void shouldThrowWhenNullValue()
     {
         assertThrows( IllegalArgumentException.class,
             () -> trackedEntityAttributeService.validateValueType( tea, null ) );
     }
 
     @Test
-    public void shouldFailValueOverMaxLength()
+    void shouldFailValueOverMaxLength()
     {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -114,7 +114,7 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldFailValidationWhenTextValueAndDifferentValueType()
+    void shouldFailValidationWhenTextValueAndDifferentValueType()
     {
         tea.setValueType( ValueType.NUMBER );
         assertNotNull( trackedEntityAttributeService.validateValueType( tea, "value" ) );
@@ -124,7 +124,7 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldFailValidationWhenInvalidDate()
+    void shouldFailValidationWhenInvalidDate()
     {
         tea.setValueType( ValueType.DATE );
         assertThrows( IllegalFieldValueException.class,
@@ -132,7 +132,7 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldFailValidationWhenInvalidDateFormat()
+    void shouldFailValidationWhenInvalidDateFormat()
     {
         tea.setValueType( ValueType.DATE );
         assertNotNull( trackedEntityAttributeService.validateValueType( tea, "19700131" ) );
@@ -140,7 +140,7 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void successValidationWhenValidDate()
+    void successValidationWhenValidDate()
     {
         tea.setValueType( ValueType.DATE );
         assertNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-01" ) );
@@ -148,7 +148,7 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void successWhenTextValueIsCorrect()
+    void successWhenTextValueIsCorrect()
     {
         tea.setValueType( ValueType.TEXT );
         assertNull( trackedEntityAttributeService.validateValueType( tea, "Firstname" ) );
@@ -164,7 +164,7 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldFailWhenUserCredentialNotFound()
+    void shouldFailWhenUserCredentialNotFound()
     {
         when( userService.getUserCredentialsByUsername( "user" ) ).thenReturn( null );
 
@@ -173,7 +173,7 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void successWhenUserCredentialExists()
+    void successWhenUserCredentialExists()
     {
         when( userService.getUserCredentialsByUsername( "user" ) ).thenReturn( new UserCredentials() );
 
@@ -182,14 +182,14 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldFailWhenInvalidDateTime()
+    void shouldFailWhenInvalidDateTime()
     {
         tea.setValueType( ValueType.DATETIME );
         assertNotNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-01" ) );
     }
 
     @Test
-    public void successWhenValidDateTime()
+    void successWhenValidDateTime()
     {
         tea.setValueType( ValueType.DATETIME );
         assertNull( trackedEntityAttributeService.validateValueType( tea, "1970-01-01T00:00:00.000+02:00" ) );
@@ -197,7 +197,7 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldFailWhenImageValidationFail()
+    void shouldFailWhenImageValidationFail()
     {
         when( fileResourceService.getFileResource( "uid" ) ).thenReturn( null );
 
@@ -206,7 +206,7 @@ class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldFailWhenInvalidImageFormat()
+    void shouldFailWhenInvalidImageFormat()
     {
         when( fileResourceService.getFileResource( "uid" ) ).thenReturn( fileResource );
 

@@ -73,7 +73,7 @@ class MetadataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergeDataSets()
+    void testMergeDataSets()
     {
         DataSet dsA = createDataSet( 'A' );
         dsA.addOrganisationUnit( ouA );
@@ -100,7 +100,7 @@ class MetadataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergePrograms()
+    void testMergePrograms()
     {
         Program prA = createProgram( 'A' );
         prA.addOrganisationUnit( ouA );
@@ -127,7 +127,7 @@ class MetadataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergeOrgUnitGroups()
+    void testMergeOrgUnitGroups()
     {
         OrganisationUnitGroup ougA = createOrganisationUnitGroup( 'A' );
         ougA.addOrganisationUnit( ouA );

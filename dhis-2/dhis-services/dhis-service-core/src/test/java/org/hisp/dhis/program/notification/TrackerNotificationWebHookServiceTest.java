@@ -157,7 +157,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTrackerEnrollmentNotificationWebHook()
+    void testTrackerEnrollmentNotificationWebHook()
     {
         when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
         when( templateService.isProgramLinkedToWebHookNotification( any( Program.class ) ) ).thenReturn( true );
@@ -186,7 +186,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTrackerEventNotificationWebHook()
+    void testTrackerEventNotificationWebHook()
     {
         when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
         when( templateService.isProgramStageLinkedToWebHookNotification( any( ProgramStage.class ) ) )

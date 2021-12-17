@@ -180,7 +180,7 @@ class AggregateDataSetSMSListenerTest extends
     }
 
     @Test
-    public void testAggregateDatasetListener()
+    void testAggregateDatasetListener()
     {
         subject.receive( incomingSmsAggregate );
 
@@ -192,7 +192,7 @@ class AggregateDataSetSMSListenerTest extends
     }
 
     @Test
-    public void testAggregateDatasetListenerRepeat()
+    void testAggregateDatasetListenerRepeat()
     {
         subject.receive( incomingSmsAggregate );
         subject.receive( incomingSmsAggregate );
@@ -205,7 +205,7 @@ class AggregateDataSetSMSListenerTest extends
     }
 
     @Test
-    public void testAggregateDatasetListenerNoValues()
+    void testAggregateDatasetListenerNoValues()
     {
         subject.receive( incomingSmsAggregateNoValues );
 

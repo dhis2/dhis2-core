@@ -83,7 +83,7 @@ class SMPPClientTest
     }
 
     @Test
-    public void testSuccessMessage()
+    void testSuccessMessage()
     {
         SMPPGatewayConfig config = getSMPPConfigurations();
 
@@ -95,7 +95,7 @@ class SMPPClientTest
     }
 
     @Test
-    public void testFailedMessage()
+    void testFailedMessage()
     {
         SMPPGatewayConfig config = getSMPPConfigurations();
         config.setPassword( "123" );

@@ -118,7 +118,7 @@ class DataElementGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsResolvedProperly()
+    void verifyExpressionIsResolvedProperly()
     {
         // arrange
 
@@ -142,7 +142,7 @@ class DataElementGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
+    void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
     {
         // arrange
 
@@ -165,7 +165,7 @@ class DataElementGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenDeGroupPrefixNotInUid0()
+    void verifyExpressionIsNotResolvedWhenDeGroupPrefixNotInUid0()
     {
         // arrange
 
@@ -187,7 +187,7 @@ class DataElementGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
+    void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
     {
         // arrange
 

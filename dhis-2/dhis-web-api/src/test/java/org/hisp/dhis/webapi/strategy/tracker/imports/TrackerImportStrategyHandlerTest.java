@@ -59,7 +59,7 @@ class TrackerImportStrategyHandlerTest
     ContextService contextService;
 
     @Test
-    public void shouldImportAsync()
+    void shouldImportAsync()
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()
@@ -77,7 +77,7 @@ class TrackerImportStrategyHandlerTest
     }
 
     @Test
-    public void shouldNotImportAsync()
+    void shouldNotImportAsync()
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()

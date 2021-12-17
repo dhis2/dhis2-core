@@ -125,7 +125,7 @@ class CategoryOptionGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsResolvedProperly()
+    void verifyExpressionIsResolvedProperly()
     {
         // arrange
 
@@ -148,7 +148,7 @@ class CategoryOptionGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
+    void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
     {
         // arrange
 
@@ -170,7 +170,7 @@ class CategoryOptionGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
+    void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
     {
         // arrange
 
@@ -192,7 +192,7 @@ class CategoryOptionGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
+    void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
     {
         // arrange
 

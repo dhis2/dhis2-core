@@ -94,7 +94,7 @@ class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent()
+    void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
         periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
@@ -128,7 +128,7 @@ class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifySingleNonDataElementRetainAggregationTypeButNullDataType()
+    void verifySingleNonDataElementRetainAggregationTypeButNullDataType()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
         periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
@@ -155,7 +155,7 @@ class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyASingleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
+    void verifyASingleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
     {
         // DataQueryParams with **one** DataElement as filter
         DataQueryParams queryParams = createDataQueryParams(
@@ -180,7 +180,7 @@ class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyMultipleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
+    void verifyMultipleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
     {
         // DataQueryParams with **two** DataElement as filter
         // Both have DataType NUMERIC and AggregationType SUM
@@ -202,7 +202,7 @@ class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyMultipleDataElementAsFilterHavingDifferentAggTypeDoNotRetainAggregationType()
+    void verifyMultipleDataElementAsFilterHavingDifferentAggTypeDoNotRetainAggregationType()
     {
         // DataQueryParams with **two** DataElement as filter
         // Both have DataType NUMERIC but different AggregationType
@@ -224,7 +224,7 @@ class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyMultipleDataElementAsFilterHavingDifferentAggTypeRetainAggregationType()
+    void verifyMultipleDataElementAsFilterHavingDifferentAggTypeRetainAggregationType()
     {
         // DataQueryParams with **two** DataElement as filter
         // Both have DataType NUMERIC but different AggregationType
@@ -249,7 +249,7 @@ class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyMultipleDataElementAsFilterHavingDifferentDataTypeDoNotRetainAggregationType()
+    void verifyMultipleDataElementAsFilterHavingDifferentDataTypeDoNotRetainAggregationType()
     {
         // DataQueryParams with **two** DataElement as filter
         // One Data Element has Type Numeric

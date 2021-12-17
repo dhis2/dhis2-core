@@ -70,13 +70,13 @@ class MetadataRetryContextTest extends DhisSpringTest
     }
 
     @Test
-    public void testShouldGetRetryContextCorrectly()
+    void testShouldGetRetryContextCorrectly()
     {
         assertEquals( retryContext, metadataRetryContext.getRetryContext() );
     }
 
     @Test
-    public void testShouldSetRetryContextCorrectly()
+    void testShouldSetRetryContextCorrectly()
     {
         RetryContext newMock = mock( RetryContext.class );
 
@@ -86,7 +86,7 @@ class MetadataRetryContextTest extends DhisSpringTest
     }
 
     @Test
-    public void testIfVersionIsNull()
+    void testIfVersionIsNull()
     {
         metadataRetryContext.updateRetryContext( testKey, testMessage, null );
 
@@ -95,7 +95,7 @@ class MetadataRetryContextTest extends DhisSpringTest
     }
 
     @Test
-    public void testIfVersionIsNotNull()
+    void testIfVersionIsNotNull()
     {
         metadataRetryContext.updateRetryContext( testKey, testMessage, mockVersion );
 
@@ -104,7 +104,7 @@ class MetadataRetryContextTest extends DhisSpringTest
     }
 
     @Test
-    public void testIfSummaryIsNull()
+    void testIfSummaryIsNull()
     {
         MetadataSyncSummary metadataSyncSummary = mock( MetadataSyncSummary.class );
 
@@ -116,7 +116,7 @@ class MetadataRetryContextTest extends DhisSpringTest
     }
 
     @Test
-    public void testIfSummaryIsNotNull()
+    void testIfSummaryIsNotNull()
     {
         MetadataSyncSummary testSummary = new MetadataSyncSummary();
         ImportReport importReport = new ImportReport();

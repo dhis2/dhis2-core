@@ -105,7 +105,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplierWhenNoEventProgramArePresent()
+    void verifySupplierWhenNoEventProgramArePresent()
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();
@@ -126,7 +126,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplierWhenNoProgramsArePresent()
+    void verifySupplierWhenNoProgramsArePresent()
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();
@@ -146,7 +146,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
         // given
         TrackerPreheat preheat = new TrackerPreheat();

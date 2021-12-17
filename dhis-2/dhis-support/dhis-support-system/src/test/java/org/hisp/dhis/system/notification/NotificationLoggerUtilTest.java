@@ -49,7 +49,7 @@ class NotificationLoggerUtilTest
     private static String logMessage = "logMessage";
 
     @Test
-    public void shouldLogDebugLevel()
+    void shouldLogDebugLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.DEBUG, logMessage );
@@ -61,7 +61,7 @@ class NotificationLoggerUtilTest
     }
 
     @Test
-    public void shouldLogInfoLevel()
+    void shouldLogInfoLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.INFO, logMessage );
@@ -73,7 +73,7 @@ class NotificationLoggerUtilTest
     }
 
     @Test
-    public void shouldLogWarnLevel()
+    void shouldLogWarnLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.WARN, logMessage );
@@ -85,7 +85,7 @@ class NotificationLoggerUtilTest
     }
 
     @Test
-    public void shouldLogErrorLevel()
+    void shouldLogErrorLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.ERROR, logMessage );

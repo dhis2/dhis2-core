@@ -106,7 +106,7 @@ class AbstractAnalyticsServiceTest
     }
 
     @Test
-    public void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
+    void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
     {
         // Given
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,

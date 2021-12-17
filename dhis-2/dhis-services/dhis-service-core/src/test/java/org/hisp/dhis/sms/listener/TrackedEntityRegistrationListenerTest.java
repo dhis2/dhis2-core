@@ -183,7 +183,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTeiRegistration()
+    void testTeiRegistration()
     {
         // Mock for trackedEntityInstanceService
         when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
@@ -206,7 +206,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfProgramHasNoOu()
+    void testIfProgramHasNoOu()
     {
         Program programA = createProgram( 'P' );
 

@@ -110,8 +110,8 @@ class MetadataSyncJobParametersTest
     // TODO: can we write more tests. This might cover a lot more tests.
     // TODO: don't test on how it happens. test for the result
     @Test
-    public void testShouldRunAllTasksInSequence()
-        throws Exception
+    void testShouldRunAllTasksInSequence()
+        throws DhisVersionMismatchException
     {
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenReturn( metadataSyncSummary );
         when( metadataSyncPreProcessor.handleCurrentMetadataVersion( metadataRetryContext ) )
@@ -135,7 +135,7 @@ class MetadataSyncJobParametersTest
     }
 
     @Test
-    public void testHandleMetadataSyncIsThrowingException()
+    void testHandleMetadataSyncIsThrowingException()
         throws DhisVersionMismatchException
     {
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) )
@@ -166,7 +166,7 @@ class MetadataSyncJobParametersTest
     }
 
     @Test
-    public void testShouldAbortIfDHISVersionMismatch()
+    void testShouldAbortIfDHISVersionMismatch()
         throws DhisVersionMismatchException
     {
         metadataVersions.add( metadataVersion );
@@ -196,8 +196,8 @@ class MetadataSyncJobParametersTest
     }
 
     @Test
-    public void testShouldAbortIfErrorInSyncSummary()
-        throws Exception
+    void testShouldAbortIfErrorInSyncSummary()
+        throws DhisVersionMismatchException
     {
         metadataVersions.add( metadataVersion );
 

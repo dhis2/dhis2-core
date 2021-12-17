@@ -74,7 +74,7 @@ class AuditManagerTest
     }
 
     @Test
-    public void testCollectAuditAttributes()
+    void testCollectAuditAttributes()
     {
         DataElement dataElement = new DataElement();
         dataElement.setUid( "DataElementUID" );

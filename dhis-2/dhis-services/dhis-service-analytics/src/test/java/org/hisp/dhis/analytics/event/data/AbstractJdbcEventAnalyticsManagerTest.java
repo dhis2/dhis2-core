@@ -115,7 +115,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetSelectSqlWithProgramIndicator()
+    void verifyGetSelectSqlWithProgramIndicator()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         QueryItem item = new QueryItem( programIndicator );
@@ -127,7 +127,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetSelectSqlWithTextDataElement()
+    void verifyGetSelectSqlWithTextDataElement()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -140,7 +140,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetSelectSqlWithNonTextDataElement()
+    void verifyGetSelectSqlWithNonTextDataElement()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -153,7 +153,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetCoordinateColumn()
+    void verifyGetCoordinateColumn()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -172,7 +172,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetColumn()
+    void verifyGetColumn()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -190,7 +190,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetAggregateClauseWithValue()
+    void verifyGetAggregateClauseWithValue()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -205,7 +205,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetAggregateClauseWithValueFails()
+    void verifyGetAggregateClauseWithValueFails()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -217,7 +217,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetAggregateClauseWithProgramIndicator()
+    void verifyGetAggregateClauseWithProgramIndicator()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
@@ -234,7 +234,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetAggregateClauseWithProgramIndicatorAndCustomAggregationType()
+    void verifyGetAggregateClauseWithProgramIndicatorAndCustomAggregationType()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         programIndicator.setAggregationType( AggregationType.CUSTOM );
@@ -252,7 +252,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetAggregateClauseWithEnrollmentDimension()
+    void verifyGetAggregateClauseWithEnrollmentDimension()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         programIndicator.setAnalyticsType( AnalyticsType.ENROLLMENT );
@@ -270,7 +270,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
+    void verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
         // Given
 
@@ -305,7 +305,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
+    void verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
         // Given
 
@@ -340,7 +340,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     }
 
     @Test
-    public void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
+    void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
     {
         // Given
         final DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,

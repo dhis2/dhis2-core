@@ -94,7 +94,7 @@ class JdbcEnrollmentAnalyticsTableManagerTest
     }
 
     @Test
-    public void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable()
+    void verifyTeiTypeOrgUnitFetchesOuUidWhenPopulatingEventAnalyticsTable()
     {
         ArgumentCaptor<String> sql = ArgumentCaptor.forClass( String.class );
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );

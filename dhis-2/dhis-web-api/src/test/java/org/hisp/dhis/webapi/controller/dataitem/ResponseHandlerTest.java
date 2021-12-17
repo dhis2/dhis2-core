@@ -105,7 +105,7 @@ class ResponseHandlerTest
     }
 
     @Test
-    public void testAddResultsToNodeWithSuccess()
+    void testAddResultsToNodeWithSuccess()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -127,7 +127,7 @@ class ResponseHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWithSuccess()
+    void testAddPaginationToNodeWithSuccess()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -150,7 +150,7 @@ class ResponseHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenPagingIsFalse()
+    void testAddPaginationToNodeWhenPagingIsFalse()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -171,7 +171,7 @@ class ResponseHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenTargetEntitiesIsEmpty()
+    void testAddPaginationToNodeWhenTargetEntitiesIsEmpty()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );

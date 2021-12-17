@@ -110,7 +110,7 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testSave()
+    void testSave()
     {
         OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" ),
             Lists.newArrayList( "GroupSet1", "GroupSet2" ), Lists.newArrayList( "DataItem1", "DataItem2" ) );
@@ -126,7 +126,7 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testUpdateOrgUnitProfile()
+    void testUpdateOrgUnitProfile()
     {
         OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" ),
             Lists.newArrayList( "GroupSet1", "GroupSet2" ), Lists.newArrayList( "DataItem1", "DataItem2" ) );
@@ -147,7 +147,7 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetProfileDataWithoutOrgUnitProfile()
+    void testGetProfileDataWithoutOrgUnitProfile()
     {
         Attribute attribute = createAttribute( 'A' );
         attribute.setOrganisationUnitAttribute( true );
@@ -187,7 +187,7 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetProfileDataWithOrgUnitProfile()
+    void testGetProfileDataWithOrgUnitProfile()
     {
         Attribute attribute = createAttribute( 'A' );
         attribute.setOrganisationUnitAttribute( true );
@@ -231,7 +231,7 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidator()
+    void testValidator()
     {
         Attribute attribute = createAttribute( 'A' );
         attribute.setOrganisationUnitAttribute( true );
@@ -259,7 +259,7 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateNonAggregateableDataElement()
+    void testValidateNonAggregateableDataElement()
     {
         DataElement deA = createDataElement( 'A' );
         deA.setValueType( ValueType.NUMBER );
@@ -279,7 +279,7 @@ class OrgUnitProfileServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testDeletionHandling()
+    void testDeletionHandling()
     {
         OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
 

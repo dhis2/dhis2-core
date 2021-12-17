@@ -62,7 +62,7 @@ class FileResourceControllerMockTest
     private FileResourceUtils fileResourceUtils;
 
     @Test
-    public void testGetOrgUnitImage()
+    void testGetOrgUnitImage()
         throws WebMessageException,
         IOException
     {
@@ -80,7 +80,7 @@ class FileResourceControllerMockTest
     }
 
     @Test
-    public void testGetDataValue()
+    void testGetDataValue()
     {
         controller = new FileResourceController( fileResourceService, fileResourceUtils );
         FileResource fileResource = new FileResource();

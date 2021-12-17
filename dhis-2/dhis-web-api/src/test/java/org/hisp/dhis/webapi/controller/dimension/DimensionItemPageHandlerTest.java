@@ -75,7 +75,7 @@ class DimensionItemPageHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWithSuccess()
+    void testAddPaginationToNodeWithSuccess()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -96,7 +96,7 @@ class DimensionItemPageHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenPagingIsFalse()
+    void testAddPaginationToNodeWhenPagingIsFalse()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
@@ -116,7 +116,7 @@ class DimensionItemPageHandlerTest
     }
 
     @Test
-    public void testAddPaginationToNodeWhenNoPagingIsSet()
+    void testAddPaginationToNodeWhenNoPagingIsSet()
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );

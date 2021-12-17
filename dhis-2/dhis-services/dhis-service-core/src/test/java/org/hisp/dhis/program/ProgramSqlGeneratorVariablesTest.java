@@ -112,21 +112,21 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testAnalyticsPeriodEndVariable()
+    void testAnalyticsPeriodEndVariable()
     {
         String sql = castString( test( "V{analytics_period_end}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "'2018-12-31'" ) );
     }
 
     @Test
-    public void testAnalyticsPeriodStartVariable()
+    void testAnalyticsPeriodStartVariable()
     {
         String sql = castString( test( "V{analytics_period_start}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "'2018-01-01'" ) );
     }
 
     @Test
-    public void testCreationDateForEnrollment()
+    void testCreationDateForEnrollment()
     {
         String sql = castString( test( "V{creation_date}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql,
@@ -137,28 +137,28 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testCreationDateForEvent()
+    void testCreationDateForEvent()
     {
         String sql = castString( test( "V{creation_date}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "created" ) );
     }
 
     @Test
-    public void testCompletedDateForEnrollment()
+    void testCompletedDateForEnrollment()
     {
         String sql = castString( test( "V{completed_date}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql, is( "completeddate" ) );
     }
 
     @Test
-    public void testCompletedDateForEvent()
+    void testCompletedDateForEvent()
     {
         String sql = castString( test( "V{completed_date}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "completeddate" ) );
     }
 
     @Test
-    public void testCurrentDateForEvent()
+    void testCurrentDateForEvent()
     {
         String sql = castString( test( "V{current_date}", new DefaultLiteral(), eventIndicator ) );
         String date = DateUtils.getLongDateString();
@@ -167,112 +167,112 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDueDate()
+    void testDueDate()
     {
         String sql = castString( test( "V{due_date}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "duedate" ) );
     }
 
     @Test
-    public void testEnrollmentCount()
+    void testEnrollmentCount()
     {
         String sql = castString( test( "V{enrollment_count}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "distinct pi" ) );
     }
 
     @Test
-    public void testEnrollmentDate()
+    void testEnrollmentDate()
     {
         String sql = castString( test( "V{enrollment_date}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "enrollmentdate" ) );
     }
 
     @Test
-    public void testEnrollmentStatus()
+    void testEnrollmentStatus()
     {
         String sql = castString( test( "V{enrollment_status}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "pistatus" ) );
     }
 
     @Test
-    public void testEventCount()
+    void testEventCount()
     {
         String sql = castString( test( "V{event_count}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "psi" ) );
     }
 
     @Test
-    public void testExecutionDate()
+    void testExecutionDate()
     {
         String sql = castString( test( "V{execution_date}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "executiondate" ) );
     }
 
     @Test
-    public void testEventDate()
+    void testEventDate()
     {
         String sql = castString( test( "V{event_date}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "executiondate" ) );
     }
 
     @Test
-    public void testIncidentDate()
+    void testIncidentDate()
     {
         String sql = castString( test( "V{incident_date}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "incidentdate" ) );
     }
 
     @Test
-    public void testProgramStageId()
+    void testProgramStageId()
     {
         String sql = castString( test( "V{program_stage_id}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "ps" ) );
     }
 
     @Test
-    public void testProgramStageIdForEnrollment()
+    void testProgramStageIdForEnrollment()
     {
         String sql = castString( test( "V{program_stage_id}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql, is( "''" ) );
     }
 
     @Test
-    public void testProgramStageName()
+    void testProgramStageName()
     {
         String sql = castString( test( "V{program_stage_name}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "(select name from programstage where uid = ps)" ) );
     }
 
     @Test
-    public void testProgramStageNameForEnrollment()
+    void testProgramStageNameForEnrollment()
     {
         String sql = castString( test( "V{program_stage_name}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql, is( "''" ) );
     }
 
     @Test
-    public void testSyncDate()
+    void testSyncDate()
     {
         String sql = castString( test( "V{sync_date}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql, is( "lastupdated" ) );
     }
 
     @Test
-    public void testOrgUnitCount()
+    void testOrgUnitCount()
     {
         String sql = castString( test( "V{org_unit_count}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql, is( "distinct ou" ) );
     }
 
     @Test
-    public void testTeiCount()
+    void testTeiCount()
     {
         String sql = castString( test( "V{tei_count}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "distinct tei" ) );
     }
 
     @Test
-    public void testValueCount()
+    void testValueCount()
     {
         String sql = castString( test( "V{value_count}", new DefaultLiteral(), eventIndicator ) );
 
@@ -283,7 +283,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testZeroPosValueCount()
+    void testZeroPosValueCount()
     {
         String sql = castString( test( "V{zero_pos_value_count}", new DefaultLiteral(), eventIndicator ) );
 
@@ -294,7 +294,7 @@ class ProgramSqlGeneratorVariablesTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testInvalidVariable()
+    void testInvalidVariable()
     {
         assertThrows( ParserException.class,
             () -> test( "V{undefined_variable}", new DefaultLiteral(), eventIndicator ) );

@@ -101,7 +101,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidRelationshipType()
+    void verifyValidationFailsOnInvalidRelationshipType()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -122,7 +122,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnFromWithMultipleDataset()
+    void verifyValidationFailsOnFromWithMultipleDataset()
     {
         String relationshipUid = "nBx6auGDUHG";
         Relationship relationship = Relationship.builder()
@@ -156,7 +156,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnFromWithNoDataset()
+    void verifyValidationFailsOnFromWithNoDataset()
     {
         String relationshipUid = "nBx6auGDUHG";
         Relationship relationship = Relationship.builder()
@@ -188,7 +188,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnToWithMultipleDataset()
+    void verifyValidationFailsOnToWithMultipleDataset()
     {
         String relationshipUid = "nBx6auGDUHG";
         Relationship relationship = Relationship.builder()
@@ -222,7 +222,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidToConstraint()
+    void verifyValidationFailsOnInvalidToConstraint()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -250,7 +250,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidToConstraintOfTypeProgramStage()
+    void verifyValidationFailsOnInvalidToConstraintOfTypeProgramStage()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, PROGRAM_STAGE_INSTANCE );
 
@@ -278,7 +278,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidFromConstraint()
+    void verifyValidationFailsOnInvalidFromConstraint()
     {
         RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -306,7 +306,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidToTrackedEntityType()
+    void verifyValidationFailsOnInvalidToTrackedEntityType()
     {
         RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE );
         String trackedEntityUid = CodeGenerator.generateUid();
@@ -349,7 +349,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsOnInvalidFromTrackedEntityType()
+    void verifyValidationFailsOnInvalidFromTrackedEntityType()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, PROGRAM_INSTANCE );
         String trackedEntityUid = CodeGenerator.generateUid();
@@ -393,7 +393,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationFailsWhenParentObjectFailed()
+    void verifyValidationFailsWhenParentObjectFailed()
     {
         reporter = new ValidationErrorReporter( ctx );
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
@@ -435,7 +435,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyValidationSuccessWhenSomeObjectsFailButNoParentObject()
+    void verifyValidationSuccessWhenSomeObjectsFailButNoParentObject()
     {
         reporter = new ValidationErrorReporter( ctx );
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
@@ -471,7 +471,7 @@ class RelationshipsValidationHookTest
     }
 
     @Test
-    public void verifyFailAuto()
+    void verifyFailAuto()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
         String uid = CodeGenerator.generateUid();

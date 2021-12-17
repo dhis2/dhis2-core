@@ -85,50 +85,50 @@ class AbstractRootNodeMessageConverterTest
     }
 
     @Test
-    public void isAttachmentNull()
+    void isAttachmentNull()
     {
         Assertions.assertFalse( converter.isAttachment( null ) );
     }
 
     @Test
-    public void isAttachmentInline()
+    void isAttachmentInline()
     {
         Assertions.assertFalse( converter.isAttachment( "inline; filename=test.txt" ) );
     }
 
     @Test
-    public void isAttachment()
+    void isAttachment()
     {
         Assertions.assertTrue( converter.isAttachment( "attachment; filename=test.txt" ) );
     }
 
     @Test
-    public void getExtensibleAttachmentFilenameNull()
+    void getExtensibleAttachmentFilenameNull()
     {
         Assertions.assertNull( converter.getExtensibleAttachmentFilename( null ) );
     }
 
     @Test
-    public void getExtensibleAttachmentFilenameInline()
+    void getExtensibleAttachmentFilenameInline()
     {
         Assertions.assertNull( converter.getExtensibleAttachmentFilename( "inline; filename=metadata" ) );
     }
 
     @Test
-    public void getExtensibleAttachmentFilename()
+    void getExtensibleAttachmentFilename()
     {
         Assertions.assertEquals( "metadata",
             converter.getExtensibleAttachmentFilename( "attachment; filename=metadata" ) );
     }
 
     @Test
-    public void getExtensibleAttachmentFilenameOther()
+    void getExtensibleAttachmentFilenameOther()
     {
         Assertions.assertNull( converter.getExtensibleAttachmentFilename( "attachment; filename=other" ) );
     }
 
     @Test
-    public void writeInternalWithoutAttachmentUncompressed()
+    void writeInternalWithoutAttachmentUncompressed()
         throws IOException
     {
         Mockito.doAnswer( invocation -> {
@@ -143,7 +143,7 @@ class AbstractRootNodeMessageConverterTest
     }
 
     @Test
-    public void writeInternalWithAttachmentUncompressed()
+    void writeInternalWithAttachmentUncompressed()
         throws IOException
     {
         Mockito.doAnswer( invocation -> {
@@ -162,7 +162,7 @@ class AbstractRootNodeMessageConverterTest
     }
 
     @Test
-    public void writeInternalWithAttachmentGzip()
+    void writeInternalWithAttachmentGzip()
         throws IOException
     {
         Mockito.doAnswer( invocation -> {
@@ -182,7 +182,7 @@ class AbstractRootNodeMessageConverterTest
     }
 
     @Test
-    public void writeInternalWithoutAttachmentGzip()
+    void writeInternalWithoutAttachmentGzip()
         throws IOException
     {
         Mockito.doAnswer( invocation -> {
@@ -201,7 +201,7 @@ class AbstractRootNodeMessageConverterTest
     }
 
     @Test
-    public void writeInternalWithoutAttachmentZip()
+    void writeInternalWithoutAttachmentZip()
         throws IOException
     {
         Mockito.doAnswer( invocation -> {
@@ -221,7 +221,7 @@ class AbstractRootNodeMessageConverterTest
     }
 
     @Test
-    public void writeInternalWithAttachmentZip()
+    void writeInternalWithAttachmentZip()
         throws IOException
     {
         Mockito.doAnswer( invocation -> {

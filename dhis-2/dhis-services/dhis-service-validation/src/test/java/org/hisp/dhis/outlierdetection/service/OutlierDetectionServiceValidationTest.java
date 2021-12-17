@@ -97,7 +97,7 @@ class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testSuccessfulValidation()
+    void testSuccessfulValidation()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -109,7 +109,7 @@ class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorValidation()
+    void testErrorValidation()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -121,7 +121,7 @@ class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorNoDataElements()
+    void testErrorNoDataElements()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 7, 1 ) )
@@ -132,7 +132,7 @@ class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorStartAfterEndDates()
+    void testErrorStartAfterEndDates()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -144,7 +144,7 @@ class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorNegativeThreshold()
+    void testErrorNegativeThreshold()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -157,7 +157,7 @@ class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorNegativeMaxResults()
+    void testErrorNegativeMaxResults()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -170,7 +170,7 @@ class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorDataStartDateAfterDataEndDate()
+    void testErrorDataStartDateAfterDataEndDate()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )

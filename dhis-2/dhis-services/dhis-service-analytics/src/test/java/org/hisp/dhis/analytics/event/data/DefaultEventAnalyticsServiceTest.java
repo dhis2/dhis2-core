@@ -115,7 +115,7 @@ class DefaultEventAnalyticsServiceTest
     }
 
     @Test
-    public void testOutputSchemeWhenSchemeIsSet()
+    void testOutputSchemeWhenSchemeIsSet()
     {
         // Given mock variables
         final IdScheme codeScheme = IdScheme.CODE;
@@ -137,7 +137,7 @@ class DefaultEventAnalyticsServiceTest
     }
 
     @Test
-    public void testOutputSchemeWhenNoSchemeIsSet()
+    void testOutputSchemeWhenNoSchemeIsSet()
     {
         // Given mock variables
         final IdScheme noScheme = null;

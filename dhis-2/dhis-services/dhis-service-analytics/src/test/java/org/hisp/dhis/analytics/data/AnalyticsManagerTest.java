@@ -114,7 +114,7 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testReplaceDataPeriodsWithAggregationPeriods()
+    void testReplaceDataPeriodsWithAggregationPeriods()
     {
         AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate );
         Period y2012 = createPeriod( "2012" );

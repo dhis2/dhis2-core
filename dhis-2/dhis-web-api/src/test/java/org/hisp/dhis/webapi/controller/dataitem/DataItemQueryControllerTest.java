@@ -97,7 +97,7 @@ class DataItemQueryControllerTest
     }
 
     @Test
-    public void testGetWithSuccess()
+    void testGetWithSuccess()
     {
         // Given
         final Map<String, String> anyUrlParameters = new HashMap<>();
@@ -125,7 +125,7 @@ class DataItemQueryControllerTest
     }
 
     @Test
-    public void testGetWhenItemsAreNotFound()
+    void testGetWhenItemsAreNotFound()
     {
         // Given
         final Map<String, String> anyUrlParameters = new HashMap<>();
@@ -152,7 +152,7 @@ class DataItemQueryControllerTest
     }
 
     @Test
-    public void testGetWhenAclIsInvalid()
+    void testGetWhenAclIsInvalid()
     {
         // Given
         final Map<String, String> anyUrlParameters = new HashMap<>();

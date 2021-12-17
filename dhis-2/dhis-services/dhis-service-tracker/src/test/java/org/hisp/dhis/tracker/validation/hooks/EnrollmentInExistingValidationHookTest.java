@@ -119,7 +119,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldExitCancelledStatus()
+    void shouldExitCancelledStatus()
     {
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.CANCELLED );
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
@@ -128,7 +128,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldThrowProgramNotFound()
+    void shouldThrowProgramNotFound()
     {
         when( enrollment.getProgram() ).thenReturn( null );
         assertThrows( NullPointerException.class,
@@ -136,7 +136,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldExitProgramOnlyEnrollOnce()
+    void shouldExitProgramOnlyEnrollOnce()
     {
         Program program = new Program();
         program.setOnlyEnrollOnce( false );
@@ -149,7 +149,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldThrowTrackedEntityNotFound()
+    void shouldThrowTrackedEntityNotFound()
     {
         Program program = new Program();
         program.setOnlyEnrollOnce( true );
@@ -162,7 +162,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldPassValidation()
+    void shouldPassValidation()
     {
         Program program = new Program();
         program.setOnlyEnrollOnce( true );
@@ -175,7 +175,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldFailActiveEnrollmentAlreadyInPayload()
+    void shouldFailActiveEnrollmentAlreadyInPayload()
     {
         setEnrollmentInPayload( EnrollmentStatus.ACTIVE );
 
@@ -189,7 +189,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldFailNotActiveEnrollmentAlreadyInPayloadAndEnrollOnce()
+    void shouldFailNotActiveEnrollmentAlreadyInPayloadAndEnrollOnce()
     {
         Program program = new Program();
         program.setUid( programUid );
@@ -208,7 +208,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldPassNotActiveEnrollmentAlreadyInPayloadAndNotEnrollOnce()
+    void shouldPassNotActiveEnrollmentAlreadyInPayloadAndNotEnrollOnce()
     {
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
 
@@ -218,7 +218,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldFailActiveEnrollmentAlreadyInDb()
+    void shouldFailActiveEnrollmentAlreadyInDb()
     {
         setTeiInDb();
 
@@ -232,7 +232,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldFailNotActiveEnrollmentAlreadyInDbAndEnrollOnce()
+    void shouldFailNotActiveEnrollmentAlreadyInDbAndEnrollOnce()
     {
         Program program = new Program();
         program.setUid( programUid );
@@ -251,7 +251,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldPassNotActiveEnrollmentAlreadyInDbAndNotEnrollOnce()
+    void shouldPassNotActiveEnrollmentAlreadyInDbAndNotEnrollOnce()
     {
         setTeiInDb( ProgramStatus.COMPLETED );
 
@@ -261,7 +261,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldFailAnotherEnrollmentAndEnrollOnce()
+    void shouldFailAnotherEnrollmentAndEnrollOnce()
     {
         Program program = new Program();
         program.setUid( programUid );
@@ -282,7 +282,7 @@ class EnrollmentInExistingValidationHookTest
     }
 
     @Test
-    public void shouldPassWhenAnotherEnrollmentAndNotEnrollOnce()
+    void shouldPassWhenAnotherEnrollmentAndNotEnrollOnce()
     {
         Program program = new Program();
         program.setUid( programUid );

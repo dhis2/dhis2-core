@@ -90,7 +90,7 @@ class ValidatingEventCheckerTest
     }
 
     @Test
-    public void verifyValidationFactoryProcessValidationCheck()
+    void verifyValidationFactoryProcessValidationCheck()
     {
         ObjectBundle bundle = createObjectBundle();
 

@@ -116,7 +116,7 @@ class TrackerImportControllerTest
     }
 
     @Test
-    public void verifyAsync()
+    void verifyAsync()
         throws Exception
     {
 
@@ -131,7 +131,7 @@ class TrackerImportControllerTest
     }
 
     @Test
-    public void verifyAsyncForCsv()
+    void verifyAsyncForCsv()
         throws Exception
     {
 
@@ -148,7 +148,7 @@ class TrackerImportControllerTest
     }
 
     @Test
-    public void verifySyncResponseShouldBeOkWhenImportReportStatusIsOk()
+    void verifySyncResponseShouldBeOkWhenImportReportStatusIsOk()
         throws Exception
     {
         // When
@@ -187,7 +187,7 @@ class TrackerImportControllerTest
     }
 
     @Test
-    public void verifySyncResponseForCsvShouldBeOkWhenImportReportStatusIsOk()
+    void verifySyncResponseForCsvShouldBeOkWhenImportReportStatusIsOk()
         throws Exception
     {
         // When
@@ -226,7 +226,7 @@ class TrackerImportControllerTest
     }
 
     @Test
-    public void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError()
+    void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError()
         throws Exception
     {
         String errorMessage = "errorMessage";
@@ -261,7 +261,7 @@ class TrackerImportControllerTest
     }
 
     @Test
-    public void verifySyncResponseForCsvShouldBeConflictWhenImportReportStatusIsError()
+    void verifySyncResponseForCsvShouldBeConflictWhenImportReportStatusIsError()
         throws Exception
     {
         String errorMessage = "errorMessage";
@@ -296,7 +296,7 @@ class TrackerImportControllerTest
     }
 
     @Test
-    public void verifyShouldFindJob()
+    void verifyShouldFindJob()
         throws Exception
     {
         String uid = CodeGenerator.generateUid();
@@ -323,7 +323,7 @@ class TrackerImportControllerTest
     }
 
     @Test
-    public void verifyShouldFindJobReport()
+    void verifyShouldFindJobReport()
         throws Exception
     {
         String uid = CodeGenerator.generateUid();
@@ -370,7 +370,7 @@ class TrackerImportControllerTest
     }
 
     @Test
-    public void verifyShouldThrowWhenJobReportNotFound()
+    void verifyShouldThrowWhenJobReportNotFound()
         throws Exception
     {
         String uid = CodeGenerator.generateUid();

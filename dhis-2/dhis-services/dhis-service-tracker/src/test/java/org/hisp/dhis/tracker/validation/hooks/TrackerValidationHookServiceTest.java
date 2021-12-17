@@ -54,7 +54,7 @@ class TrackerValidationHookServiceTest
     private TrackerValidationHookService trackerValidationHookService;
 
     @Test
-    public void shouldSortList()
+    void shouldSortList()
     {
         ReflectionTestUtils.setField( trackerValidationHookService, "validationOrder",
             Arrays.asList( PreCheckUidValidationHook.class, EnrollmentAttributeValidationHook.class,
@@ -85,7 +85,7 @@ class TrackerValidationHookServiceTest
     }
 
     @Test
-    public void shouldFilterRuleEngineValidationHooks()
+    void shouldFilterRuleEngineValidationHooks()
     {
         ReflectionTestUtils.setField( trackerValidationHookService, "ruleEngineValidationHooks",
             Arrays.asList( EnrollmentRuleValidationHook.class, EventRuleValidationHook.class ) );

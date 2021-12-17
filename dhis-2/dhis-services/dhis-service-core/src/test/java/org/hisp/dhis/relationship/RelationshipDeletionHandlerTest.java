@@ -66,7 +66,7 @@ class RelationshipDeletionHandlerTest
     }
 
     @Test
-    public void allowDeleteRelationshipTypeWithData()
+    void allowDeleteRelationshipTypeWithData()
     {
         when( relationshipService.getRelationshipsByRelationshipType( any() ) )
             .thenReturn( singletonList( new Relationship() ) );
@@ -79,7 +79,7 @@ class RelationshipDeletionHandlerTest
     }
 
     @Test
-    public void allowDeleteRelationshipTypeWithoutData()
+    void allowDeleteRelationshipTypeWithoutData()
     {
         when( relationshipService.getRelationshipsByRelationshipType( any() ) )
             .thenReturn( emptyList() );
@@ -91,7 +91,7 @@ class RelationshipDeletionHandlerTest
     }
 
     @Test
-    public void deleteTrackedEntityInstance()
+    void deleteTrackedEntityInstance()
     {
         when( relationshipService.getRelationshipsByTrackedEntityInstance( any(), anyBoolean() ) )
             .thenReturn( singletonList( new Relationship() ) );

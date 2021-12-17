@@ -158,7 +158,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDefaultCoc()
+    void testDefaultCoc()
     {
         // given
         program.setCategoryCombo( defaultCatCombo );
@@ -174,7 +174,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDefaultCocWithNonDefaultCatCombo()
+    void testDefaultCocWithNonDefaultCatCombo()
     {
         // given
         program.setCategoryCombo( catCombo );
@@ -191,7 +191,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testNoCategoryOptionDates()
+    void testNoCategoryOptionDates()
     {
         // when
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
@@ -204,7 +204,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testBetweenCategoryOptionDates()
+    void testBetweenCategoryOptionDates()
     {
         // given
         catOption.setStartDate( ONE_YEAR_BEFORE_EVENT );
@@ -221,7 +221,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testBeforeCategoryOptionStart()
+    void testBeforeCategoryOptionStart()
     {
         // given
         catOption.setStartDate( ONE_YEAR_AFTER_EVENT );
@@ -238,7 +238,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testAfterCategoryOptionEnd()
+    void testAfterCategoryOptionEnd()
     {
         // given
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );
@@ -255,7 +255,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testBeforeOpenDaysAfterCoEndDate()
+    void testBeforeOpenDaysAfterCoEndDate()
     {
         // given
         catOption.setEndDate( ONE_YEAR_BEFORE_EVENT );

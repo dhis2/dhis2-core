@@ -101,7 +101,7 @@ class JdbcEventStoreTest
     }
 
     @Test
-    public void verifyEventDataValuesAreProcessedOnceForEachPSI()
+    void verifyEventDataValuesAreProcessedOnceForEachPSI()
     {
         mockRowSet();
         EventSearchParams eventSearchParams = new EventSearchParams();

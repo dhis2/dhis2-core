@@ -80,7 +80,7 @@ class EventGeoValidationHookTest
     }
 
     @Test
-    public void testGeometryIsValid()
+    void testGeometryIsValid()
     {
         // given
         Event event = new Event();
@@ -97,7 +97,7 @@ class EventGeoValidationHookTest
     }
 
     @Test
-    public void testEventWithNoProgramStageThrowsAnError()
+    void testEventWithNoProgramStageThrowsAnError()
     {
         // given
         Event event = new Event();
@@ -111,7 +111,7 @@ class EventGeoValidationHookTest
     }
 
     @Test
-    public void testProgramStageWithNullFeatureTypeFailsGeometryValidation()
+    void testProgramStageWithNullFeatureTypeFailsGeometryValidation()
     {
         // given
         Event event = new Event();
@@ -131,7 +131,7 @@ class EventGeoValidationHookTest
     }
 
     @Test
-    public void testProgramStageWithFeatureTypeNoneFailsGeometryValidation()
+    void testProgramStageWithFeatureTypeNoneFailsGeometryValidation()
     {
         // given
         Event event = new Event();
@@ -153,7 +153,7 @@ class EventGeoValidationHookTest
     }
 
     @Test
-    public void testProgramStageWithFeatureTypeDifferentFromGeometryFails()
+    void testProgramStageWithFeatureTypeDifferentFromGeometryFails()
     {
         // given
         Event event = new Event();

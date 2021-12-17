@@ -101,8 +101,10 @@ class SqlViewServiceTest extends DhisSpringTest
     // SqlView
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testAddSqlView()
+    void testAddSqlView()
     {
         SqlView sqlViewA = createSqlView( 'A', sqlA );
         SqlView sqlViewB = createSqlView( 'B', sqlB );
@@ -127,7 +129,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testUpdateSqlView()
+    void testUpdateSqlView()
     {
         SqlView sqlView = createSqlView( 'A', sqlA );
 
@@ -143,7 +145,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetAndDeleteSqlView()
+    void testGetAndDeleteSqlView()
     {
         SqlView sqlViewA = createSqlView( 'A', sqlC );
         SqlView sqlViewB = createSqlView( 'B', sqlD );
@@ -166,7 +168,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetSqlViewByName()
+    void testGetSqlViewByName()
     {
         SqlView sqlViewA = createSqlView( 'A', sqlA );
         SqlView sqlViewB = createSqlView( 'B', sqlB );
@@ -180,7 +182,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testSetUpViewTableName()
+    void testSetUpViewTableName()
     {
         SqlView sqlViewC = createSqlView( 'C', sqlC );
         SqlView sqlViewD = createSqlView( 'D', sqlD );
@@ -190,14 +192,14 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateIllegalKeywords()
+    void testValidateIllegalKeywords()
     {
         assertThrows( IllegalQueryException.class,
             () -> sqlViewService.validateSqlView( getSqlView( "delete * from dataelement" ), null, null ) );
     }
 
     @Test
-    public void testValidateIllegalKeywordsCTE()
+    void testValidateIllegalKeywordsCTE()
     {
         SqlView sqlView = getSqlView( "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;" );
 
@@ -207,7 +209,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateIllegalKeywordsAtEnd()
+    void testValidateIllegalKeywordsAtEnd()
     {
         SqlView sqlView = getSqlView( "WITH foo as (SELECT * FROM organisationunit) commit" );
 
@@ -217,7 +219,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateIllegalKeywordsAfterSemicolon()
+    void testValidateIllegalKeywordsAfterSemicolon()
     {
         SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
 
@@ -227,7 +229,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateProtectedTables()
+    void testValidateProtectedTables()
     {
         SqlView sqlView = getSqlView( "select * from userinfo where userinfoid=1" );
 
@@ -237,7 +239,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateProtectedTables2()
+    void testValidateProtectedTables2()
     {
         SqlView sqlView = getSqlView( "select * from \"userinfo\" where userinfoid=1" );
 
@@ -247,7 +249,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateProtectedTables3()
+    void testValidateProtectedTables3()
     {
         SqlView sqlView = getSqlView( "select users.username \n FROM \"public\".users;" );
 
@@ -257,7 +259,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateMissingVariables()
+    void testValidateMissingVariables()
     {
         SqlView sqlView = getSqlView(
             "select * from dataelement where valueType = '${valueType}' and aggregationtype = '${aggregationType}'" );
@@ -272,7 +274,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateNotSelectQuery()
+    void testValidateNotSelectQuery()
     {
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class,
@@ -281,7 +283,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateTableList()
+    void testValidateTableList()
     {
         SqlView sqlView = getSqlView( "select username,password from users,dataapprovallevel" );
 
@@ -291,7 +293,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetGridValidationFailure()
+    void testGetGridValidationFailure()
     {
         // this is the easiest way to be allowed to read SQL view data
         createAndInjectAdminUser();
@@ -306,7 +308,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetGridRequiresDataReadSharing()
+    void testGetGridRequiresDataReadSharing()
     {
         createAndInjectAdminUser( "F_SQLVIEW_PUBLIC_ADD" );
 
@@ -322,14 +324,14 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateSuccess_NonAsciiLetterVariableValues()
+    void testValidateSuccess_NonAsciiLetterVariableValues()
     {
         sqlViewService.validateSqlView( getSqlView( "select * from dataelement where valueType = '${valueType}'" ),
             null, singletonMap( "valueType", "å" ) );
     }
 
     @Test
-    public void testValidateSuccessA()
+    void testValidateSuccessA()
     {
         SqlView sqlView = getSqlView( "select * from dataelement where valueType = '${valueType}'" );
 
@@ -340,7 +342,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateSuccessB()
+    void testValidateSuccessB()
     {
         SqlView sqlView = getSqlView(
             "select ug.name from usergroup ug where ug.name ~* '^OU\\s(\\w.*)\\sAgency\\s(\\w.*)\\susers$'" );
@@ -349,7 +351,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateSuccessC()
+    void testValidateSuccessC()
     {
         SqlView sqlView = getSqlView(
             "SELECT a.dataelementid as dsd_id,a.name as dsd_name,b.dataelementid as ta_id,b.ta_name FROM dataelement a" );
@@ -358,7 +360,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateSuccessD()
+    void testValidateSuccessD()
     {
         SqlView sqlView = getSqlView( "SELECT name, created, lastupdated FROM dataelement" );
 
@@ -366,7 +368,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateSuccessE()
+    void testValidateSuccessE()
     {
         SqlView sqlView = getSqlView( "select * from datavalue where storedby = '${_current_username}'" );
 
@@ -374,7 +376,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidateSuccessF()
+    void testValidateSuccessF()
     {
         SqlView sqlView = getSqlView(
             "select * from dataset where timelydays = ${timelyDays} and userid = ${_current_user_id}" );
@@ -386,7 +388,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testValidate_InvalidVarName()
+    void testValidate_InvalidVarName()
     {
         SqlView sqlView = getSqlView(
             "select * from dataelement where valueType = '${typö}' and aggregationtype = '${aggregationType}'" );
@@ -398,7 +400,7 @@ class SqlViewServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetSqlViewGrid()
+    void testGetSqlViewGrid()
     {
         User admin = createAndInjectAdminUser(); // makes admin current user
 

@@ -163,7 +163,7 @@ class RelationshipSMSListenerTest extends
     }
 
     @Test
-    public void testRelationship()
+    void testRelationship()
     {
         subject.receive( incomingSmsRelationship );
 

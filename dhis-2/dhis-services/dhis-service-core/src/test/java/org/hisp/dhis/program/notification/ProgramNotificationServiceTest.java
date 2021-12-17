@@ -214,8 +214,10 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     // Tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testIfProgramInstanceIsNull()
+    void testIfProgramInstanceIsNull()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( null );
 
@@ -225,7 +227,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfProgramStageInstanceIsNull()
+    void testIfProgramStageInstanceIsNull()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( null );
 
@@ -235,7 +237,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendCompletionNotification()
+    void testSendCompletionNotification()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -260,7 +262,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendEnrollmentNotification()
+    void testSendEnrollmentNotification()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -286,7 +288,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testUserGroupRecipient()
+    void testUserGroupRecipient()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -312,7 +314,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testOuContactRecipient()
+    void testOuContactRecipient()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -338,7 +340,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testProgramAttributeRecipientWithSMS()
+    void testProgramAttributeRecipientWithSMS()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -366,7 +368,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testProgramAttributeRecipientWithEMAIL()
+    void testProgramAttributeRecipientWithEMAIL()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -394,7 +396,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElementRecipientWithSMS()
+    void testDataElementRecipientWithSMS()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -427,7 +429,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElementRecipientWithEmail()
+    void testDataElementRecipientWithEmail()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -459,7 +461,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElementRecipientWithInternalRecipients()
+    void testDataElementRecipientWithInternalRecipients()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -493,7 +495,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendToParent()
+    void testSendToParent()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -524,7 +526,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendToHierarchy()
+    void testSendToHierarchy()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -561,7 +563,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendToUsersAtOu()
+    void testSendToUsersAtOu()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -593,7 +595,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testScheduledNotifications()
+    void testScheduledNotifications()
     {
         sentProgramMessages.clear();
 
@@ -614,7 +616,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testScheduledNotificationsWithDateInPast()
+    void testScheduledNotificationsWithDateInPast()
     {
         sentInternalMessages.clear();
 

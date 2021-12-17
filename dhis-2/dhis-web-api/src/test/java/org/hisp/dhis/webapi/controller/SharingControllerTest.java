@@ -72,7 +72,7 @@ class SharingControllerTest
     private SharingController sharingController;
 
     @Test
-    public void notSystemDefaultMetadataNoAccess()
+    void notSystemDefaultMetadataNoAccess()
     {
         final OrganisationUnit organisationUnit = new OrganisationUnit();
 
@@ -84,7 +84,7 @@ class SharingControllerTest
     }
 
     @Test
-    public void systemDefaultMetadataNoAccess()
+    void systemDefaultMetadataNoAccess()
     {
         final Category category = new Category();
         category.setName( Category.DEFAULT_NAME + "x" );
@@ -97,7 +97,7 @@ class SharingControllerTest
     }
 
     @Test
-    public void systemDefaultMetadata()
+    void systemDefaultMetadata()
         throws Exception
     {
         final Category category = new Category();

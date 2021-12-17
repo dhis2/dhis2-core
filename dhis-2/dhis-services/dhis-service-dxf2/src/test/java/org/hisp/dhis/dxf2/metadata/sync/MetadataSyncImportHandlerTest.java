@@ -93,7 +93,7 @@ class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenNoVersionSet()
+    void testShouldThrowExceptionWhenNoVersionSet()
     {
         syncParams.setImportParams( null );
         assertThrows( MetadataSyncServiceException.class,
@@ -102,7 +102,7 @@ class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenNoImportParams()
+    void testShouldThrowExceptionWhenNoImportParams()
     {
         syncParams.setVersion( metadataVersion );
         syncParams.setImportParams( null );
@@ -113,7 +113,7 @@ class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenImportServiceFails()
+    void testShouldThrowExceptionWhenImportServiceFails()
     {
         syncParams.setImportParams( new MetadataImportParams() );
         syncParams.setVersion( metadataVersion );
@@ -126,7 +126,7 @@ class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldImportMetadata()
+    void testShouldImportMetadata()
     {
         syncParams.setImportParams( new MetadataImportParams() );
         syncParams.setVersion( metadataVersion );
@@ -154,7 +154,7 @@ class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldImportMetadataWhenBestEffortWithWarnings()
+    void testShouldImportMetadataWhenBestEffortWithWarnings()
     {
         syncParams.setImportParams( new MetadataImportParams() );
         syncParams.setVersion( metadataVersion );
@@ -182,7 +182,7 @@ class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenClassListMapIsNull()
+    void testShouldThrowExceptionWhenClassListMapIsNull()
         throws IOException
     {
         syncParams.setImportParams( new MetadataImportParams() );
@@ -201,7 +201,7 @@ class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenParsingClassListMap()
+    void testShouldThrowExceptionWhenParsingClassListMap()
         throws IOException
     {
         syncParams.setImportParams( new MetadataImportParams() );
@@ -221,7 +221,7 @@ class MetadataSyncImportHandlerTest
     }
 
     @Test
-    public void testShouldReturnDefaultSummaryWhenImportStatusIsError()
+    void testShouldReturnDefaultSummaryWhenImportStatusIsError()
     {
         syncParams.setImportParams( new MetadataImportParams() );
         syncParams.setVersion( metadataVersion );

@@ -139,7 +139,7 @@ class DeleteEventSMSListenerTest extends
     }
 
     @Test
-    public void testDeleteEvent()
+    void testDeleteEvent()
     {
         subject.receive( incomingSmsDelete );
 

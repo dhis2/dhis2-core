@@ -214,7 +214,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest
     }
 
     @Test
-    public void verifyUserHasNoWritePermissionOnCategoryOption()
+    void verifyUserHasNoWritePermissionOnCategoryOption()
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         DataSet dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
@@ -301,7 +301,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest
     }
 
     @Test
-    public void testValidateAssertMissingDataSet()
+    void testValidateAssertMissingDataSet()
     {
         ExportParams params = new ExportParams()
             .setOrganisationUnits( Sets.newHashSet( new OrganisationUnit() ) )
