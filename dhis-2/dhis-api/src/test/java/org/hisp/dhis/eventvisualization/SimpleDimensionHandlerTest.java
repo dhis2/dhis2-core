@@ -87,7 +87,7 @@ class SimpleDimensionHandlerTest
             () -> handler.getDimensionalObject( invalidDimension, column ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "No value present" ) );
+        assertThat( thrown.getMessage(), containsString( "Invalid dimension: " + invalidDimension ) );
     }
 
     @Test

@@ -40,6 +40,7 @@ import java.util.List;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 
@@ -95,37 +96,22 @@ public class SimpleDimensionHandler
      */
     public void associateDimensions()
     {
-        if ( isNotEmpty( eventAnalyticalObject.getColumns() ) )
+        associateDimensionalObjects( eventAnalyticalObject.getColumns(), COLUMN );
+        associateDimensionalObjects( eventAnalyticalObject.getRows(), ROW );
+        associateDimensionalObjects( eventAnalyticalObject.getFilters(), FILTER );
+    }
+
+    private void associateDimensionalObjects( final List<DimensionalObject> dimensionalObjects,
+        final Attribute attribute )
+    {
+        if ( isNotEmpty( dimensionalObjects ) )
         {
-            for ( final DimensionalObject column : eventAnalyticalObject.getColumns() )
+            for ( final DimensionalObject object : dimensionalObjects )
             {
-                if ( column != null && contains( column.getUid() ) )
+                if ( object != null && contains( object.getUid() ) )
                 {
                     eventAnalyticalObject.getSimpleDimensions()
-                        .add( createSimpleEventDimensionFor( column, COLUMN ) );
-                }
-            }
-        }
-
-        if ( isNotEmpty( eventAnalyticalObject.getRows() ) )
-        {
-            for ( final DimensionalObject row : eventAnalyticalObject.getRows() )
-            {
-                if ( row != null && contains( row.getUid() ) )
-                {
-                    eventAnalyticalObject.getSimpleDimensions().add( createSimpleEventDimensionFor( row, ROW ) );
-                }
-            }
-        }
-
-        if ( isNotEmpty( eventAnalyticalObject.getFilters() ) )
-        {
-            for ( final DimensionalObject filter : eventAnalyticalObject.getFilters() )
-            {
-                if ( filter != null && contains( filter.getUid() ) )
-                {
-                    eventAnalyticalObject.getSimpleDimensions()
-                        .add( createSimpleEventDimensionFor( filter, FILTER ) );
+                        .add( createSimpleEventDimensionFor( object, attribute ) );
                 }
             }
         }
@@ -143,7 +129,7 @@ public class SimpleDimensionHandler
             if ( simpleDimension.belongsTo( parent ) && hasSameDimension )
             {
                 items.addAll( simpleDimension.getValues().stream()
-                    .map( value -> new BaseDimensionalItemObject( value ) ).collect( toList() ) );
+                    .map( BaseDimensionalItemObject::new ).collect( toList() ) );
             }
         }
 
@@ -159,8 +145,8 @@ public class SimpleDimensionHandler
 
         if ( isNotEmpty( dimensionalObject.getItems() ) )
         {
-            simpleDimension
-                .setValues( dimensionalObject.getItems().stream().map( v -> v.getUid() ).collect( toList() ) );
+            simpleDimension.setValues(
+                dimensionalObject.getItems().stream().map( DimensionalItemObject::getUid ).collect( toList() ) );
         }
 
         return simpleDimension;

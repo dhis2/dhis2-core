@@ -28,6 +28,8 @@
 package org.hisp.dhis.common;
 
 import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
@@ -614,6 +616,54 @@ public abstract class BaseAnalyticalObject
         else
         {
             throw new IllegalArgumentException( format( NOT_A_VALID_DIMENSION, dimension ) );
+        }
+    }
+
+    /**
+     * Populates the given dimensionalObjects list based on the respective
+     * dimensions provided.
+     *
+     * @param dimensions
+     * @param dimensionalObjects
+     */
+    protected void populateDimensions( final List<String> dimensions, final List<DimensionalObject> dimensionalObjects )
+    {
+        if ( isNotEmpty( dimensions ) )
+        {
+            for ( final String dimension : dimensions )
+            {
+                if ( isNotBlank( dimension ) )
+                {
+                    final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( dimension );
+                    if ( dimensionalObject.isPresent() )
+                    {
+                        dimensionalObjects.add( dimensionalObject.get() );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Populates the given dimensionalObjects list based on the respective
+     * dimensions provided. It takes in consideration simple dimensions along
+     * with its associated "attribute".
+     *
+     * @param dimensions
+     * @param dimensionalObjects
+     */
+    protected void populateDimensions( final List<String> dimensions, final List<DimensionalObject> dimensionalObjects,
+        final Attribute attribute, final EventAnalyticalObject eventAnalyticalObject )
+    {
+        if ( isNotEmpty( dimensions ) )
+        {
+            for ( final String column : dimensions )
+            {
+                if ( isNotBlank( column ) )
+                {
+                    dimensionalObjects.add( getDimensionalObject( eventAnalyticalObject, column, attribute ) );
+                }
+            }
         }
     }
 

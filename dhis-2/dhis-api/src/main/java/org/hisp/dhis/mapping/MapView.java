@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -251,16 +252,28 @@ public class MapView
     @Override
     public void populateAnalyticalProperties()
     {
-        for ( String column : columnDimensions )
+        for ( final String column : columnDimensions )
         {
-            columns.add( getDimensionalObject( column ).get() );
+            final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( column );
+            if ( dimensionalObject.isPresent() )
+            {
+                columns.add( dimensionalObject.get() );
+            }
         }
 
-        rows.add( getDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID ).get() );
-
-        for ( String filter : filterDimensions )
+        final Optional<DimensionalObject> orgUnitDimension = getDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID );
+        if ( orgUnitDimension.isPresent() )
         {
-            filters.add( getDimensionalObject( filter ).get() );
+            rows.add( orgUnitDimension.get() );
+        }
+
+        for ( final String filter : filterDimensions )
+        {
+            final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( filter );
+            if ( dimensionalObject.isPresent() )
+            {
+                filters.add( dimensionalObject.get() );
+            }
         }
     }
 

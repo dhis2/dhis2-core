@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import lombok.Data;
 
@@ -91,10 +92,11 @@ public class SimpleDimension implements Serializable
                 .filter( t -> t.getDimension().equals( dimension ) ).findFirst().isPresent();
         }
 
-        public static Type from( final String exposedName )
+        public static Type from( final String dimension )
         {
             return stream( Type.values() )
-                .filter( t -> t.getDimension().equals( exposedName ) ).findFirst().get();
+                .filter( t -> t.getDimension().equals( dimension ) ).findFirst()
+                .orElseThrow( () -> new NoSuchElementException( "Invalid dimension: " + dimension ) );
         }
     }
 
@@ -112,6 +114,6 @@ public class SimpleDimension implements Serializable
 
     boolean belongsTo( final Attribute parent )
     {
-        return parent != null && parent.equals( parent );
+        return this.parent.equals( parent );
     }
 }

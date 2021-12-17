@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.common.AnalyticsType.EVENT;
 import static org.hisp.dhis.common.DimensionalObjectUtils.TITLE_ITEM_SEP;
@@ -684,40 +682,17 @@ public class EventVisualization extends BaseAnalyticalObject
     // AnalyticalObject
     // -------------------------------------------------------------------------
 
+    /**
+     * Some EventVisualization's may not have columnDimensions.
+     *
+     * PIE, GAUGE and others don't not have rowDimensions.
+     */
     @Override
     public void populateAnalyticalProperties()
     {
-        // Some EventVisualization's may not have columnDimensions.
-        if ( isNotEmpty( columnDimensions ) )
-        {
-            for ( final String column : columnDimensions )
-            {
-                if ( isNotBlank( column ) )
-                {
-                    columns.add( getDimensionalObject( this, column, COLUMN ) );
-                }
-            }
-        }
-
-        // PIE, GAUGE and others don't not have rowDimensions.
-        if ( isNotEmpty( rowDimensions ) )
-        {
-            for ( final String row : rowDimensions )
-            {
-                if ( isNotBlank( row ) )
-                {
-                    rows.add( getDimensionalObject( this, row, ROW ) );
-                }
-            }
-        }
-
-        for ( final String filter : filterDimensions )
-        {
-            if ( isNotBlank( filter ) )
-            {
-                filters.add( getDimensionalObject( this, filter, FILTER ) );
-            }
-        }
+        super.populateDimensions( columnDimensions, columns, COLUMN, this );
+        super.populateDimensions( rowDimensions, rows, ROW, this );
+        super.populateDimensions( filterDimensions, filters, FILTER, this );
 
         value = firstNonNull( dataElementValueDimension, attributeValueDimension );
     }

@@ -194,20 +194,9 @@ public class EventChart
     @Override
     public void populateAnalyticalProperties()
     {
-        for ( String column : columnDimensions )
-        {
-            columns.add( getDimensionalObject( column ).get() );
-        }
-
-        for ( String row : rowDimensions )
-        {
-            rows.add( getDimensionalObject( row ).get() );
-        }
-
-        for ( String filter : filterDimensions )
-        {
-            filters.add( getDimensionalObject( filter ).get() );
-        }
+        super.populateDimensions( columnDimensions, columns );
+        super.populateDimensions( rowDimensions, rows );
+        super.populateDimensions( filterDimensions, filters );
 
         value = ObjectUtils.firstNonNull( dataElementValueDimension, attributeValueDimension );
     }
