@@ -48,11 +48,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Controller tests for
- * {@link org.hisp.dhis.webapi.controller.event.EventVisualizationController}.
+ * {@link org.hisp.dhis.webapi.controller.event.EventReportController}.
  *
  * @author maikel arabori
  */
-class EventVisualizationControllerTest extends DhisControllerConvenienceTest
+class EventReportControllerTest extends DhisControllerConvenienceTest
 {
 
     @Autowired
@@ -75,11 +75,11 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
         final String eventDate = "2021-07-21_2021-08-01";
         final String dimensionBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
             + "'}]}";
-        final String body = "{'name': 'Name Test', 'type':'STACKED_COLUMN', 'program':{'id':'" + mockProgram.getUid()
+        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
             + "'}, 'columns': [" + dimensionBody + "]}";
 
         // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
 
         // Then
         final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
@@ -106,14 +106,14 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
         final String incidentDateBody = "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '"
             + incidentDate
             + "'}]}";
-        final String body = "{'name': 'Name Test', 'type':'STACKED_COLUMN', 'program':{'id':'" + mockProgram.getUid()
+        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
             + "'}, 'rows': [" + eventDateBody + "," + incidentDateBody + "]}";
 
         // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
 
         // Then
-        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
+        final JsonResponse response = GET( "/eventReports/" + uid ).content();
         final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
 
         assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "ROW" ) );
@@ -135,14 +135,14 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
         final String eventDate = "2021-07-21_2021-08-01";
         final String dimensionBody = "{'dimension': '" + invalidDimension + "', 'items': [{'id': '" + eventDate
             + "'}]}";
-        final String body = "{'name': 'Name Test', 'type':'STACKED_COLUMN', 'program':{'id':'" + mockProgram.getUid()
+        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
             + "'}, 'columns': [" + dimensionBody + "]}";
 
         // When
-        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
 
         // Then
         assertEquals( "Not a valid dimension: " + invalidDimension,
-            GET( "/eventVisualizations/" + uid ).error( BAD_REQUEST ).getMessage() );
+            GET( "/eventReports/" + uid ).error( BAD_REQUEST ).getMessage() );
     }
 }

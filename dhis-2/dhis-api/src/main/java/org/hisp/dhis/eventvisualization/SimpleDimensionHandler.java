@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.BaseAnalyticalObject.NOT_A_VALID_DIMENSION;
 import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
 import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
 import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.contains;
 import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.from;
-import static org.springframework.util.Assert.isTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,15 +79,8 @@ public class SimpleDimensionHandler
      */
     public DimensionalObject getDimensionalObject( final String dimension, final Attribute parent )
     {
-        if ( dimension != null && contains( dimension ) )
-        {
-            return new BaseDimensionalObject( dimension, from( dimension ).getParentType(),
-                loadDimensionalItems( dimension, parent ) );
-        }
-        else
-        {
-            throw new IllegalArgumentException( format( NOT_A_VALID_DIMENSION, dimension ) );
-        }
+        return new BaseDimensionalObject( dimension, from( dimension ).getParentType(),
+            loadDimensionalItems( dimension, parent ) );
     }
 
     /**
@@ -109,7 +99,7 @@ public class SimpleDimensionHandler
         {
             for ( final DimensionalObject column : eventAnalyticalObject.getColumns() )
             {
-                if ( column != null )
+                if ( column != null && contains( column.getUid() ) )
                 {
                     eventAnalyticalObject.getSimpleDimensions()
                         .add( createSimpleEventDimensionFor( column, COLUMN ) );
@@ -121,7 +111,7 @@ public class SimpleDimensionHandler
         {
             for ( final DimensionalObject row : eventAnalyticalObject.getRows() )
             {
-                if ( row != null )
+                if ( row != null && contains( row.getUid() ) )
                 {
                     eventAnalyticalObject.getSimpleDimensions().add( createSimpleEventDimensionFor( row, ROW ) );
                 }
@@ -132,7 +122,7 @@ public class SimpleDimensionHandler
         {
             for ( final DimensionalObject filter : eventAnalyticalObject.getFilters() )
             {
-                if ( filter != null )
+                if ( filter != null && contains( filter.getUid() ) )
                 {
                     eventAnalyticalObject.getSimpleDimensions()
                         .add( createSimpleEventDimensionFor( filter, FILTER ) );
@@ -163,8 +153,6 @@ public class SimpleDimensionHandler
     private SimpleDimension createSimpleEventDimensionFor( final DimensionalObject dimensionalObject,
         final Attribute attribute )
     {
-        isTrue( contains( dimensionalObject.getUid() ), format( NOT_A_VALID_DIMENSION, dimensionalObject.getUid() ) );
-
         final SimpleDimension simpleDimension = new SimpleDimension();
         simpleDimension.setParent( attribute );
         simpleDimension.setDimension( dimensionalObject.getUid() );

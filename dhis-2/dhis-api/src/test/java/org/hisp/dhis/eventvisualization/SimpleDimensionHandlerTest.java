@@ -41,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -82,11 +83,11 @@ class SimpleDimensionHandlerTest
         final SimpleDimensionHandler handler = new SimpleDimensionHandler( aEventVisualization );
 
         // When throws
-        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
+        final NoSuchElementException thrown = assertThrows( NoSuchElementException.class,
             () -> handler.getDimensionalObject( invalidDimension, column ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "Not a valid dimension" ) );
+        assertThat( thrown.getMessage(), containsString( "No value present" ) );
     }
 
     @Test

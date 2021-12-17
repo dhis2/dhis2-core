@@ -57,7 +57,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 @Data
 public class SimpleDimension implements Serializable
 {
-    enum Type
+    public enum Type
     {
         EVENT_DATE( "eventDate", PERIOD ),
         ENROLLMENT_DATE( "enrollmentDate", PERIOD ),

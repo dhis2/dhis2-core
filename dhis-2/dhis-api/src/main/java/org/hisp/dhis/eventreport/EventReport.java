@@ -35,7 +35,6 @@ import static org.hisp.dhis.eventvisualization.Attribute.ROW;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -43,7 +42,6 @@ import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -51,7 +49,6 @@ import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.eventvisualization.Attribute;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
@@ -262,17 +259,17 @@ public class EventReport
     {
         for ( String column : columnDimensions )
         {
-            columns.add( getDimensionalObject( column, COLUMN ) );
+            columns.add( getDimensionalObject( this, column, COLUMN ) );
         }
 
         for ( String row : rowDimensions )
         {
-            rows.add( getDimensionalObject( row, ROW ) );
+            rows.add( getDimensionalObject( this, row, ROW ) );
         }
 
         for ( String filter : filterDimensions )
         {
-            filters.add( getDimensionalObject( filter, FILTER ) );
+            filters.add( getDimensionalObject( this, filter, FILTER ) );
         }
 
         value = ObjectUtils.firstNonNull( dataElementValueDimension, attributeValueDimension );
@@ -284,33 +281,7 @@ public class EventReport
         value = null;
     }
 
-    /**
-     * This method will first try to return a concrete dimension (one that can
-     * be persisted and managed). If a concrete dimension is not found, then it
-     * will try to find a "String" dimension (one that is not defined anywhere
-     * and only exists for very specific use cases. See
-     * {@link SimpleDimension}).
-     *
-     * @param dimension the dimension, ie: dx, pe, eventDate
-     * @param parent the parent attribute
-     * @return the dimensional object related to the given dimension and
-     *         attribute.
-     */
-    private DimensionalObject getDimensionalObject( final String dimension, final Attribute parent )
-    {
-        final Optional<DimensionalObject> dimensionalObject = super.getDimensionalObject( dimension );
-
-        if ( dimensionalObject.isPresent() )
-        {
-            return dimensionalObject.get();
-        }
-        else
-        {
-            return new SimpleDimensionHandler( this ).getDimensionalObject( dimension, parent );
-        }
-    }
-
-    public void associateEventSimpleDimensions()
+    public void associateSimpleDimensions()
     {
         new SimpleDimensionHandler( this ).associateDimensions();
     }

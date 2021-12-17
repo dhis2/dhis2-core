@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
@@ -60,6 +61,10 @@ import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+import org.hisp.dhis.eventvisualization.Attribute;
+import org.hisp.dhis.eventvisualization.SimpleDimension;
+import org.hisp.dhis.eventvisualization.SimpleDimension.Type;
+import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -578,6 +583,38 @@ public abstract class BaseAnalyticalObject
         IdentifiableObjectUtils.removeDuplicates( items );
 
         return new BaseDimensionalObject( dimension, type, items );
+    }
+
+    /**
+     * This method will first try to return a concrete dimension (one that can
+     * be persisted and managed). If a concrete dimension is not found, then it
+     * will try to find a "String" dimension (one that is not defined anywhere
+     * and only exists for very specific use cases. See
+     * {@link SimpleDimension}).
+     *
+     * @param eventAnalyticalObject the object of type EventAnalyticalObject
+     * @param dimension the dimension, ie: dx, pe, eventDate
+     * @param parent the parent attribute
+     * @return the dimensional object related to the given dimension and
+     *         attribute.
+     */
+    protected DimensionalObject getDimensionalObject( final EventAnalyticalObject eventAnalyticalObject,
+        final String dimension, final Attribute parent )
+    {
+        final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( dimension );
+
+        if ( dimensionalObject.isPresent() )
+        {
+            return dimensionalObject.get();
+        }
+        else if ( Type.contains( dimension ) )
+        {
+            return new SimpleDimensionHandler( eventAnalyticalObject ).getDimensionalObject( dimension, parent );
+        }
+        else
+        {
+            throw new IllegalArgumentException( format( NOT_A_VALID_DIMENSION, dimension ) );
+        }
     }
 
     /**

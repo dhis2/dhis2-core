@@ -46,7 +46,6 @@ import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import org.hisp.dhis.analytics.EventDataType;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -695,7 +694,7 @@ public class EventVisualization extends BaseAnalyticalObject
             {
                 if ( isNotBlank( column ) )
                 {
-                    columns.add( getDimensionalObject( column, COLUMN ) );
+                    columns.add( getDimensionalObject( this, column, COLUMN ) );
                 }
             }
         }
@@ -707,7 +706,7 @@ public class EventVisualization extends BaseAnalyticalObject
             {
                 if ( isNotBlank( row ) )
                 {
-                    rows.add( getDimensionalObject( row, ROW ) );
+                    rows.add( getDimensionalObject( this, row, ROW ) );
                 }
             }
         }
@@ -716,40 +715,14 @@ public class EventVisualization extends BaseAnalyticalObject
         {
             if ( isNotBlank( filter ) )
             {
-                filters.add( getDimensionalObject( filter, FILTER ) );
+                filters.add( getDimensionalObject( this, filter, FILTER ) );
             }
         }
 
         value = firstNonNull( dataElementValueDimension, attributeValueDimension );
     }
 
-    /**
-     * This method will first try to return a concrete dimension (one that can
-     * be persisted and managed). If a concrete dimension is not found, then it
-     * will try to find a "String" dimension (one that is not defined anywhere
-     * and only exists for very specific use cases. See
-     * {@link SimpleDimension}).
-     *
-     * @param dimension the dimension, ie: dx, pe, eventDate
-     * @param parent the parent attribute
-     * @return the dimensional object related to the given dimension and
-     *         attribute.
-     */
-    private DimensionalObject getDimensionalObject( final String dimension, final Attribute parent )
-    {
-        final Optional<DimensionalObject> dimensionalObject = super.getDimensionalObject( dimension );
-
-        if ( dimensionalObject.isPresent() )
-        {
-            return dimensionalObject.get();
-        }
-        else
-        {
-            return new SimpleDimensionHandler( this ).getDimensionalObject( dimension, parent );
-        }
-    }
-
-    public void associateEventSimpleDimensions()
+    public void associateSimpleDimensions()
     {
         new SimpleDimensionHandler( this ).associateDimensions();
     }

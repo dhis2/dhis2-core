@@ -153,7 +153,7 @@ public class EventReportController
         report.getColumnDimensions().addAll( getDimensions( report.getColumns() ) );
         report.getRowDimensions().addAll( getDimensions( report.getRows() ) );
         report.getFilterDimensions().addAll( getDimensions( report.getFilters() ) );
-        report.associateEventSimpleDimensions();
+        report.associateSimpleDimensions();
     }
 
     /**
