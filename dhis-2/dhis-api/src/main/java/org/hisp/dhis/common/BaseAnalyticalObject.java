@@ -657,11 +657,11 @@ public abstract class BaseAnalyticalObject
     {
         if ( isNotEmpty( dimensions ) )
         {
-            for ( final String column : dimensions )
+            for ( final String dimension : dimensions )
             {
-                if ( isNotBlank( column ) )
+                if ( isNotBlank( dimension ) )
                 {
-                    dimensionalObjects.add( getDimensionalObject( eventAnalyticalObject, column, attribute ) );
+                    dimensionalObjects.add( getDimensionalObject( eventAnalyticalObject, dimension, attribute ) );
                 }
             }
         }

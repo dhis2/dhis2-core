@@ -257,20 +257,9 @@ public class EventReport
     @Override
     public void populateAnalyticalProperties()
     {
-        for ( String column : columnDimensions )
-        {
-            columns.add( getDimensionalObject( this, column, COLUMN ) );
-        }
-
-        for ( String row : rowDimensions )
-        {
-            rows.add( getDimensionalObject( this, row, ROW ) );
-        }
-
-        for ( String filter : filterDimensions )
-        {
-            filters.add( getDimensionalObject( this, filter, FILTER ) );
-        }
+        populateDimensions( columnDimensions, columns, COLUMN, this );
+        populateDimensions( rowDimensions, rows, ROW, this );
+        populateDimensions( filterDimensions, filters, FILTER, this );
 
         value = ObjectUtils.firstNonNull( dataElementValueDimension, attributeValueDimension );
     }
