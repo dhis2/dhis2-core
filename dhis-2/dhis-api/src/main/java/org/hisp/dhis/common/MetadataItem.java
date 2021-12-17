@@ -32,6 +32,7 @@ import java.util.Date;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.period.Period;
@@ -185,7 +186,7 @@ public class MetadataItem
 
             if ( indicator.getIndicatorType() != null )
             {
-                this.indicatorType = indicator.getIndicatorType();
+                this.indicatorType = HibernateProxyUtils.unproxy( indicator.getIndicatorType() );
             }
         }
     }
@@ -316,7 +317,7 @@ public class MetadataItem
 
     public void setIndicatorType( IndicatorType indicatorType )
     {
-        this.indicatorType = indicatorType;
+        this.indicatorType = HibernateProxyUtils.unproxy( indicatorType );
     }
 
     @JsonProperty
