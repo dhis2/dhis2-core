@@ -55,12 +55,22 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
 
     private static final String PROGRAMSTAGEID = "programstageid";
 
+    private static final String SAFE_COLUMN_RENAME_SQL = "DO $$ "
+        + "BEGIN "
+        + "  IF EXISTS(SELECT * "
+        + "    FROM information_schema.columns "
+        + "    WHERE table_name='programstageusergroupaccesses' and column_name='programid') "
+        + "  THEN "
+        + "alter table programstageusergroupaccesses rename COLUMN programid to programstageid; "
+        + "END IF; "
+        + "END $$; ";
+
     private static final String CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING = "SELECT count(*),programstageid,name,usergroupid  "
         +
         "FROM   (SELECT ps.*,uga.* " +
         "       FROM   programstage ps " +
         "       LEFT JOIN programstageusergroupaccesses psuga " +
-        "               ON ps.programstageid = psuga.%s " +
+        "               ON ps.programstageid = psuga.programstageid " +
         "       LEFT JOIN usergroupaccess uga " +
         "               ON psuga.usergroupaccessid = uga.usergroupaccessid) AS pscouga " +
         "GROUP  BY programstageid,name,usergroupid HAVING count(*) > 1";
@@ -85,10 +95,6 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
 
     private static final String DELETE_USRGRP_ACCESS = "delete from usergroupaccess where usergroupaccessid in (%s)";
 
-    private static final String CHECK_COLUMN_EXISTENCE = "SELECT column_name "
-        + "FROM information_schema.columns "
-        + "WHERE table_name='programstageusergroupaccesses' and column_name='programid'";
-
     @Override
     public void migrate( Context context )
         throws Exception
@@ -98,23 +104,16 @@ public class V2_36_6__Remove_duplicate_mappings_from_programstage_to_usergroups
         Set<String> userGroupIds = new HashSet<>();
         long totalCount = 0;
 
-        String psugaForeignKeyColumnName = PROGRAMSTAGEID;
-
-        // 0. For backward compatibility, check if the psuga table has old
-        // column or fixed column
-        try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( CHECK_COLUMN_EXISTENCE ); )
+        // 0. For backward compatibility, safely rename the psuga programid
+        // column to programstageid
+        try ( Statement stmt = context.getConnection().createStatement() )
         {
-            if ( rs.next() == true )
-            {
-                psugaForeignKeyColumnName = rs.getString( 1 );
-            }
+            stmt.execute( SAFE_COLUMN_RENAME_SQL );
         }
 
         // 1. Check if there are duplicate mappings. If not simply return.
         try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery(
-                String.format( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING, psugaForeignKeyColumnName ) ); )
+            ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_PGMSTG_USERGROUP_MAPPING ) )
         {
             if ( rs.next() == false )
             {
