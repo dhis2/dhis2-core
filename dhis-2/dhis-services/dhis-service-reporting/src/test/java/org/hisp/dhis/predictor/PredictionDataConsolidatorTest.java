@@ -48,7 +48,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -130,9 +129,9 @@ public class PredictionDataConsolidatorTest
 
     private OrganisationUnit orgUnitG;
 
-    private List<OrganisationUnit> levelOneOrgUnits;
+    private Set<OrganisationUnit> currentUserOrgUnits;
 
-    private OrganisationUnitLevel orgUnitLevelOne;
+    private List<OrganisationUnit> levelOneOrgUnits;
 
     private DataValue dataValueX;
 
@@ -277,9 +276,9 @@ public class PredictionDataConsolidatorTest
         orgUnitF.setPath( "/orgUnitCCCC/orgUnitFFFF" );
         orgUnitG.setPath( "/orgUnitDDDD/orgUnitGGGG" );
 
-        levelOneOrgUnits = Lists.newArrayList( orgUnitA, orgUnitB, orgUnitC, orgUnitD );
+        currentUserOrgUnits = Sets.newHashSet( orgUnitA, orgUnitB, orgUnitC, orgUnitD );
 
-        orgUnitLevelOne = new OrganisationUnitLevel( 1, "One" );
+        levelOneOrgUnits = Lists.newArrayList( orgUnitA, orgUnitB, orgUnitC, orgUnitD );
 
         // DataValue values:
         foundValueA = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementA, 25.0 );
@@ -451,7 +450,7 @@ public class PredictionDataConsolidatorTest
         consolidator.setUp( items, dataValueQueryPeriods, analyticsQueryPeriods, existingOutputPeriods,
             outputDataElementOperand, INCLUDE_DESCENDANTS );
 
-        consolidator.init( levelOneOrgUnits, 1 );
+        consolidator.init( currentUserOrgUnits, 1, levelOneOrgUnits );
 
         // Expected to be returned in this order:
         assertEquals( expectedB, consolidator.getData() );

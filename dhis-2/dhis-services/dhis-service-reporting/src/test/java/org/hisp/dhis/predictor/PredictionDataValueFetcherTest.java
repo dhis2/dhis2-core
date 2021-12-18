@@ -127,6 +127,8 @@ public class PredictionDataValueFetcherTest
 
     private OrganisationUnit orgUnitG;
 
+    private Set<OrganisationUnit> currentUserOrgUnits;
+
     private List<OrganisationUnit> levelOneOrgUnits;
 
     private DataValue dataValueA;
@@ -268,6 +270,8 @@ public class PredictionDataValueFetcherTest
         orgUnitF.setPath( "/orgUnitCCCC/orgUnitFFFF" );
         orgUnitG.setPath( "/orgUnitDDDD/orgUnitGGGG" );
 
+        currentUserOrgUnits = Sets.newHashSet( orgUnitA, orgUnitB, orgUnitC, orgUnitD );
+
         levelOneOrgUnits = Lists.newArrayList( orgUnitA, orgUnitB, orgUnitC, orgUnitD );
 
         dataValueA = new DataValue( dataElementA, periodA, orgUnitB, cocA, aocC, "10.0", "Y", null, null, null, false );
@@ -320,7 +324,7 @@ public class PredictionDataValueFetcherTest
             return new ArrayList<>();
         } );
 
-        fetcher.init( levelOneOrgUnits, ORG_UNIT_LEVEl, queryPeriods, outputPeriods,
+        fetcher.init( currentUserOrgUnits, ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
             dataElements, dataElementOperands, dataElementOperandX );
 
         PredictionData data1 = fetcher.getData();
@@ -351,7 +355,7 @@ public class PredictionDataValueFetcherTest
             return new ArrayList<>();
         } );
 
-        fetcher.init( levelOneOrgUnits, ORG_UNIT_LEVEl, queryPeriods, outputPeriods,
+        fetcher.init( currentUserOrgUnits, ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
             dataElements, dataElementOperands, dataElementOperandX );
 
         assertNull( fetcher.getData() );
@@ -364,7 +368,7 @@ public class PredictionDataValueFetcherTest
             throw new ArithmeticException();
         } );
 
-        fetcher.init( levelOneOrgUnits, ORG_UNIT_LEVEl, queryPeriods, outputPeriods,
+        fetcher.init( currentUserOrgUnits, ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
             dataElements, dataElementOperands, dataElementOperandX );
     }
 }

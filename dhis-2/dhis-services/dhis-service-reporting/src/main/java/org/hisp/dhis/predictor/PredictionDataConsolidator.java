@@ -120,14 +120,14 @@ public class PredictionDataConsolidator
      * @param orgUnits organisation units to fetch
      * @param orgUnitLevel level of organisation units to fetch
      */
-    public void init( List<OrganisationUnit> orgUnits, int orgUnitLevel )
+    public void init( Set<OrganisationUnit> currentUserOrgUnits, int orgUnitLevel, List<OrganisationUnit> orgUnits )
     {
         orgUnitsRemaining = new ArrayDeque<>( orgUnits );
 
         readyPredictionData = new ArrayDeque<>();
 
-        dataValueFetcher.init( orgUnits, orgUnitLevel, dataValueQueryPeriods, existingOutputPeriods,
-            dataElements, dataElementOperands, outputDataElementOperand );
+        dataValueFetcher.init( currentUserOrgUnits, orgUnitLevel, orgUnits, dataValueQueryPeriods,
+            existingOutputPeriods, dataElements, dataElementOperands, outputDataElementOperand );
 
         analyticsFetcher.init( analyticsQueryPeriods, analyticsItems );
     }

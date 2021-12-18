@@ -36,7 +36,6 @@ import static org.hisp.dhis.system.util.MathUtils.addDoubleObjects;
 import static org.hisp.dhis.system.util.ValidationUtils.getObjectValue;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -102,7 +101,7 @@ public class PredictionDataValueFetcher
 
     private final CategoryService categoryService;
 
-    private Set<OrganisationUnit> orgUnits;
+    private Set<OrganisationUnit> currentUserOrgUnits;
 
     private int orgUnitLevel;
 
@@ -139,28 +138,30 @@ public class PredictionDataValueFetcher
     private BlockingQueue<DeflatedDataValue> blockingQueue;
 
     /**
-     * The blocking queue size was chosen after performance testing. Five
-     * performed better than 1 or 2 (more parallelism), and better than than 10
-     * or 20 (less queue management overhead).
+     * The blocking queue size was chosen after performance testing. A value of
+     * 1 performed slightly better than 2 or larger values. Since most of the
+     * values are just buffered after they are pulled from the queue, there is
+     * no benefit of incurring the slight overhead of a larger queue size.
      */
-    private static final int DDV_BLOCKING_QUEUE_SIZE = 5;
+    private static final int DDV_BLOCKING_QUEUE_SIZE = 1;
 
     /**
      * Initializes for datavalue retrieval.
      *
-     * @param orgUnits organisation units to fetch.
+     * @param currentUserOrgUnits orgUnits assigned to current user.
      * @param orgUnitLevel level of organisation units to fetch.
+     * @param orgUnits organisation units to fetch.
      * @param queryPeriods periods to fetch.
      * @param outputPeriods predictor output periods.
      * @param dataElements data elements to fetch.
      * @param dataElementOperands data element operands to fetch.
      */
     public void init(
-        List<OrganisationUnit> orgUnits, int orgUnitLevel, Set<Period> queryPeriods, Set<Period> outputPeriods,
-        Set<DataElement> dataElements, Set<DataElementOperand> dataElementOperands,
-        DataElementOperand outputDataElementOperand )
+        Set<OrganisationUnit> currentUserOrgUnits, int orgUnitLevel, List<OrganisationUnit> orgUnits,
+        Set<Period> queryPeriods, Set<Period> outputPeriods, Set<DataElement> dataElements,
+        Set<DataElementOperand> dataElementOperands, DataElementOperand outputDataElementOperand )
     {
-        this.orgUnits = new HashSet<>( orgUnits );
+        this.currentUserOrgUnits = currentUserOrgUnits;
         this.orgUnitLevel = orgUnitLevel;
         this.queryPeriods = queryPeriods;
         this.outputPeriods = outputPeriods;
@@ -203,7 +204,7 @@ public class PredictionDataValueFetcher
         params.setDataElements( dataElements );
         params.setDataElementOperands( dataElementOperands );
         params.setPeriods( queryPeriods );
-        params.setOrganisationUnits( orgUnits );
+        params.setOrganisationUnits( currentUserOrgUnits );
         params.setOuMode( DESCENDANTS );
         params.setOrgUnitLevel( orgUnitLevel );
         params.setBlockingQueue( blockingQueue );
@@ -352,8 +353,8 @@ public class PredictionDataValueFetcher
             }
 
             if ( ddv.getSourcePath().equals( dv.getSource().getPath() )
-                && dv.getDataElement().equals( outputDataElementOperand.getDataElement() )
-                && dv.getCategoryOptionCombo().equals( outputDataElementOperand.getCategoryOptionCombo() )
+                && ddv.getDataElementId() == outputDataElementOperand.getDataElement().getId()
+                && ddv.getCategoryOptionComboId() == (outputDataElementOperand.getCategoryOptionCombo().getId())
                 && outputPeriods.contains( dv.getPeriod() ) )
             {
                 oldPredictions.add( dv );

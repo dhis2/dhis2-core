@@ -302,7 +302,7 @@ public class DefaultPredictionService
             List<OrganisationUnit> orgUnits = organisationUnitService
                 .getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits );
 
-            consolidator.init( orgUnits, orgUnitLevel.getLevel() );
+            consolidator.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits );
 
             PredictionData data;
 
