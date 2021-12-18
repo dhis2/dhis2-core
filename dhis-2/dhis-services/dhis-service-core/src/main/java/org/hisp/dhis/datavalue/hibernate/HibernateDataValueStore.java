@@ -318,7 +318,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         String sql = "select dv.dataelementid, dv.periodid, dv.sourceid" +
             ", dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value" +
             ", dv.storedby, dv.created, dv.lastupdated, dv.comment, dv.followup, dv.deleted" +
-            (joinOrgUnit ? ", ou.path collate \"POSIX\"" : "") +
+            (joinOrgUnit ? ", ou.path" : "") +
             " from datavalue dv";
 
         String where = "";
@@ -455,7 +455,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         if ( params.isOrderByOrgUnitPath() )
         {
-            sql += " order by ou.path collate \"POSIX\"";
+            sql += " order by ou.path";
         }
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );

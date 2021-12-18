@@ -31,454 +31,259 @@ import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.predictor.PredictionAnalyticsDataFetcher.PARTITION_SIZE;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.hisp.dhis.program.AnalyticsType.ENROLLMENT;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
  */
-@ExtendWith( MockitoExtension.class )
-class PredictionAnalyticsDataFetcherTest extends DhisConvenienceTest
+public class PredictionAnalyticsDataFetcherTest
+    extends DhisConvenienceTest
 {
-
     @Mock
     private AnalyticsService analyticsService;
 
-    private static final int TEST_A = 1;
+    @Mock
+    private CategoryService categoryService;
 
-    private static final int TEST_B = 3;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private static final int TEST_C = PARTITION_SIZE + 1;
+    private OrganisationUnit orgUnitA;
 
-    private static final int TEST_D = PARTITION_SIZE * 2 - 1;
-
-    private static final int TEST_E = PARTITION_SIZE * 2 + 3;
-
-    private static final int TEST_SIZE = PARTITION_SIZE * 2 + 5;
-
-    private static final long BASE_ORG_UNIT_ID = 1000;
-
-    private CategoryOptionCombo attributeOptionComboA;
-
-    private CategoryOptionCombo attributeOptionComboB;
+    private OrganisationUnit orgUnitB;
 
     private List<OrganisationUnit> orgUnits;
-
-    private List<List<OrganisationUnit>> partitions;
 
     private Period periodA;
 
     private Period periodB;
 
-    private List<Period> periods;
+    private Set<Period> periods;
 
     private Program programA;
 
     private Program programB;
 
-    private ProgramIndicator programIndicatorA;
-
-    private ProgramIndicator programIndicatorB;
-
     private TrackedEntityAttribute trackedEntityAttributeA;
 
-    private ProgramTrackedEntityAttributeDimensionItem programAttributeA;
-
-    private String programAttributeAUid;
-
-    List<DimensionalItemObject> attributeOptionItems;
-
-    List<DimensionalItemObject> nonAttributeOptionItems;
-
-    DataQueryParams paramsWithAttributeOptionsA;
-
-    DataQueryParams paramsWithAttributeOptionsB;
-
-    DataQueryParams paramsWithAttributeOptionsC;
-
-    DataQueryParams paramsWithoutAttributeOptionsA;
-
-    DataQueryParams paramsWithoutAttributeOptionsB;
-
-    DataQueryParams paramsWithoutAttributeOptionsC;
-
-    Grid gridWithAttributeOptionsA;
-
-    Grid gridWithAttributeOptionsB;
-
-    Grid gridWithAttributeOptionsC;
-
-    Grid gridWithoutAttributeOptionsA;
-
-    Grid gridWithoutAttributeOptionsB;
-
-    Grid gridWithoutAttributeOptionsC;
-
-    PredictionAnalyticsDataFetcher fetcher;
-
-    MapMapMap<String, Period, DimensionalItemObject, Object> aocExpected;
-
-    MapMapMap<String, Period, DimensionalItemObject, Object> aocData;
-
-    MapMap<Period, DimensionalItemObject, Object> nonAocExpected;
-
-    MapMap<Period, DimensionalItemObject, Object> nonAocData;
+    private PredictionAnalyticsDataFetcher fetcher;
 
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
 
-    @BeforeEach
+    @Before
     public void initTest()
     {
-        attributeOptionComboA = createCategoryOptionCombo( 'C' );
-        attributeOptionComboB = createCategoryOptionCombo( 'D' );
-
-        attributeOptionComboA.setId( 1 );
-        attributeOptionComboB.setId( 2 );
-
         periodA = createPeriod( "202101" );
         periodB = createPeriod( "202102" );
 
         periodA.setId( 3 );
         periodB.setId( 4 );
 
-        periods = Lists.newArrayList( periodA, periodB );
+        periods = Sets.newHashSet( periodA, periodB );
 
-        orgUnits = new ArrayList<>();
+        orgUnitA = createOrganisationUnit( "A" );
+        orgUnitB = createOrganisationUnit( "B" );
 
-        for ( int i = 0; i < TEST_SIZE; i++ )
-        {
-            OrganisationUnit orgUnit = createOrganisationUnit( "OrgUnit " + i );
+        orgUnitA.setUid( "orgUnitAuid" );
+        orgUnitB.setUid( "orgUnitBuid" );
 
-            orgUnit.setId( BASE_ORG_UNIT_ID + i );
-
-            orgUnit.setUid( "OuUID" + (100000 + i) );
-
-            orgUnits.add( orgUnit );
-        }
-
-        partitions = Lists.partition( orgUnits, PARTITION_SIZE );
+        orgUnits = Lists.newArrayList( orgUnitA, orgUnitB );
 
         programA = createProgram( 'A' );
         programB = createProgram( 'B' );
 
-        programIndicatorA = createProgramIndicator( 'A', programA, "expressionA", "filterA" );
-        programIndicatorB = createProgramIndicator( 'B', programB, "expressionB", "filterB" );
-
-        trackedEntityAttributeA = createTrackedEntityAttribute( 'A' );
-
-        programAttributeA = new ProgramTrackedEntityAttributeDimensionItem( programA, trackedEntityAttributeA );
-        programAttributeAUid = programA.getUid() + "." + trackedEntityAttributeA.getUid();
-
-        attributeOptionItems = Lists.newArrayList(
-            programIndicatorA,
-            programIndicatorB,
-            trackedEntityAttributeA );
-
-        nonAttributeOptionItems = Lists.newArrayList(
-            programAttributeA );
-
-        paramsWithAttributeOptionsA = DataQueryParams.newBuilder()
-            .withPeriods( periods )
-            .withDataDimensionItems( attributeOptionItems )
-            .withOrganisationUnits( partitions.get( 0 ) )
-            .withAttributeOptionCombos( Lists.newArrayList() )
-            .build();
-
-        paramsWithAttributeOptionsB = DataQueryParams.newBuilder()
-            .withPeriods( periods )
-            .withDataDimensionItems( attributeOptionItems )
-            .withOrganisationUnits( partitions.get( 1 ) )
-            .withAttributeOptionCombos( Lists.newArrayList() )
-            .build();
-
-        paramsWithAttributeOptionsC = DataQueryParams.newBuilder()
-            .withPeriods( periods )
-            .withDataDimensionItems( attributeOptionItems )
-            .withOrganisationUnits( partitions.get( 2 ) )
-            .withAttributeOptionCombos( Lists.newArrayList() )
-            .build();
-
-        paramsWithoutAttributeOptionsA = DataQueryParams.newBuilder()
-            .withPeriods( periods )
-            .withDataDimensionItems( attributeOptionItems )
-            .withOrganisationUnits( partitions.get( 0 ) )
-            .build();
-
-        paramsWithoutAttributeOptionsB = DataQueryParams.newBuilder()
-            .withPeriods( periods )
-            .withDataDimensionItems( attributeOptionItems )
-            .withOrganisationUnits( partitions.get( 1 ) )
-            .build();
-
-        paramsWithoutAttributeOptionsC = DataQueryParams.newBuilder()
-            .withPeriods( periods )
-            .withDataDimensionItems( attributeOptionItems )
-            .withOrganisationUnits( partitions.get( 2 ) )
-            .build();
-
-        gridWithAttributeOptionsA = newGridWithAttributeOptions();
-
-        gridWithAttributeOptionsA.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( programIndicatorA.getUid() )
-            .addValue( orgUnits.get( TEST_A ).getUid() )
-            .addValue( attributeOptionComboA.getUid() )
-            .addValue( 10.0 );
-
-        gridWithAttributeOptionsA.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( programIndicatorB.getUid() )
-            .addValue( orgUnits.get( TEST_A ).getUid() )
-            .addValue( attributeOptionComboA.getUid() )
-            .addValue( 20.0 );
-
-        gridWithAttributeOptionsA.addRow()
-            .addValue( periodB.getIsoDate() )
-            .addValue( programIndicatorB.getUid() )
-            .addValue( orgUnits.get( TEST_B ).getUid() )
-            .addValue( attributeOptionComboA.getUid() )
-            .addValue( 30.0 );
-
-        gridWithAttributeOptionsB = newGridWithAttributeOptions();
-
-        gridWithAttributeOptionsB.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( trackedEntityAttributeA.getUid() )
-            .addValue( orgUnits.get( TEST_C ).getUid() )
-            .addValue( attributeOptionComboA.getUid() )
-            .addValue( 40.0 );
-
-        gridWithAttributeOptionsB.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( trackedEntityAttributeA.getUid() )
-            .addValue( orgUnits.get( TEST_D ).getUid() )
-            .addValue( attributeOptionComboA.getUid() )
-            .addValue( 50.0 );
-
-        gridWithAttributeOptionsC = newGridWithAttributeOptions();
-
-        gridWithAttributeOptionsC.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( trackedEntityAttributeA.getUid() )
-            .addValue( orgUnits.get( TEST_E ).getUid() )
-            .addValue( attributeOptionComboA.getUid() )
-            .addValue( 60.0 );
-
-        gridWithoutAttributeOptionsA = newGridWithoutAttributeOptions();
-
-        gridWithoutAttributeOptionsA.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( programAttributeAUid )
-            .addValue( orgUnits.get( TEST_B ).getUid() )
-            .addValue( 70.0 );
-
-        gridWithoutAttributeOptionsB = newGridWithoutAttributeOptions();
-
-        gridWithoutAttributeOptionsC = newGridWithoutAttributeOptions();
-
-        gridWithoutAttributeOptionsC.addRow()
-            .addValue( periodA.getIsoDate() )
-            .addValue( programAttributeAUid )
-            .addValue( orgUnits.get( TEST_E ).getUid() )
-            .addValue( 80.0 );
-
-        fetcher = new PredictionAnalyticsDataFetcher( analyticsService );
-
-        when( analyticsService.getAggregatedDataValues( any( DataQueryParams.class ) ) )
-            .thenAnswer( p -> getMockGrid( p ) );
-
-        fetcher.init( orgUnits, new HashSet<>( periods ), new HashSet<>( attributeOptionItems ),
-            new HashSet<>( nonAttributeOptionItems ) );
-
-        aocExpected = new MapMapMap<>();
-
-        nonAocExpected = new MapMap<>();
+        fetcher = new PredictionAnalyticsDataFetcher( analyticsService, categoryService );
     }
 
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
+    @Test
+    public void testGetValues()
+    {
+        // ---------------------------------------------------------------------
+        // Items with Attribute Option Combos
+        // ---------------------------------------------------------------------
+
+        CategoryOptionCombo aocC = createCategoryOptionCombo( 'C' );
+        CategoryOptionCombo aocD = createCategoryOptionCombo( 'D' );
+
+        when( categoryService.getCategoryOptionCombo( aocC.getUid() ) ).thenReturn( aocC );
+        when( categoryService.getCategoryOptionCombo( aocD.getUid() ) ).thenReturn( aocD );
+
+        ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "expressionA", "filterA" );
+        ProgramIndicator programIndicatorB = createProgramIndicator( 'B', programB, "expressionB", "filterB" );
+
+        trackedEntityAttributeA = createTrackedEntityAttribute( 'A' );
+
+        Set<DimensionalItemObject> aocItems = Sets.newHashSet( programIndicatorA, programIndicatorB,
+            trackedEntityAttributeA );
+
+        DataQueryParams aocParams = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( periods ) )
+            .withDataDimensionItems( Lists.newArrayList( aocItems ) )
+            .withOrganisationUnits( orgUnits )
+            .withAttributeOptionCombos( Collections.emptyList() )
+            .build();
+
+        Grid aocGrid = new ListGrid();
+
+        aocGrid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true ) );
+        aocGrid.addHeader( new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true ) );
+        aocGrid.addHeader( new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true ) );
+        aocGrid.addHeader( new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true ) );
+        aocGrid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, false, true ) );
+
+        aocGrid.addRow()
+            .addValue( periodA.getIsoDate() )
+            .addValue( programIndicatorA.getUid() )
+            .addValue( orgUnitA.getUid() )
+            .addValue( aocC.getUid() )
+            .addValue( 10.0 );
+
+        aocGrid.addRow()
+            .addValue( periodB.getIsoDate() )
+            .addValue( programIndicatorB.getUid() )
+            .addValue( orgUnitA.getUid() )
+            .addValue( aocC.getUid() )
+            .addValue( 20.0 );
+
+        aocGrid.addRow()
+            .addValue( periodB.getIsoDate() )
+            .addValue( trackedEntityAttributeA.getUid() )
+            .addValue( orgUnitA.getUid() )
+            .addValue( aocD.getUid() )
+            .addValue( 30.0 );
+
+        aocGrid.addRow()
+            .addValue( periodA.getIsoDate() )
+            .addValue( programIndicatorA.getUid() )
+            .addValue( orgUnitB.getUid() )
+            .addValue( aocC.getUid() )
+            .addValue( 40.0 );
+
+        when( analyticsService.getAggregatedDataValues( aocParams ) ).thenReturn( aocGrid );
+
+        FoundDimensionItemValue expected1;
+        FoundDimensionItemValue expected2;
+        FoundDimensionItemValue expected3;
+        FoundDimensionItemValue expected4;
+
+        expected1 = new FoundDimensionItemValue( orgUnitA, periodA, aocC, programIndicatorA, 10.0 );
+        expected2 = new FoundDimensionItemValue( orgUnitA, periodB, aocC, programIndicatorB, 20.0 );
+        expected3 = new FoundDimensionItemValue( orgUnitA, periodB, aocD, trackedEntityAttributeA, 30.0 );
+        expected4 = new FoundDimensionItemValue( orgUnitB, periodA, aocC, programIndicatorA, 40.0 );
+
+        // ---------------------------------------------------------------------
+        // Items without Attribute Option Combos
+        // ---------------------------------------------------------------------
+
+        ProgramIndicator programIndicatorC = createProgramIndicator( 'C', programA, "expressionC", "filterC" );
+        ProgramIndicator programIndicatorD = createProgramIndicator( 'D', programB, "expressionD", "filterD" );
+
+        programIndicatorC.setAnalyticsType( ENROLLMENT );
+        programIndicatorD.setAnalyticsType( ENROLLMENT );
+
+        Set<DimensionalItemObject> nonAocItems = Sets.newHashSet( programIndicatorC, programIndicatorD );
+
+        DataQueryParams nonAocParams = DataQueryParams.newBuilder()
+            .withPeriods( Lists.newArrayList( periods ) )
+            .withDataDimensionItems( Lists.newArrayList( nonAocItems ) )
+            .withOrganisationUnits( orgUnits )
+            .build();
+
+        Grid nonAocGrid = new ListGrid();
+
+        nonAocGrid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true ) );
+        nonAocGrid.addHeader( new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true ) );
+        nonAocGrid.addHeader( new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true ) );
+        nonAocGrid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, false, true ) );
+
+        nonAocGrid.addRow()
+            .addValue( periodA.getIsoDate() )
+            .addValue( programIndicatorC.getUid() )
+            .addValue( orgUnitA.getUid() )
+            .addValue( 100.0 );
+
+        nonAocGrid.addRow()
+            .addValue( periodA.getIsoDate() )
+            .addValue( programIndicatorD.getUid() )
+            .addValue( orgUnitB.getUid() )
+            .addValue( 200.0 );
+
+        nonAocGrid.addRow()
+            .addValue( periodB.getIsoDate() )
+            .addValue( programIndicatorC.getUid() )
+            .addValue( orgUnitA.getUid() )
+            .addValue( 300.0 );
+
+        when( analyticsService.getAggregatedDataValues( nonAocParams ) ).thenReturn( nonAocGrid );
+
+        FoundDimensionItemValue expected5;
+        FoundDimensionItemValue expected6;
+        FoundDimensionItemValue expected7;
+
+        CategoryOptionCombo noAoc = null;
+
+        expected5 = new FoundDimensionItemValue( orgUnitA, periodA, noAoc, programIndicatorC, 100.0 );
+        expected6 = new FoundDimensionItemValue( orgUnitB, periodA, noAoc, programIndicatorD, 200.0 );
+        expected7 = new FoundDimensionItemValue( orgUnitA, periodB, noAoc, programIndicatorC, 300.0 );
+
+        // ---------------------------------------------------------------------
+        // Do the test
+        // ---------------------------------------------------------------------
+
+        Set<DimensionalItemObject> items = Sets.union( aocItems, nonAocItems );
+
+        fetcher.init( periods, items );
+
+        List<FoundDimensionItemValue> actual = fetcher.getValues( orgUnits );
+
+        assertContainsOnly( actual, expected1, expected2, expected3, expected4, expected5, expected6, expected7 );
+    }
 
     @Test
-    void testGetAocData()
+    public void testGetValuesEmpty()
     {
-        for ( int i = 0; i < TEST_SIZE; i++ )
-        {
-            MapMapMap<String, Period, DimensionalItemObject, Object> aocData = fetcher.getAocData( orgUnits.get( i ) );
+        fetcher.init( periods, Collections.emptySet() );
 
-            MapMapMap<String, Period, DimensionalItemObject, Object> expected = new MapMapMap<>();
+        List<FoundDimensionItemValue> actual = fetcher.getValues( orgUnits );
 
-            switch ( i )
-            {
-            case TEST_A:
-                expected.putEntry( attributeOptionComboA.getUid(), periodA, programIndicatorA, 10.0 );
-                expected.putEntry( attributeOptionComboA.getUid(), periodA, programIndicatorB, 20.0 );
-                assertEquals( expected, aocData );
-                break;
-
-            case TEST_B:
-                expected.putEntry( attributeOptionComboA.getUid(), periodB, programIndicatorB, 30.0 );
-                assertEquals( expected, aocData );
-                break;
-
-            case TEST_C:
-                expected.putEntry( attributeOptionComboA.getUid(), periodA, trackedEntityAttributeA, 40.0 );
-                assertEquals( expected, aocData );
-                break;
-
-            case TEST_D:
-                expected.putEntry( attributeOptionComboA.getUid(), periodA, trackedEntityAttributeA, 50.0 );
-                assertEquals( expected, aocData );
-                break;
-
-            case TEST_E:
-                expected.putEntry( attributeOptionComboA.getUid(), periodA, trackedEntityAttributeA, 60.0 );
-                assertEquals( expected, aocData );
-                break;
-
-            default:
-                assertEquals( "index " + i + ": size 0", "index " + i + ": size " + aocData.size() );
-                break;
-            }
-        }
-    }
-
-    @Test
-    void testGetNonAocData()
-    {
-        when( analyticsService.getAggregatedDataValues( any( DataQueryParams.class ) ) )
-            .thenAnswer( p -> getMockGrid( p ) );
-
-        fetcher.init( orgUnits, new HashSet<>( periods ), new HashSet<>( attributeOptionItems ),
-            new HashSet<>( nonAttributeOptionItems ) );
-
-        for ( int i = 0; i < TEST_SIZE; i++ )
-        {
-            MapMap<Period, DimensionalItemObject, Object> nonAocData = fetcher.getNonAocData( orgUnits.get( i ) );
-
-            MapMap<Period, DimensionalItemObject, Object> expected = new MapMap<>();
-
-            switch ( i )
-            {
-            case TEST_B:
-                expected.putEntry( periodA, programAttributeA, 70.0 );
-                assertEquals( expected, nonAocData );
-                break;
-
-            case TEST_E:
-                expected.putEntry( periodA, programAttributeA, 80.0 );
-                assertEquals( expected, nonAocData );
-                break;
-
-            default:
-                assertEquals( "index " + i + ": size 0", "index " + i + ": size " + nonAocData.size() );
-                break;
-            }
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive Methods
-    // -------------------------------------------------------------------------
-
-    private Grid newGridWithAttributeOptions()
-    {
-        Grid grid = new ListGrid();
-
-        grid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true ) );
-        grid.addHeader( new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true ) );
-        grid.addHeader( new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true ) );
-        grid.addHeader( new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true ) );
-        grid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, false, true ) );
-
-        return grid;
-    }
-
-    private Grid newGridWithoutAttributeOptions()
-    {
-        Grid grid = new ListGrid();
-
-        grid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true ) );
-        grid.addHeader( new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true ) );
-        grid.addHeader( new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true ) );
-        grid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, false, true ) );
-
-        return grid;
-    }
-
-    private Grid getMockGrid( InvocationOnMock invocation )
-    {
-        DataQueryParams params = invocation.getArgument( 0 );
-
-        OrganisationUnit firstOrgUnitParam = (OrganisationUnit) params.getDimensionOptions( ORGUNIT_DIM_ID ).get( 0 );
-
-        long firstOrgUnitIndex = firstOrgUnitParam.getId() - BASE_ORG_UNIT_ID;
-
-        if ( params.getDimension( ATTRIBUTEOPTIONCOMBO_DIM_ID ) != null )
-        {
-            if ( firstOrgUnitIndex == 0 )
-            {
-                return gridWithAttributeOptionsA;
-            }
-            else if ( firstOrgUnitIndex == PARTITION_SIZE )
-            {
-                return gridWithAttributeOptionsB;
-            }
-            else
-            {
-                return gridWithAttributeOptionsC;
-            }
-        }
-        else
-        {
-            if ( firstOrgUnitIndex == 0 )
-            {
-                return gridWithoutAttributeOptionsA;
-            }
-            else if ( firstOrgUnitIndex == PARTITION_SIZE )
-            {
-                return gridWithoutAttributeOptionsB;
-            }
-            else
-            {
-                return gridWithoutAttributeOptionsC;
-            }
-        }
+        assertContainsOnly( actual );
     }
 }

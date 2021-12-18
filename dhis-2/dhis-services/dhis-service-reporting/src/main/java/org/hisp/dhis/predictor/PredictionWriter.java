@@ -75,7 +75,6 @@ public class PredictionWriter
      *
      * @param existingOutputPeriods existing output periods before transation.
      * @param summary prediction summary into which to write statistics.
-     * @param storedBy string to identify the user storing the predicted values.
      */
     public void init( Set<Period> existingOutputPeriods, PredictionSummary summary )
     {
