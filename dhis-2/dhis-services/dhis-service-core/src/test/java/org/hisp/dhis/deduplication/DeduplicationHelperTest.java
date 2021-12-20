@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.deduplication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -55,17 +55,20 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
-@RunWith( MockitoJUnitRunner.class )
-public class DeduplicationHelperTest extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( { MockitoExtension.class } )
+class DeduplicationHelperTest extends DhisConvenienceTest
 {
     @InjectMocks
     private DeduplicationHelper deduplicationHelper;
@@ -105,7 +108,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
     private User user;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         List<String> relationshipUids = Lists.newArrayList( "REL_A", "REL_B" );
@@ -141,7 +144,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldHasUserAccess()
+    void shouldHasUserAccess()
     {
         String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
@@ -151,7 +154,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotHasUserAccessWhenUserIsNull()
+    void shouldNotHasUserAccessWhenUserIsNull()
     {
         when( currentUserService.getCurrentUser() ).thenReturn( null );
 
@@ -164,7 +167,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotHasUserAccessWhenUserHasNoMergeRoles()
+    void shouldNotHasUserAccessWhenUserHasNoMergeRoles()
     {
         when( currentUserService.getCurrentUser() ).thenReturn( getNoMergeAuthsUser() );
 
@@ -177,7 +180,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotHasUserAccessWhenUserHasNoAccessToOriginalTEIType()
+    void shouldNotHasUserAccessWhenUserHasNoAccessToOriginalTEIType()
     {
         when( aclService.canDataWrite( user, trackedEntityTypeA ) ).thenReturn( false );
 
@@ -190,7 +193,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotHasUserAccessWhenUserHasNoAccessToDuplicateTEIType()
+    void shouldNotHasUserAccessWhenUserHasNoAccessToDuplicateTEIType()
     {
         when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( false );
 
@@ -203,7 +206,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotHasUserAccessWhenUserHasNoAccessToRelationshipType()
+    void shouldNotHasUserAccessWhenUserHasNoAccessToRelationshipType()
     {
         when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( false );
 
@@ -216,7 +219,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotHasUserAccessWhenUserHasNoAccessToProgramInstance()
+    void shouldNotHasUserAccessWhenUserHasNoAccessToProgramInstance()
     {
         when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( false );
 
@@ -229,7 +232,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotHasUserAccessWhenUserHasNoCaptureScopeAccessToOriginalOrgUnit()
+    void shouldNotHasUserAccessWhenUserHasNoCaptureScopeAccessToOriginalOrgUnit()
     {
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitA ) ).thenReturn( false );
 
@@ -242,7 +245,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotHasUserAccessWhenUserHasNoCaptureScopeAccessToDuplicateOrgUnit()
+    void shouldNotHasUserAccessWhenUserHasNoCaptureScopeAccessToDuplicateOrgUnit()
     {
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitB ) ).thenReturn( false );
 
@@ -255,14 +258,14 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldFailGenerateMergeObjectDifferentTrackedEntityType()
+    void shouldFailGenerateMergeObjectDifferentTrackedEntityType()
     {
         assertThrows( PotentialDuplicateForbiddenException.class,
             () -> deduplicationHelper.generateMergeObject( getTeiA(), getTeiB() ) );
     }
 
     @Test
-    public void shouldFailGenerateMergeObjectConflictingValue()
+    void shouldFailGenerateMergeObjectConflictingValue()
     {
         TrackedEntityInstance original = getTeiA();
 
@@ -281,12 +284,13 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         attributeValueDuplicate.setValue( "Attribute-Duplicate" );
 
         duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
+
         assertThrows( PotentialDuplicateConflictException.class,
             () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
     }
 
     @Test
-    public void shoudGenerateMergeObjectForAttribute()
+    void shoudGenerateMergeObjectForAttribute()
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
     {
@@ -317,7 +321,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMergeObjectRelationship()
+    void testMergeObjectRelationship()
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
     {
@@ -362,7 +366,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldGenerateMergeObjectWIthEnrollments()
+    void shouldGenerateMergeObjectWIthEnrollments()
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
     {
@@ -384,7 +388,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldFailGenerateMergeObjectEnrollmentsSameProgram()
+    void shouldFailGenerateMergeObjectEnrollmentsSameProgram()
     {
         TrackedEntityInstance original = getTeiA();
 
@@ -395,12 +399,13 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         TrackedEntityInstance duplicate = getTeiA();
         ProgramInstance programInstanceB = createProgramInstance( program, duplicate, organisationUnitA );
         duplicate.getProgramInstances().add( programInstanceB );
+
         assertThrows( PotentialDuplicateConflictException.class,
             () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
     }
 
     @Test
-    public void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeis()
+    void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeis()
     {
         TrackedEntityInstance teiA = getTeiA();
         TrackedEntityInstance teiB = getTeiB();
@@ -446,7 +451,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeisBidirectional()
+    void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeisBidirectional()
     {
         TrackedEntityInstance teiA = getTeiA();
         TrackedEntityInstance teiB = getTeiB();
@@ -492,7 +497,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    public void shouldNotFailGetDuplicateRelationshipError()
+    void shouldNotFailGetDuplicateRelationshipError()
     {
         TrackedEntityInstance teiA = getTeiA();
         TrackedEntityInstance teiB = getTeiB();

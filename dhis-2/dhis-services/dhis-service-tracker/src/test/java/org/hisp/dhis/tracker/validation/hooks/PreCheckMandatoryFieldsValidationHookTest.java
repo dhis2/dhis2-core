@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -49,22 +49,23 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-public class PreCheckMandatoryFieldsValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class PreCheckMandatoryFieldsValidationHookTest
 {
-    private PreCheckMandatoryFieldsValidationHook validationHook;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private PreCheckMandatoryFieldsValidationHook validationHook;
 
     @Mock
     private TrackerBundle bundle;
@@ -75,7 +76,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         validationHook = new PreCheckMandatoryFieldsValidationHook();
@@ -87,7 +88,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccess()
+    void verifyTrackedEntityValidationSuccess()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntityType( CodeGenerator.generateUid() )
@@ -101,7 +102,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsOnMissingOrgUnit()
+    void verifyTrackedEntityValidationFailsOnMissingOrgUnit()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntityType( CodeGenerator.generateUid() )
@@ -115,7 +116,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType()
+    void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntityType( null )
@@ -129,7 +130,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccess()
+    void verifyEnrollmentValidationSuccess()
     {
         Enrollment enrollment = Enrollment.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -144,7 +145,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsOnMissingTrackedEntity()
+    void verifyEnrollmentValidationFailsOnMissingTrackedEntity()
     {
         Enrollment enrollment = Enrollment.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -159,7 +160,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsOnMissingProgram()
+    void verifyEnrollmentValidationFailsOnMissingProgram()
     {
         Enrollment enrollment = Enrollment.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -174,7 +175,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsOnMissingOrgUnit()
+    void verifyEnrollmentValidationFailsOnMissingOrgUnit()
     {
         Enrollment enrollment = Enrollment.builder()
             .orgUnit( null )
@@ -189,7 +190,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccess()
+    void verifyEventValidationSuccess()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -204,7 +205,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingProgram()
+    void verifyEventValidationFailsOnMissingProgram()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -219,7 +220,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram()
+    void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -238,7 +239,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingProgramStage()
+    void verifyEventValidationFailsOnMissingProgramStage()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -253,7 +254,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingOrgUnit()
+    void verifyEventValidationFailsOnMissingOrgUnit()
     {
         Event event = Event.builder()
             .orgUnit( null )
@@ -268,7 +269,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationSuccess()
+    void verifyRelationshipValidationSuccess()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -288,7 +289,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsOnMissingFrom()
+    void verifyRelationshipValidationFailsOnMissingFrom()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -305,7 +306,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsOnMissingTo()
+    void verifyRelationshipValidationFailsOnMissingTo()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -322,7 +323,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsOnMissingRelationshipType()
+    void verifyRelationshipValidationFailsOnMissingRelationshipType()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )

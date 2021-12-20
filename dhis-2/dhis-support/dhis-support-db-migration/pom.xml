@@ -55,11 +55,11 @@
       <artifactId>spring-test</artifactId>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-    
+
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.dxf2.metadata.version;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.List;
 
@@ -48,17 +47,16 @@ import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.hisp.dhis.metadata.version.VersionType;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author sultanm
  */
-public class DefaultMetadataVersionServiceTest
-    extends TransactionalIntegrationTest
+@ExtendWith( MockitoExtension.class )
+class DefaultMetadataVersionServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private MetadataVersionService versionService;
@@ -71,9 +69,6 @@ public class DefaultMetadataVersionServiceTest
 
     @Autowired
     private MetadataSystemSettingService metadataSystemSettingService;
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     private MetadataVersion versionA;
 
@@ -114,7 +109,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldAddVersions()
+    void testShouldAddVersions()
     {
         long idA = versionService.addVersion( versionA );
         long idB = versionService.addVersion( versionB );
@@ -127,7 +122,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldDeleteAVersion()
+    void testShouldDeleteAVersion()
     {
         long id = versionService.addVersion( versionA );
 
@@ -137,7 +132,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldGetVersionsBasedOnIdOrName()
+    void testShouldGetVersionsBasedOnIdOrName()
     {
         long idA = versionService.addVersion( versionA );
 
@@ -149,7 +144,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldReturnTheLatestVersion()
+    void testShouldReturnTheLatestVersion()
     {
         versionService.addVersion( versionA );
         sleepFor( 100 );
@@ -159,7 +154,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testGetInitialVersion()
+    void testGetInitialVersion()
     {
         versionService.addVersion( versionA );
         sleepFor( 100 );
@@ -169,7 +164,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldReturnVersionsBetweenGivenTimeStamps()
+    void testShouldReturnVersionsBetweenGivenTimeStamps()
     {
         List<MetadataVersion> versions = null;
         Date startDate = new Date();
@@ -193,7 +188,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldReturnAllVersionsInSystem()
+    void testShouldReturnAllVersionsInSystem()
     {
         assertEquals( 0, versionService.getAllVersions().size() );
         versionService.addVersion( versionA );
@@ -206,8 +201,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldSaveVersionAndSnapShot()
-        throws NoSuchAlgorithmException
+    void testShouldSaveVersionAndSnapShot()
     {
         versionService.addVersion( versionA );
         versionService.saveVersion( VersionType.ATOMIC );
@@ -244,7 +238,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldCreateASnapshotThatContainsOnlyDelta()
+    void testShouldCreateASnapshotThatContainsOnlyDelta()
     {
         versionService.addVersion( versionA );
         DataElement de1 = createDataElement( 'A' );
@@ -263,8 +257,7 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldGiveValidVersionDataIfExists()
-        throws Exception
+    void testShouldGiveValidVersionDataIfExists()
     {
         versionService.createMetadataVersionInDataStore( "myVersion", "myJson" );
 
@@ -272,14 +265,13 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldReturnNullWhenAVersionDoesNotExist()
-        throws Exception
+    void testShouldReturnNullWhenAVersionDoesNotExist()
     {
         assertEquals( null, versionService.getVersionData( "myNonExistingVersion" ) );
     }
 
     @Test
-    public void testShouldStoreSnapshotInMetadataStore()
+    void testShouldStoreSnapshotInMetadataStore()
     {
         versionService.createMetadataVersionInDataStore( "myVersion", "mySnapshot" );
 
@@ -289,21 +281,21 @@ public class DefaultMetadataVersionServiceTest
     }
 
     @Test
-    public void testShouldThrowMetadataVersionServiceExceptionWhenSnapshotIsEmpty()
+    void testShouldThrowMetadataVersionServiceExceptionWhenSnapshotIsEmpty()
     {
         assertThrows( MetadataVersionServiceException.class,
             () -> versionService.createMetadataVersionInDataStore( "myVersion", "" ) );
     }
 
     @Test
-    public void testShouldThrowMetadataVersionServiceExceptionWhenSnapshotIsNull()
+    void testShouldThrowMetadataVersionServiceExceptionWhenSnapshotIsNull()
     {
         assertThrows( MetadataVersionServiceException.class,
             () -> versionService.createMetadataVersionInDataStore( "myVersion", null ) );
     }
 
     @Test
-    public void shouldThrowAnExceptionWhenVersionAndItsShanpShotAreNull()
+    void shouldThrowAnExceptionWhenVersionAndItsShanpShotAreNull()
     {
         assertThrows( MetadataVersionServiceException.class,
             () -> versionService.isMetadataPassingIntegrity( null, null ) );

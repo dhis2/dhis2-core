@@ -45,9 +45,8 @@ import static org.hisp.dhis.common.cache.Cacheability.PRIVATE;
 import static org.hisp.dhis.common.cache.Cacheability.PUBLIC;
 import static org.hisp.dhis.setting.SettingKey.CACHEABILITY;
 import static org.hisp.dhis.setting.SettingKey.CACHE_STRATEGY;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 import static org.springframework.http.CacheControl.maxAge;
 import static org.springframework.http.CacheControl.noCache;
 
@@ -57,14 +56,15 @@ import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.CacheControl;
 
-public class WebCacheTest
+@ExtendWith( MockitoExtension.class )
+class WebCacheTest
 {
 
     @Mock
@@ -73,19 +73,16 @@ public class WebCacheTest
     @Mock
     private AnalyticsCacheSettings analyticsCacheSettings;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private WebCache webCache;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         webCache = new WebCache( systemSettingManager, analyticsCacheSettings );
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsNoCache()
+    void testGetCacheControlForWhenCacheStrategyIsNoCache()
     {
         // Given
         final CacheControl expectedCacheControl = noCache();
@@ -98,7 +95,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsRespectSystemSetting()
+    void testGetCacheControlForWhenCacheStrategyIsRespectSystemSetting()
     {
         // Given
         final CacheStrategy strategy = CACHE_5_MINUTES;
@@ -114,7 +111,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetAnalyticsCacheControlForWhenTimeToLiveIsZero()
+    void testGetAnalyticsCacheControlForWhenTimeToLiveIsZero()
     {
         // Given
         final long zeroTimeToLive = 0;
@@ -130,7 +127,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetAnalyticsCacheControlForWhenTimeToLiveIsNegative()
+    void testGetAnalyticsCacheControlForWhenTimeToLiveIsNegative()
     {
         // Given
         final long zeroTimeToLive = -1;
@@ -146,7 +143,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetAnalyticsCacheControlForWhenTimeToLiveIsPositive()
+    void testGetAnalyticsCacheControlForWhenTimeToLiveIsPositive()
     {
         // Given
         final long positiveTimeToLive = 60;
@@ -162,7 +159,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsRespectSystemSettingNotUsedInObjectBasis()
+    void testGetCacheControlForWhenCacheStrategyIsRespectSystemSettingNotUsedInObjectBasis()
     {
         // Given
         givenCacheStartegy( RESPECT_SYSTEM_SETTING );
@@ -172,7 +169,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsCache1Minute()
+    void testGetCacheControlForWhenCacheStrategyIsCache1Minute()
     {
         // Given
         final CacheStrategy strategy = CACHE_1_MINUTE;
@@ -187,7 +184,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsCache5Minutes()
+    void testGetCacheControlForWhenCacheStrategyIsCache5Minutes()
     {
         // Given
         final CacheStrategy strategy = CACHE_5_MINUTES;
@@ -202,7 +199,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsCache10Minutes()
+    void testGetCacheControlForWhenCacheStrategyIsCache10Minutes()
     {
         // Given
         final CacheStrategy strategy = CACHE_10_MINUTES;
@@ -217,7 +214,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsCache15Minutes()
+    void testGetCacheControlForWhenCacheStrategyIsCache15Minutes()
     {
         // Given
         final CacheStrategy strategy = CACHE_15_MINUTES;
@@ -232,7 +229,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsCache30Minutes()
+    void testGetCacheControlForWhenCacheStrategyIsCache30Minutes()
     {
         // Given
         final CacheStrategy strategy = CACHE_30_MINUTES;
@@ -247,7 +244,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsCache1Hour()
+    void testGetCacheControlForWhenCacheStrategyIsCache1Hour()
     {
         // Given
         final CacheStrategy strategy = CACHE_1_HOUR;
@@ -262,7 +259,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testGetCacheControlForWhenCacheStrategyIsCache2Weeks()
+    void testGetCacheControlForWhenCacheStrategyIsCache2Weeks()
     {
         // Given
         final CacheStrategy strategy = CACHE_TWO_WEEKS;
@@ -277,7 +274,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testSetCacheabilityWhenCacheabilityIsSetToPublic()
+    void testSetCacheabilityWhenCacheabilityIsSetToPublic()
     {
         // Given
         givenCacheability( PUBLIC );
@@ -289,7 +286,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testSetCacheabilityWhenCacheabilityIsSetToPrivate()
+    void testSetCacheabilityWhenCacheabilityIsSetToPrivate()
     {
         // Given
         givenCacheability( PRIVATE );
@@ -301,7 +298,7 @@ public class WebCacheTest
     }
 
     @Test
-    public void testSetCacheabilityWhenCacheabilityIsSetToNull()
+    void testSetCacheabilityWhenCacheabilityIsSetToNull()
     {
         // Given
         givenCacheability( null );

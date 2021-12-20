@@ -40,7 +40,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -66,23 +66,20 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AbstractJdbcEventAnalyticsManagerTest
-    extends
+@ExtendWith( MockitoExtension.class )
+class AbstractJdbcEventAnalyticsManagerTest extends
     EventAnalyticsTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -100,7 +97,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
     private Date to = getDate( 2018, 10, 10 );
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
@@ -118,7 +115,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetSelectSqlWithProgramIndicator()
+    void verifyGetSelectSqlWithProgramIndicator()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         QueryItem item = new QueryItem( programIndicator );
@@ -130,7 +127,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetSelectSqlWithTextDataElement()
+    void verifyGetSelectSqlWithTextDataElement()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -143,7 +140,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetSelectSqlWithNonTextDataElement()
+    void verifyGetSelectSqlWithNonTextDataElement()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -156,7 +153,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetCoordinateColumn()
+    void verifyGetCoordinateColumn()
     {
         // Given
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -175,7 +172,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetColumn()
+    void verifyGetColumn()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -193,7 +190,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetAggregateClauseWithValue()
+    void verifyGetAggregateClauseWithValue()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -208,7 +205,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetAggregateClauseWithValueFails()
+    void verifyGetAggregateClauseWithValueFails()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
 
@@ -220,7 +217,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetAggregateClauseWithProgramIndicator()
+    void verifyGetAggregateClauseWithProgramIndicator()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
@@ -237,7 +234,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetAggregateClauseWithProgramIndicatorAndCustomAggregationType()
+    void verifyGetAggregateClauseWithProgramIndicatorAndCustomAggregationType()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         programIndicator.setAggregationType( AggregationType.CUSTOM );
@@ -255,7 +252,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetAggregateClauseWithEnrollmentDimension()
+    void verifyGetAggregateClauseWithEnrollmentDimension()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         programIndicator.setAnalyticsType( AnalyticsType.ENROLLMENT );
@@ -273,7 +270,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
+    void verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
         // Given
 
@@ -308,7 +305,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
+    void verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
         // Given
 
@@ -343,7 +340,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
     }
 
     @Test
-    public void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
+    void testGetWhereClauseWithMultipleOrgUnitDescendantsAtSameLevel()
     {
         // Given
         final DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID,

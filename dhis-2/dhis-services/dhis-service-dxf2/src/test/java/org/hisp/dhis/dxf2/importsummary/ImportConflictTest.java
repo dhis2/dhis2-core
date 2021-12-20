@@ -27,21 +27,21 @@
  */
 package org.hisp.dhis.dxf2.importsummary;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class ImportConflictTest
+class ImportConflictTest
 {
 
     @Test
-    public void testImportConflictObjectCanBeNull()
+    void testImportConflictObjectCanBeNull()
     {
         new ImportConflict( null, "message" );
     }
 
     @Test
-    public void testImportConflictMessageCantBeNull()
+    void testImportConflictMessageCantBeNull()
     {
         assertThrows( NullPointerException.class, () -> new ImportConflict( "whatever", null ) );
     }

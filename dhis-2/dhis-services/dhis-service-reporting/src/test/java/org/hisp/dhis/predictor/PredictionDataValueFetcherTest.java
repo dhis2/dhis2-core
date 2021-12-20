@@ -29,8 +29,8 @@ package org.hisp.dhis.predictor;
 
 import static org.hisp.dhis.datavalue.DataValueStore.END_OF_DDV_DATA;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -51,12 +51,11 @@ import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -80,17 +79,15 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
-public class PredictionDataValueFetcherTest
-    extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class PredictionDataValueFetcherTest extends DhisConvenienceTest
 {
+
     @Mock
     private DataValueService dataValueService;
 
     @Mock
     private CategoryService categoryService;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private DataElement dataElementA;
 
@@ -148,7 +145,7 @@ public class PredictionDataValueFetcherTest
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         dataElementA = createDataElement( 'A' );
@@ -233,8 +230,10 @@ public class PredictionDataValueFetcherTest
     // Tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testGetDataValues()
+    void testGetDataValues()
     {
         when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
         when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
@@ -260,7 +259,7 @@ public class PredictionDataValueFetcherTest
     }
 
     @Test
-    public void testOrgUnitsOutOfOrder()
+    void testOrgUnitsOutOfOrder()
     {
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
@@ -275,7 +274,7 @@ public class PredictionDataValueFetcherTest
     }
 
     @Test
-    public void testNoDataValues()
+    void testNoDataValues()
     {
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
@@ -293,7 +292,7 @@ public class PredictionDataValueFetcherTest
     }
 
     @Test
-    public void testProducerException()
+    void testProducerException()
     {
         when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> {
             throw new ArithmeticException();

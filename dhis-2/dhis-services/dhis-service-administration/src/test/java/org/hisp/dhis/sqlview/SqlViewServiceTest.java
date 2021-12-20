@@ -28,11 +28,11 @@
 package org.hisp.dhis.sqlview;
 
 import static java.util.Collections.singletonMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNotSame;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,19 +44,19 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Dang Duy Hieu
  */
-public class SqlViewServiceTest
-    extends DhisSpringTest
+@ExtendWith( MockitoExtension.class )
+class SqlViewServiceTest extends DhisSpringTest
 {
+
     @Mock
     private CurrentUserService currentUserService;
 
@@ -65,9 +65,6 @@ public class SqlViewServiceTest
 
     @Autowired
     private UserService internalUserService;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private String sqlA = "SELECT   *  FROM     _categorystructure;;  ; ;;;  ;; ; ";
 
@@ -104,8 +101,10 @@ public class SqlViewServiceTest
     // SqlView
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testAddSqlView()
+    void testAddSqlView()
     {
         SqlView sqlViewA = createSqlView( 'A', sqlA );
         SqlView sqlViewB = createSqlView( 'B', sqlB );
@@ -130,7 +129,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testUpdateSqlView()
+    void testUpdateSqlView()
     {
         SqlView sqlView = createSqlView( 'A', sqlA );
 
@@ -146,7 +145,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testGetAndDeleteSqlView()
+    void testGetAndDeleteSqlView()
     {
         SqlView sqlViewA = createSqlView( 'A', sqlC );
         SqlView sqlViewB = createSqlView( 'B', sqlD );
@@ -169,7 +168,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testGetSqlViewByName()
+    void testGetSqlViewByName()
     {
         SqlView sqlViewA = createSqlView( 'A', sqlA );
         SqlView sqlViewB = createSqlView( 'B', sqlB );
@@ -183,7 +182,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testSetUpViewTableName()
+    void testSetUpViewTableName()
     {
         SqlView sqlViewC = createSqlView( 'C', sqlC );
         SqlView sqlViewD = createSqlView( 'D', sqlD );
@@ -193,14 +192,14 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateIllegalKeywords()
+    void testValidateIllegalKeywords()
     {
         assertThrows( IllegalQueryException.class,
             () -> sqlViewService.validateSqlView( getSqlView( "delete * from dataelement" ), null, null ) );
     }
 
     @Test
-    public void testValidateIllegalKeywordsCTE()
+    void testValidateIllegalKeywordsCTE()
     {
         SqlView sqlView = getSqlView( "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;" );
 
@@ -210,7 +209,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateIllegalKeywordsAtEnd()
+    void testValidateIllegalKeywordsAtEnd()
     {
         SqlView sqlView = getSqlView( "WITH foo as (SELECT * FROM organisationunit) commit" );
 
@@ -220,7 +219,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateIllegalKeywordsAfterSemicolon()
+    void testValidateIllegalKeywordsAfterSemicolon()
     {
         SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
 
@@ -230,7 +229,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateProtectedTables()
+    void testValidateProtectedTables()
     {
         SqlView sqlView = getSqlView( "select * from userinfo where userinfoid=1" );
 
@@ -240,7 +239,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateProtectedTables2()
+    void testValidateProtectedTables2()
     {
         SqlView sqlView = getSqlView( "select * from \"userinfo\" where userinfoid=1" );
 
@@ -250,7 +249,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateProtectedTables3()
+    void testValidateProtectedTables3()
     {
         SqlView sqlView = getSqlView( "select users.username \n FROM \"public\".users;" );
 
@@ -260,7 +259,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateMissingVariables()
+    void testValidateMissingVariables()
     {
         SqlView sqlView = getSqlView(
             "select * from dataelement where valueType = '${valueType}' and aggregationtype = '${aggregationType}'" );
@@ -275,7 +274,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateNotSelectQuery()
+    void testValidateNotSelectQuery()
     {
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class,
@@ -284,7 +283,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateTableList()
+    void testValidateTableList()
     {
         SqlView sqlView = getSqlView( "select username,password from users,dataapprovallevel" );
 
@@ -294,7 +293,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testGetGridValidationFailure()
+    void testGetGridValidationFailure()
     {
         // this is the easiest way to be allowed to read SQL view data
         createAndInjectAdminUser();
@@ -309,7 +308,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testGetGridRequiresDataReadSharing()
+    void testGetGridRequiresDataReadSharing()
     {
         createAndInjectAdminUser( "F_SQLVIEW_PUBLIC_ADD" );
 
@@ -325,14 +324,14 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateSuccess_NonAsciiLetterVariableValues()
+    void testValidateSuccess_NonAsciiLetterVariableValues()
     {
         sqlViewService.validateSqlView( getSqlView( "select * from dataelement where valueType = '${valueType}'" ),
             null, singletonMap( "valueType", "å" ) );
     }
 
     @Test
-    public void testValidateSuccessA()
+    void testValidateSuccessA()
     {
         SqlView sqlView = getSqlView( "select * from dataelement where valueType = '${valueType}'" );
 
@@ -343,7 +342,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateSuccessB()
+    void testValidateSuccessB()
     {
         SqlView sqlView = getSqlView(
             "select ug.name from usergroup ug where ug.name ~* '^OU\\s(\\w.*)\\sAgency\\s(\\w.*)\\susers$'" );
@@ -352,7 +351,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateSuccessC()
+    void testValidateSuccessC()
     {
         SqlView sqlView = getSqlView(
             "SELECT a.dataelementid as dsd_id,a.name as dsd_name,b.dataelementid as ta_id,b.ta_name FROM dataelement a" );
@@ -361,7 +360,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateSuccessD()
+    void testValidateSuccessD()
     {
         SqlView sqlView = getSqlView( "SELECT name, created, lastupdated FROM dataelement" );
 
@@ -369,7 +368,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateSuccessE()
+    void testValidateSuccessE()
     {
         SqlView sqlView = getSqlView( "select * from datavalue where storedby = '${_current_username}'" );
 
@@ -377,7 +376,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidateSuccessF()
+    void testValidateSuccessF()
     {
         SqlView sqlView = getSqlView(
             "select * from dataset where timelydays = ${timelyDays} and userid = ${_current_user_id}" );
@@ -389,7 +388,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testValidate_InvalidVarName()
+    void testValidate_InvalidVarName()
     {
         SqlView sqlView = getSqlView(
             "select * from dataelement where valueType = '${typö}' and aggregationtype = '${aggregationType}'" );
@@ -401,7 +400,7 @@ public class SqlViewServiceTest
     }
 
     @Test
-    public void testGetSqlViewGrid()
+    void testGetSqlViewGrid()
     {
         User admin = createAndInjectAdminUser(); // makes admin current user
 

@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
@@ -35,33 +38,27 @@ import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class BaseAnalyticalObjectTest
+class BaseAnalyticalObjectTest
 {
 
     @Test
-    public void testPopulateAnalyticalProperties()
+    void testPopulateAnalyticalProperties()
     {
         TrackedEntityAttribute tea = new TrackedEntityAttribute();
         tea.setAutoFields();
-
         TrackedEntityAttributeDimension tead = new TrackedEntityAttributeDimension( tea, null, "EQ:10" );
-
         EventChart eventChart = new EventChart();
         eventChart.setAutoFields();
         eventChart.getColumnDimensions().add( tea.getUid() );
         eventChart.getAttributeDimensions().add( tead );
-
         eventChart.populateAnalyticalProperties();
-
         assertEquals( 1, eventChart.getColumns().size() );
-
         DimensionalObject dim = eventChart.getColumns().get( 0 );
-
         assertNotNull( dim );
         assertEquals( DimensionType.PROGRAM_ATTRIBUTE, dim.getDimensionType() );
         assertEquals( AnalyticsType.EVENT, dim.getAnalyticsType() );
@@ -69,69 +66,55 @@ public class BaseAnalyticalObjectTest
     }
 
     @Test
-    public void testEquals()
+    void testEquals()
     {
         DataElement deA = new DataElement();
         deA.setUid( "A" );
         deA.setCode( "A" );
         deA.setName( "A" );
-
         DataElement deB = new DataElement();
         deB.setUid( "B" );
         deB.setCode( "B" );
         deB.setName( "B" );
-
         DataElement deC = new DataElement();
         deC.setUid( "A" );
         deC.setCode( "A" );
         deC.setName( "A" );
-
         DataSet dsA = new DataSet();
         dsA.setUid( "A" );
         dsA.setCode( "A" );
         dsA.setName( "A" );
-
         DataSet dsD = new DataSet();
         dsD.setUid( "D" );
         dsD.setCode( "D" );
         dsD.setName( "D" );
-
         assertTrue( deA.equals( deC ) );
-
         assertFalse( deA.equals( deB ) );
         assertFalse( dsA.equals( dsD ) );
     }
 
     @Test
-    public void testAddDataDimensionItem()
+    void testAddDataDimensionItem()
     {
         DataElement deA = new DataElement();
         deA.setAutoFields();
-
         MapView mv = new MapView( MapView.LAYER_THEMATIC1 );
-
         mv.addDataDimensionItem( deA );
-
         assertEquals( 1, mv.getDataDimensionItems().size() );
     }
 
     @Test
-    public void testRemoveDataDimensionItem()
+    void testRemoveDataDimensionItem()
     {
         DataElement deA = new DataElement();
         DataElement deB = new DataElement();
         deA.setAutoFields();
         deB.setAutoFields();
-
         MapView mv = new MapView( MapView.LAYER_THEMATIC1 );
-
         mv.addDataDimensionItem( deA );
         mv.addDataDimensionItem( deB );
-
         assertEquals( 2, mv.getDataDimensionItems().size() );
-
         mv.removeDataDimensionItem( deA );
-
         assertEquals( 1, mv.getDataDimensionItems().size() );
         assertEquals( deB, mv.getDataDimensionItems().get( 0 ).getDataElement() );
     }

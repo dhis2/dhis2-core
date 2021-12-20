@@ -27,41 +27,38 @@
  */
 package org.hisp.dhis.external.conf;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.external.location.DefaultLocationManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class DhisConfigurationProviderTest
+class DhisConfigurationProviderTest
 {
 
     @Test
-    public void isOn()
+    void isOn()
     {
         assertTrue( DhisConfigurationProvider.isOn( "on" ) );
         assertTrue( DhisConfigurationProvider.isOn( "ON" ) );
         assertTrue( DhisConfigurationProvider.isOn( "true" ) );
         assertTrue( DhisConfigurationProvider.isOn( "TRUE" ) );
-
         assertFalse( DhisConfigurationProvider.isOn( "off" ) );
         assertFalse( DhisConfigurationProvider.isOn( "OFF" ) );
         assertFalse( DhisConfigurationProvider.isOn( "false" ) );
         assertFalse( DhisConfigurationProvider.isOn( "FALSE" ) );
-
         assertFalse( DhisConfigurationProvider.isOn( "" ) );
         assertFalse( DhisConfigurationProvider.isOn( null ) );
     }
 
     @Test
-    public void isEnabled()
+    void isEnabled()
     {
         System.setProperty( "dhis2.home", "src/test/resources" );
         DefaultLocationManager locationManager = DefaultLocationManager.getDefault();
         locationManager.init();
         DefaultDhisConfigurationProvider configProvider = new DefaultDhisConfigurationProvider( locationManager );
         configProvider.init();
-
         assertFalse( configProvider.isEnabled( ConfigurationKey.REDIS_ENABLED ) );
         assertFalse( configProvider.isEnabled( ConfigurationKey.MONITORING_API_ENABLED ) );
         assertTrue( configProvider.isEnabled( ConfigurationKey.DEBEZIUM_ENABLED ) );

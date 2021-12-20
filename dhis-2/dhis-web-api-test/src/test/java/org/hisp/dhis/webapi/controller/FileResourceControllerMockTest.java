@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,15 +40,16 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-public class FileResourceControllerMockTest
+@ExtendWith( MockitoExtension.class )
+class FileResourceControllerMockTest
 {
+
     private FileResourceController controller;
 
     @Mock
@@ -60,11 +61,8 @@ public class FileResourceControllerMockTest
     @Mock
     private FileResourceUtils fileResourceUtils;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Test
-    public void testGetOrgUnitImage()
+    void testGetOrgUnitImage()
         throws WebMessageException,
         IOException
     {
@@ -82,7 +80,7 @@ public class FileResourceControllerMockTest
     }
 
     @Test
-    public void testGetDataValue()
+    void testGetDataValue()
     {
         controller = new FileResourceController( fileResourceService, fileResourceUtils );
         FileResource fileResource = new FileResource();

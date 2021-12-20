@@ -30,10 +30,9 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.Date;
 
@@ -58,14 +57,16 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class DataValidatorTest
+@ExtendWith( MockitoExtension.class )
+class DataValidatorTest
 {
+
     @Mock
     private CategoryService categoryService;
 
@@ -96,9 +97,6 @@ public class DataValidatorTest
     @Mock
     private DataValidator dataValidator;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private Period periodJan;
 
     private Period periodFeb;
@@ -117,7 +115,7 @@ public class DataValidatorTest
 
     private Date feb15;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         dataValidator = new DataValidator( categoryService, organisationUnitService, dataSetService,
@@ -164,7 +162,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testValidateAttributeOptionComboWithValidData()
+    void testValidateAttributeOptionComboWithValidData()
     {
         // Initially
         dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
@@ -203,7 +201,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testGetMissingDataElement()
+    void testGetMissingDataElement()
     {
         final String uid = CodeGenerator.generateUid();
 
@@ -216,7 +214,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testInvalidPeriod()
+    void testInvalidPeriod()
     {
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataValidator.getAndValidatePeriod( "502" ) );
@@ -225,7 +223,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testGetMissingOrgUnit()
+    void testGetMissingOrgUnit()
     {
         final String uid = CodeGenerator.generateUid();
 
@@ -238,7 +236,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testValidateAttributeOptionComboWithEarlyData()
+    void testValidateAttributeOptionComboWithEarlyData()
     {
         // Given
         categoryOptionA.setStartDate( feb15 );
@@ -250,7 +248,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testValidateAttributeOptionComboWithLateData()
+    void testValidateAttributeOptionComboWithLateData()
     {
         // Given
         categoryOptionA.setEndDate( jan15 );
@@ -262,7 +260,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testValidateAttributeOptionComboWithLateAdjustedData()
+    void testValidateAttributeOptionComboWithLateAdjustedData()
     {
         // Given
         categoryOptionA.setEndDate( jan15 );
@@ -275,7 +273,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void validateBooleanDataValueWhenValuesAreAcceptableTrue()
+    void validateBooleanDataValueWhenValuesAreAcceptableTrue()
     {
         // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
@@ -305,7 +303,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void validateBooleanDataValueWhenValuesAreAcceptableFalse()
+    void validateBooleanDataValueWhenValuesAreAcceptableFalse()
     {
         // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
@@ -335,7 +333,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void validateBooleanDataValueWhenValueIsNotValid()
+    void validateBooleanDataValueWhenValueIsNotValid()
     {
         // Given
         String anInvalidBooleanValue = "InvalidValue";

@@ -27,19 +27,19 @@
  */
 package org.hisp.dhis.legend;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class LegendSetServiceTest
-    extends DhisSpringTest
+class LegendSetServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private LegendSetService legendSetService;
 
@@ -50,35 +50,28 @@ public class LegendSetServiceTest
     private LegendSet legendSetA;
 
     @Test
-    public void testAddGetLegendSet()
+    void testAddGetLegendSet()
     {
         legendA = createLegend( 'A', 0d, 10d );
         legendB = createLegend( 'B', 0d, 10d );
-
         legendSetA = createLegendSet( 'A' );
         legendSetA.getLegends().add( legendA );
         legendSetA.getLegends().add( legendB );
-
         long idA = legendSetService.addLegendSet( legendSetA );
-
         assertEquals( legendSetA, legendSetService.getLegendSet( idA ) );
         assertEquals( 2, legendSetService.getLegendSet( idA ).getLegends().size() );
     }
 
     @Test
-    public void testDeleteLegendSet()
+    void testDeleteLegendSet()
     {
         legendA = createLegend( 'A', 0d, 10d );
         legendB = createLegend( 'B', 0d, 10d );
-
         legendSetA = createLegendSet( 'A' );
         legendSetA.getLegends().add( legendA );
         legendSetA.getLegends().add( legendB );
-
         long idA = legendSetService.addLegendSet( legendSetA );
-
         legendSetService.deleteLegendSet( legendSetA );
-
         assertNull( legendSetService.getLegendSet( idA ) );
     }
 }

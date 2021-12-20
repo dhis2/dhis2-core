@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -41,13 +41,12 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.util.NestedServletException;
@@ -55,11 +54,9 @@ import org.springframework.web.util.NestedServletException;
 /**
  * @author Enrico Colasante
  */
-public class RelationshipControllerTest
+@ExtendWith( MockitoExtension.class )
+class RelationshipControllerTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private MockMvc mockMvc;
 
     private static final String TEI_ID = "TEI_ID";
@@ -95,26 +92,26 @@ public class RelationshipControllerTest
 
     private final static String ENDPOINT = "/relationships";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         mockMvc = MockMvcBuilders.standaloneSetup( relationshipController ).build();
     }
 
     @Test
-    public void verifyEndpointWithNoArgs()
+    void verifyEndpointWithNoArgs()
     {
         assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT ) ) );
     }
 
     @Test
-    public void verifyEndpointWithNotFoundTei()
+    void verifyEndpointWithNotFoundTei()
     {
         assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT ).param( "tei", TEI_ID ) ) );
     }
 
     @Test
-    public void verifyEndpointWithTei()
+    void verifyEndpointWithTei()
         throws Exception
     {
         when( trackedEntityInstanceService.getTrackedEntityInstance( TEI_ID ) ).thenReturn( tei );
@@ -125,14 +122,14 @@ public class RelationshipControllerTest
     }
 
     @Test
-    public void verifyEndpointWithNotFoundEvent()
+    void verifyEndpointWithNotFoundEvent()
     {
         assertThrows( NestedServletException.class,
             () -> mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) ) );
     }
 
     @Test
-    public void verifyEndpointWithEvent()
+    void verifyEndpointWithEvent()
         throws Exception
     {
         when( programStageInstanceService.getProgramStageInstance( EVENT_ID ) ).thenReturn( event );
@@ -143,14 +140,14 @@ public class RelationshipControllerTest
     }
 
     @Test
-    public void verifyEndpointWithNotFoundEnrollment()
+    void verifyEndpointWithNotFoundEnrollment()
     {
         assertThrows( NestedServletException.class, () -> mockMvc
             .perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ) );
     }
 
     @Test
-    public void verifyEndpointWithEnrollment()
+    void verifyEndpointWithEnrollment()
         throws Exception
     {
         when( programInstanceService.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( enrollment );
@@ -161,13 +158,13 @@ public class RelationshipControllerTest
     }
 
     @Test
-    public void testGetRelationshipNotPresent()
+    void testGetRelationshipNotPresent()
     {
         assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ) );
     }
 
     @Test
-    public void testGetRelationship()
+    void testGetRelationship()
         throws Exception
     {
         when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( relationship );
@@ -175,7 +172,7 @@ public class RelationshipControllerTest
     }
 
     @Test
-    public void testDeleteRelationship()
+    void testDeleteRelationship()
         throws Exception
     {
         when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( relationship );

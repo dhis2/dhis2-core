@@ -29,9 +29,17 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1010;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1013;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1049;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1069;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1070;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
@@ -51,18 +59,19 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Enrico Colasante
  */
-public class PreCheckMetaValidationHookTest
+@ExtendWith( MockitoExtension.class )
+class PreCheckMetaValidationHookTest
 {
+
     private static final String ORG_UNIT_UID = "OrgUnitUid";
 
     private static final String TRACKED_ENTITY_TYPE_UID = "TrackedEntityTypeUid";
@@ -77,13 +86,10 @@ public class PreCheckMetaValidationHookTest
 
     private PreCheckMetaValidationHook validatorToTest;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private TrackerImportValidationContext ctx;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         validatorToTest = new PreCheckMetaValidationHook();
@@ -94,7 +100,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccess()
+    void verifyTrackedEntityValidationSuccess()
     {
         // given
         TrackedEntity tei = validTei();
@@ -112,7 +118,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenOrgUnitIsNotPresentInDb()
+    void verifyTrackedEntityValidationFailsWhenOrgUnitIsNotPresentInDb()
     {
         // given
         TrackedEntity tei = validTei();
@@ -130,7 +136,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb()
+    void verifyTrackedEntityValidationFailsWhenTrackedEntityTypeIsNotPresentInDb()
     {
         // given
         TrackedEntity tei = validTei();
@@ -148,7 +154,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccess()
+    void verifyEnrollmentValidationSuccess()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -167,7 +173,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccessWhenTeiIsInPayload()
+    void verifyEnrollmentValidationSuccessWhenTeiIsInPayload()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -187,7 +193,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenOrgUnitIsNotPresentInDb()
+    void verifyEnrollmentValidationFailsWhenOrgUnitIsNotPresentInDb()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -206,7 +212,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenTrackedEntityIsNotPresentInDbOrPayload()
+    void verifyEnrollmentValidationFailsWhenTrackedEntityIsNotPresentInDbOrPayload()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -225,7 +231,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenProgramIsNotPresentInDb()
+    void verifyEnrollmentValidationFailsWhenProgramIsNotPresentInDb()
     {
         // given
         Enrollment enrollment = validEnrollment();
@@ -244,7 +250,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccess()
+    void verifyEventValidationSuccess()
     {
         // given
         Event event = validEvent();
@@ -263,7 +269,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenProgramIsNotPresentInDb()
+    void verifyEventValidationFailsWhenProgramIsNotPresentInDb()
     {
         // given
         Event event = validEvent();
@@ -282,7 +288,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenProgramStageIsNotPresentInDb()
+    void verifyEventValidationFailsWhenProgramStageIsNotPresentInDb()
     {
         // given
         Event event = validEvent();
@@ -301,7 +307,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenOrgUnitIsNotPresentInDb()
+    void verifyEventValidationFailsWhenOrgUnitIsNotPresentInDb()
     {
         // given
         Event event = validEvent();
@@ -320,7 +326,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationSuccess()
+    void verifyRelationshipValidationSuccess()
     {
         // given
         Relationship relationship = validRelationship();
@@ -337,7 +343,7 @@ public class PreCheckMetaValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsWhenRelationshipTypeIsNotPresentInDb()
+    void verifyRelationshipValidationFailsWhenRelationshipTypeIsNotPresentInDb()
     {
         // given
         Relationship relationship = validRelationship();
