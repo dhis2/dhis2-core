@@ -51,7 +51,7 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityAttributeSupplier extends AbstractSupplier
 {
 
-    private static final String PROGRAM_CACHE_KEY = "000TEA";
+    private static final String TEA_CACHE_KEY = "000TEA";
 
     private static final String ATTRIBUTESCHEME_COL = "attributevalues";
 
@@ -76,25 +76,29 @@ public class TrackedEntityAttributeSupplier extends AbstractSupplier
             trackedEntityAttributeCache.invalidateAll();
         }
 
-        Map<String, TrackedEntityAttribute> programMap = trackedEntityAttributeCache.get( PROGRAM_CACHE_KEY )
+        Map<String, TrackedEntityAttribute> trackedEntityAttributeMap = trackedEntityAttributeCache.get( TEA_CACHE_KEY )
             .orElse( new HashMap<>() );
 
-        if ( requiresCacheReload( uids, programMap ) )
+        if ( requiresCacheReload( uids, trackedEntityAttributeMap ) )
         {
-            programMap = getTrackedEntityAttributeMap( importOptions.getIdSchemes().getTrackedEntityAttributeIdScheme(),
+            trackedEntityAttributeMap = getTrackedEntityAttributeMap(
+                importOptions.getIdSchemes().getTrackedEntityAttributeIdScheme(),
                 uids );
+
+            trackedEntityAttributeCache.put( TEA_CACHE_KEY, trackedEntityAttributeMap );
         }
 
-        return programMap;
+        return trackedEntityAttributeMap;
     }
 
-    private boolean requiresCacheReload( Set<String> uids, Map<String, TrackedEntityAttribute> programMap )
+    private boolean requiresCacheReload( Set<String> uids,
+        Map<String, TrackedEntityAttribute> trackedEntityAttributeMap )
     {
-        final Set<String> programsInCache = programMap.keySet();
+        final Set<String> teaInCache = trackedEntityAttributeMap.keySet();
 
         for ( String program : uids )
         {
-            if ( !programsInCache.contains( program ) )
+            if ( !teaInCache.contains( program ) )
             {
                 return true;
             }

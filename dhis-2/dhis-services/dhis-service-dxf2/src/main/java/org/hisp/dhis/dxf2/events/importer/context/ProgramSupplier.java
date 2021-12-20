@@ -89,6 +89,7 @@ public class ProgramSupplier extends AbstractSupplier
         {
             programMap = get( importOptions.getIdSchemes().getProgramIdScheme(),
                 uids );
+            programsCache.put( PROGRAM_CACHE_KEY, programMap );
         }
 
         return programMap;
