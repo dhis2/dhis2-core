@@ -28,15 +28,11 @@
 package org.hisp.dhis.tracker.validation;
 
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.springframework.core.Ordered;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface TrackerValidationHook extends Ordered
+public interface TrackerValidationHook
 {
     ValidationErrorReporter validate( TrackerImportValidationContext bundle );
-
-    void setOrder( int order );
-
 }
