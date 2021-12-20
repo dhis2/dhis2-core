@@ -35,11 +35,6 @@ import org.springframework.core.Ordered;
  */
 public interface TrackerValidationHook extends Ordered
 {
-    default boolean isEnabled()
-    {
-        return true;
-    }
-
     ValidationErrorReporter validate( TrackerImportValidationContext bundle );
 
     void setOrder( int order );

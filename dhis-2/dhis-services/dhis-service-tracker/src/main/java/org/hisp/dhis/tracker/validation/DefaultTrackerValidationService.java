@@ -100,16 +100,13 @@ public class DefaultTrackerValidationService
         {
             for ( TrackerValidationHook hook : hooks )
             {
-                if ( hook.isEnabled() )
-                {
-                    Timer hookTimer = Timer.startTimer();
+                Timer hookTimer = Timer.startTimer();
 
-                    validationReport.add( hook.validate( context ) );
+                validationReport.add( hook.validate( context ) );
 
-                    validationReport.add( TrackerValidationHookTimerReport.builder()
-                        .name( hook.getClass().getName() )
-                        .totalTime( hookTimer.toString() ).build() );
-                }
+                validationReport.add( TrackerValidationHookTimerReport.builder()
+                    .name( hook.getClass().getName() )
+                    .totalTime( hookTimer.toString() ).build() );
             }
         }
         catch ( ValidationFailFastException e )
