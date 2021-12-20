@@ -54,11 +54,11 @@ final class XmlDataValueSetWriter implements DataValueSetWriter
     }
 
     @Override
-    public void writeHeader( String dataSetId, String completedDate, String isoPeriod, String orgUnitId )
+    public void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId )
     {
         writeHeader();
         writer.writeAttribute( "dataSet", dataSetId );
-        writer.writeAttribute( "completeDate", completedDate );
+        writer.writeAttribute( "completeDate", completeDate );
         writer.writeAttribute( "period", isoPeriod );
         writer.writeAttribute( "orgUnit", orgUnitId );
     }

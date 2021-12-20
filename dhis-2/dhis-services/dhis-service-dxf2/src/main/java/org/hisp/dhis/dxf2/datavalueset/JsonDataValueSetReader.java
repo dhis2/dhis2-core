@@ -28,57 +28,54 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 
-import org.hisp.dhis.dxf2.datavalue.DataValue;
-import org.hisp.dhis.dxf2.datavalue.StreamingCsvDataValue;
+import lombok.AllArgsConstructor;
 
-import com.csvreader.CsvReader;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * @author Lars Helge Overland
+ * Reads {@link DataValueSet} from JSON input.
+ *
+ * @author Jan Bernitt
  */
-public class StreamingCsvDataValueSet
-    extends DataValueSet
+@AllArgsConstructor
+final class JsonDataValueSetReader implements DataValueSetReader
 {
-    private CsvReader reader;
+    final InputStream in;
 
-    public StreamingCsvDataValueSet( CsvReader reader )
-    {
-        this.reader = reader;
-    }
+    final ObjectMapper jsonMapper;
 
     @Override
-    public boolean hasNextDataValue()
+    public DataValueSet readHeader()
     {
         try
         {
-            return reader.readRecord();
+            return jsonMapper.readValue( in, DataValueSet.class );
         }
         catch ( IOException ex )
         {
-            throw new RuntimeException( "Failed to read record", ex );
+            throw new UncheckedIOException( ex );
         }
     }
 
     @Override
-    public DataValue getNextDataValue()
+    public DataValueEntry readNext()
     {
-        try
-        {
-            return new StreamingCsvDataValue( reader.getValues() );
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to get CSV values", ex );
-        }
+        return null; // header contains the values
     }
 
     @Override
     public void close()
     {
-        if ( reader != null )
+        try
         {
-            reader.close();
+            in.close();
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
         }
     }
 }

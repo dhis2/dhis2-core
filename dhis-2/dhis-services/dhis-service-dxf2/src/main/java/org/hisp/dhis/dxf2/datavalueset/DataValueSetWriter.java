@@ -49,7 +49,6 @@ package org.hisp.dhis.dxf2.datavalueset;
  */
 public interface DataValueSetWriter extends AutoCloseable
 {
-
     /**
      * Add a minimum document header to the output, so it is ready for calls of
      * {@link #writeValue(DataValueEntry)}
@@ -61,11 +60,11 @@ public interface DataValueSetWriter extends AutoCloseable
      * output should be ready for calls to {@link #writeValue(DataValueEntry)}.
      *
      * @param dataSetId ID of the written dataset
-     * @param completedDate the completeDate of the set
+     * @param completeDate the completeDate of the set
      * @param isoPeriod the period of the set
      * @param orgUnitId the organisation unit of the set
      */
-    void writeHeader( String dataSetId, String completedDate, String isoPeriod, String orgUnitId );
+    void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId );
 
     void writeValue( DataValueEntry entry );
 

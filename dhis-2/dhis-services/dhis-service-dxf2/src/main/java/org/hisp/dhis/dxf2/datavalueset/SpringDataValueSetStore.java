@@ -95,44 +95,44 @@ public class SpringDataValueSetStore
     // --------------------------------------------------------------------------
 
     @Override
-    public void writeDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out )
+    public void exportDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out )
     {
         try ( DataValueSetWriter writer = new XmlDataValueSetWriter( XMLFactory.getXMLWriter( out ) ) )
         {
-            writeDataValueSet( getDataValueSql( params ), params, completeDate, writer );
+            exportDataValueSet( getDataValueSql( params ), params, completeDate, writer );
         }
     }
 
     @Override
-    public void writeDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out )
+    public void exportDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out )
     {
 
         try ( DataValueSetWriter writer = new JsonDataValueSetWriter( out ) )
         {
-            writeDataValueSet( getDataValueSql( params ), params, completeDate, writer );
+            exportDataValueSet( getDataValueSql( params ), params, completeDate, writer );
         }
     }
 
     @Override
-    public void writeDataValueSetCsv( DataExportParams params, Date completeDate, Writer out )
+    public void exportDataValueSetCsv( DataExportParams params, Date completeDate, Writer out )
     {
         try ( DataValueSetWriter writer = new CsvDataValueSetWriter( CsvUtils.getWriter( out ) ) )
         {
-            writeDataValueSet( getDataValueSql( params ), params, completeDate, writer );
+            exportDataValueSet( getDataValueSql( params ), params, completeDate, writer );
         }
     }
 
     @Override
-    public void writeDataValueSetJson( Date lastUpdated, OutputStream out, IdSchemes idSchemes )
+    public void exportDataValueSetJson( Date lastUpdated, OutputStream out, IdSchemes idSchemes )
     {
         try ( DataValueSetWriter writer = new JsonDataValueSetWriter( out ) )
         {
-            writeDataValueSet( buildDataValueSql( lastUpdated, idSchemes ), new DataExportParams(), null, writer );
+            exportDataValueSet( buildDataValueSql( lastUpdated, idSchemes ), new DataExportParams(), null, writer );
         }
     }
 
     @Override
-    public void writeDataValueSetJson( Date lastUpdated, OutputStream out, IdSchemes idSchemes, int pageSize,
+    public void exportDataValueSetJson( Date lastUpdated, OutputStream out, IdSchemes idSchemes, int pageSize,
         int page )
     {
         try ( DataValueSetWriter writer = new JsonDataValueSetWriter( out ) )
@@ -141,7 +141,7 @@ public class SpringDataValueSetStore
             final String sql = buildDataValueSql( lastUpdated, idSchemes )
                 + "order by pe.startdate asc, dv.created asc, deid asc limit " + pageSize + " offset " + offset;
 
-            writeDataValueSet( sql, new DataExportParams(), null, writer );
+            exportDataValueSet( sql, new DataExportParams(), null, writer );
         }
     }
 
@@ -168,7 +168,7 @@ public class SpringDataValueSetStore
         return sql;
     }
 
-    private void writeDataValueSet( String sql, DataExportParams params, Date completeDate,
+    private void exportDataValueSet( String sql, DataExportParams params, Date completeDate,
         final DataValueSetWriter writer )
     {
         if ( params.isSingleDataValueSet() )

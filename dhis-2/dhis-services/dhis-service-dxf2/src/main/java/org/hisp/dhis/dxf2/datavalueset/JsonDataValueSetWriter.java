@@ -85,13 +85,13 @@ final class JsonDataValueSetWriter implements DataValueSetWriter
     }
 
     @Override
-    public void writeHeader( String dataSetId, String completedDate, String isoPeriod, String orgUnitId )
+    public void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId )
     {
         try
         {
             generator.writeStartObject();
             generator.writeStringField( "dataSet", dataSetId );
-            generator.writeStringField( "completeDate", completedDate );
+            generator.writeStringField( "completeDate", completeDate );
             generator.writeStringField( "period", isoPeriod );
             generator.writeStringField( "orgUnit", orgUnitId );
             generator.writeArrayFieldStart( "dataValues" );

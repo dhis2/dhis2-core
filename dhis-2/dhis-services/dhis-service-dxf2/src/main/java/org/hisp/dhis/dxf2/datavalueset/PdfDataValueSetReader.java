@@ -27,23 +27,46 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-class PdfDataValueSetReader implements DataValueSetReader
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
+
+/**
+ * Reads {@link DataValueSet} from PDF input.
+ *
+ * @author Jan Bernitt
+ */
+@AllArgsConstructor
+final class PdfDataValueSetReader implements DataValueSetReader
 {
+    private final InputStream in;
+
     @Override
     public DataValueSet readHeader()
     {
-        return null;
+        return PdfDataEntryFormUtil.getDataValueSet( in );
     }
 
     @Override
     public DataValueEntry readNext()
     {
-        return null;
+        return null; // header contains the values
     }
 
     @Override
     public void close()
     {
-
+        try
+        {
+            in.close();
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
     }
 }

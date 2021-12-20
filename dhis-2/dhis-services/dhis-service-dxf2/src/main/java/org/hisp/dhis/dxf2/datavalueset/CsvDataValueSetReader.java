@@ -32,6 +32,8 @@ import java.io.UncheckedIOException;
 
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.dxf2.common.ImportOptions;
+
 import com.csvreader.CsvReader;
 
 /**
@@ -44,9 +46,15 @@ final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
 {
     private final CsvReader reader;
 
+    private final ImportOptions importOptions;
+
     @Override
     public DataValueSet readHeader()
     {
+        if ( importOptions == null || importOptions.isFirstRowIsHeader() )
+        {
+            readNext(); // Ignore the first row: assume header row
+        }
         return new DataValueSet();
     }
 

@@ -57,7 +57,7 @@ final class CsvDataValueSetWriter implements DataValueSetWriter
     }
 
     @Override
-    public void writeHeader( String dataSetId, String completedDate, String isoPeriod, String orgUnitId )
+    public void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId )
     {
         appendRow( HEADER_ROW );
     }

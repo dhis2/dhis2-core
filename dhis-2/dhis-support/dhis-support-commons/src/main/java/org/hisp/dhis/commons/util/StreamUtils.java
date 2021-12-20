@@ -151,8 +151,7 @@ public class StreamUtils
         }
         else if ( isGZip( bufferedIn ) )
         {
-            GZIPInputStream gzipIn = new GZIPInputStream( bufferedIn );
-            return gzipIn;
+            return new GZIPInputStream( bufferedIn );
         }
 
         return bufferedIn;

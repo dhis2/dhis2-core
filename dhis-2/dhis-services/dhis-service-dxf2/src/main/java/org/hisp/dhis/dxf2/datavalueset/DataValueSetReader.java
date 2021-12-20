@@ -38,18 +38,24 @@ package org.hisp.dhis.dxf2.datavalueset;
  *
  * To read an input the call sequence should be the following:
  * <ol>
- * <li>call {@link #readHeader()} once</li>
+ * <li>call {@link #readHeader()} once (must be called)</li>
  * <li>call {@link #readNext()} until it returns {@code null}</li>
  * <li>call {@link #close()} once</li>
  * </ol>
  *
  * All methods might throw an {@link java.io.UncheckedIOException}.
  *
+ * A reader that does not support actual streaming using {@link #readNext()} can
+ * include the values in the {@link DataValueSet} returned by the
+ * {@link #readHeader()} and immediately return {@code null} when
+ * {@link #readNext()} is called.
+ *
  * @author Jan Bernitt
  *
  * @see XmlDataValueSetReader
  * @see CsvDataValueSetReader
  * @see PdfDataValueSetReader
+ * @see JsonDataValueSetReader
  */
 public interface DataValueSetReader extends AutoCloseable
 {
