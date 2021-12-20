@@ -27,34 +27,32 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class BaseIdentifiableObjectTest
+class BaseIdentifiableObjectTest
 {
+
     @Test
-    public void testGetValue()
+    void testGetValue()
     {
         DataElement deA = new DataElement();
         deA.setUid( "A1234567890" );
         deA.setCode( "CodeA" );
         deA.setName( "NameA" );
-
         DataElement deB = new DataElement();
-
         IdScheme idSchemeUid = IdScheme.from( IdentifiableProperty.UID );
         IdScheme idSchemeCode = IdScheme.from( IdentifiableProperty.CODE );
         IdScheme idSchemeName = IdScheme.from( IdentifiableProperty.NAME );
-
         assertEquals( "A1234567890", deA.getPropertyValue( idSchemeUid ) );
         assertEquals( "CodeA", deA.getPropertyValue( idSchemeCode ) );
         assertEquals( "NameA", deA.getPropertyValue( idSchemeName ) );
-
         assertNull( deB.getPropertyValue( idSchemeCode ) );
     }
 }

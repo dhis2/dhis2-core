@@ -29,9 +29,9 @@ package org.hisp.dhis.dashboard;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -49,15 +49,15 @@ import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.visualization.VisualizationService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-public class DashboardServiceTest
-    extends DhisSpringTest
+class DashboardServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private DashboardService dashboardService;
 
@@ -103,56 +103,43 @@ public class DashboardServiceTest
     {
         vzA = createVisualization( "A" );
         vzB = createVisualization( "B" );
-
         Program program = createProgram( 'Y', null, null );
         objectManager.save( program );
         evzB = createEventVisualization( "A", program );
-
         visualizationService.save( vzA );
         visualizationService.save( vzB );
         eventVisualizationService.save( evzB );
-
         dcA = new Document( "A", "url", false, null );
         Document dcB = new Document( "B", "url", false, null );
         Document dcC = new Document( "C", "url", false, null );
         Document dcD = new Document( "D", "url", false, null );
-
         documentService.saveDocument( dcA );
         documentService.saveDocument( dcB );
         documentService.saveDocument( dcC );
         documentService.saveDocument( dcD );
-
-        List<String> allowedFilters = Lists
-            .newArrayList( "kJuHtg2gkh3", "yH7Yh2jGfFs" );
-
+        List<String> allowedFilters = Lists.newArrayList( "kJuHtg2gkh3", "yH7Yh2jGfFs" );
         diA = new DashboardItem();
         diA.setAutoFields();
         diA.setVisualization( vzA );
-
         diB = new DashboardItem();
         diB.setAutoFields();
         diB.setVisualization( vzB );
-
         diC = new DashboardItem();
         diC.setAutoFields();
         diC.getResources().add( dcA );
         diC.getResources().add( dcB );
-
         diD = new DashboardItem();
         diD.setAutoFields();
         diD.getResources().add( dcC );
         diD.getResources().add( dcD );
-
         diE = new DashboardItem();
         diE.setAutoFields();
         diE.setEventVisualization( evzB );
-
         dbA = new Dashboard( "A" );
         dbA.setAutoFields();
         dbA.getItems().add( diA );
         dbA.getItems().add( diB );
         dbA.getItems().add( diC );
-
         dbB = new Dashboard( "B" );
         dbB.setAutoFields();
         dbB.setRestrictFilters( true );
@@ -162,54 +149,44 @@ public class DashboardServiceTest
     }
 
     @Test
-    public void testAddGet()
+    void testAddGet()
     {
         long dAId = dashboardService.saveDashboard( dbA );
         long dBId = dashboardService.saveDashboard( dbB );
-
         assertEquals( dbA, dashboardService.getDashboard( dAId ) );
         assertEquals( dbB, dashboardService.getDashboard( dBId ) );
         assertEquals( 2, dbB.getAllowedFilters().size() );
-
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
         assertEquals( 2, dashboardService.getDashboard( dBId ).getItems().size() );
     }
 
     @Test
-    public void testUpdate()
+    void testUpdate()
     {
         long dAId = dashboardService.saveDashboard( dbA );
-
         assertEquals( "A", dashboardService.getDashboard( dAId ).getName() );
-
         dbA.setName( "B" );
-
         dashboardService.updateDashboard( dbA );
-
         assertEquals( "B", dashboardService.getDashboard( dAId ).getName() );
     }
 
     @Test
-    public void testDelete()
+    void testDelete()
     {
         // ## Ensuring the preparation for deletion
         // When saved
         final long dAId = dashboardService.saveDashboard( dbA );
         final long dBId = dashboardService.saveDashboard( dbB );
-
         // Then confirm that they were saved
         assertThatDashboardAndItemsArePersisted( dAId );
         assertThatDashboardAndItemsArePersisted( dBId );
-
         // ## Testing deletion
         // Given
         final List<DashboardItem> itemsOfDashA = dashboardService.getDashboard( dAId ).getItems();
         final List<DashboardItem> itemsOfDashB = dashboardService.getDashboard( dBId ).getItems();
-
         // When deleted
         dashboardService.deleteDashboard( dbA );
         dashboardService.deleteDashboard( dbB );
-
         // Then confirm that they were deleted
         assertDashboardAndItemsAreDeleted( dAId, itemsOfDashA );
         assertDashboardAndItemsAreDeleted( dBId, itemsOfDashB );
@@ -219,100 +196,79 @@ public class DashboardServiceTest
     {
         final Dashboard dashboard = dashboardService.getDashboard( dashboardId );
         assertNotNull( dashboard );
-
         final List<DashboardItem> itemsA = dashboard.getItems();
-
         for ( final DashboardItem dAItem : itemsA )
         {
-            assertNotNull( "DashboardItem should exist", dashboardService.getDashboardItem( dAItem.getUid() ) );
+            assertNotNull( dashboardService.getDashboardItem( dAItem.getUid() ), "DashboardItem should exist" );
         }
     }
 
     private void assertDashboardAndItemsAreDeleted( final long dashboardId, final List<DashboardItem> dashboardItems )
     {
         assertNull( dashboardService.getDashboard( dashboardId ) );
-
         // Assert that there are not items related to the given Dashboard
         for ( final DashboardItem item : dashboardItems )
         {
-            assertNull( "DashboardItem should not exist", dashboardService.getDashboardItem( item.getUid() ) );
+            assertNull( dashboardService.getDashboardItem( item.getUid() ), "DashboardItem should not exist" );
         }
     }
 
     @Test
-    public void testAddItemContent()
+    void testAddItemContent()
     {
         dashboardService.saveDashboard( dbA );
         dashboardService.saveDashboard( dbB );
-
         DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION,
             vzA.getUid() );
-
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
     }
 
     @Test
-    public void testSearchDashboard()
+    void testSearchDashboard()
     {
         dashboardService.saveDashboard( dbA );
         dashboardService.saveDashboard( dbB );
-
         DashboardSearchResult result = dashboardService.search( "A" );
         assertEquals( 1, result.getVisualizationCount() );
         assertEquals( 1, result.getResourceCount() );
-
         result = dashboardService.search( "B" );
         assertEquals( 1, result.getVisualizationCount() );
         assertEquals( 1, result.getResourceCount() );
-
         result = dashboardService.search( "Z" );
         assertEquals( 0, result.getVisualizationCount() );
         assertEquals( 0, result.getResourceCount() );
     }
 
     @Test
-    public void testSearchDashboardWithMaxCount()
+    void testSearchDashboardWithMaxCount()
     {
         Program prA = createProgram( 'A', null, null );
         objectManager.save( prA );
-
         IntStream.range( 1, 30 ).forEach( i -> {
             Visualization visualization = createVisualization( 'A' );
             visualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
             visualizationService.save( visualization );
         } );
-
         IntStream.range( 1, 30 ).forEach( i -> {
             EventVisualization eventVisualization = createEventVisualization( "A", prA );
             eventVisualization.setName( RandomStringUtils.randomAlphabetic( 5 ) );
             eventVisualizationService.save( eventVisualization );
         } );
-
         IntStream.range( 1, 30 ).forEach( i -> eventChartService.saveEventChart( createEventChart( prA ) ) );
-
         DashboardSearchResult result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ) );
-
         assertThat( result.getVisualizationCount(), is( 25 ) );
         assertThat( result.getEventChartCount(), is( 6 ) );
-
         result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), 3, null );
-
         assertThat( result.getVisualizationCount(), is( 25 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
-
         result = dashboardService.search( Sets.newHashSet( DashboardItemType.VISUALIZATION ), 3, 29 );
-
         assertThat( result.getVisualizationCount(), is( 29 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
-
         result = dashboardService.search( Sets.newHashSet( DashboardItemType.EVENT_VISUALIZATION ), 3, 29 );
-
         assertThat( result.getEventVisualizationCount(), is( 29 ) );
         assertThat( result.getEventReportCount(), is( 0 ) );
-
         result = dashboardService.search( Sets.newHashSet( DashboardItemType.EVENT_VISUALIZATION ), 3, 30 );
-
         assertThat( result.getEventVisualizationCount(), is( 30 ) );
         assertThat( result.getEventChartCount(), is( 3 ) );
     }

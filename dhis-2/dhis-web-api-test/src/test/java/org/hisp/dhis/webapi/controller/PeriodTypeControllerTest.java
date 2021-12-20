@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonPeriodType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -44,19 +44,17 @@ import org.springframework.http.HttpStatus;
  *
  * @author Morten Olav Hansen
  */
-public class PeriodTypeControllerTest extends DhisControllerConvenienceTest
+class PeriodTypeControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPeriodTypeDefaults()
+    void testPeriodTypeDefaults()
     {
         JsonObject object = GET( "/periodTypes" ).content( HttpStatus.OK ).as( JsonObject.class );
         JsonList<JsonPeriodType> periodTypes = object.getList( "periodTypes", JsonPeriodType.class );
-
         assertTrue( periodTypes.exists() );
         assertEquals( 18, periodTypes.size() );
-
         JsonPeriodType periodType = periodTypes.get( 0 );
-
         assertNotNull( periodType.getName() );
         assertNotNull( periodType.getIsoDuration() );
         assertNotNull( periodType.getIsoFormat() );
@@ -64,19 +62,15 @@ public class PeriodTypeControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPeriodTypeNameIsoFormat()
+    void testPeriodTypeNameIsoFormat()
     {
         JsonList<JsonPeriodType> periodTypes = GET( "/periodTypes?fields=name,isoFormat" ).content( HttpStatus.OK )
             .as( JsonObject.class ).getList( "periodTypes", JsonPeriodType.class );
-
         assertTrue( periodTypes.exists() );
         assertEquals( 18, periodTypes.size() );
-
         JsonPeriodType periodType = periodTypes.get( 0 );
-
         assertNotNull( periodType.getName() );
         assertNotNull( periodType.getIsoFormat() );
-
         assertNull( periodType.getIsoDuration() );
         assertNull( periodType.getFrequencyOrder() );
     }

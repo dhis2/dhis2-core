@@ -36,13 +36,12 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -53,19 +52,18 @@ import com.google.common.net.HttpHeaders;
  *
  * @author Volker Schmidt
  */
-public class MetadataExportControllerUtilsTest
+@ExtendWith( MockitoExtension.class )
+class MetadataExportControllerUtilsTest
 {
+
     @Mock
     private ContextService contextService;
 
     @Mock
     private MetadataExportService exportService;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Test
-    public void getWithDependencies()
+    void getWithDependencies()
     {
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
@@ -81,13 +79,13 @@ public class MetadataExportControllerUtilsTest
 
         final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils
             .getWithDependencies( contextService, exportService, attribute, false );
-        Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assert.assertSame( rootNode, responseEntity.getBody() );
-        Assert.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
+        Assertions.assertSame( rootNode, responseEntity.getBody() );
+        Assertions.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
     }
 
     @Test
-    public void getWithDependenciesAsDownload()
+    void getWithDependenciesAsDownload()
     {
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
@@ -103,32 +101,32 @@ public class MetadataExportControllerUtilsTest
 
         final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils
             .getWithDependencies( contextService, exportService, attribute, true );
-        Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assert.assertSame( rootNode, responseEntity.getBody() );
-        Assert.assertEquals( "attachment; filename=metadata",
+        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
+        Assertions.assertSame( rootNode, responseEntity.getBody() );
+        Assertions.assertEquals( "attachment; filename=metadata",
             responseEntity.getHeaders().getFirst( HttpHeaders.CONTENT_DISPOSITION ) );
     }
 
     @Test
-    public void createResponseEntity()
+    void createResponseEntity()
     {
         final RootNode rootNode = new RootNode( "test" );
         final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils.createResponseEntity( rootNode,
             false );
-        Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assert.assertSame( rootNode, responseEntity.getBody() );
-        Assert.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
+        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
+        Assertions.assertSame( rootNode, responseEntity.getBody() );
+        Assertions.assertFalse( responseEntity.getHeaders().containsKey( HttpHeaders.CONTENT_DISPOSITION ) );
     }
 
     @Test
-    public void createResponseEntityAsDownload()
+    void createResponseEntityAsDownload()
     {
         final RootNode rootNode = new RootNode( "test" );
         final ResponseEntity<RootNode> responseEntity = MetadataExportControllerUtils.createResponseEntity( rootNode,
             true );
-        Assert.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
-        Assert.assertSame( rootNode, responseEntity.getBody() );
-        Assert.assertEquals( "attachment; filename=metadata",
+        Assertions.assertEquals( HttpStatus.OK, responseEntity.getStatusCode() );
+        Assertions.assertSame( rootNode, responseEntity.getBody() );
+        Assertions.assertEquals( "attachment; filename=metadata",
             responseEntity.getHeaders().getFirst( HttpHeaders.CONTENT_DISPOSITION ) );
     }
 }
