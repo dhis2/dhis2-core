@@ -170,9 +170,6 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
 
         MapSqlParameterSource paramSource = createIdsParam( ids ).addValue( "userInfoId", ctx.getUserId() );
 
-        boolean checkForOwnership = ctx.getQueryParams().isIncludeAllAttributes()
-            || ctx.getParams().isIncludeEnrollments() || ctx.getParams().isIncludeEvents();
-
         String sql;
 
         if ( ctx.getQueryParams().hasProgram() )
@@ -180,7 +177,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
             sql = GET_OWNERSHIP_DATA_FOR_TEIS_FOR_SPECIFIC_PROGRAM;
             paramSource.addValue( "programUid", ctx.getQueryParams().getProgram().getUid() );
         }
-        else if ( checkForOwnership )
+        else if ( ctx.getQueryParams().isIncludeAllAttributes() )
         {
             sql = GET_OWNERSHIP_DATA_FOR_TEIS_FOR_ALL_PROGRAM;
         }
