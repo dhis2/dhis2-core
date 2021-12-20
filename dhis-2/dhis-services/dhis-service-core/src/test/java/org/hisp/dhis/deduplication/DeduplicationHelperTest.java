@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.deduplication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -54,16 +55,19 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
-@RunWith( MockitoJUnitRunner.class )
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( { MockitoExtension.class } )
 public class DeduplicationHelperTest extends DhisConvenienceTest
 {
     @InjectMocks
@@ -104,7 +108,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
     private User user;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         List<String> relationshipUids = Lists.newArrayList( "REL_A", "REL_B" );
@@ -253,18 +257,15 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         assertEquals( "Missing access to organisation unit of one or both entities.", hasUserAccess );
     }
 
-    @Test( expected = PotentialDuplicateForbiddenException.class )
+    @Test
     public void shouldFailGenerateMergeObjectDifferentTrackedEntityType()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
     {
-        deduplicationHelper.generateMergeObject( getTeiA(), getTeiB() );
+        assertThrows( PotentialDuplicateForbiddenException.class,
+            () -> deduplicationHelper.generateMergeObject( getTeiA(), getTeiB() ) );
     }
 
-    @Test( expected = PotentialDuplicateConflictException.class )
+    @Test
     public void shouldFailGenerateMergeObjectConflictingValue()
-        throws PotentialDuplicateConflictException,
-        PotentialDuplicateForbiddenException
     {
         TrackedEntityInstance original = getTeiA();
 
@@ -284,7 +285,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
 
         duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
 
-        deduplicationHelper.generateMergeObject( original, duplicate );
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
     }
 
     @Test
@@ -385,7 +387,7 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         assertEquals( "programInstanceB", generatedMergeObject.getEnrollments().get( 0 ) );
     }
 
-    @Test( expected = PotentialDuplicateConflictException.class )
+    @Test
     public void shouldFailGenerateMergeObjectEnrollmentsSameProgram()
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
@@ -400,7 +402,8 @@ public class DeduplicationHelperTest extends DhisConvenienceTest
         ProgramInstance programInstanceB = createProgramInstance( program, duplicate, organisationUnitA );
         duplicate.getProgramInstances().add( programInstanceB );
 
-        deduplicationHelper.generateMergeObject( original, duplicate );
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
     }
 
     @Test

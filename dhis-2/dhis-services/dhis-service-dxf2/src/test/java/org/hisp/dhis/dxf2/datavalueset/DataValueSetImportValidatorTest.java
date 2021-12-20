@@ -77,12 +77,15 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Tests the {@link DataValueSetImportValidator}
  *
  * @author Jan Bernitt
  */
+@RunWith( MockitoJUnitRunner.Silent.class )
 public class DataValueSetImportValidatorTest
 {
 
