@@ -27,45 +27,23 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-/**
- * Adopter interface to read {@link DataValueSet}s from different input formats
- * like XML, JSON and CSV.
- *
- * To avoid materialising a potentially very large set of
- * {@link org.hisp.dhis.dxf2.datavalue.DataValue}s with the {@link DataValueSet}
- * the values are not included in the {@link #readHeader()} value. Instead, the
- * values are iterated/streamed using the {@link #readNext()} method.
- *
- * To read an input the call sequence should be the following:
- * <ol>
- * <li>call {@link #readHeader()} once</li>
- * <li>call {@link #readNext()} until it returns {@code null}</li>
- * <li>call {@link #close()} once</li>
- * </ol>
- *
- * All methods might throw an {@link java.io.UncheckedIOException}.
- *
- * @author Jan Bernitt
- *
- * @see XmlDataValueSetReader
- * @see CsvDataValueSetReader
- * @see PdfDataValueSetReader
- */
-public interface DataValueSetReader extends AutoCloseable
+class PdfDataValueSetReader implements DataValueSetReader
 {
-
-    /**
-     * @return The information on the {@link DataValueSet} but not including the
-     *         {@link DataValueSet#getDataValues()}
-     */
-    DataValueSet readHeader();
-
-    /**
-     * @return the next {@link DataValueEntry} in the set or {@code null} if no
-     *         more values are available
-     */
-    DataValueEntry readNext();
+    @Override
+    public DataValueSet readHeader()
+    {
+        return null;
+    }
 
     @Override
-    void close();
+    public DataValueEntry readNext()
+    {
+        return null;
+    }
+
+    @Override
+    public void close()
+    {
+
+    }
 }

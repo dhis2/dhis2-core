@@ -34,6 +34,11 @@ import lombok.AllArgsConstructor;
 
 import com.csvreader.CsvReader;
 
+/**
+ * Reads {@link DataValueSet} from CSV input.
+ *
+ * @author Jan Bernitt
+ */
 @AllArgsConstructor
 final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
 {

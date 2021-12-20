@@ -32,8 +32,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.staxwax.reader.XMLReader;
 
 /**
- * Reads {@link DataValueSet} from different input formats like XML, JSON or
- * CSV.
+ * Reads {@link DataValueSet} from XML input.
  *
  * @author Jan Bernitt
  */
