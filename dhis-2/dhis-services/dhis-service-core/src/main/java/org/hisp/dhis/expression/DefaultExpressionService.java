@@ -631,7 +631,7 @@ public class DefaultExpressionService
         int itemsFound = visitor.getItemsFound();
         int itemValuesFound = visitor.getItemValuesFound();
 
-        if ( visitor.isNullDateFound() )
+        if ( visitor.isUnprotectedNullDateFound() )
         {
             return null;
         }

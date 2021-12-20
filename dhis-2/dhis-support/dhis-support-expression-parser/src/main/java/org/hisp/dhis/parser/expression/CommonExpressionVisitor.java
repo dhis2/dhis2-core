@@ -187,7 +187,7 @@ public class CommonExpressionVisitor
     /**
      * Flag to check if a null date was found.
      */
-    private boolean nullDateFound = false;
+    private boolean unprotectedNullDateFound = false;
 
     /**
      * Count of dimension items found.
@@ -355,7 +355,7 @@ public class CommonExpressionVisitor
             itemsFound++;
             if ( value == null && valueType.isDate() )
             {
-                nullDateFound = true;
+                unprotectedNullDateFound = true;
                 return null;
             }
             else if ( value == null )
@@ -668,9 +668,9 @@ public class CommonExpressionVisitor
         this.itemValuesFound = itemValuesFound;
     }
 
-    public boolean isNullDateFound()
+    public boolean isUnprotectedNullDateFound()
     {
-        return nullDateFound;
+        return unprotectedNullDateFound;
     }
 
     public MissingValueStrategy getMissingValueStrategy()
