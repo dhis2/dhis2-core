@@ -137,7 +137,7 @@ public class DefaultAnalyticsTableGenerator
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE,
                 params.getStartTime() );
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME,
-                clock.getTime() );
+                clock.time() );
         }
     }
 
