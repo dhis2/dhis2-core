@@ -28,8 +28,10 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.empty;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -144,5 +146,40 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
         // Then
         assertEquals( "Not a valid dimension: " + invalidDimension,
             GET( "/eventReports/" + uid ).error( BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    void testThatGetEventVisualizationsContainsLegacyEventReports()
+    {
+        // Given
+        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
+            + "'}}";
+
+        // When
+        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
+
+        // Then
+        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
+        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+
+        assertThat( nodeMap.get( "name" ).toString(), containsString( "Name Test" ) );
+        assertThat( nodeMap.get( "type" ).toString(), containsString( "LINE_LIST" ) );
+    }
+
+    @Test
+    void testThatGetEventReportsDoesNotContainNewEventVisualizations()
+    {
+        // Given
+        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
+            + "'}}";
+
+        // When
+        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+
+        // Then
+        final JsonResponse response = GET( "/eventReports/" + uid ).content();
+        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+
+        assertThat( nodeMap.values(), is( empty() ) );
     }
 }

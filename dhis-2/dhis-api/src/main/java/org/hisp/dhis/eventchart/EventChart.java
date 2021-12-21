@@ -412,4 +412,16 @@ public class EventChart
     {
         this.value = value;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isLegacy()
+    {
+        return legacy;
+    }
+
+    public void setLegacy( final boolean legacy )
+    {
+        this.legacy = legacy;
+    }
 }
