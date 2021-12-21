@@ -40,7 +40,7 @@ import org.slf4j.Logger;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-public class NotificationLoggerUtilTest
+class NotificationLoggerUtilTest
 {
 
     @Mock
@@ -49,7 +49,7 @@ public class NotificationLoggerUtilTest
     private static String logMessage = "logMessage";
 
     @Test
-    public void shouldLogDebugLevel()
+    void shouldLogDebugLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.DEBUG, logMessage );
@@ -61,7 +61,7 @@ public class NotificationLoggerUtilTest
     }
 
     @Test
-    public void shouldLogInfoLevel()
+    void shouldLogInfoLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.INFO, logMessage );
@@ -73,7 +73,7 @@ public class NotificationLoggerUtilTest
     }
 
     @Test
-    public void shouldLogWarnLevel()
+    void shouldLogWarnLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.WARN, logMessage );
@@ -85,7 +85,7 @@ public class NotificationLoggerUtilTest
     }
 
     @Test
-    public void shouldLogErrorLevel()
+    void shouldLogErrorLevel()
     {
 
         NotificationLoggerUtil.log( logger, NotificationLevel.ERROR, logMessage );

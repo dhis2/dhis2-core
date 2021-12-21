@@ -74,7 +74,7 @@ class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<TrackedEnti
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
         throws SQLException
     {
         // mock resultset data

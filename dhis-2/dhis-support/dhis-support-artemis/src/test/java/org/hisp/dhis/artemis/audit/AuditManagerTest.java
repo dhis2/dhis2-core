@@ -46,7 +46,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-public class AuditManagerTest
+class AuditManagerTest
 {
     private AuditManager auditManager;
 
@@ -74,7 +74,7 @@ public class AuditManagerTest
     }
 
     @Test
-    public void testCollectAuditAttributes()
+    void testCollectAuditAttributes()
     {
         DataElement dataElement = new DataElement();
         dataElement.setUid( "DataElementUID" );

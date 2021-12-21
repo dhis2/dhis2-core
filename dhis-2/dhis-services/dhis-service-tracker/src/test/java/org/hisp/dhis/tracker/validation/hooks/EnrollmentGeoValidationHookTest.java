@@ -55,7 +55,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EnrollmentGeoValidationHookTest
+class EnrollmentGeoValidationHookTest
 {
 
     private static final String PROGRAM = "Program";
@@ -80,7 +80,7 @@ public class EnrollmentGeoValidationHookTest
     }
 
     @Test
-    public void testGeometryIsValid()
+    void testGeometryIsValid()
     {
         // given
         Enrollment enrollment = new Enrollment();
@@ -97,7 +97,7 @@ public class EnrollmentGeoValidationHookTest
     }
 
     @Test
-    public void testEnrollmentWithNoProgramThrowsAnError()
+    void testEnrollmentWithNoProgramThrowsAnError()
     {
         // given
         Enrollment enrollment = new Enrollment();
@@ -110,7 +110,7 @@ public class EnrollmentGeoValidationHookTest
     }
 
     @Test
-    public void testProgramWithNullFeatureTypeFailsGeometryValidation()
+    void testProgramWithNullFeatureTypeFailsGeometryValidation()
     {
         // given
         Enrollment enrollment = new Enrollment();
@@ -131,7 +131,7 @@ public class EnrollmentGeoValidationHookTest
     }
 
     @Test
-    public void testProgramWithFeatureTypeNoneFailsGeometryValidation()
+    void testProgramWithFeatureTypeNoneFailsGeometryValidation()
     {
         // given
         Enrollment enrollment = new Enrollment();
@@ -153,7 +153,7 @@ public class EnrollmentGeoValidationHookTest
     }
 
     @Test
-    public void testProgramWithFeatureTypeDifferentFromGeometryFails()
+    void testProgramWithFeatureTypeDifferentFromGeometryFails()
     {
         // given
         Enrollment enrollment = new Enrollment();

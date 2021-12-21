@@ -66,7 +66,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class JdbcAnalyticsManagerTest
+class JdbcAnalyticsManagerTest
 {
 
     @Mock
@@ -104,7 +104,7 @@ public class JdbcAnalyticsManagerTest
     }
 
     @Test
-    public void verifyQueryGeneratedWhenDataElementHasLastAggregationType()
+    void verifyQueryGeneratedWhenDataElementHasLastAggregationType()
     {
         DataQueryParams params = createParams( AggregationType.LAST );
 
@@ -114,7 +114,7 @@ public class JdbcAnalyticsManagerTest
     }
 
     @Test
-    public void verifyQueryGeneratedWhenDataElementHasLastAvgOrgUnitAggregationType()
+    void verifyQueryGeneratedWhenDataElementHasLastAvgOrgUnitAggregationType()
     {
         DataQueryParams params = createParams( AggregationType.LAST_AVERAGE_ORG_UNIT );
 
@@ -124,7 +124,7 @@ public class JdbcAnalyticsManagerTest
     }
 
     @Test
-    public void verifyQueryGeneratedWhenDataElementHasLastInPeriodAggregationType()
+    void verifyQueryGeneratedWhenDataElementHasLastInPeriodAggregationType()
     {
         DataQueryParams params = createParams( AggregationType.LAST_IN_PERIOD );
 
@@ -134,7 +134,7 @@ public class JdbcAnalyticsManagerTest
     }
 
     @Test
-    public void verifyQueryGeneratedWhenDataElementHasLastInPeriodAvgOrgUnitAggregationType()
+    void verifyQueryGeneratedWhenDataElementHasLastInPeriodAvgOrgUnitAggregationType()
     {
         DataQueryParams params = createParams( AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT );
 

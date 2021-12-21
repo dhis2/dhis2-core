@@ -55,7 +55,7 @@ import com.google.common.net.HttpHeaders;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class DataSetControllerMockTest
+class DataSetControllerMockTest
 {
 
     @Mock
@@ -74,16 +74,17 @@ public class DataSetControllerMockTest
     private DataSetController controller;
 
     @Test
-    public void getWithDependencies()
+    void getWithDependencies()
         throws Exception
     {
         getWithDependencies( false );
     }
 
     @Test
-    public void getWithDependenciesAsDownload()
+    void getWithDependenciesAsDownload()
         throws Exception
     {
+
         getWithDependencies( true );
     }
 

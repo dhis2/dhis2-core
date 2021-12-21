@@ -58,7 +58,7 @@ import com.google.common.collect.Sets;
 
 @Disabled( "Test to run manually" )
 @ExtendWith( MockitoExtension.class )
-public class SMPPClientTest
+class SMPPClientTest
 {
     private static final String SYSTEM_ID = "smppclient1";
 
@@ -83,7 +83,7 @@ public class SMPPClientTest
     }
 
     @Test
-    public void testSuccessMessage()
+    void testSuccessMessage()
     {
         SMPPGatewayConfig config = getSMPPConfigurations();
 
@@ -95,7 +95,7 @@ public class SMPPClientTest
     }
 
     @Test
-    public void testFailedMessage()
+    void testFailedMessage()
     {
         SMPPGatewayConfig config = getSMPPConfigurations();
         config.setPassword( "123" );

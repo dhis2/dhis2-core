@@ -70,7 +70,7 @@ import com.google.common.collect.Lists;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class PredictionAnalyticsDataFetcherTest extends DhisConvenienceTest
+class PredictionAnalyticsDataFetcherTest extends DhisConvenienceTest
 {
 
     @Mock
@@ -333,8 +333,10 @@ public class PredictionAnalyticsDataFetcherTest extends DhisConvenienceTest
     // Tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testGetAocData()
+    void testGetAocData()
     {
         for ( int i = 0; i < TEST_SIZE; i++ )
         {
@@ -378,7 +380,7 @@ public class PredictionAnalyticsDataFetcherTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testGetNonAocData()
+    void testGetNonAocData()
     {
         when( analyticsService.getAggregatedDataValues( any( DataQueryParams.class ) ) )
             .thenAnswer( p -> getMockGrid( p ) );

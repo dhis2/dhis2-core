@@ -47,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 @ExtendWith( MockitoExtension.class )
-public class FileResourceControllerMockTest
+class FileResourceControllerMockTest
 {
 
     private FileResourceController controller;
@@ -62,7 +62,7 @@ public class FileResourceControllerMockTest
     private FileResourceUtils fileResourceUtils;
 
     @Test
-    public void testGetOrgUnitImage()
+    void testGetOrgUnitImage()
         throws WebMessageException,
         IOException
     {
@@ -80,7 +80,7 @@ public class FileResourceControllerMockTest
     }
 
     @Test
-    public void testGetDataValue()
+    void testGetDataValue()
     {
         controller = new FileResourceController( fileResourceService, fileResourceUtils );
         FileResource fileResource = new FileResource();
