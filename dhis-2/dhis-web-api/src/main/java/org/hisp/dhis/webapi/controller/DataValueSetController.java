@@ -213,7 +213,7 @@ public class DataValueSetController
     // Post
     // -------------------------------------------------------------------------
 
-    @PostMapping( consumes = APPLICATION_XML_VALUE, produces = CONTENT_TYPE_XML )
+    @PostMapping( consumes = APPLICATION_XML_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @ResponseBody
     public WebMessage postDxf2DataValueSet( ImportOptions importOptions, HttpServletRequest request )
@@ -229,7 +229,7 @@ public class DataValueSetController
         return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
-    @PostMapping( consumes = CONTENT_TYPE_XML_ADX, produces = CONTENT_TYPE_XML )
+    @PostMapping( consumes = CONTENT_TYPE_XML_ADX )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @ResponseBody
     public WebMessage postAdxDataValueSet( ImportOptions importOptions, HttpServletRequest request )
@@ -246,7 +246,7 @@ public class DataValueSetController
         return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
-    @PostMapping( consumes = APPLICATION_JSON_VALUE, produces = CONTENT_TYPE_JSON )
+    @PostMapping( consumes = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @ResponseBody
     public WebMessage postJsonDataValueSet( ImportOptions importOptions, HttpServletRequest request )
@@ -262,7 +262,7 @@ public class DataValueSetController
         return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
-    @PostMapping( consumes = "application/csv", produces = CONTENT_TYPE_JSON )
+    @PostMapping( consumes = "application/csv" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @ResponseBody
     public WebMessage postCsvDataValueSet( ImportOptions importOptions, HttpServletRequest request )
@@ -278,7 +278,7 @@ public class DataValueSetController
         return importSummary( summary ).withPlainResponseBefore( V38 );
     }
 
-    @PostMapping( consumes = CONTENT_TYPE_PDF, produces = CONTENT_TYPE_JSON )
+    @PostMapping( consumes = CONTENT_TYPE_PDF )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_DATAVALUE_ADD')" )
     @ResponseBody
     public WebMessage postPdfDataValueSet( ImportOptions importOptions, HttpServletRequest request )
