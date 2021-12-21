@@ -66,9 +66,9 @@ public class SimpleDimension implements Serializable
         SCHEDULE_DATE( "scheduledDate", PERIOD ),
         LAST_UPDATE_DATE( "lastUpdatedDate", PERIOD );
 
-        private String dimension;
+        private final String dimension;
 
-        private DimensionType parentType;
+        private final DimensionType parentType;
 
         Type( final String dimension, final DimensionType parentType )
         {
@@ -89,7 +89,7 @@ public class SimpleDimension implements Serializable
         public static boolean contains( final String dimension )
         {
             return stream( Type.values() )
-                .filter( t -> t.getDimension().equals( dimension ) ).findFirst().isPresent();
+                .anyMatch( t -> t.getDimension().equals( dimension ) );
         }
 
         public static Type from( final String dimension )

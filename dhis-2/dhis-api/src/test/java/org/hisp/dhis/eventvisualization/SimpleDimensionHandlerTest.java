@@ -28,6 +28,7 @@
 package org.hisp.dhis.eventvisualization;
 
 import static java.util.Arrays.asList;
+import static java.util.List.of;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -61,11 +62,10 @@ class SimpleDimensionHandlerTest
         // Given
         final EventVisualization aEventVisualization = stubEventVisualization();
         final String eventDateDimension = EVENT_DATE.getDimension();
-        final Attribute column = COLUMN;
         final SimpleDimensionHandler handler = new SimpleDimensionHandler( aEventVisualization );
 
         // When
-        final DimensionalObject dimensionalObject = handler.getDimensionalObject( eventDateDimension, column );
+        final DimensionalObject dimensionalObject = handler.getDimensionalObject( eventDateDimension, COLUMN );
 
         // Then
         assertThat( dimensionalObject.getUid(), is( equalTo( eventDateDimension ) ) );
@@ -79,12 +79,11 @@ class SimpleDimensionHandlerTest
         // Given
         final EventVisualization aEventVisualization = stubEventVisualization();
         final String invalidDimension = "invalidDimension";
-        final Attribute column = COLUMN;
         final SimpleDimensionHandler handler = new SimpleDimensionHandler( aEventVisualization );
 
         // When throws
         final NoSuchElementException thrown = assertThrows( NoSuchElementException.class,
-            () -> handler.getDimensionalObject( invalidDimension, column ) );
+            () -> handler.getDimensionalObject( invalidDimension, COLUMN ) );
 
         // Then
         assertThat( thrown.getMessage(), containsString( "Invalid dimension: " + invalidDimension ) );
@@ -97,7 +96,7 @@ class SimpleDimensionHandlerTest
         final String eventDateDimension = EVENT_DATE.getDimension();
         final EventVisualization aEventVisualization = stubEventVisualization();
         aEventVisualization.getSimpleDimensions().clear();
-        aEventVisualization.getColumns().addAll( asList( new BaseDimensionalObject( eventDateDimension ) ) );
+        aEventVisualization.getColumns().addAll( of( new BaseDimensionalObject( eventDateDimension ) ) );
 
         final SimpleDimensionHandler handler = new SimpleDimensionHandler( aEventVisualization );
 
