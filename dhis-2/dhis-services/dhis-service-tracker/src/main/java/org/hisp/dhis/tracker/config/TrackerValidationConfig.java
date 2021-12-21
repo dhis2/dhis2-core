@@ -91,58 +91,56 @@ public class TrackerValidationConfig
     @Bean
     public List<TrackerValidationHook> ruleEngineValidationHooks()
     {
-        return ImmutableList.of(
-            getHookByClass( EnrollmentRuleValidationHook.class ),
-            getHookByClass( EventRuleValidationHook.class ),
-            getHookByClass( TrackedEntityAttributeValidationHook.class ),
-            getHookByClass( EnrollmentAttributeValidationHook.class ),
-            getHookByClass( EventDataValuesValidationHook.class ) );
+        return getHookByClass( ImmutableList.of( EnrollmentRuleValidationHook.class,
+            EventRuleValidationHook.class,
+            TrackedEntityAttributeValidationHook.class,
+            EnrollmentAttributeValidationHook.class,
+            EventDataValuesValidationHook.class ) );
     }
 
     @Bean
     public List<TrackerValidationHook> validationHooks()
     {
-        return ImmutableList.of(
-            getHookByClass( PreCheckUidValidationHook.class ),
-            getHookByClass( PreCheckExistenceValidationHook.class ),
-            getHookByClass( PreCheckMandatoryFieldsValidationHook.class ),
-            getHookByClass( PreCheckMetaValidationHook.class ),
-            getHookByClass( PreCheckUpdatableFieldsValidationHook.class ),
-            getHookByClass( PreCheckDataRelationsValidationHook.class ),
-            getHookByClass( PreCheckSecurityOwnershipValidationHook.class ),
+        return getHookByClass( ImmutableList.of( PreCheckUidValidationHook.class,
+            PreCheckExistenceValidationHook.class,
+            PreCheckMandatoryFieldsValidationHook.class,
+            PreCheckMetaValidationHook.class,
+            PreCheckUpdatableFieldsValidationHook.class,
+            PreCheckDataRelationsValidationHook.class,
+            PreCheckSecurityOwnershipValidationHook.class,
 
-            getHookByClass( TrackedEntityAttributeValidationHook.class ),
+            TrackedEntityAttributeValidationHook.class,
 
-            getHookByClass( EnrollmentNoteValidationHook.class ),
-            getHookByClass( EnrollmentInExistingValidationHook.class ),
-            getHookByClass( EnrollmentGeoValidationHook.class ),
-            getHookByClass( EnrollmentDateValidationHook.class ),
-            getHookByClass( EnrollmentAttributeValidationHook.class ),
+            EnrollmentNoteValidationHook.class,
+            EnrollmentInExistingValidationHook.class,
+            EnrollmentGeoValidationHook.class,
+            EnrollmentDateValidationHook.class,
+            EnrollmentAttributeValidationHook.class,
 
-            getHookByClass( EventCategoryOptValidationHook.class ),
-            getHookByClass( EventDateValidationHook.class ),
-            getHookByClass( EventGeoValidationHook.class ),
-            getHookByClass( EventNoteValidationHook.class ),
-            getHookByClass( EventDataValuesValidationHook.class ),
+            EventCategoryOptValidationHook.class,
+            EventDateValidationHook.class,
+            EventGeoValidationHook.class,
+            EventNoteValidationHook.class,
+            EventDataValuesValidationHook.class,
 
-            getHookByClass( RelationshipsValidationHook.class ),
+            RelationshipsValidationHook.class,
 
-            getHookByClass( AssignedUserValidationHook.class ),
+            AssignedUserValidationHook.class,
 
-            getHookByClass( RepeatedEventsValidationHook.class ) // This
-                                                                 // validation
-                                                                 // must be run
+            RepeatedEventsValidationHook.class ) ); // This
+                                                    // validation
+                                                    // must be run
         // after
         // all the Event validations
         // because it needs to consider all and only the valid events
-        );
     }
 
-    private TrackerValidationHook getHookByClass( Class<? extends TrackerValidationHook> hookClass )
+    private List<TrackerValidationHook> getHookByClass( List<Class<? extends TrackerValidationHook>> hookClasses )
     {
-        return Optional.ofNullable( validationHooks.get( hookClass ) )
+        return hookClasses.stream().map( hookClass -> Optional.ofNullable( validationHooks.get( hookClass ) )
             .orElseThrow(
-                () -> new IllegalArgumentException( "Unable to find validation hook by class: " + hookClass ) );
+                () -> new IllegalArgumentException( "Unable to find validation hook by class: " + hookClass ) ) )
+            .collect( Collectors.toUnmodifiableList() );
     }
 
 }
