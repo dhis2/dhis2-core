@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1125;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
 
 import java.util.Iterator;
 import java.util.List;
@@ -56,7 +54,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
-import org.hisp.dhis.util.DateUtils;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -188,13 +185,6 @@ public abstract class AbstractTrackerDtoValidationHook
         reporter.getInvalidDTOs().putAll( context.getRootReporter().getInvalidDTOs() );
         validationMap.get( dto.getTrackerType() ).accept( reporter, dto );
         return reporter;
-    }
-
-    public boolean isNotValidDateString( String dateString )
-    {
-        checkNotNull( dateString, DATE_STRING_CANT_BE_NULL );
-
-        return !DateUtils.dateIsValid( dateString );
     }
 
     protected void addError( ValidationErrorReporter report, TrackerErrorCode errorCode, Object... args )
