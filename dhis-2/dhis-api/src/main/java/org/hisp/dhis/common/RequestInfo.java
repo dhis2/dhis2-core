@@ -42,7 +42,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Jan Bernitt
  */
 @Getter
-@Builder
+@Builder( toBuilder = true )
 @ToString
 @EqualsAndHashCode
 @AllArgsConstructor( access = AccessLevel.PRIVATE )

@@ -57,6 +57,7 @@ public class DefaultRequestInfoService implements RequestInfoService
      */
     public void setCurrentInfo( RequestInfo info )
     {
+        info = sanitised( info );
         currentInfo.set( info );
         if ( info == null )
         {
@@ -72,6 +73,20 @@ public class DefaultRequestInfoService implements RequestInfoService
         {
             MDC.put( X_REQUEST_ID, xRequestID );
         }
+    }
+
+    private RequestInfo sanitised( RequestInfo info )
+    {
+        if ( info == null )
+        {
+            return null;
+        }
+        String xRequestID = info.getHeaderXRequestID();
+        if ( xRequestID != null && !xRequestID.matches( "[-_a-zA-Z0-9]{1,36}" ) )
+        {
+            return info.toBuilder().headerXRequestID( "(illegal)" ).build();
+        }
+        return info;
     }
 
     @Override
