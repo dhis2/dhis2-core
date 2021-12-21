@@ -60,6 +60,7 @@ import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -126,6 +127,8 @@ public abstract class BaseAnalyticalObject
     private Date endDate;
 
     protected RelativePeriods relatives;
+
+    protected EventRepetition eventRepetition;
 
     protected List<DataElementGroupSetDimension> dataElementGroupSetDimensions = new ArrayList<>();
 
@@ -903,6 +906,18 @@ public abstract class BaseAnalyticalObject
     public void setRelatives( RelativePeriods relatives )
     {
         this.relatives = relatives;
+    }
+
+    @JsonProperty( value = "repetition" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventRepetition getEventRepetition()
+    {
+        return eventRepetition;
+    }
+
+    public void setEventRepetition( final EventRepetition eventRepetition )
+    {
+        this.eventRepetition = eventRepetition;
     }
 
     @JsonProperty
