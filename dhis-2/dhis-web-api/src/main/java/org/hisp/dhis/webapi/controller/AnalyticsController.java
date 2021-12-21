@@ -65,6 +65,8 @@ public class AnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics";
 
+    private static final String ANALYZE_PATH = "/analyze";
+
     private static final String DATA_VALUE_SET_PATH = "/dataValueSet";
 
     private static final String RAW_DATA_PATH = "/rawData";
@@ -81,6 +83,17 @@ public class AnalyticsController
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
+
+    @GetMapping( value = RESOURCE_PATH + ANALYZE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    public @ResponseBody String getEstimationJson( // JSON, JSONP
+        AggregateAnalyticsQueryCriteria criteria,
+        DhisApiVersion apiVersion,
+        HttpServletResponse response )
+    {
+        // return getGrid( criteria, apiVersion, ContextUtils.CONTENT_TYPE_JSON,
+        // response );
+        return "{ \"estimate\": 1234556789 }";
+    }
 
     @GetMapping( value = RESOURCE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getJson( // JSON, JSONP
