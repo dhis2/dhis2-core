@@ -53,7 +53,7 @@
     <param name="clazz">org.hisp.dhis.visualization.OutlierAnalysis</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jbEventRepetition">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblEventRepetition">
     <param name="clazz">org.hisp.dhis.eventvisualization.EventRepetition</param>
   </typedef>
 

@@ -113,6 +113,10 @@ public class BaseDimensionalObject
      */
     private String filter;
 
+    /**
+     * Applicable only for events. Holds the indexes relate to the repetition
+     * object.
+     */
     private EventRepetition eventRepetition;
 
     /**

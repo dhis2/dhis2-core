@@ -282,7 +282,7 @@
 
         <property name="subscribers" type="jbSet"/>
 
-        <property name="eventRepetition" type="jbEventRepetition"/>
+        <property name="eventRepetition" type="jblEventRepetition"/>
 
         <!-- Dynamic attribute values -->
         <property name="attributeValues" type="jsbAttributeValues"/>

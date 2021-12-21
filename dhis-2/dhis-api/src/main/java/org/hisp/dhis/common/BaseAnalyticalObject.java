@@ -128,7 +128,7 @@ public abstract class BaseAnalyticalObject
 
     protected RelativePeriods relatives;
 
-    protected EventRepetition eventRepetition;
+    protected List<EventRepetition> eventRepetitions;
 
     protected List<DataElementGroupSetDimension> dataElementGroupSetDimensions = new ArrayList<>();
 
@@ -908,16 +908,17 @@ public abstract class BaseAnalyticalObject
         this.relatives = relatives;
     }
 
-    @JsonProperty( value = "repetition" )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public EventRepetition getEventRepetition()
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "repetitions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "repetition", namespace = DxfNamespaces.DXF_2_0 )
+    public List<EventRepetition> getEventRepetition()
     {
-        return eventRepetition;
+        return eventRepetitions;
     }
 
-    public void setEventRepetition( final EventRepetition eventRepetition )
+    public void setEventRepetition( final List<EventRepetition> eventRepetitions )
     {
-        this.eventRepetition = eventRepetition;
+        this.eventRepetitions = eventRepetitions;
     }
 
     @JsonProperty

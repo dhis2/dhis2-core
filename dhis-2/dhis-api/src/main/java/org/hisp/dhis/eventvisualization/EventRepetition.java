@@ -49,6 +49,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 @Data
 public class EventRepetition implements Serializable
 {
+
+    private String attribute;
+
     /**
      * Represents the list of event indexes to be queried. It holds a list of
      * integers that are interpreted as follows:
