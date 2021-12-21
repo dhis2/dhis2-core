@@ -658,11 +658,17 @@ public abstract class BaseAnalyticalObject
         if ( attributes.containsKey( dimension ) )
         {
             final TrackedEntityAttributeDimension tead = attributes.get( dimension );
-            final ValueType valueType = tead.getAttribute() != null ? tead.getAttribute().getValueType() : null;
-            final OptionSet optionSet = tead.getAttribute() != null ? tead.getAttribute().getOptionSet() : null;
 
-            return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
-                tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter(), valueType, optionSet );
+            if ( tead != null )
+            {
+                final ValueType valueType = tead.getAttribute() != null ? tead.getAttribute().getValueType()
+                    : null;
+                final OptionSet optionSet = tead.getAttribute() != null ? tead.getAttribute().getOptionSet()
+                    : null;
+
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
+                    tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter(), valueType, optionSet );
+            }
         }
 
         // Tracked entity data element
@@ -673,12 +679,20 @@ public abstract class BaseAnalyticalObject
         if ( dataElements.containsKey( dimension ) )
         {
             final TrackedEntityDataElementDimension tedd = dataElements.get( dimension );
-            final ValueType valueType = tedd.getDataElement() != null ? tedd.getDataElement().getValueType() : null;
-            final OptionSet optionSet = tedd.getDataElement() != null ? tedd.getDataElement().getOptionSet() : null;
 
-            return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
-                tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(),
-                tedd.getFilter(), valueType, optionSet );
+            if ( tedd != null )
+            {
+                final ValueType valueType = tedd.getDataElement() != null
+                    ? tedd.getDataElement().getValueType()
+                    : null;
+                final OptionSet optionSet = tedd.getDataElement() != null
+                    ? tedd.getDataElement().getOptionSet()
+                    : null;
+
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
+                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(),
+                    tedd.getFilter(), valueType, optionSet );
+            }
         }
 
         // Tracked entity program indicator
@@ -690,8 +704,11 @@ public abstract class BaseAnalyticalObject
         {
             final TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
-            return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null,
-                teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
+            if ( teid != null )
+            {
+                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null,
+                    teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
+            }
         }
 
         return null;
@@ -710,14 +727,17 @@ public abstract class BaseAnalyticalObject
     private <T extends DimensionalEmbeddedObject> Optional<DimensionalObject> getDimensionFromEmbeddedObjects(
         String dimension, DimensionType dimensionType, List<T> embeddedObjects )
     {
-        Map<String, T> dimensions = Maps.uniqueIndex( embeddedObjects, d -> d.getDimension().getDimension() );
+        final Map<String, T> dimensions = Maps.uniqueIndex( embeddedObjects, d -> d.getDimension().getDimension() );
 
         if ( dimensions.containsKey( dimension ) )
         {
-            DimensionalEmbeddedObject object = dimensions.get( dimension );
+            final DimensionalEmbeddedObject object = dimensions.get( dimension );
 
-            return Optional.of( new BaseDimensionalObject( dimension, dimensionType,
-                object.getDimension().getDisplayName(), object.getItems() ) );
+            if ( object != null )
+            {
+                return Optional.of( new BaseDimensionalObject( dimension, dimensionType,
+                    object.getDimension().getDisplayName(), object.getItems() ) );
+            }
         }
 
         return Optional.empty();
