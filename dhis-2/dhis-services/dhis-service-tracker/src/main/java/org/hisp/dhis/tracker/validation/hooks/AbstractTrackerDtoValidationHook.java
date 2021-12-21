@@ -28,8 +28,8 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1125;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
+import static org.hisp.dhis.tracker.report.TrackerErrorReport.newReport;
+import static org.hisp.dhis.tracker.report.TrackerWarningReport.newWarningReport;
 
 import java.util.Iterator;
 import java.util.List;

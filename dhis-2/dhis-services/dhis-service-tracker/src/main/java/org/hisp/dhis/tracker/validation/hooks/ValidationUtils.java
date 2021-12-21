@@ -32,8 +32,8 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
+import static org.hisp.dhis.tracker.report.TrackerErrorReport.newReport;
+import static org.hisp.dhis.tracker.report.TrackerWarningReport.newWarningReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
 import java.util.ArrayList;
