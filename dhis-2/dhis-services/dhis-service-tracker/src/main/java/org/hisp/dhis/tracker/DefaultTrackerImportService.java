@@ -201,9 +201,7 @@ public class DefaultTrackerImportService
     protected TrackerValidationReport validateBundle( TrackerImportParams params, TrackerBundle trackerBundle,
         TrackerTimingsStats opsTimer )
     {
-        TrackerValidationReport validationReport = new TrackerValidationReport();
-
-        validationReport.add( trackerValidationService.validate( trackerBundle ) );
+        TrackerValidationReport validationReport = trackerValidationService.validate( trackerBundle );
 
         notifyOps( params, VALIDATION_OPS, opsTimer );
 
