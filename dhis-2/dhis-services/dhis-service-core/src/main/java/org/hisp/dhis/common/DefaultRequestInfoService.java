@@ -31,6 +31,7 @@ import javax.annotation.PreDestroy;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,6 +41,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultRequestInfoService implements RequestInfoService
 {
+    /**
+     * Key used for slf4j logging of the X-Request header.
+     */
+    private static final String X_REQUEST_ID = "xRequestID";
+
     private final ThreadLocal<RequestInfo> currentInfo = new ThreadLocal<>();
 
     /**
@@ -52,6 +58,20 @@ public class DefaultRequestInfoService implements RequestInfoService
     public void setCurrentInfo( RequestInfo info )
     {
         currentInfo.set( info );
+        if ( info == null )
+        {
+            MDC.remove( X_REQUEST_ID );
+            return;
+        }
+        String xRequestID = info.getHeaderXRequestID();
+        if ( xRequestID == null )
+        {
+            MDC.remove( X_REQUEST_ID );
+        }
+        else
+        {
+            MDC.put( X_REQUEST_ID, xRequestID );
+        }
     }
 
     @Override
