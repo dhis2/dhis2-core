@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class PluckNodeTransformerTest
+class PluckNodeTransformerTest
 {
     private final PluckNodeTransformer transformer = new PluckNodeTransformer();
 
@@ -95,13 +95,13 @@ public class PluckNodeTransformerTest
     }
 
     @Test
-    public void name()
+    void name()
     {
         Assertions.assertEquals( "pluck", transformer.name() );
     }
 
     @Test
-    public void withoutArg()
+    void withoutArg()
     {
         Node result = transformer.transform( collectionNode, null );
         Assertions.assertTrue( result instanceof CollectionNode );
@@ -121,7 +121,7 @@ public class PluckNodeTransformerTest
     }
 
     @Test
-    public void withArg()
+    void withArg()
     {
         Node result = transformer.transform( collectionNode, Collections.singletonList( "name" ) );
         Assertions.assertTrue( result instanceof CollectionNode );

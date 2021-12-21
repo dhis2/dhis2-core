@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class JobConfigurationObjectBundleHookTest
+class JobConfigurationObjectBundleHookTest
 {
     private static final String CRON_HOURLY = "0 0 * ? * *";
 
@@ -80,7 +80,7 @@ public class JobConfigurationObjectBundleHookTest
     }
 
     @Test
-    public void validateInternalNonConfigurableChangeError()
+    void validateInternalNonConfigurableChangeError()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -99,7 +99,7 @@ public class JobConfigurationObjectBundleHookTest
     }
 
     @Test
-    public void validateInternalNonConfigurableChange()
+    void validateInternalNonConfigurableChange()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -117,7 +117,7 @@ public class JobConfigurationObjectBundleHookTest
     }
 
     @Test
-    public void validateInternalNonConfigurableShownValidationErrorNonE7010()
+    void validateInternalNonConfigurableShownValidationErrorNonE7010()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -137,7 +137,7 @@ public class JobConfigurationObjectBundleHookTest
     }
 
     @Test
-    public void validateInternalNonConfigurableShownValidationErrorE7010Configurable()
+    void validateInternalNonConfigurableShownValidationErrorE7010Configurable()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -162,7 +162,7 @@ public class JobConfigurationObjectBundleHookTest
     }
 
     @Test
-    public void validateInternalNonConfigurableShownValidationErrorE7010NoPrevious()
+    void validateInternalNonConfigurableShownValidationErrorE7010NoPrevious()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( null );
@@ -183,7 +183,7 @@ public class JobConfigurationObjectBundleHookTest
     }
 
     @Test
-    public void validateInternalNonConfigurableIgnoredValidationErrorE7010()
+    void validateInternalNonConfigurableIgnoredValidationErrorE7010()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -202,7 +202,7 @@ public class JobConfigurationObjectBundleHookTest
     }
 
     @Test
-    public void validateCronExpressionForCronTypeJobs()
+    void validateCronExpressionForCronTypeJobs()
     {
         String jobConfigUid = "jsdhJSJHD";
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( jobConfigUid ) ) )
@@ -221,7 +221,7 @@ public class JobConfigurationObjectBundleHookTest
     }
 
     @Test
-    public void validateDelayForFixedIntervalTypeJobs()
+    void validateDelayForFixedIntervalTypeJobs()
     {
         String jobConfigUid = "o8kG3Qk3nG3";
         JobConfiguration contAnalyticsTableJobConfig = new JobConfiguration();

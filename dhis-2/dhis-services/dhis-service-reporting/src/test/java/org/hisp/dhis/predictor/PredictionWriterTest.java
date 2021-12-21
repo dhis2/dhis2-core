@@ -63,7 +63,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class PredictionWriterTest extends DhisConvenienceTest
+class PredictionWriterTest extends DhisConvenienceTest
 {
 
     @Mock
@@ -176,8 +176,10 @@ public class PredictionWriterTest extends DhisConvenienceTest
     // Tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testWriteIntoExistingPeriod()
+    void testWriteIntoExistingPeriod()
     {
         writer.write( Lists.newArrayList( dataValueA ), NO_OLD_DATA );
 
@@ -187,7 +189,7 @@ public class PredictionWriterTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWriteIntoNewPeriod()
+    void testWriteIntoNewPeriod()
     {
         writer.write( Lists.newArrayList( dataValueB ), NO_OLD_DATA );
 
@@ -197,7 +199,7 @@ public class PredictionWriterTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWriteInsignificantZero()
+    void testWriteInsignificantZero()
     {
         writer.write( Lists.newArrayList( dataValueA0 ), NO_OLD_DATA );
 
@@ -208,7 +210,7 @@ public class PredictionWriterTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWritePredictionUnchanged()
+    void testWritePredictionUnchanged()
     {
         writer.write( Lists.newArrayList( dataValueA ), Lists.newArrayList( dataValueA ) );
 
@@ -219,7 +221,7 @@ public class PredictionWriterTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWriteInsignificantZeroWithOldPrediction()
+    void testWriteInsignificantZeroWithOldPrediction()
     {
         writer.write( Lists.newArrayList( dataValueA0 ), Lists.newArrayList( dataValueA ) );
 
@@ -229,7 +231,7 @@ public class PredictionWriterTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWriteInsignificantZeroWithOldDeletedPrediction()
+    void testWriteInsignificantZeroWithOldDeletedPrediction()
     {
         writer.write( Lists.newArrayList( dataValueA0 ), Lists.newArrayList( dataValueADeleted ) );
 
@@ -240,7 +242,7 @@ public class PredictionWriterTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWriteDeletingOldPrediction()
+    void testWriteDeletingOldPrediction()
     {
         writer.write( NO_PREDICTED_DATA, Lists.newArrayList( dataValueA ) );
 
@@ -250,7 +252,7 @@ public class PredictionWriterTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWriteNotDeletingOldDeletedPrediction()
+    void testWriteNotDeletingOldDeletedPrediction()
     {
         writer.write( NO_PREDICTED_DATA, Lists.newArrayList( dataValueADeleted ) );
 

@@ -52,7 +52,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  * @author Zubair Asghar.
  */
 @ExtendWith( MockitoExtension.class )
-public class PasswordValidationRuleTest
+class PasswordValidationRuleTest
 {
     private static final int MIN_LENGTH = 8;
 
@@ -113,7 +113,7 @@ public class PasswordValidationRuleTest
     }
 
     @Test
-    public void testWhenPasswordIsNullOrEmpty()
+    void testWhenPasswordIsNullOrEmpty()
     {
         CredentialsInfo credentialsInfoNoPassword = new CredentialsInfo( USERNAME, "", EMAIL, true );
 
@@ -126,7 +126,7 @@ public class PasswordValidationRuleTest
     }
 
     @Test
-    public void testSpecialCharValidationRule()
+    void testSpecialCharValidationRule()
     {
         CredentialsInfo credentialsInfo = new CredentialsInfo( USERNAME, STRONG_PASSWORD, EMAIL, true );
 
@@ -140,7 +140,7 @@ public class PasswordValidationRuleTest
     }
 
     @Test
-    public void testDigitValidationRule()
+    void testDigitValidationRule()
     {
         CredentialsInfo credentialsInfo = new CredentialsInfo( USERNAME, STRONG_PASSWORD, EMAIL, true );
 
@@ -154,7 +154,7 @@ public class PasswordValidationRuleTest
     }
 
     @Test
-    public void testDictionaryValidationRule()
+    void testDictionaryValidationRule()
     {
         CredentialsInfo credentialsInfo = new CredentialsInfo( USERNAME, STRONG_PASSWORD, EMAIL, true );
 
@@ -168,7 +168,7 @@ public class PasswordValidationRuleTest
     }
 
     @Test
-    public void testLengthValidationRule()
+    void testLengthValidationRule()
     {
         Mockito.when( systemSettingManager.getIntSetting( SettingKey.MIN_PASSWORD_LENGTH ) )
             .thenReturn( MIN_LENGTH );
@@ -188,7 +188,7 @@ public class PasswordValidationRuleTest
     }
 
     @Test
-    public void testUpperCaseValidationRule()
+    void testUpperCaseValidationRule()
     {
         CredentialsInfo credentialsInfo = new CredentialsInfo( USERNAME, STRONG_PASSWORD, EMAIL, true );
 
@@ -202,7 +202,7 @@ public class PasswordValidationRuleTest
     }
 
     @Test
-    public void testUserParameterValidationRule()
+    void testUserParameterValidationRule()
     {
         CredentialsInfo credentialsInfo = new CredentialsInfo( USERNAME, STRONG_PASSWORD, EMAIL, true );
 
@@ -216,7 +216,7 @@ public class PasswordValidationRuleTest
     }
 
     @Test
-    public void testPasswordHistoryValidationRule()
+    void testPasswordHistoryValidationRule()
     {
         List<String> history = ListUtils.newList( STRONG_PASSWORD, STRONG_PASSWORD + "1", STRONG_PASSWORD + "2",
             STRONG_PASSWORD + "2", STRONG_PASSWORD + "4", STRONG_PASSWORD + "5", STRONG_PASSWORD + "6",

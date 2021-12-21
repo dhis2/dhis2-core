@@ -44,7 +44,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-public class TrackerImportStrategyHandlerTest
+class TrackerImportStrategyHandlerTest
 {
     @InjectMocks
     TrackerImportStrategyImpl importStrategy;
@@ -59,7 +59,7 @@ public class TrackerImportStrategyHandlerTest
     ContextService contextService;
 
     @Test
-    public void shouldImportAsync()
+    void shouldImportAsync()
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()
@@ -77,7 +77,7 @@ public class TrackerImportStrategyHandlerTest
     }
 
     @Test
-    public void shouldNotImportAsync()
+    void shouldNotImportAsync()
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()

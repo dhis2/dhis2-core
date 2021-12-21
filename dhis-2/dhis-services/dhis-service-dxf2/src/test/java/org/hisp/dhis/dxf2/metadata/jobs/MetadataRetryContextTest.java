@@ -49,8 +49,7 @@ import org.springframework.retry.RetryContext;
  * @author aamerm
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataRetryContextTest
-    extends DhisSpringTest
+class MetadataRetryContextTest extends DhisSpringTest
 {
     @Mock
     RetryContext retryContext;
@@ -71,13 +70,13 @@ public class MetadataRetryContextTest
     }
 
     @Test
-    public void testShouldGetRetryContextCorrectly()
+    void testShouldGetRetryContextCorrectly()
     {
         assertEquals( retryContext, metadataRetryContext.getRetryContext() );
     }
 
     @Test
-    public void testShouldSetRetryContextCorrectly()
+    void testShouldSetRetryContextCorrectly()
     {
         RetryContext newMock = mock( RetryContext.class );
 
@@ -87,7 +86,7 @@ public class MetadataRetryContextTest
     }
 
     @Test
-    public void testIfVersionIsNull()
+    void testIfVersionIsNull()
     {
         metadataRetryContext.updateRetryContext( testKey, testMessage, null );
 
@@ -96,7 +95,7 @@ public class MetadataRetryContextTest
     }
 
     @Test
-    public void testIfVersionIsNotNull()
+    void testIfVersionIsNotNull()
     {
         metadataRetryContext.updateRetryContext( testKey, testMessage, mockVersion );
 
@@ -105,7 +104,7 @@ public class MetadataRetryContextTest
     }
 
     @Test
-    public void testIfSummaryIsNull()
+    void testIfSummaryIsNull()
     {
         MetadataSyncSummary metadataSyncSummary = mock( MetadataSyncSummary.class );
 
@@ -117,7 +116,7 @@ public class MetadataRetryContextTest
     }
 
     @Test
-    public void testIfSummaryIsNotNull()
+    void testIfSummaryIsNotNull()
     {
         MetadataSyncSummary testSummary = new MetadataSyncSummary();
         ImportReport importReport = new ImportReport();

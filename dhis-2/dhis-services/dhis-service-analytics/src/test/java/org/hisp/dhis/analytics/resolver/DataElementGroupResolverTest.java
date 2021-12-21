@@ -56,7 +56,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class DataElementGroupResolverTest
+class DataElementGroupResolverTest
 {
 
     @Mock
@@ -118,7 +118,7 @@ public class DataElementGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsResolvedProperly()
+    void verifyExpressionIsResolvedProperly()
     {
         // arrange
 
@@ -142,7 +142,7 @@ public class DataElementGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
+    void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
     {
         // arrange
 
@@ -165,7 +165,7 @@ public class DataElementGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenDeGroupPrefixNotInUid0()
+    void verifyExpressionIsNotResolvedWhenDeGroupPrefixNotInUid0()
     {
         // arrange
 
@@ -187,7 +187,7 @@ public class DataElementGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
+    void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
     {
         // arrange
 

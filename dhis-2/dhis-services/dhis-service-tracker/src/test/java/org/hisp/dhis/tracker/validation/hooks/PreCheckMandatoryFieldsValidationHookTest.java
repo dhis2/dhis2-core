@@ -62,7 +62,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class PreCheckMandatoryFieldsValidationHookTest
+class PreCheckMandatoryFieldsValidationHookTest
 {
 
     private PreCheckMandatoryFieldsValidationHook validationHook;
@@ -88,7 +88,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccess()
+    void verifyTrackedEntityValidationSuccess()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntityType( CodeGenerator.generateUid() )
@@ -102,7 +102,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsOnMissingOrgUnit()
+    void verifyTrackedEntityValidationFailsOnMissingOrgUnit()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntityType( CodeGenerator.generateUid() )
@@ -116,7 +116,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType()
+    void verifyTrackedEntityValidationFailsOnMissingTrackedEntityType()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntityType( null )
@@ -130,7 +130,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccess()
+    void verifyEnrollmentValidationSuccess()
     {
         Enrollment enrollment = Enrollment.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -145,7 +145,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsOnMissingTrackedEntity()
+    void verifyEnrollmentValidationFailsOnMissingTrackedEntity()
     {
         Enrollment enrollment = Enrollment.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -160,7 +160,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsOnMissingProgram()
+    void verifyEnrollmentValidationFailsOnMissingProgram()
     {
         Enrollment enrollment = Enrollment.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -175,7 +175,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsOnMissingOrgUnit()
+    void verifyEnrollmentValidationFailsOnMissingOrgUnit()
     {
         Enrollment enrollment = Enrollment.builder()
             .orgUnit( null )
@@ -190,7 +190,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccess()
+    void verifyEventValidationSuccess()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -205,7 +205,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingProgram()
+    void verifyEventValidationFailsOnMissingProgram()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -220,7 +220,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram()
+    void verifyEventValidationFailsOnMissingProgramStageReferenceToProgram()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -239,7 +239,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingProgramStage()
+    void verifyEventValidationFailsOnMissingProgramStage()
     {
         Event event = Event.builder()
             .orgUnit( CodeGenerator.generateUid() )
@@ -254,7 +254,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingOrgUnit()
+    void verifyEventValidationFailsOnMissingOrgUnit()
     {
         Event event = Event.builder()
             .orgUnit( null )
@@ -269,7 +269,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationSuccess()
+    void verifyRelationshipValidationSuccess()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -289,7 +289,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsOnMissingFrom()
+    void verifyRelationshipValidationFailsOnMissingFrom()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -306,7 +306,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsOnMissingTo()
+    void verifyRelationshipValidationFailsOnMissingTo()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -323,7 +323,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsOnMissingRelationshipType()
+    void verifyRelationshipValidationFailsOnMissingRelationshipType()
     {
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )

@@ -85,7 +85,7 @@ import com.google.common.collect.Sets;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class DataQueryServiceDimensionItemKeywordTest
+class DataQueryServiceDimensionItemKeywordTest
 {
 
     @Mock
@@ -160,7 +160,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOuLevelToDataQueryParam()
+    void convertAnalyticsRequestWithOuLevelToDataQueryParam()
     {
         mockDimensionService();
 
@@ -190,7 +190,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithMultipleOuLevelToDataQueryParam()
+    void convertAnalyticsRequestWithMultipleOuLevelToDataQueryParam()
     {
         mockDimensionService();
 
@@ -230,7 +230,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithIndicatorGroup()
+    void convertAnalyticsRequestWithIndicatorGroup()
     {
         final String INDICATOR_GROUP_UID = "oehv9EO3vP7";
 
@@ -265,7 +265,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOrgUnitGroup()
+    void convertAnalyticsRequestWithOrgUnitGroup()
     {
         mockDimensionService();
 
@@ -285,7 +285,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOrgUnitGroupAsFilter()
+    void convertAnalyticsRequestWithOrgUnitGroupAsFilter()
     {
         mockDimensionService();
 
@@ -305,7 +305,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOrgUnitLevelAsFilter()
+    void convertAnalyticsRequestWithOrgUnitLevelAsFilter()
     {
         OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
         OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
@@ -345,7 +345,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithOrgUnitLevelAndOrgUnitGroupAsFilter()
+    void convertAnalyticsRequestWithOrgUnitLevelAndOrgUnitGroupAsFilter()
     {
         OrganisationUnit level2OuA = new OrganisationUnit( "Bo" );
         OrganisationUnit level2OuB = new OrganisationUnit( "Bombali" );
@@ -399,7 +399,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithDataElementGroup()
+    void convertAnalyticsRequestWithDataElementGroup()
     {
         when( dimensionService.getDataDimensionalItemObject( UID, DATA_ELEMENT_2.getUid() ) )
             .thenReturn( DATA_ELEMENT_2 );
@@ -436,7 +436,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup()
+    void convertAnalyticsRequestWithDataElementGroupAndIndicatorGroup()
     {
         final String DATA_ELEMENT_GROUP_UID = "oehv9EO3vP7";
         final String INDICATOR_GROUP_UID = "iezv4GO4vD9";
@@ -486,7 +486,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithRelativePeriod()
+    void convertAnalyticsRequestWithRelativePeriod()
     {
         mockDimensionService();
         when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
@@ -513,7 +513,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void convertAnalyticsRequestWithRelativePeriodAsFilter()
+    void convertAnalyticsRequestWithRelativePeriodAsFilter()
     {
         mockDimensionService();
         when( i18n.getString( "LAST_12_MONTHS" ) ).thenReturn( "Last 12 months" );
@@ -541,7 +541,7 @@ public class DataQueryServiceDimensionItemKeywordTest
     }
 
     @Test
-    public void verifyGetOrgUnitsBasedOnUserOrgUnitType()
+    void verifyGetOrgUnitsBasedOnUserOrgUnitType()
     {
         testGetUserOrgUnits( UserOrgUnitType.DATA_CAPTURE );
         testGetUserOrgUnits( UserOrgUnitType.TEI_SEARCH );

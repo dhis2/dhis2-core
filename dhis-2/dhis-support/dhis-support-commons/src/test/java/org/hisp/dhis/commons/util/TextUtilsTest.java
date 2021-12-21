@@ -59,6 +59,18 @@ class TextUtilsTest
     }
 
     @Test
+    public void testRemoveNonEssentialChars()
+    {
+        String same = "abcdefghijkl-";
+        assertEquals( same, removeNonEssentialChars( same ) );
+
+        assertEquals( "abcdefghijkl-", removeNonEssentialChars( "abcdefghijkl-øæå" ) );
+        assertEquals( "abcdefghijkl-", removeNonEssentialChars( "abcdefghijkl-øæå§!" ) );
+        assertEquals( " abcdefghijkl-", removeNonEssentialChars( " abcdefghijkl-øæå§!" ) );
+        assertEquals( " abcde fghijkl-", removeNonEssentialChars( "/(/%å^{} abcde fghijkl-øæå§!&" ) );
+    }
+
+    @Test
     void testHtmlLinks()
     {
         assertEquals( "<a href=\"http://dhis2.org\">http://dhis2.org</a>", htmlLinks( "http://dhis2.org" ) );

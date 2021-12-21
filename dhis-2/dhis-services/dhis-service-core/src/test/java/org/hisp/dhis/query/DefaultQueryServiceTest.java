@@ -54,7 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultQueryServiceTest
+class DefaultQueryServiceTest
 {
 
     private DefaultQueryService subject;
@@ -79,7 +79,7 @@ public class DefaultQueryServiceTest
     }
 
     @Test
-    public void verifyQueryEngineUsesPaginationInformation()
+    void verifyQueryEngineUsesPaginationInformation()
     {
         Query query = Query.from( new OrganisationUnitSchemaDescriptor().getSchema() );
         query.setFirstResult( 100 );

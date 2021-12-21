@@ -61,7 +61,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class CategoryOptionGroupResolverTest
+class CategoryOptionGroupResolverTest
 {
 
     @Mock
@@ -125,7 +125,7 @@ public class CategoryOptionGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsResolvedProperly()
+    void verifyExpressionIsResolvedProperly()
     {
         // arrange
 
@@ -148,7 +148,7 @@ public class CategoryOptionGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
+    void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
     {
         // arrange
 
@@ -170,7 +170,7 @@ public class CategoryOptionGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
+    void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
     {
         // arrange
 
@@ -192,7 +192,7 @@ public class CategoryOptionGroupResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
+    void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
     {
         // arrange
 

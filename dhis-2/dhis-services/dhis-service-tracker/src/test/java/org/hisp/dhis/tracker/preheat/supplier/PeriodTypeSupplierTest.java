@@ -56,7 +56,7 @@ import org.springframework.core.env.Environment;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class PeriodTypeSupplierTest
+class PeriodTypeSupplierTest
 {
 
     private PeriodTypeSupplier supplier;
@@ -81,7 +81,7 @@ public class PeriodTypeSupplierTest
     }
 
     @Test
-    public void verifySupplier()
+    void verifySupplier()
     {
         final List<Period> periods = rnd.objects( Period.class, 20 ).collect( Collectors.toList() );
         when( periodStore.getAll() ).thenReturn( periods );

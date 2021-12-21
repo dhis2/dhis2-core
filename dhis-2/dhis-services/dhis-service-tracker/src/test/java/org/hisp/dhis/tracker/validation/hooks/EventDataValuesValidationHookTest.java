@@ -71,7 +71,7 @@ import com.google.common.collect.Sets;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-public class EventDataValuesValidationHookTest
+class EventDataValuesValidationHookTest
 {
 
     private EventDataValuesValidationHook hookToTest;
@@ -116,7 +116,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenDataElementIsValid()
+    void successValidationWhenDataElementIsValid()
     {
         // Given
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( getDataValue() ) );
@@ -130,7 +130,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenCreatedAtIsNull()
+    void successValidationWhenCreatedAtIsNull()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -146,7 +146,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenUpdatedAtIsNull()
+    void failValidationWhenUpdatedAtIsNull()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -162,7 +162,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementIsInvalid()
+    void failValidationWhenDataElementIsInvalid()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -180,7 +180,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenMandatoryDataElementIsNotPresent()
+    void failValidationWhenMandatoryDataElementIsNotPresent()
     {
         // Given
 
@@ -213,7 +213,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failSuccessWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded()
+    void failSuccessWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded()
     {
         // Given
         ProgramStage programStage = new ProgramStage();
@@ -244,7 +244,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementIsNotPresentInProgramStage()
+    void failValidationWhenDataElementIsNotPresentInProgramStage()
     {
         // Given
         ProgramStage programStage = new ProgramStage();
@@ -279,7 +279,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementValueTypeIsNull()
+    void failValidationWhenDataElementValueTypeIsNull()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -301,7 +301,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenFileResourceIsNull()
+    void failValidationWhenFileResourceIsNull()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -325,7 +325,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory()
+    void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -351,7 +351,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory()
+    void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -382,7 +382,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void validationWhenDataElementValueIsNullAndValidationStrategyOnUpdate()
+    void validationWhenDataElementValueIsNullAndValidationStrategyOnUpdate()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -424,7 +424,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void validationWhenDataElementValueIsNullAndValidationStrategyOnComplete()
+    void validationWhenDataElementValueIsNullAndValidationStrategyOnComplete()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -464,7 +464,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void validationWhenDataElementValueIsNullAndEventStatusSkippedOrScheduled()
+    void validationWhenDataElementValueIsNullAndEventStatusSkippedOrScheduled()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -502,7 +502,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenDataElementIsNullAndDataElementIsNotCompulsory()
+    void successValidationWhenDataElementIsNullAndDataElementIsNotCompulsory()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -532,7 +532,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenFileResourceIsAlreadyAssigned()
+    void failValidationWhenFileResourceIsAlreadyAssigned()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -559,7 +559,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementValueTypeIsInvalid()
+    void failValidationWhenDataElementValueTypeIsInvalid()
     {
         runAndAssertValidationForDataValue( ValueType.NUMBER, "not_a_number" );
         runAndAssertValidationForDataValue( ValueType.UNIT_INTERVAL, "3" );
@@ -578,7 +578,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationDataElementOptionValueIsValid()
+    void successValidationDataElementOptionValueIsValid()
     {
         DataValue validDataValue = getDataValue();
         validDataValue.setValue( "code" );
@@ -612,7 +612,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationDataElementOptionValueIsInValid()
+    void failValidationDataElementOptionValueIsInValid()
     {
         DataValue validDataValue = getDataValue();
         validDataValue.setDataElement( dataElementUid );

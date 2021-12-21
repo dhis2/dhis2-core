@@ -55,7 +55,7 @@ import org.springframework.web.util.NestedServletException;
  * @author Enrico Colasante
  */
 @ExtendWith( MockitoExtension.class )
-public class RelationshipControllerTest
+class RelationshipControllerTest
 {
     private MockMvc mockMvc;
 
@@ -99,19 +99,19 @@ public class RelationshipControllerTest
     }
 
     @Test
-    public void verifyEndpointWithNoArgs()
+    void verifyEndpointWithNoArgs()
     {
         assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT ) ) );
     }
 
     @Test
-    public void verifyEndpointWithNotFoundTei()
+    void verifyEndpointWithNotFoundTei()
     {
         assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT ).param( "tei", TEI_ID ) ) );
     }
 
     @Test
-    public void verifyEndpointWithTei()
+    void verifyEndpointWithTei()
         throws Exception
     {
         when( trackedEntityInstanceService.getTrackedEntityInstance( TEI_ID ) ).thenReturn( tei );
@@ -122,14 +122,14 @@ public class RelationshipControllerTest
     }
 
     @Test
-    public void verifyEndpointWithNotFoundEvent()
+    void verifyEndpointWithNotFoundEvent()
     {
         assertThrows( NestedServletException.class,
             () -> mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) ) );
     }
 
     @Test
-    public void verifyEndpointWithEvent()
+    void verifyEndpointWithEvent()
         throws Exception
     {
         when( programStageInstanceService.getProgramStageInstance( EVENT_ID ) ).thenReturn( event );
@@ -140,14 +140,14 @@ public class RelationshipControllerTest
     }
 
     @Test
-    public void verifyEndpointWithNotFoundEnrollment()
+    void verifyEndpointWithNotFoundEnrollment()
     {
         assertThrows( NestedServletException.class, () -> mockMvc
             .perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ) );
     }
 
     @Test
-    public void verifyEndpointWithEnrollment()
+    void verifyEndpointWithEnrollment()
         throws Exception
     {
         when( programInstanceService.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( enrollment );
@@ -158,13 +158,13 @@ public class RelationshipControllerTest
     }
 
     @Test
-    public void testGetRelationshipNotPresent()
+    void testGetRelationshipNotPresent()
     {
         assertThrows( NestedServletException.class, () -> mockMvc.perform( get( ENDPOINT + "/" + REL_ID ) ) );
     }
 
     @Test
-    public void testGetRelationship()
+    void testGetRelationship()
         throws Exception
     {
         when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( relationship );
@@ -172,7 +172,7 @@ public class RelationshipControllerTest
     }
 
     @Test
-    public void testDeleteRelationship()
+    void testDeleteRelationship()
         throws Exception
     {
         when( relationshipService.getRelationshipByUid( REL_ID ) ).thenReturn( relationship );

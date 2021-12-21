@@ -50,7 +50,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataOrgUnitMergeHandlerTest
+class MetadataOrgUnitMergeHandlerTest
 {
 
     private MetadataOrgUnitMergeHandler handler;
@@ -73,7 +73,7 @@ public class MetadataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergeDataSets()
+    void testMergeDataSets()
     {
         DataSet dsA = createDataSet( 'A' );
         dsA.addOrganisationUnit( ouA );
@@ -100,7 +100,7 @@ public class MetadataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergePrograms()
+    void testMergePrograms()
     {
         Program prA = createProgram( 'A' );
         prA.addOrganisationUnit( ouA );
@@ -127,7 +127,7 @@ public class MetadataOrgUnitMergeHandlerTest
     }
 
     @Test
-    public void testMergeOrgUnitGroups()
+    void testMergeOrgUnitGroups()
     {
         OrganisationUnitGroup ougA = createOrganisationUnitGroup( 'A' );
         ougA.addOrganisationUnit( ouA );

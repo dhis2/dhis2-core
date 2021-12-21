@@ -55,7 +55,7 @@ import com.google.common.net.HttpHeaders;
  * @author Volker Schmidt
  */
 @ExtendWith( MockitoExtension.class )
-public class CategoryComboControllerTest
+class CategoryComboControllerTest
 {
 
     @Mock
@@ -74,14 +74,14 @@ public class CategoryComboControllerTest
     private CategoryComboController controller;
 
     @Test
-    public void getWithDependencies()
+    void getWithDependencies()
         throws Exception
     {
         getWithDependencies( false );
     }
 
     @Test
-    public void getWithDependenciesAsDownload()
+    void getWithDependenciesAsDownload()
         throws Exception
     {
         getWithDependencies( true );

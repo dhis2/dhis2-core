@@ -55,7 +55,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
-public class ProgramSupplierTest extends AbstractSupplierTest<Program>
+class ProgramSupplierTest extends AbstractSupplierTest<Program>
 {
 
     private ProgramSupplier subject;

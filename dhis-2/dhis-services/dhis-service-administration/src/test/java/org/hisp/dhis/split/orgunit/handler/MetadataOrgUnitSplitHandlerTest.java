@@ -48,7 +48,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Lars Helge Overland
  */
 @ExtendWith( MockitoExtension.class )
-public class MetadataOrgUnitSplitHandlerTest
+class MetadataOrgUnitSplitHandlerTest
 {
 
     private MetadataOrgUnitSplitHandler handler;
@@ -71,7 +71,7 @@ public class MetadataOrgUnitSplitHandlerTest
     }
 
     @Test
-    public void testSplitDataSets()
+    void testSplitDataSets()
     {
         DataSet dsA = createDataSet( 'A' );
         dsA.addOrganisationUnit( ouA );
@@ -98,7 +98,7 @@ public class MetadataOrgUnitSplitHandlerTest
     }
 
     @Test
-    public void testSplitPrograms()
+    void testSplitPrograms()
     {
         Program prA = createProgram( 'A' );
         prA.addOrganisationUnit( ouA );

@@ -33,7 +33,11 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -43,13 +47,16 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.core.Ordered;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -59,20 +66,6 @@ import com.google.common.collect.ImmutableMap;
 public abstract class AbstractTrackerDtoValidationHook
     implements TrackerValidationHook
 {
-    private int order = Ordered.LOWEST_PRECEDENCE;
-
-    @Override
-    public int getOrder()
-    {
-        return order;
-    }
-
-    @Override
-    public void setOrder( int order )
-    {
-        this.order = order;
-    }
-
     private final Map<TrackerType, BiConsumer<ValidationErrorReporter, TrackerDto>> validationMap = ImmutableMap
         .<TrackerType, BiConsumer<ValidationErrorReporter, TrackerDto>> builder()
         .put( TrackerType.TRACKED_ENTITY, (( report, dto ) -> validateTrackedEntity( report, (TrackedEntity) dto )) )

@@ -71,7 +71,7 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class AbstractAnalyticsServiceTest
+class AbstractAnalyticsServiceTest
 {
 
     private Period peA;
@@ -106,7 +106,7 @@ public class AbstractAnalyticsServiceTest
     }
 
     @Test
-    public void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
+    void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
     {
         // Given
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,

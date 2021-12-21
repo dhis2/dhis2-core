@@ -61,7 +61,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author sultanm
  */
 @ExtendWith( MockitoExtension.class )
-public class DefaultMetadataSyncServiceTest
+class DefaultMetadataSyncServiceTest
 {
 
     private MetadataSyncService metadataSyncService;
@@ -90,8 +90,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenVersionNameNotPresentInParameters()
-        throws MetadataSyncServiceException
+    void testShouldThrowExceptionWhenVersionNameNotPresentInParameters()
     {
         assertThrows( MetadataSyncServiceException.class,
             () -> metadataSyncService.getParamsFromMap( parameters ),
@@ -99,8 +98,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenParametersAreNull()
-        throws MetadataSyncServiceException
+    void testShouldThrowExceptionWhenParametersAreNull()
     {
         assertThrows( MetadataSyncServiceException.class,
             () -> metadataSyncService.getParamsFromMap( null ),
@@ -109,8 +107,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenParametersHaveVersionNameAsNull()
-        throws MetadataSyncServiceException
+    void testShouldThrowExceptionWhenParametersHaveVersionNameAsNull()
     {
         parameters.put( "versionName", null );
 
@@ -119,8 +116,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenParametersHaveVersionNameAssignedToEmptyList()
-        throws MetadataSyncServiceException
+    void testShouldThrowExceptionWhenParametersHaveVersionNameAssignedToEmptyList()
     {
         parameters.put( "versionName", new ArrayList<>() );
 
@@ -129,7 +125,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldReturnNullWhenVersionNameIsAssignedToListHavingNullEntry()
+    void testShouldReturnNullWhenVersionNameIsAssignedToListHavingNullEntry()
     {
         parameters.put( "versionName", new ArrayList<>() );
         parameters.get( "versionName" ).add( null );
@@ -140,7 +136,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldReturnNullWhenVersionNameIsAssignedToListHavingEmptyString()
+    void testShouldReturnNullWhenVersionNameIsAssignedToListHavingEmptyString()
     {
         parameters.put( "versionName", new ArrayList<>() );
         parameters.get( "versionName" ).add( "" );
@@ -151,7 +147,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldGetExceptionIfRemoteVersionIsNotAvailable()
+    void testShouldGetExceptionIfRemoteVersionIsNotAvailable()
     {
         parameters.put( "versionName", new ArrayList<>() );
         parameters.get( "versionName" ).add( "testVersion" );
@@ -164,7 +160,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldGetMetadataVersionForGivenVersionName()
+    void testShouldGetMetadataVersionForGivenVersionName()
     {
         parameters.put( "versionName", new ArrayList<>() );
         parameters.get( "versionName" ).add( "testVersion" );
@@ -177,14 +173,14 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenSyncParamsIsNull()
+    void testShouldThrowExceptionWhenSyncParamsIsNull()
     {
         assertThrows( MetadataSyncServiceException.class, () -> metadataSyncService.doMetadataSync( null ),
             "MetadataSyncParams cant be null" );
     }
 
     @Test
-    public void testShouldThrowExceptionWhenVersionIsNulInSyncParams()
+    void testShouldThrowExceptionWhenVersionIsNulInSyncParams()
     {
         MetadataSyncParams syncParams = new MetadataSyncParams();
         syncParams.setVersion( null );
@@ -194,7 +190,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenSnapshotReturnsNullForGivenVersion()
+    void testShouldThrowExceptionWhenSnapshotReturnsNullForGivenVersion()
     {
 
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
@@ -209,7 +205,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenDHISVersionsMismatch()
+    void testShouldThrowExceptionWhenDHISVersionsMismatch()
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -227,7 +223,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldNotThrowExceptionWhenDHISVersionsMismatch()
+    void testShouldNotThrowExceptionWhenDHISVersionsMismatch()
         throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
@@ -245,7 +241,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldThrowExceptionWhenSnapshotNotPassingIntegrity()
+    void testShouldThrowExceptionWhenSnapshotNotPassingIntegrity()
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
         MetadataVersion metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
@@ -262,7 +258,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldStoreMetadataSnapshotInDataStoreAndImport()
+    void testShouldStoreMetadataSnapshotInDataStoreAndImport()
         throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
@@ -290,7 +286,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldNotStoreMetadataSnapshotInDataStoreWhenAlreadyExistsInLocalStore()
+    void testShouldNotStoreMetadataSnapshotInDataStoreWhenAlreadyExistsInLocalStore()
         throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = Mockito.mock( MetadataSyncParams.class );
@@ -319,7 +315,7 @@ public class DefaultMetadataSyncServiceTest
     }
 
     @Test
-    public void testShouldVerifyImportParamsAtomicTypeForTheGivenBestEffortVersion()
+    void testShouldVerifyImportParamsAtomicTypeForTheGivenBestEffortVersion()
         throws DhisVersionMismatchException
     {
         MetadataSyncParams syncParams = new MetadataSyncParams();

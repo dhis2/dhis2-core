@@ -53,7 +53,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-public class ProgramIndicatorSubqueryBuilderTest
+class ProgramIndicatorSubqueryBuilderTest
 {
 
     private final static String DUMMY_EXPRESSION = "#{1234567}";
@@ -83,7 +83,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyProgramIndicatorSubQueryWithAliasTable()
+    void verifyProgramIndicatorSubQueryWithAliasTable()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -101,7 +101,7 @@ public class ProgramIndicatorSubqueryBuilderTest
      * join is type EVENT
      */
     @Test
-    public void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
+    void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setAggregationType( null );
@@ -116,7 +116,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyJoinWhenOuterQueryIsEnrollment()
+    void verifyJoinWhenOuterQueryIsEnrollment()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -130,7 +130,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyJoinWhenRelationshipTypeIsPresent()
+    void verifyJoinWhenRelationshipTypeIsPresent()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -156,7 +156,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyProgramIndicatorWithFilter()
+    void verifyProgramIndicatorWithFilter()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setFilter( DUMMY_FILTER_EXPRESSION );

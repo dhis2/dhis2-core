@@ -52,7 +52,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-public class TrackerImportStrategyHandlerImplTest
+class TrackerImportStrategyHandlerImplTest
 {
     @InjectMocks
     TrackerImportAsyncStrategyImpl importAsyncStrategy;
@@ -67,7 +67,7 @@ public class TrackerImportStrategyHandlerImplTest
     MessageManager messageManager;
 
     @Test
-    public void shouldCreateReportAsyncFalse()
+    void shouldCreateReportAsyncFalse()
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()
@@ -88,7 +88,7 @@ public class TrackerImportStrategyHandlerImplTest
     }
 
     @Test
-    public void shouldSendMessageToQueueAsync()
+    void shouldSendMessageToQueueAsync()
     {
         ArgumentCaptor<String> queueNameCaptor = ArgumentCaptor.forClass( String.class );
         ArgumentCaptor<TrackerMessage> trackerMessageCaptor = ArgumentCaptor.forClass( TrackerMessage.class );
