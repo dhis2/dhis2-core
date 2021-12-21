@@ -173,7 +173,9 @@ public class EventChartController
 
     /**
      * @deprecated This is a temporary workaround to keep EventChart backward
-     *             compatible with the new EventVisualization entity.
+     *             compatible with the new EventVisualization entity. Only
+     *             legacy and chart related types can be returned by this
+     *             endpoint.
      *
      * @param filters
      */
