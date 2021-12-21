@@ -39,7 +39,6 @@ import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
 import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -129,10 +128,6 @@ public class EventManager
         {
             importSummaries.addImportSummaries( run( workContext, validEvents, checkersRunOnInsert ) );
         }
-        else
-        {
-            importSummaries.addImportSummaries( Collections.emptyList() );
-        }
 
         // collect the UIDs of events that did not pass validation
         final List<String> invalidEvents = importSummaries.getImportSummaries().stream()
@@ -207,10 +202,6 @@ public class EventManager
         {
             importSummaries.addImportSummaries( run( workContext, events, checkersRunOnUpdate ) );
         }
-        else
-        {
-            importSummaries.addImportSummaries( Collections.emptyList() );
-        }
 
         // collect the UIDs of events that did not pass validation
         final List<String> eventValidationFailedUids = importSummaries.getImportSummaries().stream()
@@ -265,10 +256,6 @@ public class EventManager
         if ( ImportStrategyUtils.isDelete( workContext.getImportOptions().getImportStrategy() ) )
         {
             importSummaries.addImportSummaries( run( workContext, events, checkersRunOnDelete ) );
-        }
-        else
-        {
-            importSummaries.addImportSummaries( Collections.emptyList() );
         }
 
         // collect the UIDs of events that did not pass validation
