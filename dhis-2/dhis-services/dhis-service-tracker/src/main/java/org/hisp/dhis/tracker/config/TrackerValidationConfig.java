@@ -74,17 +74,17 @@ public class TrackerValidationConfig
 {
     private final Map<Class<? extends TrackerValidationHook>, TrackerValidationHook> validationHooks;
 
-    public TrackerValidationConfig( Collection<TrackerValidationHook> checkers )
+    public TrackerValidationConfig( Collection<TrackerValidationHook> hooks )
     {
-        validationHooks = byClass( checkers );
+        validationHooks = byClass( hooks );
     }
 
-    @SuppressWarnings( "unchecked" )
-    private <T> Map<Class<? extends T>, T> byClass( Collection<T> items )
+    private Map<Class<? extends TrackerValidationHook>, TrackerValidationHook> byClass(
+        Collection<TrackerValidationHook> items )
     {
         return items.stream()
             .collect( Collectors.toMap(
-                e -> (Class<? extends T>) e.getClass(),
+                TrackerValidationHook::getClass,
                 Functions.identity() ) );
     }
 
