@@ -1279,7 +1279,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             if ( prop[0].equals( CREATED_ID ) )
             {
-                prop[0] = TRACKED_ENTITY_ID;
+                prop[0] = "TEI.trackedentityinstanceid";
             }
             if ( cols.contains( prop[0] ) )
             {
