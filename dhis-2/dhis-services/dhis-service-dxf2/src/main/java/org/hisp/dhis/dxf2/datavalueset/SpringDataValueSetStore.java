@@ -58,6 +58,7 @@ import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.staxwax.factory.XMLFactory;
+import org.springframework.jdbc.UncategorizedSQLException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -450,7 +451,7 @@ public class SpringDataValueSetStore
             }
             catch ( SQLException ex )
             {
-                throw new RuntimeException( ex );
+                throw toRuntimeException( column, ex );
             }
         }
 
@@ -462,7 +463,7 @@ public class SpringDataValueSetStore
             }
             catch ( SQLException ex )
             {
-                throw new RuntimeException( ex );
+                throw toRuntimeException( column, ex );
             }
         }
 
@@ -474,7 +475,7 @@ public class SpringDataValueSetStore
             }
             catch ( SQLException ex )
             {
-                throw new RuntimeException( ex );
+                throw toRuntimeException( column, ex );
             }
         }
 
@@ -486,8 +487,13 @@ public class SpringDataValueSetStore
             }
             catch ( SQLException ex )
             {
-                throw new RuntimeException( ex );
+                throw toRuntimeException( column, ex );
             }
+        }
+
+        private UncategorizedSQLException toRuntimeException( String column, SQLException ex )
+        {
+            return new UncategorizedSQLException( "Failed to read column " + column, null, ex );
         }
     }
 }

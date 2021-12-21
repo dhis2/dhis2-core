@@ -133,69 +133,36 @@ public class DataValueSetImportValidator
         register( DataValueSetImportValidator::validateDataSetAttrOptionComboExists );
 
         // DataValue Validations
-        register( ( dataValue2, context2, dataSetContext2, valueContext2 ) -> validateDataValueDataElementExists(
-            dataValue2, context2, dataSetContext2, valueContext2 ) );
-        register( ( dataValue4, context4, dataSetContext4, valueContext4 ) -> validateDataValuePeriodExists( dataValue4,
-            context4, dataSetContext4, valueContext4 ) );
-        register( ( dataValue1, context1, dataSetContext1,
-            valueContext1 ) -> validateDataValueOrgUnitExists( dataValue1, context1, dataSetContext1, valueContext1 ) );
-        register( ( dataValue, context, dataSetContext, valueContext ) -> validateDataValueCategoryOptionComboExists(
-            dataValue, context, dataSetContext, valueContext ) );
-        register(
-            ( dataValue4, context4, dataSetContext4, valueContext4 ) -> validateDataValueCategoryOptionComboAccess(
-                dataValue4, context4, dataSetContext4, valueContext4 ) );
-        register( ( dataValue4, context4, dataSetContext4, valueContext4 ) -> validateDataValueAttrOptionComboExists(
-            dataValue4, context4, dataSetContext4, valueContext4 ) );
-        register( ( dataValue4, context4, dataSetContext4, valueContext4 ) -> validateDataValueAttrOptionComboAccess(
-            dataValue4, context4, dataSetContext4, valueContext4 ) );
-        register( ( dataValue4, context4, dataSetContext4, valueContext4 ) -> validateDataValueOrgUnitInUserHierarchy(
-            dataValue4, context4, dataSetContext4, valueContext4 ) );
-        register( ( dataValue4, context4, dataSetContext4, valueContext4 ) -> validateDataValueIsDefined( dataValue4,
-            context4, dataSetContext4, valueContext4 ) );
-        register( ( dataValue5, context5, dataSetContext5, valueContext5 ) -> validateDataValueIsValid( dataValue5,
-            context5, dataSetContext5, valueContext5 ) );
-        register( ( dataValue1, context1, dataSetContext1, valueContext1 ) -> validateDataValueCommentIsValid(
-            dataValue1, context1, dataSetContext1, valueContext1 ) );
-        register( ( dataValue4, context4, dataSetContext4, valueContext4 ) -> validateDataValueOptionsExist( dataValue4,
-            context4, dataSetContext4, valueContext4 ) );
+        register( DataValueSetImportValidator::validateDataValueDataElementExists );
+        register( DataValueSetImportValidator::validateDataValuePeriodExists );
+        register( DataValueSetImportValidator::validateDataValueOrgUnitExists );
+        register( DataValueSetImportValidator::validateDataValueCategoryOptionComboExists );
+        register( this::validateDataValueCategoryOptionComboAccess );
+        register( DataValueSetImportValidator::validateDataValueAttrOptionComboExists );
+        register( this::validateDataValueAttrOptionComboAccess );
+        register( DataValueSetImportValidator::validateDataValueOrgUnitInUserHierarchy );
+        register( DataValueSetImportValidator::validateDataValueIsDefined );
+        register( DataValueSetImportValidator::validateDataValueIsValid );
+        register( DataValueSetImportValidator::validateDataValueCommentIsValid );
+        register( DataValueSetImportValidator::validateDataValueOptionsExist );
 
         // DataValue Constraints
-        register( ( dataValue4, context4, dataSetContext4, valueContext4 ) -> checkDataValueCategoryOptionCombo(
-            dataValue4, context4, dataSetContext4, valueContext4 ) );
-        register( ( dataValue3, context3, dataSetContext3, valueContext3 ) -> checkDataValueAttrOptionCombo( dataValue3,
-            context3, dataSetContext3, valueContext3 ) );
-        register( ( dataValue1, context1, dataSetContext1, valueContext1 ) -> checkDataValuePeriodType( dataValue1,
-            context1, dataSetContext1, valueContext1 ) );
-        register( ( dataValue3, context3, dataSetContext3, valueContext3 ) -> checkDataValueStrictDataElement(
-            dataValue3, context3, dataSetContext3, valueContext3 ) );
-        register( ( dataValue, context, dataSetContext, valueContext ) -> checkDataValueStrictCategoryOptionCombos(
-            dataValue, context, dataSetContext, valueContext ) );
-        register( ( dataValue3, context3, dataSetContext3, valueContext3 ) -> checkDataValueStrictAttrOptionCombos(
-            dataValue3, context3, dataSetContext3, valueContext3 ) );
-        register( ( dataValue3, context3, dataSetContext3, valueContext3 ) -> checkDataValueStrictOrgUnits( dataValue3,
-            context3, dataSetContext3, valueContext3 ) );
-        register( ( dataValue2, context2, dataSetContext2, valueContext2 ) -> checkDataValueStoredByIsValid( dataValue2,
-            context2, dataSetContext2, valueContext2 ) );
-        register(
-            ( dataValue2, context2, dataSetContext2, valueContext2 ) -> checkDataValuePeriodWithinAttrOptionComboRange(
-                dataValue2, context2, dataSetContext2, valueContext2 ) );
-        register(
-            ( dataValue1, context1, dataSetContext1, valueContext1 ) -> checkDataValueOrgUnitValidForAttrOptionCombo(
-                dataValue1, context1, dataSetContext1, valueContext1 ) );
-        register( ( dataValue2, context2, dataSetContext2, valueContext2 ) -> checkDataValueTodayNotPastPeriodExpiry(
-            dataValue2, context2, dataSetContext2, valueContext2 ) );
-        register(
-            ( dataValue1, context1, dataSetContext1, valueContext1 ) -> checkDataValueNotAfterLatestOpenFuturePeriod(
-                dataValue1, context1, dataSetContext1, valueContext1 ) );
-        register( ( dataValue1, context1, dataSetContext1, valueContext1 ) -> checkDataValueNotAlreadyApproved(
-            dataValue1, context1, dataSetContext1, valueContext1 ) );
-        register( ( dataValue, context, dataSetContext, valueContext ) -> checkDataValuePeriodIsOpenNow( dataValue,
-            context, dataSetContext, valueContext ) );
-        register( ( dataValue1, context1, dataSetContext1,
-            valueContext1 ) -> checkDataValueConformsToOpenPeriodsOfAssociatedDataSets( dataValue1, context1,
-                dataSetContext1, valueContext1 ) );
-        register( ( dataValue, context, dataSetContext, valueContext ) -> checkDataValueFileResourceExists( dataValue,
-            context, dataSetContext, valueContext ) );
+        register( DataValueSetImportValidator::checkDataValueCategoryOptionCombo );
+        register( DataValueSetImportValidator::checkDataValueAttrOptionCombo );
+        register( DataValueSetImportValidator::checkDataValuePeriodType );
+        register( DataValueSetImportValidator::checkDataValueStrictDataElement );
+        register( DataValueSetImportValidator::checkDataValueStrictCategoryOptionCombos );
+        register( DataValueSetImportValidator::checkDataValueStrictAttrOptionCombos );
+        register( DataValueSetImportValidator::checkDataValueStrictOrgUnits );
+        register( DataValueSetImportValidator::checkDataValueStoredByIsValid );
+        register( DataValueSetImportValidator::checkDataValuePeriodWithinAttrOptionComboRange );
+        register( DataValueSetImportValidator::checkDataValueOrgUnitValidForAttrOptionCombo );
+        register( this::checkDataValueTodayNotPastPeriodExpiry );
+        register( DataValueSetImportValidator::checkDataValueNotAfterLatestOpenFuturePeriod );
+        register( this::checkDataValueNotAlreadyApproved );
+        register( DataValueSetImportValidator::checkDataValuePeriodIsOpenNow );
+        register( DataValueSetImportValidator::checkDataValueConformsToOpenPeriodsOfAssociatedDataSets );
+        register( this::checkDataValueFileResourceExists );
     }
 
     /*

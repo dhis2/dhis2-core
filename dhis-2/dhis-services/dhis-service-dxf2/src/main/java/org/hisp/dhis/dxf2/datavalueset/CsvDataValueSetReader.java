@@ -67,7 +67,7 @@ final class CsvDataValueSetReader implements DataValueSetReader, DataValueEntry
         }
         catch ( IOException ex )
         {
-            throw new RuntimeException( "Failed to read record", ex );
+            throw new UncheckedIOException( "Failed to read record", ex );
         }
     }
 
