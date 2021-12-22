@@ -25,11 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics.event.data;
 
-public interface EventAnalyticsDimensionalItemService
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+public class AnalyticsDimensionsTestSupport
 {
-    EventsAnalyticsDimensionalItems getQueryDimensionalItemsByProgramStageId( String programStageId );
+    static List<TrackedEntityAttribute> allValueTypeTEAs()
+    {
+        return buildWithAllValueTypes( valueType -> {
+            TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+            trackedEntityAttribute.setUid( "uid" + valueType.name() );
+            trackedEntityAttribute.setValueType( valueType );
+            return trackedEntityAttribute;
+        } ).collect( Collectors.toList() );
+    }
 
-    EventsAnalyticsDimensionalItems getAggregateDimensionalItemsByProgramStageId( String programStageId );
+    static Set<DataElement> allValueTypeDataElements()
+    {
+        return buildWithAllValueTypes( valueType -> {
+            DataElement dataElement = new DataElement();
+            dataElement.setUid( "uid" + valueType.name() );
+            dataElement.setValueType( valueType );
+            return dataElement;
+        } ).collect( Collectors.toSet() );
+    }
+
+    static <T> Stream<T> buildWithAllValueTypes( Function<ValueType, T> mapper )
+    {
+        return Arrays.stream( ValueType.values() )
+            .map( mapper );
+    }
 }

@@ -25,93 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics.dimension;
 
 import java.util.Date;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import lombok.Builder;
+import lombok.Data;
+import lombok.With;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class DimensionWrapper
+@Data
+@Builder
+@With
+public class DimensionResponse
 {
-
-    @JsonIgnore
-    private final BaseNameableObject item;
-
-    public DimensionWrapper( BaseNameableObject item )
-    {
-        this.item = item;
-    }
+    @JsonProperty
+    private final String valueType;
 
     @JsonProperty
-    public String getValueType()
-    {
-        if ( item instanceof ValueTypedDimensionalItemObject )
-        {
-            return ((ValueTypedDimensionalItemObject) item).getValueType().name();
-        }
-        return null;
-    }
+    private final String dimensionType;
 
     @JsonProperty
-    public String getDimensionType()
-    {
-        if ( item instanceof BaseDimensionalItemObject )
-        {
-            return ((BaseDimensionalItemObject) item).getDimensionItemType().name();
-        }
-        if ( item instanceof BaseDimensionalObject )
-        {
-            return ((BaseDimensionalObject) item).getDimensionType().name();
-        }
-        return null;
-    }
+    private final Date created;
 
     @JsonProperty
-    public Date getCreated()
-    {
-        return item.getCreated();
-    }
+    private final Date lastUpdated;
 
     @JsonProperty
-    public Date getLastUpdated()
-    {
-        return item.getLastUpdated();
-    }
+    private final String name;
 
     @JsonProperty
-    public String getName()
-    {
-        return item.getName();
-    }
+    private final String displayName;
 
     @JsonProperty
-    public String getDisplayName()
-    {
-        return item.getDisplayName();
-    }
+    private final String id;
 
     @JsonProperty
-    public String getId()
-    {
-        return item.getUid();
-    }
+    private final String uid;
 
     @JsonProperty
-    public String getCode()
-    {
-        return item.getCode();
-    }
+    private final String code;
 
     @JsonProperty
-    public String getDisplayShortName()
-    {
-        return item.getDisplayShortName();
-    }
+    private final String displayShortName;
 
+    @JsonProperty
+    private final String optionSet;
 }
