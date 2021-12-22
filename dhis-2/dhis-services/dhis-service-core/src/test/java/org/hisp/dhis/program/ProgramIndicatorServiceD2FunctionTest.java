@@ -344,10 +344,10 @@ class ProgramIndicatorServiceD2FunctionTest extends DhisSpringTest
         var enrol = getSqlEnrollment( "d2:yearsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" );
         assertEquals( "(date_part('year',age(cast((select executiondate from analytics_event_Program000A " +
             "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < " +
-            "cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date), "
-            +
-            "cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < "
-            +
+            "cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' " +
+            "order by executiondate desc limit 1 ) as date), " +
+            "cast((select \"DataElmentD\" from analytics_event_Program000A " +
+            "where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < " +
             "cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date))))",
             enrol );
     }
