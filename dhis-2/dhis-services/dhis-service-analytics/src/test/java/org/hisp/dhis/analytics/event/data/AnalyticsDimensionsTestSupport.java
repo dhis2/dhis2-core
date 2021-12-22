@@ -40,7 +40,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 public class AnalyticsDimensionsTestSupport
 {
-
     static List<TrackedEntityAttribute> allValueTypeTEAs()
     {
         return buildWithAllValueTypes( valueType -> {
