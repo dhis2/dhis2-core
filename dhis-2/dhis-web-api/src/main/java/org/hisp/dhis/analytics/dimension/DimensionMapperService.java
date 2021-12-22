@@ -41,7 +41,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DimensionMapperService
 {
-
     private final Collection<DimensionMapper> mappers;
 
     public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
@@ -60,5 +59,4 @@ public class DimensionMapperService
             .orElseThrow( () -> new IllegalArgumentException(
                 "Unsupported dimension type: " + getRealClass( dimension ) ) );
     }
-
 }
