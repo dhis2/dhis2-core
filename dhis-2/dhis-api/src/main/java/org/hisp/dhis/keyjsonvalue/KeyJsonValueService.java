@@ -43,7 +43,7 @@ public interface KeyJsonValueService
      * Applies the configuration for the provided protection so it is considered
      * by this service in future requests.
      *
-     * @param protection configuration for protection protection
+     * @param protection configuration for protection
      */
     void addProtection( KeyJsonNamespaceProtection protection );
 
@@ -83,6 +83,8 @@ public interface KeyJsonValueService
      * @throws AccessDeniedException when user lacks authority for namespace
      */
     List<String> getKeysInNamespace( String namespace, Date lastUpdated );
+
+    List<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query );
 
     /**
      * Retrieves a KeyJsonValue based on a namespace and key.

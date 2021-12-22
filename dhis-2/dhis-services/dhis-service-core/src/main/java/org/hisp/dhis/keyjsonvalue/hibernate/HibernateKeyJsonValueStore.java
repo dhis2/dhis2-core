@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.keyjsonvalue.hibernate;
 
+import static java.util.Arrays.asList;
+import static java.util.Arrays.copyOfRange;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toUnmodifiableList;
+
 import java.util.Date;
 import java.util.List;
 
@@ -36,6 +42,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueEntry;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -101,6 +109,25 @@ public class HibernateKeyJsonValueStore
 
         return getList( builder,
             newJpaParameters().addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
+    }
+
+    @Override
+    public List<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query )
+    {
+        List<String> fieldExtracts = query.getFields().stream()
+            .map( f -> "jsonb_extract_path(jbvalue, " + f.getPathSegments() + " )" ).collect( toList() );
+
+        String hql = String.format( "select key, %s from KeyJsonValue where namespace = :namespace and (%s)",
+            String.join( ",", fieldExtracts ),
+            query.isIncludeAll() ? "1=1"
+                : fieldExtracts.stream().map( f -> f + "is not null" ).collect( joining( " or " ) ) );
+
+        return getSession().createQuery( hql, Object[].class )
+            .setParameter( "namespace", query.getNamespace() )
+            .list().stream()
+            .map( row -> new KeyJsonValueEntry( (String) row[0],
+                asList( copyOfRange( row, 1, row.length, String[].class ) ) ) )
+            .collect( toUnmodifiableList() );
     }
 
     @Override

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.keyjsonvalue;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -40,6 +39,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AclService;
@@ -51,14 +52,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Stian Sandvold
- * @author Jan Bernitt
+ * @author Stian Sandvold (initial)
+ * @author Jan Bernitt (namespace protection)
  */
+@AllArgsConstructor
 @Service( "org.hisp.dhis.keyjsonvalue.KeyJsonValueService" )
 public class DefaultKeyJsonValueService
     implements KeyJsonValueService
 {
-
     private final Map<String, KeyJsonNamespaceProtection> protectionByNamespace = new ConcurrentHashMap<>();
 
     private final KeyJsonValueStore store;
@@ -68,24 +69,6 @@ public class DefaultKeyJsonValueService
     private final AclService aclService;
 
     private final RenderService renderService;
-
-    public DefaultKeyJsonValueService( KeyJsonValueStore store, CurrentUserService currentUserService,
-        AclService aclService, RenderService renderService )
-    {
-        checkNotNull( store );
-        checkNotNull( currentUserService );
-        checkNotNull( aclService );
-        checkNotNull( renderService );
-
-        this.store = store;
-        this.currentUserService = currentUserService;
-        this.aclService = aclService;
-        this.renderService = renderService;
-    }
-
-    // -------------------------------------------------------------------------
-    // KeyJsonValueService implementation
-    // -------------------------------------------------------------------------
 
     @Override
     public void addProtection( KeyJsonNamespaceProtection protection )
@@ -120,6 +103,14 @@ public class DefaultKeyJsonValueService
     {
         return readProtectedIn( namespace, emptyList(),
             () -> store.getKeysInNamespace( namespace, lastUpdated ) );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query )
+    {
+        return readProtectedIn( query.getNamespace(), emptyList(),
+            () -> store.getEntries( query ) );
     }
 
     @Override

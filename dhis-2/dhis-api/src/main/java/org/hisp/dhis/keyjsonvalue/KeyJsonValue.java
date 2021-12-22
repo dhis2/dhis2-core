@@ -27,25 +27,36 @@
  */
 package org.hisp.dhis.keyjsonvalue;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
 
 /**
  * @author Stian Sandvold
  */
-public class KeyJsonValue
-    extends BaseIdentifiableObject
+@Getter
+@Setter
+@ToString( onlyExplicitlyIncluded = true )
+@NoArgsConstructor
+public class KeyJsonValue extends BaseIdentifiableObject
 {
     /**
      * A namespace represents a collection of keys
      */
+    @JsonProperty
+    @ToString.Include
     private String namespace;
 
     /**
      * A key belongs to a namespace, and represent a value
      */
+    @JsonProperty
+    @ToString.Include
     private String key;
 
     /**
@@ -55,7 +66,7 @@ public class KeyJsonValue
     private String jbPlainValue;
 
     /**
-     * Whether or not this KeyJsonValue is encrypted or not. Default is false.
+     * Whether this KeyJsonValue is encrypted or not. Default is false.
      */
     private boolean encrypted = false;
 
@@ -69,15 +80,9 @@ public class KeyJsonValue
      * made into the correct type when being persisted by the persistence layer
      * (encrypted or plain).
      */
+    @JsonProperty
+    @ToString.Include
     private String value;
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public KeyJsonValue()
-    {
-    }
 
     public KeyJsonValue( String namespace, String key )
     {
@@ -92,64 +97,9 @@ public class KeyJsonValue
         this.encrypted = encrypted;
     }
 
-    // -------------------------------------------------------------------------
-    // toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "namespace", namespace )
-            .add( "key", key )
-            .add( "value", value ).toString();
-    }
-
-    // -------------------------------------------------------------------------
-    // Get and set methods
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    public String getNamespace()
-    {
-        return namespace;
-    }
-
-    public void setNamespace( String namespace )
-    {
-        this.namespace = namespace;
-    }
-
-    @JsonProperty
-    public String getKey()
-    {
-        return key;
-    }
-
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
-
-    @JsonProperty
     public String getValue()
     {
         return encrypted ? getEncryptedValue() : getJbPlainValue();
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
-
-    public boolean isEncrypted()
-    {
-        return encrypted;
-    }
-
-    public void setEncrypted( boolean encrypted )
-    {
-        this.encrypted = encrypted;
     }
 
     public String getJbPlainValue()
@@ -157,18 +107,9 @@ public class KeyJsonValue
         return !encrypted && value != null ? value : jbPlainValue;
     }
 
-    public void setJbPlainValue( String jbPlainValue )
-    {
-        this.jbPlainValue = jbPlainValue;
-    }
-
     public String getEncryptedValue()
     {
         return encrypted && value != null ? value : encryptedValue;
     }
 
-    public void setEncryptedValue( String encryptedValue )
-    {
-        this.encryptedValue = encryptedValue;
-    }
 }

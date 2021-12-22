@@ -29,18 +29,26 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery.parseFields;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.io.IOException;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueEntry;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery.Field;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -56,6 +64,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @author Stian Sandvold
  */
@@ -66,6 +76,9 @@ public class KeyJsonValueController
 {
     @Autowired
     private KeyJsonValueService service;
+
+    @Autowired
+    private ObjectMapper jsonMapper;
 
     /**
      * Returns a JSON array of strings representing the different namespaces
@@ -100,6 +113,62 @@ public class KeyJsonValueController
         return keys;
     }
 
+    @GetMapping( value = "/{namespace}", params = "fields", produces = APPLICATION_JSON_VALUE )
+    public void getEntries( @PathVariable String namespace, @RequestParam( required = true ) String fields,
+        @RequestParam( required = false, defaultValue = "false" ) boolean includeAll,
+        HttpServletResponse response )
+        throws IOException
+    {
+        response.setContentType( APPLICATION_JSON_VALUE );
+        setNoStore( response );
+
+        KeyJsonValueQuery query = KeyJsonValueQuery.builder()
+            .namespace( namespace )
+            .fields( parseFields( fields ) )
+            .includeAll( includeAll )
+            .build();
+
+        List<KeyJsonValueEntry> entries = service.getEntries( query );
+
+        writeEntriesAsJson( query, entries, response );
+    }
+
+    private static void writeEntriesAsJson( KeyJsonValueQuery query, List<KeyJsonValueEntry> entries,
+        HttpServletResponse response )
+        throws IOException
+    {
+        try ( ServletOutputStream out = response.getOutputStream() )
+        {
+            boolean first = true;
+            out.print( '[' );
+            for ( KeyJsonValueEntry entry : entries )
+            {
+                if ( !first )
+                    out.print( ',' );
+                first = false;
+                out.print( '{' );
+                out.print( "\"key\":\"" );
+                out.print( entry.getKey() );
+                out.print( '"' );
+                out.print( ',' );
+
+                Iterator<Field> fieldIter = query.getFields().iterator();
+                for ( String value : entry.getValues() )
+                {
+                    out.print( '"' );
+                    out.print( fieldIter.next().getAlias() );
+                    out.print( '"' );
+                    out.print( ':' );
+                    out.print( value );
+                    if ( fieldIter.hasNext() )
+                        out.print( ',' );
+                }
+                out.print( '}' );
+            }
+            out.print( ']' );
+        }
+    }
+
     /**
      * Deletes all keys with the given namespace.
      */
@@ -123,9 +192,8 @@ public class KeyJsonValueController
      * the given namespace.
      */
     @GetMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE )
-    public @ResponseBody String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
-        HttpServletResponse response )
-        throws Exception
+    public @ResponseBody String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key )
+        throws NotFoundException
     {
         return getExistingEntry( namespace, key ).getValue();
     }
@@ -156,13 +224,13 @@ public class KeyJsonValueController
     @ResponseBody
     @PostMapping( value = "/{namespace}/{key}", produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE )
     public WebMessage addKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
-        @RequestBody String body,
-        @RequestParam( defaultValue = "false" ) boolean encrypt )
+        @RequestBody String value,
+        @RequestParam( defaultValue = "false" ) boolean encrypt, HttpServletRequest request )
     {
         KeyJsonValue entry = new KeyJsonValue();
         entry.setKey( key );
         entry.setNamespace( namespace );
-        entry.setValue( body );
+        entry.setValue( value );
         entry.setEncrypted( encrypt );
 
         service.addKeyJsonValue( entry );

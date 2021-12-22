@@ -73,6 +73,8 @@ public interface KeyJsonValueStore
      */
     List<KeyJsonValue> getKeyJsonValueByNamespace( String namespace );
 
+    List<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query );
+
     /**
      * Retrieves a KeyJsonValue based on the associated key and namespace
      *
