@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -44,8 +45,8 @@ public class DimensionMapperTestSupport
     public static <T extends BaseIdentifiableObject> void asserter(
         DimensionMapper dimensionMapper,
         Supplier<T> instanceSupplier,
-        Collection<Consumer<T>> instanceSetters,
-        Collection<Pair<Function<DimensionResponse, Object>, Object>> assertingPairs )
+        List<Consumer<T>> instanceSetters,
+        List<Pair<Function<DimensionResponse, Object>, Object>> assertingPairs )
     {
 
         T item = getBaseIdentifiableObject( instanceSupplier, instanceSetters );
@@ -58,7 +59,7 @@ public class DimensionMapperTestSupport
     }
 
     private static <T extends BaseIdentifiableObject> T getBaseIdentifiableObject( Supplier<T> instanceSupplier,
-        Collection<Consumer<T>> setters )
+        List<Consumer<T>> setters )
     {
         T baseIdentifiableObject = instanceSupplier.get();
         setters.forEach( setter -> setter.accept( baseIdentifiableObject ) );

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.dimension.mappers;
 
-import java.util.Collection;
+import java.util.Set;
 
 import lombok.Getter;
 
@@ -46,7 +46,7 @@ public class BaseDimensionalObjectMapper extends BaseDimensionMapper
 {
 
     @Getter
-    private final Collection<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
+    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
         CategoryOptionGroupSet.class,
         Category.class );
 

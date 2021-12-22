@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.dimension.mappers;
 
-import java.util.Collection;
+import java.util.Set;
 
 import lombok.Getter;
 
@@ -42,7 +42,7 @@ import com.google.common.collect.ImmutableSet;
 public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapper
 {
     @Getter
-    private final Collection<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
+    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
         ProgramStageDataElement.class );
 
     @Override

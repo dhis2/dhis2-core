@@ -29,9 +29,9 @@ package org.hisp.dhis.analytics.dimension;
 
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -59,9 +59,9 @@ public class BaseDimensionMapperTest
     private final BaseDimensionMapper mapper = new BaseDimensionMapper()
     {
         @Override
-        public Collection<Class<? extends BaseIdentifiableObject>> getSupportedClasses()
+        public Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses()
         {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
     };
 

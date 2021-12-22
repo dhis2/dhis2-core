@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.dimension;
 
-import java.util.Collection;
+import java.util.Set;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -36,7 +36,7 @@ public interface DimensionMapper
 {
     DimensionResponse map( BaseIdentifiableObject dimension );
 
-    Collection<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
+    Set<Class<? extends BaseIdentifiableObject>> getSupportedClasses();
 
     default boolean supports( BaseIdentifiableObject dimension )
     {
