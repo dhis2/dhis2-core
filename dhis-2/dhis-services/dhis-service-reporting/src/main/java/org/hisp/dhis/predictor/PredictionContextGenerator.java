@@ -48,7 +48,7 @@ import org.hisp.dhis.period.Period;
  */
 public class PredictionContextGenerator
 {
-    private PredictionContextGenerator() // static methods only
+    private PredictionContextGenerator()
     {
     }
 

@@ -187,6 +187,8 @@ public class PredictionDataConsolidatorTest
 
     private PredictionDataConsolidator consolidator;
 
+    private final boolean INCLUDE_DESCENDANTS = true;
+
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
@@ -345,9 +347,11 @@ public class PredictionDataConsolidatorTest
 
         outputDataElementOperand = dataElementOperandX;
 
-        consolidator = new PredictionDataConsolidator( categoryService, dataValueService, analyticsService );
-        consolidator.setDataValueFetcher( dataValueFetcher );
-        consolidator.setAnalyticsFetcher( analyticsFetcher );
+        when( dataValueFetcher.setIncludeDeleted( true ) ).thenReturn( dataValueFetcher );
+        when( dataValueFetcher.setIncludeDescendants( INCLUDE_DESCENDANTS ) ).thenReturn( dataValueFetcher );
+
+        consolidator = new PredictionDataConsolidator( items, INCLUDE_DESCENDANTS, dataValueFetcher, analyticsFetcher );
+
         consolidator.setAnalyticsBatchFetchSize( 3 );
     }
 
@@ -358,11 +362,6 @@ public class PredictionDataConsolidatorTest
     @Test
     public void testGetData()
     {
-        final boolean INCLUDE_DESCENDANTS = true;
-
-        when( dataValueFetcher.setIncludeDeleted( true ) ).thenReturn( dataValueFetcher );
-        when( dataValueFetcher.setIncludeDescendants( INCLUDE_DESCENDANTS ) ).thenReturn( dataValueFetcher );
-
         when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
         when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
         when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
@@ -447,10 +446,8 @@ public class PredictionDataConsolidatorTest
         // Test the data
         // ---------------------------------------------------------------------
 
-        consolidator.setUp( items, dataValueQueryPeriods, analyticsQueryPeriods, existingOutputPeriods,
-            outputDataElementOperand, INCLUDE_DESCENDANTS );
-
-        consolidator.init( currentUserOrgUnits, 1, levelOneOrgUnits );
+        consolidator.init( currentUserOrgUnits, 1, levelOneOrgUnits,
+            dataValueQueryPeriods, analyticsQueryPeriods, existingOutputPeriods, outputDataElementOperand );
 
         // Expected to be returned in this order:
         assertEquals( expectedB, consolidator.getData() );

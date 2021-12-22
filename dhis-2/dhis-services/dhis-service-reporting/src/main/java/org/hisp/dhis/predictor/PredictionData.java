@@ -30,19 +30,23 @@ package org.hisp.dhis.predictor;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-@Data
+@Getter
+@ToString
+@EqualsAndHashCode
 @AllArgsConstructor
 public class PredictionData
 {
-    private OrganisationUnit orgUnit;
+    private final OrganisationUnit orgUnit;
 
-    private List<FoundDimensionItemValue> values;
+    private final List<FoundDimensionItemValue> values;
 
-    private List<DataValue> oldPredictions;
+    private final List<DataValue> oldPredictions;
 }

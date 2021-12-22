@@ -39,13 +39,10 @@ import java.util.stream.Collectors;
 
 import lombok.Setter;
 
-import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -57,25 +54,15 @@ import org.hisp.dhis.period.Period;
  */
 public class PredictionDataConsolidator
 {
-    @Setter // to Mock for testing
-    private PredictionDataValueFetcher dataValueFetcher;
+    private final PredictionDataValueFetcher dataValueFetcher;
 
-    @Setter // to Mock for testing
-    private PredictionAnalyticsDataFetcher analyticsFetcher;
+    private final PredictionAnalyticsDataFetcher analyticsFetcher;
 
-    private Set<Period> dataValueQueryPeriods;
+    private final Set<DataElement> dataElements;
 
-    private Set<Period> analyticsQueryPeriods;
+    private final Set<DataElementOperand> dataElementOperands;
 
-    private Set<Period> existingOutputPeriods;
-
-    private DataElementOperand outputDataElementOperand;
-
-    private Set<DataElement> dataElements;
-
-    private Set<DataElementOperand> dataElementOperands;
-
-    private Set<DimensionalItemObject> analyticsItems;
+    private final Set<DimensionalItemObject> analyticsItems;
 
     private Queue<OrganisationUnit> orgUnitsRemaining;
 
@@ -84,34 +71,23 @@ public class PredictionDataConsolidator
     @Setter // to change for testing
     private int analyticsBatchFetchSize = 500;
 
-    public PredictionDataConsolidator( CategoryService categoryService,
-        DataValueService dataValueService, AnalyticsService analyticsService )
-    {
-        dataValueFetcher = new PredictionDataValueFetcher( dataValueService, categoryService );
-        analyticsFetcher = new PredictionAnalyticsDataFetcher( analyticsService, categoryService );
-    }
-
     /**
-     * Sets up the predictor fetchers.
-     *
-     * @param items the dimensional items to be subsequently retrieved
-     * @param dataValueQueryPeriods existing periods for data value queries
-     * @param analyticsQueryPeriods existing periods for analytics queries
-     * @param outputDataElementOperand prediction output data element operand
+     * @param items dimensional items to be subsequently retrieved
      * @param includeDescendants whether to include descendants
      */
-    public void setUp( Set<DimensionalItemObject> items,
-        Set<Period> dataValueQueryPeriods, Set<Period> analyticsQueryPeriods, Set<Period> existingOutputPeriods,
-        DataElementOperand outputDataElementOperand, boolean includeDescendants )
+    public PredictionDataConsolidator( Set<DimensionalItemObject> items, boolean includeDescendants,
+        PredictionDataValueFetcher dataValueFetcher, PredictionAnalyticsDataFetcher analyticsFetcher )
     {
-        this.dataValueQueryPeriods = dataValueQueryPeriods;
-        this.analyticsQueryPeriods = analyticsQueryPeriods;
-        this.existingOutputPeriods = existingOutputPeriods;
-        this.outputDataElementOperand = outputDataElementOperand;
-
-        categorizeItems( items );
+        this.dataValueFetcher = dataValueFetcher;
+        this.analyticsFetcher = analyticsFetcher;
 
         dataValueFetcher.setIncludeDeleted( true ).setIncludeDescendants( includeDescendants );
+
+        dataElements = new HashSet<>();
+        dataElementOperands = new HashSet<>();
+        analyticsItems = new HashSet<>();
+
+        categorizeItems( items );
     }
 
     /**
@@ -119,8 +95,13 @@ public class PredictionDataConsolidator
      *
      * @param orgUnits organisation units to fetch
      * @param orgUnitLevel level of organisation units to fetch
+     * @param dataValueQueryPeriods existing periods for data value queries
+     * @param analyticsQueryPeriods existing periods for analytics queries
+     * @param outputDataElementOperand prediction output data element operand
      */
-    public void init( Set<OrganisationUnit> currentUserOrgUnits, int orgUnitLevel, List<OrganisationUnit> orgUnits )
+    public void init( Set<OrganisationUnit> currentUserOrgUnits, int orgUnitLevel, List<OrganisationUnit> orgUnits,
+        Set<Period> dataValueQueryPeriods, Set<Period> analyticsQueryPeriods, Set<Period> existingOutputPeriods,
+        DataElementOperand outputDataElementOperand )
     {
         orgUnitsRemaining = new ArrayDeque<>( orgUnits );
 
@@ -159,10 +140,6 @@ public class PredictionDataConsolidator
      */
     private void categorizeItems( Set<DimensionalItemObject> items )
     {
-        dataElements = new HashSet<>();
-        dataElementOperands = new HashSet<>();
-        analyticsItems = new HashSet<>();
-
         for ( DimensionalItemObject i : items )
         {
             if ( i instanceof DataElement )

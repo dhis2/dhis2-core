@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.common;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -39,7 +42,10 @@ import org.hisp.dhis.period.Period;
  *
  * @author Jim Grace
  */
-@Data
+@Getter
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
 public class FoundDimensionItemValue
 {
     private final OrganisationUnit organisationUnit;

@@ -285,11 +285,10 @@ public class DefaultPredictionService
             storedBy = currentUser.getUsername();
         }
 
-        PredictionDataConsolidator consolidator = new PredictionDataConsolidator( categoryService,
-            dataValueService, analyticsService );
-
-        consolidator.setUp( items, dataValueQueryPeriods, analyticsQueryPeriods, existingOutputPeriods,
-            outputDataElementOperand, predictor.getOrganisationUnitDescendants().equals( DESCENDANTS ) );
+        PredictionDataConsolidator consolidator = new PredictionDataConsolidator( items,
+            predictor.getOrganisationUnitDescendants().equals( DESCENDANTS ),
+            new PredictionDataValueFetcher( dataValueService, categoryService ),
+            new PredictionAnalyticsDataFetcher( analyticsService, categoryService ) );
 
         PredictionWriter predictionWriter = new PredictionWriter( dataValueService, batchHandlerFactory );
 
@@ -302,7 +301,8 @@ public class DefaultPredictionService
             List<OrganisationUnit> orgUnits = organisationUnitService
                 .getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits );
 
-            consolidator.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits );
+            consolidator.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits,
+                dataValueQueryPeriods, analyticsQueryPeriods, existingOutputPeriods, outputDataElementOperand );
 
             PredictionData data;
 
@@ -391,7 +391,7 @@ public class DefaultPredictionService
      */
     private Set<Period> getDataValueQueryPeriods( Set<Period> analyticsQueryPeriods, Set<Period> existingOutputPeriods )
     {
-        return new HashSet<>( Sets.union( analyticsQueryPeriods, existingOutputPeriods ) );
+        return Sets.union( analyticsQueryPeriods, existingOutputPeriods );
     }
 
     /**
@@ -539,14 +539,14 @@ public class DefaultPredictionService
 
         for ( DimensionalItemObject item : sampleItems )
         {
-            if ( item.equals( outputDataElementOperand.getDataElement() ) )
-            {
-                forwardReference = item;
-            }
-
             if ( item.equals( outputDataElementOperand ) )
             {
                 return item;
+            }
+
+            if ( item.equals( outputDataElementOperand.getDataElement() ) )
+            {
+                forwardReference = item;
             }
         }
 
