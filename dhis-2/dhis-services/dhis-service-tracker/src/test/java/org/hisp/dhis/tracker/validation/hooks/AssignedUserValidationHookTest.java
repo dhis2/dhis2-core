@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -120,9 +119,9 @@ class AssignedUserValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1118, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.EVENT, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( event.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1118.equals( err.getErrorCode() ) &&
+            TrackerType.EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -145,9 +144,9 @@ class AssignedUserValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1118, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.EVENT, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( event.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1118.equals( err.getErrorCode() ) &&
+            TrackerType.EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -171,9 +170,9 @@ class AssignedUserValidationHookTest
         // then
         assertFalse( reporter.hasErrors() );
         assertTrue( reporter.hasWarnings() );
-        assertEquals( E1120, reporter.getWarningsReportList().get( 0 ).getWarningCode() );
-        assertEquals( TrackerType.EVENT, reporter.getWarningsReportList().get( 0 ).getTrackerType() );
-        assertEquals( event.getUid(), reporter.getWarningsReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasWarningReport( r -> E1120.equals( r.getWarningCode() ) &&
+            TrackerType.EVENT.equals( r.getTrackerType() ) &&
+            event.getUid().equals( r.getUid() ) ) );
     }
 
     @Test
@@ -181,6 +180,7 @@ class AssignedUserValidationHookTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
@@ -196,8 +196,8 @@ class AssignedUserValidationHookTest
         // then
         assertFalse( reporter.hasErrors() );
         assertTrue( reporter.hasWarnings() );
-        assertEquals( E1120, reporter.getWarningsReportList().get( 0 ).getWarningCode() );
-        assertEquals( TrackerType.EVENT, reporter.getWarningsReportList().get( 0 ).getTrackerType() );
-        assertEquals( event.getUid(), reporter.getWarningsReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasWarningReport( r -> E1120.equals( r.getWarningCode() ) &&
+            TrackerType.EVENT.equals( r.getTrackerType() ) &&
+            event.getUid().equals( r.getUid() ) ) );
     }
 }
