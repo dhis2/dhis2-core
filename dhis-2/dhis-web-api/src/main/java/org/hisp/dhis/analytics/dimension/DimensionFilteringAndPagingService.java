@@ -49,7 +49,6 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
 
 @Service
 @RequiredArgsConstructor
@@ -61,10 +60,10 @@ public class DimensionFilteringAndPagingService
 
     private final DimensionMapperService dimensionMapperService;
 
-    private final static Comparator<DimensionResponse> DEFAULT_COMPARATOR = Comparator
+    private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = Comparator
         .comparing( DimensionResponse::getCreated, Comparator.nullsFirst( Comparator.naturalOrder() ) );
 
-    private final static Map<String, Comparator<DimensionResponse>> ORDERING_MAP = ImmutableMap.of(
+    private static final Map<String, Comparator<DimensionResponse>> ORDERING_MAP = Map.of(
         "lastUpdated", Comparator.comparing( DimensionResponse::getLastUpdated ),
         "code", Comparator.comparing( DimensionResponse::getCode ),
         "uid", Comparator.comparing( DimensionResponse::getId ),

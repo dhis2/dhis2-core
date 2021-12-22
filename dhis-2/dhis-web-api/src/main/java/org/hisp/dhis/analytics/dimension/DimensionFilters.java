@@ -44,8 +44,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import com.google.common.collect.ImmutableMap;
-
 @Getter
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
@@ -92,16 +90,16 @@ public class DimensionFilters implements Predicate<DimensionResponse>
     @AllArgsConstructor( access = AccessLevel.PRIVATE )
     private static class SingleFilter implements Predicate<DimensionResponse>
     {
-        private static final Map<String, Function<DimensionResponse, ?>> FIELD_EXTRACTORS = ImmutableMap.of(
+        private static final Map<String, Function<DimensionResponse, ?>> FIELD_EXTRACTORS = Map.of(
             "name", DimensionResponse::getName,
             "dimensionType", DimensionResponse::getDimensionType,
             "displayName", DimensionResponse::getDisplayName,
             "displayShortName", DimensionResponse::getDisplayShortName );
 
-        private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP = ImmutableMap.of(
+        private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP = Map.of(
             "eq", String::equalsIgnoreCase,
             "like", String::contains,
-            "ilike", ( fieldValue, value ) -> fieldValue.toLowerCase().contains( value.toLowerCase() ) );
+            "ilike", ( fv, v ) -> fv.toLowerCase().contains( v.toLowerCase() ) );
 
         private String field;
 

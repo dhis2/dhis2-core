@@ -41,14 +41,12 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableSet;
-
 @Service
 public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
 {
 
     @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
+    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
         ProgramIndicator.class,
         DataElement.class,
         TrackedEntityAttribute.class );

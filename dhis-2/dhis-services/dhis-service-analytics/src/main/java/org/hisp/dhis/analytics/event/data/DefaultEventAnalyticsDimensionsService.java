@@ -53,8 +53,6 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
-
 @Service
 @RequiredArgsConstructor
 public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensionsService
@@ -72,7 +70,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
             .map( programStageService::getProgramStage )
             .map( ProgramStage::getProgram )
             .map( p -> collectDimensions(
-                ImmutableList.of(
+                List.of(
                     p.getProgramIndicators(),
                     filterByValueType(
                         QUERY,
@@ -93,7 +91,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
             .map( ps -> collectDimensions(
-                ImmutableList.of(
+                List.of(
                     filterByValueType( AGGREGATE,
                         ps.getDataElements(),
                         DataElement::getValueType ),

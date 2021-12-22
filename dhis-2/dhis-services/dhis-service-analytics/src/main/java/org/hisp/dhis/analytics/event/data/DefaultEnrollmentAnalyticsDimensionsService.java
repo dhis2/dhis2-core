@@ -48,8 +48,6 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableList;
-
 @Service
 @RequiredArgsConstructor
 class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalyticsDimensionsService
@@ -64,7 +62,7 @@ class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalytics
             .map( programService::getProgram )
             .filter( Program::isRegistration )
             .map( program -> collectDimensions(
-                ImmutableList.of(
+                List.of(
                     program.getProgramIndicators(),
                     getProgramStageDataElements( QUERY, program ),
                     filterByValueType( QUERY, getTeasIfRegistrationAndNotConfidential( program ),
@@ -91,7 +89,7 @@ class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalytics
         return Optional.of( programId )
             .map( programService::getProgram )
             .map( program -> collectDimensions(
-                ImmutableList.of(
+                List.of(
                     getProgramStageDataElements( AGGREGATE, program ),
                     filterByValueType( AGGREGATE,
                         program.getTrackedEntityAttributes(),

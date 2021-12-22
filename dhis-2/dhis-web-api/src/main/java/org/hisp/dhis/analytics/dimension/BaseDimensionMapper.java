@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.dimension;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 
-abstract public class BaseDimensionMapper implements DimensionMapper
+public abstract class BaseDimensionMapper implements DimensionMapper
 {
 
     @Override

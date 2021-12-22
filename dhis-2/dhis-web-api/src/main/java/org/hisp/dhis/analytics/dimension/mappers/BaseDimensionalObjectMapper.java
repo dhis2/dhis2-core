@@ -39,14 +39,12 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableSet;
-
 @Service
 public class BaseDimensionalObjectMapper extends BaseDimensionMapper
 {
 
     @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
+    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
         CategoryOptionGroupSet.class,
         Category.class );
 

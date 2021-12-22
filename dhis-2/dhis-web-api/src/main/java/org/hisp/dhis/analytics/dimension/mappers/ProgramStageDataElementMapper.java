@@ -36,13 +36,11 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableSet;
-
 @Service
 public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapper
 {
     @Getter
-    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = ImmutableSet.of(
+    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
         ProgramStageDataElement.class );
 
     @Override

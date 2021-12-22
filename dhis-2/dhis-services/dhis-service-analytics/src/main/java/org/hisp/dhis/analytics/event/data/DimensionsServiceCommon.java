@@ -44,6 +44,7 @@ import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -51,18 +52,15 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-
 public interface DimensionsServiceCommon
 {
 
-    Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = ImmutableSet.of(
+    Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = Set.of(
         IMAGE,
         FILE_RESOURCE,
         TRACKER_ASSOCIATE );
 
-    Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = ImmutableSet.of(
+    Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = Set.of(
         NUMBER,
         UNIT_INTERVAL,
         PERCENTAGE,
@@ -73,7 +71,7 @@ public interface DimensionsServiceCommon
         BOOLEAN,
         TRUE_ONLY );
 
-    Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = ImmutableMap.of(
+    Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = Map.of(
         OperationType.QUERY, not( QUERY_DISALLOWED_VALUE_TYPES::contains ),
         OperationType.AGGREGATE, AGGREGATE_ALLOWED_VALUE_TYPES::contains );
 
