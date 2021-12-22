@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,21 +52,22 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class TrackedEntityAttributeValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class TrackedEntityAttributeValidationHookTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @InjectMocks
     private TrackedEntityAttributeValidationHook trackedEntityAttributeValidationHook;
@@ -77,7 +81,7 @@ public class TrackedEntityAttributeValidationHookTest
     @Mock
     private TrackedEntityAttribute trackedEntityAttribute;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         TrackerBundle bundle = TrackerBundle.builder().build();
@@ -86,7 +90,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldPassValidation()
+    void shouldPassValidation()
     {
         TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
         trackedEntityAttribute.setUid( "uid" );
@@ -110,7 +114,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationMandatoryFields()
+    void shouldFailValidationMandatoryFields()
     {
         String tet = "tet";
 
@@ -149,7 +153,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationMissingTea()
+    void shouldFailValidationMissingTea()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes( Arrays.asList( Attribute.builder().attribute( "aaaaa" ).build(),
@@ -170,7 +174,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailMissingAttributeValue()
+    void shouldFailMissingAttributeValue()
     {
         String tea = "tea";
         String tet = "tet";
@@ -204,7 +208,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValueTooLong()
+    void shouldFailValueTooLong()
     {
         ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
 
@@ -227,7 +231,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailDataValueIsValid()
+    void shouldFailDataValueIsValid()
     {
         ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
 
@@ -243,7 +247,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailEncryptionStatus()
+    void shouldFailEncryptionStatus()
     {
         when( trackedEntityAttribute.isConfidentialBool() ).thenReturn( true );
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.AGE );
@@ -266,7 +270,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailOptionSetNotValid()
+    void shouldFailOptionSetNotValid()
     {
         TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
 
@@ -290,7 +294,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldPassValidationValueInOptionSet()
+    void shouldPassValidationValueInOptionSet()
     {
         TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
 
@@ -312,7 +316,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory()
+    void shouldPassValidationWhenValueIsNullAndAttributeIsNotMandatory()
     {
         TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
 
@@ -343,7 +347,7 @@ public class TrackedEntityAttributeValidationHookTest
     }
 
     @Test
-    public void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory()
+    void shouldFailValidationWhenValueIsNullAndAttributeIsMandatory()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(

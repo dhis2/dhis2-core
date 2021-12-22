@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -40,11 +40,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class CacheControllerTest extends DhisControllerConvenienceTest
+class CacheControllerTest extends DhisControllerConvenienceTest
 {
 
     @Test
-    public void testInvalidate()
+    void testInvalidate()
     {
         switchToNewUser( "no-special-authority-user" );
         assertStatus( HttpStatus.FORBIDDEN, POST( "/caches/invalidate" ) );

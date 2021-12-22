@@ -25,11 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis;
+package org.hisp.dhis.predictor;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface IntegrationTest
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+
+import org.hisp.dhis.common.FoundDimensionItemValue;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+@Getter
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+public class PredictionData
 {
+    private final OrganisationUnit orgUnit;
+
+    private final List<FoundDimensionItemValue> values;
+
+    private final List<DataValue> oldPredictions;
 }

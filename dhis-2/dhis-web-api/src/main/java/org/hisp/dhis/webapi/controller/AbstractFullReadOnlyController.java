@@ -49,8 +49,6 @@ import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.eventchart.EventChart;
-import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -156,6 +154,15 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     {
     }
 
+    /**
+     * Allows to append new filters to the incoming ones. Recommended only on
+     * very specific cases where forcing a new filter, programmatically, make
+     * sense.
+     */
+    protected void forceFiltering( final List<String> filters )
+    {
+    }
+
     // --------------------------------------------------------------------------
     // GET Full
     // --------------------------------------------------------------------------
@@ -169,7 +176,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         List<Order> orders = orderParams.getOrders( getSchema() );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        forceFilterForEventChartOrReport( filters );
+        forceFiltering( filters );
 
         if ( fields.isEmpty() )
         {
@@ -251,6 +258,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        forceFiltering( filters );
 
         if ( fields.isEmpty() )
         {
@@ -589,26 +597,5 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         }
 
         return InclusionStrategy.Include.NON_NULL;
-    }
-
-    /**
-     * @deprecated This is a temporary workaround to keep EventChart and
-     *             EventReport backward compatible with the new
-     *             EventVisualization entity.
-     *
-     * @param filters
-     */
-    @Deprecated
-    private void forceFilterForEventChartOrReport( final List<String> filters )
-    {
-        if ( getEntityClass().isAssignableFrom( EventChart.class ) )
-        {
-            filters.add( "type:!eq:PIVOT_TABLE" );
-            filters.add( "type:!eq:LINE_LIST" );
-        }
-        else if ( getEntityClass().isAssignableFrom( EventReport.class ) )
-        {
-            filters.add( "type:in:[PIVOT_TABLE,LINE_LIST]" );
-        }
     }
 }

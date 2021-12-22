@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi;
 
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import java.util.List;
+
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 
 /**
  * Base class to create context free reusable snippets.
@@ -52,9 +55,10 @@ public abstract class WebSnippet<T> implements WebClient
     }
 
     @Override
-    public final HttpResponse webRequest( MockHttpServletRequestBuilder request )
+    public final HttpResponse webRequest( HttpMethod method, String url, List<Header> headers, MediaType contentType,
+        String content )
     {
-        return client.webRequest( request );
+        return client.webRequest( method, url, headers, contentType, content );
     }
 
     /**

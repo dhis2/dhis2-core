@@ -507,7 +507,7 @@ public class JdbcAnalyticsTableManager
 
         sql.deleteCharAt( sql.length() - ",".length() );
 
-        sql.append( " where level > " + aggregationLevel );
+        sql.append( " where oulevel > " + aggregationLevel );
         sql.append( " and dx in (" + getQuotedCommaDelimitedString( dataElements ) + ")" );
 
         log.debug( "Aggregation level SQL: " + sql );

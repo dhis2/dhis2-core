@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -52,34 +52,34 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
  */
-public class EventDateValidationHookTest
-    extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EventDateValidationHookTest extends DhisConvenienceTest
 {
+
     private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
 
     private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "ProgramWithoutRegistration";
 
     private EventDateValidationHook hookToTest;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private TrackerImportValidationContext validationContext;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         hookToTest = new EventDateValidationHook();
@@ -98,7 +98,7 @@ public class EventDateValidationHookTest
     }
 
     @Test
-    public void testEventIsValid()
+    void testEventIsValid()
     {
         // given
         Event event = new Event();
@@ -120,7 +120,7 @@ public class EventDateValidationHookTest
     }
 
     @Test
-    public void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration()
+    void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration()
     {
         // given
         Event event = new Event();
@@ -138,7 +138,7 @@ public class EventDateValidationHookTest
     }
 
     @Test
-    public void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive()
+    void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive()
     {
         // given
         Event event = new Event();
@@ -156,7 +156,7 @@ public class EventDateValidationHookTest
     }
 
     @Test
-    public void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted()
+    void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted()
     {
         // given
         Event event = new Event();
@@ -174,7 +174,7 @@ public class EventDateValidationHookTest
     }
 
     @Test
-    public void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule()
+    void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule()
     {
         // given
         Event event = new Event();
@@ -193,7 +193,7 @@ public class EventDateValidationHookTest
     }
 
     @Test
-    public void testEventIsNotValidWhenCompletedAtIsNotPresentAndEventIsCompleted()
+    void testEventIsNotValidWhenCompletedAtIsNotPresentAndEventIsCompleted()
     {
         // given
         Event event = new Event();
@@ -212,7 +212,7 @@ public class EventDateValidationHookTest
     }
 
     @Test
-    public void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted()
+    void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted()
     {
         // given
         Event event = new Event();
@@ -232,7 +232,7 @@ public class EventDateValidationHookTest
     }
 
     @Test
-    public void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent()
+    void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent()
     {
         // given
         Event event = new Event();
@@ -252,7 +252,7 @@ public class EventDateValidationHookTest
     }
 
     @Test
-    public void testEventIsNotValidWhenDateBelongsToExpiredPeriod()
+    void testEventIsNotValidWhenDateBelongsToExpiredPeriod()
     {
         // given
         Event event = new Event();

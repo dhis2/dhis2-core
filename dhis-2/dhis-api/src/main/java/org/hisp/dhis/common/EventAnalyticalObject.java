@@ -28,9 +28,11 @@
 package org.hisp.dhis.common;
 
 import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -48,6 +50,8 @@ public interface EventAnalyticalObject
     Date getStartDate();
 
     Date getEndDate();
+
+    List<SimpleDimension> getSimpleDimensions();
 
     EventOutputType getOutputType();
 

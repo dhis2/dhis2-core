@@ -35,9 +35,9 @@ import static org.hisp.dhis.tracker.report.TrackerTimingsStats.PROGRAMRULE_OPS;
 import static org.hisp.dhis.tracker.report.TrackerTimingsStats.TOTAL_OPS;
 import static org.hisp.dhis.tracker.report.TrackerTimingsStats.TOTAL_REQUEST_OPS;
 import static org.hisp.dhis.tracker.report.TrackerTimingsStats.VALIDATION_OPS;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,7 +48,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -57,8 +57,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerBundleImportReportTest extends DhisSpringTest
+class TrackerBundleImportReportTest extends DhisSpringTest
 {
+
     @Autowired
     private TrackerImportService trackerImportService;
 
@@ -66,11 +67,10 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     private ObjectMapper jsonMapper;
 
     @Test
-    public void testImportReportErrors()
+    void testImportReportErrors()
     {
         TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(),
             TrackerBundleReportMode.ERRORS );
-
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
         assertNotNull( report.getValidationReport() );
@@ -81,11 +81,10 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     }
 
     @Test
-    public void testImportReportWarnings()
+    void testImportReportWarnings()
     {
         TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(),
             TrackerBundleReportMode.WARNINGS );
-
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
         assertNotNull( report.getValidationReport() );
@@ -96,11 +95,10 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     }
 
     @Test
-    public void testImportReportFull()
+    void testImportReportFull()
     {
         TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(),
             TrackerBundleReportMode.FULL );
-
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
         assertNotNull( report.getValidationReport() );
@@ -116,38 +114,32 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     }
 
     @Test
-    public void testSerializingAndDeserializingImportReport()
+    void testSerializingAndDeserializingImportReport()
         throws JsonProcessingException
     {
-
         // Build BundleReport
         Map<TrackerType, TrackerTypeReport> typeReportMap = new HashMap<>();
         TrackerTypeReport typeReport = new TrackerTypeReport( TRACKED_ENTITY );
         TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TRACKED_ENTITY );
         List<TrackerErrorReport> trackerErrorReports = new ArrayList<>();
         TrackerErrorReport errorReport1 = new TrackerErrorReport(
-            "Could not find OrganisationUnit: ``, linked to Tracked Entity.", TrackerErrorCode.E1049,
-            TRACKED_ENTITY, "BltTZV9HvEZ" );
+            "Could not find OrganisationUnit: ``, linked to Tracked Entity.", TrackerErrorCode.E1049, TRACKED_ENTITY,
+            "BltTZV9HvEZ" );
         TrackerErrorReport errorReport2 = new TrackerErrorReport( "Could not find TrackedEntityType: `Q9GufDoplCL`.",
-            TrackerErrorCode.E1049,
-            TRACKED_ENTITY, "BltTZV9HvEZ" );
+            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" );
         trackerErrorReports.add( errorReport1 );
         trackerErrorReports.add( errorReport2 );
         trackerObjectReport.getErrorReports().addAll( trackerErrorReports );
         trackerObjectReport.setIndex( 0 );
         trackerObjectReport.setUid( "BltTZV9HvEZ" );
-
         typeReport.addObjectReport( trackerObjectReport );
         typeReport.getStats().setCreated( 1 );
         typeReport.getStats().setUpdated( 2 );
         typeReport.getStats().setDeleted( 3 );
         typeReportMap.put( TRACKED_ENTITY, typeReport );
-
         TrackerBundleReport bundleReport = new TrackerBundleReport( TrackerStatus.ERROR, typeReportMap );
-
         // Build TimingsStats
         TrackerTimingsStats timingsStats = new TrackerTimingsStats();
-
         timingsStats.set( COMMIT_OPS, "0.1 sec." );
         timingsStats.set( PREHEAT_OPS, "0.2 sec." );
         timingsStats.set( PROGRAMRULE_OPS, "0.3 sec." );
@@ -155,44 +147,34 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         timingsStats.set( VALIDATION_OPS, "4 sec." );
         timingsStats.set( PREPARE_REQUEST_OPS, "0.5 sec." );
         timingsStats.set( TOTAL_REQUEST_OPS, "0.6 sec." );
-
         // Build ValidationReport
         TrackerValidationReport tvr = new TrackerValidationReport();
-
         // Error Reports - Validation Report
         tvr.getErrorReports()
             .add( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
-                TrackerErrorCode.E1049,
-                TRACKED_ENTITY, "BltTZV9HvEZ" ) );
-
+                TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) );
         // Warning Reports - Validation Report
         tvr.getWarningReports()
             .add( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
                 TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
-
         // Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
-        TrackerImportReport toSerializeReport = TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.ERROR,
+        TrackerImportReport toSerializeReport = TrackerImportReport.withImportCompleted( TrackerStatus.ERROR,
             bundleReport, tvr, timingsStats, bundleSize );
-
         // Serialize TrackerImportReport into String
         String jsonString = jsonMapper.writeValueAsString( toSerializeReport );
-
         // Deserialize the String back into TrackerImportReport
         TrackerImportReport deserializedReport = jsonMapper.readValue( jsonString, TrackerImportReport.class );
-
         // Verify Stats
         assertEquals( toSerializeReport.getStats().getIgnored(), deserializedReport.getStats().getIgnored() );
         assertEquals( toSerializeReport.getStats().getDeleted(), deserializedReport.getStats().getDeleted() );
         assertEquals( toSerializeReport.getStats().getUpdated(), deserializedReport.getStats().getUpdated() );
         assertEquals( toSerializeReport.getStats().getCreated(), deserializedReport.getStats().getCreated() );
         assertEquals( toSerializeReport.getStats().getTotal(), deserializedReport.getStats().getTotal() );
-
         // Verify Status
         assertEquals( toSerializeReport.getBundleReport().getStatus(),
             deserializedReport.getBundleReport().getStatus() );
-
         // Verify BundleReport
         assertEquals( toSerializeReport.getBundleReport().getStats().getIgnored(),
             deserializedReport.getBundleReport().getStats().getIgnored() );
@@ -204,12 +186,10 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
             deserializedReport.getBundleReport().getStats().getCreated() );
         assertEquals( toSerializeReport.getBundleReport().getStats().getTotal(),
             deserializedReport.getBundleReport().getStats().getTotal() );
-
         TrackerTypeReport serializedReportTrackerTypeReport = toSerializeReport.getBundleReport().getTypeReportMap()
             .get( TRACKED_ENTITY );
         TrackerTypeReport deserializedReportTrackerTypeReport = deserializedReport.getBundleReport().getTypeReportMap()
             .get( TRACKED_ENTITY );
-
         // sideEffectsDataBundle is no more relevant to object equivalence, so
         // just asserting on all other fields.
         assertEquals( serializedReportTrackerTypeReport.getTrackerType(),
@@ -219,7 +199,6 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         assertEquals( serializedReportTrackerTypeReport.getObjectReports(),
             deserializedReportTrackerTypeReport.getObjectReports() );
         assertEquals( serializedReportTrackerTypeReport.getStats(), deserializedReportTrackerTypeReport.getStats() );
-
         // Verify Validation Report - Error Reports
         assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage(),
             deserializedReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage() );
@@ -227,7 +206,6 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
             deserializedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
         assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getUid(),
             deserializedReport.getValidationReport().getErrorReports().get( 0 ).getUid() );
-
         // Verify Validation Report - Warning Reports
         assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getWarningMessage(),
             deserializedReport.getValidationReport().getWarningReports().get( 0 ).getWarningMessage() );
@@ -237,7 +215,6 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
             deserializedReport.getValidationReport().getWarningReports().get( 0 ).getUid() );
         assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getTrackerType(),
             deserializedReport.getValidationReport().getWarningReports().get( 0 ).getTrackerType() );
-
         // Verify TimingsStats
         assertEquals( toSerializeReport.getTimingsStats().getCommit(),
             deserializedReport.getTimingsStats().getCommit() );
@@ -253,9 +230,7 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
             deserializedReport.getTimingsStats().getTotalRequest() );
         assertEquals( toSerializeReport.getTimingsStats().getValidation(),
             deserializedReport.getTimingsStats().getValidation() );
-
         assertEquals( toSerializeReport.getStats(), deserializedReport.getStats() );
-
     }
 
     private void assertStats( TrackerImportReport report )
@@ -271,20 +246,18 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     {
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
-        return TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.OK, createBundleReport(),
+        return TrackerImportReport.withImportCompleted( TrackerStatus.OK, createBundleReport(),
             createValidationReport(), createTimingStats(), bundleSize );
     }
 
     private TrackerTimingsStats createTimingStats()
     {
         TrackerTimingsStats timingsStats = new TrackerTimingsStats();
-
         timingsStats.set( PROGRAMRULE_OPS, "1 sec." );
         timingsStats.set( COMMIT_OPS, "2 sec." );
         timingsStats.set( PREHEAT_OPS, "3 sec." );
         timingsStats.set( VALIDATION_OPS, "4 sec." );
         timingsStats.set( TOTAL_OPS, "10 sec." );
-
         return timingsStats;
     }
 
@@ -301,7 +274,6 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         typeReport.addObjectReport( objectReport );
         typeReport.getStats().incCreated();
         bundleReport.getTypeReportMap().put( TRACKED_ENTITY, typeReport );
-
         return bundleReport;
     }
 }

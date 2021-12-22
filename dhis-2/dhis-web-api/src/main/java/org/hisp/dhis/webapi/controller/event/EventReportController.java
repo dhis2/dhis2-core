@@ -34,6 +34,7 @@ import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -107,6 +108,22 @@ public class EventReportController
     // Hooks
     // --------------------------------------------------------------------------
 
+    /**
+     * @deprecated This is a temporary workaround to keep EventReport backward
+     *             compatible with the new EventVisualization entity. Only
+     *             legacy and report related types can be returned by this
+     *             endpoint.
+     *
+     * @param filters
+     */
+    @Deprecated
+    @Override
+    protected void forceFiltering( final List<String> filters )
+    {
+        filters.add( "type:in:[PIVOT_TABLE,LINE_LIST]" );
+        filters.add( "legacy:eq:true" );
+    }
+
     @Override
     protected void postProcessResponseEntity( EventReport report, WebOptions options, Map<String, String> parameters )
         throws Exception
@@ -148,10 +165,12 @@ public class EventReportController
         report.getColumnDimensions().clear();
         report.getRowDimensions().clear();
         report.getFilterDimensions().clear();
+        report.getSimpleDimensions().clear();
 
         report.getColumnDimensions().addAll( getDimensions( report.getColumns() ) );
         report.getRowDimensions().addAll( getDimensions( report.getRows() ) );
         report.getFilterDimensions().addAll( getDimensions( report.getFilters() ) );
+        report.associateSimpleDimensions();
     }
 
     /**
