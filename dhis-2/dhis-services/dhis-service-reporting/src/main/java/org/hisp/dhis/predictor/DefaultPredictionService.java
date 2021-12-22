@@ -251,7 +251,7 @@ public class DefaultPredictionService
 
                 for ( PredictorGroup predictorGroup : predictorGroupList )
                 {
-                    predictorList.addAll( predictorGroup.getMembers() );
+                    predictorList.addAll( predictorGroup.getSortedMembers() );
                 }
             }
         }
