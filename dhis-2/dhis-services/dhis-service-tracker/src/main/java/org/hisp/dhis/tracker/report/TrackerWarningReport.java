@@ -116,6 +116,11 @@ public class TrackerWarningReport
         }
     }
 
+    public static TrackerWarningReportBuilder newWarningReport( TrackerErrorCode errorCode )
+    {
+        return builder().warningCode( errorCode );
+    }
+
     @Override
     public String toString()
     {

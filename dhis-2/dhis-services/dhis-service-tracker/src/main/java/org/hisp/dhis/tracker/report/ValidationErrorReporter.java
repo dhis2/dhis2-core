@@ -148,16 +148,6 @@ public class ValidationErrorReporter
         return !this.warningsReportList.isEmpty();
     }
 
-    public static TrackerErrorReport.TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
-    {
-        return TrackerErrorReport.builder().errorCode( errorCode );
-    }
-
-    public static TrackerWarningReport.TrackerWarningReportBuilder newWarningReport( TrackerErrorCode errorCode )
-    {
-        return TrackerWarningReport.builder().warningCode( errorCode );
-    }
-
     public void addError( TrackerErrorReport.TrackerErrorReportBuilder builder )
     {
         builder.trackerType( this.dtoType );
