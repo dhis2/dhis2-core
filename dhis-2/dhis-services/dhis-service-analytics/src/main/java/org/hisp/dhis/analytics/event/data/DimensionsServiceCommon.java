@@ -54,15 +54,15 @@ import org.hisp.dhis.common.ValueType;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-class DimensionsServiceCommon
+public interface DimensionsServiceCommon
 {
 
-    final static Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = ImmutableSet.of(
+    Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = ImmutableSet.of(
         IMAGE,
         FILE_RESOURCE,
         TRACKER_ASSOCIATE );
 
-    final static Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = ImmutableSet.of(
+    Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = ImmutableSet.of(
         NUMBER,
         UNIT_INTERVAL,
         PERCENTAGE,
@@ -73,7 +73,7 @@ class DimensionsServiceCommon
         BOOLEAN,
         TRUE_ONLY );
 
-    final static Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = ImmutableMap.of(
+    Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = ImmutableMap.of(
         OperationType.QUERY, not( QUERY_DISALLOWED_VALUE_TYPES::contains ),
         OperationType.AGGREGATE, AGGREGATE_ALLOWED_VALUE_TYPES::contains );
 
@@ -83,7 +83,7 @@ class DimensionsServiceCommon
         AGGREGATE
     }
 
-    static List<BaseIdentifiableObject> collectDimensions(
+    default List<BaseIdentifiableObject> collectDimensions(
         Collection<Collection<? extends BaseIdentifiableObject>> dimensionCollections )
     {
         return dimensionCollections.stream()
@@ -91,7 +91,7 @@ class DimensionsServiceCommon
             .collect( Collectors.toList() );
     }
 
-    static <T extends BaseIdentifiableObject> Collection<T> filterByValueType(
+    default <T extends BaseIdentifiableObject> Collection<T> filterByValueType(
         DimensionsServiceCommon.OperationType operationType,
         Collection<T> elements, Function<T, ValueType> valueTypeProvider )
     {
