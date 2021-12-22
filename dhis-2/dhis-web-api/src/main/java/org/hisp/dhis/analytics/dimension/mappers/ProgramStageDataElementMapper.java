@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.analytics.dimension.mappers;
 
+import java.util.Optional;
 import java.util.Set;
 
 import lombok.Getter;
 
 import org.hisp.dhis.analytics.dimension.DimensionResponse;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.springframework.stereotype.Service;
 
@@ -48,9 +50,16 @@ public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapp
     {
         ProgramStageDataElement programStageDataElement = (ProgramStageDataElement) dimension;
 
-        return super.map( programStageDataElement.getDataElement() )
+        final DimensionResponse mapped = super.map( programStageDataElement.getDataElement() )
             .withValueType( programStageDataElement.getDataElement().getValueType().name() )
             .withId( getProgramStageDataElementUid( programStageDataElement ) );
+
+        return Optional.of( programStageDataElement )
+            .map( ProgramStageDataElement::getDataElement )
+            .map( DataElement::getOptionSet )
+            .map( BaseIdentifiableObject::getUid )
+            .map( mapped::withOptionSet )
+            .orElse( mapped );
     }
 
     private static String getProgramStageDataElementUid( ProgramStageDataElement programStageDataElement )

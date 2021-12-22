@@ -69,4 +69,7 @@ public class DimensionResponse
 
     @JsonProperty
     private final String displayShortName;
+
+    @JsonProperty
+    private final String optionSet;
 }
