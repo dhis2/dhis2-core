@@ -138,7 +138,8 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStageWithEvents() )
             .thenReturn( Lists.newArrayList( Pair.of( event.getProgramStage(), event.getEnrollment() ) ) );
         bundle.setEvents( Lists.newArrayList( event ) );
-        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter(
+            new TrackerImportValidationContext( bundle ) );
 
         validatorToTest.validate( errorReporter, ctx );
 
@@ -158,7 +159,8 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ), notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter(
+            new TrackerImportValidationContext( bundle ) );
 
         validatorToTest.validate( errorReporter, ctx );
 

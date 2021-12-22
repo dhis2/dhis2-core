@@ -162,7 +162,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -184,7 +184,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -206,7 +206,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -228,7 +228,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -251,7 +251,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -273,7 +273,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -296,7 +296,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
         bundle.setUser( deleteTeiAuthorisedUser() );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -318,7 +318,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -340,7 +340,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -364,7 +364,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( false );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -385,7 +385,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( false );
-        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
@@ -405,7 +405,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -428,7 +428,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -452,7 +452,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -476,7 +476,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -500,7 +500,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -525,7 +525,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         bundle.setUser( deleteEnrollmentAuthorisedUser() );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -549,7 +549,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .thenReturn( false );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -573,7 +573,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -597,7 +597,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -621,7 +621,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( false );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, enrollment );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
@@ -651,7 +651,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -680,7 +680,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .thenReturn( true );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
 
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -706,7 +706,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -732,7 +732,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -764,7 +764,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -796,7 +796,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         bundle.setUser( changeCompletedEventAuthorisedUser() );
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -823,7 +823,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -851,7 +851,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 
@@ -882,7 +882,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
-        reporter = new ValidationErrorReporter( ctx, event );
+        reporter = new ValidationErrorReporter( ctx );
 
         validatorToTest.validateEvent( reporter, event );
 

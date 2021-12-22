@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -53,7 +54,7 @@ public class EnrollmentGeoValidationHook
 
         if ( enrollment.getGeometry() != null )
         {
-            ValidationUtils.validateGeometry( reporter,
+            ValidationUtils.validateGeometry( reporter, TrackerType.ENROLLMENT, enrollment.getUid(),
                 enrollment.getGeometry(),
                 program.getFeatureType() );
         }

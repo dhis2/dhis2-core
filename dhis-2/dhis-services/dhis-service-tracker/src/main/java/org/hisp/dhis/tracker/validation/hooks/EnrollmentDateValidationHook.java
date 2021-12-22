@@ -40,6 +40,7 @@ import java.time.ZoneOffset;
 import java.util.Objects;
 
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -66,7 +67,7 @@ public class EnrollmentDateValidationHook
         if ( Boolean.TRUE.equals( program.getDisplayIncidentDate() ) &&
             Objects.isNull( enrollment.getOccurredAt() ) )
         {
-            addError( reporter, E1023, enrollment.getOccurredAt() );
+            addError( reporter, TrackerType.ENROLLMENT, enrollment.getUid(), E1023, enrollment.getOccurredAt() );
         }
     }
 
@@ -76,7 +77,7 @@ public class EnrollmentDateValidationHook
 
         if ( Objects.isNull( enrollment.getEnrolledAt() ) )
         {
-            addError( reporter, E1025, enrollment.getEnrolledAt() );
+            addError( reporter, TrackerType.ENROLLMENT, enrollment.getUid(), E1025, enrollment.getEnrolledAt() );
         }
     }
 
@@ -91,14 +92,14 @@ public class EnrollmentDateValidationHook
             && Boolean.FALSE.equals( program.getSelectEnrollmentDatesInFuture() )
             && enrollment.getEnrolledAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            addError( reporter, E1020, enrollment.getEnrolledAt() );
+            addError( reporter, TrackerType.ENROLLMENT, enrollment.getUid(), E1020, enrollment.getEnrolledAt() );
         }
 
         if ( Objects.nonNull( enrollment.getOccurredAt() )
             && Boolean.FALSE.equals( program.getSelectIncidentDatesInFuture() )
             && enrollment.getOccurredAt().atOffset( ZoneOffset.UTC ).toLocalDate().isAfter( now ) )
         {
-            addError( reporter, E1021, enrollment.getOccurredAt() );
+            addError( reporter, TrackerType.ENROLLMENT, enrollment.getUid(), E1021, enrollment.getOccurredAt() );
         }
     }
 }

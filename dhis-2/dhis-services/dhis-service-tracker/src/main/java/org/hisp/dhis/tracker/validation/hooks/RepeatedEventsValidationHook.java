@@ -35,6 +35,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -53,13 +54,13 @@ public class RepeatedEventsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validate( ValidationErrorReporter rootReporter, TrackerImportValidationContext context )
+    public void validate( ValidationErrorReporter reporter, TrackerImportValidationContext context )
     {
         TrackerBundle bundle = context.getBundle();
 
         Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
-            .filter( e -> !rootReporter.isInvalid( e ) )
+            .filter( e -> !reporter.isInvalid( e ) )
             .filter( e -> !context.getStrategy( e ).isDelete() )
             .filter( e -> {
                 ProgramStage programStage = context.getProgramStage( e.getProgramStage() );
@@ -74,18 +75,17 @@ public class RepeatedEventsValidationHook
             {
                 for ( Event event : mapEntry.getValue() )
                 {
-                    final ValidationErrorReporter reporter = new ValidationErrorReporter( context, event );
-                    addError( reporter, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
-                    rootReporter.merge( reporter );
+                    addError( reporter, TrackerType.EVENT, event.getUid(), TrackerErrorCode.E1039,
+                        mapEntry.getKey().getLeft() );
                 }
             }
         }
 
         bundle.getEvents()
-            .forEach( e -> validateNotMultipleEvents( rootReporter, context, e ) );
+            .forEach( e -> validateNotMultipleEvents( reporter, context, e ) );
     }
 
-    private void validateNotMultipleEvents( ValidationErrorReporter rootReporter,
+    private void validateNotMultipleEvents( ValidationErrorReporter reporter,
         TrackerImportValidationContext context, Event event )
     {
         ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
@@ -97,9 +97,7 @@ public class RepeatedEventsValidationHook
             && !programStage.getRepeatable()
             && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
         {
-            final ValidationErrorReporter reporter = new ValidationErrorReporter( context, event );
-            addError( reporter, TrackerErrorCode.E1039, event.getProgramStage() );
-            rootReporter.merge( reporter );
+            addError( reporter, TrackerType.EVENT, event.getUid(), TrackerErrorCode.E1039, event.getProgramStage() );
         }
     }
 

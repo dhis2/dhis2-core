@@ -136,9 +136,10 @@ class TrackerValidationServiceReportTest
                 if ( invalidEvent.equals( event ) )
                 {
                     reporter.addError(
-                        TrackerErrorReport.newReport( TrackerErrorCode.E1032 )
+                        TrackerErrorReport.builder()
+                            .errorCode( TrackerErrorCode.E1032 )
                             .trackerType( TrackerType.EVENT )
-                            .uid( event.getUid() ) );
+                            .uid( event.getUid() ).build( reporter.getValidationContext().getBundle() ) );
                 }
             } )
             .build();
@@ -148,9 +149,11 @@ class TrackerValidationServiceReportTest
                 if ( invalidEnrollment.equals( enrollment ) )
                 {
                     reporter.addError(
-                        TrackerErrorReport.newReport( TrackerErrorCode.E1069 )
+                        TrackerErrorReport.builder()
+                            .errorCode( TrackerErrorCode.E1069 )
                             .trackerType( TrackerType.ENROLLMENT )
-                            .uid( enrollment.getUid() ) );
+                            .uid( enrollment.getUid() )
+                            .build( reporter.getValidationContext().getBundle() ) );
                 }
             } )
             .build();
@@ -213,9 +216,10 @@ class TrackerValidationServiceReportTest
                 if ( invalidEvent.equals( event ) )
                 {
                     reporter.addError(
-                        TrackerErrorReport.newReport( TrackerErrorCode.E1032 )
+                        TrackerErrorReport.builder()
+                            .errorCode( TrackerErrorCode.E1032 )
                             .trackerType( TrackerType.EVENT )
-                            .uid( event.getUid() ) );
+                            .uid( event.getUid() ).build( reporter.getValidationContext().getBundle() ) );
                 }
             } ).build();
         TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
@@ -229,12 +233,7 @@ class TrackerValidationServiceReportTest
             && TrackerType.EVENT == err.getTrackerType()
             && invalidEvent.getUid().equals( err.getUid() ) ) );
 
-        // TODO(TECH-880): Is this intentional? When in FAIL_FAST mode,
-        // reporter.addError() throws a FailFastException
-        // which makes sure we exit early and do not call any more hooks. It
-        // also leads to no call to reporter.merge()
-        // which is what adds DTOs into the invalidDTO list.
-        assertTrue( bundle.getEvents().contains( invalidEvent ) );
+        assertFalse( bundle.getEvents().contains( invalidEvent ) );
         assertTrue( bundle.getEvents().contains( validEvent ) );
 
         verifyNoInteractions( hook2 );

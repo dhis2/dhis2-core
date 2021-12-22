@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesTo
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
@@ -68,6 +69,6 @@ public class EnrollmentRuleValidationHook
                 .getOrDefault( enrollment.getEnrollment(), Lists.newArrayList() ).stream() )
             .collect( Collectors.toList() );
 
-        addIssuesToReporter( reporter, programRuleIssues );
+        addIssuesToReporter( reporter, TrackerType.ENROLLMENT, enrollment.getUid(), programRuleIssues );
     }
 }

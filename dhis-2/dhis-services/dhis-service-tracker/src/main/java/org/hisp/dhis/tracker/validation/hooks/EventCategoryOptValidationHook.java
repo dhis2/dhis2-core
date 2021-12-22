@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
-import static org.hisp.dhis.tracker.report.TrackerErrorReport.newReport;
 
 import java.time.Instant;
 import java.util.Date;
@@ -43,6 +42,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -86,7 +86,7 @@ public class EventCategoryOptValidationHook
             && program.getCategoryCombo() != null
             && !program.getCategoryCombo().isDefault() )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1055 ) );
+            addError( reporter, TrackerType.EVENT, event.getUid(), TrackerErrorCode.E1055 );
             return;
         }
 
@@ -108,13 +108,13 @@ public class EventCategoryOptValidationHook
         {
             if ( option.getStartDate() != null && eventDate.compareTo( option.getStartDate() ) < 0 )
             {
-                addError( reporter, E1056, i18nFormat.formatDate( eventDate ),
+                addError( reporter, TrackerType.EVENT, event.getUid(), E1056, i18nFormat.formatDate( eventDate ),
                     i18nFormat.formatDate( option.getStartDate() ), option.getName() );
             }
 
             if ( option.getEndDate() != null && eventDate.compareTo( option.getAdjustedEndDate( program ) ) > 0 )
             {
-                addError( reporter, E1057, i18nFormat.formatDate( eventDate ),
+                addError( reporter, TrackerType.EVENT, event.getUid(), E1057, i18nFormat.formatDate( eventDate ),
                     i18nFormat.formatDate( option.getAdjustedEndDate( program ) ), option.getName(),
                     program.getName() );
             }

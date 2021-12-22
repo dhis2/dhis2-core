@@ -114,7 +114,7 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
 
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
-        reporter = new ValidationErrorReporter( validationContext, enrollment );
+        reporter = new ValidationErrorReporter( validationContext );
     }
 
     @Test

@@ -28,8 +28,6 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1125;
-import static org.hisp.dhis.tracker.report.TrackerErrorReport.newReport;
-import static org.hisp.dhis.tracker.report.TrackerWarningReport.newWarningReport;
 
 import java.util.Iterator;
 import java.util.List;
@@ -51,6 +49,8 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
@@ -123,11 +123,12 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     protected <T extends ValueTypedDimensionalItemObject> void validateOptionSet( ValidationErrorReporter reporter,
+        TrackerType type, String uid,
         T optionalObject, String value )
     {
         Optional.ofNullable( optionalObject.getOptionSet() )
             .ifPresent( optionSet -> addErrorIf( () -> optionSet.getOptions().stream().filter( Objects::nonNull )
-                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, value,
+                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, type, uid, E1125, value,
                 optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
                 optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull ).map( Option::getCode )
                     .collect( Collectors.joining( "," ) ) ) );
@@ -138,10 +139,9 @@ public abstract class AbstractTrackerDtoValidationHook
      * implementing hooks.
      *
      * @param context validation context
-     * @return list of error reports
      */
     @Override
-    public void validate( ValidationErrorReporter rootReporter, TrackerImportValidationContext context )
+    public void validate( ValidationErrorReporter reporter, TrackerImportValidationContext context )
     {
         TrackerBundle bundle = context.getBundle();
         /*
@@ -151,13 +151,13 @@ public abstract class AbstractTrackerDtoValidationHook
          * removed from the bundle.
          */
 
-        validateTrackerDtos( rootReporter, context, bundle.getTrackedEntities() );
-        validateTrackerDtos( rootReporter, context, bundle.getEnrollments() );
-        validateTrackerDtos( rootReporter, context, bundle.getEvents() );
-        validateTrackerDtos( rootReporter, context, bundle.getRelationships() );
+        validateTrackerDtos( reporter, context, bundle.getTrackedEntities() );
+        validateTrackerDtos( reporter, context, bundle.getEnrollments() );
+        validateTrackerDtos( reporter, context, bundle.getEvents() );
+        validateTrackerDtos( reporter, context, bundle.getRelationships() );
     }
 
-    private void validateTrackerDtos( ValidationErrorReporter rootReporter, TrackerImportValidationContext context,
+    private void validateTrackerDtos( ValidationErrorReporter reporter, TrackerImportValidationContext context,
         List<? extends TrackerDto> dtos )
     {
         Iterator<? extends TrackerDto> iter = dtos.iterator();
@@ -166,8 +166,7 @@ public abstract class AbstractTrackerDtoValidationHook
             TrackerDto dto = iter.next();
             if ( needsToRun( context.getStrategy( dto ) ) )
             {
-                final ValidationErrorReporter reporter = validateTrackerDto( rootReporter, context, dto );
-                rootReporter.merge( reporter );
+                validationMap.get( dto.getTrackerType() ).accept( reporter, dto );
                 if ( removeOnError() && didNotPassValidation( reporter, dto.getUid() ) )
                 {
                     iter.remove();
@@ -176,40 +175,47 @@ public abstract class AbstractTrackerDtoValidationHook
         }
     }
 
-    private ValidationErrorReporter validateTrackerDto( ValidationErrorReporter rootReporter,
-        TrackerImportValidationContext context, TrackerDto dto )
+    protected void addError( ValidationErrorReporter report, TrackerType type, String uid, TrackerErrorCode code,
+        Object... args )
     {
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context, dto, dto.getTrackerType() );
-        reporter.getInvalidDTOs().putAll( rootReporter.getInvalidDTOs() );
-        validationMap.get( dto.getTrackerType() ).accept( reporter, dto );
-        return reporter;
+        TrackerErrorReport error = TrackerErrorReport.builder()
+            .uid( uid )
+            .trackerType( type )
+            .errorCode( code )
+            .addArgs( args )
+            .build( report.getValidationContext().getBundle() );
+        report.addError( error );
     }
 
-    protected void addError( ValidationErrorReporter report, TrackerErrorCode errorCode, Object... args )
+    protected void addWarning( ValidationErrorReporter report, TrackerType type, String uid, TrackerErrorCode code,
+        Object... args )
     {
-        report.addError( newReport( errorCode ).addArgs( args ) );
+        TrackerWarningReport warn = TrackerWarningReport.builder()
+            .uid( uid )
+            .trackerType( type )
+            .warningCode( code )
+            .addArgs( args )
+            .build( report.getValidationContext().getBundle() );
+        report.addWarning( warn );
     }
 
-    protected void addWarning( ValidationErrorReporter report, TrackerErrorCode errorCode, Object... args )
-    {
-        report.addWarning( newWarningReport( errorCode ).addArgs( args ) );
-    }
-
-    protected void addErrorIf( Supplier<Boolean> expression, ValidationErrorReporter report, TrackerErrorCode errorCode,
+    protected void addErrorIf( Supplier<Boolean> expression, ValidationErrorReporter report, TrackerType type,
+        String uid, TrackerErrorCode code,
         Object... args )
     {
         if ( expression.get() )
         {
-            addError( report, errorCode, args );
+            addError( report, type, uid, code, args );
         }
     }
 
-    protected void addErrorIfNull( Object object, ValidationErrorReporter report, TrackerErrorCode errorCode,
+    protected void addErrorIfNull( Object object, ValidationErrorReporter report, TrackerType type, String uid,
+        TrackerErrorCode code,
         Object... args )
     {
         if ( object == null )
         {
-            addError( report, errorCode, args );
+            addError( report, type, uid, code, args );
         }
     }
 

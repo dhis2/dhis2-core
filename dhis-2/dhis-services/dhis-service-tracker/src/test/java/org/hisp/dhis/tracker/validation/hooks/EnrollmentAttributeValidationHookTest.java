@@ -147,7 +147,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
@@ -175,7 +175,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 0 ) );
@@ -201,7 +201,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 2 ) );
@@ -227,7 +227,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );

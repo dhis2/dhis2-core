@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,12 +37,8 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -106,27 +99,5 @@ class DefaultTrackerValidationServiceTest
 
         verify( hook1, times( 1 ) ).validate( any(), any() );
         verify( hook2, times( 1 ) ).validate( any(), any() );
-    }
-
-    @Test
-    void shouldOnlyValidateUntilFirstHookFailsInFailFastMode()
-    {
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FAIL_FAST );
-        when( bundle.getUser() ).thenReturn( user );
-        when( user.isSuper() ).thenReturn( false );
-        TrackerErrorReport error = new TrackerErrorReport( "invalid", TrackerErrorCode.E1125, TrackerType.EVENT,
-            "213" );
-        List<TrackerErrorReport> errors = List.of( error );
-        doThrow( new ValidationFailFastException( errors ) ).when( hook1 ).validate( any(), any() );
-        TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
-        service = new DefaultTrackerValidationService( List.of( hook1, hook2 ), Collections.emptyList() );
-
-        TrackerValidationReport report = service.validate( bundle );
-
-        verify( hook1, times( 1 ) ).validate( any(), any() );
-        verifyNoInteractions( hook2 );
-        assertTrue( report.hasErrors() );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertEquals( error, report.getErrorReports().get( 0 ) );
     }
 }

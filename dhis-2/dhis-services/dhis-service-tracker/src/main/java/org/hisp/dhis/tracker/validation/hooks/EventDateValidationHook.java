@@ -46,6 +46,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -68,13 +69,13 @@ public class EventDateValidationHook
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
-            addError( reporter, E1031, event );
+            addError( reporter, TrackerType.EVENT, event.getUid(), E1031, event );
             return;
         }
 
         if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
         {
-            addError( reporter, E1050, event );
+            addError( reporter, TrackerType.EVENT, event.getUid(), E1050, event );
             return;
         }
 
@@ -100,13 +101,13 @@ public class EventDateValidationHook
         {
             if ( event.getCompletedAt() == null )
             {
-                addErrorIfNull( event.getCompletedAt(), reporter, E1042, event );
+                addErrorIfNull( event.getCompletedAt(), reporter, TrackerType.EVENT, event.getUid(), E1042, event );
             }
             else
             {
                 if ( now().isAfter( event.getCompletedAt().plus( ofDays( program.getCompleteEventsExpiryDays() ) ) ) )
                 {
-                    addError( reporter, E1043, event );
+                    addError( reporter, TrackerType.EVENT, event.getUid(), E1043, event );
                 }
             }
         }
@@ -131,7 +132,7 @@ public class EventDateValidationHook
 
         if ( referenceDate == null )
         {
-            addError( reporter, E1046, event );
+            addError( reporter, TrackerType.EVENT, event.getUid(), E1046, event );
             return;
         }
 
@@ -139,7 +140,7 @@ public class EventDateValidationHook
 
         if ( referenceDate.isBefore( period.getStartDate().toInstant() ) )
         {
-            addError( reporter, E1047, event );
+            addError( reporter, TrackerType.EVENT, event.getUid(), E1047, event );
         }
     }
 

@@ -90,7 +90,7 @@ class EventGeoValidationHookTest
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -107,7 +107,7 @@ class EventGeoValidationHookTest
         event.setProgramStage( null );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         assertThrows( NullPointerException.class, () -> this.hookToTest.validateEvent( reporter, event ) );
@@ -122,7 +122,7 @@ class EventGeoValidationHookTest
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( new ProgramStage() );
@@ -142,7 +142,7 @@ class EventGeoValidationHookTest
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         ProgramStage programStage = new ProgramStage();
@@ -164,7 +164,7 @@ class EventGeoValidationHookTest
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         ProgramStage programStage = new ProgramStage();

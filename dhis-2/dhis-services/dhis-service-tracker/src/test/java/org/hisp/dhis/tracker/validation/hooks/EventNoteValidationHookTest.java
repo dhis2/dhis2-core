@@ -92,7 +92,7 @@ class EventNoteValidationHookTest
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -119,7 +119,7 @@ class EventNoteValidationHookTest
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -141,7 +141,7 @@ class EventNoteValidationHookTest
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         event.setNotes( notes );
 

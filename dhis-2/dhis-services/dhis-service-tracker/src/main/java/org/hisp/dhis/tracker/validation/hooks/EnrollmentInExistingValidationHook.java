@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -118,13 +119,13 @@ public class EnrollmentInExistingValidationHook
 
             if ( !activeOnly.isEmpty() )
             {
-                addError( reporter, E1015, tei, program );
+                addError( reporter, TrackerType.ENROLLMENT, enrollment.getUid(), E1015, tei, program );
             }
         }
 
         if ( Boolean.TRUE.equals( program.getOnlyEnrollOnce() ) && !mergedEnrollments.isEmpty() )
         {
-            addError( reporter, E1016, tei, program );
+            addError( reporter, TrackerType.ENROLLMENT, enrollment.getUid(), E1016, tei, program );
         }
     }
 

@@ -81,7 +81,7 @@ class EnrollmentDateValidationHookTest
         enrollment.setProgram( CodeGenerator.generateUid() );
         enrollment.setOccurredAt( Instant.now() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
@@ -101,7 +101,7 @@ class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( dateInTheFuture );
         enrollment.setEnrolledAt( dateInTheFuture );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
@@ -121,7 +121,7 @@ class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( today );
         enrollment.setEnrolledAt( today );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
@@ -140,7 +140,7 @@ class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( dateInTheFuture );
         enrollment.setEnrolledAt( dateInTheFuture );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         Program program = new Program();
         program.setSelectEnrollmentDatesInFuture( true );
@@ -161,7 +161,7 @@ class EnrollmentDateValidationHookTest
 
         enrollment.setEnrolledAt( Instant.now() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         Program program = new Program();
         program.setDisplayIncidentDate( true );
