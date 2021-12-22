@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -38,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -45,6 +45,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -93,8 +94,6 @@ class EnrollmentAttributeValidationHookTest
 
     private final static String trackedAttribute1 = "attribute1";
 
-    private final static String invalidTrackedAttribute = "invalidAttribute";
-
     private TrackedEntityAttribute trackedEntityAttribute;
 
     private TrackedEntityAttribute trackedEntityAttribute1;
@@ -116,6 +115,9 @@ class EnrollmentAttributeValidationHookTest
         when( validationContext.getTrackedEntityAttribute( trackedAttribute ) ).thenReturn( trackedEntityAttribute );
         when( validationContext.getTrackedEntityAttribute( trackedAttribute1 ) ).thenReturn( trackedEntityAttribute1 );
 
+        String uid = CodeGenerator.generateUid();
+        when( enrollment.getUid() ).thenReturn( uid );
+        when( enrollment.getEnrollment() ).thenReturn( uid );
         enrollment.setTrackedEntity( trackedEntity );
 
         TrackerBundle bundle = TrackerBundle.builder().build();
@@ -145,11 +147,14 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext, enrollment );
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
 
         assertThat( validationErrorReporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1076, validationErrorReporter.getReportList().get( 0 ).getErrorCode() );
+        assertTrue(
+            validationErrorReporter.hasErrorReport( err -> TrackerErrorCode.E1076.equals( err.getErrorCode() ) &&
+                TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
+                enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -173,7 +178,7 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext, enrollment );
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
 
         assertThat( validationErrorReporter.getReportList(), hasSize( 0 ) );
@@ -199,14 +204,18 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext, enrollment );
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
 
         assertThat( validationErrorReporter.getReportList(), hasSize( 2 ) );
-        assertTrue( validationErrorReporter.getReportList().stream()
-            .anyMatch( rl -> rl.getErrorCode().equals( TrackerErrorCode.E1076 ) ) );
-        assertTrue( validationErrorReporter.getReportList().stream()
-            .anyMatch( rl -> rl.getErrorCode().equals( TrackerErrorCode.E1018 ) ) );
+        assertTrue(
+            validationErrorReporter.hasErrorReport( err -> TrackerErrorCode.E1076.equals( err.getErrorCode() ) &&
+                TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
+                enrollment.getUid().equals( err.getUid() ) ) );
+        assertTrue(
+            validationErrorReporter.hasErrorReport( err -> TrackerErrorCode.E1018.equals( err.getErrorCode() ) &&
+                TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
+                enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -227,12 +236,13 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext, enrollment );
         hookToTest.validateEnrollment( validationErrorReporter, enrollment );
 
         assertThat( validationErrorReporter.getReportList(), hasSize( 1 ) );
-        assertTrue( validationErrorReporter.getReportList().stream()
-            .anyMatch( rl -> rl.getErrorCode().equals( TrackerErrorCode.E1006 ) ) );
+        assertTrue(
+            validationErrorReporter.hasErrorReport( err -> TrackerErrorCode.E1006.equals( err.getErrorCode() ) &&
+                TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
+                enrollment.getUid().equals( err.getUid() ) ) );
     }
-
 }
