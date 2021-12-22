@@ -33,11 +33,14 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
@@ -104,7 +107,7 @@ public class ProgramItemStageElement
             {
                 column = visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( programStageId,
                     Integer.valueOf( stageOffset ).toString(),
-                    "\"" + dataElementId + "\"",
+                    SqlUtils.quote( dataElementId ),
                     visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() );
             }
             else
@@ -149,10 +152,8 @@ public class ProgramItemStageElement
 
     private static String getErrorMessage( String programStageId )
     {
-        String errorMessage = "StageOffset is allowed only for repeatable stages";
+        ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E2039, programStageId );
 
-        errorMessage += " (" + programStageId + " is not repeatable)";
-
-        return errorMessage;
+        return errorMessage.getMessage();
     }
 }

@@ -28,7 +28,9 @@
 package org.hisp.dhis.common;
 
 import java.io.Serializable;
+import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 
@@ -69,7 +71,7 @@ public class GridHeader
 
     private String programStage;
 
-    private String stageOffset;
+    private Optional<Integer> stageOffset;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -161,7 +163,7 @@ public class GridHeader
      * @param stageOffset offset for repeatable program stage.
      */
     public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta,
-        OptionSet optionSet, LegendSet legendSet, String programStage, String stageOffset )
+        OptionSet optionSet, LegendSet legendSet, String programStage, Optional<Integer> stageOffset )
     {
         this( name, column, valueType, hidden, meta, optionSet, legendSet );
         this.programStage = programStage;
@@ -259,13 +261,13 @@ public class GridHeader
     @JsonProperty
     public String getProgramStage()
     {
-        return programStage != null && !programStage.isBlank() ? programStage : null;
+        return StringUtils.trimToNull( programStage );
     }
 
     @JsonProperty
-    public String getStageOffset()
+    public Optional<Integer> getStageOffset()
     {
-        return stageOffset != null && !stageOffset.isBlank() ? stageOffset : null;
+        return stageOffset;
     }
 
     // -------------------------------------------------------------------------

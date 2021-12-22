@@ -109,6 +109,10 @@ class QueryItemLocatorTest
 
     private String programStageUid;
 
+    private final int stageOffset = -1256;
+
+    private final String withStageOffset = "[" + stageOffset + "]";
+
     @BeforeEach
     public void setUp()
     {
@@ -201,6 +205,7 @@ class QueryItemLocatorTest
     @Test
     void verifyDimensionReturnsDataElementForEnrollmentQuery()
     {
+
         DataElement dataElementA = createDataElement( 'A' );
 
         ProgramStage programStageA = createProgramStage( 'A', programA );
@@ -213,7 +218,8 @@ class QueryItemLocatorTest
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
         when( programStageService.getProgramStage( programStageUid ) ).thenReturn( programStageA );
 
-        QueryItem queryItem = subject.getQueryItemFromDimension( programStageUid + PROGRAMSTAGE_SEP + dimension,
+        QueryItem queryItem = subject.getQueryItemFromDimension(
+            programStageUid + withStageOffset + PROGRAMSTAGE_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -273,7 +279,7 @@ class QueryItemLocatorTest
 
         // programStageUid.dimensionUid-legendSetUid
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + PROGRAMSTAGE_SEP + dimension + ITEM_SEP + legendSetUid, programA,
+            programStageUid + withStageOffset + PROGRAMSTAGE_SEP + dimension + ITEM_SEP + legendSetUid, programA,
             EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -281,6 +287,7 @@ class QueryItemLocatorTest
         assertThat( queryItem.getProgram(), is( programA ) );
         assertThat( queryItem.getProgramStage(), is( programStageA ) );
         assertThat( queryItem.getLegendSet(), is( legendSetA ) );
+        assertThat( queryItem.getProgramStageOffset(), is( stageOffset ) );
 
         verifyNoMoreInteractions( attributeService );
         verifyNoMoreInteractions( programIndicatorService );

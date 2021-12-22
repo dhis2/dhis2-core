@@ -35,7 +35,7 @@ import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
  * @author Dusan Bernat
  */
 
-public class StageOffset implements ExpressionItem
+public class RepeatableProgramStageOffset implements ExpressionItem
 {
     @Override
     public Object evaluate( ExpressionParser.ExprContext ctx, CommonExpressionVisitor visitor )

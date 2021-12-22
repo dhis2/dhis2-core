@@ -85,7 +85,7 @@ import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
-import org.hisp.dhis.parser.expression.function.StageOffset;
+import org.hisp.dhis.parser.expression.function.RepeatableProgramStageOffset;
 import org.hisp.dhis.parser.expression.function.VectorAvg;
 import org.hisp.dhis.parser.expression.function.VectorCount;
 import org.hisp.dhis.parser.expression.function.VectorMax;
@@ -229,7 +229,7 @@ public class DefaultProgramIndicatorService
         .put( V_BRACE, new ProgramVariableItem() )
 
         // . functions
-        .put( STAGE_OFFSET, new StageOffset() )
+        .put( STAGE_OFFSET, new RepeatableProgramStageOffset() )
 
         .build();
 

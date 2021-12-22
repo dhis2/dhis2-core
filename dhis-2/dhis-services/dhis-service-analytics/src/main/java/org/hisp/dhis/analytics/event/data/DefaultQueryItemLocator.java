@@ -112,6 +112,8 @@ public class DefaultQueryItemLocator
 
     private LegendSet getLegendSet( String dimension )
     {
+        dimension = removeOffset( dimension );
+
         String[] legendSplit = dimension.split( ITEM_SEP );
 
         return legendSplit.length > 1 && legendSplit[1] != null ? legendSetService.getLegendSet( legendSplit[1] )
@@ -120,7 +122,8 @@ public class DefaultQueryItemLocator
 
     private String getElement( String dimension, int pos )
     {
-        String dim = StringUtils.substringBefore( dimension, ITEM_SEP );
+
+        String dim = StringUtils.substringBefore( removeOffset( dimension ), ITEM_SEP );
 
         String[] dimSplit = dim.split( "\\" + PROGRAMSTAGE_SEP );
 
@@ -145,7 +148,7 @@ public class DefaultQueryItemLocator
 
         ProgramStage programStage = getProgramStageOrFail( dimension );
 
-        DataElement de = dataElementService.getDataElement( getSecondElement( removeOffset( dimension ) ) );
+        DataElement de = dataElementService.getDataElement( getSecondElement( dimension ) );
 
         if ( de != null && program.containsDataElement( de ) )
         {
@@ -216,7 +219,7 @@ public class DefaultQueryItemLocator
 
     private ProgramStage getProgramStageOrFail( String dimension )
     {
-        BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail( removeOffset( dimension ) );
+        BaseIdentifiableObject baseIdentifiableObject = getIdObjectOrFail( dimension );
 
         return (baseIdentifiableObject instanceof ProgramStage
             ? (ProgramStage) baseIdentifiableObject
