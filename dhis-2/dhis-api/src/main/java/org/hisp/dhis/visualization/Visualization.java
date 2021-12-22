@@ -30,10 +30,8 @@ package org.hisp.dhis.visualization;
 import static com.google.common.base.Verify.verify;
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -1330,40 +1328,17 @@ public class Visualization
         this.format = format;
     }
 
+    /**
+     * Some Visualizations may not have columnDimensions.
+     *
+     * PIE, GAUGE and others don't not have rowsDimensions.
+     */
     @Override
     public void populateAnalyticalProperties()
     {
-        // Some Visualizations may not have columnDimensions.
-        if ( isNotEmpty( columnDimensions ) )
-        {
-            for ( String column : columnDimensions )
-            {
-                if ( isNotBlank( column ) )
-                {
-                    columns.add( getDimensionalObject( column ) );
-                }
-            }
-        }
-
-        // PIE, GAUGE and others don't not have rowsDimensions.
-        if ( isNotEmpty( rowDimensions ) )
-        {
-            for ( String row : rowDimensions )
-            {
-                if ( isNotBlank( row ) )
-                {
-                    rows.add( getDimensionalObject( row ) );
-                }
-            }
-        }
-
-        for ( String filter : filterDimensions )
-        {
-            if ( isNotBlank( filter ) )
-            {
-                filters.add( getDimensionalObject( filter ) );
-            }
-        }
+        super.populateDimensions( columnDimensions, columns );
+        super.populateDimensions( rowDimensions, rows );
+        super.populateDimensions( filterDimensions, filters );
     }
 
     @Override

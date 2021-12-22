@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.common;
 
+import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
@@ -60,6 +63,10 @@ import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
+import org.hisp.dhis.eventvisualization.Attribute;
+import org.hisp.dhis.eventvisualization.SimpleDimension;
+import org.hisp.dhis.eventvisualization.SimpleDimension.Type;
+import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -111,6 +118,8 @@ public abstract class BaseAnalyticalObject
     public static final int DESC = 1;
 
     public static final int NONE = 0;
+
+    public static final String NOT_A_VALID_DIMENSION = "Not a valid dimension: %s";
 
     // -------------------------------------------------------------------------
     // Persisted properties
@@ -502,17 +511,97 @@ public abstract class BaseAnalyticalObject
         }
         else
         {
-            final DimensionalObject trackedEntityDimension = getTrackedEntityDimension( dimension );
+            final Optional<DimensionalObject> trackedEntityDimension = getTrackedEntityDimension( dimension );
 
-            if ( trackedEntityDimension != null )
+            if ( trackedEntityDimension.isPresent() )
             {
-                return trackedEntityDimension;
+                return trackedEntityDimension.get();
             }
         }
 
         IdentifiableObjectUtils.removeDuplicates( items );
 
         return new BaseDimensionalObject( dimension, type, items );
+    }
+
+    /**
+     * This method will first try to return a concrete dimension (one that can
+     * be persisted and managed). If a concrete dimension is not found, then it
+     * will try to find a "String" dimension (one that is not defined anywhere
+     * and only exists for very specific use cases. See
+     * {@link SimpleDimension}).
+     *
+     * @param eventAnalyticalObject the object of type EventAnalyticalObject
+     * @param dimension the dimension, ie: dx, pe, eventDate
+     * @param parent the parent attribute
+     * @return the dimensional object related to the given dimension and
+     *         attribute.
+     */
+    protected DimensionalObject getDimensionalObject( final EventAnalyticalObject eventAnalyticalObject,
+        final String dimension, final Attribute parent )
+    {
+        final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( dimension );
+
+        if ( dimensionalObject.isPresent() )
+        {
+            return dimensionalObject.get();
+        }
+        else if ( Type.contains( dimension ) )
+        {
+            return new SimpleDimensionHandler( eventAnalyticalObject ).getDimensionalObject( dimension, parent );
+        }
+        else
+        {
+            throw new IllegalArgumentException( format( NOT_A_VALID_DIMENSION, dimension ) );
+        }
+    }
+
+    /**
+     * Populates the given dimensionalObjects list based on the respective
+     * dimensions provided.
+     *
+     * @param dimensions
+     * @param dimensionalObjects
+     */
+    protected void populateDimensions( final List<String> dimensions, final List<DimensionalObject> dimensionalObjects )
+    {
+        if ( isNotEmpty( dimensions ) )
+        {
+            for ( final String dimension : dimensions )
+            {
+                if ( isNotBlank( dimension ) )
+                {
+                    final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( dimension );
+                    if ( dimensionalObject.isPresent() )
+                    {
+                        dimensionalObjects.add( dimensionalObject.get() );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Populates the given dimensionalObjects list based on the respective
+     * dimensions provided. It takes in consideration simple dimensions along
+     * with its associated "attribute".
+     *
+     * @param dimensions
+     * @param dimensionalObjects
+     */
+    protected void populateDimensions( final List<String> dimensions, final List<DimensionalObject> dimensionalObjects,
+        final Attribute attribute, final EventAnalyticalObject eventAnalyticalObject )
+    {
+        if ( isNotEmpty( dimensions ) )
+        {
+            for ( final String dimension : dimensions )
+            {
+                if ( isNotBlank( dimension ) )
+                {
+                    dimensionalObjects.add( getDimensionalObject( eventAnalyticalObject, dimension, attribute ) );
+                }
+            }
+        }
     }
 
     /**
@@ -530,11 +619,12 @@ public abstract class BaseAnalyticalObject
      * @param dimension the dimension identifier.
      * @return a list of DimensionalObjects.
      */
-    protected DimensionalObject getDimensionalObject( String dimension )
+    protected Optional<DimensionalObject> getDimensionalObject( String dimension )
     {
         if ( DATA_X_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.DATA_X, getDataDimensionNameableObjects() );
+            return Optional
+                .of( new BaseDimensionalObject( dimension, DimensionType.DATA_X, getDataDimensionNameableObjects() ) );
         }
         else if ( PERIOD_DIM_ID.equals( dimension ) )
         {
@@ -550,7 +640,7 @@ public abstract class BaseAnalyticalObject
                 }
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.PERIOD, periodList );
+            return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PERIOD, periodList ) );
         }
         else if ( ORGUNIT_DIM_ID.equals( dimension ) )
         {
@@ -593,62 +683,64 @@ public abstract class BaseAnalyticalObject
                 }
             }
 
-            return new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, ouList );
+            return Optional.of( new BaseDimensionalObject( dimension, DimensionType.ORGANISATION_UNIT, ouList ) );
         }
         else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>() );
+            return Optional
+                .of( new BaseDimensionalObject( dimension, DimensionType.CATEGORY_OPTION_COMBO, new ArrayList<>() ) );
         }
         else if ( DATA_COLLAPSED_DIM_ID.equals( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>() );
+            return Optional
+                .of( new BaseDimensionalObject( dimension, DimensionType.DATA_COLLAPSED, new ArrayList<>() ) );
         }
         else if ( STATIC_DIMS.contains( dimension ) )
         {
-            return new BaseDimensionalObject( dimension, DimensionType.STATIC, new ArrayList<>() );
+            return Optional.of( new BaseDimensionalObject( dimension, DimensionType.STATIC, new ArrayList<>() ) );
         }
         else
         {
             // Embedded dimensions
 
-            Optional<DimensionalObject> object = Optional.empty();
+            Optional<DimensionalObject> object;
 
             if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.DATA_ELEMENT_GROUP_SET,
                 dataElementGroupSetDimensions )).isPresent() )
             {
-                return object.get();
+                return Optional.of( object.get() );
             }
 
             if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET,
                 organisationUnitGroupSetDimensions )).isPresent() )
             {
-                return object.get();
+                return Optional.of( object.get() );
             }
 
             if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY, categoryDimensions ))
                 .isPresent() )
             {
-                return object.get();
+                return Optional.of( object.get() );
             }
 
             if ( (object = getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET,
                 categoryOptionGroupSetDimensions )).isPresent() )
             {
-                return object.get();
+                return Optional.of( object.get() );
             }
 
-            final DimensionalObject trackedEntityDimension = getTrackedEntityDimension( dimension );
+            final Optional<DimensionalObject> trackedEntityDimension = getTrackedEntityDimension( dimension );
 
-            if ( trackedEntityDimension != null )
+            if ( trackedEntityDimension.isPresent() )
             {
                 return trackedEntityDimension;
             }
         }
 
-        throw new IllegalArgumentException( "Not a valid dimension: " + dimension );
+        return Optional.empty();
     }
 
-    private DimensionalObject getTrackedEntityDimension( final String dimension )
+    private Optional<DimensionalObject> getTrackedEntityDimension( final String dimension )
     {
         // Tracked entity attribute
 
@@ -666,8 +758,8 @@ public abstract class BaseAnalyticalObject
                 final OptionSet optionSet = tead.getAttribute() != null ? tead.getAttribute().getOptionSet()
                     : null;
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
-                    tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter(), valueType, optionSet );
+                return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_ATTRIBUTE, null,
+                    tead.getDisplayName(), tead.getLegendSet(), null, tead.getFilter(), valueType, optionSet ) );
             }
         }
 
@@ -689,9 +781,9 @@ public abstract class BaseAnalyticalObject
                     ? tedd.getDataElement().getOptionSet()
                     : null;
 
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
-                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(),
-                    tedd.getFilter(), valueType, optionSet );
+                return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_DATA_ELEMENT, null,
+                    tedd.getDisplayName(), tedd.getLegendSet(), tedd.getProgramStage(), tedd.getFilter(), valueType,
+                    optionSet ) );
             }
         }
 
@@ -704,14 +796,11 @@ public abstract class BaseAnalyticalObject
         {
             final TrackedEntityProgramIndicatorDimension teid = programIndicators.get( dimension );
 
-            if ( teid != null )
-            {
-                return new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null,
-                    teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() );
-            }
+            return Optional.of( new BaseDimensionalObject( dimension, DimensionType.PROGRAM_INDICATOR, null,
+                teid.getDisplayName(), teid.getLegendSet(), null, teid.getFilter() ) );
         }
 
-        return null;
+        return Optional.empty();
     }
 
     /**

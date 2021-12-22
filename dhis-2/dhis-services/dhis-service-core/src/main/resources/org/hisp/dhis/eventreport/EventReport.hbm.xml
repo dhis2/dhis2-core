@@ -190,6 +190,8 @@
             <element type="string" column="dimension"/>
         </list>
 
+        <property name="simpleDimensions" type="jblSimpleEventDimensions"/>
+
         <property name="rowTotals"/>
 
         <property name="colTotals"/>

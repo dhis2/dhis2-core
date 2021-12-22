@@ -25,47 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import java.util.Date;
-import java.util.List;
-
-import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventvisualization.SimpleDimension;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+package org.hisp.dhis.eventvisualization;
 
 /**
- * @author Lars Helge Overland
+ * Holds the name of existing event visualization attributes that might be
+ * associated to any dimension.
+ *
+ * Is very likely that the associated dimension will refer to a parent attribute
+ * in this Enum.
+ *
+ * @author maikel arabori
  */
-public interface EventAnalyticalObject
-    extends AnalyticalObject
+public enum Attribute
 {
-    Program getProgram();
-
-    ProgramStage getProgramStage();
-
-    Date getStartDate();
-
-    Date getEndDate();
-
-    List<SimpleDimension> getSimpleDimensions();
-
-    EventOutputType getOutputType();
-
-    DimensionalItemObject getValue();
-
-    // -------------------------------------------------------------------------
-    // Base class emulation methods with default implementations
-    // -------------------------------------------------------------------------
-
-    default void setDataElementValueDimension( DataElement dataElementValueDimension )
-    {
-    }
-
-    default void setAttributeValueDimension( TrackedEntityAttribute attributeValueDimension )
-    {
-    }
+    COLUMN,
+    ROW,
+    FILTER;
 }
