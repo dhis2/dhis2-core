@@ -28,7 +28,11 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1006;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1018;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 
 import java.util.Collections;
 import java.util.Map;
@@ -44,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -66,7 +71,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
     public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService )
     {
-        super( teAttrService );
+        super( TrackerType.ENROLLMENT, teAttrService );
     }
 
     @Override
@@ -95,10 +100,11 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
-                validateAttrValueType( reporter, attribute, teAttribute );
+                validateAttrValueType( reporter, enrollment.getUid(), attribute, teAttribute );
                 validateOptionSet( reporter, teAttribute, attribute.getValue() );
 
                 validateAttributeUniqueness( reporter,
+                    enrollment.getUid(),
                     attribute.getValue(),
                     teAttribute,
                     tei,

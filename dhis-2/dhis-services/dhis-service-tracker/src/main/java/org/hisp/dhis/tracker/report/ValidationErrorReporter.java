@@ -159,6 +159,17 @@ public class ValidationErrorReporter
         return !this.warningsReportList.isEmpty();
     }
 
+    public void addError( TrackerErrorReport error )
+    {
+
+        getReportList().add( error );
+
+        if ( isFailFast() )
+        {
+            throw new ValidationFailFastException( getReportList() );
+        }
+    }
+
     public void addError( TrackerErrorReport.TrackerErrorReportBuilder builder )
     {
         builder.trackerType( this.dtoType );
@@ -174,6 +185,11 @@ public class ValidationErrorReporter
         {
             throw new ValidationFailFastException( getReportList() );
         }
+    }
+
+    public void addWarning( TrackerWarningReport warning )
+    {
+        getWarningsReportList().add( warning );
     }
 
     public void addWarning( TrackerWarningReport.TrackerWarningReportBuilder builder )
