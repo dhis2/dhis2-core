@@ -334,7 +334,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
         when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( aclService.canDataWrite( eq( user ), eq( program ) ) ).thenReturn( true );
         when( aclService.canDataRead( eq( user ), eq( program.getTrackedEntityType() ) ) ).thenReturn( true );
@@ -355,7 +354,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
         when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( eq( user ), eq( organisationUnit ) ) )
@@ -380,7 +378,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
         when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( aclService.canDataWrite( eq( user ), eq( program ) ) ).thenReturn( true );
@@ -406,7 +403,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .program( PROGRAM_ID )
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
         when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( eq( user ), eq( organisationUnit ) ) )
@@ -430,7 +426,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( false );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
         when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( eq( user ), eq( organisationUnit ) ) )
@@ -455,7 +450,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( true );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
         when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( eq( user ), eq( organisationUnit ) ) )
@@ -481,7 +475,6 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
             .build();
         when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( true );
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
         when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
         when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( eq( user ), eq( organisationUnit ) ) )

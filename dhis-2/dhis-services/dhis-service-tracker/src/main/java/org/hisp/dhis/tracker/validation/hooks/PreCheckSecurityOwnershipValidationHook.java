@@ -42,8 +42,6 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
 
-import java.util.Optional;
-
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -67,7 +65,6 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -182,8 +179,7 @@ public class PreCheckSecurityOwnershipValidationHook
                 enrollment.getEnrollment() );
         }
 
-        checkWriteEnrollmentAccess( reporter, program,
-            enrollment.getTrackedEntity(), getOrgUnitFromTei( context, enrollment.getTrackedEntity() ), ownerOrgUnit );
+        checkWriteEnrollmentAccess( reporter, program, enrollment.getTrackedEntity(), ownerOrgUnit );
     }
 
     @Override
@@ -307,27 +303,6 @@ public class PreCheckSecurityOwnershipValidationHook
         }
     }
 
-    private OrganisationUnit getOrgUnitFromTei( TrackerImportValidationContext context, String teiUid )
-    {
-        TrackedEntityInstance trackedEntityInstance = context.getTrackedEntityInstance( teiUid );
-        if ( trackedEntityInstance != null )
-        {
-            return trackedEntityInstance.getOrganisationUnit();
-        }
-
-        final Optional<ReferenceTrackerEntity> reference = context.getReference( teiUid );
-        if ( reference.isPresent() )
-        {
-            final Optional<TrackedEntity> tei = context.getBundle()
-                .getTrackedEntity( teiUid );
-            if ( tei.isPresent() )
-            {
-                return context.getOrganisationUnit( tei.get().getOrgUnit() );
-            }
-        }
-        return null;
-    }
-
     @Override
     public boolean needsToRun( TrackerImportStrategy strategy )
     {
@@ -402,7 +377,7 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     private void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
-        String trackedEntity, OrganisationUnit enrollmentOrgUnit, OrganisationUnit ownerOrgUnit )
+        String trackedEntity, OrganisationUnit ownerOrgUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
