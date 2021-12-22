@@ -141,10 +141,9 @@ public abstract class AbstractTrackerDtoValidationHook
      * @return list of error reports
      */
     @Override
-    public ValidationErrorReporter validate( TrackerImportValidationContext context )
+    public void validate( ValidationErrorReporter rootReporter, TrackerImportValidationContext context )
     {
         TrackerBundle bundle = context.getBundle();
-
         /*
          * Validate the bundle, by passing each Tracker entities collection to
          * the validation hooks. If a validation hook reports errors and has
@@ -152,15 +151,14 @@ public abstract class AbstractTrackerDtoValidationHook
          * removed from the bundle.
          */
 
-        validateTrackerDtos( context, bundle.getTrackedEntities() );
-        validateTrackerDtos( context, bundle.getEnrollments() );
-        validateTrackerDtos( context, bundle.getEvents() );
-        validateTrackerDtos( context, bundle.getRelationships() );
-
-        return context.getRootReporter();
+        validateTrackerDtos( rootReporter, context, bundle.getTrackedEntities() );
+        validateTrackerDtos( rootReporter, context, bundle.getEnrollments() );
+        validateTrackerDtos( rootReporter, context, bundle.getEvents() );
+        validateTrackerDtos( rootReporter, context, bundle.getRelationships() );
     }
 
-    private void validateTrackerDtos( TrackerImportValidationContext context, List<? extends TrackerDto> dtos )
+    private void validateTrackerDtos( ValidationErrorReporter rootReporter, TrackerImportValidationContext context,
+        List<? extends TrackerDto> dtos )
     {
         Iterator<? extends TrackerDto> iter = dtos.iterator();
         while ( iter.hasNext() )
@@ -168,8 +166,8 @@ public abstract class AbstractTrackerDtoValidationHook
             TrackerDto dto = iter.next();
             if ( needsToRun( context.getStrategy( dto ) ) )
             {
-                final ValidationErrorReporter reporter = validateTrackerDto( context, dto );
-                context.getRootReporter().merge( reporter );
+                final ValidationErrorReporter reporter = validateTrackerDto( rootReporter, context, dto );
+                rootReporter.merge( reporter );
                 if ( removeOnError() && didNotPassValidation( reporter, dto.getUid() ) )
                 {
                     iter.remove();
@@ -178,11 +176,11 @@ public abstract class AbstractTrackerDtoValidationHook
         }
     }
 
-    private ValidationErrorReporter validateTrackerDto(
+    private ValidationErrorReporter validateTrackerDto( ValidationErrorReporter rootReporter,
         TrackerImportValidationContext context, TrackerDto dto )
     {
         ValidationErrorReporter reporter = new ValidationErrorReporter( context, dto, dto.getTrackerType() );
-        reporter.getInvalidDTOs().putAll( context.getRootReporter().getInvalidDTOs() );
+        reporter.getInvalidDTOs().putAll( rootReporter.getInvalidDTOs() );
         validationMap.get( dto.getTrackerType() ).accept( reporter, dto );
         return reporter;
     }

@@ -70,12 +70,6 @@ public class TrackerValidationReport
         addPerfReports( validationReport.getPerformanceReport() );
     }
 
-    public void add( ValidationErrorReporter validationReporter )
-    {
-        add( validationReporter.getReportList() );
-        addWarnings( validationReporter.getWarningsReportList() );
-    }
-
     public void add( List<TrackerErrorReport> errorReports )
     {
         for ( TrackerErrorReport errorReport : errorReports )

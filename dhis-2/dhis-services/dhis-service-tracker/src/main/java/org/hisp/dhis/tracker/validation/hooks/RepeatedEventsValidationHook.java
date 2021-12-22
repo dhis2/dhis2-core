@@ -53,11 +53,9 @@ public class RepeatedEventsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public ValidationErrorReporter validate( TrackerImportValidationContext context )
+    public void validate( ValidationErrorReporter rootReporter, TrackerImportValidationContext context )
     {
         TrackerBundle bundle = context.getBundle();
-
-        ValidationErrorReporter rootReporter = context.getRootReporter();
 
         Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
@@ -78,18 +76,17 @@ public class RepeatedEventsValidationHook
                 {
                     final ValidationErrorReporter reporter = new ValidationErrorReporter( context, event );
                     addError( reporter, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
-                    context.getRootReporter().merge( reporter );
+                    rootReporter.merge( reporter );
                 }
             }
         }
 
         bundle.getEvents()
-            .forEach( e -> validateNotMultipleEvents( context, e ) );
-
-        return rootReporter;
+            .forEach( e -> validateNotMultipleEvents( rootReporter, context, e ) );
     }
 
-    private void validateNotMultipleEvents( TrackerImportValidationContext context, Event event )
+    private void validateNotMultipleEvents( ValidationErrorReporter rootReporter,
+        TrackerImportValidationContext context, Event event )
     {
         ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
@@ -102,7 +99,7 @@ public class RepeatedEventsValidationHook
         {
             final ValidationErrorReporter reporter = new ValidationErrorReporter( context, event );
             addError( reporter, TrackerErrorCode.E1039, event.getProgramStage() );
-            context.getRootReporter().merge( reporter );
+            rootReporter.merge( reporter );
         }
     }
 

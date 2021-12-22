@@ -87,6 +87,7 @@ public class DefaultTrackerValidationService
         // Note that the bundle gets cloned internally, so the original bundle
         // is always available
         TrackerImportValidationContext context = new TrackerImportValidationContext( bundle );
+        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
 
         try
         {
@@ -94,7 +95,7 @@ public class DefaultTrackerValidationService
             {
                 Timer hookTimer = Timer.startTimer();
 
-                validationReport.add( hook.validate( context ) );
+                hook.validate( reporter, context );
 
                 validationReport.add( TrackerValidationHookTimerReport.builder()
                     .name( hook.getClass().getName() )
@@ -106,7 +107,7 @@ public class DefaultTrackerValidationService
             validationReport.add( e.getErrors() );
         }
 
-        removeInvalidObjects( bundle, context.getRootReporter() );
+        removeInvalidObjects( bundle, reporter );
 
         return validationReport;
     }
