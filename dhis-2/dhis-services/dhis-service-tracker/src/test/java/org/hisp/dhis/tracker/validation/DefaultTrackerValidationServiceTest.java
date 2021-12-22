@@ -43,6 +43,7 @@ import java.util.List;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.hooks.EventDataValuesValidationHook;
@@ -135,7 +136,7 @@ class DefaultTrackerValidationServiceTest
         when( trackerImportValidationContext.getBundle() ).thenReturn( bundle );
         ValidationErrorReporter validationErrorReporterReturn = new ValidationErrorReporter(
             trackerImportValidationContext );
-        validationErrorReporterReturn.addError( ValidationErrorReporter.newReport( TrackerErrorCode.E1000 ) );
+        validationErrorReporterReturn.addError( TrackerErrorReport.newReport( TrackerErrorCode.E1000 ) );
         when( hook1.validate( any() ) )
             .thenReturn( validationErrorReporterReturn );
         when( hook2.validate( any() ) )
