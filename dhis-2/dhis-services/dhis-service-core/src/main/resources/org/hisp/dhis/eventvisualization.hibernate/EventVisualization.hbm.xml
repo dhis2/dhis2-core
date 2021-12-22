@@ -187,6 +187,8 @@
             <element type="string" column="dimension"/>
         </list>
 
+        <property name="simpleDimensions" type="jblSimpleEventDimensions"/>
+
         <property name="showData"/>
 
         <property name="hideEmptyRowItems" length="40">

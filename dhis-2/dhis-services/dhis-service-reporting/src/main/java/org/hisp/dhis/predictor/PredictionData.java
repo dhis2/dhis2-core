@@ -25,47 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.predictor;
 
-import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventvisualization.SimpleDimension;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-/**
- * @author Lars Helge Overland
- */
-public interface EventAnalyticalObject
-    extends AnalyticalObject
+import org.hisp.dhis.common.FoundDimensionItemValue;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+@Getter
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+public class PredictionData
 {
-    Program getProgram();
+    private final OrganisationUnit orgUnit;
 
-    ProgramStage getProgramStage();
+    private final List<FoundDimensionItemValue> values;
 
-    Date getStartDate();
-
-    Date getEndDate();
-
-    List<SimpleDimension> getSimpleDimensions();
-
-    EventOutputType getOutputType();
-
-    DimensionalItemObject getValue();
-
-    // -------------------------------------------------------------------------
-    // Base class emulation methods with default implementations
-    // -------------------------------------------------------------------------
-
-    default void setDataElementValueDimension( DataElement dataElementValueDimension )
-    {
-    }
-
-    default void setAttributeValueDimension( TrackedEntityAttribute attributeValueDimension )
-    {
-    }
+    private final List<DataValue> oldPredictions;
 }

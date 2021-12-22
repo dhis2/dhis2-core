@@ -25,47 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.predictor;
 
-import java.util.Date;
-import java.util.List;
+import java.util.Map;
 
-import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventvisualization.SimpleDimension;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Lars Helge Overland
+ * Context (including data) for computing a single prediction.
+ *
+ * @author Jim Grace
  */
-public interface EventAnalyticalObject
-    extends AnalyticalObject
+@Data
+@AllArgsConstructor
+public class PredictionContext
 {
-    Program getProgram();
+    private CategoryOptionCombo attributeOptionCombo;
 
-    ProgramStage getProgramStage();
+    private Period outputPeriod;
 
-    Date getStartDate();
+    private MapMap<Period, DimensionalItemObject, Object> periodValueMap;
 
-    Date getEndDate();
-
-    List<SimpleDimension> getSimpleDimensions();
-
-    EventOutputType getOutputType();
-
-    DimensionalItemObject getValue();
-
-    // -------------------------------------------------------------------------
-    // Base class emulation methods with default implementations
-    // -------------------------------------------------------------------------
-
-    default void setDataElementValueDimension( DataElement dataElementValueDimension )
-    {
-    }
-
-    default void setAttributeValueDimension( TrackedEntityAttribute attributeValueDimension )
-    {
-    }
+    private Map<DimensionalItemObject, Object> valueMap;
 }

@@ -27,45 +27,34 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.Date;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-import org.hisp.dhis.analytics.EventOutputType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.eventvisualization.SimpleDimension;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author Lars Helge Overland
+ * DimensionItemObject data as found with organisation unit, period, attribute
+ * option combination, and a value.
+ *
+ * @author Jim Grace
  */
-public interface EventAnalyticalObject
-    extends AnalyticalObject
+@Getter
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+public class FoundDimensionItemValue
 {
-    Program getProgram();
+    private final OrganisationUnit organisationUnit;
 
-    ProgramStage getProgramStage();
+    private final Period period;
 
-    Date getStartDate();
+    private final CategoryOptionCombo attributeOptionCombo;
 
-    Date getEndDate();
+    private final DimensionalItemObject dimensionalItemObject;
 
-    List<SimpleDimension> getSimpleDimensions();
-
-    EventOutputType getOutputType();
-
-    DimensionalItemObject getValue();
-
-    // -------------------------------------------------------------------------
-    // Base class emulation methods with default implementations
-    // -------------------------------------------------------------------------
-
-    default void setDataElementValueDimension( DataElement dataElementValueDimension )
-    {
-    }
-
-    default void setAttributeValueDimension( TrackedEntityAttribute attributeValueDimension )
-    {
-    }
+    private final Object value;
 }

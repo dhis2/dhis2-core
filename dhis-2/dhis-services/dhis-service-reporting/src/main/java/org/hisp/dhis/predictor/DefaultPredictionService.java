@@ -28,7 +28,6 @@
 package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
@@ -36,12 +35,8 @@ import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
 import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.util.MathUtils.addDoubleObjects;
-import static org.hisp.dhis.system.util.ValidationUtils.getObjectValue;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +46,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -60,14 +56,11 @@ import org.hisp.dhis.analytics.AnalyticsServiceTarget;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.common.MapMap;
-import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -85,8 +78,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.program.AnalyticsType;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -108,6 +99,7 @@ import com.google.common.collect.Sets;
 @Slf4j
 @Service( "org.hisp.dhis.predictor.PredictionService" )
 @Transactional
+@AllArgsConstructor
 public class DefaultPredictionService
     implements PredictionService, AnalyticsServiceTarget, CurrentUserServiceTarget
 {
@@ -129,48 +121,13 @@ public class DefaultPredictionService
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private AnalyticsService analyticsService;
-
     private final Notifier notifier;
 
     private final BatchHandlerFactory batchHandlerFactory;
 
+    private AnalyticsService analyticsService;
+
     private CurrentUserService currentUserService;
-
-    public DefaultPredictionService( PredictorService predictorService, ConstantService constantService,
-        ExpressionService expressionService, DataValueService dataValueService, CategoryService categoryService,
-        OrganisationUnitService organisationUnitService, OrganisationUnitGroupService organisationUnitGroupService,
-        PeriodService periodService, IdentifiableObjectManager idObjectManager, AnalyticsService analyticsService,
-        Notifier notifier, BatchHandlerFactory batchHandlerFactory, CurrentUserService currentUserService )
-    {
-        checkNotNull( predictorService );
-        checkNotNull( constantService );
-        checkNotNull( expressionService );
-        checkNotNull( dataValueService );
-        checkNotNull( categoryService );
-        checkNotNull( organisationUnitService );
-        checkNotNull( organisationUnitGroupService );
-        checkNotNull( periodService );
-        checkNotNull( idObjectManager );
-        checkNotNull( analyticsService );
-        checkNotNull( notifier );
-        checkNotNull( batchHandlerFactory );
-        checkNotNull( currentUserService );
-
-        this.predictorService = predictorService;
-        this.constantService = constantService;
-        this.expressionService = expressionService;
-        this.dataValueService = dataValueService;
-        this.categoryService = categoryService;
-        this.organisationUnitService = organisationUnitService;
-        this.organisationUnitGroupService = organisationUnitGroupService;
-        this.periodService = periodService;
-        this.idObjectManager = idObjectManager;
-        this.analyticsService = analyticsService;
-        this.notifier = notifier;
-        this.batchHandlerFactory = batchHandlerFactory;
-        this.currentUserService = currentUserService;
-    }
 
     @Override
     public void setAnalyticsService( AnalyticsService analyticsService )
@@ -304,31 +261,19 @@ public class DefaultPredictionService
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
         ListMap<Period, Period> samplePeriodsMap = getSamplePeriodsMap( outputPeriods, predictor );
         Set<Period> allSamplePeriods = samplePeriodsMap.uniqueValues();
-        Set<Period> existingSamplePeriods = getExistingPeriods( new ArrayList<>( allSamplePeriods ) );
+        Set<Period> analyticsQueryPeriods = getAnalyticsQueryPeriods( sampledItems, allSamplePeriods,
+            outputPeriodItems, existingOutputPeriods );
+        Set<Period> dataValueQueryPeriods = getDataValueQueryPeriods( analyticsQueryPeriods, existingOutputPeriods );
         outputPeriods = periodService.reloadPeriods( outputPeriods );
-        Set<Period> outputPeriodSet = new HashSet<>( outputPeriods );
         CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
         CategoryOptionCombo outputOptionCombo = predictor.getOutputCombo() == null
             ? defaultCategoryOptionCombo
             : predictor.getOutputCombo();
-        CachingMap<String, CategoryOptionCombo> cocMap = new CachingMap<>();
+        DataElementOperand outputDataElementOperand = new DataElementOperand( outputDataElement, outputOptionCombo );
         Date now = new Date();
 
-        Set<Period> queryPeriods = getPeriodsFrom( sampledItems, allSamplePeriods, outputPeriodItems, outputPeriods );
-        Set<Period> existingQueryPeriods = getPeriodsFrom( sampledItems, existingSamplePeriods, outputPeriodItems,
-            existingOutputPeriods );
-
         boolean requireData = generator.getMissingValueStrategy() != NEVER_SKIP && (!items.isEmpty());
-        DimensionalItemObject forwardReference = getForwardReference( outputDataElement, outputOptionCombo, items );
-        Set<DataElementOperand> predictionDeoSet = Sets.newHashSet(
-            new DataElementOperand( outputDataElement, outputOptionCombo ) );
-
-        Set<DataElement> dataElements = new HashSet<>();
-        Set<DataElementOperand> dataElementOperands = new HashSet<>();
-        Set<DimensionalItemObject> analyticsAttributeOptionItems = new HashSet<>();
-        Set<DimensionalItemObject> analyticsNonAttributeOptionItems = new HashSet<>();
-        categorizeItems( items, dataElements, dataElementOperands,
-            analyticsAttributeOptionItems, analyticsNonAttributeOptionItems );
+        DimensionalItemObject forwardReference = addOuputToItems( outputDataElementOperand, items );
 
         Set<OrganisationUnit> currentUserOrgUnits = new HashSet<>();
         String storedBy = "system-process";
@@ -340,107 +285,73 @@ public class DefaultPredictionService
             storedBy = currentUser.getUsername();
         }
 
-        PredictionDataValueFetcher oldPredictionFetcher = new PredictionDataValueFetcher( dataValueService,
-            categoryService ).setIncludeDeleted( true );
-        PredictionDataValueFetcher dataValueFetcher = new PredictionDataValueFetcher( dataValueService,
-            categoryService ).setIncludeDescendants( predictor.getOrganisationUnitDescendants().equals( DESCENDANTS ) );
-        PredictionAnalyticsDataFetcher analyticsFetcher = new PredictionAnalyticsDataFetcher( analyticsService );
+        PredictionDataConsolidator consolidator = new PredictionDataConsolidator( items,
+            predictor.getOrganisationUnitDescendants().equals( DESCENDANTS ),
+            new PredictionDataValueFetcher( dataValueService, categoryService ),
+            new PredictionAnalyticsDataFetcher( analyticsService, categoryService ) );
+
         PredictionWriter predictionWriter = new PredictionWriter( dataValueService, batchHandlerFactory );
 
         predictionWriter.init( existingOutputPeriods, predictionSummary );
 
         predictionSummary.incrementPredictors();
 
-        // Do separate predictor processing for each organisation unit level
-        // selected. This is because at each level, predictions might be based
-        // on data aggregated from all descendant org units. So to prevent
-        // confusion, data for different levels are fetched independently.
-
         for ( OrganisationUnitLevel orgUnitLevel : predictor.getOrganisationUnitLevels() )
         {
-            List<OrganisationUnit> orgUnits = new ArrayList<>( organisationUnitService
-                .getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits ) );
+            List<OrganisationUnit> orgUnits = organisationUnitService
+                .getOrganisationUnitsAtOrgUnitLevels( Lists.newArrayList( orgUnitLevel ), currentUserOrgUnits );
 
-            orgUnits.sort( Comparator.comparing( OrganisationUnit::getPath ) );
+            consolidator.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits,
+                dataValueQueryPeriods, analyticsQueryPeriods, existingOutputPeriods, outputDataElementOperand );
 
-            oldPredictionFetcher.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits,
-                outputPeriodSet, Sets.newHashSet( outputDataElement ), predictionDeoSet );
+            PredictionData data;
 
-            dataValueFetcher.init( currentUserOrgUnits, orgUnitLevel.getLevel(), orgUnits,
-                existingQueryPeriods, dataElements, dataElementOperands );
-
-            analyticsFetcher.init( orgUnits, queryPeriods, analyticsAttributeOptionItems,
-                analyticsNonAttributeOptionItems );
-
-            for ( OrganisationUnit orgUnit : orgUnits )
+            while ( (data = consolidator.getData()) != null )
             {
-                MapMap<Period, DimensionalItemObject, Object> nonAocData = analyticsFetcher.getNonAocData( orgUnit );
-
-                MapMapMap<String, Period, DimensionalItemObject, Object> aocData = analyticsFetcher
-                    .getAocData( orgUnit );
-
-                List<DataValue> dataValues = dataValueFetcher.getDataValues( orgUnit );
-
-                addDataValuesToAocData( dataValues, aocData, items );
-
-                Set<String> attributeOptionCombos = getAttributeOptionCombos( aocData, defaultCategoryOptionCombo );
-
                 List<DataValue> predictions = new ArrayList<>();
 
-                // Predict independently for each AOC, adding in the data,
-                // if any, that is stored without an AOC.
+                List<PredictionContext> contexts = PredictionContextGenerator.getContexts(
+                    outputPeriods, data.getValues(), defaultCategoryOptionCombo );
 
-                for ( String aoc : attributeOptionCombos )
+                for ( PredictionContext c : contexts )
                 {
-                    MapMap<Period, DimensionalItemObject, Object> periodValueMap = firstNonNull( aocData.get( aoc ),
-                        new MapMap<>() );
+                    List<Period> samplePeriods = new ArrayList<>( samplePeriodsMap.get( c.getOutputPeriod() ) );
 
-                    periodValueMap.putMap( nonAocData );
+                    samplePeriods.removeAll( getSkippedPeriods( allSamplePeriods, itemMap, c.getPeriodValueMap(),
+                        skipTest, constantMap, orgUnitGroupMap, data.getOrgUnit() ) );
 
-                    Set<Period> skippedPeriods = getSkippedPeriods( allSamplePeriods, itemMap, periodValueMap, skipTest,
-                        constantMap, orgUnitGroupMap, orgUnit );
-
-                    // Predict for each output period.
-
-                    for ( Period outputPeriod : outputPeriods )
+                    if ( requireData && !dataIsPresent( outputPeriodItems, c.getValueMap(), sampledItems,
+                        samplePeriods, c.getPeriodValueMap() ) )
                     {
-                        List<Period> samplePeriods = new ArrayList<>( samplePeriodsMap.get( outputPeriod ) );
+                        continue;
+                    }
 
-                        samplePeriods.removeAll( skippedPeriods );
+                    Object value = expressionService.getExpressionValue( predictor.getGenerator().getExpression(),
+                        PREDICTOR_EXPRESSION, itemMap, c.getValueMap(), constantMap, null, orgUnitGroupMap,
+                        c.getOutputPeriod().getDaysInPeriod(), generator.getMissingValueStrategy(), data.getOrgUnit(),
+                        samplePeriods, c.getPeriodValueMap(), expressionDataType );
 
-                        Map<DimensionalItemObject, Object> valueMap = firstNonNull( periodValueMap.get( outputPeriod ),
-                            new HashMap<>() );
+                    if ( value != null || generator.getMissingValueStrategy() == NEVER_SKIP )
+                    {
+                        String valueString = formatPrediction( value, outputDataElement );
 
-                        if ( requireData && !dataIsPresent( outputPeriodItems, valueMap, sampledItems, samplePeriods,
-                            periodValueMap ) )
+                        if ( valueString != null )
                         {
-                            continue;
-                        }
+                            DataValue prediction = new DataValue( outputDataElement,
+                                c.getOutputPeriod(), data.getOrgUnit(), outputOptionCombo,
+                                c.getAttributeOptionCombo(), valueString, storedBy, now, null );
 
-                        Object value = expressionService.getExpressionValue( generator.getExpression(),
-                            PREDICTOR_EXPRESSION, itemMap, valueMap, constantMap, null, orgUnitGroupMap,
-                            outputPeriod.getDaysInPeriod(), generator.getMissingValueStrategy(), orgUnit,
-                            samplePeriods, periodValueMap, expressionDataType );
+                            carryPredictionForward( prediction, contexts, forwardReference );
 
-                        carryPredictionForward( value, outputPeriod, forwardReference, periodValueMap );
-
-                        if ( value != null || generator.getMissingValueStrategy() == NEVER_SKIP )
-                        {
-                            String valueString = formatPrediction( value, outputDataElement );
-
-                            if ( valueString != null )
-                            {
-                                predictions.add( new DataValue( outputDataElement,
-                                    outputPeriod, orgUnit, outputOptionCombo,
-                                    cocMap.get( aoc, () -> categoryService.getCategoryOptionCombo( aoc ) ),
-                                    valueString, storedBy, now, null ) );
-                            }
+                            predictions.add( prediction );
                         }
                     }
                 }
-                predictionWriter.write( predictions, oldPredictionFetcher.getDataValues( orgUnit ) );
+
+                predictionWriter.write( predictions, data.getOldPredictions() );
             }
         }
+
         predictionWriter.flush();
     }
 
@@ -449,186 +360,44 @@ public class DefaultPredictionService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a Set of periods. Includes sample periods if there are any sample
-     * items, and includes output periods if there are any output items.
-     *
-     * @param sampleItems sample items, if any.
-     * @param samplePeriods sample periods.
-     * @param outputPeriodItems output items, if any.
-     * @param outputPeriods output periods.
-     * @return periods needed for the requested items.
+     * Returns any existing periods to be used for querying analytics items (if
+     * there are any). Includes sample periods if there are any sample items,
+     * and includes output periods if there are any output items.
      */
-    private Set<Period> getPeriodsFrom(
-        Set<DimensionalItemObject> sampleItems, Collection<Period> samplePeriods,
-        Set<DimensionalItemObject> outputPeriodItems, Collection<Period> outputPeriods )
+    private Set<Period> getAnalyticsQueryPeriods(
+        Set<DimensionalItemObject> sampleItems, Set<Period> allSamplePeriods,
+        Set<DimensionalItemObject> outputPeriodItems, Set<Period> existingOutputPeriods )
     {
-        Set<Period> periods = new HashSet<>();
+        Set<Period> analyticsQueryPeriods = new HashSet<>();
 
         if ( !sampleItems.isEmpty() )
         {
-            periods.addAll( samplePeriods );
+            analyticsQueryPeriods.addAll( getExistingPeriods( new ArrayList<>( allSamplePeriods ) ) );
         }
 
         if ( !outputPeriodItems.isEmpty() )
         {
-            periods.addAll( outputPeriods );
+            analyticsQueryPeriods.addAll( existingOutputPeriods );
         }
 
-        return periods;
+        return analyticsQueryPeriods;
     }
 
     /**
-     * Categories DimensionalItemObjects found in the predictor expression (and
-     * skip test) according to how their values will be fetched from either the
-     * datavalue table or analytics.
-     *
-     * @param items DimensionalItemObjects to be categorized.
-     * @param dataElements datavalue: data elements.
-     * @param dataElementOperands datavalue: data element operands.
-     * @param analyticsAttributeOptionItems analytics: items stored with AOCs.
-     * @param analyticsNonAttributeOptionItems analytics: items without AOCs.
+     * Returns any existing periods to be used to query data values. This
+     * includes all existing periods to be used for querying analytics items
+     * plus all existing output periods (if not already included), to find
+     * existing predictor values so we know how to process predictor outputs.
      */
-    private void categorizeItems( Set<DimensionalItemObject> items,
-        Set<DataElement> dataElements, Set<DataElementOperand> dataElementOperands,
-        Set<DimensionalItemObject> analyticsAttributeOptionItems,
-        Set<DimensionalItemObject> analyticsNonAttributeOptionItems )
+    private Set<Period> getDataValueQueryPeriods( Set<Period> analyticsQueryPeriods, Set<Period> existingOutputPeriods )
     {
-        for ( DimensionalItemObject i : items )
-        {
-            if ( i instanceof DataElement )
-            {
-                dataElements.add( (DataElement) i );
-            }
-            else if ( i instanceof DataElementOperand )
-            {
-                dataElementOperands.add( (DataElementOperand) i );
-            }
-            else if ( hasAttributeOptions( i ) )
-            {
-                analyticsAttributeOptionItems.add( i );
-            }
-            else
-            {
-                analyticsNonAttributeOptionItems.add( i );
-            }
-        }
-    }
-
-    /**
-     * Add the non-deleted, numeric values from the datavalue table to the map
-     * of data by attributeOptionCombo.
-     * <p>
-     * The two types of dimensional item object that are needed from the data
-     * value table are DataElement (the sum of all category option combos for
-     * that data element) and DataElementOperand (a particular combination of
-     * DataElement and CategoryOptionCombo).
-     *
-     * @param dataValues List of data values.
-     * @param aocData Map of attributeOptionCombo-keyed data.
-     * @param items the items we will need for expression evaluation.
-     */
-    private void addDataValuesToAocData( List<DataValue> dataValues,
-        MapMapMap<String, Period, DimensionalItemObject, Object> aocData,
-        Set<DimensionalItemObject> items )
-    {
-        for ( DataValue dv : dataValues )
-        {
-            Object value = getObjectValue( dv.getValue(), dv.getDataElement().getValueType() );
-
-            if ( value != null )
-            {
-                DataElementOperand dataElementOperand = new DataElementOperand(
-                    dv.getDataElement(), dv.getCategoryOptionCombo() );
-
-                addToData( dataElementOperand, items, dv, value, aocData );
-
-                addToData( dv.getDataElement(), items, dv, value, aocData );
-            }
-        }
-    }
-
-    /**
-     * Adds the DataElementOperand or the DataElement value to existing data.
-     * <p>
-     * This is needed because we may get multiple data values that need to be
-     * aggregated to the same item value. In the case of a
-     * DimensionalItemObject, this may be multiple values from children
-     * organisation units. In the case of a DataElement, this may be multiple
-     * value from children organisation units and/or it may be multiple
-     * disaggregated values that need to be summed for the data element.
-     * <p>
-     * Note that a single data value may contribute to a DataElementOperand
-     * value, a DataElement value, or both.
-     *
-     * @param item the item to add (the DataElementOperand or DataElement).
-     * @param items the set of items to be added (only if item is in set).
-     * @param dv the data value to be added.
-     * @param value the numeric value to be added.
-     * @param aocData the datavalue map by attribute option combo to add to.
-     */
-    private void addToData( DimensionalItemObject item, Set<DimensionalItemObject> items,
-        DataValue dv, Object value, MapMapMap<String, Period, DimensionalItemObject, Object> aocData )
-    {
-        if ( !items.contains( item ) )
-        {
-            return;
-        }
-
-        Object valueSoFar = aocData.getValue( dv.getAttributeOptionCombo().getUid(), dv.getPeriod(), item );
-
-        Object valueToStore = (valueSoFar == null) ? value : addDoubleObjects( value, valueSoFar );
-
-        aocData.putEntry( dv.getAttributeOptionCombo().getUid(), dv.getPeriod(), item, valueToStore );
-    }
-
-    /**
-     * For a predictor and orgUnit, determines the set of attribute option
-     * combos for which predictions will be generated.
-     *
-     * @param itemMap item data map for an orgUnit.
-     * @param defaultCategoryOptionCombo system default category option combo.
-     * @return set of attribute option combos to use for an orgUnit.
-     */
-    Set<String> getAttributeOptionCombos(
-        MapMapMap<String, Period, DimensionalItemObject, Object> itemMap,
-        CategoryOptionCombo defaultCategoryOptionCombo )
-    {
-        Set<String> attributeOptionCombos = new HashSet<>( itemMap.keySet() );
-
-        if ( attributeOptionCombos.isEmpty() )
-        {
-            attributeOptionCombos.add( defaultCategoryOptionCombo.getUid() );
-        }
-
-        return attributeOptionCombos;
-    }
-
-    /**
-     * Checks to see if a dimensional item object has values stored in the
-     * database by attribute option combo.
-     *
-     * @param o dimensional item object
-     * @return true if values are stored by attribuete option combo.
-     */
-    private boolean hasAttributeOptions( DimensionalItemObject o )
-    {
-        return o.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
-            || ((ProgramIndicator) o).getAnalyticsType() != AnalyticsType.ENROLLMENT;
+        return Sets.union( analyticsQueryPeriods, existingOutputPeriods );
     }
 
     /**
      * Finds sample periods that should be skipped based on the skip test.
-     *
-     * @param allSamplePeriods all the sample periods.
-     * @param itemMap map of dimensional item id to object in expression.
-     * @param aocData data for this attribute option combo.
-     * @param skipTest the skip test.
-     * @param constantMap constants that may be in the skip expression.
-     * @param orgUnitGroupMap the map of organisation unit groups.
-     * @param orgUnit the current organisation unit.
-     * @return the sample periods to be skipped.
      */
-    Set<Period> getSkippedPeriods( Set<Period> allSamplePeriods,
+    private Set<Period> getSkippedPeriods( Set<Period> allSamplePeriods,
         Map<DimensionalItemId, DimensionalItemObject> itemMap, MapMap<Period, DimensionalItemObject, Object> aocData,
         Expression skipTest, Map<String, Constant> constantMap, Map<String, OrganisationUnitGroup> orgUnitGroupMap,
         OrganisationUnit orgUnit )
@@ -659,15 +428,8 @@ public class DefaultPredictionService
      * Returns all Periods of the specified PeriodType with start date after or
      * equal the specified start date and end date before or equal the specified
      * end date. Periods are returned in ascending date order.
-     *
+     * <p>
      * The periods returned do not need to be in the database.
-     *
-     * @param periodType the PeriodType.
-     * @param startDate the ultimate start date.
-     * @param endDate the ultimate end date.
-     * @return a list of all Periods with start date after or equal the
-     *         specified start date and end date before or equal the specified
-     *         end date, or an empty list if no Periods match.
      */
     private List<Period> getPeriodsBetweenDates( PeriodType periodType, Date startDate, Date endDate )
     {
@@ -693,11 +455,10 @@ public class DefaultPredictionService
 
     /**
      * Creates a map relating each output period to a list of sample periods
-     * from which the sample data is to be drawn.
-     *
-     * @param outputPeriods the output periods
-     * @param predictor the predictor
-     * @return map from output periods to sample periods
+     * from which the sample data is to be drawn. Sample periods returned for
+     * each output period are in order from older to newer, so any prediction
+     * results can be brought forward if they are to be used in later period
+     * predictions.
      */
     private ListMap<Period, Period> getSamplePeriodsMap( List<Period> outputPeriods, Predictor predictor )
     {
@@ -743,9 +504,6 @@ public class DefaultPredictionService
 
     /**
      * Finds periods that exist in the DB, from a list of periods.
-     *
-     * @param periods the periods to look for
-     * @return the set of periods that exist, with ids.
      */
     private Set<Period> getExistingPeriods( List<Period> periods )
     {
@@ -765,58 +523,61 @@ public class DefaultPredictionService
     }
 
     /**
-     * Checks to see if the output predicted value should be used as input to
-     * subsequent (later period) predictions. If so, returns the
-     * DimensionalItemObject that should be updated with the predicted value.
-     *
+     * Adds the predictor to the list of items. Also, returns the
+     * DimensionalItemObject if any to update with the predicted value.
+     * <p>
      * Note that we make the simplifying assumption that if the output data
      * element is sampled in an expression without a catOptionCombo, the
      * predicted data value will be used. This is usually what the user wants,
      * but would break if the expression assumes a sum of catOptionCombos
      * including the predicted value and other catOptionCombos.
-     *
-     * @param outputDataElement the data element to output predicted value to.
-     * @param outputOptionCombo the option combo to output predicted value to.
-     * @param sampleItems the sample items used in future predictions.
-     * @return the DimensionalItemObject, if any, for the predicted value.
      */
-    private DimensionalItemObject getForwardReference( DataElement outputDataElement,
-        CategoryOptionCombo outputOptionCombo, Set<DimensionalItemObject> sampleItems )
+    private DimensionalItemObject addOuputToItems( DataElementOperand outputDataElementOperand,
+        Set<DimensionalItemObject> sampleItems )
     {
+        DimensionalItemObject forwardReference = null;
+
         for ( DimensionalItemObject item : sampleItems )
         {
-            if ( item.equals( outputDataElement ) )
+            if ( item.equals( outputDataElementOperand ) )
             {
                 return item;
             }
 
-            if ( item.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND
-                && ((DataElementOperand) item).getDataElement().equals( outputDataElement )
-                && ((DataElementOperand) item).getCategoryOptionCombo().equals( outputOptionCombo ) )
+            if ( item.equals( outputDataElementOperand.getDataElement() ) )
             {
-                return item;
+                forwardReference = item;
             }
         }
 
-        return null;
+        sampleItems.add( outputDataElementOperand );
+
+        return forwardReference;
     }
 
     /**
      * If the predicted value might be used in a future period prediction,
-     * insert it into the period value map.
-     *
-     * @param value the predicted value.
-     * @param outputPeriod the period the value is predicted for.
-     * @param predictionReference the item for the prediction, if any.
-     * @param periodValueMap the value map according to period.
+     * insert it into any future context data.
      */
-    private void carryPredictionForward( Object value, Period outputPeriod,
-        DimensionalItemObject predictionReference,
-        MapMap<Period, DimensionalItemObject, Object> periodValueMap )
+    private void carryPredictionForward( DataValue prediction, List<PredictionContext> contexts,
+        DimensionalItemObject forwardReference )
     {
-        if ( predictionReference != null )
+        if ( forwardReference == null )
         {
-            periodValueMap.putEntry( outputPeriod, predictionReference, value );
+            return;
+        }
+
+        for ( PredictionContext ctx : contexts )
+        {
+            if ( ctx.getAttributeOptionCombo().equals( prediction.getAttributeOptionCombo() ) )
+            {
+                ctx.getPeriodValueMap().putEntry( prediction.getPeriod(), forwardReference, prediction.getValue() );
+
+                if ( ctx.getOutputPeriod().equals( prediction.getPeriod() ) )
+                {
+                    ctx.getValueMap().put( forwardReference, prediction.getValue() );
+                }
+            }
         }
     }
 
@@ -824,15 +585,7 @@ public class DefaultPredictionService
      * Returns true if there is data to be used for a prediction in this period.
      * This allows us to save time by evaluating an expression only if there is
      * data. (Expression evaluation can take a non-trivial amount of time.)
-     *
-     * @param outputPeriodItems items for output period.
-     * @param valueMap values for output period.
-     * @param sampledItems items for sampled periods.
-     * @param samplePeriods the sampled periods.
-     * @param periodValueMap values for output periods.
-     * @return true if there is data, else false.
      */
-
     private boolean dataIsPresent( Set<DimensionalItemObject> outputPeriodItems,
         Map<DimensionalItemObject, Object> valueMap,
         Set<DimensionalItemObject> sampledItems, List<Period> samplePeriods,
@@ -858,10 +611,6 @@ public class DefaultPredictionService
 
     /**
      * Returns true if any items are present in the value map.
-     *
-     * @param items items to look for.
-     * @param valueMap map of values.
-     * @return true if any items in map, else false.
      */
     private boolean presentIn( Set<DimensionalItemObject> items, Map<DimensionalItemObject, Object> valueMap )
     {

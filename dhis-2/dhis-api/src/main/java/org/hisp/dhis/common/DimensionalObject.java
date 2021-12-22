@@ -40,6 +40,7 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.ProgramStage;
@@ -134,6 +135,19 @@ public interface DimensionalObject
      * Gets the dimension display name.
      */
     String getDimensionDisplayName();
+
+    /**
+     * Returns the value type of the dimension.
+     *
+     * NOTE: not all dimensional objects have a ValueType, hence this method
+     * will return null in such cases.
+     */
+    ValueType getValueType();
+
+    /**
+     * Returns the option set of the dimension, if any.
+     */
+    OptionSet getOptionSet();
 
     /**
      * Dimension items.
