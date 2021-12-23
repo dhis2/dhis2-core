@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
@@ -52,6 +51,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -485,7 +485,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        assertThat( reporter.getWarningsReportList().get( 0 ).getWarningCode(), is( E4015 ) );
+        assertTrue( reporter.hasWarningReport( r -> E4015.equals( r.getWarningCode() ) &&
+            TrackerType.RELATIONSHIP.equals( r.getTrackerType() ) &&
+            rel.getUid().equals( r.getUid() ) ) );
     }
 
     private TrackedEntityInstance getSoftDeletedTei()
