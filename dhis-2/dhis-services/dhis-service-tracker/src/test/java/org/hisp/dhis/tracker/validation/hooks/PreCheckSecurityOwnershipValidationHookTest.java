@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1091;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1104;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -324,9 +323,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1100, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.TRACKED_ENTITY, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( trackedEntity.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1100.equals( err.getErrorCode() ) &&
+            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            trackedEntity.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -351,9 +350,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1000, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.TRACKED_ENTITY, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( trackedEntity.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1000.equals( err.getErrorCode() ) &&
+            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            trackedEntity.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -376,9 +375,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1003, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.TRACKED_ENTITY, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( trackedEntity.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1003.equals( err.getErrorCode() ) &&
+            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            trackedEntity.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -400,9 +399,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1001, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.TRACKED_ENTITY, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( trackedEntity.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1001.equals( err.getErrorCode() ) &&
+            TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            trackedEntity.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -567,9 +566,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEnrollment( reporter, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1000, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.ENROLLMENT, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( enrollment.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1000.equals( err.getErrorCode() ) &&
+            TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -594,9 +593,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEnrollment( reporter, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1103, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.ENROLLMENT, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( enrollment.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1103.equals( err.getErrorCode() ) &&
+            TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -621,9 +620,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEnrollment( reporter, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1091, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.ENROLLMENT, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( enrollment.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1091.equals( err.getErrorCode() ) &&
+            TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -648,9 +647,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEnrollment( reporter, enrollment );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1104, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.ENROLLMENT, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( enrollment.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1104.equals( err.getErrorCode() ) &&
+            TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -832,6 +831,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     void verifyValidationFailsForTrackerEventCreationAndUserNotInOrgUnitCaptureScope()
     {
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
             .programStage( PS_ID )
@@ -852,15 +852,16 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEvent( reporter, event );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1000, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.EVENT, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( event.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1000.equals( err.getErrorCode() ) &&
+            TrackerType.EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
     void verifyValidationFailsForEventCreationThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy()
     {
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( ORG_UNIT_ID )
             .programStage( PS_ID )
@@ -882,9 +883,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEvent( reporter, event );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1000, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.EVENT, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( event.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1000.equals( err.getErrorCode() ) &&
+            TrackerType.EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -892,6 +893,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     {
         String enrollmentUid = CodeGenerator.generateUid();
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
             .programStage( PS_ID )
@@ -915,9 +917,9 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
         validatorToTest.validateEvent( reporter, event );
 
         assertTrue( reporter.hasErrors() );
-        assertEquals( E1083, reporter.getReportList().get( 0 ).getErrorCode() );
-        assertEquals( TrackerType.EVENT, reporter.getReportList().get( 0 ).getTrackerType() );
-        assertEquals( event.getUid(), reporter.getReportList().get( 0 ).getUid() );
+        assertTrue( reporter.hasErrorReport( err -> E1083.equals( err.getErrorCode() ) &&
+            TrackerType.EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     private TrackedEntityInstance getTEIWithNoProgramInstances()
