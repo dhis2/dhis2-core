@@ -54,15 +54,6 @@ class ValidationErrorReporterTest
     }
 
     @Test
-    void hasErrorReportNotFoundIfEmpty()
-    {
-
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-
-        assertFalse( reporter.hasErrorReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
-    }
-
-    @Test
     void hasErrorReportNotFound()
     {
 
@@ -90,15 +81,6 @@ class ValidationErrorReporterTest
         reporter.getWarningsReportList().add( warning );
 
         assertTrue( reporter.hasWarningReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
-    }
-
-    @Test
-    void hasWarningReportNotFoundIfEmpty()
-    {
-
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
-
-        assertFalse( reporter.hasWarningReport( r -> TrackerType.EVENT.equals( r.getTrackerType() ) ) );
     }
 
     @Test
