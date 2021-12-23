@@ -200,95 +200,17 @@ public class DataDimensionExtractor
 
         for ( final DimensionalItemId id : itemIds )
         {
-            if ( !id.hasValidIds() )
+            if ( id.hasValidIds() )
             {
-                continue;
+                final BaseDimensionalItemObject dimensionalItemObject = getBaseDimensionalItemObject( atomicObjects,
+                    id );
+
+                if ( dimensionalItemObject != null )
+                {
+                    dimensionalItemObject.setPeriodOffset( id.getPeriodOffset() );
+                    itemObjectMap.put( id, dimensionalItemObject );
+                }
             }
-            BaseDimensionalItemObject dimensionalItemObject = null;
-
-            switch ( id.getDimensionItemType() )
-            {
-            case DATA_ELEMENT:
-                DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
-                if ( dataElement != null )
-                {
-                    dimensionalItemObject = cloneIfNeeded( dataElement, id );
-                }
-                break;
-
-            case INDICATOR:
-                final Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
-                if ( indicator != null )
-                {
-                    dimensionalItemObject = cloneIfNeeded( indicator, id );
-                }
-                break;
-
-            case DATA_ELEMENT_OPERAND:
-                dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
-                final CategoryOptionCombo categoryOptionCombo = id.getId1() == null ? null
-                    : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId1() );
-                final CategoryOptionCombo attributeOptionCombo = id.getId2() == null ? null
-                    : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId2() );
-                if ( dataElement != null &&
-                    (id.getId1() != null) == (categoryOptionCombo != null) &&
-                    (id.getId2() != null) == (attributeOptionCombo != null) )
-                {
-                    dimensionalItemObject = new DataElementOperand( dataElement, categoryOptionCombo,
-                        attributeOptionCombo );
-                }
-                break;
-
-            case REPORTING_RATE:
-                final DataSet dataSet = (DataSet) atomicObjects.getValue( DataSet.class, id.getId0() );
-                if ( dataSet != null )
-                {
-                    dimensionalItemObject = new ReportingRate( dataSet, ReportingRateMetric.valueOf( id.getId1() ) );
-                }
-                break;
-
-            case PROGRAM_DATA_ELEMENT:
-                Program program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
-                dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId1() );
-                if ( program != null && dataElement != null )
-                {
-                    dimensionalItemObject = new ProgramDataElementDimensionItem( program, dataElement );
-                }
-                break;
-
-            case PROGRAM_ATTRIBUTE:
-                program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
-                final TrackedEntityAttribute attribute = (TrackedEntityAttribute) atomicObjects
-                    .getValue( TrackedEntityAttribute.class, id.getId1() );
-                if ( program != null && attribute != null )
-                {
-                    dimensionalItemObject = new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
-                }
-                break;
-
-            case PROGRAM_INDICATOR:
-                final ProgramIndicator programIndicator = (ProgramIndicator) atomicObjects
-                    .getValue( ProgramIndicator.class, id.getId0() );
-                if ( programIndicator != null )
-                {
-                    dimensionalItemObject = cloneIfNeeded( programIndicator, id );
-                }
-                break;
-
-            default:
-                log.warn(
-                    "Unrecognized DimensionItemType " + id.getDimensionItemType().name() + " in getItemObjectMap" );
-                break;
-            }
-
-            if ( dimensionalItemObject == null )
-            {
-                continue;
-            }
-
-            dimensionalItemObject.setPeriodOffset( id.getPeriodOffset() );
-
-            itemObjectMap.put( id, dimensionalItemObject );
         }
 
         return itemObjectMap;
@@ -355,6 +277,89 @@ public class DataDimensionExtractor
         }
 
         return new ProgramDataElementDimensionItem( program, dataElement );
+    }
+
+    private BaseDimensionalItemObject getBaseDimensionalItemObject(
+        final MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects,
+        final DimensionalItemId id )
+    {
+        BaseDimensionalItemObject dimensionalItemObject = null;
+
+        switch ( id.getDimensionItemType() )
+        {
+        case DATA_ELEMENT:
+            DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
+            if ( dataElement != null )
+            {
+                dimensionalItemObject = cloneIfNeeded( dataElement, id );
+            }
+            break;
+
+        case INDICATOR:
+            final Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
+            if ( indicator != null )
+            {
+                dimensionalItemObject = cloneIfNeeded( indicator, id );
+            }
+            break;
+
+        case DATA_ELEMENT_OPERAND:
+            dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
+            final CategoryOptionCombo categoryOptionCombo = id.getId1() == null ? null
+                : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId1() );
+            final CategoryOptionCombo attributeOptionCombo = id.getId2() == null ? null
+                : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId2() );
+            if ( dataElement != null &&
+                (id.getId1() != null) == (categoryOptionCombo != null) &&
+                (id.getId2() != null) == (attributeOptionCombo != null) )
+            {
+                dimensionalItemObject = new DataElementOperand( dataElement, categoryOptionCombo,
+                    attributeOptionCombo );
+            }
+            break;
+
+        case REPORTING_RATE:
+            final DataSet dataSet = (DataSet) atomicObjects.getValue( DataSet.class, id.getId0() );
+            if ( dataSet != null )
+            {
+                dimensionalItemObject = new ReportingRate( dataSet, ReportingRateMetric.valueOf( id.getId1() ) );
+            }
+            break;
+
+        case PROGRAM_DATA_ELEMENT:
+            Program program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
+            dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId1() );
+            if ( program != null && dataElement != null )
+            {
+                dimensionalItemObject = new ProgramDataElementDimensionItem( program, dataElement );
+            }
+            break;
+
+        case PROGRAM_ATTRIBUTE:
+            program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
+            final TrackedEntityAttribute attribute = (TrackedEntityAttribute) atomicObjects
+                .getValue( TrackedEntityAttribute.class, id.getId1() );
+            if ( program != null && attribute != null )
+            {
+                dimensionalItemObject = new ProgramTrackedEntityAttributeDimensionItem( program, attribute );
+            }
+            break;
+
+        case PROGRAM_INDICATOR:
+            final ProgramIndicator programIndicator = (ProgramIndicator) atomicObjects
+                .getValue( ProgramIndicator.class, id.getId0() );
+            if ( programIndicator != null )
+            {
+                dimensionalItemObject = cloneIfNeeded( programIndicator, id );
+            }
+            break;
+
+        default:
+            log.warn( "Unrecognized DimensionItemType " + id.getDimensionItemType().name() + " in getItemObjectMap" );
+            break;
+        }
+
+        return dimensionalItemObject;
     }
 
     /**
