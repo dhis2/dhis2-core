@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1074;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,7 +39,6 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -127,7 +127,9 @@ class EnrollmentGeoValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1074 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1074.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -149,7 +151,9 @@ class EnrollmentGeoValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1012 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1012.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -171,6 +175,8 @@ class EnrollmentGeoValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1012 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1012.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 }
