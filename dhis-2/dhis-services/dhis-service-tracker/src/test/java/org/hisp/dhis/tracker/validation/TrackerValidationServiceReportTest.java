@@ -124,39 +124,39 @@ class TrackerValidationServiceReportTest
         enrollments.add( invalidEnrollment );
 
         TrackerBundle bundle = TrackerBundle.builder()
-                .validationMode( ValidationMode.FULL )
-                .skipRuleEngine( true )
-                .events( events )
-                .enrollments( enrollments )
-                .build();
+            .validationMode( ValidationMode.FULL )
+            .skipRuleEngine( true )
+            .events( events )
+            .enrollments( enrollments )
+            .build();
 
         ValidationHook removeOnError = ValidationHook.builder()
-                .removeOnError( true )
-                .validateEvent( ( reporter, event ) -> {
-                    if ( invalidEvent.equals( event ) )
-                    {
-                        reporter.addError(
-                                TrackerErrorReport.newReport( TrackerErrorCode.E1032 )
-                                        .trackerType( TrackerType.EVENT )
-                                        .uid( event.getUid() ) );
-                    }
-                } )
-                .build();
+            .removeOnError( true )
+            .validateEvent( ( reporter, event ) -> {
+                if ( invalidEvent.equals( event ) )
+                {
+                    reporter.addError(
+                        TrackerErrorReport.newReport( TrackerErrorCode.E1032 )
+                            .trackerType( TrackerType.EVENT )
+                            .uid( event.getUid() ) );
+                }
+            } )
+            .build();
         ValidationHook doNotRemoveOnError = ValidationHook.builder()
-                .removeOnError( false )
-                .validateEnrollment( ( reporter, enrollment ) -> {
-                    if ( invalidEnrollment.equals( enrollment ) )
-                    {
-                        reporter.addError(
-                                TrackerErrorReport.newReport( TrackerErrorCode.E1069 )
-                                        .trackerType( TrackerType.ENROLLMENT )
-                                        .uid( enrollment.getUid() ) );
-                    }
-                } )
-                .build();
+            .removeOnError( false )
+            .validateEnrollment( ( reporter, enrollment ) -> {
+                if ( invalidEnrollment.equals( enrollment ) )
+                {
+                    reporter.addError(
+                        TrackerErrorReport.newReport( TrackerErrorCode.E1069 )
+                            .trackerType( TrackerType.ENROLLMENT )
+                            .uid( enrollment.getUid() ) );
+                }
+            } )
+            .build();
         TrackerValidationService validationService = new DefaultTrackerValidationService(
-                List.of( removeOnError, doNotRemoveOnError ),
-                Collections.emptyList() );
+            List.of( removeOnError, doNotRemoveOnError ),
+            Collections.emptyList() );
 
         TrackerValidationReport report = validationService.validate( bundle );
 
@@ -219,7 +219,7 @@ class TrackerValidationServiceReportTest
                 }
             } ).build();
         TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
-        TrackerValidationService validationService = new DefaultTrackerValidationService( List.of( hook1,hook2 ),
+        TrackerValidationService validationService = new DefaultTrackerValidationService( List.of( hook1, hook2 ),
             Collections.emptyList() );
 
         TrackerValidationReport report = validationService.validate( bundle );
