@@ -147,12 +147,12 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext, enrollment );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertThat( validationErrorReporter.getReportList(), hasSize( 1 ) );
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertTrue(
-            validationErrorReporter.hasErrorReport( err -> TrackerErrorCode.E1076.equals( err.getErrorCode() ) &&
+            reporter.hasErrorReport( err -> TrackerErrorCode.E1076.equals( err.getErrorCode() ) &&
                 TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
                 enrollment.getUid().equals( err.getUid() ) ) );
     }
@@ -178,10 +178,10 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext, enrollment );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertThat( validationErrorReporter.getReportList(), hasSize( 0 ) );
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
     }
 
     @Test
@@ -204,16 +204,16 @@ class EnrollmentAttributeValidationHookTest
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext, enrollment );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertThat( validationErrorReporter.getReportList(), hasSize( 2 ) );
+        assertThat( reporter.getReportList(), hasSize( 2 ) );
         assertTrue(
-            validationErrorReporter.hasErrorReport( err -> TrackerErrorCode.E1076.equals( err.getErrorCode() ) &&
+            reporter.hasErrorReport( err -> TrackerErrorCode.E1076.equals( err.getErrorCode() ) &&
                 TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
                 enrollment.getUid().equals( err.getUid() ) ) );
         assertTrue(
-            validationErrorReporter.hasErrorReport( err -> TrackerErrorCode.E1018.equals( err.getErrorCode() ) &&
+            reporter.hasErrorReport( err -> TrackerErrorCode.E1018.equals( err.getErrorCode() ) &&
                 TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
                 enrollment.getUid().equals( err.getUid() ) ) );
     }
@@ -227,21 +227,21 @@ class EnrollmentAttributeValidationHookTest
             .value( "value" )
             .build();
 
-        when( program.getProgramAttributes() ).thenReturn( Arrays.asList() );
+        when( program.getProgramAttributes() ).thenReturn( Collections.emptyList() );
 
-        when( enrollment.getAttributes() ).thenReturn( Arrays.asList( attribute ) );
+        when( enrollment.getAttributes() ).thenReturn( Collections.singletonList( attribute ) );
         when( trackedEntityInstance.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>( Collections
                 .singletonList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ) ) ) );
         when( preheat.getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() ) )
             .thenReturn( trackedEntityInstance );
 
-        ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext, enrollment );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertThat( validationErrorReporter.getReportList(), hasSize( 1 ) );
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
         assertTrue(
-            validationErrorReporter.hasErrorReport( err -> TrackerErrorCode.E1006.equals( err.getErrorCode() ) &&
+            reporter.hasErrorReport( err -> TrackerErrorCode.E1006.equals( err.getErrorCode() ) &&
                 TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
                 enrollment.getUid().equals( err.getUid() ) ) );
     }

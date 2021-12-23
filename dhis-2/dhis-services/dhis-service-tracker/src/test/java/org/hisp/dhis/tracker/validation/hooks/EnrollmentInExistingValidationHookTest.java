@@ -85,7 +85,7 @@ class EnrollmentInExistingValidationHookTest
     @Mock
     private TrackedEntityInstance trackedEntityInstance;
 
-    private ValidationErrorReporter validationErrorReporter;
+    private ValidationErrorReporter reporter;
 
     private static final String programUid = "program";
 
@@ -115,14 +115,14 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
 
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
-        validationErrorReporter = new ValidationErrorReporter( validationContext );
+        reporter = new ValidationErrorReporter( validationContext );
     }
 
     @Test
     void shouldExitCancelledStatus()
     {
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.CANCELLED );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
         verify( validationContext, times( 0 ) ).getProgram( programUid );
     }
@@ -132,7 +132,7 @@ class EnrollmentInExistingValidationHookTest
     {
         when( enrollment.getProgram() ).thenReturn( null );
         assertThrows( NullPointerException.class,
-            () -> hookToTest.validateEnrollment( validationErrorReporter, enrollment ) );
+            () -> hookToTest.validateEnrollment( reporter, enrollment ) );
     }
 
     @Test
@@ -143,7 +143,7 @@ class EnrollmentInExistingValidationHookTest
 
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.COMPLETED );
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
         verify( validationContext.getBundle(), times( 0 ) ).getPreheat();
     }
@@ -158,7 +158,7 @@ class EnrollmentInExistingValidationHookTest
 
         when( enrollment.getTrackedEntity() ).thenReturn( null );
         assertThrows( NullPointerException.class,
-            () -> hookToTest.validateEnrollment( validationErrorReporter, enrollment ) );
+            () -> hookToTest.validateEnrollment( reporter, enrollment ) );
     }
 
     @Test
@@ -169,9 +169,9 @@ class EnrollmentInExistingValidationHookTest
 
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
 
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertFalse( validationErrorReporter.hasErrors() );
+        assertFalse( reporter.hasErrors() );
     }
 
     @Test
@@ -179,12 +179,12 @@ class EnrollmentInExistingValidationHookTest
     {
         setEnrollmentInPayload( EnrollmentStatus.ACTIVE );
 
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
 
-        assertThat( validationErrorReporter.getReportList(),
+        assertThat( reporter.getReportList(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
     }
 
@@ -198,12 +198,12 @@ class EnrollmentInExistingValidationHookTest
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
 
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
 
-        assertThat( validationErrorReporter.getReportList(),
+        assertThat( reporter.getReportList(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
     }
 
@@ -212,9 +212,9 @@ class EnrollmentInExistingValidationHookTest
     {
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
 
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertFalse( validationErrorReporter.hasErrors() );
+        assertFalse( reporter.hasErrors() );
     }
 
     @Test
@@ -222,12 +222,12 @@ class EnrollmentInExistingValidationHookTest
     {
         setTeiInDb();
 
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
 
-        assertThat( validationErrorReporter.getReportList(),
+        assertThat( reporter.getReportList(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
     }
 
@@ -241,12 +241,12 @@ class EnrollmentInExistingValidationHookTest
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
         setTeiInDb( ProgramStatus.COMPLETED );
 
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
 
-        assertThat( validationErrorReporter.getReportList(),
+        assertThat( reporter.getReportList(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
     }
 
@@ -255,9 +255,9 @@ class EnrollmentInExistingValidationHookTest
     {
         setTeiInDb( ProgramStatus.COMPLETED );
 
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertFalse( validationErrorReporter.hasErrors() );
+        assertFalse( reporter.hasErrors() );
     }
 
     @Test
@@ -271,12 +271,12 @@ class EnrollmentInExistingValidationHookTest
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
         setTeiInDb();
 
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( validationErrorReporter.hasErrors() );
-        assertEquals( 1, validationErrorReporter.getReportList().size() );
+        assertTrue( reporter.hasErrors() );
+        assertEquals( 1, reporter.getReportList().size() );
 
-        assertThat( validationErrorReporter.getReportList(),
+        assertThat( reporter.getReportList(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
 
     }
@@ -292,9 +292,9 @@ class EnrollmentInExistingValidationHookTest
         setEnrollmentInPayload( EnrollmentStatus.COMPLETED );
         setTeiInDb();
 
-        hookToTest.validateEnrollment( validationErrorReporter, enrollment );
+        hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertFalse( validationErrorReporter.hasErrors() );
+        assertFalse( reporter.hasErrors() );
 
     }
 
