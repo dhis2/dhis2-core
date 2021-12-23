@@ -124,50 +124,50 @@ class TrackerValidationServiceReportTest
         enrollments.add( invalidEnrollment );
 
         TrackerBundle bundle = TrackerBundle.builder()
-                .validationMode( ValidationMode.FULL )
-                .skipRuleEngine( true )
-                .events( events )
-                .enrollments( enrollments )
-                .build();
+            .validationMode( ValidationMode.FULL )
+            .skipRuleEngine( true )
+            .events( events )
+            .enrollments( enrollments )
+            .build();
 
         ValidationHook removeOnError = ValidationHook.builder()
-                .removeOnError( true )
-                .validateEvent( ( reporter, event ) -> {
-                    if ( invalidEvent.equals( event ) )
-                    {
-                        reporter.addError(
-                                TrackerErrorReport.newReport( TrackerErrorCode.E1032 )
-                                        .trackerType( TrackerType.EVENT )
-                                        .uid( event.getUid() ) );
-                    }
-                } )
-                .build();
+            .removeOnError( true )
+            .validateEvent( ( reporter, event ) -> {
+                if ( invalidEvent.equals( event ) )
+                {
+                    reporter.addError(
+                        TrackerErrorReport.newReport( TrackerErrorCode.E1032 )
+                            .trackerType( TrackerType.EVENT )
+                            .uid( event.getUid() ) );
+                }
+            } )
+            .build();
         ValidationHook doNotRemoveOnError = ValidationHook.builder()
-                .removeOnError( false )
-                .validateEnrollment( ( reporter, enrollment ) -> {
-                    if ( invalidEnrollment.equals( enrollment ) )
-                    {
-                        reporter.addError(
-                                TrackerErrorReport.newReport( TrackerErrorCode.E1069 )
-                                        .trackerType( TrackerType.ENROLLMENT )
-                                        .uid( enrollment.getUid() ) );
-                    }
-                } )
-                .build();
+            .removeOnError( false )
+            .validateEnrollment( ( reporter, enrollment ) -> {
+                if ( invalidEnrollment.equals( enrollment ) )
+                {
+                    reporter.addError(
+                        TrackerErrorReport.newReport( TrackerErrorCode.E1069 )
+                            .trackerType( TrackerType.ENROLLMENT )
+                            .uid( enrollment.getUid() ) );
+                }
+            } )
+            .build();
         TrackerValidationService validationService = new DefaultTrackerValidationService(
-                List.of( removeOnError, doNotRemoveOnError ),
-                Collections.emptyList() );
+            List.of( removeOnError, doNotRemoveOnError ),
+            Collections.emptyList() );
 
         TrackerValidationReport report = validationService.validate( bundle );
 
         assertTrue( report.hasErrors() );
         assertEquals( 2, report.getErrorReports().size() );
         assertTrue( report.getErrorReports().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
-                && TrackerType.EVENT == err.getTrackerType()
-                && invalidEvent.getUid().equals( err.getUid() ) ) );
+            && TrackerType.EVENT == err.getTrackerType()
+            && invalidEvent.getUid().equals( err.getUid() ) ) );
         assertTrue( report.getErrorReports().stream().anyMatch( err -> TrackerErrorCode.E1069 == err.getErrorCode()
-                && TrackerType.ENROLLMENT == err.getTrackerType()
-                && invalidEnrollment.getUid().equals( err.getUid() ) ) );
+            && TrackerType.ENROLLMENT == err.getTrackerType()
+            && invalidEnrollment.getUid().equals( err.getUid() ) ) );
 
         assertFalse( bundle.getEvents().contains( invalidEvent ) );
         assertFalse( bundle.getEnrollments().contains( invalidEnrollment ) );
@@ -202,32 +202,32 @@ class TrackerValidationServiceReportTest
         events.add( validEvent );
 
         TrackerBundle bundle = TrackerBundle.builder()
-                .validationMode( ValidationMode.FAIL_FAST )
-                .skipRuleEngine( true )
-                .events( events )
-                .build();
+            .validationMode( ValidationMode.FAIL_FAST )
+            .skipRuleEngine( true )
+            .events( events )
+            .build();
 
         ValidationHook hook1 = ValidationHook.builder()
-                .removeOnError( true )
-                .validateEvent( ( reporter, event ) -> {
-                    if ( invalidEvent.equals( event ) )
-                    {
-                        reporter.addError(
-                                TrackerErrorReport.newReport( TrackerErrorCode.E1032 )
-                                        .trackerType( TrackerType.EVENT )
-                                        .uid( event.getUid() ) );
-                    }
-                } ).build();
+            .removeOnError( true )
+            .validateEvent( ( reporter, event ) -> {
+                if ( invalidEvent.equals( event ) )
+                {
+                    reporter.addError(
+                        TrackerErrorReport.newReport( TrackerErrorCode.E1032 )
+                            .trackerType( TrackerType.EVENT )
+                            .uid( event.getUid() ) );
+                }
+            } ).build();
         TrackerValidationHook hook2 = mock( TrackerValidationHook.class );
         TrackerValidationService validationService = new DefaultTrackerValidationService( List.of( hook1 ),
-                Collections.emptyList() );
+            Collections.emptyList() );
 
         TrackerValidationReport report = validationService.validate( bundle );
 
         assertTrue( report.hasErrors() );
         assertTrue( report.getErrorReports().stream().anyMatch( err -> TrackerErrorCode.E1032 == err.getErrorCode()
-                && TrackerType.EVENT == err.getTrackerType()
-                && invalidEvent.getUid().equals( err.getUid() ) ) );
+            && TrackerType.EVENT == err.getTrackerType()
+            && invalidEvent.getUid().equals( err.getUid() ) ) );
 
         // TODO(TECH-880): Is this intentional? When in FAIL_FAST mode,
         // reporter.addError() throws a FailFastException
