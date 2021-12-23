@@ -25,38 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.delete.validation;
+package org.hisp.dhis.analytics.dimension.mappers;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Set;
 
 import lombok.Getter;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
+import org.hisp.dhis.analytics.dimension.DimensionResponse;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.stereotype.Service;
 
-/**
- * @author maikel arabori
- */
-@Component
-public class DeleteValidatingEventChecker extends ValidatingEventChecker
+@Service
+public class BaseDimensionalItemObjectMapper extends BaseDimensionMapper
 {
-    @Getter
-    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isDelete;
 
-    public DeleteValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
-        EventImporterValidationRunner validationRunner )
+    @Getter
+    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
+        ProgramIndicator.class,
+        DataElement.class,
+        TrackedEntityAttribute.class );
+
+    @Override
+    public DimensionResponse map( BaseIdentifiableObject dimension )
     {
-        super( checkNotNull(
-            checkNotNull( checkersByImportStrategy ).get( DELETE ) ), validationRunner );
+        BaseDimensionalItemObject baseDimensionalItemObject = (BaseDimensionalItemObject) dimension;
+        DimensionResponse responseWithDimensionType = super.map( dimension )
+            .withDimensionType( baseDimensionalItemObject.getDimensionItemType().name() );
+        if ( dimension instanceof ValueTypedDimensionalItemObject )
+        {
+            ValueTypedDimensionalItemObject valueTypedDimensionalItemObject = (ValueTypedDimensionalItemObject) dimension;
+            return responseWithDimensionType
+                .withValueType( valueTypedDimensionalItemObject.getValueType().name() );
+        }
+        return responseWithDimensionType;
     }
 
 }

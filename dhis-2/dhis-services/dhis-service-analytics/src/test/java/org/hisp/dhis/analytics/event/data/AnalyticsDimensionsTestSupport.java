@@ -25,37 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.analytics.event.data;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
-
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import lombok.Getter;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
-
-/**
- * @author Luciano Fiandesio
- */
-@Component
-public class InsertValidatingEventChecker extends ValidatingEventChecker
+public class AnalyticsDimensionsTestSupport
 {
-    @Getter
-    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isInsert;
-
-    public InsertValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
-        EventImporterValidationRunner validationRunner )
+    static List<TrackedEntityAttribute> allValueTypeTEAs()
     {
-        super( checkNotNull(
-            checkNotNull( checkersByImportStrategy ).get( CREATE ) ), validationRunner );
+        return buildWithAllValueTypes( valueType -> {
+            TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+            trackedEntityAttribute.setUid( "uid" + valueType.name() );
+            trackedEntityAttribute.setValueType( valueType );
+            return trackedEntityAttribute;
+        } ).collect( Collectors.toList() );
+    }
+
+    static Set<DataElement> allValueTypeDataElements()
+    {
+        return buildWithAllValueTypes( valueType -> {
+            DataElement dataElement = new DataElement();
+            dataElement.setUid( "uid" + valueType.name() );
+            dataElement.setValueType( valueType );
+            return dataElement;
+        } ).collect( Collectors.toSet() );
+    }
+
+    static <T> Stream<T> buildWithAllValueTypes( Function<ValueType, T> mapper )
+    {
+        return Arrays.stream( ValueType.values() )
+            .map( mapper );
     }
 }

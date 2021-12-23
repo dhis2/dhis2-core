@@ -25,37 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.analytics.dimension;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.springframework.stereotype.Service;
 
-/**
- * @author maikel arabori
- */
-@Component
-public class UpdateValidatingEventChecker extends ValidatingEventChecker
+@Service
+@RequiredArgsConstructor
+public class DimensionMapperService
 {
-    @Getter
-    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isUpdate;
+    private final Collection<DimensionMapper> mappers;
 
-    public UpdateValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
-        EventImporterValidationRunner validationRunner )
+    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
     {
-        super( checkNotNull(
-            checkNotNull( checkersByImportStrategy ).get( UPDATE ) ), validationRunner );
+        return dimensions.stream()
+            .map( this::toDimensionResponse )
+            .collect( Collectors.toList() );
+    }
+
+    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension )
+    {
+        return mappers.stream()
+            .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
+            .findFirst()
+            .map( dimensionMapper -> dimensionMapper.map( dimension ) )
+            .orElseThrow( () -> new IllegalArgumentException(
+                "Unsupported dimension type: " + getRealClass( dimension ) ) );
     }
 }

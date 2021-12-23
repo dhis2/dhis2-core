@@ -25,11 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event;
+package org.hisp.dhis.analytics.dimension.mappers;
 
-public interface EventAnalyticsDimensionalItemService
+import java.util.Set;
+
+import lombok.Getter;
+
+import org.hisp.dhis.analytics.dimension.BaseDimensionMapper;
+import org.hisp.dhis.analytics.dimension.DimensionResponse;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.springframework.stereotype.Service;
+
+@Service
+public class BaseDimensionalObjectMapper extends BaseDimensionMapper
 {
-    EventsAnalyticsDimensionalItems getQueryDimensionalItemsByProgramStageId( String programStageId );
 
-    EventsAnalyticsDimensionalItems getAggregateDimensionalItemsByProgramStageId( String programStageId );
+    @Getter
+    private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
+        CategoryOptionGroupSet.class,
+        Category.class );
+
+    @Override
+    public DimensionResponse map( BaseIdentifiableObject dimension )
+    {
+        return super.map( dimension )
+            .withDimensionType( ((BaseDimensionalObject) dimension).getDimensionType().name() );
+    }
 }

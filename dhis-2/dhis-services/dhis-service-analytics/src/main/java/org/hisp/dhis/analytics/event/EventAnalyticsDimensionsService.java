@@ -25,42 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
+package org.hisp.dhis.analytics.event;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.analytics.event.data.DimensionsServiceCommon;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.importexport.ImportStrategy;
-
-@RequiredArgsConstructor
-public abstract class ValidatingEventChecker implements EventChecker
+public interface EventAnalyticsDimensionsService extends DimensionsServiceCommon
 {
+    List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId );
 
-    private final List<? extends Checker> checkers;
-
-    private final EventImporterValidationRunner validationRunner;
-
-    @Override
-    public List<ImportSummary> check( final WorkContext ctx, final List<Event> events )
-    {
-        if ( isSupported( ctx.getImportOptions().getImportStrategy() ) )
-        {
-            return validationRunner.run( ctx, events, checkers );
-        }
-        return Collections.emptyList();
-    }
-
-    private boolean isSupported( ImportStrategy importStrategy )
-    {
-        return getSupportedPredicate().test( importStrategy );
-    }
-
-    protected abstract Predicate<ImportStrategy> getSupportedPredicate();
-
+    List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId );
 }

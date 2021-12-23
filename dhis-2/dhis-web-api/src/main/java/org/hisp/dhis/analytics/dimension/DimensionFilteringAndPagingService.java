@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dataitem;
+package org.hisp.dhis.analytics.dimension;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -39,8 +39,8 @@ import java.util.stream.Stream;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.event.DimensionWrapper;
-import org.hisp.dhis.common.DimensionalItemCriteria;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -49,110 +49,110 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableMap;
 
 @Service
 @RequiredArgsConstructor
-public class DimensionalItemFilteringAndPagingService
+public class DimensionFilteringAndPagingService
 {
 
     @NonNull
     private final FieldFilterService fieldFilterService;
 
-    private final static Comparator<DimensionWrapper> DEFAULT_COMPARATOR = Comparator
-        .comparing( DimensionWrapper::getCreated );
+    private final DimensionMapperService dimensionMapperService;
 
-    private final static Map<String, Comparator<DimensionWrapper>> ORDERING_MAP = ImmutableMap.of(
-        "lastUpdated", Comparator.comparing( DimensionWrapper::getLastUpdated ),
-        "code", Comparator.comparing( DimensionWrapper::getCode ),
-        "uid", Comparator.comparing( DimensionWrapper::getId ),
-        "id", Comparator.comparing( DimensionWrapper::getId ),
-        "name", Comparator.comparing( DimensionWrapper::getName ) );
+    private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = Comparator
+        .comparing( DimensionResponse::getCreated, Comparator.nullsFirst( Comparator.naturalOrder() ) );
+
+    private static final Map<String, Comparator<DimensionResponse>> ORDERING_MAP = Map.of(
+        "lastUpdated", Comparator.comparing( DimensionResponse::getLastUpdated ),
+        "code", Comparator.comparing( DimensionResponse::getCode ),
+        "uid", Comparator.comparing( DimensionResponse::getId ),
+        "id", Comparator.comparing( DimensionResponse::getId ),
+        "name", Comparator.comparing( DimensionResponse::getName ) );
 
     public PagingWrapper<ObjectNode> pageAndFilter(
-        Collection<DimensionWrapper> dimensionalItems,
-        DimensionalItemCriteria dimensionalItemCriteria,
+        Collection<BaseIdentifiableObject> dimensions,
+        DimensionsCriteria dimensionsCriteria,
         List<String> fields )
     {
+        Collection<DimensionResponse> dimensionResponses = dimensionMapperService.toDimensionResponse( dimensions );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>( "dimensions" );
 
-        Collection<DimensionWrapper> filteredItems = filterStream( dimensionalItems.stream(),
-            dimensionalItemCriteria )
+        List<DimensionResponse> filteredDimensions = filterStream( dimensionResponses.stream(),
+            dimensionsCriteria )
                 .collect( Collectors.toList() );
 
-        var params = FieldFilterParams.of( sortedAndPagedStream( filteredItems.stream(), dimensionalItemCriteria )
-            .collect( Collectors.toList() ), fields );
+        FieldFilterParams<DimensionResponse> filterParams = FieldFilterParams
+            .of( sortedAndPagedStream( filteredDimensions.stream(), dimensionsCriteria )
+                .collect( Collectors.toList() ), fields );
 
-        var objectNodes = fieldFilterService.toObjectNodes( params );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( filterParams );
 
         pagingWrapper = pagingWrapper.withInstances( objectNodes );
 
-        if ( dimensionalItemCriteria.isPagingRequest() )
+        if ( dimensionsCriteria.isPagingRequest() )
         {
             pagingWrapper = pagingWrapper.withPager( PagingWrapper.Pager.builder()
-                .page( Optional.ofNullable( dimensionalItemCriteria.getPage() ).orElse( 1 ) )
-                .pageSize( dimensionalItemCriteria.getPageSize() )
-                .total( (long) filteredItems.size() )
+                .page( Optional.ofNullable( dimensionsCriteria.getPage() ).orElse( 1 ) )
+                .pageSize( dimensionsCriteria.getPageSize() )
+                .total( (long) filteredDimensions.size() )
                 .build() );
         }
 
         return pagingWrapper;
     }
 
-    private Stream<DimensionWrapper> filterStream(
-        Stream<DimensionWrapper> dimensionalItems,
-        DimensionalItemCriteria criteria )
+    private Stream<DimensionResponse> filterStream(
+        Stream<DimensionResponse> dimensions,
+        DimensionsCriteria criteria )
     {
-        DimensionalItemFilters dimensionalItemFilters = Optional.of( criteria )
-            .map( DimensionalItemCriteria::getFilter )
-            .map( DimensionalItemFilters::of )
-            .orElse( DimensionalItemFilters.EMPTY_DATA_DIMENSION_FILTER );
+        DimensionFilters dimensionFilters = Optional.of( criteria )
+            .map( DimensionsCriteria::getFilter )
+            .map( DimensionFilters::of )
+            .orElse( DimensionFilters.EMPTY_DATA_DIMENSION_FILTER );
 
-        return dimensionalItems.filter( dimensionalItemFilters );
+        return dimensions.filter( dimensionFilters );
     }
 
-    private Stream<DimensionWrapper> sortedAndPagedStream(
-        Stream<DimensionWrapper> dimensionalItems,
+    private Stream<DimensionResponse> sortedAndPagedStream(
+        Stream<DimensionResponse> dimensions,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
     {
-
         if ( Objects.nonNull( pagingAndSortingCriteria.getOrder() ) && !pagingAndSortingCriteria.getOrder().isEmpty() )
         {
 
             OrderCriteria orderCriteria = pagingAndSortingCriteria.getOrder().get( 0 );
 
-            Comparator<DimensionWrapper> comparator = ORDERING_MAP.keySet().stream()
+            Comparator<DimensionResponse> comparator = ORDERING_MAP.keySet().stream()
                 .filter( key -> key.equalsIgnoreCase( orderCriteria.getField() ) )
                 .map( ORDERING_MAP::get )
                 .findFirst()
                 .orElse( DEFAULT_COMPARATOR );
 
-            dimensionalItems = dimensionalItems.sorted( comparator );
+            dimensions = dimensions.sorted( comparator );
 
             if ( Objects.nonNull( orderCriteria.getDirection() ) && !orderCriteria.getDirection().isAscending() )
             {
-                dimensionalItems = dimensionalItems.sorted( comparator.reversed() );
+                dimensions = dimensions.sorted( comparator.reversed() );
             }
             else
             {
-                dimensionalItems = dimensionalItems.sorted( comparator );
+                dimensions = dimensions.sorted( comparator );
             }
-
         }
         else
         {
-            dimensionalItems = dimensionalItems.sorted( DEFAULT_COMPARATOR );
+            dimensions = dimensions.sorted( DEFAULT_COMPARATOR );
         }
 
         if ( pagingAndSortingCriteria.isPagingRequest() )
         {
-            dimensionalItems = dimensionalItems
+            dimensions = dimensions
                 .skip( pagingAndSortingCriteria.getFirstResult() )
                 .limit( pagingAndSortingCriteria.getPageSize() );
         }
-
-        return dimensionalItems;
+        return dimensions;
     }
 
 }

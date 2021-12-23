@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dataitem;
+package org.hisp.dhis.analytics.dimension;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,20 +44,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.analytics.event.DimensionWrapper;
-
-import com.google.common.collect.ImmutableMap;
-
 @Getter
 @NoArgsConstructor( access = AccessLevel.PRIVATE )
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DimensionalItemFilters implements Predicate<DimensionWrapper>
+public class DimensionFilters implements Predicate<DimensionResponse>
 {
 
-    public static final DimensionalItemFilters EMPTY_DATA_DIMENSION_FILTER = new DimensionalItemFilters()
+    public static final DimensionFilters EMPTY_DATA_DIMENSION_FILTER = new DimensionFilters()
     {
         @Override
-        public boolean test( DimensionWrapper dimensionalItem )
+        public boolean test( DimensionResponse dimensionResponse )
         {
             return true;
         }
@@ -65,7 +61,7 @@ public class DimensionalItemFilters implements Predicate<DimensionWrapper>
 
     private Collection<SingleFilter> filters;
 
-    public static DimensionalItemFilters of( String filterString )
+    public static DimensionFilters of( String filterString )
     {
         if ( Objects.isNull( filterString ) || filterString.trim().equals( "" ) )
         {
@@ -81,29 +77,29 @@ public class DimensionalItemFilters implements Predicate<DimensionWrapper>
         {
             return EMPTY_DATA_DIMENSION_FILTER;
         }
-        return new DimensionalItemFilters( filters );
+        return new DimensionFilters( filters );
     }
 
     @Override
-    public boolean test( DimensionWrapper dimensionalItem )
+    public boolean test( DimensionResponse dimensionResponse )
     {
-        return filters.stream().allMatch( filter -> filter.test( dimensionalItem ) );
+        return filters.stream().allMatch( filter -> filter.test( dimensionResponse ) );
     }
 
     @Getter
     @AllArgsConstructor( access = AccessLevel.PRIVATE )
-    private static class SingleFilter implements Predicate<DimensionWrapper>
+    private static class SingleFilter implements Predicate<DimensionResponse>
     {
-        private static final Map<String, Function<DimensionWrapper, ?>> FIELD_EXTRACTORS = ImmutableMap.of(
-            "name", DimensionWrapper::getName,
-            "dimensionType", DimensionWrapper::getDimensionType,
-            "displayName", DimensionWrapper::getDisplayName,
-            "displayShortName", DimensionWrapper::getDisplayShortName );
+        private static final Map<String, Function<DimensionResponse, ?>> FIELD_EXTRACTORS = Map.of(
+            "name", DimensionResponse::getName,
+            "dimensionType", DimensionResponse::getDimensionType,
+            "displayName", DimensionResponse::getDisplayName,
+            "displayShortName", DimensionResponse::getDisplayShortName );
 
-        private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP = ImmutableMap.of(
+        private static final Map<String, BiFunction<String, String, Boolean>> OPERATOR_MAP = Map.of(
             "eq", String::equalsIgnoreCase,
             "like", String::contains,
-            "ilike", ( fieldValue, value ) -> fieldValue.toLowerCase().contains( value.toLowerCase() ) );
+            "ilike", ( fv, v ) -> fv.toLowerCase().contains( v.toLowerCase() ) );
 
         private String field;
 
@@ -116,19 +112,24 @@ public class DimensionalItemFilters implements Predicate<DimensionWrapper>
             StringTokenizer filterTokenizer = new StringTokenizer( filter, ":" );
             if ( filterTokenizer.countTokens() == 3 )
             {
-                String field = filterTokenizer.nextToken();
-                String operator = filterTokenizer.nextToken();
-                String value = filterTokenizer.nextToken();
-                return new SingleFilter( field.trim(), operator.trim(), value.trim() );
+                String field = filterTokenizer.nextToken().trim();
+                String operator = filterTokenizer.nextToken().trim();
+                String value = filterTokenizer.nextToken().trim();
+
+                if ( FIELD_EXTRACTORS.containsKey( field ) && OPERATOR_MAP.containsKey( operator ) )
+                {
+                    return new SingleFilter( field, operator, value );
+                }
+                return null;
             }
             return null;
         }
 
         @Override
-        public boolean test( DimensionWrapper dimensionalItem )
+        public boolean test( DimensionResponse dimension )
         {
             return Optional.ofNullable( FIELD_EXTRACTORS.get( field ) )
-                .map( baseDimensionalItemObjectFunction -> baseDimensionalItemObjectFunction.apply( dimensionalItem ) )
+                .map( baseDimensionalItemObjectFunction -> baseDimensionalItemObjectFunction.apply( dimension ) )
                 .map( Object::toString )
                 .map( this::applyOperator )
                 .orElse( false );

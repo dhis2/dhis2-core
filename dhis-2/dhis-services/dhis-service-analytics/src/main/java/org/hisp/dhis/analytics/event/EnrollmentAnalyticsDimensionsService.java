@@ -25,20 +25,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer;
+package org.hisp.dhis.analytics.event;
 
 import java.util.List;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.analytics.event.data.DimensionsServiceCommon;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
-/**
- * Simple interface that provides checking capabilities on events.
- *
- * @author maikel arabori
- */
-public interface EventChecker
+public interface EnrollmentAnalyticsDimensionsService extends DimensionsServiceCommon
 {
-    List<ImportSummary> check( final WorkContext workContext, final List<Event> events );
+    List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programId );
+
+    List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programId );
 }

@@ -25,16 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.dimension.mappers;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.dimension.DimensionResponse;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.junit.Test;
 
-@Data
-@NoArgsConstructor
-public class DimensionalItemCriteria extends PagingAndSortingCriteriaAdapter
+import com.google.common.collect.ImmutableList;
+
+public class BaseDimensionalItemObjectMapperTest
 {
-    private String filter;
+
+    private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.INDICATOR;
+
+    @Test
+    public void testDimensionalItemObjectMapper()
+    {
+        asserter( new BaseDimensionalItemObjectMapper(),
+            BaseDimensionalItemObject::new,
+            ImmutableList.of( b -> b.setDimensionItemType( DIMENSION_ITEM_TYPE ) ),
+            ImmutableList.of( Pair.of( DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE ) ) );
+    }
 }
