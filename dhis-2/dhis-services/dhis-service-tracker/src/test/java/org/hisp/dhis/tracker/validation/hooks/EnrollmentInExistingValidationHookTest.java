@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1015;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1016;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,7 +41,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -183,9 +183,7 @@ class EnrollmentInExistingValidationHookTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
 
-        assertTrue( reporter.hasErrorReport( err -> E1015.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -203,9 +201,7 @@ class EnrollmentInExistingValidationHookTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
 
-        assertTrue( reporter.hasErrorReport( err -> E1016.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -228,9 +224,7 @@ class EnrollmentInExistingValidationHookTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
 
-        assertTrue( reporter.hasErrorReport( err -> E1015.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1015, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -247,9 +241,7 @@ class EnrollmentInExistingValidationHookTest
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
-        assertTrue( reporter.hasErrorReport( err -> E1016.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -277,11 +269,7 @@ class EnrollmentInExistingValidationHookTest
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
-
-        assertTrue( reporter.hasErrorReport( err -> E1016.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
-
+        hasTrackerError( reporter, E1016, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -308,7 +296,7 @@ class EnrollmentInExistingValidationHookTest
 
     private void setTeiInDb( ProgramStatus programStatus )
     {
-        when( preheat.getTrackedEntityToProgramInstanceMap() ).thenReturn( new HashMap<String, List<ProgramInstance>>()
+        when( preheat.getTrackedEntityToProgramInstanceMap() ).thenReturn( new HashMap<>()
         {
             {
                 ProgramInstance programInstance = new ProgramInstance();

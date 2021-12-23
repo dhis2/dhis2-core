@@ -42,6 +42,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4010;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4013;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4014;
 import static org.hisp.dhis.tracker.report.TrackerErrorReport.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -124,10 +125,7 @@ class RelationshipsValidationHookTest
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E4009.equals( err.getErrorCode() ) &&
-            RELATIONSHIP.equals( err.getTrackerType() ) &&
-            relationship.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E4009, RELATIONSHIP, relationship.getUid() );
     }
 
     @Test
@@ -190,10 +188,7 @@ class RelationshipsValidationHookTest
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E4013.equals( err.getErrorCode() ) &&
-            RELATIONSHIP.equals( err.getTrackerType() ) &&
-            relationship.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E4013, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), is(
             "Relationship Type `from` constraint is missing trackedEntity." ) );
     }
@@ -226,10 +221,7 @@ class RelationshipsValidationHookTest
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E4001.equals( err.getErrorCode() ) &&
-            RELATIONSHIP.equals( err.getTrackerType() ) &&
-            relationship.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E4001, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), is(
             "Relationship Item `to` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." ) );
     }
@@ -256,10 +248,7 @@ class RelationshipsValidationHookTest
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E4010.equals( err.getErrorCode() ) &&
-            RELATIONSHIP.equals( err.getTrackerType() ) &&
-            relationship.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship Type `to` constraint requires a trackedEntity but a enrollment was found." ) );
     }
@@ -286,10 +275,7 @@ class RelationshipsValidationHookTest
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E4010.equals( err.getErrorCode() ) &&
-            RELATIONSHIP.equals( err.getTrackerType() ) &&
-            relationship.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship Type `to` constraint requires a event but a enrollment was found." ) );
     }
@@ -316,10 +302,7 @@ class RelationshipsValidationHookTest
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E4010.equals( err.getErrorCode() ) &&
-            RELATIONSHIP.equals( err.getTrackerType() ) &&
-            relationship.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E4010, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship Type `from` constraint requires a enrollment but a event was found." ) );
     }
@@ -360,10 +343,7 @@ class RelationshipsValidationHookTest
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E4014.equals( err.getErrorCode() ) &&
-            RELATIONSHIP.equals( err.getTrackerType() ) &&
-            relationship.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship Type `to` constraint requires a Tracked Entity having type `"
                 + constraintTrackedEntityType.getUid() + "` but `" + teiTrackedEntityType.getUid() + "` was found." ) );
@@ -405,10 +385,7 @@ class RelationshipsValidationHookTest
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E4014.equals( err.getErrorCode() ) &&
-            RELATIONSHIP.equals( err.getTrackerType() ) &&
-            relationship.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E4014, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship Type `from` constraint requires a Tracked Entity having type `"
                 + constraintTrackedEntityType.getUid() + "` but `" + trackedEntity.getTrackedEntityType()
@@ -515,10 +492,7 @@ class RelationshipsValidationHookTest
         reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E4000.equals( err.getErrorCode() ) &&
-            RELATIONSHIP.equals( err.getTrackerType() ) &&
-            relationship.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E4000, RELATIONSHIP, relationship.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship: `" + relationship.getRelationship() + "` cannot link to itself" ) );
     }

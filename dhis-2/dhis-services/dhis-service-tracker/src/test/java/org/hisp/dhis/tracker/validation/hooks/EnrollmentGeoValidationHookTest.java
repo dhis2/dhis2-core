@@ -30,9 +30,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1074;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -128,10 +128,7 @@ class EnrollmentGeoValidationHookTest
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1074.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1074, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -153,10 +150,7 @@ class EnrollmentGeoValidationHookTest
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1012.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -178,9 +172,6 @@ class EnrollmentGeoValidationHookTest
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1012.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1012, ENROLLMENT, enrollment.getUid() );
     }
 }

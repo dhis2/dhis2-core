@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -151,10 +151,7 @@ class EnrollmentAttributeValidationHookTest
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertTrue(
-            reporter.hasErrorReport( err -> TrackerErrorCode.E1076.equals( err.getErrorCode() ) &&
-                TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
-                enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -208,14 +205,8 @@ class EnrollmentAttributeValidationHookTest
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 2 ) );
-        assertTrue(
-            reporter.hasErrorReport( err -> TrackerErrorCode.E1076.equals( err.getErrorCode() ) &&
-                TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
-                enrollment.getUid().equals( err.getUid() ) ) );
-        assertTrue(
-            reporter.hasErrorReport( err -> TrackerErrorCode.E1018.equals( err.getErrorCode() ) &&
-                TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
-                enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, TrackerErrorCode.E1076, TrackerType.ENROLLMENT, enrollment.getUid() );
+        hasTrackerError( reporter, TrackerErrorCode.E1018, TrackerType.ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -240,9 +231,9 @@ class EnrollmentAttributeValidationHookTest
         hookToTest.validateEnrollment( reporter, enrollment );
 
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertTrue(
-            reporter.hasErrorReport( err -> TrackerErrorCode.E1006.equals( err.getErrorCode() ) &&
-                TrackerType.ENROLLMENT.equals( err.getTrackerType() ) &&
-                enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter,
+            TrackerErrorCode.E1006,
+            TrackerType.ENROLLMENT,
+            enrollment.getUid() );
     }
 }

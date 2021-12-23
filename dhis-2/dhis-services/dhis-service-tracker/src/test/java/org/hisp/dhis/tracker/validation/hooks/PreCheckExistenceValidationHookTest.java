@@ -42,6 +42,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -186,10 +187,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1114.equals( err.getErrorCode() ) &&
-            TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            trackedEntity.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1114, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
@@ -207,10 +205,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1002.equals( err.getErrorCode() ) &&
-            TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            trackedEntity.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1002, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
@@ -228,10 +223,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1063.equals( err.getErrorCode() ) &&
-            TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            trackedEntity.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1063, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
@@ -297,10 +289,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1113.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1113, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -318,10 +307,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1080.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1080, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -339,10 +325,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1081.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1081, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -408,10 +391,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1082.equals( err.getErrorCode() ) &&
-            EVENT.equals( err.getTrackerType() ) &&
-            event.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1082, EVENT, event.getUid() );
     }
 
     @Test
@@ -429,10 +409,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1030.equals( err.getErrorCode() ) &&
-            EVENT.equals( err.getTrackerType() ) &&
-            event.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1030, EVENT, event.getUid() );
     }
 
     @Test
@@ -450,10 +427,7 @@ class PreCheckExistenceValidationHookTest
         validationHook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1032.equals( err.getErrorCode() ) &&
-            EVENT.equals( err.getTrackerType() ) &&
-            event.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1032, EVENT, event.getUid() );
     }
 
     @Test

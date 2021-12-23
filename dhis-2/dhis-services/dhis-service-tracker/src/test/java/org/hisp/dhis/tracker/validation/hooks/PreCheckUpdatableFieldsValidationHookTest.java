@@ -35,8 +35,8 @@ import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1126;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1127;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1128;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -132,10 +132,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1126.equals( err.getErrorCode() ) &&
-            TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            trackedEntity.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1126, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
@@ -164,10 +161,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1127.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "program" ) );
     }
 
@@ -183,10 +177,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1127.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "trackedEntity" ) );
     }
 
@@ -216,10 +207,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         validationHook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1128.equals( err.getErrorCode() ) &&
-            EVENT.equals( err.getTrackerType() ) &&
-            event.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "programStage" ) );
     }
 
@@ -235,10 +223,7 @@ class PreCheckUpdatableFieldsValidationHookTest
         validationHook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1128.equals( err.getErrorCode() ) &&
-            EVENT.equals( err.getTrackerType() ) &&
-            event.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1128, EVENT, event.getUid() );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), containsString( "enrollment" ) );
     }
 

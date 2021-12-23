@@ -32,8 +32,8 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1020;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1021;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1023;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1025;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
@@ -87,10 +87,7 @@ class EnrollmentDateValidationHookTest
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1025.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1025, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -110,13 +107,8 @@ class EnrollmentDateValidationHookTest
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1020.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
-        assertTrue( reporter.hasErrorReport( err -> E1021.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1020, ENROLLMENT, enrollment.getUid() );
+        hasTrackerError( reporter, E1021, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -177,10 +169,7 @@ class EnrollmentDateValidationHookTest
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertTrue( reporter.hasErrorReport( err -> E1023.equals( err.getErrorCode() ) &&
-            ENROLLMENT.equals( err.getTrackerType() ) &&
-            enrollment.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1023, ENROLLMENT, enrollment.getUid() );
     }
 
 }

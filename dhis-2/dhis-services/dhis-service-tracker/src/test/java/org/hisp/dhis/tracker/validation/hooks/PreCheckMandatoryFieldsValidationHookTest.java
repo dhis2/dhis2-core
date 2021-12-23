@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
 import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1008;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -251,9 +252,7 @@ class PreCheckMandatoryFieldsValidationHookTest
 
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertTrue( reporter.hasErrorReport( err -> E1008.equals( err.getErrorCode() ) &&
-            EVENT.equals( err.getTrackerType() ) &&
-            event.getUid().equals( err.getUid() ) ) );
+        hasTrackerError( reporter, E1008, EVENT, event.getUid() );
     }
 
     @Test
@@ -387,9 +386,7 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertTrue( reporter.hasErrorReport( err -> errorCode.equals( err.getErrorCode() ) &&
-            type.equals( err.getTrackerType() ) &&
-            uid.equals( err.getUid() ) ) );
+        hasTrackerError( reporter, errorCode, type, uid );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Missing required " + entity + " property: `" + property + "`." ) );
     }
