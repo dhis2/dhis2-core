@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1015;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1016;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -52,7 +51,6 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,6 +102,7 @@ class EnrollmentInExistingValidationHookTest
         when( enrollment.getTrackedEntity() ).thenReturn( trackedEntity );
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.ACTIVE );
         when( enrollment.getEnrollment() ).thenReturn( enrollmentUid );
+        when( enrollment.getUid() ).thenReturn( enrollmentUid );
 
         when( validationContext.getTrackedEntityInstance( trackedEntity ) ).thenReturn( trackedEntityInstance );
         when( trackedEntityInstance.getUid() ).thenReturn( trackedEntity );
@@ -115,7 +114,7 @@ class EnrollmentInExistingValidationHookTest
         program.setUid( programUid );
 
         when( validationContext.getProgram( programUid ) ).thenReturn( program );
-        reporter = new ValidationErrorReporter( validationContext );
+        reporter = new ValidationErrorReporter( validationContext, enrollment );
     }
 
     @Test
@@ -184,8 +183,9 @@ class EnrollmentInExistingValidationHookTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
 
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
+        assertTrue( reporter.hasErrorReport( err -> E1015.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -203,8 +203,9 @@ class EnrollmentInExistingValidationHookTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
 
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
+        assertTrue( reporter.hasErrorReport( err -> E1016.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -227,8 +228,9 @@ class EnrollmentInExistingValidationHookTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
 
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1015 ) ) ) );
+        assertTrue( reporter.hasErrorReport( err -> E1015.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -245,9 +247,9 @@ class EnrollmentInExistingValidationHookTest
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
-
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
+        assertTrue( reporter.hasErrorReport( err -> E1016.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -276,8 +278,9 @@ class EnrollmentInExistingValidationHookTest
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
 
-        assertThat( reporter.getReportList(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1016 ) ) ) );
+        assertTrue( reporter.hasErrorReport( err -> E1016.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
 
     }
 
