@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DefaultTrackerValidationServiceOrderTest extends DhisSpringTest
+class TrackerValidationOrderTest extends DhisSpringTest
 {
     @Autowired
     TrackerValidationService trackerValidationService;
