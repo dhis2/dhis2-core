@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
 
@@ -107,9 +108,9 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional( readOnly = true )
-    public List<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query )
+    public Stream<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query )
     {
-        return readProtectedIn( query.getNamespace(), emptyList(),
+        return readProtectedIn( query.getNamespace(), Stream.empty(),
             () -> store.getEntries( query ) );
     }
 

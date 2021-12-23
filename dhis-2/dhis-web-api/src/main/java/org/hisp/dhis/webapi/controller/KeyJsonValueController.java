@@ -34,9 +34,13 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -64,8 +68,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Stian Sandvold
  */
@@ -76,9 +78,6 @@ public class KeyJsonValueController
 {
     @Autowired
     private KeyJsonValueService service;
-
-    @Autowired
-    private ObjectMapper jsonMapper;
 
     /**
      * Returns a JSON array of strings representing the different namespaces
@@ -128,45 +127,7 @@ public class KeyJsonValueController
             .includeAll( includeAll )
             .build();
 
-        List<KeyJsonValueEntry> entries = service.getEntries( query );
-
-        writeEntriesAsJson( query, entries, response );
-    }
-
-    private static void writeEntriesAsJson( KeyJsonValueQuery query, List<KeyJsonValueEntry> entries,
-        HttpServletResponse response )
-        throws IOException
-    {
-        try ( ServletOutputStream out = response.getOutputStream() )
-        {
-            boolean first = true;
-            out.print( '[' );
-            for ( KeyJsonValueEntry entry : entries )
-            {
-                if ( !first )
-                    out.print( ',' );
-                first = false;
-                out.print( '{' );
-                out.print( "\"key\":\"" );
-                out.print( entry.getKey() );
-                out.print( '"' );
-                out.print( ',' );
-
-                Iterator<Field> fieldIter = query.getFields().iterator();
-                for ( String value : entry.getValues() )
-                {
-                    out.print( '"' );
-                    out.print( fieldIter.next().getAlias() );
-                    out.print( '"' );
-                    out.print( ':' );
-                    out.print( value );
-                    if ( fieldIter.hasNext() )
-                        out.print( ',' );
-                }
-                out.print( '}' );
-            }
-            out.print( ']' );
-        }
+        writeEntriesAsJson( query, service.getEntries( query ), response );
     }
 
     /**
@@ -280,5 +241,47 @@ public class KeyJsonValueController
         }
 
         return entry;
+    }
+
+    private static void writeEntriesAsJson( KeyJsonValueQuery query, Stream<KeyJsonValueEntry> entries,
+        HttpServletResponse response )
+        throws IOException
+    {
+        try ( ServletOutputStream out = response.getOutputStream() )
+        {
+            Consumer<String> write = str -> {
+                try
+                {
+                    out.print( str );
+                }
+                catch ( IOException ex )
+                {
+                    throw new UncheckedIOException( ex );
+                }
+            };
+            AtomicBoolean first = new AtomicBoolean( true );
+            write.accept( "[" );
+            entries.forEachOrdered( entry -> {
+                if ( !first.compareAndSet( true, false ) )
+                    write.accept( "," );
+                write.accept( "{" );
+                write.accept( "\"key\":\"" );
+                write.accept( entry.getKey() );
+                write.accept( "\"," );
+
+                Iterator<Field> fieldIter = query.getFields().iterator();
+                for ( String value : entry.getValues() )
+                {
+                    write.accept( "\"" );
+                    write.accept( fieldIter.next().getAlias() );
+                    write.accept( "\":" );
+                    write.accept( value );
+                    if ( fieldIter.hasNext() )
+                        write.accept( "," );
+                }
+                write.accept( "}" );
+            } );
+            write.accept( "]" );
+        }
     }
 }

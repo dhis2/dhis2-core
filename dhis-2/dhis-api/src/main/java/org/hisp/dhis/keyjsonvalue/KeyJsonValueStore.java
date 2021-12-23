@@ -29,6 +29,7 @@ package org.hisp.dhis.keyjsonvalue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
@@ -73,7 +74,7 @@ public interface KeyJsonValueStore
      */
     List<KeyJsonValue> getKeyJsonValueByNamespace( String namespace );
 
-    List<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query );
+    Stream<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query );
 
     /**
      * Retrieves a KeyJsonValue based on the associated key and namespace

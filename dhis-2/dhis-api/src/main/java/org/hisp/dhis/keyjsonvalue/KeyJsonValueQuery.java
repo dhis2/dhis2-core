@@ -33,7 +33,6 @@ import static java.util.Collections.emptyList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
@@ -121,15 +120,6 @@ public final class KeyJsonValueQuery
         final int len = fields.length();
         String parentPath = "";
         int start = 0;
-        BiConsumer<String, String> addField = ( parent, field ) -> {
-            if ( !field.isEmpty() )
-            {
-                int aliasStart = field.indexOf( '(' );
-                String name = aliasStart > 0 ? field.substring( 0, aliasStart ) : field;
-                String alias = aliasStart > 0 ? field.substring( aliasStart + 1, field.length() - 1 ) : null;
-                flat.add( new Field( parent + name, alias ) );
-            }
-        };
         while ( start < len )
         {
             int end = findNameEnd( fields, start );
@@ -137,13 +127,13 @@ public final class KeyJsonValueQuery
             start = end + 1;
             if ( end >= len )
             {
-                addField.accept( parentPath, field );
+                addNonEmptyTo( flat, parentPath, field );
                 return flat;
             }
             char next = fields.charAt( end );
             if ( next == ',' )
             {
-                addField.accept( parentPath, field );
+                addNonEmptyTo( flat, parentPath, field );
             }
             else if ( next == '[' )
             {
@@ -151,7 +141,7 @@ public final class KeyJsonValueQuery
             }
             else if ( next == ']' )
             {
-                addField.accept( parentPath, field );
+                addNonEmptyTo( flat, parentPath, field );
                 parentPath = parentPath.substring( 0, parentPath.lastIndexOf( '.', parentPath.length() - 2 ) + 1 );
             }
             else
@@ -162,6 +152,17 @@ public final class KeyJsonValueQuery
             }
         }
         return flat;
+    }
+
+    private static void addNonEmptyTo( List<Field> fields, String parent, String field )
+    {
+        if ( !field.isEmpty() )
+        {
+            int aliasStart = field.indexOf( '(' );
+            String name = aliasStart > 0 ? field.substring( 0, aliasStart ) : field;
+            String alias = aliasStart > 0 ? field.substring( aliasStart + 1, field.length() - 1 ) : null;
+            fields.add( new Field( parent + name, alias ) );
+        }
     }
 
     private static int findNameEnd( String fields, int start )
@@ -176,7 +177,7 @@ public final class KeyJsonValueQuery
 
     private static int findAliasEnd( String fields, int start )
     {
-        if ( fields.charAt( start ) != '(' )
+        if ( start >= fields.length() || fields.charAt( start ) != '(' )
         {
             return start;
         }

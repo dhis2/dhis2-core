@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.keyjsonvalue;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -42,6 +43,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @ToString( onlyExplicitlyIncluded = true )
+@EqualsAndHashCode( onlyExplicitlyIncluded = true, callSuper = true )
 @NoArgsConstructor
 public class KeyJsonValue extends BaseIdentifiableObject
 {
@@ -50,6 +52,7 @@ public class KeyJsonValue extends BaseIdentifiableObject
      */
     @JsonProperty
     @ToString.Include
+    @EqualsAndHashCode.Include
     private String namespace;
 
     /**
@@ -57,6 +60,7 @@ public class KeyJsonValue extends BaseIdentifiableObject
      */
     @JsonProperty
     @ToString.Include
+    @EqualsAndHashCode.Include
     private String key;
 
     /**
@@ -80,8 +84,6 @@ public class KeyJsonValue extends BaseIdentifiableObject
      * made into the correct type when being persisted by the persistence layer
      * (encrypted or plain).
      */
-    @JsonProperty
-    @ToString.Include
     private String value;
 
     public KeyJsonValue( String namespace, String key )
@@ -97,6 +99,9 @@ public class KeyJsonValue extends BaseIdentifiableObject
         this.encrypted = encrypted;
     }
 
+    @JsonProperty
+    @ToString.Include
+    @EqualsAndHashCode.Include
     public String getValue()
     {
         return encrypted ? getEncryptedValue() : getJbPlainValue();

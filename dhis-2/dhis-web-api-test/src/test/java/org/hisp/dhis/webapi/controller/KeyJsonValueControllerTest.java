@@ -319,7 +319,9 @@ class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED,
             POST( "/dataStore/pets/cat", "{\"a\":42,\"b\":\"hello\",\"c\":{},\"d\":[1,2]}" ) );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "false" ) );
-        System.out.println( GET( "/dataStore/pets?fields=a,b,c,d[0(haha)]" ).content() );
+
+        assertEquals( "[{\"key\":\"cat\",\"a\":42,\"b\":\"hello\",\"c\":{},\"haha\":1}]",
+            GET( "/dataStore/pets?fields=a,b,c,d[0(haha)]" ).content().toString() );
     }
 
     @Test

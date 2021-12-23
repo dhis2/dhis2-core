@@ -29,6 +29,7 @@ package org.hisp.dhis.keyjsonvalue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
 import org.springframework.security.access.AccessDeniedException;
@@ -84,7 +85,7 @@ public interface KeyJsonValueService
      */
     List<String> getKeysInNamespace( String namespace, Date lastUpdated );
 
-    List<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query );
+    Stream<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query );
 
     /**
      * Retrieves a KeyJsonValue based on a namespace and key.

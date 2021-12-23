@@ -31,10 +31,10 @@ import static java.util.Arrays.asList;
 import static java.util.Arrays.copyOfRange;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.persistence.criteria.CriteriaBuilder;
 
@@ -112,7 +112,7 @@ public class HibernateKeyJsonValueStore
     }
 
     @Override
-    public List<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query )
+    public Stream<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query )
     {
         List<String> fieldExtracts = query.getFields().stream()
             .map( f -> "jsonb_extract_path(jbvalue, " + f.getPathSegments() + " )" ).collect( toList() );
@@ -124,10 +124,9 @@ public class HibernateKeyJsonValueStore
 
         return getSession().createQuery( hql, Object[].class )
             .setParameter( "namespace", query.getNamespace() )
-            .list().stream()
+            .stream()
             .map( row -> new KeyJsonValueEntry( (String) row[0],
-                asList( copyOfRange( row, 1, row.length, String[].class ) ) ) )
-            .collect( toUnmodifiableList() );
+                asList( copyOfRange( row, 1, row.length, String[].class ) ) ) );
     }
 
     @Override
