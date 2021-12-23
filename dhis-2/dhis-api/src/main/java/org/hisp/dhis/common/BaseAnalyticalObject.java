@@ -132,8 +132,6 @@ public abstract class BaseAnalyticalObject
 
     protected List<Period> periods = new ArrayList<>();
 
-    protected List<EventRepetition> eventRepetitions;
-
     private Date startDate;
 
     private Date endDate;
@@ -543,20 +541,45 @@ public abstract class BaseAnalyticalObject
     protected DimensionalObject getDimensionalObject( final EventAnalyticalObject eventAnalyticalObject,
         final String dimension, final Attribute parent )
     {
-        final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( dimension );
+        final Optional<DimensionalObject> optionalDimensionalObject = getDimensionalObject( dimension );
 
-        if ( dimensionalObject.isPresent() )
+        if ( optionalDimensionalObject.isPresent() )
         {
-            return dimensionalObject.get();
+            return linkAssociations( eventAnalyticalObject, optionalDimensionalObject.get(), parent );
         }
         else if ( Type.contains( dimension ) )
         {
-            return new SimpleDimensionHandler( eventAnalyticalObject ).getDimensionalObject( dimension, parent );
+            final DimensionalObject dimensionalObject = new SimpleDimensionHandler( eventAnalyticalObject )
+                .getDimensionalObject( dimension, parent );
+
+            return linkAssociations( eventAnalyticalObject, dimensionalObject, parent );
         }
         else
         {
             throw new IllegalArgumentException( format( NOT_A_VALID_DIMENSION, dimension ) );
         }
+    }
+
+    private DimensionalObject linkAssociations( final EventAnalyticalObject eventAnalyticalObject,
+        final DimensionalObject dimensionalObject, final Attribute parent )
+    {
+        // Associate event repetitions
+        final List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
+
+        if ( isNotEmpty( repetitions ) )
+        {
+            for ( final EventRepetition eventRepetition : repetitions )
+            {
+                if ( eventRepetition.getDimension() != null
+                    && eventRepetition.getDimension().equals( dimensionalObject.getDimension() )
+                    && parent == eventRepetition.getParent() )
+                {
+                    ((BaseDimensionalObject) dimensionalObject).setEventRepetition( eventRepetition );
+                }
+            }
+        }
+
+        return dimensionalObject;
     }
 
     /**
@@ -932,19 +955,6 @@ public abstract class BaseAnalyticalObject
     public void setPeriods( List<Period> periods )
     {
         this.periods = periods;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "repetitions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "repetition", namespace = DxfNamespaces.DXF_2_0 )
-    public List<EventRepetition> getEventRepetitions()
-    {
-        return eventRepetitions;
-    }
-
-    public void setEventRepetitions( final List<EventRepetition> eventRepetitions )
-    {
-        this.eventRepetitions = eventRepetitions;
     }
 
     @JsonProperty

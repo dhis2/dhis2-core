@@ -33,7 +33,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.validation.constraints.NotNull;
+
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -47,10 +51,25 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  *
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class EventRepetition implements Serializable
 {
+    /**
+     * The attribute which the event repetition belongs to.
+     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
+    private Attribute parent;
 
-    private String attribute;
+    /**
+     * The dimension associated with the event repedition.
+     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
+    private String dimension;
 
     /**
      * Represents the list of event indexes to be queried. It holds a list of
@@ -70,5 +89,6 @@ public class EventRepetition implements Serializable
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private final List<Integer> indexes = new ArrayList<>();
+    @NotNull
+    private List<Integer> indexes = new ArrayList<>();
 }

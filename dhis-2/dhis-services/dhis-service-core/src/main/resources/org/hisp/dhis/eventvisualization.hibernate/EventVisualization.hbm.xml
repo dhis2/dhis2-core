@@ -187,8 +187,6 @@
             <element type="string" column="dimension"/>
         </list>
 
-        <property name="simpleDimensions" type="jblSimpleEventDimensions"/>
-
         <property name="showData"/>
 
         <property name="hideEmptyRowItems" length="40">
@@ -284,7 +282,9 @@
 
         <property name="subscribers" type="jbSet"/>
 
-        <property name="eventRepetition" type="jblEventRepetition"/>
+        <property name="simpleDimensions" type="jblSimpleEventDimensions"/>
+
+        <property name="eventRepetitions" type="jblEventRepetition"/>
 
         <!-- Dynamic attribute values -->
         <property name="attributeValues" type="jsbAttributeValues"/>
