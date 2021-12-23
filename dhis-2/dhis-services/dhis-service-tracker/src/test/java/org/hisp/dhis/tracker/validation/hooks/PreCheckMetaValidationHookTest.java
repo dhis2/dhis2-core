@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1010;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
@@ -132,7 +134,9 @@ class PreCheckMetaValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1049 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1049.equals( err.getErrorCode() ) &&
+            TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            tei.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -150,7 +154,9 @@ class PreCheckMetaValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1005 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1005.equals( err.getErrorCode() ) &&
+            TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            tei.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -208,7 +214,9 @@ class PreCheckMetaValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1070 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1070.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -227,7 +235,9 @@ class PreCheckMetaValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1068 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1068.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -246,7 +256,9 @@ class PreCheckMetaValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1069 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1069.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -284,7 +296,9 @@ class PreCheckMetaValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1010 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1010.equals( err.getErrorCode() ) &&
+            EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -303,7 +317,9 @@ class PreCheckMetaValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1013 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1013.equals( err.getErrorCode() ) &&
+            EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -322,7 +338,9 @@ class PreCheckMetaValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1011 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1011.equals( err.getErrorCode() ) &&
+            EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -355,7 +373,9 @@ class PreCheckMetaValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E4006 ) );
+        assertTrue( reporter.hasErrorReport( err -> E4006.equals( err.getErrorCode() ) &&
+            RELATIONSHIP.equals( err.getTrackerType() ) &&
+            relationship.getUid().equals( err.getUid() ) ) );
     }
 
     private TrackedEntity validTei()

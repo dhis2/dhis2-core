@@ -30,6 +30,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1032;
@@ -184,7 +187,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1114 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1114.equals( err.getErrorCode() ) &&
+            TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            trackedEntity.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -203,7 +208,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1002 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1002.equals( err.getErrorCode() ) &&
+            TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            trackedEntity.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -222,7 +229,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1063 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1063.equals( err.getErrorCode() ) &&
+            TRACKED_ENTITY.equals( err.getTrackerType() ) &&
+            trackedEntity.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -289,7 +298,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1113 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1113.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -308,7 +319,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1080 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1080.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -327,7 +340,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1081 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1081.equals( err.getErrorCode() ) &&
+            ENROLLMENT.equals( err.getTrackerType() ) &&
+            enrollment.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -394,7 +409,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1082 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1082.equals( err.getErrorCode() ) &&
+            EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -413,7 +430,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1030 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1030.equals( err.getErrorCode() ) &&
+            EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -432,7 +451,9 @@ class PreCheckExistenceValidationHookTest
 
         // then
         assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1032 ) );
+        assertTrue( reporter.hasErrorReport( err -> E1032.equals( err.getErrorCode() ) &&
+            EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
     }
 
     @Test

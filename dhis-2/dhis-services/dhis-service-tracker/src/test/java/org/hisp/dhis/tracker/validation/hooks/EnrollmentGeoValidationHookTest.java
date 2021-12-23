@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -114,6 +115,7 @@ class EnrollmentGeoValidationHookTest
     {
         // given
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
@@ -137,6 +139,7 @@ class EnrollmentGeoValidationHookTest
     {
         // given
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
@@ -161,6 +164,7 @@ class EnrollmentGeoValidationHookTest
     {
         // given
         Enrollment enrollment = new Enrollment();
+        enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setProgram( PROGRAM );
         enrollment.setGeometry( new GeometryFactory().createPoint() );
 
