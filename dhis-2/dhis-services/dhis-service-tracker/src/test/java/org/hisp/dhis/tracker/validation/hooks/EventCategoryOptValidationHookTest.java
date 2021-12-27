@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
 import static org.hisp.dhis.tracker.ValidationMode.FULL;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1055;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -45,13 +47,13 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
@@ -136,6 +138,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         program.setCategoryCombo( catCombo );
 
         event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( program.getUid() );
         event.setOccurredAt( EVENT_INSTANT );
 
@@ -186,8 +189,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1055 ) );
+        hasTrackerError( reporter, E1055, EVENT, event.getUid() );
     }
 
     @Test
@@ -233,8 +235,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1056 ) );
+        hasTrackerError( reporter, E1056, EVENT, event.getUid() );
     }
 
     @Test
@@ -250,8 +251,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         hook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1057 ) );
+        hasTrackerError( reporter, E1057, EVENT, event.getUid() );
     }
 
     @Test
