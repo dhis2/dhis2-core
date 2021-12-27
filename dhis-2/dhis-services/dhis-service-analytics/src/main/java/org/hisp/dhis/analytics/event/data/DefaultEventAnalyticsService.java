@@ -589,6 +589,8 @@ public class DefaultEventAnalyticsService
             }
         }
 
+        maybeApplyIdScheme( params, grid );
+
         // ---------------------------------------------------------------------
         // Meta-data
         // ---------------------------------------------------------------------
