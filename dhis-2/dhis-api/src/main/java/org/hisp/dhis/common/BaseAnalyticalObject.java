@@ -560,10 +560,21 @@ public abstract class BaseAnalyticalObject
         }
     }
 
+    /**
+     * This method links existing associations between objects. This is mainly
+     * needed in cases where attributes need to be programmatically associated
+     * to fulfill client requirements.
+     *
+     * @param eventAnalyticalObject the source object
+     * @param dimensionalObject where the associations will happen
+     * @param parent the parent attribute, where the association object should
+     *        be appended to
+     * @return the dimensional object containing the correct associations.
+     */
     private DimensionalObject linkAssociations( final EventAnalyticalObject eventAnalyticalObject,
         final DimensionalObject dimensionalObject, final Attribute parent )
     {
-        // Associate event repetitions
+        // Associating event repetitions.
         final List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
 
         if ( isNotEmpty( repetitions ) )
