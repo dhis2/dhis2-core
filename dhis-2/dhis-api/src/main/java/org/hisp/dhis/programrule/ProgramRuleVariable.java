@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -100,6 +101,11 @@ public class ProgramRuleVariable
      * from. Only used for source type dataelement_newest_event_program_stage
      */
     private ProgramStage programStage;
+
+    /**
+     * Specify ValueType for CALCULATED_VALUE ProgramRuleVariable
+     */
+    private ValueType valueType;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -205,5 +211,17 @@ public class ProgramRuleVariable
     public void setSourceType( ProgramRuleVariableSourceType sourceType )
     {
         this.sourceType = sourceType;
+    }
+
+    @JsonProperty( "valueType" )
+    @JacksonXmlProperty( localName = "valueType", namespace = DxfNamespaces.DXF_2_0 )
+    public ValueType getValueType()
+    {
+        return valueType;
+    }
+
+    public void setValueType( ValueType valueType )
+    {
+        this.valueType = valueType;
     }
 }
