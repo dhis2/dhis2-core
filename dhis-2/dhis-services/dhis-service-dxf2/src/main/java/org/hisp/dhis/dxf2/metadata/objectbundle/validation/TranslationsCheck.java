@@ -75,15 +75,15 @@ public class TranslationsCheck implements ObjectValidationCheck
             return;
         }
 
-        Map<String, String> mapProperties = new HashMap<>();
+        Map<String, String> mapPropertyLocale = new HashMap<>();
         int index = 0;
 
         for ( Translation translation : translations )
         {
             ObjectReport objectReport = new ObjectReport( klass, index++ );
 
-            if ( mapProperties.containsKey( translation.getProperty() )
-                && mapProperties.get( translation.getProperty() ).equals( translation.getLocale() ) )
+            if ( mapPropertyLocale.containsKey( translation.getProperty() )
+                && mapPropertyLocale.get( translation.getProperty() ).equals( translation.getLocale() ) )
             {
                 objectReport.addErrorReport(
                     new ErrorReport( Translation.class, ErrorCode.E1106, translation.getProperty(),
@@ -92,7 +92,7 @@ public class TranslationsCheck implements ObjectValidationCheck
             }
             else
             {
-                mapProperties.put( translation.getProperty(), translation.getLocale() );
+                mapPropertyLocale.put( translation.getProperty(), translation.getLocale() );
             }
 
             if ( translation.getLocale() == null )
