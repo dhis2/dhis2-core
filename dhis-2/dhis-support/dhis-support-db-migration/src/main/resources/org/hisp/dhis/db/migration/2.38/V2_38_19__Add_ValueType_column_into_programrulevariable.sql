@@ -3,5 +3,5 @@
 
 
 alter table programrulevariable add column if not exists "valuetype" character varying(50);
-update table programrulevariable set valuetype = 'TEXT' where valuetype is null;
+update programrulevariable set valuetype = 'TEXT' where valuetype is null;
 
