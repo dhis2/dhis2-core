@@ -38,13 +38,13 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.dataitem.DimensionalItemFilteringAndPagingService;
-import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
+import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
+import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DimensionalItemCriteria;
+import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
@@ -81,10 +81,10 @@ public class EventAnalyticsController
     private final ContextUtils contextUtils;
 
     @NonNull
-    private final DimensionalItemFilteringAndPagingService dimensionalItemFilteringAndPagingService;
+    private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
     @NonNull
-    private final EventAnalyticsDimensionalItemService eventAnalyticsDimensionalItemService;
+    private final EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
     // -------------------------------------------------------------------------
     // Aggregate
@@ -172,15 +172,14 @@ public class EventAnalyticsController
     public @ResponseBody PagingWrapper<ObjectNode> getAggregateDimensions(
         @RequestParam String programStageId,
         @RequestParam( defaultValue = "*" ) List<String> fields,
-        DimensionalItemCriteria dimensionalItemCriteria,
+        DimensionsCriteria dimensionsCriteria,
         HttpServletResponse response )
     {
         configResponseForJson( response );
-        return dimensionalItemFilteringAndPagingService
+        return dimensionFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionalItemService.getAggregateDimensionalItemsByProgramStageId( programStageId )
-                    .getDimensionalItems(),
-                dimensionalItemCriteria,
+                eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId ),
+                dimensionsCriteria,
                 fields );
     }
 
@@ -259,7 +258,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toXml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_XML,
-            "events.xml", response ), response.getOutputStream() );
+            "events.xml", false, response ), response.getOutputStream() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.xls" )
@@ -271,7 +270,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toXls( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL,
-            "events.xls", response ), response.getOutputStream() );
+            "events.xls", true, response ), response.getOutputStream() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.csv" )
@@ -283,7 +282,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toCsv( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
-            "events.csv", response ), response.getWriter() );
+            "events.csv", true, response ), response.getWriter() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.html" )
@@ -295,7 +294,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toHtml( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
-            "events.html", response ), response.getWriter() );
+            "events.html", false, response ), response.getWriter() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/{program}.html+css" )
@@ -307,7 +306,7 @@ public class EventAnalyticsController
         throws Exception
     {
         GridUtils.toHtmlCss( getListGridWithAttachment( criteria, program, apiVersion, ContextUtils.CONTENT_TYPE_HTML,
-            "events.html", response ), response.getWriter() );
+            "events.html", false, response ), response.getWriter() );
     }
 
     @GetMapping( value = RESOURCE_PATH + "/query/dimensions", produces = { APPLICATION_JSON_VALUE,
@@ -315,15 +314,14 @@ public class EventAnalyticsController
     public @ResponseBody PagingWrapper<ObjectNode> getQueryDimensions(
         @RequestParam String programStageId,
         @RequestParam( defaultValue = "*" ) List<String> fields,
-        DimensionalItemCriteria dimensionalItemCriteria,
+        DimensionsCriteria dimensionsCriteria,
         HttpServletResponse response )
     {
         configResponseForJson( response );
-        return dimensionalItemFilteringAndPagingService
+        return dimensionFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionalItemService.getQueryDimensionalItemsByProgramStageId( programStageId )
-                    .getDimensionalItems(),
-                dimensionalItemCriteria,
+                eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId ),
+                dimensionsCriteria,
                 fields );
     }
 
@@ -343,12 +341,12 @@ public class EventAnalyticsController
 
     private Grid getListGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,
         DhisApiVersion apiVersion,
-        String contentType, String file,
+        String contentType, String file, boolean attachment,
         HttpServletResponse response )
     {
         EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
 
-        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, false );
+        contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, attachment );
         return analyticsService.getEvents( params );
     }
 

@@ -29,8 +29,10 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -43,28 +45,30 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
  */
-public class RepeatedEventsValidationHookTest
-    extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class RepeatedEventsValidationHookTest extends DhisConvenienceTest
 {
+
     private final static String NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION = "NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";
 
     private final static String REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION = "REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION";
@@ -77,9 +81,6 @@ public class RepeatedEventsValidationHookTest
 
     private final static String ENROLLMENT_B = "ENROLLMENT_B";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private RepeatedEventsValidationHook validatorToTest;
 
     private TrackerImportValidationContext ctx;
@@ -89,7 +90,7 @@ public class RepeatedEventsValidationHookTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         validatorToTest = new RepeatedEventsValidationHook();
@@ -109,7 +110,7 @@ public class RepeatedEventsValidationHookTest
     }
 
     @Test
-    public void testSingleEventIsPassingValidation()
+    void testSingleEventIsPassingValidation()
     {
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ) );
         bundle.setEvents( events );
@@ -121,7 +122,7 @@ public class RepeatedEventsValidationHookTest
     }
 
     @Test
-    public void testOneEventInNotRepeatableProgramStageAndOneAlreadyOnDBAreNotPassingValidation()
+    void testOneEventInNotRepeatableProgramStageAndOneAlreadyOnDBAreNotPassingValidation()
     {
         // given
         Event event = notRepeatableEvent( "A" );
@@ -139,14 +140,16 @@ public class RepeatedEventsValidationHookTest
 
         // then
         assertEquals( 1, errorReporter.getReportList().size() );
-        assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertTrue( errorReporter.hasErrorReport( err -> E1039.equals( err.getErrorCode() ) &&
+            EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
     }
 
     @Test
-    public void testTwoEventInNotRepeatableProgramStageAreNotPassingValidation()
+    void testTwoEventInNotRepeatableProgramStageAreNotPassingValidation()
     {
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ), notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
@@ -156,17 +159,21 @@ public class RepeatedEventsValidationHookTest
 
         assertEquals( 2, errorReporter.getReportList().size() );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertThat( errorReporter.getReportList().get( 0 ).getTrackerType(), is( EVENT ) );
+        assertThat( errorReporter.getReportList().get( 0 ).getUid(), is( events.get( 0 ).getUid() ) );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
         assertThat( errorReporter.getReportList().get( 1 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertThat( errorReporter.getReportList().get( 1 ).getTrackerType(), is( EVENT ) );
+        assertThat( errorReporter.getReportList().get( 1 ).getUid(), is( events.get( 1 ).getUid() ) );
         assertThat( errorReporter.getReportList().get( 1 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
     }
 
     @Test
-    public void testTwoEventInRepeatableProgramStageArePassingValidation()
+    void testTwoEventInRepeatableProgramStageArePassingValidation()
     {
         List<Event> events = Lists.newArrayList( repeatableEvent( "A" ), repeatableEvent( "B" ) );
         bundle.setEvents( events );
@@ -178,11 +185,11 @@ public class RepeatedEventsValidationHookTest
     }
 
     @Test
-    public void testTwoEventsInNotRepeatableProgramStageWhenOneIsInvalidArePassingValidation()
+    void testTwoEventsInNotRepeatableProgramStageWhenOneIsInvalidArePassingValidation()
     {
         Event invalidEvent = notRepeatableEvent( "A" );
         List<Event> events = Lists.newArrayList( invalidEvent, notRepeatableEvent( "B" ) );
-        ctx.getRootReporter().getInvalidDTOs().put( TrackerType.EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
+        ctx.getRootReporter().getInvalidDTOs().put( EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
 
@@ -192,7 +199,7 @@ public class RepeatedEventsValidationHookTest
     }
 
     @Test
-    public void testTwoEventsInNotRepeatableProgramStageButInDifferentEnrollmentsArePassingValidation()
+    void testTwoEventsInNotRepeatableProgramStageButInDifferentEnrollmentsArePassingValidation()
     {
         Event eventEnrollmentA = notRepeatableEvent( "A" );
         Event eventEnrollmentB = notRepeatableEvent( "B" );
@@ -207,7 +214,7 @@ public class RepeatedEventsValidationHookTest
     }
 
     @Test
-    public void testTwoProgramEventsInSameProgramStageArePassingValidation()
+    void testTwoProgramEventsInSameProgramStageArePassingValidation()
     {
         Event eventProgramA = programEvent( "A" );
         Event eventProgramB = programEvent( "B" );

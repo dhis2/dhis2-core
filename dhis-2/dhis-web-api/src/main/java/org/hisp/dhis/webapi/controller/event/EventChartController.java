@@ -34,6 +34,7 @@ import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABL
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -169,6 +170,23 @@ public class EventChartController
     // --------------------------------------------------------------------------
     // Hooks
     // --------------------------------------------------------------------------
+
+    /**
+     * @deprecated This is a temporary workaround to keep EventChart backward
+     *             compatible with the new EventVisualization entity. Only
+     *             legacy and chart related types can be returned by this
+     *             endpoint.
+     *
+     * @param filters
+     */
+    @Deprecated
+    @Override
+    protected void forceFiltering( final List<String> filters )
+    {
+        filters.add( "type:!eq:PIVOT_TABLE" );
+        filters.add( "type:!eq:LINE_LIST" );
+        filters.add( "legacy:eq:true" );
+    }
 
     @Override
     protected void postProcessResponseEntity( EventChart eventChart, WebOptions options,

@@ -35,6 +35,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
@@ -42,6 +43,7 @@ import org.hisp.dhis.tracker.domain.mapper.TrackedEntityMapper;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
 import org.mapstruct.factory.Mappers;
@@ -53,6 +55,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackerTrackedEntitiesExportController.TRACKED_ENTITIES )
+@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
 public class TrackerTrackedEntitiesExportController
 {

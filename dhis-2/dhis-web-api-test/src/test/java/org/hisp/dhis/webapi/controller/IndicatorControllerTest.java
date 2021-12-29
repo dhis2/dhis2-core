@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -38,17 +38,18 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class IndicatorControllerTest extends DhisControllerConvenienceTest
+class IndicatorControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testGetExpressionDescription()
+    void testGetExpressionDescription()
     {
         assertWebMessage( "OK", 200, "OK", "Valid",
             POST( "/indicators/expression/description", "70" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testGetExpressionDescription_MalformedExpression()
+    void testGetExpressionDescription_MalformedExpression()
     {
         assertWebMessage( "OK", 200, "ERROR", "Expression is not well-formed",
             POST( "/indicators/expression/description", "illegal" ).content( HttpStatus.OK ) );

@@ -29,28 +29,28 @@ package org.hisp.dhis.node.types;
 
 import org.hisp.dhis.node.AbstractNodeTest;
 import org.hisp.dhis.schema.Property;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link SimpleNode}.
  *
  * @author Volker Schmidt
  */
-public class SimpleNodeTest
+class SimpleNodeTest
 {
+
     @Test
-    public void createWithProperty()
+    void createWithProperty()
     {
         final Property property = new Property( AbstractNodeTest.TestClass.class );
         property.setName( "test" );
         property.setNamespace( "testUri" );
         property.setAttribute( true );
-
         final SimpleNode simpleNode = new SimpleNode( "id", property, "My Test" );
-        Assert.assertEquals( "id", simpleNode.getName() );
-        Assert.assertEquals( "testUri", simpleNode.getNamespace() );
-        Assert.assertTrue( simpleNode.isAttribute() );
-        Assert.assertEquals( "My Test", simpleNode.getValue() );
+        Assertions.assertEquals( "id", simpleNode.getName() );
+        Assertions.assertEquals( "testUri", simpleNode.getNamespace() );
+        Assertions.assertTrue( simpleNode.isAttribute() );
+        Assertions.assertEquals( "My Test", simpleNode.getValue() );
     }
 }
