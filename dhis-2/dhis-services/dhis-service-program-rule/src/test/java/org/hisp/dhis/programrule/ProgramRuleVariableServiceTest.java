@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
@@ -99,13 +98,10 @@ class ProgramRuleVariableServiceTest extends DhisSpringTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
-        variableA.setValueType( dataElementA.getValueType() );
         ProgramRuleVariable variableB = new ProgramRuleVariable( "RuleVariableB", programA,
             ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, true, null );
-        variableB.setValueType( attributeA.getValueType() );
         ProgramRuleVariable variableC = new ProgramRuleVariable( "RuleVariableC", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, null, dataElementA, false, null );
-        variableC.setValueType( dataElementA.getValueType() );
         long idA = variableService.addProgramRuleVariable( variableA );
         long idB = variableService.addProgramRuleVariable( variableB );
         long idC = variableService.addProgramRuleVariable( variableC );
@@ -119,17 +115,13 @@ class ProgramRuleVariableServiceTest extends DhisSpringTest
     {
         ProgramRuleVariable variableD = new ProgramRuleVariable( "RuleVariableD", programB,
             ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
-        variableD.setValueType( dataElementA.getValueType() );
         ProgramRuleVariable variableE = new ProgramRuleVariable( "RuleVariableE", programB,
             ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, false, null );
-        variableE.setValueType( ValueType.TEXT );
         ProgramRuleVariable variableF = new ProgramRuleVariable( "RuleVariableF", programB,
             ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, null, dataElementA, false, null );
-        variableF.setValueType( dataElementA.getValueType() );
         // Add a var that is not part of programB....
         ProgramRuleVariable variableG = new ProgramRuleVariable( "RuleVariableG", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, null, dataElementA, false, null );
-        variableG.setValueType( dataElementA.getValueType() );
         variableService.addProgramRuleVariable( variableD );
         variableService.addProgramRuleVariable( variableE );
         variableService.addProgramRuleVariable( variableF );
@@ -150,7 +142,6 @@ class ProgramRuleVariableServiceTest extends DhisSpringTest
     {
         ProgramRuleVariable variableH = new ProgramRuleVariable( "RuleVariableH", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE, null, dataElementA, false, null );
-        variableH.setValueType( dataElementA.getValueType() );
         long idH = variableService.addProgramRuleVariable( variableH );
         variableH.setAttribute( attributeA );
         variableH.setDataElement( dataElementA );
@@ -166,11 +157,8 @@ class ProgramRuleVariableServiceTest extends DhisSpringTest
     {
         ProgramRuleVariable ruleVariableI = new ProgramRuleVariable( "RuleVariableI", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
-        ruleVariableI.setValueType( dataElementA.getValueType() );
         ProgramRuleVariable ruleVariableJ = new ProgramRuleVariable( "RuleVariableJ", programA,
             ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, false, null );
-
-        ruleVariableJ.setValueType( attributeA.getValueType() );
         long idI = variableService.addProgramRuleVariable( ruleVariableI );
         long idJ = variableService.addProgramRuleVariable( ruleVariableJ );
         assertNotNull( variableService.getProgramRuleVariable( idI ) );
@@ -188,10 +176,8 @@ class ProgramRuleVariableServiceTest extends DhisSpringTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
-        variableA.setValueType( dataElementA.getValueType() );
         ProgramRuleVariable variableB = new ProgramRuleVariable( "RuleVariableB", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, null, dataElementB, true, null );
-        variableB.setValueType( dataElementB.getValueType() );
         variableService.addProgramRuleVariable( variableA );
         variableService.addProgramRuleVariable( variableB );
         assertTrue( variableService.isLinkedToProgramRuleVariableCached( programA, dataElementA ) );
@@ -203,7 +189,6 @@ class ProgramRuleVariableServiceTest extends DhisSpringTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
-        variableA.setValueType( dataElementA.getValueType() );
         variableService.addProgramRuleVariable( variableA );
         assertFalse( variableService.isLinkedToProgramRuleVariableCached( programA, dataElementC ) );
     }
@@ -213,7 +198,6 @@ class ProgramRuleVariableServiceTest extends DhisSpringTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, null, false, null );
-        variableA.setValueType( ValueType.TEXT );
         variableService.addProgramRuleVariable( variableA );
         List<ProgramRuleVariable> variables = variableService.getVariablesWithNoDataElement();
         assertEquals( 1, variables.size() );
@@ -225,7 +209,6 @@ class ProgramRuleVariableServiceTest extends DhisSpringTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA,
             ProgramRuleVariableSourceType.TEI_ATTRIBUTE, null, null, false, null );
-        variableA.setValueType( ValueType.TEXT );
         variableService.addProgramRuleVariable( variableA );
         List<ProgramRuleVariable> variables = variableService.getVariablesWithNoAttribute();
         assertEquals( 1, variables.size() );
@@ -237,10 +220,8 @@ class ProgramRuleVariableServiceTest extends DhisSpringTest
     {
         ProgramRuleVariable variableA = new ProgramRuleVariable( "RuleVariableA", programA,
             ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, null, dataElementA, false, null );
-        variableA.setValueType( dataElementA.getValueType() );
         ProgramRuleVariable variableB = new ProgramRuleVariable( "RuleVariableB", programA,
             ProgramRuleVariableSourceType.TEI_ATTRIBUTE, attributeA, null, false, null );
-        variableB.setValueType( attributeA.getValueType() );
         variableService.addProgramRuleVariable( variableA );
         variableService.addProgramRuleVariable( variableB );
         List<ProgramRuleVariable> variablesD = variableService.getVariablesWithNoDataElement();
