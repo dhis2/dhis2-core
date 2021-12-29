@@ -122,7 +122,7 @@ public class ProgramRuleVariable
         TrackedEntityAttribute attribute,
         DataElement dataElement,
         boolean useCodeForOptionSet,
-        ProgramStage programStage )
+        ProgramStage programStage, ValueType valueType )
     {
         this.name = name;
         this.program = program;
@@ -131,6 +131,7 @@ public class ProgramRuleVariable
         this.dataElement = dataElement;
         this.useCodeForOptionSet = useCodeForOptionSet;
         this.programStage = programStage;
+        this.valueType = valueType;
     }
 
     // -------------------------------------------------------------------------

@@ -171,12 +171,14 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     {
         variable.setAttribute( null );
         variable.setProgramStage( null );
+        variable.setValueType( variable.getDataElement().getValueType() );
     }
 
     private void processTEA( ProgramRuleVariable variable )
     {
         variable.setDataElement( null );
         variable.setProgramStage( null );
+        variable.setValueType( variable.getAttribute().getValueType() );
     }
 
     private void processDataElementWithStage( ProgramRuleVariable variable )
