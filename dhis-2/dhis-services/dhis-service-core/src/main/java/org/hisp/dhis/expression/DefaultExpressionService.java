@@ -98,6 +98,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 import org.hisp.dhis.parser.expression.ExpressionItemMethod;
+import org.hisp.dhis.parser.expression.function.PeriodOffset;
 import org.hisp.dhis.parser.expression.function.VectorAvg;
 import org.hisp.dhis.parser.expression.function.VectorCount;
 import org.hisp.dhis.parser.expression.function.VectorMax;
@@ -184,6 +185,7 @@ public class DefaultExpressionService
         .<Integer, ExpressionItem> builder()
         .putAll( VALIDATION_RULE_EXPRESSION_ITEMS )
         .put( N_BRACE, new DimItemIndicator() )
+        .put( PERIOD_OFFSET, new PeriodOffset() )
         .build();
 
     private static final ImmutableMap<ParseType, ImmutableMap<Integer, ExpressionItem>> PARSE_TYPE_EXPRESSION_ITEMS = ImmutableMap
