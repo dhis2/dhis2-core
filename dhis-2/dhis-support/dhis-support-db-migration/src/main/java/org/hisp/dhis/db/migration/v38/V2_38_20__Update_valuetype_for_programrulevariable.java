@@ -90,5 +90,7 @@ public class V2_38_20__Update_valuetype_for_programrulevariable extends BaseJava
         {
             log.error( e.getMessage() );
         }
+
+        log.info( "ProgramRuleVariable migration executed" );
     }
 }
