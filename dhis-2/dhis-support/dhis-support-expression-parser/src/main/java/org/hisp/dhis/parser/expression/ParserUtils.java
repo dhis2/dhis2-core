@@ -39,7 +39,6 @@ import org.hisp.dhis.parser.expression.function.FunctionIf;
 import org.hisp.dhis.parser.expression.function.FunctionIsNotNull;
 import org.hisp.dhis.parser.expression.function.FunctionIsNull;
 import org.hisp.dhis.parser.expression.function.FunctionLeast;
-import org.hisp.dhis.parser.expression.function.PeriodOffset;
 import org.hisp.dhis.parser.expression.operator.*;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -56,6 +55,11 @@ public class ParserUtils
 {
     public final static double DOUBLE_VALUE_IF_NULL = 0.0;
 
+    /**
+     * These are common expression items that are used in ALL types of DHIS2
+     * expressions. Items that are only used in some types of expressions are
+     * defined elsewhere.
+     */
     public final static ImmutableMap<Integer, ExpressionItem> COMMON_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
 
@@ -92,7 +96,6 @@ public class ParserUtils
         .put( IS_NOT_NULL, new FunctionIsNotNull() )
         .put( IS_NULL, new FunctionIsNull() )
         .put( LEAST, new FunctionLeast() )
-        .put( PERIOD_OFFSET, new PeriodOffset() )
 
         // Data items
 
