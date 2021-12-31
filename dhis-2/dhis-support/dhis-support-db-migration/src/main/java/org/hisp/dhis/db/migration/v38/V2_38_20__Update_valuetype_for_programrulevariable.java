@@ -73,6 +73,8 @@ public class V2_38_20__Update_valuetype_for_programrulevariable extends BaseJava
                 updateRow( context, results.getString( 1 ), results.getString( 2 ) );
             }
         }
+
+        log.info( "ProgramRuleVariable migration executed" );
     }
 
     private void updateRow( Context context, String prvUid, String valueType )
@@ -90,7 +92,5 @@ public class V2_38_20__Update_valuetype_for_programrulevariable extends BaseJava
         {
             log.error( e.getMessage() );
         }
-
-        log.info( "ProgramRuleVariable migration executed" );
     }
 }
