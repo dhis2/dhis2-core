@@ -88,7 +88,6 @@ public class ParserUtils
         .put( LEAST, new FunctionLeast() )
         .put( LOG, new FunctionLog() )
         .put( LOG10, new FunctionLog10() )
-        .put( PERIOD_OFFSET, new PeriodOffset() )
         // Data items
 
         .put( C_BRACE, new ItemConstant() )
