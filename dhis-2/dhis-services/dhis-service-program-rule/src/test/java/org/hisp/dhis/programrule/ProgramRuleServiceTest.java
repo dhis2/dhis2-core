@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
 import org.hisp.dhis.program.Program;
@@ -133,7 +134,9 @@ class ProgramRuleServiceTest extends IntegrationTestBase
         programRuleA.getProgramRuleActions().addAll( Sets.newHashSet( programRuleActionA, programRuleActionB ) );
         programRuleService.updateProgramRule( programRuleA );
         programRuleVariableA = createProgramRuleVariable( 'A', programA );
+        programRuleVariableA.setValueType( ValueType.TEXT );
         programRuleVariableB = createProgramRuleVariable( 'B', programA );
+        programRuleVariableB.setValueType( ValueType.TEXT );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableA );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableB );
     }
