@@ -88,6 +88,7 @@ public class ParserUtils
         .put( LEAST, new FunctionLeast() )
         .put( LOG, new FunctionLog() )
         .put( LOG10, new FunctionLog10() )
+
         // Data items
 
         .put( C_BRACE, new ItemConstant() )
