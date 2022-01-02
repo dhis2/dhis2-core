@@ -43,7 +43,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -127,7 +126,7 @@ public abstract class AbstractAnalyticsService
 
                 grid.addHeader( new GridHeader( name, column, item.getValueType(),
                     false, true, item.getOptionSet(), item.getLegendSet(),
-                    item.getProgramStage().getUid(), Optional.of( item.getProgramStageOffset() ) ) );
+                    item.getProgramStage().getUid(), item.getProgramStageOffset() ) );
             }
             else
             {
