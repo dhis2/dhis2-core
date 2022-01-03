@@ -38,6 +38,8 @@ import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.junit.Test;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -56,6 +58,9 @@ public class CategoryOptionComboStoreTest
 
     @Autowired
     private CategoryOptionGroupStore categoryOptionGroupStore;
+
+    @Autowired
+    private DataElementService dataElementService;
 
     private Category categoryA;
 
@@ -78,6 +83,8 @@ public class CategoryOptionComboStoreTest
     private CategoryOptionCombo categoryOptionComboB;
 
     private CategoryOptionCombo categoryOptionComboC;
+
+    private DataElement dataElementA;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -119,6 +126,9 @@ public class CategoryOptionComboStoreTest
 
         categoryService.addCategoryCombo( categoryComboA );
         categoryService.addCategoryCombo( categoryComboB );
+        dataElementA = createDataElement( 'A' );
+        dataElementA.setCategoryCombo( categoryComboA );
+        dataElementService.addDataElement( dataElementA );
     }
 
     // -------------------------------------------------------------------------
@@ -309,10 +319,10 @@ public class CategoryOptionComboStoreTest
         CategoryOptionGroup catOptionGroup = createCategoryOptionGroup( 'A' );
         catOptionGroup.addCategoryOption( categoryOptionA );
         catOptionGroup.addCategoryOption( categoryOptionB );
-        categoryOptionGroupStore.save( catOptionGroup );
+        categoryService.saveCategoryOptionGroup( catOptionGroup );
         List<CategoryOptionCombo> result = categoryOptionComboStore
-            .getCategoryOptionCombosByGroupUid( catOptionGroup.getUid() );
+            .getCategoryOptionCombosByGroupUid( catOptionGroup.getUid(), dataElementA.getUid() );
         assertNotNull( result );
-        assertEquals( 6, result.size() );
+        assertEquals( categoryComboA.getOptionCombos(), Sets.newHashSet( result ) );
     }
 }
