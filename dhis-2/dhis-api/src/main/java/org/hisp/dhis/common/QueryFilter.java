@@ -54,6 +54,7 @@ public class QueryFilter
         .put( QueryOperator.LE, unused -> "<=" )
         .put( QueryOperator.NE, isValueNull -> isValueNull ? "is not" : "!=" )
         .put( QueryOperator.LIKE, unused -> "like" )
+        .put( QueryOperator.NLIKE, unused -> "not like" )
         .put( QueryOperator.IN, unused -> "in" ).build();
 
     protected QueryOperator operator;
@@ -126,23 +127,24 @@ public class QueryFilter
             return null;
         }
 
-        if ( QueryOperator.LIKE.equals( operator ) )
+        if ( QueryOperator.LIKE == operator || QueryOperator.NLIKE == operator )
         {
             return "'%" + encodedFilter + "%'";
         }
-        else if ( QueryOperator.EQ.equals( operator ) || QueryOperator.NE.equals( operator ) )
+        else if ( QueryOperator.EQ == operator || QueryOperator.NE == operator )
         {
             if ( encodedFilter.equals( NV ) )
             {
                 return "null";
             }
         }
-        else if ( QueryOperator.IN.equals( operator ) )
+        else if ( QueryOperator.IN == operator )
         {
             return getFilterItems( encodedFilter ).stream()
                 .map( this::quote )
                 .collect( Collectors.joining( ",", "(", ")" ) );
         }
+
         return "'" + encodedFilter + "'";
     }
 

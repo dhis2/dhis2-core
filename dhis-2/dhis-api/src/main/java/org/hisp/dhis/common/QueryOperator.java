@@ -42,9 +42,11 @@ public enum QueryOperator
     GE( ">=" ),
     LT( "<" ),
     LE( "<=" ),
-    NE( "!=", true ),
     LIKE( "like" ),
-    IN( "in", true );
+    IN( "in", true ),
+    // Analytics specifics
+    NE( "!=", true ),
+    NLIKE( "nlike" );
 
     private final String value;
 
