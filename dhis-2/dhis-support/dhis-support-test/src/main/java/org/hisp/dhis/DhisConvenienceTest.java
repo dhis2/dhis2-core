@@ -233,6 +233,8 @@ public abstract class DhisConvenienceTest
 
     public static final String DEFAULT_USERNAME = "admin";
 
+    private static final String PROGRAM_RULE_VARIABLE = "ProgramRuleVariable";
+
     private static Date date;
 
     protected static final double DELTA = 0.01;
@@ -1589,7 +1591,7 @@ public abstract class DhisConvenienceTest
         ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
         programRuleVariable.setAutoFields();
 
-        programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
         programRuleVariable.setProgram( parentProgram );
         programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
         programRuleVariable.setValueType( ValueType.TEXT );
@@ -1603,7 +1605,7 @@ public abstract class DhisConvenienceTest
         ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
         programRuleVariable.setAutoFields();
 
-        programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
         programRuleVariable.setProgram( parentProgram );
         programRuleVariable.setDataElement( dataElement );
         programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
@@ -1618,7 +1620,7 @@ public abstract class DhisConvenienceTest
         ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
         programRuleVariable.setAutoFields();
 
-        programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
+        programRuleVariable.setName( PROGRAM_RULE_VARIABLE + uniqueCharacter );
         programRuleVariable.setProgram( parentProgram );
         programRuleVariable.setAttribute( attribute );
         programRuleVariable.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );

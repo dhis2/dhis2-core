@@ -85,7 +85,7 @@ public class V2_38_20__Update_valuetype_for_programrulevariable extends BaseJava
             statement.setString( 1, valueType );
             statement.setString( 2, prvUid );
 
-            log.debug( "Executing ProgramRuleVariable migration query: [" + statement + "]" );
+            log.debug( String.format( "Executing ProgramRuleVariable migration query: [ %s ]", statement.toString() ) );
             statement.executeUpdate();
         }
         catch ( SQLException e )
