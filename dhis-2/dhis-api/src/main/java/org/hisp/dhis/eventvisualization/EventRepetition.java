@@ -25,38 +25,70 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.category;
+package org.hisp.dhis.eventvisualization;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataelement.DataElement;
+import javax.validation.constraints.NotNull;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * @author Lars Helge Overland
+ * This object represents an event repetition. It encapsulates all attributes
+ * needed by the analytics engine during the query of different events (event
+ * repetition).
+ *
+ * @author maikel arabori
+ *
  */
-public interface CategoryOptionComboStore
-    extends IdentifiableObjectStore<CategoryOptionCombo>
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class EventRepetition implements Serializable
 {
-    CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo, Set<CategoryOption> categoryOptions );
-
-    void updateNames();
-
-    void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
+    /**
+     * The attribute which the event repetition belongs to.
+     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
+    private Attribute parent;
 
     /**
-     * Fetch all {@link CategoryOptionCombo} from a given
-     * {@link CategoryOptionGroup} uid, that are also contained in the
-     * {@link CategoryCombo} of the {@link DataElement}.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}.
-     * Therefore, this method finds all {@link CategoryOptionCombo} for all the
-     * members of the given {@link CategoryOptionGroup}
-     *
-     * @param groupId a {@link CategoryOptionGroup} uid
-     * @param dataElementId a {@link DataElement} uid
-     * @return a List of {@link CategoryOptionCombo} or empty List
+     * The dimension associated with the event repedition.
      */
-    List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupId, String dataElementId );
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
+    private String dimension;
+
+    /**
+     * Represents the list of event indexes to be queried. It holds a list of
+     * integers that are interpreted as follows:
+     *
+     * // @formatter:off
+     *
+     * 1 = First event
+     * 2 = Second event
+     * 3 = Third event
+     * ...
+     * -2 = Third latest event
+     * -1 = Second latest event
+     * 0 = Latest event (default)
+     *
+     * // @formatter:on
+     */
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
+    private List<Integer> indexes = new ArrayList<>();
 }
