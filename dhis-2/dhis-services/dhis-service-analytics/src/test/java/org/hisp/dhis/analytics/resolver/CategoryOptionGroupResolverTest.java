@@ -120,7 +120,8 @@ public class CategoryOptionGroupResolverTest
 
         cocList.add( coc3 );
 
-        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( anyString() ) ).thenReturn( cocList );
+        when( categoryOptionComboStore.getCategoryOptionCombosByGroupUid( anyString(), anyString() ) )
+            .thenReturn( cocList );
     }
 
     @Test
