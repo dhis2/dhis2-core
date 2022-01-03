@@ -28,6 +28,7 @@
 package org.hisp.dhis.keyjsonvalue;
 
 import java.util.List;
+import java.util.Map.Entry;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,9 +38,21 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public final class KeyJsonValueEntry
+public final class KeyJsonValueEntry implements Entry<String, List<String>>
 {
     private final String key;
 
     private final List<String> values;
+
+    @Override
+    public List<String> getValue()
+    {
+        return getValues();
+    }
+
+    @Override
+    public List<String> setValue( List<String> strings )
+    {
+        throw new UnsupportedOperationException();
+    }
 }

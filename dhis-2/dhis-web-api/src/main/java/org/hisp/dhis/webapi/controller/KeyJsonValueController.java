@@ -27,22 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery.parseFields;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -50,10 +44,10 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueEntry;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery.Field;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.hisp.dhis.webapi.JsonWriter;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -116,7 +110,7 @@ public class KeyJsonValueController
     public void getEntries( @PathVariable String namespace, @RequestParam( required = true ) String fields,
         @RequestParam( required = false, defaultValue = "false" ) boolean includeAll,
         HttpServletResponse response )
-        throws IOException
+        throws Exception
     {
         response.setContentType( APPLICATION_JSON_VALUE );
         setNoStore( response );
@@ -127,7 +121,11 @@ public class KeyJsonValueController
             .includeAll( includeAll )
             .build();
 
-        writeEntriesAsJson( query, service.getEntries( query ), response );
+        try ( JsonWriter out = new JsonWriter( response.getWriter() ) )
+        {
+            out.writeEntries( query.getFields().stream().map( Field::getAlias ).collect( toList() ),
+                service.getEntries( query ) );
+        }
     }
 
     /**
@@ -241,47 +239,5 @@ public class KeyJsonValueController
         }
 
         return entry;
-    }
-
-    private static void writeEntriesAsJson( KeyJsonValueQuery query, Stream<KeyJsonValueEntry> entries,
-        HttpServletResponse response )
-        throws IOException
-    {
-        try ( ServletOutputStream out = response.getOutputStream() )
-        {
-            Consumer<String> write = str -> {
-                try
-                {
-                    out.print( str );
-                }
-                catch ( IOException ex )
-                {
-                    throw new UncheckedIOException( ex );
-                }
-            };
-            AtomicBoolean first = new AtomicBoolean( true );
-            write.accept( "[" );
-            entries.forEachOrdered( entry -> {
-                if ( !first.compareAndSet( true, false ) )
-                    write.accept( "," );
-                write.accept( "{" );
-                write.accept( "\"key\":\"" );
-                write.accept( entry.getKey() );
-                write.accept( "\"," );
-
-                Iterator<Field> fieldIter = query.getFields().iterator();
-                for ( String value : entry.getValues() )
-                {
-                    write.accept( "\"" );
-                    write.accept( fieldIter.next().getAlias() );
-                    write.accept( "\":" );
-                    write.accept( value );
-                    if ( fieldIter.hasNext() )
-                        write.accept( "," );
-                }
-                write.accept( "}" );
-            } );
-            write.accept( "]" );
-        }
     }
 }

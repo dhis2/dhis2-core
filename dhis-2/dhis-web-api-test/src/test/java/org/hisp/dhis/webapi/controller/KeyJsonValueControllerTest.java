@@ -317,11 +317,30 @@ class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     void testGetEntries()
     {
         assertStatus( HttpStatus.CREATED,
-            POST( "/dataStore/pets/cat", "{\"a\":42,\"b\":\"hello\",\"c\":{},\"d\":[1,2]}" ) );
+            POST( "/dataStore/pets/cat", "{\"a\":42,\"b\":\"hello\",\"c\":{\"xz\":42},\"d\":[1,2]}" ) );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "false" ) );
 
-        assertEquals( "[{\"key\":\"cat\",\"a\":42,\"b\":\"hello\",\"c\":{},\"haha\":1}]",
-            GET( "/dataStore/pets?fields=a,b,c,d[0(haha)]" ).content().toString() );
+        assertEquals( "[{" +
+            "\"key\":\"cat\"," +
+            "\"b\":\"hello\"," +
+            "\"deep\":{\"c\":{\"xz\":42},\"d\":1}" +
+            "}]",
+            GET( "/dataStore/pets?fields=b,c(deep.c),d[0(deep.d)]" ).content().toString() );
+    }
+
+    @Test
+    void testGetEntries_IncludeAllTrue()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{\"a\":42}" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "false" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/pet", "[42]" ) );
+
+        assertEquals( "[" +
+            "{\"key\":\"cat\",\"a\":42}," +
+            "{\"key\":\"dog\",\"a\":null}," +
+            "{\"key\":\"pet\",\"a\":null}" +
+            "]",
+            GET( "/dataStore/pets?fields=a&includeAll=true" ).content().toString() );
     }
 
     @Test
