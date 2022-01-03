@@ -39,7 +39,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramRule;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleAction;
-import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariable;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariableWithDataElement;
 import static org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue.issueName;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -311,7 +311,7 @@ class DataIntegrityServiceTest
         programRuleA = createProgramRule( 'A', programA );
         programRuleB = createProgramRule( 'B', programB );
 
-        programRuleVariableA = createProgramRuleVariable( 'A', programA );
+        programRuleVariableA = createProgramRuleVariableWithDataElement( 'A', programA, elementA );
 
         programRuleActionA = createProgramRuleAction( 'A' );
     }

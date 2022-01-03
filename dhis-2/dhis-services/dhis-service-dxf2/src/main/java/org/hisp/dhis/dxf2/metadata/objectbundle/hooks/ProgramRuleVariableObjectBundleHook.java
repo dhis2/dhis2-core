@@ -94,7 +94,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         {
             if ( !isLegitUpdate( programRuleVariable, prvWithSameNameAndSameProgram ) )
             {
-                failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
+                failPrvWithSameNameAlreadyExists( programRuleVariable, addReports );
             }
             return;
         }
@@ -102,7 +102,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         // insert
         if ( CollectionUtils.isNotEmpty( prvWithSameNameAndSameProgram ) )
         {
-            failPrvWithSameNAmeAlreadyExists( programRuleVariable, addReports );
+            failPrvWithSameNameAlreadyExists( programRuleVariable, addReports );
         }
     }
 
@@ -119,7 +119,7 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
         return StringUtils.equals( existingPrv.getUid(), programRuleVariable.getUid() );
     }
 
-    private void failPrvWithSameNAmeAlreadyExists( ProgramRuleVariable programRuleVariable,
+    private void failPrvWithSameNameAlreadyExists( ProgramRuleVariable programRuleVariable,
         Consumer<ErrorReport> addReports )
     {
         addReports.accept(

@@ -1592,6 +1592,37 @@ public abstract class DhisConvenienceTest
         programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
         programRuleVariable.setProgram( parentProgram );
         programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariable.setValueType( ValueType.TEXT );
+
+        return programRuleVariable;
+    }
+
+    public static ProgramRuleVariable createProgramRuleVariableWithDataElement( char uniqueCharacter,
+        Program parentProgram, DataElement dataElement )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setDataElement( dataElement );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
+        programRuleVariable.setValueType( dataElement.getValueType() );
+
+        return programRuleVariable;
+    }
+
+    public static ProgramRuleVariable createProgramRuleVariableWithTEA( char uniqueCharacter, Program parentProgram,
+        TrackedEntityAttribute attribute )
+    {
+        ProgramRuleVariable programRuleVariable = new ProgramRuleVariable();
+        programRuleVariable.setAutoFields();
+
+        programRuleVariable.setName( "ProgramRuleVariable" + uniqueCharacter );
+        programRuleVariable.setProgram( parentProgram );
+        programRuleVariable.setAttribute( attribute );
+        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
+        programRuleVariable.setValueType( attribute.getValueType() );
 
         return programRuleVariable;
     }
