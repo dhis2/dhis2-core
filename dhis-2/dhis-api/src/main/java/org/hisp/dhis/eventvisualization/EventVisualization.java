@@ -54,6 +54,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayDensity;
+import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
@@ -184,6 +185,11 @@ public class EventVisualization extends BaseAnalyticalObject
      * The non-typed dimensions for this event visualization.
      */
     private List<SimpleDimension> simpleDimensions = new ArrayList<>();
+
+    /**
+     * The list of existing event repetitions in this event visualization.
+     */
+    private List<EventRepetition> eventRepetitions = new ArrayList<>();
 
     /**
      * Indicates output type.
@@ -826,6 +832,19 @@ public class EventVisualization extends BaseAnalyticalObject
     public void setSimpleDimensions( final List<SimpleDimension> simpleDimensions )
     {
         this.simpleDimensions = simpleDimensions;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "repetitions", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "repetition", namespace = DxfNamespaces.DXF_2_0 )
+    public List<EventRepetition> getEventRepetitions()
+    {
+        return eventRepetitions;
+    }
+
+    public void setEventRepetitions( final List<EventRepetition> eventRepetitions )
+    {
+        this.eventRepetitions = eventRepetitions;
     }
 
     @Override

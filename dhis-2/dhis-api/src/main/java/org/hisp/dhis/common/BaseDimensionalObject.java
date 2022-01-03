@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
@@ -122,6 +123,12 @@ public class BaseDimensionalObject
      * can be repeated any number of times.
      */
     private String filter;
+
+    /**
+     * Applicable only for events. Holds the indexes relate to the repetition
+     * object.
+     */
+    private EventRepetition eventRepetition;
 
     /**
      * A {@link DimensionItemKeywords} defines a pre-defined group of items. For
@@ -472,6 +479,19 @@ public class BaseDimensionalObject
     public void setFilter( String filter )
     {
         this.filter = filter;
+    }
+
+    @Override
+    @JsonProperty( "repetition" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventRepetition getEventRepetition()
+    {
+        return eventRepetition;
+    }
+
+    public void setEventRepetition( final EventRepetition eventRepetition )
+    {
+        this.eventRepetition = eventRepetition;
     }
 
     @Override

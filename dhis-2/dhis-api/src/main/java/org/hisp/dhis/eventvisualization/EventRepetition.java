@@ -27,98 +27,68 @@
  */
 package org.hisp.dhis.eventvisualization;
 
-import static java.util.Arrays.stream;
-import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import javax.validation.constraints.NotNull;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-
-import org.hisp.dhis.common.DimensionType;
+import lombok.NoArgsConstructor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * This is used to represents dimensions that are needed by clients but do not
- * actually exists in the back-end/codebase.
- *
- * It holds dimensions that do not have a concrete entity representation, and
- * are simple enough so they can be represented by Strings.
- *
- * It should hold only the necessary data for the respective event
- * visualization.
+ * This object represents an event repetition. It encapsulates all attributes
+ * needed by the analytics engine during the query of different events (event
+ * repetition).
  *
  * @author maikel arabori
+ *
  */
 @Data
-public class SimpleDimension implements Serializable
+@AllArgsConstructor
+@NoArgsConstructor
+public class EventRepetition implements Serializable
 {
-    public enum Type
-    {
-        EVENT_DATE( "eventDate", PERIOD ),
-        ENROLLMENT_DATE( "enrollmentDate", PERIOD ),
-        INCIDENT_DATE( "incidentDate", PERIOD ),
-        SCHEDULE_DATE( "scheduledDate", PERIOD ),
-        LAST_UPDATE_DATE( "lastUpdatedDate", PERIOD );
-
-        private final String dimension;
-
-        private final DimensionType parentType;
-
-        Type( final String dimension, final DimensionType parentType )
-        {
-            this.dimension = dimension;
-            this.parentType = parentType;
-        }
-
-        public String getDimension()
-        {
-            return dimension;
-        }
-
-        public DimensionType getParentType()
-        {
-            return parentType;
-        }
-
-        public static boolean contains( final String dimension )
-        {
-            return stream( Type.values() )
-                .anyMatch( t -> t.getDimension().equals( dimension ) );
-        }
-
-        public static Type from( final String dimension )
-        {
-            return stream( Type.values() )
-                .filter( t -> t.getDimension().equals( dimension ) ).findFirst()
-                .orElseThrow( () -> new NoSuchElementException( "Invalid dimension: " + dimension ) );
-        }
-    }
-
+    /**
+     * The attribute which the event repetition belongs to.
+     */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @NotNull
     private Attribute parent;
 
+    /**
+     * The dimension associated with the event repedition.
+     */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @NotNull
     private String dimension;
 
+    /**
+     * Represents the list of event indexes to be queried. It holds a list of
+     * integers that are interpreted as follows:
+     *
+     * // @formatter:off
+     *
+     * 1 = First event
+     * 2 = Second event
+     * 3 = Third event
+     * ...
+     * -2 = Third latest event
+     * -1 = Second latest event
+     * 0 = Latest event (default)
+     *
+     * // @formatter:on
+     */
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     @NotNull
-    private List<String> values = new ArrayList<>();
-
-    boolean belongsTo( final Attribute parent )
-    {
-        return this.parent == parent;
-    }
+    private List<Integer> indexes = new ArrayList<>();
 }
