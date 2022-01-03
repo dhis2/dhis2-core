@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import javax.validation.constraints.NotNull;
+
 import lombok.Data;
 
 import org.hisp.dhis.common.DimensionType;
@@ -102,18 +104,21 @@ public class SimpleDimension implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
     private Attribute parent;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
     private String dimension;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
     private List<String> values = new ArrayList<>();
 
     boolean belongsTo( final Attribute parent )
     {
-        return this.parent.equals( parent );
+        return this.parent == parent;
     }
 }

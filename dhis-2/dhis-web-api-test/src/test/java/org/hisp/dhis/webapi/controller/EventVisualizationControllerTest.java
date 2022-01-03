@@ -38,7 +38,9 @@ import static org.springframework.http.HttpStatus.CREATED;
 import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonNode;
 import org.hisp.dhis.webapi.json.JsonResponse;
@@ -58,6 +60,12 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
     @Autowired
     private IdentifiableObjectManager manager;
 
+    @Autowired
+    private ProgramStageService programStageService;
+
+    @Autowired
+    private DataElementService dataElementService;
+
     private Program mockProgram;
 
     @BeforeEach
@@ -75,7 +83,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
         final String eventDate = "2021-07-21_2021-08-01";
         final String dimensionBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
             + "'}]}";
-        final String body = "{'name': 'Name Test', 'type':'STACKED_COLUMN', 'program':{'id':'" + mockProgram.getUid()
+        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
             + "'}, 'columns': [" + dimensionBody + "]}";
 
         // When
@@ -106,7 +114,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
         final String incidentDateBody = "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '"
             + incidentDate
             + "'}]}";
-        final String body = "{'name': 'Name Test', 'type':'STACKED_COLUMN', 'program':{'id':'" + mockProgram.getUid()
+        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
             + "'}, 'rows': [" + eventDateBody + "," + incidentDateBody + "]}";
 
         // When
@@ -135,7 +143,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
         final String eventDate = "2021-07-21_2021-08-01";
         final String dimensionBody = "{'dimension': '" + invalidDimension + "', 'items': [{'id': '" + eventDate
             + "'}]}";
-        final String body = "{'name': 'Name Test', 'type':'STACKED_COLUMN', 'program':{'id':'" + mockProgram.getUid()
+        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
             + "'}, 'columns': [" + dimensionBody + "]}";
 
         // When
@@ -144,5 +152,83 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
         // Then
         assertEquals( "Not a valid dimension: " + invalidDimension,
             GET( "/eventVisualizations/" + uid ).error( BAD_REQUEST ).getMessage() );
+    }
+
+    @Test
+    void testPostRepetitionForFilter()
+    {
+        // Given
+        final String dimension = "ou";
+        final String indexes = "[1,2,3,-2,-1,0]";
+        final String repetition = "'repetition': {'indexes': " + indexes + "}";
+        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
+            + "'}, 'filters': [{'dimension': '" + dimension + "', " + repetition + "}]}";
+
+        // When
+        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+
+        // Then
+        final String getParams = "?fields=:all,filters[:all,items,repetitions]";
+        final JsonResponse response = GET( "/eventVisualizations/" + uid + getParams ).content();
+        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+
+        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( "FILTER" ) );
+        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( indexes ) );
+        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( dimension ) );
+        assertThat( nodeMap.get( "filters" ).toString(), containsString( indexes ) );
+        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( indexes ) ) );
+        assertThat( nodeMap.get( "rows" ).toString(), not( containsString( indexes ) ) );
+    }
+
+    @Test
+    void testPostRepetitionForRow()
+    {
+        // Given
+        final String dimension = "pe";
+        final String indexes = "[1,2,0]";
+        final String repetition = "'repetition': {'indexes': " + indexes + "}";
+        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
+            + "'}, 'rows': [{'dimension': '" + dimension + "', " + repetition + "}]}";
+
+        // When
+        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+
+        // Then
+        final String getParams = "?fields=:all,rows[:all,items,repetitions]";
+        final JsonResponse response = GET( "/eventVisualizations/" + uid + getParams ).content();
+        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+
+        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( "ROW" ) );
+        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( indexes ) );
+        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( dimension ) );
+        assertThat( nodeMap.get( "rows" ).toString(), containsString( indexes ) );
+        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( indexes ) ) );
+        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( indexes ) ) );
+    }
+
+    @Test
+    void testPostRepetitionForColumn()
+    {
+        // Given
+        final String dimension = "pe";
+        final String indexes = "[1,0,-1]";
+        final String repetition = "'repetition': {'indexes': " + indexes + "}";
+        final String body = "{'name': 'Name Test', 'type': 'STACKED_COLUMN', 'program': {'id':'" + mockProgram.getUid()
+            + "'}, 'columns': [{'dimension': '" + dimension + "', " + repetition + "}]}";
+
+        // When
+        final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
+
+        // Then
+        final String getParams = "?fields=:all,columns[:all,items,repetitions]";
+        final JsonResponse response = GET( "/eventVisualizations/" + uid + getParams ).content();
+        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+
+        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( "COLUMN" ) );
+        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( indexes ) );
+        assertThat( nodeMap.get( "repetitions" ).toString(), containsString( dimension ) );
+        assertThat( nodeMap.get( "columns" ).toString(), containsString( indexes ) );
+        assertThat( nodeMap.get( "rows" ).toString(), not( containsString( indexes ) ) );
+        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( indexes ) ) );
     }
 }

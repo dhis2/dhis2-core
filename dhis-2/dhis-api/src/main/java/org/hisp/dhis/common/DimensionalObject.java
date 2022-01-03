@@ -38,6 +38,7 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -192,6 +193,11 @@ public interface DimensionalObject
      * Gets the filter. Contains operator and filter. Applicable for events.
      */
     String getFilter();
+
+    /**
+     * Gets the events repetition. Only applicable for events.
+     */
+    EventRepetition getEventRepetition();
 
     /**
      * Indicates the analytics type of this dimensional object.
