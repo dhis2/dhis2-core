@@ -29,6 +29,7 @@ package org.hisp.dhis.keyjsonvalue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -74,7 +75,20 @@ public interface KeyJsonValueStore
      */
     List<KeyJsonValue> getKeyJsonValueByNamespace( String namespace );
 
-    Stream<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query );
+    /**
+     * Stream the matching entries to a transformer or consumer function.
+     *
+     * Note that this API cannot return the {@link Stream} since it has to be
+     * processed within the transaction bounds of the function call. For the
+     * same reason a transformer function has to process the stream in a way
+     * that actually will evaluate the stream.
+     *
+     * @param query query parameters
+     * @param transform transformer or consumer for the stream of matches
+     * @param <T> type of the transformed stream
+     * @return the transformed stream
+     */
+    <T> T getEntries( KeyJsonValueQuery query, Function<Stream<KeyJsonValueEntry>, T> transform );
 
     /**
      * Retrieves a KeyJsonValue based on the associated key and namespace

@@ -123,8 +123,11 @@ public class KeyJsonValueController
 
         try ( JsonWriter out = new JsonWriter( response.getWriter() ) )
         {
-            out.writeEntries( query.getFields().stream().map( Field::getAlias ).collect( toList() ),
-                service.getEntries( query ) );
+            List<String> members = query.getFields().stream().map( Field::getAlias ).collect( toList() );
+            service.getEntries( query, entries -> {
+                out.writeEntries( members, entries );
+                return true;
+            } );
         }
     }
 

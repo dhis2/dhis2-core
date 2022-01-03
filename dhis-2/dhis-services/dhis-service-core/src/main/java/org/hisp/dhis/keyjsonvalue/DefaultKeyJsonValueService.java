@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -108,10 +109,10 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional( readOnly = true )
-    public Stream<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query )
+    public <T> T getEntries( KeyJsonValueQuery query, Function<Stream<KeyJsonValueEntry>, T> transform )
     {
-        return readProtectedIn( query.getNamespace(), Stream.empty(),
-            () -> store.getEntries( query ) );
+        return readProtectedIn( query.getNamespace(), null,
+            () -> store.getEntries( query, transform ) );
     }
 
     @Override

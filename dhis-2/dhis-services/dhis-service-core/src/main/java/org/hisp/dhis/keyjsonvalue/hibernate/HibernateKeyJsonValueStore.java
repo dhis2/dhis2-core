@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -112,7 +113,7 @@ public class HibernateKeyJsonValueStore
     }
 
     @Override
-    public Stream<KeyJsonValueEntry> getEntries( KeyJsonValueQuery query )
+    public <T> T getEntries( KeyJsonValueQuery query, Function<Stream<KeyJsonValueEntry>, T> transform )
     {
         List<String> fieldExtracts = query.getFields().stream()
             .map( f -> "jsonb_extract_path(jbvalue, " + f.getPathSegments() + " )" ).collect( toList() );
@@ -122,11 +123,11 @@ public class HibernateKeyJsonValueStore
             query.isIncludeAll() ? "1=1"
                 : fieldExtracts.stream().map( f -> f + "is not null" ).collect( joining( " or " ) ) );
 
-        return getSession().createQuery( hql, Object[].class )
+        return transform.apply( getSession().createQuery( hql, Object[].class )
             .setParameter( "namespace", query.getNamespace() )
             .stream()
             .map( row -> new KeyJsonValueEntry( (String) row[0],
-                asList( copyOfRange( row, 1, row.length, String[].class ) ) ) );
+                asList( copyOfRange( row, 1, row.length, String[].class ) ) ) ) );
     }
 
     @Override
