@@ -71,6 +71,18 @@ public final class KeyJsonValueQuery
     @Getter
     public static final class Field
     {
+        /**
+         * A valid path can have up to 5 levels each with an alphanumeric name
+         * between 1 and 32 characters long and levels being separated by a dot.
+         *
+         * The path needs to be protected since it becomes part of the SQL when
+         * the path is extracted from the JSON values. Therefore, the
+         * limitations on the path are quite strict even if this will not allow
+         * some corner case names to be used that would be valid JSON member
+         * names.
+         */
+        private static final String PATH_PATTERN = "^[-_a-zA-Z0-9]{1,32}(?:\\.[-_a-zA-Z0-9]{1,32}){0,5}$";
+
         private final String path;
 
         private final String alias;
@@ -82,7 +94,7 @@ public final class KeyJsonValueQuery
 
         public Field( String path, String alias )
         {
-            if ( path == null || !path.matches( "^[-_a-zA-Z0-9]{1,32}(?:\\.[-_a-zA-Z0-9]{1,32}){0,5}$" ) )
+            if ( path == null || !path.matches( PATH_PATTERN ) )
             {
                 throw new IllegalArgumentException( "Not a valid path: " + path );
             }
