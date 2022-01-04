@@ -27,18 +27,20 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
@@ -107,6 +109,7 @@ class AssignedUserValidationHookTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( "not_valid_uid" );
         event.setProgramStage( PROGRAM_STAGE );
 
@@ -116,8 +119,7 @@ class AssignedUserValidationHookTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1118 ) );
+        hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
     }
 
     @Test
@@ -125,6 +127,7 @@ class AssignedUserValidationHookTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
@@ -138,8 +141,7 @@ class AssignedUserValidationHookTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1118 ) );
+        hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
     }
 
     @Test
@@ -147,6 +149,7 @@ class AssignedUserValidationHookTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
@@ -162,7 +165,9 @@ class AssignedUserValidationHookTest
         // then
         assertFalse( reporter.hasErrors() );
         assertTrue( reporter.hasWarnings() );
-        assertThat( reporter.getWarningsReportList().get( 0 ).getWarningCode(), is( TrackerErrorCode.E1120 ) );
+        assertTrue( reporter.hasWarningReport( r -> E1120.equals( r.getWarningCode() ) &&
+            TrackerType.EVENT.equals( r.getTrackerType() ) &&
+            event.getUid().equals( r.getUid() ) ) );
     }
 
     @Test
@@ -170,6 +175,7 @@ class AssignedUserValidationHookTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
@@ -185,6 +191,8 @@ class AssignedUserValidationHookTest
         // then
         assertFalse( reporter.hasErrors() );
         assertTrue( reporter.hasWarnings() );
-        assertThat( reporter.getWarningsReportList().get( 0 ).getWarningCode(), is( TrackerErrorCode.E1120 ) );
+        assertTrue( reporter.hasWarningReport( r -> E1120.equals( r.getWarningCode() ) &&
+            TrackerType.EVENT.equals( r.getTrackerType() ) &&
+            event.getUid().equals( r.getUid() ) ) );
     }
 }

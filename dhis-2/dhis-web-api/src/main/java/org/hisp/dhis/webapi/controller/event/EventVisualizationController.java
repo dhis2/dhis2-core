@@ -136,22 +136,22 @@ public class EventVisualizationController
     protected EventVisualization deserializeJsonEntity( final HttpServletRequest request )
         throws IOException
     {
-        final EventVisualization visualization = super.deserializeJsonEntity( request );
+        final EventVisualization eventVisualization = super.deserializeJsonEntity( request );
 
-        prepare( visualization );
+        prepare( eventVisualization );
 
-        return visualization;
+        return eventVisualization;
     }
 
     @Override
     protected EventVisualization deserializeXmlEntity( final HttpServletRequest request )
         throws IOException
     {
-        final EventVisualization visualization = super.deserializeXmlEntity( request );
+        final EventVisualization eventVisualization = super.deserializeXmlEntity( request );
 
-        prepare( visualization );
+        prepare( eventVisualization );
 
-        return visualization;
+        return eventVisualization;
     }
 
     @Override
@@ -192,10 +192,12 @@ public class EventVisualizationController
         eventVisualization.getColumnDimensions().clear();
         eventVisualization.getRowDimensions().clear();
         eventVisualization.getFilterDimensions().clear();
+        eventVisualization.getSimpleDimensions().clear();
 
         eventVisualization.getColumnDimensions().addAll( getDimensions( eventVisualization.getColumns() ) );
         eventVisualization.getRowDimensions().addAll( getDimensions( eventVisualization.getRows() ) );
         eventVisualization.getFilterDimensions().addAll( getDimensions( eventVisualization.getFilters() ) );
+        eventVisualization.associateSimpleDimensions();
     }
 
     private void doesNotAllowPivotAndReportChart( final EventVisualization eventVisualization )

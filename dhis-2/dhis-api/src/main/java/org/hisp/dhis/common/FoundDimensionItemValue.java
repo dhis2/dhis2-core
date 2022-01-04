@@ -25,38 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.delete.validation;
+package org.hisp.dhis.common;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
-
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author maikel arabori
+ * DimensionItemObject data as found with organisation unit, period, attribute
+ * option combination, and a value.
+ *
+ * @author Jim Grace
  */
-@Component
-public class DeleteValidatingEventChecker extends ValidatingEventChecker
+@Getter
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+public class FoundDimensionItemValue
 {
-    @Getter
-    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isDelete;
+    private final OrganisationUnit organisationUnit;
 
-    public DeleteValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
-        EventImporterValidationRunner validationRunner )
-    {
-        super( checkNotNull(
-            checkNotNull( checkersByImportStrategy ).get( DELETE ) ), validationRunner );
-    }
+    private final Period period;
 
+    private final CategoryOptionCombo attributeOptionCombo;
+
+    private final DimensionalItemObject dimensionalItemObject;
+
+    private final Object value;
 }
