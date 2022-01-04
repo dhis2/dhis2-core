@@ -31,9 +31,7 @@ import static java.lang.Character.isLetterOrDigit;
 import static java.util.Collections.emptyList;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -41,7 +39,10 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 
 /**
  * Details of a query as it can be performed to fetch {@link KeyJsonValue}s.
@@ -96,17 +97,10 @@ public final class KeyJsonValueQuery
         {
             if ( path == null || !path.matches( PATH_PATTERN ) )
             {
-                throw new IllegalArgumentException( "Not a valid path: " + path );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7650, path ) );
             }
             this.path = path;
             this.alias = alias != null ? alias : path;
-        }
-
-        public String getPathSegments()
-        {
-            return Arrays.stream( path.split( "\\." ) )
-                .map( name -> "'" + name + "'" )
-                .collect( Collectors.joining( ", " ) );
         }
     }
 
@@ -114,18 +108,48 @@ public final class KeyJsonValueQuery
     {
         String fieldsParam = params.getString( "fields", null );
         String namespaceParam = params.getString( "namespace", null );
-        KeyJsonValueQueryBuilder builder = toBuilder();
+        KeyJsonValueQueryBuilder queryBuilder = toBuilder();
         if ( fieldsParam != null )
         {
-            builder = builder.fields( parseFields( fieldsParam ) );
+            queryBuilder = queryBuilder.fields( parseFields( fieldsParam ) );
         }
         if ( namespaceParam != null )
         {
-            builder = builder.namespace( namespaceParam );
+            queryBuilder = queryBuilder.namespace( namespaceParam );
         }
-        return builder.build();
+        return queryBuilder.build();
     }
 
+    /**
+     * Parses the fields URL parameter form to a list of {@link Field}s.
+     *
+     * In text form fields can describe nested fields in two forms:
+     *
+     * <pre>
+     *   root[child]
+     *   root[child1,child2]
+     *   root[level1[level2]
+     * </pre>
+     *
+     * which is similar to the second form using dot
+     *
+     * <pre>
+     *   root.child
+     *   root.child1,root.child2
+     *   root.level1.level2
+     * </pre>
+     *
+     * E leaf in this text form can be given an alias in round braces:
+     *
+     * <pre>
+     *   root(alias)
+     *   root[child(alias)]
+     * </pre>
+     *
+     * @param fields a comma separated list of fields
+     * @return the object form of the text representation given if valid
+     * @throws IllegalQueryException in case the provided text form is not valid
+     */
     public static List<Field> parseFields( String fields )
     {
         final List<Field> flat = new ArrayList<>();
@@ -158,14 +182,21 @@ public final class KeyJsonValueQuery
             }
             else
             {
-                throw new IllegalArgumentException(
-                    String.format( "Illegal fields expression. Expected `,`, `[` or `]` at position %d but found `%s`",
-                        end, next ) );
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7651, end, next ) );
             }
         }
         return flat;
     }
 
+    /**
+     * Adds a {@link Field} to the provided fields list of the leave field name
+     * is not empty (which would indicate that we are not at the end of a new
+     * field in the parsing process).
+     *
+     * @param fields list of fields to add to
+     * @param parent parent path (might contain dotted segments)
+     * @param field leaf path (no dotted segments)
+     */
     private static void addNonEmptyTo( List<Field> fields, String parent, String field )
     {
         if ( !field.isEmpty() )
@@ -177,6 +208,12 @@ public final class KeyJsonValueQuery
         }
     }
 
+    /**
+     * @param fields search text
+     * @param start start index in the search text
+     * @return first index in the fields string that is not a valid name
+     *         character starting from the start position.
+     */
     private static int findNameEnd( String fields, int start )
     {
         int pos = start;
@@ -187,6 +224,13 @@ public final class KeyJsonValueQuery
         return findAliasEnd( fields, pos );
     }
 
+    /**
+     * @param fields search text
+     * @param start start position in search text
+     * @return first index in the fields string that is after a potential alias.
+     *         This assumes the start position must point to the start of an
+     *         alias or no alias is present.
+     */
     private static int findAliasEnd( String fields, int start )
     {
         if ( start >= fields.length() || fields.charAt( start ) != '(' )

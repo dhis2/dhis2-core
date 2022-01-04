@@ -32,9 +32,11 @@ import static java.util.Arrays.copyOfRange;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -47,6 +49,7 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValueEntry;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.system.util.SqlUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -116,7 +119,8 @@ public class HibernateKeyJsonValueStore
     public <T> T getEntries( KeyJsonValueQuery query, Function<Stream<KeyJsonValueEntry>, T> transform )
     {
         List<String> fieldExtracts = query.getFields().stream()
-            .map( f -> "jsonb_extract_path(jbvalue, " + f.getPathSegments() + " )" ).collect( toList() );
+            .map( f -> "jsonb_extract_path(jbvalue, " + toPathSegments( f.getPath() ) + " )" )
+            .collect( toList() );
 
         String hql = String.format( "select key, %s from KeyJsonValue where namespace = :namespace and (%s)",
             String.join( ",", fieldExtracts ),
@@ -128,6 +132,13 @@ public class HibernateKeyJsonValueStore
             .stream()
             .map( row -> new KeyJsonValueEntry( (String) row[0],
                 asList( copyOfRange( row, 1, row.length, String[].class ) ) ) ) );
+    }
+
+    private static String toPathSegments( String path )
+    {
+        return Arrays.stream( path.split( "\\." ) )
+            .map( SqlUtils::singleQuote )
+            .collect( Collectors.joining( ", " ) );
     }
 
     @Override

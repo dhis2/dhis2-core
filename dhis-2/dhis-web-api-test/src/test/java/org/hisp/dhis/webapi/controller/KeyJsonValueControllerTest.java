@@ -344,6 +344,14 @@ class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testGetEntries_IllegalPath()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Illegal fields expression. Expected `,`, `[` or `]` at position 7 but found `'`",
+            GET( "/dataStore/pets?fields=illegal'" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
     void testAddKeyJsonValue_Encrypt()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat?encrypt=true", "{}" ) );

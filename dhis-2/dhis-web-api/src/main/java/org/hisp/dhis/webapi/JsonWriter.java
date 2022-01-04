@@ -85,7 +85,9 @@ public final class JsonWriter implements AutoCloseable
             for ( int i = 0; i < values.size(); i++ )
             {
                 if ( i > 0 )
+                {
                     out.write( ',' );
+                }
                 out.write( memberOpening.get( i ) );
                 String value = values.get( i );
                 out.write( value == null ? "null" : value );
