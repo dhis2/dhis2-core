@@ -25,37 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
+package org.hisp.dhis.predictor;
 
 import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
 
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.FoundDimensionItemValue;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-/**
- * @author Luciano Fiandesio
- */
-@Component
-public class InsertValidatingEventChecker extends ValidatingEventChecker
+@Getter
+@ToString
+@EqualsAndHashCode
+@AllArgsConstructor
+public class PredictionData
 {
-    @Getter
-    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isInsert;
+    private final OrganisationUnit orgUnit;
 
-    public InsertValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
-        EventImporterValidationRunner validationRunner )
-    {
-        super( checkNotNull(
-            checkNotNull( checkersByImportStrategy ).get( CREATE ) ), validationRunner );
-    }
+    private final List<FoundDimensionItemValue> values;
+
+    private final List<DataValue> oldPredictions;
 }

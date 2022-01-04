@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1042;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -39,6 +44,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
@@ -46,7 +52,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
@@ -124,6 +129,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITHOUT_REGISTRATION_ID );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
@@ -132,9 +138,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1031 ) );
-
+        hasTrackerError( reporter, E1031, EVENT, event.getUid() );
     }
 
     @Test
@@ -142,6 +146,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.ACTIVE );
 
@@ -151,8 +156,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1031 ) );
+        hasTrackerError( reporter, E1031, EVENT, event.getUid() );
     }
 
     @Test
@@ -160,6 +164,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setStatus( EventStatus.COMPLETED );
 
@@ -169,8 +174,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1031 ) );
+        hasTrackerError( reporter, E1031, EVENT, event.getUid() );
     }
 
     @Test
@@ -178,6 +182,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( Instant.now() );
         event.setStatus( EventStatus.SCHEDULE );
@@ -188,8 +193,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1050 ) );
+        hasTrackerError( reporter, E1050, EVENT, event.getUid() );
     }
 
     @Test
@@ -197,6 +201,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( now() );
         event.setStatus( EventStatus.COMPLETED );
@@ -207,8 +212,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1042 ) );
+        hasTrackerError( reporter, E1042, EVENT, event.getUid() );
     }
 
     @Test
@@ -216,6 +220,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( now() );
         event.setCompletedAt( sevenDaysAgo() );
@@ -227,8 +232,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1043 ) );
+        hasTrackerError( reporter, E1043, EVENT, event.getUid() );
     }
 
     @Test
@@ -236,6 +240,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( null );
         event.setScheduledAt( null );
@@ -247,8 +252,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1046 ) );
+        hasTrackerError( reporter, E1046, EVENT, event.getUid() );
     }
 
     @Test
@@ -256,6 +260,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgram( PROGRAM_WITH_REGISTRATION_ID );
         event.setOccurredAt( sevenDaysAgo() );
         event.setStatus( EventStatus.ACTIVE );
@@ -266,8 +271,7 @@ class EventDateValidationHookTest extends DhisConvenienceTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1047 ) );
+        hasTrackerError( reporter, E1047, EVENT, event.getUid() );
     }
 
     private Program getProgramWithRegistration()

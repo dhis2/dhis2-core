@@ -29,9 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 
 import java.util.Map;
@@ -64,6 +67,85 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
     {
         mockProgram = createProgram( 'A' );
         manager.save( mockProgram );
+    }
+
+    @Test
+    void testPostForSingleEventDate()
+    {
+        // Given
+        final String eventDateDimension = "eventDate";
+        final String eventDate = "2021-07-21_2021-08-01";
+        final String dimensionBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
+            + "'}]}";
+        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
+            + "'}, 'columns': [" + dimensionBody + "]}";
+
+        // When
+        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
+
+        // Then
+        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
+        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "COLUMN" ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDateDimension ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
+        assertThat( nodeMap.get( "columns" ).toString(), containsString( eventDateDimension ) );
+        assertThat( nodeMap.get( "rows" ).toString(), not( containsString( eventDateDimension ) ) );
+        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
+    }
+
+    @Test
+    void testPostForMultiEventDates()
+    {
+        // Given
+        final String eventDateDimension = "eventDate";
+        final String incidentDateDimension = "incidentDate";
+        final String eventDate = "2021-07-21_2021-08-01";
+        final String incidentDate = "2021-07-21_2021-08-01";
+        final String eventDateBody = "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate
+            + "'}]}";
+        final String incidentDateBody = "{'dimension': '" + incidentDateDimension + "', 'items': [{'id': '"
+            + incidentDate
+            + "'}]}";
+        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
+            + "'}, 'rows': [" + eventDateBody + "," + incidentDateBody + "]}";
+
+        // When
+        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
+
+        // Then
+        final JsonResponse response = GET( "/eventReports/" + uid ).content();
+        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "ROW" ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
+        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( incidentDate ) );
+        assertThat( nodeMap.get( "rows" ).toString(), containsString( eventDateDimension ) );
+        assertThat( nodeMap.get( "rows" ).toString(), containsString( incidentDateDimension ) );
+        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( eventDateDimension ) ) );
+        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( incidentDateDimension ) ) );
+        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
+        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( incidentDateDimension ) ) );
+    }
+
+    @Test
+    void testPostForInvalidEventDimension()
+    {
+        // Given
+        final String invalidDimension = "invalidDimension";
+        final String eventDate = "2021-07-21_2021-08-01";
+        final String dimensionBody = "{'dimension': '" + invalidDimension + "', 'items': [{'id': '" + eventDate
+            + "'}]}";
+        final String body = "{'name': 'Name Test', 'type':'LINE_LIST', 'program':{'id':'" + mockProgram.getUid()
+            + "'}, 'columns': [" + dimensionBody + "]}";
+
+        // When
+        final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
+
+        // Then
+        assertEquals( "Not a valid dimension: " + invalidDimension,
+            GET( "/eventReports/" + uid ).error( BAD_REQUEST ).getMessage() );
     }
 
     @Test

@@ -263,16 +263,8 @@
 
         <property name="sortOrder"/>
 
-        <property name="translations" type="jblTranslations"/>
-
         <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
                      foreign-key="fk_evisualization_userid"/>
-
-        <property name="sharing" type="jsbObjectSharing"/>
-
-        <property name="favorites" type="jbSet"/>
-
-        <property name="subscribers" type="jbSet"/>
 
         <property name="userOrgUnitType" length="12">
             <type name="org.hibernate.type.EnumType">
@@ -281,6 +273,18 @@
                 <param name="type">12</param>
             </type>
         </property>
+
+        <property name="translations" type="jblTranslations"/>
+
+        <property name="sharing" type="jsbObjectSharing"/>
+
+        <property name="favorites" type="jbSet"/>
+
+        <property name="subscribers" type="jbSet"/>
+
+        <property name="simpleDimensions" type="jblSimpleEventDimensions"/>
+
+        <property name="eventRepetitions" type="jblEventRepetition"/>
 
         <!-- Dynamic attribute values -->
         <property name="attributeValues" type="jsbAttributeValues"/>

@@ -59,7 +59,6 @@ import org.hisp.dhis.tracker.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerImportReportFinalizer;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -152,7 +151,7 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withImportCompleted(
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
             TrackerStatus.OK,
             TrackerBundleReport.builder()
                 .status( TrackerStatus.OK )
@@ -191,7 +190,7 @@ class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withImportCompleted(
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
             TrackerStatus.OK,
             TrackerBundleReport.builder()
                 .status( TrackerStatus.OK )
@@ -231,7 +230,7 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withError( "errorMessage",
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
             TrackerValidationReport.builder()
                 .build(),
             new TrackerTimingsStats() ) );
@@ -266,7 +265,7 @@ class TrackerImportControllerTest
     {
         String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withError( "errorMessage",
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReport.withError( "errorMessage",
             TrackerValidationReport.builder()
                 .build(),
             new TrackerTimingsStats() ) );
@@ -328,7 +327,7 @@ class TrackerImportControllerTest
     {
         String uid = CodeGenerator.generateUid();
 
-        TrackerImportReport trackerImportReport = TrackerImportReportFinalizer.withImportCompleted(
+        TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted(
             TrackerStatus.OK,
             TrackerBundleReport.builder()
                 .status( TrackerStatus.OK )

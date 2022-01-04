@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.RELATIONSHIP;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1048;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -87,8 +89,7 @@ class PreCheckUidValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
         validationHook.validateTrackedEntity( reporter, trackedEntity );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
@@ -112,8 +113,7 @@ class PreCheckUidValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
         validationHook.validateEnrollment( reporter, enrollment );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -126,8 +126,7 @@ class PreCheckUidValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
         validationHook.validateEnrollment( reporter, enrollment );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -150,8 +149,7 @@ class PreCheckUidValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
     }
 
     @Test
@@ -163,8 +161,7 @@ class PreCheckUidValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
         validationHook.validateEvent( reporter, event );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, EVENT, event.getUid() );
     }
 
     @Test
@@ -186,7 +183,6 @@ class PreCheckUidValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, relationship );
         validationHook.validateRelationship( reporter, relationship );
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1048 ) );
+        hasTrackerError( reporter, E1048, RELATIONSHIP, relationship.getUid() );
     }
 }

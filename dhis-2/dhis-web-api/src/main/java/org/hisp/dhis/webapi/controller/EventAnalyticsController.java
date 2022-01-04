@@ -38,13 +38,13 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.dataitem.DimensionalItemFilteringAndPagingService;
-import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
+import org.hisp.dhis.analytics.dimension.DimensionFilteringAndPagingService;
+import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.common.DimensionalItemCriteria;
+import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
@@ -81,10 +81,10 @@ public class EventAnalyticsController
     private final ContextUtils contextUtils;
 
     @NonNull
-    private final DimensionalItemFilteringAndPagingService dimensionalItemFilteringAndPagingService;
+    private final DimensionFilteringAndPagingService dimensionFilteringAndPagingService;
 
     @NonNull
-    private final EventAnalyticsDimensionalItemService eventAnalyticsDimensionalItemService;
+    private final EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
     // -------------------------------------------------------------------------
     // Aggregate
@@ -172,15 +172,14 @@ public class EventAnalyticsController
     public @ResponseBody PagingWrapper<ObjectNode> getAggregateDimensions(
         @RequestParam String programStageId,
         @RequestParam( defaultValue = "*" ) List<String> fields,
-        DimensionalItemCriteria dimensionalItemCriteria,
+        DimensionsCriteria dimensionsCriteria,
         HttpServletResponse response )
     {
         configResponseForJson( response );
-        return dimensionalItemFilteringAndPagingService
+        return dimensionFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionalItemService.getAggregateDimensionalItemsByProgramStageId( programStageId )
-                    .getDimensionalItems(),
-                dimensionalItemCriteria,
+                eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId( programStageId ),
+                dimensionsCriteria,
                 fields );
     }
 
@@ -315,15 +314,14 @@ public class EventAnalyticsController
     public @ResponseBody PagingWrapper<ObjectNode> getQueryDimensions(
         @RequestParam String programStageId,
         @RequestParam( defaultValue = "*" ) List<String> fields,
-        DimensionalItemCriteria dimensionalItemCriteria,
+        DimensionsCriteria dimensionsCriteria,
         HttpServletResponse response )
     {
         configResponseForJson( response );
-        return dimensionalItemFilteringAndPagingService
+        return dimensionFilteringAndPagingService
             .pageAndFilter(
-                eventAnalyticsDimensionalItemService.getQueryDimensionalItemsByProgramStageId( programStageId )
-                    .getDimensionalItems(),
-                dimensionalItemCriteria,
+                eventAnalyticsDimensionsService.getQueryDimensionsByProgramStageId( programStageId ),
+                dimensionsCriteria,
                 fields );
     }
 

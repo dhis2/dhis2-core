@@ -25,16 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.dimension;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
-@Data
-@NoArgsConstructor
-public class DimensionalItemCriteria extends PagingAndSortingCriteriaAdapter
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class DimensionMapperService
 {
-    private String filter;
+    private final Collection<DimensionMapper> mappers;
+
+    public Collection<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
+    {
+        return dimensions.stream()
+            .map( this::toDimensionResponse )
+            .collect( Collectors.toList() );
+    }
+
+    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension )
+    {
+        return mappers.stream()
+            .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
+            .findFirst()
+            .map( dimensionMapper -> dimensionMapper.map( dimension ) )
+            .orElseThrow( () -> new IllegalArgumentException(
+                "Unsupported dimension type: " + getRealClass( dimension ) ) );
+    }
 }

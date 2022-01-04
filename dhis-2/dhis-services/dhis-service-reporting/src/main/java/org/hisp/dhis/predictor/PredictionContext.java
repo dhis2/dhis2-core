@@ -25,37 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.validation;
+package org.hisp.dhis.predictor;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
-
-import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventImporterValidationRunner;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.ValidatingEventChecker;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.period.Period;
 
 /**
- * @author maikel arabori
+ * Context (including data) for computing a single prediction.
+ *
+ * @author Jim Grace
  */
-@Component
-public class UpdateValidatingEventChecker extends ValidatingEventChecker
+@Data
+@AllArgsConstructor
+public class PredictionContext
 {
-    @Getter
-    private final Predicate<ImportStrategy> supportedPredicate = ImportStrategyUtils::isUpdate;
+    private CategoryOptionCombo attributeOptionCombo;
 
-    public UpdateValidatingEventChecker( final Map<ImportStrategy, List<Checker>> checkersByImportStrategy,
-        EventImporterValidationRunner validationRunner )
-    {
-        super( checkNotNull(
-            checkNotNull( checkersByImportStrategy ).get( UPDATE ) ), validationRunner );
-    }
+    private Period outputPeriod;
+
+    private MapMap<Period, DimensionalItemObject, Object> periodValueMap;
+
+    private Map<DimensionalItemObject, Object> valueMap;
 }

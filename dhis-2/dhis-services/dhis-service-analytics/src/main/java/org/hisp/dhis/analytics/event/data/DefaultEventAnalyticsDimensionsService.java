@@ -27,42 +27,25 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.function.Predicate.not;
-import static org.hisp.dhis.analytics.event.EventsAnalyticsDimensionalItems.EMPTY_ANALYTICS_DIMENSIONAL_ITEMS;
-import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.hisp.dhis.common.ValueType.FILE_RESOURCE;
-import static org.hisp.dhis.common.ValueType.IMAGE;
-import static org.hisp.dhis.common.ValueType.INTEGER;
-import static org.hisp.dhis.common.ValueType.INTEGER_NEGATIVE;
-import static org.hisp.dhis.common.ValueType.INTEGER_POSITIVE;
-import static org.hisp.dhis.common.ValueType.INTEGER_ZERO_OR_POSITIVE;
-import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.PERCENTAGE;
-import static org.hisp.dhis.common.ValueType.TRACKER_ASSOCIATE;
-import static org.hisp.dhis.common.ValueType.TRUE_ONLY;
-import static org.hisp.dhis.common.ValueType.UNIT_INTERVAL;
+import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.AGGREGATE;
+import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.QUERY;
+import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
-import org.hisp.dhis.analytics.event.EventsAnalyticsDimensionalItems;
+import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -70,34 +53,10 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-
 @Service
 @RequiredArgsConstructor
-class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimensionalItemService
+public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensionsService
 {
-
-    final static Collection<ValueType> QUERY_DISALLOWED_VALUE_TYPES = ImmutableSet.of(
-        IMAGE,
-        FILE_RESOURCE,
-        TRACKER_ASSOCIATE );
-
-    final static Collection<ValueType> AGGREGATE_ALLOWED_VALUE_TYPES = ImmutableSet.of(
-        NUMBER,
-        UNIT_INTERVAL,
-        PERCENTAGE,
-        INTEGER,
-        INTEGER_POSITIVE,
-        INTEGER_NEGATIVE,
-        INTEGER_ZERO_OR_POSITIVE,
-        BOOLEAN,
-        TRUE_ONLY );
-
-    private final Map<OperationType, Predicate<ValueType>> OPERATION_FILTER = ImmutableMap.of(
-        OperationType.QUERY, not( QUERY_DISALLOWED_VALUE_TYPES::contains ),
-        OperationType.AGGREGATE, AGGREGATE_ALLOWED_VALUE_TYPES::contains );
-
     @NonNull
     private final ProgramStageService programStageService;
 
@@ -105,48 +64,43 @@ class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimen
     private final CategoryService categoryService;
 
     @Override
-    public EventsAnalyticsDimensionalItems getQueryDimensionalItemsByProgramStageId( String programStageId )
+    public List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
             .map( ProgramStage::getProgram )
-            .map( p -> EventsAnalyticsDimensionalItems.builder()
-                .programIndicators( p.getProgramIndicators() )
-                .dataElements(
+            .map( p -> collectDimensions(
+                List.of(
+                    p.getProgramIndicators(),
                     filterByValueType(
-                        OperationType.QUERY,
+                        QUERY,
                         p.getDataElements(),
-                        DataElement::getValueType ) )
-                .trackedEntityAttributes(
+                        DataElement::getValueType ),
                     filterByValueType(
-                        OperationType.QUERY,
+                        QUERY,
                         getTeasIfRegistrationAndNotConfidential( p ),
-                        TrackedEntityAttribute::getValueType ) )
-                .comboCategories( getCategoriesIfNeeded( p ) )
-                .attributeCategoryOptionGroupSets( getAttributeCategoryOptionGroupSetsIfNeeded( p ) )
-                .build() )
-            .orElse( EMPTY_ANALYTICS_DIMENSIONAL_ITEMS );
+                        TrackedEntityAttribute::getValueType ),
+                    getCategoriesIfNeeded( p ),
+                    getAttributeCategoryOptionGroupSetsIfNeeded( p ) ) ) )
+            .orElse( Collections.emptyList() );
     }
 
     @Override
-    public EventsAnalyticsDimensionalItems getAggregateDimensionalItemsByProgramStageId( String programStageId )
+    public List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
-            .map( ps -> EventsAnalyticsDimensionalItems.builder()
-                .programIndicators( null )
-                .dataElements(
-                    filterByValueType( OperationType.AGGREGATE,
+            .map( ps -> collectDimensions(
+                List.of(
+                    filterByValueType( AGGREGATE,
                         ps.getDataElements(),
-                        DataElement::getValueType ) )
-                .trackedEntityAttributes(
-                    filterByValueType( OperationType.AGGREGATE,
+                        DataElement::getValueType ),
+                    filterByValueType( AGGREGATE,
                         ps.getProgram().getTrackedEntityAttributes(),
-                        TrackedEntityAttribute::getValueType ) )
-                .comboCategories( getCategoriesIfNeeded( ps.getProgram() ) )
-                .attributeCategoryOptionGroupSets( getAttributeCategoryOptionGroupSetsIfNeeded( ps.getProgram() ) )
-                .build() )
-            .orElse( EMPTY_ANALYTICS_DIMENSIONAL_ITEMS );
+                        TrackedEntityAttribute::getValueType ),
+                    getCategoriesIfNeeded( ps.getProgram() ),
+                    getAttributeCategoryOptionGroupSetsIfNeeded( ps.getProgram() ) ) ) )
+            .orElse( Collections.emptyList() );
     }
 
     private List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsIfNeeded( Program program )
@@ -161,7 +115,7 @@ class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimen
 
     private boolean isTypeAttribute( CategoryOptionGroupSet categoryOptionGroupSet )
     {
-        return categoryOptionGroupSet.getDataDimensionType().equals( DataDimensionType.ATTRIBUTE );
+        return ATTRIBUTE == categoryOptionGroupSet.getDataDimensionType();
     }
 
     private Collection<Category> getCategoriesIfNeeded( Program program )
@@ -187,19 +141,5 @@ class DefaultEventAnalyticsDimensionalItemService implements EventAnalyticsDimen
     private boolean isNotConfidential( TrackedEntityAttribute trackedEntityAttribute )
     {
         return !trackedEntityAttribute.isConfidentialBool();
-    }
-
-    private <T extends BaseDimensionalItemObject> Collection<T> filterByValueType( OperationType operationType,
-        Collection<T> elements, Function<T, ValueType> valueTypeProvider )
-    {
-        return elements.stream()
-            .filter( t -> OPERATION_FILTER.get( operationType ).test( valueTypeProvider.apply( t ) ) )
-            .collect( Collectors.toList() );
-    }
-
-    private enum OperationType
-    {
-        QUERY,
-        AGGREGATE
     }
 }
