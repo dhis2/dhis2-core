@@ -31,9 +31,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.webapi.json.JsonArray;
@@ -66,6 +64,15 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
         assertEquals( singletonList( "groupX" ),
             GET( "/users/{uid}/userGroups/gist?fields=name&headless=true", getSuperuserUid() ).content()
                 .stringValues() );
+    }
+
+    @Test
+    void testField_Collection_DefaultIsSize()
+    {
+        JsonArray matches = GET( "/userGroups/gist?fields=name,users&headless=true" ).content();
+        assertEquals( 1, matches.size() );
+        assertEquals( 1, matches.getObject( 0 ).getNumber( "users" ).intValue() );
+        assertTrue( matches.getObject( 0 ).getObject( "apiEndpoints" ).getString( "users" ).exists() );
     }
 
     @Test
