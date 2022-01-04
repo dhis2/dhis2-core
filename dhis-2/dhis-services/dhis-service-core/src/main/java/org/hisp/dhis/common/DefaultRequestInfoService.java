@@ -82,7 +82,7 @@ public class DefaultRequestInfoService implements RequestInfoService
             return null;
         }
         String xRequestID = info.getHeaderXRequestID();
-        if ( xRequestID != null && !xRequestID.matches( "[-_a-zA-Z0-9]{1,36}" ) )
+        if ( !RequestInfo.isValidXRequestID( xRequestID ) )
         {
             return info.toBuilder().headerXRequestID( "(illegal)" ).build();
         }
