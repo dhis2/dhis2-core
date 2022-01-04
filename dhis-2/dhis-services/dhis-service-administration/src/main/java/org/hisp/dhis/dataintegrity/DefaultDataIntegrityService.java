@@ -503,7 +503,7 @@ public class DefaultDataIntegrityService
             .section( "Legacy" )
             .description( name.replace( '_', ' ' ) )
             .runDetailsCheck( c -> new DataIntegrityDetails( c, check.get() ) )
-            .runSummaryCheck( c -> null ) // not supported
+            .runSummaryCheck( c -> new DataIntegritySummary( c, check.get().size(), null ) )
             .build() );
     }
 
