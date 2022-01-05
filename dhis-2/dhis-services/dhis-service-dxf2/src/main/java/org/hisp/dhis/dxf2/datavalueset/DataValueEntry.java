@@ -27,44 +27,64 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.Date;
-
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportParams;
-
 /**
- * @author Lars Helge Overland
+ * An entry in an {@link DataValueSet} while processing it in context of a
+ * {@link DataValueSetReader} or {@link DataValueSetWriter}.
+ *
+ * @author Jan Bernitt
  */
-public interface DataValueSetStore
+public interface DataValueEntry
 {
-    void exportDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out );
+    String getDataElement();
 
-    void exportDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out );
+    String getPeriod();
 
-    void exportDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
+    String getOrgUnit();
 
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+    String getCategoryOptionCombo();
 
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     * @param pageSize pageSize
-     * @param page page
-     */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
-        int page );
+    String getAttributeOptionCombo();
+
+    String getValue();
+
+    String getStoredBy();
+
+    String getCreated();
+
+    String getLastUpdated();
+
+    String getComment();
+
+    boolean getFollowup();
+
+    Boolean getDeleted();
+
+    default boolean hasLastUpdated()
+    {
+        String updated = getLastUpdated();
+        return updated != null && !updated.isEmpty();
+    }
+
+    default boolean hasCreated()
+    {
+        String created = getCreated();
+        return created != null && !created.isEmpty();
+    }
+
+    default String getPrimaryKey()
+    {
+        return getDataElement() + getPeriod() + getOrgUnit() + getCategoryOptionCombo() + getAttributeOptionCombo();
+    }
+
+    default boolean isNullValue()
+    {
+        return getValue() == null && getComment() == null;
+    }
+
+    default boolean isDeletedValue()
+    {
+        Boolean deleted = getDeleted();
+        return deleted != null && deleted;
+    }
+
 }

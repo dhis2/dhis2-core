@@ -27,44 +27,51 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.Date;
-
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportParams;
-
 /**
- * @author Lars Helge Overland
+ * Adopter interface to read {@link DataValueSet}s from different input formats
+ * like XML, JSON and CSV.
+ *
+ * To avoid materialising a potentially very large set of
+ * {@link org.hisp.dhis.dxf2.datavalue.DataValue}s with the {@link DataValueSet}
+ * the values are not included in the {@link #readHeader()} value. Instead, the
+ * values are iterated/streamed using the {@link #readNext()} method.
+ *
+ * To read an input the call sequence should be the following:
+ * <ol>
+ * <li>call {@link #readHeader()} once (must be called)</li>
+ * <li>call {@link #readNext()} until it returns {@code null}</li>
+ * <li>call {@link #close()} once</li>
+ * </ol>
+ *
+ * All methods might throw an {@link java.io.UncheckedIOException}.
+ *
+ * A reader that does not support actual streaming using {@link #readNext()} can
+ * include the values in the {@link DataValueSet} returned by the
+ * {@link #readHeader()} and immediately return {@code null} when
+ * {@link #readNext()} is called.
+ *
+ * @author Jan Bernitt
+ *
+ * @see XmlDataValueSetReader
+ * @see CsvDataValueSetReader
+ * @see PdfDataValueSetReader
+ * @see JsonDataValueSetReader
  */
-public interface DataValueSetStore
+public interface DataValueSetReader extends AutoCloseable
 {
-    void exportDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out );
-
-    void exportDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out );
-
-    void exportDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
 
     /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
+     * @return The information on the {@link DataValueSet} but not including the
+     *         {@link DataValueSet#getDataValues()}
      */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+    DataValueSet readHeader();
 
     /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     * @param pageSize pageSize
-     * @param page page
+     * @return the next {@link DataValueEntry} in the set or {@code null} if no
+     *         more values are available
      */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
-        int page );
+    DataValueEntry readNext();
+
+    @Override
+    void close();
 }

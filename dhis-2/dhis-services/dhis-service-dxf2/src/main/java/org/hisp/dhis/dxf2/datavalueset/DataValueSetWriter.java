@@ -27,44 +27,51 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.Date;
-
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportParams;
-
 /**
- * @author Lars Helge Overland
+ * Adapter interface to write {@link DataValueSet} data to different output
+ * formats like JSON, XML and CSV.
+ *
+ * Data is written by the following method call sequence:
+ * <ol>
+ * <li>{@link #writeHeader()} or
+ * {@link #writeHeader(String, String, String, String)}</li>
+ * <li>0 or more times {@link #writeValue(DataValueEntry)}</li>
+ * <li>{@link #close()}</li>
+ * </ol>
+ *
+ * All methods might throw an {@link java.io.UncheckedIOException}.
+ *
+ * @author Jan Bernitt
+ *
+ * @see XmlDataValueSetWriter
+ * @see JsonDataValueSetWriter
+ * @see CsvDataValueSetWriter
  */
-public interface DataValueSetStore
+public interface DataValueSetWriter extends AutoCloseable
 {
-    void exportDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out );
-
-    void exportDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out );
-
-    void exportDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
+    /**
+     * Add a minimum document header to the output, so it is ready for calls of
+     * {@link #writeValue(DataValueEntry)}
+     */
+    void writeHeader();
 
     /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
+     * Add a header with the provided information to the output. Afterwards the
+     * output should be ready for calls to {@link #writeValue(DataValueEntry)}.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
+     * @param dataSetId ID of the written dataset
+     * @param completeDate the completeDate of the set
+     * @param isoPeriod the period of the set
+     * @param orgUnitId the organisation unit of the set
      */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+    void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId );
+
+    void writeValue( DataValueEntry entry );
 
     /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     * @param pageSize pageSize
-     * @param page page
+     * Add the document footer to the output and close the document.
      */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
-        int page );
+    @Override
+    void close();
+
 }

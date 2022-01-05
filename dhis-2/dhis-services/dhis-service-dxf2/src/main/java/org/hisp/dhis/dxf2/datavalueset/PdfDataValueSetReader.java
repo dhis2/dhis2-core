@@ -27,44 +27,46 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.Date;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportParams;
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 
 /**
- * @author Lars Helge Overland
+ * Reads {@link DataValueSet} from PDF input.
+ *
+ * @author Jan Bernitt
  */
-public interface DataValueSetStore
+@AllArgsConstructor
+final class PdfDataValueSetReader implements DataValueSetReader
 {
-    void exportDataValueSetXml( DataExportParams params, Date completeDate, OutputStream out );
+    private final InputStream in;
 
-    void exportDataValueSetJson( DataExportParams params, Date completeDate, OutputStream out );
+    @Override
+    public DataValueSet readHeader()
+    {
+        return PdfDataEntryFormUtil.getDataValueSet( in );
+    }
 
-    void exportDataValueSetCsv( DataExportParams params, Date completeDate, Writer writer );
+    @Override
+    public DataValueEntry readNext()
+    {
+        return null; // header contains the values
+    }
 
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
-
-    /**
-     * Query for {@link DataValueSet DataValueSets} and write result as JSON.
-     *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
-     * @param outputStream the stream to write to
-     * @param idSchemes idSchemes
-     * @param pageSize pageSize
-     * @param page page
-     */
-    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
-        int page );
+    @Override
+    public void close()
+    {
+        try
+        {
+            in.close();
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
+    }
 }

@@ -250,7 +250,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) ).setPeriods( Sets.newHashSet( peA ) );
-        dataValueSetService.writeDataValueSetJson( params, out );
+        dataValueSetService.exportDataValueSetJson( params, out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -274,7 +274,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
             .dataSetIdScheme( IdentifiableProperty.CODE.name() ).orgUnitIdScheme( IdentifiableProperty.CODE.name() )
             .build();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), out );
+        dataValueSetService.exportDataValueSetJson( dataValueSetService.getFromUrl( params ), out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -296,7 +296,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setOrganisationUnits( Sets.newHashSet( ouB ) ).setPeriods( Sets.newHashSet( peA ) )
             .setAttributeOptionCombos( Sets.newHashSet( cocA ) );
-        dataValueSetService.writeDataValueSetJson( params, out );
+        dataValueSetService.exportDataValueSetJson( params, out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -320,7 +320,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
             .dataSetIdScheme( IdentifiableProperty.CODE.name() ).orgUnitIdScheme( IdentifiableProperty.CODE.name() )
             .attributeOptionComboIdScheme( IdentifiableProperty.CODE.name() ).build();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), out );
+        dataValueSetService.exportDataValueSetJson( dataValueSetService.getFromUrl( params ), out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -342,7 +342,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) ).setIncludeDescendants( true )
             .setPeriods( Sets.newHashSet( peA ) );
-        dataValueSetService.writeDataValueSetJson( params, out );
+        dataValueSetService.exportDataValueSetJson( params, out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -366,7 +366,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsB ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) ).setPeriods( Sets.newHashSet( peB ) )
             .setOutputIdSchemes( idSchemes );
-        dataValueSetService.writeDataValueSetJson( params, out );
+        dataValueSetService.exportDataValueSetJson( params, out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -392,7 +392,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
             dataSet( singleton( dsB.getCode() ) ).orgUnit( singleton( ouA.getCode() ) ).period( singleton( peBUid ) )
             .inputIdScheme( IdentifiableProperty.CODE ).build();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), out );
+        dataValueSetService.exportDataValueSetJson( dataValueSetService.getFromUrl( params ), out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -419,7 +419,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsB ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) ).setPeriods( Sets.newHashSet( peB ) )
             .setOutputIdSchemes( idSchemes );
-        dataValueSetService.writeDataValueSetJson( params, out );
+        dataValueSetService.exportDataValueSetJson( params, out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -439,7 +439,7 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
     {
         Date lastUpdated = getDate( 1970, 1, 1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+        dataValueSetService.exportDataValueSetJson( lastUpdated, out, new IdSchemes() );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertEquals( 12, dvs.getDataValues().size() );
@@ -459,14 +459,14 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         dataValueService.addDataValue( dvB );
         Date lastUpdated = getDate( 1970, 1, 1 );
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+        dataValueSetService.exportDataValueSetJson( lastUpdated, out, new IdSchemes() );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertEquals( 14, dvs.getDataValues().size() );
         dataValueService.deleteDataValue( dvA );
         dataValueService.deleteDataValue( dvB );
         out = new ByteArrayOutputStream();
-        dataValueSetService.writeDataValueSetJson( lastUpdated, out, new IdSchemes() );
+        dataValueSetService.exportDataValueSetJson( lastUpdated, out, new IdSchemes() );
         dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertEquals( 14, dvs.getDataValues().size() );
@@ -479,7 +479,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         DataExportParams params = new DataExportParams().setOrganisationUnits( Sets.newHashSet( ouB ) )
             .setPeriods( Sets.newHashSet( peA ) );
         assertIllegalQueryEx(
-            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            assertThrows( IllegalQueryException.class,
+                () -> dataValueSetService.exportDataValueSetJson( params, out ) ),
             ErrorCode.E2001 );
     }
 
@@ -490,7 +491,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setOrganisationUnits( Sets.newHashSet( ouA ) );
         assertIllegalQueryEx(
-            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            assertThrows( IllegalQueryException.class,
+                () -> dataValueSetService.exportDataValueSetJson( params, out ) ),
             ErrorCode.E2002 );
     }
 
@@ -502,7 +504,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
             .setOrganisationUnits( Sets.newHashSet( ouB ) ).setPeriods( Sets.newHashSet( peA ) )
             .setStartDate( getDate( 2019, 1, 1 ) ).setEndDate( getDate( 2019, 1, 31 ) );
         assertIllegalQueryEx(
-            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            assertThrows( IllegalQueryException.class,
+                () -> dataValueSetService.exportDataValueSetJson( params, out ) ),
             ErrorCode.E2003 );
     }
 
@@ -514,7 +517,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
             .setOrganisationUnits( Sets.newHashSet( ouB ) ).setStartDate( getDate( 2019, 3, 1 ) )
             .setEndDate( getDate( 2019, 1, 31 ) );
         assertIllegalQueryEx(
-            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            assertThrows( IllegalQueryException.class,
+                () -> dataValueSetService.exportDataValueSetJson( params, out ) ),
             ErrorCode.E2004 );
     }
 
@@ -525,7 +529,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) );
         assertIllegalQueryEx(
-            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            assertThrows( IllegalQueryException.class,
+                () -> dataValueSetService.exportDataValueSetJson( params, out ) ),
             ErrorCode.E2006 );
     }
 
@@ -537,7 +542,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
             .setPeriods( Sets.newHashSet( peA, peB ) ).setOrganisationUnitGroups( Sets.newHashSet( ogA ) )
             .setIncludeDescendants( true );
         assertIllegalQueryEx(
-            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            assertThrows( IllegalQueryException.class,
+                () -> dataValueSetService.exportDataValueSetJson( params, out ) ),
             ErrorCode.E2008 );
     }
 
@@ -548,7 +554,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA, peB ) ).setOrganisationUnits( Sets.newHashSet( ouB ) ).setLimit( -2 );
         assertIllegalQueryEx(
-            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            assertThrows( IllegalQueryException.class,
+                () -> dataValueSetService.exportDataValueSetJson( params, out ) ),
             ErrorCode.E2009 );
     }
 
@@ -559,7 +566,8 @@ class DataValueSetServiceExportTest extends IntegrationTestBase
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setOrganisationUnits( Sets.newHashSet( ouC ) ).setPeriods( Sets.newHashSet( peA ) );
         assertIllegalQueryEx(
-            assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) ),
+            assertThrows( IllegalQueryException.class,
+                () -> dataValueSetService.exportDataValueSetJson( params, out ) ),
             ErrorCode.E2012 );
     }
 }
