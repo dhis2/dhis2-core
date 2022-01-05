@@ -31,7 +31,9 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.attribute.Attribute.ObjectType;
 import org.hisp.dhis.webapi.json.JsonArray;
