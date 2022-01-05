@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,46 +27,61 @@
  */
 package org.hisp.dhis.common;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
 
 /**
- * Various information about the HTTP request made available to the system.
+ * Tests valid XRequestID header validation of
+ * {@link RequestInfo#isValidXRequestID(String)}
  *
  * @author Jan Bernitt
  */
-@Getter
-@Builder( toBuilder = true )
-@ToString
-@EqualsAndHashCode
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class RequestInfo
+class RequestInfoTest
 {
-
-    @JsonProperty
-    private final String headerXRequestID;
-
-    /**
-     * Since the xRequestID is a user provided input that will be used in logs
-     * and potentially other places we need to make sure it is secure to be
-     * used. Therefore, it is limited to unique identifier patterns such as UUID
-     * strings or the UIDs used by DHIS2.
-     *
-     * A valid ID is alphanumeric (which dash and underscored being allowed too)
-     * and has a length between 1 and 36.
-     *
-     * @param xRequestID the ID to check, may be null
-     * @return true, if the provided ID is legal (null is legal) or false if it
-     *         is not
-     */
-    public static boolean isValidXRequestID( String xRequestID )
+    @Test
+    void testUidIsValidXRequestID()
     {
-        return xRequestID == null || xRequestID.matches( "[-_a-zA-Z0-9]{1,36}" );
+        assertValid( CodeGenerator.generateUid() );
+    }
+
+    @Test
+    void testUUIDIsValidXRequestID()
+    {
+        assertValid( UUID.randomUUID().toString() );
+    }
+
+    @Test
+    void testLongStringIsInvalidXRequestID()
+    {
+        assertInvalid( "1234567890123456789012345678901234567890" );
+    }
+
+    @Test
+    void testQuoteStringIsInvalidXRequestID()
+    {
+        assertInvalid( "'now-I-escaped" );
+        assertInvalid( "\"now-I-escaped" );
+    }
+
+    @Test
+    void testSpaceStringIsInvalidXRequestID()
+    {
+        assertInvalid( "no - not having it" );
+    }
+
+    private static void assertValid( String xRequestID )
+    {
+        assertTrue( RequestInfo.isValidXRequestID( xRequestID ),
+            "Should be a valid ID but is not: " + xRequestID );
+    }
+
+    private static void assertInvalid( String xRequestID )
+    {
+        assertFalse( RequestInfo.isValidXRequestID( xRequestID ),
+            "Should be an invalid ID but is valid: " + xRequestID );
     }
 }
