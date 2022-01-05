@@ -370,7 +370,11 @@ public enum ErrorCode
         "Data is already approved for data set: `{3}` period: `{1}` organisation unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
-    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" );
+    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" ),
+
+    // datastore query validation
+    E7650( "Not a valid path: `{0}`" ),
+    E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" );
 
     private String message;
 
