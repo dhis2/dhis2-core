@@ -593,7 +593,7 @@ public class DefaultDataValueSetService
     public ImportSummary importDataValueSetJson( InputStream in, ImportOptions options, JobConfiguration id )
     {
         return importDataValueSet( options, id,
-            () -> new JsonDataValueSetReader( wrapAndCheckCompressionFormat( in ), jsonMapper ) );
+            () -> new JsonDataValueSetStreamReader( wrapAndCheckCompressionFormat( in ) ) );
     }
 
     @Override

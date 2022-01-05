@@ -43,9 +43,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @AllArgsConstructor
 final class JsonDataValueSetReader implements DataValueSetReader
 {
-    final InputStream in;
+    private final InputStream in;
 
-    final ObjectMapper jsonMapper;
+    private final ObjectMapper jsonMapper;
 
     @Override
     public DataValueSet readHeader()
