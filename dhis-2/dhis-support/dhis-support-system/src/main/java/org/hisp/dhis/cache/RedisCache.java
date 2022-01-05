@@ -28,8 +28,8 @@
 package org.hisp.dhis.cache;
 
 import static java.util.Collections.emptySet;
-import static java.util.Collections.unmodifiableSet;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.Assert.hasText;
 
 import java.util.List;
@@ -148,8 +148,10 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Set<String> keys()
     {
-        var keys = redisTemplate.keys( cacheRegion + "*" );
-        return keys == null ? emptySet() : unmodifiableSet( keys );
+        var keys = redisTemplate.keys( cacheRegion + ":*" );
+        return keys == null
+            ? emptySet()
+            : keys.stream().map( key -> key.substring( key.indexOf( ':' ) + 1 ) ).collect( toSet() );
     }
 
     @Override
