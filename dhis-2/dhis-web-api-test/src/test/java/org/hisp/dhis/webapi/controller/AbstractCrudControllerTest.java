@@ -31,7 +31,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.assertError;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -116,19 +115,43 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void replaceTranslations()
+    void replaceTranslationsForNotTranslatableObject()
     {
         String id = getCurrentUser().getUid();
         JsonArray translations = GET( "/users/{id}/translations", id ).content().getArray( "translations" );
         assertTrue( translations.isEmpty() );
-        assertStatus( HttpStatus.NO_CONTENT, PUT( "/users/" + id + "/translations",
-            "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" ) );
-        translations = GET( "/users/{id}/translations", id ).content().getArray( "translations" );
+        JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
+            "One more more errors occurred, please see full details in import report.",
+            PUT( "/users/" + id + "/translations",
+                "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" )
+                    .content( HttpStatus.CONFLICT ) );
+        JsonErrorReport error = message.find( JsonErrorReport.class,
+            report -> report.getErrorCode() == ErrorCode.E1107 );
+        assertEquals( "Object type `User` is not translatable.", error.getMessage() );
+    }
+
+    @Test
+    public void replaceTranslationsOk()
+    {
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+        JsonArray translations = GET( "/dataSets/{id}/translations", id )
+            .content().getArray( "translations" );
+
+        assertTrue( translations.isEmpty() );
+
+        PUT( "/dataSets/" + id + "/translations",
+            "{'translations': [{'locale':'sv', 'property':'name', 'value':'name sv'}]}" )
+                .content( HttpStatus.NO_CONTENT );
+
+        JsonResponse content = GET( "/dataSets/{id}", id ).content();
+
+        translations = GET( "/dataSets/{id}/translations", id ).content().getArray( "translations" );
         assertEquals( 1, translations.size() );
         JsonTranslation translation = translations.get( 0, JsonTranslation.class );
         assertEquals( "sv", translation.getLocale() );
         assertEquals( "name", translation.getProperty() );
-        assertEquals( "namn", translation.getValue() );
+        assertEquals( "name sv", translation.getValue() );
     }
 
     @Test
@@ -165,27 +188,60 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     void replaceTranslations_MissingValue()
     {
-        String id = getCurrentUser().getUid();
-        String translations = "{'translations': [{'locale':'sv', 'property':'name'}]}";
-        assertError( ErrorCode.E4000, "Missing required property `value`.",
-            PUT( "/users/" + id + "/translations", translations ).error() );
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+
+        JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
+            "One more more errors occurred, please see full details in import report.",
+            PUT( "/dataSets/" + id + "/translations",
+                "{'translations': [{'locale':'en', 'property':'name'}]}" )
+                    .content( HttpStatus.CONFLICT ) );
+
+        JsonErrorReport error = message.find( JsonErrorReport.class,
+            report -> report.getErrorCode() == ErrorCode.E4000 );
+
+        assertEquals( "Missing required property `value`.",
+            error.getMessage() );
     }
 
     @Test
     void replaceTranslations_MissingProperty()
     {
-        String id = getCurrentUser().getUid();
-        assertError( ErrorCode.E4000, "Missing required property `property`.",
-            PUT( "/users/" + id + "/translations", "{'translations': [{'locale':'sv', 'value':'namn'}]}" ).error() );
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+
+        JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
+            "One more more errors occurred, please see full details in import report.",
+            PUT( "/dataSets/" + id + "/translations",
+                "{'translations': [{'locale':'en', 'value':'namn 1'}]}" )
+                    .content( HttpStatus.CONFLICT ) );
+
+        JsonErrorReport error = message.find( JsonErrorReport.class,
+            report -> report.getErrorCode() == ErrorCode.E4000 );
+
+        assertEquals( "Missing required property `property`.",
+            error.getMessage() );
     }
 
     @Test
     void replaceTranslations_MissingLocale()
     {
-        String id = getCurrentUser().getUid();
-        String translations = "{'translations': [{'property':'name', 'value':'namn'}]}";
-        assertError( ErrorCode.E4000, "Missing required property `locale`.",
-            PUT( "/users/" + id + "/translations", translations ).error() );
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
+        JsonArray translations = GET( "/dataSets/{id}/translations", id )
+            .content().getArray( "translations" );
+
+        JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
+            "One more more errors occurred, please see full details in import report.",
+            PUT( "/dataSets/" + id + "/translations",
+                "{'translations': [{'property':'name', 'value':'namn 1'}]}" )
+                    .content( HttpStatus.CONFLICT ) );
+
+        JsonErrorReport error = message.find( JsonErrorReport.class,
+            report -> report.getErrorCode() == ErrorCode.E4000 );
+
+        assertEquals( "Missing required property `locale`.",
+            error.getMessage() );
     }
 
     @Test

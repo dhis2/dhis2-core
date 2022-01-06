@@ -40,6 +40,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.translation.Translation;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +50,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class TranslationsCheck implements ObjectValidationCheck
 {
-
     @Override
     public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass, List<T> persistedObjects,
         List<T> nonPersistedObjects, ImportStrategy importStrategy, ValidationContext context,
@@ -62,11 +62,16 @@ public class TranslationsCheck implements ObjectValidationCheck
             return;
         }
 
-        objects.forEach( o -> run( o, klass, addReports ) );
+        Schema schema = context.getSchemaService().getDynamicSchema( klass );
+
+        for ( int i = 0; i < objects.size(); i++ )
+        {
+            run( objects.get( i ), klass, addReports, schema, i );
+        }
     }
 
     private <T extends IdentifiableObject> void run( IdentifiableObject object, Class<T> klass,
-        Consumer<ObjectReport> addReports )
+        Consumer<ObjectReport> addReports, Schema schema, int index )
     {
         Set<Translation> translations = object.getTranslations();
 
@@ -75,13 +80,20 @@ public class TranslationsCheck implements ObjectValidationCheck
             return;
         }
 
+        ObjectReport objectReport = new ObjectReport( klass, index );
+
+        if ( !schema.isTranslatable() )
+        {
+            objectReport.addErrorReport(
+                new ErrorReport( Translation.class, ErrorCode.E1107, klass.getSimpleName() ).setErrorKlass( klass ) );
+            addReports.accept( objectReport );
+            return;
+        }
+
         Map<String, String> mapPropertyLocale = new HashMap<>();
-        int index = 0;
 
         for ( Translation translation : translations )
         {
-            ObjectReport objectReport = new ObjectReport( klass, index++ );
-
             if ( mapPropertyLocale.containsKey( translation.getProperty() )
                 && mapPropertyLocale.get( translation.getProperty() ).equals( translation.getLocale() ) )
             {

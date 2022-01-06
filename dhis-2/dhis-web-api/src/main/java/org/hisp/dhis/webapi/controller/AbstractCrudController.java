@@ -42,10 +42,9 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -64,6 +63,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -86,6 +86,7 @@ import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.sharing.SharingService;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -169,29 +170,33 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             return notFound( getEntityClass(), pvUid );
         }
 
-        T persistedObject = entities.get( 0 );
+        BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) entities.get( 0 );
 
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        T object = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        T inputObject = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
-        translatedObject.setTranslations( object.getTranslations().stream()
-            .filter( t -> !StringUtils.isEmpty( t.getValue() ) )
-            .collect( Collectors.toSet() ) );
-        translatedObject.setLastUpdated( new Date() );
-        translatedObject.setLastUpdatedBy( currentUser );
+        HashSet<Translation> translations = new HashSet<>( inputObject.getTranslations() );
 
-        MetadataImportParams params = new MetadataImportParams();
+        persistedObject.setTranslations( translations );
+
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
         params.setUser( currentUser )
             .setImportStrategy( ImportStrategy.UPDATE )
-            .addObject( translatedObject );
+            .addObject( persistedObject )
+            .setImportMode( ObjectBundleMode.VALIDATE );
 
         ImportReport importReport = importService.importMetadata( params );
+
+        if ( !importReport.hasErrorReports() )
+        {
+            manager.save( persistedObject );
+            return null;
+        }
 
         return importReport( importReport );
     }

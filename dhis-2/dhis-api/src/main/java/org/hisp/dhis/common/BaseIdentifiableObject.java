@@ -33,7 +33,9 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.attribute.Attribute;
@@ -124,7 +126,7 @@ public class BaseIdentifiableObject
      * Cache for object translations, where the cache key is a combination of
      * locale and translation property, and value is the translated value.
      */
-    protected Map<String, String> translationCache = new HashMap<>();
+    private Map<String, String> translationCache = new ConcurrentHashMap<>();
 
     /**
      * This object is available as external read-only.
@@ -407,36 +409,13 @@ public class BaseIdentifiableObject
 
         defaultValue = defaultValue != null ? defaultValue.trim() : null;
 
-        if ( locale == null || translationKey == null )
+        if ( locale == null || translationKey == null || CollectionUtils.isEmpty( translations ) )
         {
             return defaultValue;
         }
 
-        loadTranslationsCacheIfEmpty();
-
-        String cacheKey = Translation.getCacheKey( locale.toString(), translationKey );
-
-        return translationCache.getOrDefault( cacheKey, defaultValue );
-    }
-
-    /**
-     * Populates the translationsCache map unless it is already populated.
-     */
-    private void loadTranslationsCacheIfEmpty()
-    {
-        if ( translationCache.isEmpty() && translations != null )
-        {
-            for ( Translation translation : translations )
-            {
-                if ( translation.getLocale() != null && translation.getProperty() != null
-                    && !StringUtils.isEmpty( translation.getValue() ) )
-                {
-                    String key = Translation.getCacheKey( translation.getLocale(),
-                        translation.getProperty() );
-                    translationCache.put( key, translation.getValue() );
-                }
-            }
-        }
+        return translationCache.computeIfAbsent( Translation.getCacheKey( locale.toString(), translationKey ),
+            key -> getTranslationValue( locale.toString(), translationKey ) );
     }
 
     private void loadAttributeValuesCacheIfEmpty()
@@ -801,5 +780,25 @@ public class BaseIdentifiableObject
             "\"created\":\"" + getCreated() + "\", " +
             "\"lastUpdated\":\"" + getLastUpdated() + "\" " +
             "}";
+    }
+
+    /**
+     * Get Translation value from {@code Set<Translation>} by given locale and
+     * translationKey
+     *
+     * @return Translation value if exists, otherwise return null.
+     */
+    private String getTranslationValue( String locale, String translationKey )
+    {
+        for ( Translation translation : translations )
+        {
+            if ( locale.equals( translation.getLocale() ) && translationKey.equals( translation.getProperty() ) &&
+                !StringUtils.isEmpty( translation.getValue() ) )
+            {
+                return translation.getValue();
+            }
+        }
+
+        return null;
     }
 }
