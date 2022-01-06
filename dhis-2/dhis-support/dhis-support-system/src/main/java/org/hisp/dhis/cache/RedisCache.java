@@ -141,14 +141,19 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Stream<V> getAll()
     {
-        List<V> values = redisTemplate.opsForValue().multiGet( keys() );
+        Set<String> keySet = redisTemplate.keys( getAllKeysInRegionPattern() );
+        if ( keySet == null )
+        {
+            return Stream.empty();
+        }
+        List<V> values = redisTemplate.opsForValue().multiGet( keySet );
         return values == null ? Stream.empty() : values.stream();
     }
 
     @Override
     public Set<String> keys()
     {
-        var keys = redisTemplate.keys( cacheRegion + ":*" );
+        var keys = redisTemplate.keys( getAllKeysInRegionPattern() );
         return keys == null
             ? emptySet()
             : keys.stream().map( key -> key.substring( key.indexOf( ':' ) + 1 ) ).collect( toSet() );
@@ -214,10 +219,15 @@ public class RedisCache<V> implements Cache<V>
         return cacheRegion.concat( ":" ).concat( key );
     }
 
+    private String getAllKeysInRegionPattern()
+    {
+        return generateKey( "*" );
+    }
+
     @Override
     public void invalidateAll()
     {
-        Set<String> keysToDelete = redisTemplate.keys( cacheRegion.concat( ":*" ) );
+        Set<String> keysToDelete = redisTemplate.keys( getAllKeysInRegionPattern() );
         redisTemplate.delete( keysToDelete );
     }
 
@@ -226,4 +236,5 @@ public class RedisCache<V> implements Cache<V>
     {
         return CacheType.REDIS;
     }
+
 }
