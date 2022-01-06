@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
  * @author Ameen Mohamed
  */
 @Slf4j
-@Service
+@Service( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager" )
 public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttributeTableManager
 {
 
