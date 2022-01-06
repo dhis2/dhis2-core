@@ -27,46 +27,34 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.translation.Translation;
 import org.springframework.stereotype.Component;
 
 /**
+ * This class contains all validations to be performed on {@link Translation}
+ * objects as a part of the validation sequence in MetadataImportService
+ *
  * @author viet@dhis2.org
  */
 @Component
-public class TranslationsCheck implements ObjectValidationCheck
+public class TranslationsCheck implements ValidationCheck
 {
-
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass, List<T> persistedObjects,
-        List<T> nonPersistedObjects, ImportStrategy importStrategy, ValidationContext context,
-        Consumer<ObjectReport> addReports )
-    {
-        List<T> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
-
-        if ( CollectionUtils.isEmpty( objects ) )
-        {
-            return;
-        }
-
-        objects.forEach( o -> run( o, klass, addReports ) );
-    }
-
     private <T extends IdentifiableObject> void run( IdentifiableObject object, Class<T> klass,
-        Consumer<ObjectReport> addReports )
+        Schema schema, int index, Consumer<ObjectReport> addReports )
     {
         Set<Translation> translations = object.getTranslations();
 
@@ -75,15 +63,23 @@ public class TranslationsCheck implements ObjectValidationCheck
             return;
         }
 
-        Map<String, String> mapPropertyLocale = new HashMap<>();
-        int index = 0;
+        ObjectReport objectReport = new ObjectReport( klass, index );
+
+        if ( !schema.isTranslatable() )
+        {
+            objectReport.addErrorReport(
+                new ErrorReport( Translation.class, ErrorCode.E1107, klass.getSimpleName() ).setErrorKlass( klass ) );
+            addReports.accept( objectReport );
+            return;
+        }
+
+        Set<String> setPropertyLocales = new HashSet<>();
 
         for ( Translation translation : translations )
         {
-            ObjectReport objectReport = new ObjectReport( klass, index++ );
+            String key = String.join( "_", translation.getProperty().getName(), translation.getLocale() );
 
-            if ( mapPropertyLocale.containsKey( translation.getProperty() )
-                && mapPropertyLocale.get( translation.getProperty() ).equals( translation.getLocale() ) )
+            if ( setPropertyLocales.contains( key ) )
             {
                 objectReport.addErrorReport(
                     new ErrorReport( Translation.class, ErrorCode.E1106, translation.getProperty(),
@@ -92,7 +88,7 @@ public class TranslationsCheck implements ObjectValidationCheck
             }
             else
             {
-                mapPropertyLocale.put( translation.getProperty(), translation.getLocale() );
+                setPropertyLocales.add( key );
             }
 
             if ( translation.getLocale() == null )
@@ -112,8 +108,33 @@ public class TranslationsCheck implements ObjectValidationCheck
                 objectReport.addErrorReport(
                     new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( klass ) );
             }
+        }
 
+        if ( !CollectionUtils.isEmpty( objectReport.getErrorReports() ) )
+        {
             addReports.accept( objectReport );
         }
+    }
+
+    @Override
+    public TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,
+        List<IdentifiableObject> persistedObjects, List<IdentifiableObject> nonPersistedObjects,
+        ImportStrategy importStrategy, ValidationContext context )
+    {
+        List<IdentifiableObject> objects = selectObjects( persistedObjects, nonPersistedObjects, importStrategy );
+        TypeReport typeReport = new TypeReport( klass );
+
+        if ( CollectionUtils.isEmpty( objects ) )
+        {
+            return typeReport;
+        }
+
+        Schema schema = context.getSchemaService().getDynamicSchema( klass );
+
+        for ( int i = 0; i < objects.size(); i++ )
+        {
+            run( objects.get( i ), klass, schema, i, objectReport -> typeReport.addObjectReport( objectReport ) );
+        }
+        return typeReport;
     }
 }

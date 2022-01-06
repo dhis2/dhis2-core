@@ -27,20 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -63,11 +54,10 @@ import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.collection.CollectionService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
@@ -128,11 +118,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -385,7 +383,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        T persistedObject = entities.get( 0 );
+        BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) entities.get( 0 );
 
         User user = currentUserService.getCurrentUser();
 
@@ -394,54 +392,30 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        T object = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        T inputObject = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        TypeReport typeReport = new TypeReport( Translation.class );
+        HashSet<Translation> translations = new HashSet<>( inputObject.getTranslations() );
 
-        List<Translation> objectTranslations = Lists.newArrayList( object.getTranslations() );
+        persistedObject.setTranslations( translations );
 
-        for ( int idx = 0; idx < object.getTranslations().size(); idx++ )
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+
+        params.setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( persistedObject )
+            .setImportMode( ObjectBundleMode.VALIDATE );
+
+        ImportReport importReport = importService.importMetadata( params );
+
+        if ( !CollectionUtils.isEmpty( importReport.getErrorReports() ) )
         {
-            ObjectReport objectReport = new ObjectReport( Translation.class, idx );
-            Translation translation = objectTranslations.get( idx );
-
-            if ( translation.getLocale() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
-            }
-
-            if ( translation.getProperty() == null )
-            {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" )
-                    .setErrorKlass( getEntityClass() ) );
-            }
-
-            if ( translation.getValue() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
-            }
-
-            typeReport.addObjectReport( objectReport );
-
-            if ( !objectReport.isEmpty() )
-            {
-                typeReport.getStats().incIgnored();
-            }
+            manager.save( persistedObject );
+            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
 
-        if ( !typeReport.getErrorReports().isEmpty() )
-        {
-            WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
-            webMessageService.send( webMessage, response, request );
-            return;
-        }
-
-        manager.updateTranslations( persistedObject, object.getTranslations() );
-        manager.update( persistedObject );
-
-        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+        WebMessage webMessage = WebMessageUtils.importReport( importReport );
+        webMessageService.send( webMessage, response, request );
+        return;
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
