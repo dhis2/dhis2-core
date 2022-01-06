@@ -40,6 +40,7 @@ import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.parameters.TrackerTrigramIndexJobParameters;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackerTrigramIndexingJob;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,7 +57,11 @@ public class TrackerTrigramIndexingJobTest
     private final TrackedEntityAttributeService trackedEntityAttributeService = mock(
         TrackedEntityAttributeService.class );
 
-    private final TrackerTrigramIndexingJob job = new TrackerTrigramIndexingJob( trackedEntityAttributeService );
+    private final TrackedEntityAttributeTableManager trackedEntityAttributeTableManager = mock(
+        TrackedEntityAttributeTableManager.class );
+
+    private final TrackerTrigramIndexingJob job = new TrackerTrigramIndexingJob( trackedEntityAttributeService,
+        trackedEntityAttributeTableManager );
 
     @Before
     public void setUp()
@@ -64,8 +69,8 @@ public class TrackerTrigramIndexingJobTest
         // mock normal run conditions
         when( trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes() ).thenReturn(
             Collections.emptySet() );
-        doNothing().when( trackedEntityAttributeService ).runAnalyze();
-        doNothing().when( trackedEntityAttributeService ).runVacuum();
+        doNothing().when( trackedEntityAttributeTableManager ).runAnalyze();
+        doNothing().when( trackedEntityAttributeTableManager ).runVacuum();
     }
 
     @Test
@@ -79,9 +84,9 @@ public class TrackerTrigramIndexingJobTest
 
         job.execute( jobConfiguration, NoopJobProgress.INSTANCE );
 
-        verify( trackedEntityAttributeService, times( 1 ) ).runAnalyze();
-        verify( trackedEntityAttributeService, times( 1 ) ).runVacuum();
-        verify( trackedEntityAttributeService, never() ).createTrigramIndex( any() );
+        verify( trackedEntityAttributeTableManager, times( 1 ) ).runAnalyze();
+        verify( trackedEntityAttributeTableManager, times( 1 ) ).runVacuum();
+        verify( trackedEntityAttributeTableManager, never() ).createTrigramIndex( any() );
     }
 
     @Test
@@ -100,9 +105,9 @@ public class TrackerTrigramIndexingJobTest
 
         job.execute( jobConfiguration, NoopJobProgress.INSTANCE );
 
-        verify( trackedEntityAttributeService, times( 1 ) ).runAnalyze();
-        verify( trackedEntityAttributeService, times( 1 ) ).runVacuum();
-        verify( trackedEntityAttributeService, never() ).createTrigramIndex( any() );
+        verify( trackedEntityAttributeTableManager, times( 1 ) ).runAnalyze();
+        verify( trackedEntityAttributeTableManager, times( 1 ) ).runVacuum();
+        verify( trackedEntityAttributeTableManager, never() ).createTrigramIndex( any() );
     }
 
     @Test
@@ -121,7 +126,7 @@ public class TrackerTrigramIndexingJobTest
 
         when( trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes() ).thenReturn(
             indexableAttributes );
-        doNothing().when( trackedEntityAttributeService ).createTrigramIndex( any() );
+        doNothing().when( trackedEntityAttributeTableManager ).createTrigramIndex( any() );
         JobConfiguration jobConfiguration = new JobConfiguration();
         TrackerTrigramIndexJobParameters jp = new TrackerTrigramIndexJobParameters();
         jp.setRunAnalyze( true );
@@ -131,9 +136,9 @@ public class TrackerTrigramIndexingJobTest
 
         job.execute( jobConfiguration, NoopJobProgress.INSTANCE );
 
-        verify( trackedEntityAttributeService, times( 1 ) ).runAnalyze();
-        verify( trackedEntityAttributeService, times( 1 ) ).runVacuum();
-        verify( trackedEntityAttributeService, times( 2 ) ).createTrigramIndex( any() );
+        verify( trackedEntityAttributeTableManager, times( 1 ) ).runAnalyze();
+        verify( trackedEntityAttributeTableManager, times( 1 ) ).runVacuum();
+        verify( trackedEntityAttributeTableManager, times( 2 ) ).createTrigramIndex( any() );
     }
 
 }

@@ -41,6 +41,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -54,6 +55,9 @@ public class TrackedEntityAttributeStoreIntegrationTest
 {
     @Autowired
     private TrackedEntityAttributeService attributeService;
+
+    @Autowired
+    private TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -159,9 +163,9 @@ public class TrackedEntityAttributeStoreIntegrationTest
     @Test
     public void testGetAllIndexableAttributes()
     {
-        long idA = attributeService.addTrackedEntityAttribute( attributeW );
-        long idB = attributeService.addTrackedEntityAttribute( attributeY );
-        long idC = attributeService.addTrackedEntityAttribute( attributeZ );
+        attributeService.addTrackedEntityAttribute( attributeW );
+        attributeService.addTrackedEntityAttribute( attributeY );
+        attributeService.addTrackedEntityAttribute( attributeZ );
 
         Set<TrackedEntityAttribute> indexableAttributes = attributeService
             .getAllTrigramIndexableTrackedEntityAttributes();
@@ -189,25 +193,11 @@ public class TrackedEntityAttributeStoreIntegrationTest
     @Test
     public void testCreateTrigramIndex()
     {
-        long idA = attributeService.addTrackedEntityAttribute( attributeW );
-        attributeService.createTrigramIndex( attributeW );
+        attributeService.addTrackedEntityAttribute( attributeW );
+        trackedEntityAttributeTableManager.createTrigramIndex( attributeW );
         assertFalse( jdbcTemplate.queryForList( "select * "
             + "from pg_indexes "
             + "where tablename= 'trackedentityattributevalue' and indexname like 'in_gin_teavalue_%'; " ).isEmpty() );
-    }
-
-    @Test
-    public void testRunAnalyze()
-    {
-        attributeService.runAnalyze();
-        assertEquals( 0, jdbcTemplate.update( "ANALYZE trackedentityattributevalue;" ) );
-    }
-
-    @Test
-    public void testRunVacuum()
-    {
-        attributeService.runVacuum();
-        assertEquals( 0, jdbcTemplate.update( "VACUUM trackedentityattributevalue;" ) );
     }
 
     @Override

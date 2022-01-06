@@ -69,13 +69,6 @@ public class HibernateTrackedEntityAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityAttribute>
     implements TrackedEntityAttributeStore
 {
-    private static final String TRIGRAM_INDEX_QUERY = "CREATE INDEX CONCURRENTLY IF NOT EXISTS in_gin_teavalue_%d ON "
-        + "trackedentityattributevalue USING gin (trackedentityinstanceid,lower(value) gin_trgm_ops) where trackedentityattributeid = %d";
-
-    private static final String VACUUM_QUERY = "VACUUM trackedentityattributevalue";
-
-    private static final String ANALYZE_QUERY = "ANALYZE trackedentityattributevalue";
-
     private final StatementBuilder statementBuilder;
 
     public HibernateTrackedEntityAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
@@ -205,26 +198,6 @@ public class HibernateTrackedEntityAttributeStore
         result.addAll( uniqueAttributes );
 
         return result;
-    }
-
-    @Override
-    public void createTrigramIndexForAttribute( TrackedEntityAttribute trackedEntityAttribute )
-    {
-        String query = String.format( TRIGRAM_INDEX_QUERY, trackedEntityAttribute.getId(),
-            trackedEntityAttribute.getId() );
-        jdbcTemplate.execute( query );
-    }
-
-    @Override
-    public void runAnalyzeOnTrackerTables()
-    {
-        jdbcTemplate.execute( ANALYZE_QUERY );
-    }
-
-    @Override
-    public void runVacuumOnTrackerTables()
-    {
-        jdbcTemplate.execute( VACUUM_QUERY );
     }
 
     @Override

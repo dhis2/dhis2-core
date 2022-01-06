@@ -352,24 +352,6 @@ public class DefaultTrackedEntityAttributeService
         return attributeStore.getAllSearchableAndUniqueTrackedEntityAttributes();
     }
 
-    @Override
-    public void createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute )
-    {
-        attributeStore.createTrigramIndexForAttribute( trackedEntityAttribute );
-    }
-
-    @Override
-    public void runAnalyze()
-    {
-        attributeStore.runAnalyzeOnTrackerTables();
-    }
-
-    @Override
-    public void runVacuum()
-    {
-        attributeStore.runVacuumOnTrackerTables();
-    }
-
     // -------------------------------------------------------------------------
     // ProgramTrackedEntityAttribute
     // -------------------------------------------------------------------------

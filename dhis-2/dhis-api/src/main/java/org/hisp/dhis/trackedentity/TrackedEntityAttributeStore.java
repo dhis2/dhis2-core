@@ -86,12 +86,6 @@ public interface TrackedEntityAttributeStore
      */
     Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes();
 
-    void createTrigramIndexForAttribute( TrackedEntityAttribute trackedEntityAttribute );
-
-    void runAnalyzeOnTrackerTables();
-
-    void runVacuumOnTrackerTables();
-
     /**
      * Fetches all {@link TrackedEntityAttribute} and groups them by
      * {@link Program}

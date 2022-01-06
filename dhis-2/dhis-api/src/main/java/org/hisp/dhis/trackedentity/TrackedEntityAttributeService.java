@@ -132,12 +132,6 @@ public interface TrackedEntityAttributeService
      */
     Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes();
 
-    void createTrigramIndex( TrackedEntityAttribute trackedEntityAttribute );
-
-    void runAnalyze();
-
-    void runVacuum();
-
     /**
      * Returns all {@link TrackedEntityAttribute}
      *
