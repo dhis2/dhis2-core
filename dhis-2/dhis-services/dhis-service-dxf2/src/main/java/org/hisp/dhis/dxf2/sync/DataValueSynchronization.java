@@ -154,7 +154,7 @@ public class DataValueSynchronization extends DataSynchronizationWithPaging
             request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
-            dataValueSetService.writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes(),
+            dataValueSetService.exportDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes(),
                 syncPageSize, page );
         };
 
