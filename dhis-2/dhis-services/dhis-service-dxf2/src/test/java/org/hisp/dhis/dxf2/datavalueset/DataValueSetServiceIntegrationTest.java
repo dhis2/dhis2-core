@@ -170,7 +170,7 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
-            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+            dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
         assertDataValuesCount( 1 );
     }
 
@@ -182,12 +182,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
-            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+            dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
         assertDataValuesCount( 1 );
         ImportOptions options = ImportOptions.getDefaultImportOptions();
         options.setImportStrategy( ImportStrategy.DELETE );
         assertSuccessWithImportedUpdatedDeleted( 0, 0, 1,
-            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ), options ) );
+            dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ), options ) );
         assertDataValuesCount( 0 );
     }
 
@@ -196,12 +196,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
-            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+            dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
         assertDataValuesCount( 1 );
         ImportOptions options = ImportOptions.getDefaultImportOptions();
         options.setImportStrategy( ImportStrategy.DELETE );
         assertSuccessWithImportedUpdatedDeleted( 0, 0, 1, dataValueSetService
-            .saveDataValueSetJson( readFile( "datavalueset/dataValueSetJDeleteNoValue.json" ), options ) );
+            .importDataValueSetJson( readFile( "datavalueset/dataValueSetJDeleteNoValue.json" ), options ) );
         assertDataValuesCount( 0 );
     }
 
@@ -210,12 +210,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
-            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+            dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
         assertDataValuesCount( 1 );
         ImportOptions options = ImportOptions.getDefaultImportOptions();
         options.setImportStrategy( ImportStrategy.DELETE );
         assertSuccessWithImportedUpdatedDeleted( 0, 0, 1, dataValueSetService
-            .saveDataValueSetJson( readFile( "datavalueset/dataValueSetJDeleteNewValue.json" ), options ) );
+            .importDataValueSetJson( readFile( "datavalueset/dataValueSetJDeleteNewValue.json" ), options ) );
         assertDataValuesCount( 0 );
     }
 
@@ -224,10 +224,11 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         assertSuccessWithImportedUpdatedDeleted( 1, 0, 0,
-            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
+            dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetJ.json" ) ) );
         assertDataValuesCount( 1 );
         assertSuccessWithImportedUpdatedDeleted( 0, 0, 1,
-            dataValueSetService.saveDataValueSetJson( readFile( "datavalueset/dataValueSetJDeleteZeroValue.json" ) ) );
+            dataValueSetService
+                .importDataValueSetJson( readFile( "datavalueset/dataValueSetJDeleteZeroValue.json" ) ) );
         assertDataValuesCount( 0 );
     }
 
@@ -239,12 +240,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         in = readFile( "datavalueset/dataValueSetA.xml" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertSuccessWithImportedUpdatedDeleted( 3, 0, 0, summary );
         assertDataValuesCount( 3 );
         // Delete values
         in = readFile( "datavalueset/dataValueSetADeleted.xml" );
-        summary = dataValueSetService.saveDataValueSet( in );
+        summary = dataValueSetService.importDataValueSetXml( in );
         assertSuccessWithImportedUpdatedDeleted( 0, 0, 3, summary );
         assertDataValuesCount( 0 );
     }
@@ -257,7 +258,7 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         in = readFile( "datavalueset/dataValueSetB.xml" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
         assertDataValuesCount( 12 );
     }
@@ -270,12 +271,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         in = readFile( "datavalueset/dataValueSetB.xml" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertDataValuesCount( 12 );
         // Update
         in = readFile( "datavalueset/dataValueSetBUpdate.xml" );
-        summary = dataValueSetService.saveDataValueSet( in );
+        summary = dataValueSetService.importDataValueSetXml( in );
         assertSuccessWithImportedUpdatedDeleted( 2, 4, 0, summary );
         assertDataValuesCount( 14 );
     }
@@ -294,12 +295,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
         // deC, peA, ouA created = 2010-01-01
         // deC, peA, ouB created = 2010-01-01
         in = readFile( "datavalueset/dataValueSetB.xml" );
-        dataValueSetService.saveDataValueSet( in );
+        dataValueSetService.importDataValueSetXml( in );
         // Update:
         // deC, peA, ouA created = not specified, should remain unchanged
         // deC, peA, ouB created = 2020-02-02
         in = readFile( "datavalueset/dataValueSetBUpdate.xml" );
-        dataValueSetService.saveDataValueSet( in );
+        dataValueSetService.importDataValueSetXml( in );
         CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
         DataValue dv1 = dataValueService.getDataValue( deC, peA, ouA, cc, cc );
         assertEquals( "2010-01-01", getMediumDateString( dv1.getCreated() ) );
@@ -317,7 +318,7 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         in = readFile( "datavalueset/dataValueSetBDeleted.xml" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertSuccessWithImportedUpdatedDeleted( 12, 0, 0, summary );
         assertDataValuesCount( 8 );
     }
@@ -332,12 +333,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         in = readFile( "datavalueset/dataValueSetBDeleted.xml" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertDataValuesCount( 8 );
         // Reverse deletion and update
         in = readFile( "datavalueset/dataValueSetB.xml" );
-        summary = dataValueSetService.saveDataValueSet( in );
+        summary = dataValueSetService.importDataValueSetXml( in );
         assertSuccessWithImportedUpdatedDeleted( 4, 8, 0, summary );
         assertDataValuesCount( 12 );
     }
@@ -352,12 +353,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         in = readFile( "datavalueset/dataValueSetBDeleted.xml" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertDataValuesCount( 8 );
         // Reverse deletion and update
         in = readFile( "datavalueset/dataValueSetBNew.xml" );
-        summary = dataValueSetService.saveDataValueSet( in );
+        summary = dataValueSetService.importDataValueSetXml( in );
         assertSuccessWithImportedUpdatedDeleted( 8, 4, 0, summary );
         assertDataValuesCount( 16 );
     }
@@ -371,12 +372,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         in = readFile( "datavalueset/dataValueSetB.xml" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertDataValuesCount( 12 );
         // Delete 4 values
         in = readFile( "datavalueset/dataValueSetBDeleted.xml" );
-        summary = dataValueSetService.saveDataValueSet( in );
+        summary = dataValueSetService.importDataValueSetXml( in );
         assertSuccessWithImportedUpdatedDeleted( 0, 8, 4, summary );
         assertDataValuesCount( 8 );
     }
@@ -390,12 +391,12 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         in = readFile( "datavalueset/dataValueSetB.xml" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertDataValuesCount( 12 );
         // Delete 4 values, add 2 values
         in = readFile( "datavalueset/dataValueSetBNewDeleted.xml" );
-        summary = dataValueSetService.saveDataValueSet( in );
+        summary = dataValueSetService.importDataValueSetXml( in );
         assertSuccessWithImportedUpdatedDeleted( 2, 6, 4, summary );
         assertDataValuesCount( 10 );
     }
@@ -409,13 +410,13 @@ class DataValueSetServiceIntegrationTest extends DhisTest
     {
         assertDataValuesCount( 0 );
         in = readFile( "datavalueset/dataValueSetB.xml" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertDataValuesCount( 12 );
         // Import with delete strategy
         in = readFile( "datavalueset/dataValueSetB.xml" );
         ImportOptions options = new ImportOptions().setStrategy( ImportStrategy.DELETE );
-        summary = dataValueSetService.saveDataValueSet( in, options );
+        summary = dataValueSetService.importDataValueSetXml( in, options );
         assertSuccessWithImportedUpdatedDeleted( 0, 0, 12, summary );
         assertDataValuesCount( 0 );
     }

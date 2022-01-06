@@ -37,6 +37,10 @@ import javax.sql.DataSource;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
+import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.webapi.json.JsonString;
+import org.hisp.dhis.webapi.json.JsonValue;
 import org.postgresql.util.PGobject;
 
 import com.google.common.reflect.TypeToken;
@@ -66,6 +70,13 @@ public class H2SqlFunction
                 {
                     statement
                         .execute(
+                            "CREATE ALIAS jsonb_extract_path FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_extract_path\"" );
+                }
+
+                try ( Statement statement = connection.createStatement() )
+                {
+                    statement
+                        .execute(
                             "CREATE ALIAS jsonb_has_user_id FOR \"org.hisp.dhis.h2.H2SqlFunction.jsonb_has_user_id\"" );
                 }
 
@@ -85,27 +96,77 @@ public class H2SqlFunction
     }
 
     // Postgres inbuilt function
-    public static String jsonb_extract_path_text( PGobject input1, String input2 )
+    public static String jsonb_extract_path_text( PGobject json, String... paths )
     {
         try
         {
-            String content = input1.getValue();
-            Map<String, Object> retMap = new Gson().fromJson(
-                content, new TypeToken<HashMap<String, Object>>()
-                {
-                }.getType() );
-
-            if ( retMap != null )
+            String content = json.getValue();
+            if ( content == null )
             {
-                return (String) retMap.get( input2 );
+                return null;
             }
-            throw new IllegalArgumentException( "Wrong input to jsonb_extract_path_text" );
+            JsonValue value = new JsonResponse( content ).get( toJsonPath( paths ) );
+            if ( !value.exists() )
+            {
+                return null;
+            }
+            if ( value.node().getType() == JsonNodeType.STRING )
+            {
+                return value.as( JsonString.class ).string();
+            }
+            return value.node().getDeclaration();
         }
         catch ( Exception e )
         {
             log.error( "Failed to extract path", e );
             throw e;
         }
+    }
+
+    // Postgres inbuilt function
+    public static String jsonb_extract_path( PGobject json, String... paths )
+        throws SQLException
+    {
+        try
+        {
+            String content = json.getValue();
+            if ( content == null )
+            {
+                return null;
+            }
+            JsonValue value = new JsonResponse( content ).get( toJsonPath( paths ) );
+            if ( !value.exists() )
+            {
+                return null;
+            }
+            return value.node().getDeclaration();
+        }
+        catch ( Exception e )
+        {
+            log.error( "Failed to extract path", e );
+            throw e;
+        }
+    }
+
+    private static String toJsonPath( String[] paths )
+    {
+        StringBuilder p = new StringBuilder();
+        for ( String path : paths )
+        {
+            if ( path.matches( "[0-9]+" ) )
+            {
+                p.append( '[' ).append( path ).append( ']' );
+            }
+            else
+            {
+                if ( p.length() > 0 )
+                {
+                    p.append( '.' );
+                }
+                p.append( path );
+            }
+        }
+        return p.toString();
     }
 
     // Custom DHIS2 sharing function

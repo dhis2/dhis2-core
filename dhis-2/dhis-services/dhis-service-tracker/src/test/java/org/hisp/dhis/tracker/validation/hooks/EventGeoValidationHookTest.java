@@ -27,18 +27,21 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
+import static org.hisp.dhis.organisationunit.FeatureType.NONE;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1074;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -115,6 +118,7 @@ class EventGeoValidationHookTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
@@ -126,8 +130,7 @@ class EventGeoValidationHookTest
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1074 ) );
+        hasTrackerError( reporter, E1074, EVENT, event.getUid() );
     }
 
     @Test
@@ -135,6 +138,7 @@ class EventGeoValidationHookTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
@@ -142,14 +146,13 @@ class EventGeoValidationHookTest
 
         // when
         ProgramStage programStage = new ProgramStage();
-        programStage.setFeatureType( FeatureType.NONE );
+        programStage.setFeatureType( NONE );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1012 ) );
+        hasTrackerError( reporter, E1012, EVENT, event.getUid() );
     }
 
     @Test
@@ -157,6 +160,7 @@ class EventGeoValidationHookTest
     {
         // given
         Event event = new Event();
+        event.setEvent( CodeGenerator.generateUid() );
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
@@ -164,13 +168,12 @@ class EventGeoValidationHookTest
 
         // when
         ProgramStage programStage = new ProgramStage();
-        programStage.setFeatureType( FeatureType.MULTI_POLYGON );
+        programStage.setFeatureType( MULTI_POLYGON );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
         this.hookToTest.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1012 ) );
+        hasTrackerError( reporter, E1012, EVENT, event.getUid() );
     }
 }

@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1000;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1001;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1003;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1083;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1091;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1100;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1103;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1104;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,6 +57,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -318,8 +322,74 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validateTrackedEntity( reporter, trackedEntity );
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1100 ) );
+        hasTrackerError( reporter, E1100, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
+    }
+
+    @Test
+    void verifyValidationFailsForTrackedEntityWithUserNotInOrgUnitCaptureScopeHierarchy()
+    {
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( TEI_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntityType( TEI_TYPE_ID )
+            .build();
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( ctx.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
+            .thenReturn( false );
+        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+
+        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+
+        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+
+        hasTrackerError( reporter, E1000, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
+    }
+
+    @Test
+    void verifyValidationFailsForTrackedEntityUpdateWithUserNotInOrgUnitSearchHierarchy()
+    {
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( TEI_ID )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntityType( TEI_TYPE_ID )
+            .build();
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( ctx.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
+            .thenReturn( false );
+        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
+        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+
+        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+
+        hasTrackerError( reporter, E1003, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
+    }
+
+    @Test
+    void verifyValidationFailsForTrackedEntityAndUserWithoutWriteAccess()
+    {
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( CodeGenerator.generateUid() )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntityType( TEI_TYPE_ID )
+            .build();
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( ctx.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( ctx.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
+            .thenReturn( true );
+        when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( false );
+        reporter = new ValidationErrorReporter( ctx, trackedEntity );
+
+        validatorToTest.validateTrackedEntity( reporter, trackedEntity );
+
+        hasTrackerError( reporter, E1001, TrackerType.TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
@@ -463,6 +533,30 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
+    void verifyValidationFailsForEnrollmentWithoutEventsUsingDeleteStrategyAndUserNotInOrgUnitHierarchy()
+    {
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( CodeGenerator.generateUid() )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( TEI_ID )
+            .program( PROGRAM_ID )
+            .build();
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( ctx.programInstanceHasEvents( enrollment.getEnrollment() ) ).thenReturn( false );
+        when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
+            .thenReturn( false );
+        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
+        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        hasTrackerError( reporter, E1000, TrackerType.ENROLLMENT, enrollment.getUid() );
+    }
+
+    @Test
     void verifyValidationFailsForEnrollmentUsingDeleteStrategyAndUserWithoutCascadeAuthority()
     {
         Enrollment enrollment = Enrollment.builder()
@@ -483,8 +577,55 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validateEnrollment( reporter, enrollment );
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1103 ) );
+        hasTrackerError( reporter, E1103, TrackerType.ENROLLMENT, enrollment.getUid() );
+    }
+
+    @Test
+    void verifyValidationFailsForEnrollmentDeletionAndUserWithoutProgramWriteAccess()
+    {
+        String enrollmentUid = CodeGenerator.generateUid();
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( enrollmentUid )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( TEI_ID )
+            .program( PROGRAM_ID )
+            .build();
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( aclService.canDataWrite( user, program ) ).thenReturn( false );
+        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
+            .thenReturn( true );
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        hasTrackerError( reporter, E1091, TrackerType.ENROLLMENT, enrollment.getUid() );
+    }
+
+    @Test
+    void verifyValidationFailsForEnrollmentDeletionAndUserWithoutTrackedEntityTypeReadAccess()
+    {
+        String enrollmentUid = CodeGenerator.generateUid();
+        Enrollment enrollment = Enrollment.builder()
+            .enrollment( enrollmentUid )
+            .orgUnit( ORG_UNIT_ID )
+            .trackedEntity( TEI_ID )
+            .program( PROGRAM_ID )
+            .build();
+        when( ctx.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
+        when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( aclService.canDataWrite( user, program ) ).thenReturn( true );
+        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( false );
+        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
+            .thenReturn( true );
+        reporter = new ValidationErrorReporter( ctx, enrollment );
+
+        validatorToTest.validateEnrollment( reporter, enrollment );
+
+        hasTrackerError( reporter, E1104, TrackerType.ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
@@ -663,10 +804,66 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
     }
 
     @Test
+    void verifyValidationFailsForTrackerEventCreationAndUserNotInOrgUnitCaptureScope()
+    {
+        Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .enrollment( CodeGenerator.generateUid() )
+            .orgUnit( ORG_UNIT_ID )
+            .programStage( PS_ID )
+            .program( PROGRAM_ID )
+            .build();
+        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
+        when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
+            .thenReturn( false );
+        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+        when( aclService.canDataRead( user, program ) ).thenReturn( true );
+        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+        reporter = new ValidationErrorReporter( ctx, event );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        hasTrackerError( reporter, E1000, TrackerType.EVENT, event.getUid() );
+    }
+
+    @Test
+    void verifyValidationFailsForEventCreationThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy()
+    {
+        Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
+            .enrollment( CodeGenerator.generateUid() )
+            .orgUnit( ORG_UNIT_ID )
+            .programStage( PS_ID )
+            .program( PROGRAM_ID )
+            .status( EventStatus.SCHEDULE )
+            .build();
+        when( ctx.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
+        when( ctx.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( ctx.getProgramInstance( event.getEnrollment() ) ).thenReturn( getEnrollment( null ) );
+        when( ctx.getProgram( PROGRAM_ID ) ).thenReturn( program );
+        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( organisationUnitService.isInUserSearchHierarchyCached( user, organisationUnit ) )
+            .thenReturn( false );
+        when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
+        when( aclService.canDataRead( user, program ) ).thenReturn( true );
+        when( aclService.canDataWrite( user, programStage ) ).thenReturn( true );
+        reporter = new ValidationErrorReporter( ctx, event );
+
+        validatorToTest.validateEvent( reporter, event );
+
+        hasTrackerError( reporter, E1000, TrackerType.EVENT, event.getUid() );
+    }
+
+    @Test
     void verifyValidationFailsForEventUsingUpdateStrategyAndUserWithoutAuthority()
     {
         String enrollmentUid = CodeGenerator.generateUid();
         Event event = Event.builder()
+            .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
             .orgUnit( ORG_UNIT_ID )
             .programStage( PS_ID )
@@ -689,8 +886,7 @@ class PreCheckSecurityOwnershipValidationHookTest extends DhisConvenienceTest
 
         validatorToTest.validateEvent( reporter, event );
 
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1083 ) );
+        hasTrackerError( reporter, E1083, TrackerType.EVENT, event.getUid() );
     }
 
     private TrackedEntityInstance getTEIWithNoProgramInstances()

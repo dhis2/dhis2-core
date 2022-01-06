@@ -338,7 +338,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
@@ -369,7 +369,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions().setPreheatCache( true );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
@@ -396,7 +396,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetACode.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
@@ -423,7 +423,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -440,7 +440,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         in = new ClassPathResource( "datavalueset/dataValueSetBCode.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions().setIdScheme( "CODE" ).setDataElementIdScheme( "CODE" )
             .setOrgUnitIdScheme( "CODE" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
         assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -458,7 +458,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         ImportOptions importOptions = new ImportOptions().setIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
             .setDataElementIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
             .setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
         assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -475,7 +475,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         in = new ClassPathResource( "datavalueset/dataValueSetBAttributeIdScheme.xml" ).getInputStream();
         // Identifier schemes specified in XML message
         ImportOptions importOptions = new ImportOptions();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
         assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -494,7 +494,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
             .setIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
             .setDataElementIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID )
             .setOrgUnitIdScheme( IdScheme.ATTR_ID_SCHEME_PREFIX + ATTRIBUTE_UID );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
         assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -511,7 +511,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         in = new ClassPathResource( "datavalueset/dataValueSetBCode.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions().setPreheatCache( true ).setIdScheme( "CODE" )
             .setDataElementIdScheme( "CODE" ).setOrgUnitIdScheme( "CODE" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
         assertHasNoConflicts( summary );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -526,7 +526,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetB.csv" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
+        ImportSummary summary = dataValueSetService.importDataValueSetCsv( in, null, null );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
         assertEquals( 0, summary.getImportCount().getDeleted() );
@@ -539,7 +539,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetBNoHeader.csv" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in,
+        ImportSummary summary = dataValueSetService.importDataValueSetCsv( in,
             new ImportOptions().setFirstRowIsHeader( false ), null );
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -553,7 +553,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
-        ImportConflicts summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
+        ImportConflicts summary = dataValueSetService.importDataValueSetCsv( in, null, null );
         String description = summary.getConflictsDescription();
         assertEquals( 4, summary.getTotalConflictOccurrenceCount(), description );
         assertEquals( 4, summary.getConflictOccurrenceCount( ErrorCode.E7619 ), description );
@@ -576,7 +576,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         in = new ClassPathResource( "datavalueset/dataValueSetB.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions().setDryRun( true ).setIdScheme( "UID" )
             .setDataElementIdScheme( "UID" ).setOrgUnitIdScheme( "UID" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
         assertHasNoConflicts( summary );
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
@@ -595,7 +595,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         idSchemes.setDataElementIdScheme( "UID" );
         idSchemes.setOrgUnitIdScheme( "UID" );
         importOptions.setIdSchemes( idSchemes );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
         assertHasNoConflicts( summary );
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -612,7 +612,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         ImportSummary summary = dataValueSetService
-            .saveDataValueSet( new ClassPathResource( "datavalueset/dataValueSetC.xml" ).getInputStream() );
+            .importDataValueSetXml( new ClassPathResource( "datavalueset/dataValueSetC.xml" ).getInputStream() );
         assertHasNoConflicts( summary );
         assertEquals( 3, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -630,7 +630,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetCCode.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setCategoryOptionComboIdScheme( "CODE" );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
         assertHasNoConflicts( summary );
         assertEquals( 3, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -647,7 +647,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetD.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
         assertHasNoConflicts( summary );
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
@@ -663,7 +663,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetE.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
@@ -677,7 +677,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetF.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 0, summary.getImportCount().getImported() );
         assertEquals( ImportStatus.ERROR, summary.getStatus() );
         Collection<DataValue> dataValues = mockDataValueBatchHandler.getInserts();
@@ -690,7 +690,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetG.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -708,7 +708,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setStrictPeriods( true );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -723,7 +723,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setStrictCategoryOptionCombos( true );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -738,7 +738,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setStrictAttributeOptionCombos( true );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -753,7 +753,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setRequireCategoryOptionCombo( true );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
         String description = summary.getConflictsDescription();
         assertEquals( 2, summary.getTotalConflictOccurrenceCount(), description );
         assertEquals( 1, summary.getConflictCount(), description );
@@ -771,7 +771,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setRequireAttributeOptionCombo( true );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
         String description = summary.getConflictsDescription();
         assertEquals( 2, summary.getTotalConflictOccurrenceCount(), description );
         assertEquals( 1, summary.getConflictCount(), description );
@@ -789,7 +789,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetNonStrict.xml" ).getInputStream();
         ImportOptions options = new ImportOptions().setStrictOrganisationUnits( true );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, options );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, options );
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -803,7 +803,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetInvalid.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
@@ -817,7 +817,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         categoryOptionA.setEndDate( peB.getEndDate() );
         categoryService.updateCategoryOption( categoryOptionA );
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 2, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 1, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -837,7 +837,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         categoryOptionA.setOrganisationUnits( Sets.newHashSet( ouA, ouB ) );
         categoryService.updateCategoryOption( categoryOptionA );
         in = new ClassPathResource( "datavalueset/dataValueSetH.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 1, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -860,7 +860,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         mockDataValueBatchHandler
             .withFindObject( dataValue -> dataValue.toBuilder().value( dataValue.getValue() + "42" ).build() );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
@@ -886,7 +886,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
         ImportOptions importOptions = new ImportOptions();
         importOptions.setSkipAudit( true );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in, importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in, importOptions );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
@@ -904,7 +904,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
     {
         mockDataValueBatchHandler.withFindSelf( true );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
@@ -922,7 +922,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         throws Exception
     {
         in = new ClassPathResource( "datavalueset/dataValueSetANull.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
         assertEquals( 2, summary.getImportCount().getIgnored() );
         assertEquals( 1, summary.getImportCount().getImported() );
@@ -957,7 +957,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
             + "  <dataValue dataElement=\"DE_D\" period=\"" + outOfRange.getIsoDate() + "\" value=\"10005\" />\n"
             + "</dataValueSet>\n";
         in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertEquals( 3, summary.getConflictCount(), summary.getConflictsDescription() );
         assertEquals( 2, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -984,7 +984,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         enableDataSharing( user, dsA, AccessStringHelper.READ );
         dataSetService.updateDataSet( dsB );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.ERROR, summary.getStatus() );
@@ -1003,7 +1003,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
@@ -1023,7 +1023,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         enableDataSharing( user, categoryOptionA, AccessStringHelper.READ );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.READ );
         in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.WARNING, summary.getStatus() );
@@ -1043,7 +1043,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_WRITE );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_WRITE );
         in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
@@ -1062,7 +1062,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_WRITE );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_WRITE );
         in = new ClassPathResource( "datavalueset/dataValueSetACatCombo.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.ERROR, summary.getStatus() );
@@ -1081,7 +1081,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
         enableDataSharing( user, categoryOptionA, AccessStringHelper.DATA_READ_WRITE );
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
         in = new ClassPathResource( "datavalueset/dataValueSetA.xml" ).getInputStream();
-        ImportSummary summary = dataValueSetService.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( in );
         assertNotNull( summary );
         assertNotNull( summary.getImportCount() );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
@@ -1103,7 +1103,7 @@ class DataValueSetServiceTest extends TransactionalIntegrationTest
             + "  <dataValue dataElement=\"DE_D\" period=\"200007\" value=\"10004\" />\n"
             + "  <dataValue dataElement=\"DE_D\" period=\"200008\" value=\"10005\" />\n" + "</dataValueSet>\n";
         in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
-        ImportSummary summary = dataValueSetServiceNoMocks.saveDataValueSet( in );
+        ImportSummary summary = dataValueSetServiceNoMocks.importDataValueSetXml( in );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
         assertEquals( 5, summary.getImportCount().getImported() );
     }
