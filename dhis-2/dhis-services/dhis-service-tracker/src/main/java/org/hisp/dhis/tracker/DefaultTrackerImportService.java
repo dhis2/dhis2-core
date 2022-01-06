@@ -55,7 +55,6 @@ import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerImportReportFinalizer;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
@@ -119,7 +118,7 @@ public class DefaultTrackerImportService
 
             postCommit( trackerBundle );
 
-            TrackerImportReport trackerImportReport = TrackerImportReportFinalizer.withImportCompleted(
+            TrackerImportReport trackerImportReport = TrackerImportReport.withImportCompleted(
                 TrackerStatus.OK,
                 bundleReport, validationReport,
                 opsTimer.stopTimer(), bundleSize );
@@ -132,7 +131,7 @@ public class DefaultTrackerImportService
         {
             log.error( "Exception thrown during import.", e );
 
-            TrackerImportReport report = TrackerImportReportFinalizer.withError( "Exception:" + e.getMessage(),
+            TrackerImportReport report = TrackerImportReport.withError( "Exception:" + e.getMessage(),
                 validationReport, opsTimer.stopTimer() );
 
             endImportWithError( params, report, e );
@@ -201,9 +200,7 @@ public class DefaultTrackerImportService
     protected TrackerValidationReport validateBundle( TrackerImportParams params, TrackerBundle trackerBundle,
         TrackerTimingsStats opsTimer )
     {
-        TrackerValidationReport validationReport = new TrackerValidationReport();
-
-        validationReport.add( trackerValidationService.validate( trackerBundle ) );
+        TrackerValidationReport validationReport = trackerValidationService.validate( trackerBundle );
 
         notifyOps( params, VALIDATION_OPS, opsTimer );
 
@@ -239,7 +236,7 @@ public class DefaultTrackerImportService
         TrackerValidationReport validationReport,
         TrackerTimingsStats opsTimer, Map<TrackerType, Integer> bundleSize )
     {
-        TrackerImportReport trackerImportReport = TrackerImportReportFinalizer.withValidationErrors( validationReport,
+        TrackerImportReport trackerImportReport = TrackerImportReport.withValidationErrors( validationReport,
             opsTimer.stopTimer(),
             bundleSize.values().stream().mapToInt( Integer::intValue ).sum() );
 

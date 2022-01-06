@@ -144,6 +144,10 @@ final class GistLogic
         {
             return Transform.SIZE;
         }
+        if ( target == Transform.NONE && property.isCollection() )
+        {
+            return Transform.SIZE;
+        }
         return target == Transform.AUTO ? Transform.NONE : target;
     }
 

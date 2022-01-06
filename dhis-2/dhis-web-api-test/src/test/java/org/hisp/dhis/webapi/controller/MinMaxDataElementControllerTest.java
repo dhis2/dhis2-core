@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -37,48 +37,38 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest
+class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest
 {
+
     @Test
-    public void testPostJsonObject()
+    void testPostJsonObject()
     {
         assertWebMessage( "Created", 201, "OK", null,
-            POST( "/minMaxDataElements/", "{" +
-                "'source':{'id':'" + orgUnitId + "'}," +
-                "'dataElement':{'id':'" + dataElementId + "'}," +
-                "'optionCombo':{'id':'" + categoryOptionId + "'}," +
-                "'min':1," +
-                "'max':42" +
-                "}" ).content( HttpStatus.CREATED ) );
+            POST( "/minMaxDataElements/",
+                "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'" + dataElementId + "'},"
+                    + "'optionCombo':{'id':'" + categoryOptionId + "'}," + "'min':1," + "'max':42" + "}" )
+                        .content( HttpStatus.CREATED ) );
     }
 
     @Test
-    public void testDeleteObject()
+    void testDeleteObject()
     {
-        assertStatus( HttpStatus.CREATED, POST( "/minMaxDataElements/", "{" +
-            "'source':{'id':'" + orgUnitId + "'}," +
-            "'dataElement':{'id':'" + dataElementId + "'}," +
-            "'optionCombo':{'id':'" + categoryOptionId + "'}," +
-            "'min':1," +
-            "'max':42" +
-            "}" ) );
-
+        assertStatus( HttpStatus.CREATED,
+            POST( "/minMaxDataElements/",
+                "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'" + dataElementId + "'},"
+                    + "'optionCombo':{'id':'" + categoryOptionId + "'}," + "'min':1," + "'max':42" + "}" ) );
         assertWebMessage( "OK", 200, "OK", "MinMaxDataElement deleted.",
-            DELETE( "/minMaxDataElements/", "{" +
-                "'source':{'id':'" + orgUnitId + "'}," +
-                "'dataElement':{'id':'" + dataElementId + "'}," +
-                "'optionCombo':{'id':'" + categoryOptionId + "'}" +
-                "}" ).content( HttpStatus.OK ) );
+            DELETE( "/minMaxDataElements/", "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'"
+                + dataElementId + "'}," + "'optionCombo':{'id':'" + categoryOptionId + "'}" + "}" )
+                    .content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testDeleteObject_NoSuchObject()
+    void testDeleteObject_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Can not find MinMaxDataElement.",
-            DELETE( "/minMaxDataElements/", "{" +
-                "'source':{'id':'" + orgUnitId + "'}," +
-                "'dataElement':{'id':'" + dataElementId + "'}," +
-                "'optionCombo':{'id':'" + categoryOptionId + "'}" +
-                "}" ).content( HttpStatus.NOT_FOUND ) );
+            DELETE( "/minMaxDataElements/", "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'"
+                + dataElementId + "'}," + "'optionCombo':{'id':'" + categoryOptionId + "'}" + "}" )
+                    .content( HttpStatus.NOT_FOUND ) );
     }
 }

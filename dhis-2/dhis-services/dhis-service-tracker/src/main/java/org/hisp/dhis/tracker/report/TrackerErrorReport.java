@@ -119,6 +119,11 @@ public class TrackerErrorReport
         }
     }
 
+    public static TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
+    {
+        return builder().errorCode( errorCode );
+    }
+
     @Override
     public String toString()
     {

@@ -61,13 +61,14 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -75,8 +76,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsControllerTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class AnalyticsControllerTest
 {
+
     private final static String ENDPOINT = "/analytics";
 
     private MockMvc mockMvc;
@@ -90,10 +94,7 @@ public class AnalyticsControllerTest
     @Mock
     private DimensionService dimensionService;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         final DataQueryService dataQueryService = new DefaultDataQueryService(
@@ -120,7 +121,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyJsonRequest()
+    void verifyJsonRequest()
         throws Exception
     {
         // Then
@@ -133,7 +134,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyXmlRequest()
+    void verifyXmlRequest()
         throws Exception
     {
         // Then
@@ -149,7 +150,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyHtmlRequest()
+    void verifyHtmlRequest()
         throws Exception
     {
         // Then
@@ -165,7 +166,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyHtmlCssRequest()
+    void verifyHtmlCssRequest()
         throws Exception
     {
         // Then
@@ -181,7 +182,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyCsvRequest()
+    void verifyCsvRequest()
         throws Exception
     {
         // Then
@@ -198,7 +199,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyXlsRequest()
+    void verifyXlsRequest()
         throws Exception
     {
         // Then
@@ -221,7 +222,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
-    public void verifyJrxmlRequest()
+    void verifyJrxmlRequest()
         throws Exception
     {
         when( analyticsService.getAggregatedDataValues( Mockito.any( DataQueryParams.class ) ) )

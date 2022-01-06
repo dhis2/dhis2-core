@@ -28,27 +28,28 @@
 package org.hisp.dhis.user;
 
 import org.hisp.dhis.common.DisplayProperty;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link UserSettingKey}.
  *
  * @author Volker Schmidt
  */
-public class UserSettingKeyTest
+class UserSettingKeyTest
 {
+
     @Test
-    public void getAsRealClassEnum()
+    void getAsRealClassEnum()
     {
-        Assert.assertSame( DisplayProperty.SHORTNAME,
+        Assertions.assertSame( DisplayProperty.SHORTNAME,
             UserSettingKey.getAsRealClass( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName" ) );
     }
 
     @Test
-    public void getAsRealClassOther()
+    void getAsRealClassOther()
     {
-        Assert.assertSame( "Test Layout",
+        Assertions.assertSame( "Test Layout",
             UserSettingKey.getAsRealClass( UserSettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout" ) );
     }
 }

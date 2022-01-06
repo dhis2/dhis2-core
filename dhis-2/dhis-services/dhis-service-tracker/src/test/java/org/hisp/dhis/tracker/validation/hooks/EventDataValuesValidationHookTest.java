@@ -30,7 +30,9 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -54,24 +56,25 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
  */
-public class EventDataValuesValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EventDataValuesValidationHookTest
 {
-    private EventDataValuesValidationHook hookToTest;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private EventDataValuesValidationHook hookToTest;
 
     @Mock
     private TrackerImportValidationContext validationContext;
@@ -89,7 +92,7 @@ public class EventDataValuesValidationHookTest
 
     private static final String dataElementUid = "dataElement";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         hookToTest = new EventDataValuesValidationHook();
@@ -113,7 +116,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenDataElementIsValid()
+    void successValidationWhenDataElementIsValid()
     {
         // Given
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( getDataValue() ) );
@@ -127,7 +130,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenCreatedAtIsNull()
+    void successValidationWhenCreatedAtIsNull()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -143,7 +146,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenUpdatedAtIsNull()
+    void failValidationWhenUpdatedAtIsNull()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -159,7 +162,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementIsInvalid()
+    void failValidationWhenDataElementIsInvalid()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -177,7 +180,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenMandatoryDataElementIsNotPresent()
+    void failValidationWhenMandatoryDataElementIsNotPresent()
     {
         // Given
 
@@ -210,7 +213,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failSuccessWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded()
+    void failSuccessWhenMandatoryDataElementIsNotPresentButMandatoryValidationIsNotNeeded()
     {
         // Given
         ProgramStage programStage = new ProgramStage();
@@ -241,7 +244,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementIsNotPresentInProgramStage()
+    void failValidationWhenDataElementIsNotPresentInProgramStage()
     {
         // Given
         ProgramStage programStage = new ProgramStage();
@@ -276,7 +279,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementValueTypeIsNull()
+    void failValidationWhenDataElementValueTypeIsNull()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -298,7 +301,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenFileResourceIsNull()
+    void failValidationWhenFileResourceIsNull()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -322,7 +325,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory()
+    void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -348,7 +351,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory()
+    void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -379,7 +382,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void validationWhenDataElementValueIsNullAndValidationStrategyOnUpdate()
+    void validationWhenDataElementValueIsNullAndValidationStrategyOnUpdate()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -421,7 +424,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void validationWhenDataElementValueIsNullAndValidationStrategyOnComplete()
+    void validationWhenDataElementValueIsNullAndValidationStrategyOnComplete()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -461,7 +464,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void validationWhenDataElementValueIsNullAndEventStatusSkippedOrScheduled()
+    void validationWhenDataElementValueIsNullAndEventStatusSkippedOrScheduled()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -499,7 +502,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenDataElementIsNullAndDataElementIsNotCompulsory()
+    void successValidationWhenDataElementIsNullAndDataElementIsNotCompulsory()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -529,7 +532,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenFileResourceIsAlreadyAssigned()
+    void failValidationWhenFileResourceIsAlreadyAssigned()
     {
         // Given
         DataValue validDataValue = getDataValue();
@@ -556,7 +559,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementValueTypeIsInvalid()
+    void failValidationWhenDataElementValueTypeIsInvalid()
     {
         runAndAssertValidationForDataValue( ValueType.NUMBER, "not_a_number" );
         runAndAssertValidationForDataValue( ValueType.UNIT_INTERVAL, "3" );
@@ -575,7 +578,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationDataElementOptionValueIsValid()
+    void successValidationDataElementOptionValueIsValid()
     {
         DataValue validDataValue = getDataValue();
         validDataValue.setValue( "code" );
@@ -609,7 +612,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationDataElementOptionValueIsInValid()
+    void failValidationDataElementOptionValueIsInValid()
     {
         DataValue validDataValue = getDataValue();
         validDataValue.setDataElement( dataElementUid );

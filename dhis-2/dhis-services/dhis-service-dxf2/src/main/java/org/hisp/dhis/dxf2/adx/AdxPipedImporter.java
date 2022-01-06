@@ -84,7 +84,7 @@ public class AdxPipedImporter
 
         try
         {
-            return dataValueSetService.saveDataValueSet( pipeIn, importOptions, id );
+            return dataValueSetService.importDataValueSetXml( pipeIn, importOptions, id );
         }
         catch ( Exception ex )
         {

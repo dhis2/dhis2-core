@@ -29,10 +29,22 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hisp.dhis.tracker.TrackerType.ENROLLMENT;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.TrackerType.TRACKED_ENTITY;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1032;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1063;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1080;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1081;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4015;
+import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -40,6 +52,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -47,18 +60,22 @@ import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-public class PreCheckExistenceValidationHookTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class PreCheckExistenceValidationHookTest
 {
+
     private PreCheckExistenceValidationHook validationHook;
 
     private final static String SOFT_DELETED_TEI_UID = "SoftDeletedTEIId";
@@ -83,16 +100,13 @@ public class PreCheckExistenceValidationHookTest
 
     private final static String RELATIONSHIP_UID = "RelationshipId";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private TrackerBundle bundle;
 
     @Mock
     private TrackerImportValidationContext ctx;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         validationHook = new PreCheckExistenceValidationHook();
@@ -111,7 +125,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccessWhenIsCreateAndTeiIsNotPresent()
+    void verifyTrackedEntityValidationSuccessWhenIsCreateAndTeiIsNotPresent()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -129,7 +143,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccessWhenTeiIsNotPresent()
+    void verifyTrackedEntityValidationSuccessWhenTeiIsNotPresent()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -145,7 +159,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationSuccessWhenIsUpdate()
+    void verifyTrackedEntityValidationSuccessWhenIsUpdate()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -161,7 +175,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenIsSoftDeleted()
+    void verifyTrackedEntityValidationFailsWhenIsSoftDeleted()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -173,12 +187,11 @@ public class PreCheckExistenceValidationHookTest
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1114 ) );
+        hasTrackerError( reporter, E1114, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenIsCreateAndTEIIsAlreadyPresent()
+    void verifyTrackedEntityValidationFailsWhenIsCreateAndTEIIsAlreadyPresent()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -192,12 +205,11 @@ public class PreCheckExistenceValidationHookTest
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1002 ) );
+        hasTrackerError( reporter, E1002, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
-    public void verifyTrackedEntityValidationFailsWhenIsUpdateAndTEIIsNotPresent()
+    void verifyTrackedEntityValidationFailsWhenIsUpdateAndTEIIsNotPresent()
     {
         // given
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -211,12 +223,11 @@ public class PreCheckExistenceValidationHookTest
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1063 ) );
+        hasTrackerError( reporter, E1063, TRACKED_ENTITY, trackedEntity.getUid() );
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent()
+    void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -234,7 +245,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent()
+    void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -250,7 +261,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationSuccessWhenIsUpdate()
+    void verifyEnrollmentValidationSuccessWhenIsUpdate()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -266,7 +277,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenIsSoftDeleted()
+    void verifyEnrollmentValidationFailsWhenIsSoftDeleted()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -278,12 +289,11 @@ public class PreCheckExistenceValidationHookTest
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1113 ) );
+        hasTrackerError( reporter, E1113, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent()
+    void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -297,12 +307,11 @@ public class PreCheckExistenceValidationHookTest
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1080 ) );
+        hasTrackerError( reporter, E1080, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
-    public void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent()
+    void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent()
     {
         // given
         Enrollment enrollment = Enrollment.builder()
@@ -316,12 +325,11 @@ public class PreCheckExistenceValidationHookTest
         validationHook.validateEnrollment( reporter, enrollment );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1081 ) );
+        hasTrackerError( reporter, E1081, ENROLLMENT, enrollment.getUid() );
     }
 
     @Test
-    public void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent()
+    void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent()
     {
         // given
         Event event = Event.builder()
@@ -339,7 +347,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccessWhenEventIsNotPresent()
+    void verifyEventValidationSuccessWhenEventIsNotPresent()
     {
         // given
         Event event = Event.builder()
@@ -355,7 +363,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationSuccessWhenIsUpdate()
+    void verifyEventValidationSuccessWhenIsUpdate()
     {
         // given
         Event event = Event.builder()
@@ -371,7 +379,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsWhenIsSoftDeleted()
+    void verifyEventValidationFailsWhenIsSoftDeleted()
     {
         // given
         Event event = Event.builder()
@@ -383,12 +391,11 @@ public class PreCheckExistenceValidationHookTest
         validationHook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1082 ) );
+        hasTrackerError( reporter, E1082, EVENT, event.getUid() );
     }
 
     @Test
-    public void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent()
+    void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent()
     {
         // given
         Event event = Event.builder()
@@ -402,12 +409,11 @@ public class PreCheckExistenceValidationHookTest
         validationHook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1030 ) );
+        hasTrackerError( reporter, E1030, EVENT, event.getUid() );
     }
 
     @Test
-    public void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent()
+    void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent()
     {
         // given
         Event event = Event.builder()
@@ -421,12 +427,11 @@ public class PreCheckExistenceValidationHookTest
         validationHook.validateEvent( reporter, event );
 
         // then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( E1032 ) );
+        hasTrackerError( reporter, E1032, EVENT, event.getUid() );
     }
 
     @Test
-    public void verifyRelationshipValidationSuccessWhenIsCreate()
+    void verifyRelationshipValidationSuccessWhenIsCreate()
     {
         // given
         Relationship rel = Relationship.builder()
@@ -443,7 +448,7 @@ public class PreCheckExistenceValidationHookTest
     }
 
     @Test
-    public void verifyRelationshipValidationFailsWhenUpdate()
+    void verifyRelationshipValidationFailsWhenUpdate()
     {
         // given
         Relationship rel = getPayloadRelationship();
@@ -454,7 +459,9 @@ public class PreCheckExistenceValidationHookTest
 
         // then
         assertFalse( reporter.hasErrors() );
-        assertThat( reporter.getWarningsReportList().get( 0 ).getWarningCode(), is( E4015 ) );
+        assertTrue( reporter.hasWarningReport( r -> E4015.equals( r.getWarningCode() ) &&
+            TrackerType.RELATIONSHIP.equals( r.getTrackerType() ) &&
+            rel.getUid().equals( r.getUid() ) ) );
     }
 
     private TrackedEntityInstance getSoftDeletedTei()

@@ -105,6 +105,7 @@ public class MetadataImportBasedOnSchemasTest
             "users",
             "organisationUnitLevels",
             "programRuleActions",
+            "eventCharts",
             "programStages" ); // blacklisted because contains
                                     // conditionally required properties, which
                                     // are not marked as required
