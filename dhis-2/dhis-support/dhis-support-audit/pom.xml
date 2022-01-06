@@ -32,6 +32,11 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-test</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
   </dependencies>
 
   <properties>
