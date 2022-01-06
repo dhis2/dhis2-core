@@ -25,48 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.dxf2.datavalueset;
 
-import lombok.AccessLevel;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 
 /**
- * Various information about the HTTP request made available to the system.
+ * Reads {@link DataValueSet} from PDF input.
  *
  * @author Jan Bernitt
  */
-@Getter
-@Builder( toBuilder = true )
-@ToString
-@EqualsAndHashCode
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class RequestInfo
+@AllArgsConstructor
+final class PdfDataValueSetReader implements DataValueSetReader
 {
+    private final InputStream in;
 
-    @JsonProperty
-    private final String headerXRequestID;
-
-    /**
-     * Since the xRequestID is a user provided input that will be used in logs
-     * and potentially other places we need to make sure it is secure to be
-     * used. Therefore, it is limited to unique identifier patterns such as UUID
-     * strings or the UIDs used by DHIS2.
-     *
-     * A valid ID is alphanumeric (which dash and underscored being allowed too)
-     * and has a length between 1 and 36.
-     *
-     * @param xRequestID the ID to check, may be null
-     * @return true, if the provided ID is legal (null is legal) or false if it
-     *         is not
-     */
-    public static boolean isValidXRequestID( String xRequestID )
+    @Override
+    public DataValueSet readHeader()
     {
-        return xRequestID == null || xRequestID.matches( "[-_a-zA-Z0-9]{1,36}" );
+        return PdfDataEntryFormUtil.getDataValueSet( in );
+    }
+
+    @Override
+    public DataValueEntry readNext()
+    {
+        return null; // header contains the values
+    }
+
+    @Override
+    public void close()
+    {
+        try
+        {
+            in.close();
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( ex );
+        }
     }
 }

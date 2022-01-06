@@ -194,7 +194,7 @@ public class DefaultSynchronizationManager
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
             dataValueSetService
-                .writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
+                .exportDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
         final int maxSyncAttempts = systemSettingManager.getIntSetting( SettingKey.MAX_SYNC_ATTEMPTS );

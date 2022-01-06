@@ -28,86 +28,73 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 
-import org.hisp.dhis.dxf2.datavalue.DataValue;
-import org.hisp.dhis.dxf2.datavalue.StreamingCsvDataValue;
+import lombok.AllArgsConstructor;
 
-import com.csvreader.CsvReader;
 import com.csvreader.CsvWriter;
 
 /**
- * @author Lars Helge Overland
+ * Write {@link DataValueSet}s as CSV data.
+ *
+ * @author Jan Bernitt
  */
-public class StreamingCsvDataValueSet
-    extends DataValueSet
+@AllArgsConstructor
+final class CsvDataValueSetWriter implements DataValueSetWriter
 {
-    private CsvWriter writer;
 
-    private CsvReader reader;
+    private static final String[] HEADER_ROW = {
+        "dataelement", "period", "orgunit",
+        "categoryoptioncombo", "attributeoptioncombo", "value",
+        "storedby", "lastupdated", "comment", "followup", "deleted" };
 
-    public StreamingCsvDataValueSet( CsvWriter writer )
+    private final CsvWriter writer;
+
+    @Override
+    public void writeHeader()
     {
-        this.writer = writer;
-
-        try
-        {
-            this.writer.writeRecord( StreamingCsvDataValue.getHeaders() ); // Write
-                                                                           // headers
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to write CSV headers", ex );
-        }
-    }
-
-    public StreamingCsvDataValueSet( CsvReader reader )
-    {
-        this.reader = reader;
+        appendRow( HEADER_ROW );
     }
 
     @Override
-    public boolean hasNextDataValue()
+    public void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId )
     {
-        try
-        {
-            return reader.readRecord();
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to read record", ex );
-        }
+        appendRow( HEADER_ROW );
     }
 
     @Override
-    public DataValue getNextDataValue()
+    public void writeValue( DataValueEntry entry )
     {
-        try
-        {
-            return new StreamingCsvDataValue( reader.getValues() );
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to get CSV values", ex );
-        }
-    }
-
-    @Override
-    public DataValue getDataValueInstance()
-    {
-        return new StreamingCsvDataValue( writer );
+        appendRow( new String[] {
+            entry.getDataElement(),
+            entry.getPeriod(),
+            entry.getOrgUnit(),
+            entry.getCategoryOptionCombo(),
+            entry.getAttributeOptionCombo(),
+            entry.getValue(),
+            entry.getStoredBy(),
+            entry.getLastUpdated(),
+            entry.getComment(),
+            String.valueOf( entry.getFollowup() ),
+            String.valueOf( entry.getDeleted() )
+        } );
     }
 
     @Override
     public void close()
     {
-        if ( writer != null )
-        {
-            writer.close();
-        }
+        writer.close();
+    }
 
-        if ( reader != null )
+    private void appendRow( String[] row )
+    {
+        try
         {
-            reader.close();
+            writer.writeRecord( row );
+        }
+        catch ( IOException ex )
+        {
+            throw new UncheckedIOException( "Failed to write CSV data", ex );
         }
     }
 }

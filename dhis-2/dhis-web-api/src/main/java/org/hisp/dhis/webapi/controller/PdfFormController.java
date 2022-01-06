@@ -149,7 +149,7 @@ public class PdfFormController
 
         in = StreamUtils.wrapAndCheckCompressionFormat( in );
 
-        ImportSummary summary = dataValueSetService.saveDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(),
+        ImportSummary summary = dataValueSetService.importDataValueSetPdf( in, ImportOptions.getDefaultImportOptions(),
             jobId );
 
         return importSummary( summary );

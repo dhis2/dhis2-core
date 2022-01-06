@@ -25,48 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.keyjsonvalue;
 
-import lombok.AccessLevel;
+import java.util.List;
+import java.util.Map.Entry;
+
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Various information about the HTTP request made available to the system.
+ * Represents an entry in the datatore in the form that it is extracted with
+ * field filtering. The {@link #key} is the key of the datastore entry, the
+ * {@link #values} are the values for the extracted fields in the order of the
+ * fields.
+ *
+ * It is also made an {@link Entry} to allow usage in pipeline not specifically
+ * linked to this class.
  *
  * @author Jan Bernitt
  */
 @Getter
-@Builder( toBuilder = true )
-@ToString
-@EqualsAndHashCode
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class RequestInfo
+@AllArgsConstructor
+public final class KeyJsonValueEntry implements Entry<String, List<String>>
 {
+    private final String key;
 
-    @JsonProperty
-    private final String headerXRequestID;
+    private final List<String> values;
 
-    /**
-     * Since the xRequestID is a user provided input that will be used in logs
-     * and potentially other places we need to make sure it is secure to be
-     * used. Therefore, it is limited to unique identifier patterns such as UUID
-     * strings or the UIDs used by DHIS2.
-     *
-     * A valid ID is alphanumeric (which dash and underscored being allowed too)
-     * and has a length between 1 and 36.
-     *
-     * @param xRequestID the ID to check, may be null
-     * @return true, if the provided ID is legal (null is legal) or false if it
-     *         is not
-     */
-    public static boolean isValidXRequestID( String xRequestID )
+    @Override
+    public List<String> getValue()
     {
-        return xRequestID == null || xRequestID.matches( "[-_a-zA-Z0-9]{1,36}" );
+        return getValues();
+    }
+
+    @Override
+    public List<String> setValue( List<String> strings )
+    {
+        throw new UnsupportedOperationException();
     }
 }

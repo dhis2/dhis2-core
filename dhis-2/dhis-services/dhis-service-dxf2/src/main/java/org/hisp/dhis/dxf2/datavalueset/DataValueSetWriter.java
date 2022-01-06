@@ -25,48 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.dxf2.datavalueset;
 
 /**
- * Various information about the HTTP request made available to the system.
+ * Adapter interface to write {@link DataValueSet} data to different output
+ * formats like JSON, XML and CSV.
+ *
+ * Data is written by the following method call sequence:
+ * <ol>
+ * <li>{@link #writeHeader()} or
+ * {@link #writeHeader(String, String, String, String)}</li>
+ * <li>0 or more times {@link #writeValue(DataValueEntry)}</li>
+ * <li>{@link #close()}</li>
+ * </ol>
+ *
+ * All methods might throw an {@link java.io.UncheckedIOException}.
  *
  * @author Jan Bernitt
+ *
+ * @see XmlDataValueSetWriter
+ * @see JsonDataValueSetWriter
+ * @see CsvDataValueSetWriter
  */
-@Getter
-@Builder( toBuilder = true )
-@ToString
-@EqualsAndHashCode
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class RequestInfo
+public interface DataValueSetWriter extends AutoCloseable
 {
-
-    @JsonProperty
-    private final String headerXRequestID;
+    /**
+     * Add a minimum document header to the output, so it is ready for calls of
+     * {@link #writeValue(DataValueEntry)}
+     */
+    void writeHeader();
 
     /**
-     * Since the xRequestID is a user provided input that will be used in logs
-     * and potentially other places we need to make sure it is secure to be
-     * used. Therefore, it is limited to unique identifier patterns such as UUID
-     * strings or the UIDs used by DHIS2.
+     * Add a header with the provided information to the output. Afterwards the
+     * output should be ready for calls to {@link #writeValue(DataValueEntry)}.
      *
-     * A valid ID is alphanumeric (which dash and underscored being allowed too)
-     * and has a length between 1 and 36.
-     *
-     * @param xRequestID the ID to check, may be null
-     * @return true, if the provided ID is legal (null is legal) or false if it
-     *         is not
+     * @param dataSetId ID of the written dataset
+     * @param completeDate the completeDate of the set
+     * @param isoPeriod the period of the set
+     * @param orgUnitId the organisation unit of the set
      */
-    public static boolean isValidXRequestID( String xRequestID )
-    {
-        return xRequestID == null || xRequestID.matches( "[-_a-zA-Z0-9]{1,36}" );
-    }
+    void writeHeader( String dataSetId, String completeDate, String isoPeriod, String orgUnitId );
+
+    void writeValue( DataValueEntry entry );
+
+    /**
+     * Add the document footer to the output and close the document.
+     */
+    @Override
+    void close();
+
 }

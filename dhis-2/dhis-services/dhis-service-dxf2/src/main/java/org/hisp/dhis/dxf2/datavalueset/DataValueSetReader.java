@@ -25,48 +25,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+package org.hisp.dhis.dxf2.datavalueset;
 
 /**
- * Various information about the HTTP request made available to the system.
+ * Adopter interface to read {@link DataValueSet}s from different input formats
+ * like XML, JSON and CSV.
+ *
+ * To avoid materialising a potentially very large set of
+ * {@link org.hisp.dhis.dxf2.datavalue.DataValue}s with the {@link DataValueSet}
+ * the values are not included in the {@link #readHeader()} value. Instead, the
+ * values are iterated/streamed using the {@link #readNext()} method.
+ *
+ * To read an input the call sequence should be the following:
+ * <ol>
+ * <li>call {@link #readHeader()} once (must be called)</li>
+ * <li>call {@link #readNext()} until it returns {@code null}</li>
+ * <li>call {@link #close()} once</li>
+ * </ol>
+ *
+ * All methods might throw an {@link java.io.UncheckedIOException}.
+ *
+ * A reader that does not support actual streaming using {@link #readNext()} can
+ * include the values in the {@link DataValueSet} returned by the
+ * {@link #readHeader()} and immediately return {@code null} when
+ * {@link #readNext()} is called.
  *
  * @author Jan Bernitt
+ *
+ * @see XmlDataValueSetReader
+ * @see CsvDataValueSetReader
+ * @see PdfDataValueSetReader
+ * @see JsonDataValueSetReader
  */
-@Getter
-@Builder( toBuilder = true )
-@ToString
-@EqualsAndHashCode
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class RequestInfo
+public interface DataValueSetReader extends AutoCloseable
 {
 
-    @JsonProperty
-    private final String headerXRequestID;
+    /**
+     * @return The information on the {@link DataValueSet} but not including the
+     *         {@link DataValueSet#getDataValues()}
+     */
+    DataValueSet readHeader();
 
     /**
-     * Since the xRequestID is a user provided input that will be used in logs
-     * and potentially other places we need to make sure it is secure to be
-     * used. Therefore, it is limited to unique identifier patterns such as UUID
-     * strings or the UIDs used by DHIS2.
-     *
-     * A valid ID is alphanumeric (which dash and underscored being allowed too)
-     * and has a length between 1 and 36.
-     *
-     * @param xRequestID the ID to check, may be null
-     * @return true, if the provided ID is legal (null is legal) or false if it
-     *         is not
+     * @return the next {@link DataValueEntry} in the set or {@code null} if no
+     *         more values are available
      */
-    public static boolean isValidXRequestID( String xRequestID )
-    {
-        return xRequestID == null || xRequestID.matches( "[-_a-zA-Z0-9]{1,36}" );
-    }
+    DataValueEntry readNext();
+
+    @Override
+    void close();
 }
