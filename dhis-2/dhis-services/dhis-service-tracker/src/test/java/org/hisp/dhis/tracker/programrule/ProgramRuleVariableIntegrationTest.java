@@ -52,7 +52,6 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,8 +82,6 @@ public class ProgramRuleVariableIntegrationTest extends TransactionalIntegration
 
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
-
-    private User userA;
 
     @Override
     public void setUpTest()
