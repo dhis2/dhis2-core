@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.io.IOException;
@@ -35,6 +37,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -399,7 +402,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        T persistedObject = entities.get( 0 );
+        BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) entities.get( 0 );
 
         User user = currentUserService.getCurrentUser();
 
@@ -408,55 +411,30 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        T object = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        T inputObject = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        TypeReport typeReport = new TypeReport( Translation.class );
+        HashSet<Translation> translations = new HashSet<>( inputObject.getTranslations() );
 
-        List<Translation> objectTranslations = Lists.newArrayList( object.getTranslations() );
+        persistedObject.setTranslations( translations );
 
-        for ( int idx = 0; idx < object.getTranslations().size(); idx++ )
+        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
+
+        params.setUser( user )
+            .setImportStrategy( ImportStrategy.UPDATE )
+            .addObject( persistedObject )
+            .setImportMode( ObjectBundleMode.VALIDATE );
+
+        ImportReport importReport = importService.importMetadata( params );
+
+        if ( !CollectionUtils.isEmpty( importReport.getErrorReports() ) )
         {
-            ObjectReport objectReport = new ObjectReport( Translation.class, idx );
-            Translation translation = objectTranslations.get( idx );
-
-            if ( translation.getLocale() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( getEntityClass() ) );
-            }
-
-            if ( translation.getProperty() == null )
-            {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" )
-                    .setErrorKlass( getEntityClass() ) );
-            }
-
-            if ( translation.getValue() == null )
-            {
-                objectReport.addErrorReport(
-                    new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( getEntityClass() ) );
-            }
-
-            typeReport.addObjectReport( objectReport );
-
-            if ( !objectReport.isEmpty() )
-            {
-                typeReport.getStats().incIgnored();
-            }
+            manager.save( persistedObject );
+            response.setStatus( HttpServletResponse.SC_NO_CONTENT );
         }
 
-        if ( !typeReport.getErrorReports().isEmpty() )
-        {
-            WebMessage webMessage = WebMessageUtils.typeReport( typeReport );
-            webMessageService.send( webMessage, response, request );
-            return;
-        }
-
-        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
-        manager.updateTranslations( persistedObject, object.getTranslations() );
-        manager.update( persistedObject );
-
-        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
+        WebMessage webMessage = WebMessageUtils.importReport( importReport );
+        webMessageService.send( webMessage, response, request );
+        return;
     }
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
