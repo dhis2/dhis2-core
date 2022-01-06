@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.replaceOnce;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -45,8 +48,12 @@ public enum QueryOperator
     LIKE( "like" ),
     IN( "in", true ),
     // Analytics specifics
+    IEQ( "==", true ),
     NE( "!=", true ),
-    NLIKE( "nlike" );
+    NIEQ( "!==", true ),
+    NLIKE( "not like" ),
+    ILIKE( "ilike" ),
+    NILIKE( "not ilike" );
 
     private final String value;
 
@@ -63,6 +70,11 @@ public enum QueryOperator
         if ( string == null || string.isEmpty() )
         {
             return null;
+        }
+
+        if ( string.trim().startsWith( "!" ) )
+        {
+            return valueOf( "N" + replaceOnce( string, "!", EMPTY ).toUpperCase() );
         }
 
         return valueOf( string.toUpperCase() );

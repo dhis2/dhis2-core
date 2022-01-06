@@ -270,7 +270,8 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    String field = getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() );
+                    String field = getSelectSql( filter, item, params.getEarliestStartDate(),
+                        params.getLatestEndDate() );
 
                     if ( IN.equals( filter.getOperator() ) )
                     {
@@ -294,7 +295,8 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    sql += "and " + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " "
+                    sql += "and "
+                        + getSelectSql( filter, item, params.getEarliestStartDate(), params.getLatestEndDate() ) + " "
                         + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
