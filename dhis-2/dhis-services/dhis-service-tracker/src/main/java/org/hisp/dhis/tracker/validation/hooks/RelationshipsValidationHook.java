@@ -148,10 +148,6 @@ public class RelationshipsValidationHook
         if ( relationshipItemValueType( item ) == null )
         {
             addError( reporter, relationship, TrackerErrorCode.E4013, relSide, TrackerType.TRACKED_ENTITY.getName() );
-            // TODO(TECH-880) if relationshipItemValueType( item ) == null we
-            // cannot call .getName()
-            // on it below. Can we add another arg to the error report? If not
-            // we have to return here
             return;
         }
 
