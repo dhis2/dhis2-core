@@ -25,14 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.table;
+package org.hisp.dhis.trackedentityattributevalue;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * This class manages the administrative/maintenance tasks of tracked entity
@@ -41,7 +40,7 @@ import org.springframework.stereotype.Service;
  * @author Ameen Mohamed
  */
 @Slf4j
-@Service( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager" )
+@Component( "org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager" )
 public class JdbcTrackedEntityAttributeTableManager implements TrackedEntityAttributeTableManager
 {
 
