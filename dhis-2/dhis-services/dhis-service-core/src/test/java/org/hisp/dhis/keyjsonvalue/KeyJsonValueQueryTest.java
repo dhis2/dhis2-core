@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueQuery.Field;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the parsing and manipulation of {@link KeyJsonValueQuery}s.

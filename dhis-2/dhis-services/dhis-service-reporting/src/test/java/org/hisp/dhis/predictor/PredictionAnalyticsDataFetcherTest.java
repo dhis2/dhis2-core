@@ -55,12 +55,11 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -68,6 +67,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Jim Grace
  */
+@ExtendWith( MockitoExtension.class )
 public class PredictionAnalyticsDataFetcherTest
     extends DhisConvenienceTest
 {
@@ -76,9 +76,6 @@ public class PredictionAnalyticsDataFetcherTest
 
     @Mock
     private CategoryService categoryService;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private OrganisationUnit orgUnitA;
 
@@ -104,7 +101,7 @@ public class PredictionAnalyticsDataFetcherTest
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         periodA = createPeriod( "202101" );

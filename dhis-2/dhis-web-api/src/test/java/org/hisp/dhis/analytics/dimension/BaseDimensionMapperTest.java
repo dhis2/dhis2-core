@@ -36,8 +36,9 @@ import java.util.Set;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
-import org.junit.Test;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableList;
+import org.junit.jupiter.api.Test;
+
+import com.google.common.collect.ImmutableList;
 
 public class BaseDimensionMapperTest
 {

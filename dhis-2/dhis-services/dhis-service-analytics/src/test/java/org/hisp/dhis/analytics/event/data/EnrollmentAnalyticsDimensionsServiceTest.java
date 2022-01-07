@@ -31,7 +31,7 @@ import static org.hisp.dhis.analytics.event.data.AnalyticsDimensionsTestSupport.
 import static org.hisp.dhis.analytics.event.data.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.AGGREGATE_ALLOWED_VALUE_TYPES;
 import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.QUERY_DISALLOWED_VALUE_TYPES;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -44,14 +44,14 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class EnrollmentAnalyticsDimensionsServiceTest
 {
     private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
-    @Before
+    @BeforeEach
     public void setup()
     {
         ProgramService programService = mock( ProgramService.class );

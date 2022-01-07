@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonResponse;

@@ -30,7 +30,7 @@ package org.hisp.dhis.predictor;
 import static com.google.common.collect.Maps.immutableEntry;
 import static org.hisp.dhis.predictor.PredictionContextGenerator.getContexts;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,7 +53,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -63,6 +63,7 @@ import com.google.common.collect.Lists;
  *
  * @author Jim Grace
  */
+
 public class PredictionContextGeneratorTest
     extends DhisConvenienceTest
 {

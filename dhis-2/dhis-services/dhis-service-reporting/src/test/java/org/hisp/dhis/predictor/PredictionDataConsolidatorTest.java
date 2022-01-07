@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.predictor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayDeque;
@@ -53,12 +53,11 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -68,6 +67,7 @@ import com.google.common.collect.Sets;
  *
  * @author Jim Grace
  */
+@ExtendWith( MockitoExtension.class )
 public class PredictionDataConsolidatorTest
     extends DhisConvenienceTest
 {
@@ -85,9 +85,6 @@ public class PredictionDataConsolidatorTest
 
     @Mock
     private PredictionAnalyticsDataFetcher analyticsFetcher;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private DataElement dataElementA;
 
@@ -193,7 +190,7 @@ public class PredictionDataConsolidatorTest
     // Fixture
     // -------------------------------------------------------------------------
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         dataElementA = createDataElement( 'A' );
