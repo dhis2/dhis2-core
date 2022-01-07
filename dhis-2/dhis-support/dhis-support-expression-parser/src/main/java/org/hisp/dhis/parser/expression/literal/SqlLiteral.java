@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.parser.expression.literal;
 
-import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NumericLiteralContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 
 /**
@@ -58,5 +58,10 @@ public class SqlLiteral
     public Object getBooleanLiteral( BooleanLiteralContext ctx )
     {
         return ctx.getText();
+    }
+
+    private String escapeSql( String str )
+    {
+        return str == null ? null : StringUtils.replace( str, "'", "''" );
     }
 }
