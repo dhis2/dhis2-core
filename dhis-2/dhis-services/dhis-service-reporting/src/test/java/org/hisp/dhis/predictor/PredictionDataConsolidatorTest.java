@@ -359,11 +359,6 @@ public class PredictionDataConsolidatorTest
     @Test
     public void testGetData()
     {
-        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
-        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
-        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
-        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
-
         // ---------------------------------------------------------------------
         // Test strategy
         // ---------------------------------------------------------------------
