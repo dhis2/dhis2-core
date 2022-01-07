@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1124;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -56,31 +55,25 @@ public class PreCheckMandatoryFieldsValidationHook
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getTrackedEntityType() ), reporter,
-            TrackerType.TRACKED_ENTITY, trackedEntity.getUid(), E1121,
+        addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getTrackedEntityType() ), reporter, trackedEntity, E1121,
             "trackedEntityType" );
-        addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), reporter, TrackerType.TRACKED_ENTITY,
-            trackedEntity.getUid(), E1121, ORG_UNIT );
+        addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), reporter, trackedEntity, E1121, ORG_UNIT );
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        addErrorIf( () -> StringUtils.isEmpty( enrollment.getOrgUnit() ), reporter, TrackerType.ENROLLMENT,
-            enrollment.getUid(), E1122, ORG_UNIT );
-        addErrorIf( () -> StringUtils.isEmpty( enrollment.getProgram() ), reporter, TrackerType.ENROLLMENT,
-            enrollment.getUid(), E1122, "program" );
-        addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ), reporter, TrackerType.ENROLLMENT,
-            enrollment.getUid(), E1122, "trackedEntity" );
+        addErrorIf( () -> StringUtils.isEmpty( enrollment.getOrgUnit() ), reporter, enrollment, E1122, ORG_UNIT );
+        addErrorIf( () -> StringUtils.isEmpty( enrollment.getProgram() ), reporter, enrollment, E1122, "program" );
+        addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ), reporter, enrollment, E1122,
+            "trackedEntity" );
     }
 
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), reporter, TrackerType.EVENT, event.getUid(), E1123,
-            ORG_UNIT );
-        addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), reporter, TrackerType.EVENT, event.getUid(),
-            E1123, "programStage" );
+        addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), reporter, event, E1123, ORG_UNIT );
+        addErrorIf( () -> StringUtils.isEmpty( event.getProgramStage() ), reporter, event, E1123, "programStage" );
 
         // TODO remove if once metadata import is fixed
         TrackerImportValidationContext context = reporter.getValidationContext();
@@ -95,26 +88,22 @@ public class PreCheckMandatoryFieldsValidationHook
             // the event itself. This should be
             // fixed in the metadata import. For more see
             // https://jira.dhis2.org/browse/DHIS2-12123
-            addErrorIfNull( programStage.getProgram(), reporter, TrackerType.EVENT, event.getUid(), E1008,
-                event.getProgramStage() );
+            addErrorIfNull( programStage.getProgram(), reporter, event, E1008, event.getProgramStage() );
             // return since program is not a required field according to our API
             // and the issue is with the missing reference in
             // the DB entry of the program stage and not the payload itself
             return;
         }
 
-        addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ), reporter, TrackerType.EVENT, event.getUid(), E1123,
-            "program" );
+        addErrorIf( () -> StringUtils.isEmpty( event.getProgram() ), reporter, event, E1123, "program" );
     }
 
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        addErrorIfNull( relationship.getFrom(), reporter, TrackerType.RELATIONSHIP, relationship.getUid(), E1124,
-            "from" );
-        addErrorIfNull( relationship.getTo(), reporter, TrackerType.RELATIONSHIP, relationship.getUid(), E1124, "to" );
-        addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ), reporter, TrackerType.RELATIONSHIP,
-            relationship.getUid(), E1124,
+        addErrorIfNull( relationship.getFrom(), reporter, relationship, E1124, "from" );
+        addErrorIfNull( relationship.getTo(), reporter, relationship, E1124, "to" );
+        addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ), reporter, relationship, E1124,
             "relationshipType" );
     }
 

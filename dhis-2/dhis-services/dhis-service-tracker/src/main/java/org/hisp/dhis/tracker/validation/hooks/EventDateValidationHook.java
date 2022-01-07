@@ -46,7 +46,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -69,13 +68,13 @@ public class EventDateValidationHook
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
-            addError( reporter, TrackerType.EVENT, event.getUid(), E1031, event );
+            addError( reporter, event, E1031, event );
             return;
         }
 
         if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
         {
-            addError( reporter, TrackerType.EVENT, event.getUid(), E1050, event );
+            addError( reporter, event, E1050, event );
             return;
         }
 
@@ -101,13 +100,13 @@ public class EventDateValidationHook
         {
             if ( event.getCompletedAt() == null )
             {
-                addErrorIfNull( event.getCompletedAt(), reporter, TrackerType.EVENT, event.getUid(), E1042, event );
+                addErrorIfNull( event.getCompletedAt(), reporter, event, E1042, event );
             }
             else
             {
                 if ( now().isAfter( event.getCompletedAt().plus( ofDays( program.getCompleteEventsExpiryDays() ) ) ) )
                 {
-                    addError( reporter, TrackerType.EVENT, event.getUid(), E1043, event );
+                    addError( reporter, event, E1043, event );
                 }
             }
         }
@@ -132,7 +131,7 @@ public class EventDateValidationHook
 
         if ( referenceDate == null )
         {
-            addError( reporter, TrackerType.EVENT, event.getUid(), E1046, event );
+            addError( reporter, event, E1046, event );
             return;
         }
 
@@ -140,7 +139,7 @@ public class EventDateValidationHook
 
         if ( referenceDate.isBefore( period.getStartDate().toInstant() ) )
         {
-            addError( reporter, TrackerType.EVENT, event.getUid(), E1047, event );
+            addError( reporter, event, E1047, event );
         }
     }
 

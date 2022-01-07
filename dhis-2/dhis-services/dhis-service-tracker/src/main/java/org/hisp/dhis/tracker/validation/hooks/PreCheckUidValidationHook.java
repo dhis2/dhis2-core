@@ -94,16 +94,12 @@ public class PreCheckUidValidationHook
      * @param dto the dto to which the report will be linked to
      * @param args list of arguments for the Error report
      */
-    // TODO once tests pass can I use generics so that I do not have to pass the
-    // dto twice?
     private void checkUidFormat( String checkUid, ValidationErrorReporter reporter, TrackerDto dto,
         Object... args )
     {
         if ( !CodeGenerator.isValidUid( checkUid ) )
         {
-            // TODO(TECH-880) how can I leverage this directly in addError
-            addError( reporter, dto.getTrackerType(), dto.getUid(), TrackerErrorCode.E1048, checkUid, args[0],
-                args[1] );
+            addError( reporter, dto, TrackerErrorCode.E1048, checkUid, args[0], args[1] );
         }
     }
 

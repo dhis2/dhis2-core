@@ -103,6 +103,7 @@ class EnrollmentInExistingValidationHookTest
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.ACTIVE );
         when( enrollment.getEnrollment() ).thenReturn( enrollmentUid );
         when( enrollment.getUid() ).thenReturn( enrollmentUid );
+        when( enrollment.getTrackerType() ).thenCallRealMethod();
 
         when( validationContext.getTrackedEntityInstance( trackedEntity ) ).thenReturn( trackedEntityInstance );
         when( trackedEntityInstance.getUid() ).thenReturn( trackedEntity );

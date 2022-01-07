@@ -101,7 +101,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
                 validateAttrValueType( reporter, enrollment.getUid(), attribute, teAttribute );
-                validateOptionSet( reporter, TrackerType.ENROLLMENT, enrollment.getUid(), teAttribute,
+                validateOptionSet( reporter, enrollment, teAttribute,
                     attribute.getValue() );
 
                 validateAttributeUniqueness( reporter,
@@ -119,8 +119,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     protected void validateRequiredProperties( ValidationErrorReporter reporter, Enrollment enrollment,
         Attribute attribute, Program program )
     {
-        addErrorIfNull( attribute.getAttribute(), reporter, TrackerType.ENROLLMENT, enrollment.getUid(), E1075,
-            attribute );
+        addErrorIfNull( attribute.getAttribute(), reporter, enrollment, E1075, attribute );
 
         Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr = program.getProgramAttributes().stream()
             .filter( pa -> pa.getAttribute().getUid().equals( attribute.getAttribute() ) && pa.isMandatory() )
@@ -128,7 +127,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         if ( optionalTrackedAttr.isPresent() )
         {
-            addErrorIfNull( attribute.getValue(), reporter, TrackerType.ENROLLMENT, enrollment.getUid(), E1076,
+            addErrorIfNull( attribute.getValue(), reporter, enrollment, E1076,
                 TrackedEntityAttribute.class.getSimpleName(),
                 attribute.getAttribute() );
         }
@@ -138,8 +137,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             TrackedEntityAttribute teAttribute = reporter.getValidationContext()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
-            addErrorIfNull( teAttribute, reporter, TrackerType.ENROLLMENT, enrollment.getUid(), E1006,
-                attribute.getAttribute() );
+            addErrorIfNull( teAttribute, reporter, enrollment, E1006, attribute.getAttribute() );
         }
     }
 
@@ -173,8 +171,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .filter( Map.Entry::getValue ) // <--- filter on mandatory flag
             .map( Map.Entry::getKey )
             .forEach( mandatoryProgramAttributeUid -> addErrorIf(
-                () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ), reporter, TrackerType.ENROLLMENT,
-                enrollment.getUid(), E1018,
+                () -> !mergedAttributes.contains( mandatoryProgramAttributeUid ), reporter,
+                enrollment, E1018,
                 mandatoryProgramAttributeUid, program.getUid(), enrollment.getEnrollment() ) );
 
         // enrollment must not contain any attribute which is not defined in
@@ -182,7 +180,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         enrollmentNonEmptyAttributeUids
             .forEach(
                 ( attrUid, attrVal ) -> addErrorIf( () -> !programAttributesMap.containsKey( attrUid ), reporter,
-                    TrackerType.ENROLLMENT, enrollment.getUid(), E1019,
+                    enrollment, E1019,
                     attrUid + "=" + attrVal ) );
     }
 

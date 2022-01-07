@@ -223,15 +223,15 @@ class TrackedEntityAttributeValidationHookTest
             sbString.append( "a" );
         }
 
-        String teUid = CodeGenerator.generateUid();
-        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, teUid,
+        TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
+        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
             trackedEntityAttribute, sbString.toString() );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1077.equals( err.getErrorCode() ) &&
             TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            teUid.equals( err.getUid() ) ) );
+            te.getTrackedEntity().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -241,15 +241,15 @@ class TrackedEntityAttributeValidationHookTest
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.NUMBER );
 
-        String teUid = CodeGenerator.generateUid();
-        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, teUid,
+        TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
+        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
             trackedEntityAttribute, "value" );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1085.equals( err.getErrorCode() ) &&
             TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            teUid.equals( err.getUid() ) ) );
+            te.getTrackedEntity().equals( err.getUid() ) ) );
     }
 
     @Test
@@ -266,15 +266,15 @@ class TrackedEntityAttributeValidationHookTest
         when( validationContext.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
-        String teUid = CodeGenerator.generateUid();
-        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, teUid,
+        TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
+        trackedEntityAttributeValidationHook.validateAttributeValue( reporter, te,
             trackedEntityAttribute, "value" );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( 1, reporter.getReportList().size() );
         assertTrue( reporter.hasErrorReport( err -> TrackerErrorCode.E1112.equals( err.getErrorCode() ) &&
             TrackerType.TRACKED_ENTITY.equals( err.getTrackerType() ) &&
-            teUid.equals( err.getUid() ) ) );
+            te.getTrackedEntity().equals( err.getUid() ) ) );
     }
 
     @Test

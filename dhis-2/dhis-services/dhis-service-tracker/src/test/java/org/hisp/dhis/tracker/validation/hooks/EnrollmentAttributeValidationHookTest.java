@@ -118,6 +118,7 @@ class EnrollmentAttributeValidationHookTest
         String uid = CodeGenerator.generateUid();
         when( enrollment.getUid() ).thenReturn( uid );
         when( enrollment.getEnrollment() ).thenReturn( uid );
+        when( enrollment.getTrackerType() ).thenCallRealMethod();
         enrollment.setTrackedEntity( trackedEntity );
 
         TrackerBundle bundle = TrackerBundle.builder().build();

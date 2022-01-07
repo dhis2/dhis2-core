@@ -35,7 +35,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -75,8 +74,7 @@ public class RepeatedEventsValidationHook
             {
                 for ( Event event : mapEntry.getValue() )
                 {
-                    addError( reporter, TrackerType.EVENT, event.getUid(), TrackerErrorCode.E1039,
-                        mapEntry.getKey().getLeft() );
+                    addError( reporter, event, TrackerErrorCode.E1039, mapEntry.getKey().getLeft() );
                 }
             }
         }
@@ -97,7 +95,7 @@ public class RepeatedEventsValidationHook
             && !programStage.getRepeatable()
             && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
         {
-            addError( reporter, TrackerType.EVENT, event.getUid(), TrackerErrorCode.E1039, event.getProgramStage() );
+            addError( reporter, event, TrackerErrorCode.E1039, event.getProgramStage() );
         }
     }
 
