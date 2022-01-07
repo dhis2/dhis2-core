@@ -86,25 +86,7 @@ public class TrackerTrigramIndexingJob implements Job
 
         if ( !CollectionUtils.isEmpty( parameters.getAttributes() ) )
         {
-            log.debug( "Fetching all indexable attributes from db" );
-            Set<TrackedEntityAttribute> indexableAttributes = trackedEntityAttributeService
-                .getAllTrigramIndexableTrackedEntityAttributes();
-
-            log.debug( "Found total {} indexable attributes", indexableAttributes.size() );
-            indexableAttributes = indexableAttributes.stream()
-                .filter( itea -> parameters.getAttributes().contains( itea.getUid() ) ).collect( Collectors.toSet() );
-
-            log.debug( "Number of Attributes provided in job parameters that are indexable: {}",
-                indexableAttributes.size() );
-
-            if ( !indexableAttributes.isEmpty() )
-            {
-                createTrigramIndexes( progress, indexableAttributes );
-            }
-            else
-            {
-                log.warn( "No indexable attributes provided in job parameters. Skipping trigram index creation step" );
-            }
+            createTrigramIndexesOnIndexableAttributes( progress, parameters );
         }
 
         runVacuum( progress, parameters );
@@ -113,6 +95,30 @@ public class TrackerTrigramIndexingJob implements Job
 
         progress.completedProcess( "Job completed" );
         log.info( "Trigram Indexing job completed" );
+    }
+
+    private void createTrigramIndexesOnIndexableAttributes( JobProgress progress,
+        TrackerTrigramIndexJobParameters parameters )
+    {
+        log.debug( "Fetching all indexable attributes from db" );
+        Set<TrackedEntityAttribute> indexableAttributes = trackedEntityAttributeService
+            .getAllTrigramIndexableTrackedEntityAttributes();
+
+        log.debug( "Found total {} indexable attributes", indexableAttributes.size() );
+        indexableAttributes = indexableAttributes.stream()
+            .filter( itea -> parameters.getAttributes().contains( itea.getUid() ) ).collect( Collectors.toSet() );
+
+        log.debug( "Number of Attributes provided in job parameters that are indexable: {}",
+            indexableAttributes.size() );
+
+        if ( !indexableAttributes.isEmpty() )
+        {
+            createTrigramIndexes( progress, indexableAttributes );
+        }
+        else
+        {
+            log.warn( "No indexable attributes provided in job parameters. Skipping trigram index creation step" );
+        }
     }
 
     private void createTrigramIndexes( JobProgress progress, Set<TrackedEntityAttribute> indexableAttributes )

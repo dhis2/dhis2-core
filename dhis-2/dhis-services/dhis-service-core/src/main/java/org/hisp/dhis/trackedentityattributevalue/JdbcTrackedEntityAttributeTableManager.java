@@ -34,8 +34,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * This class manages the administrative/maintenance tasks of tracked entity
- * attribute table.
+ * This class implements the administrative/maintenance tasks of tracked entity
+ * attribute value table.
  *
  * @author Ameen Mohamed
  */

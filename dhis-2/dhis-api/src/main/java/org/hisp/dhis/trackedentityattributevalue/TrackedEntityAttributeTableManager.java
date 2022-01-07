@@ -30,6 +30,9 @@ package org.hisp.dhis.trackedentityattributevalue;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
+ * Interface for administrative/maintenance tasks on trackedentityattributevalue
+ * table
+ *
  * @author Ameen Mohamed
  */
 public interface TrackedEntityAttributeTableManager
