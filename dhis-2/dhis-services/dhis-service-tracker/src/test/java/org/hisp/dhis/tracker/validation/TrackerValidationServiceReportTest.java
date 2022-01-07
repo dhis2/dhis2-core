@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.validation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -49,6 +50,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.hooks.AbstractTrackerDtoValidationHook;
 import org.jetbrains.annotations.NotNull;
@@ -238,4 +240,48 @@ class TrackerValidationServiceReportTest
 
         verifyNoInteractions( hook2 );
     }
+
+    @Test
+    void reportWarnings()
+    {
+
+        List<Event> events = new ArrayList<>();
+        Event validEvent = event();
+        events.add( validEvent );
+
+        TrackerBundle bundle = TrackerBundle.builder()
+            .validationMode( ValidationMode.FULL )
+            .skipRuleEngine( true )
+            .events( events )
+            .build();
+
+        ValidationHook hook = ValidationHook.builder()
+            .validateEvent( ( reporter, event ) -> {
+                if ( validEvent.equals( event ) )
+                {
+                    reporter.addWarning(
+                        TrackerWarningReport.builder()
+                            .warningCode( TrackerErrorCode.E1120 )
+                            .trackerType( TrackerType.EVENT )
+                            .uid( event.getUid() )
+                            .build( reporter.getValidationContext().getBundle() ) );
+                }
+            } )
+            .build();
+        TrackerValidationService validationService = new DefaultTrackerValidationService(
+            List.of( hook ),
+            Collections.emptyList() );
+
+        TrackerValidationReport report = validationService.validate( bundle );
+
+        assertFalse( report.hasErrors() );
+        assertNotNull( report.getWarningReports() );
+        assertEquals( 1, report.getWarningReports().size() );
+        assertTrue( report.getWarningReports().stream().anyMatch( err -> TrackerErrorCode.E1120 == err.getWarningCode()
+            && TrackerType.EVENT == err.getTrackerType()
+            && validEvent.getUid().equals( err.getUid() ) ) );
+
+        assertTrue( bundle.getEvents().contains( validEvent ) );
+    }
+
 }
