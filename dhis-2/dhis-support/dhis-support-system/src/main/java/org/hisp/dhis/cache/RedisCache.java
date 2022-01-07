@@ -28,8 +28,8 @@
 package org.hisp.dhis.cache;
 
 import static java.util.Collections.emptySet;
-import static java.util.Collections.unmodifiableSet;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.stream.Collectors.toSet;
 import static org.springframework.util.Assert.hasText;
 
 import java.util.List;
@@ -141,15 +141,22 @@ public class RedisCache<V> implements Cache<V>
     @Override
     public Stream<V> getAll()
     {
-        List<V> values = redisTemplate.opsForValue().multiGet( keys() );
+        Set<String> keySet = redisTemplate.keys( getAllKeysInRegionPattern() );
+        if ( keySet == null )
+        {
+            return Stream.empty();
+        }
+        List<V> values = redisTemplate.opsForValue().multiGet( keySet );
         return values == null ? Stream.empty() : values.stream();
     }
 
     @Override
     public Set<String> keys()
     {
-        var keys = redisTemplate.keys( cacheRegion + "*" );
-        return keys == null ? emptySet() : unmodifiableSet( keys );
+        var keys = redisTemplate.keys( getAllKeysInRegionPattern() );
+        return keys == null
+            ? emptySet()
+            : keys.stream().map( key -> key.substring( key.indexOf( ':' ) + 1 ) ).collect( toSet() );
     }
 
     @Override
@@ -212,10 +219,15 @@ public class RedisCache<V> implements Cache<V>
         return cacheRegion.concat( ":" ).concat( key );
     }
 
+    private String getAllKeysInRegionPattern()
+    {
+        return generateKey( "*" );
+    }
+
     @Override
     public void invalidateAll()
     {
-        Set<String> keysToDelete = redisTemplate.keys( cacheRegion.concat( ":*" ) );
+        Set<String> keysToDelete = redisTemplate.keys( getAllKeysInRegionPattern() );
         redisTemplate.delete( keysToDelete );
     }
 
@@ -224,4 +236,5 @@ public class RedisCache<V> implements Cache<V>
     {
         return CacheType.REDIS;
     }
+
 }
