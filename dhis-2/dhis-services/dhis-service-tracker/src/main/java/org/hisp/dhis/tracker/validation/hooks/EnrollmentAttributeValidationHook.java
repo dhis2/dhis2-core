@@ -48,7 +48,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -71,7 +70,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
     public EnrollmentAttributeValidationHook( TrackedAttributeValidationService teAttrService )
     {
-        super( TrackerType.ENROLLMENT, teAttrService );
+        super( teAttrService );
     }
 
     @Override
@@ -100,12 +99,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
-                validateAttrValueType( reporter, enrollment.getUid(), attribute, teAttribute );
+                validateAttrValueType( reporter, enrollment, attribute, teAttribute );
                 validateOptionSet( reporter, enrollment, teAttribute,
                     attribute.getValue() );
 
                 validateAttributeUniqueness( reporter,
-                    enrollment.getUid(),
+                    enrollment,
                     attribute.getValue(),
                     teAttribute,
                     tei,

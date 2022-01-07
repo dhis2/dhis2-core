@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
@@ -41,7 +40,7 @@ public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHo
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        enrollment.setNotes( ValidationUtils.validateNotes( reporter, TrackerType.ENROLLMENT, enrollment.getUid(),
+        enrollment.setNotes( ValidationUtils.validateNotes( reporter, enrollment,
             enrollment.getNotes() ) );
     }
 }

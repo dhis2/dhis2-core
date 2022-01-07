@@ -38,9 +38,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
@@ -54,17 +54,14 @@ import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValida
 public abstract class AttributeValidationHook extends AbstractTrackerDtoValidationHook
 {
 
-    private final TrackerType trackerType;
-
     private final TrackedAttributeValidationService teAttrService;
 
-    protected AttributeValidationHook( TrackerType trackerType, TrackedAttributeValidationService teAttrService )
+    protected AttributeValidationHook( TrackedAttributeValidationService teAttrService )
     {
-        this.trackerType = trackerType;
         this.teAttrService = teAttrService;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter errorReporter, String uid, Attribute attr,
+    protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerDto dto, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -107,8 +104,8 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         {
             TrackerBundle bundle = context.getBundle();
             TrackerErrorReport err = TrackerErrorReport.builder()
-                .uid( uid )
-                .trackerType( this.trackerType )
+                .uid( dto.getUid() )
+                .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1007 )
                 .addArg( valueType.toString() )
                 .addArg( error )
@@ -118,7 +115,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
     }
 
     protected void validateAttributeUniqueness( ValidationErrorReporter errorReporter,
-        String uid,
+        TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
         TrackedEntityInstance trackedEntityInstance,
@@ -151,8 +148,8 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
             {
                 TrackerBundle bundle = errorReporter.getValidationContext().getBundle();
                 TrackerErrorReport err = TrackerErrorReport.builder()
-                    .uid( uid )
-                    .trackerType( this.trackerType )
+                    .uid( dto.getUid() )
+                    .trackerType( dto.getTrackerType() )
                     .errorCode( TrackerErrorCode.E1064 )
                     .addArg( value )
                     .addArg( trackedEntityAttribute.getUid() )

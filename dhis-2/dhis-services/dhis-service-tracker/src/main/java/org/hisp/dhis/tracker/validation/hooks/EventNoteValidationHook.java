@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
@@ -42,6 +41,6 @@ public class EventNoteValidationHook extends AbstractTrackerDtoValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         event
-            .setNotes( ValidationUtils.validateNotes( reporter, TrackerType.EVENT, event.getUid(), event.getNotes() ) );
+            .setNotes( ValidationUtils.validateNotes( reporter, event, event.getNotes() ) );
     }
 }

@@ -55,7 +55,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
@@ -75,7 +74,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
         DhisConfigurationProvider dhisConfigurationProvider )
     {
-        super( TrackerType.TRACKED_ENTITY, teAttrService );
+        super( teAttrService );
         checkNotNull( dhisConfigurationProvider );
         this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
@@ -160,11 +159,11 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             }
 
             validateAttributeValue( reporter, trackedEntity, tea, attribute.getValue() );
-            validateAttrValueType( reporter, trackedEntity.getUid(), attribute, tea );
+            validateAttrValueType( reporter, trackedEntity, attribute, tea );
             validateOptionSet( reporter, trackedEntity, tea,
                 attribute.getValue() );
 
-            validateAttributeUniqueness( reporter, trackedEntity.getUid(), attribute.getValue(), tea, tei, orgUnit );
+            validateAttributeUniqueness( reporter, trackedEntity, attribute.getValue(), tea, tei, orgUnit );
 
             validateFileNotAlreadyAssigned( reporter, trackedEntity, attribute, valueMap );
         }

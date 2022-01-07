@@ -33,13 +33,8 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
 import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
-import org.hisp.dhis.tracker.report.TrackerWarningReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -54,27 +49,11 @@ public class AssignedUserValidationHook
         {
             if ( isNotValidAssignedUserUid( event ) || assignedUserNotPresentInPreheat( reporter, event ) )
             {
-                TrackerImportValidationContext context = reporter.getValidationContext();
-                TrackerBundle bundle = context.getBundle();
-                TrackerErrorReport error = TrackerErrorReport.builder()
-                    .uid( event.getUid() )
-                    .trackerType( TrackerType.EVENT )
-                    .errorCode( E1118 )
-                    .addArg( event.getAssignedUser() )
-                    .build( bundle );
-                reporter.addError( error );
+                addError( reporter, event, E1118, event.getAssignedUser() );
             }
             if ( isNotEnabledUserAssignment( reporter, event ) )
             {
-                TrackerImportValidationContext context = reporter.getValidationContext();
-                TrackerBundle bundle = context.getBundle();
-                TrackerWarningReport warning = TrackerWarningReport.builder()
-                    .uid( event.getUid() )
-                    .trackerType( TrackerType.EVENT )
-                    .warningCode( E1120 )
-                    .addArg( event.getProgramStage() )
-                    .build( bundle );
-                reporter.addWarning( warning );
+                addWarning( reporter, event, E1120, event.getProgramStage() );
             }
         }
     }
