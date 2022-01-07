@@ -127,6 +127,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -2614,6 +2615,16 @@ public abstract class DhisConvenienceTest
         userService.addUser( user );
         userService.addUserCredentials( credentials );
         return user;
+    }
+
+    protected final ProgramSection createProgramSection( char uniqueCharacter, Program program )
+    {
+        ProgramSection programSection = new ProgramSection();
+        programSection.setProgram( program );
+        programSection.setSortOrder( 0 );
+        programSection.setName( "ProgramSection" + uniqueCharacter );
+        programSection.setAutoFields();
+        return programSection;
     }
 
 }
