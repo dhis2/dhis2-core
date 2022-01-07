@@ -40,7 +40,7 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
 
-public class BaseDimensionMapperTest
+class BaseDimensionMapperTest
 {
 
     public static final String UID = "uid";
@@ -67,7 +67,7 @@ public class BaseDimensionMapperTest
     };
 
     @Test
-    public void testMapBaseIdentifiable()
+    void testMapBaseIdentifiable()
     {
 
         asserter(
@@ -91,7 +91,7 @@ public class BaseDimensionMapperTest
     }
 
     @Test
-    public void testMapBaseNameable()
+    void testMapBaseNameable()
     {
         asserter(
             mapper,

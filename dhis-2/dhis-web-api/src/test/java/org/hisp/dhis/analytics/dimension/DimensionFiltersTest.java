@@ -39,11 +39,11 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
-public class DimensionFiltersTest
+class DimensionFiltersTest
 {
 
     @Test
-    public void testDimensionFilterConstructor()
+    void testDimensionFilterConstructor()
     {
 
         DimensionFilters dimensionFilters = DimensionFilters
@@ -59,7 +59,7 @@ public class DimensionFiltersTest
     }
 
     @Test
-    public void testFields()
+    void testFields()
     {
         DimensionFilters dimensionFilters = DimensionFilters
             .of( "name:eq:1;dimensionType:eq:1;displayName:eq:1;displayShortName:eq:1" );
@@ -68,7 +68,7 @@ public class DimensionFiltersTest
     }
 
     @Test
-    public void testNameWithAllOperators()
+    void testNameWithAllOperators()
     {
         Stream.<Pair<String, Function<DimensionResponse.DimensionResponseBuilder, DimensionResponse.DimensionResponseBuilder>>> of(
             Pair.of( "name", dimensionResponseBuilder -> dimensionResponseBuilder.name( "TeSt" ) ),

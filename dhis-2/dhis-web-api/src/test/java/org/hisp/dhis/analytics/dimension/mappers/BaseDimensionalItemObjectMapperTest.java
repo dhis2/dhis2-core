@@ -37,13 +37,13 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
 
-public class BaseDimensionalItemObjectMapperTest
+class BaseDimensionalItemObjectMapperTest
 {
 
     private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.INDICATOR;
 
     @Test
-    public void testDimensionalItemObjectMapper()
+    void testDimensionalItemObjectMapper()
     {
         asserter( new BaseDimensionalItemObjectMapper(),
             BaseDimensionalItemObject::new,

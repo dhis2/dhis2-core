@@ -37,13 +37,13 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
 
-public class BaseDimensionalObjectMapperTest
+class BaseDimensionalObjectMapperTest
 {
 
     private static final DimensionType DIMENSION_TYPE = DimensionType.PERIOD;
 
     @Test
-    public void testDimensionalObjectMapper()
+    void testDimensionalObjectMapper()
     {
         asserter( new BaseDimensionalObjectMapper(),
             BaseDimensionalObject::new,

@@ -58,7 +58,7 @@ import com.google.common.collect.Lists;
  * @author Dusan Bernat
  */
 @ExtendWith( MockitoExtension.class )
-public class AnalyticsCacheTest
+class AnalyticsCacheTest
 {
     @Mock
     private SystemSettingManager systemSettingManager;
@@ -67,7 +67,7 @@ public class AnalyticsCacheTest
     private DefaultCacheProvider cacheProvider;
 
     @Test
-    public void returnSameObjectAfterModifyCachedObject()
+    void returnSameObjectAfterModifyCachedObject()
     {
         // arrange
         final AnalyticsCacheSettings settings = new AnalyticsCacheSettings( systemSettingManager );

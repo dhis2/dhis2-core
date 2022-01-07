@@ -68,7 +68,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class PredictionAnalyticsDataFetcherTest
+class PredictionAnalyticsDataFetcherTest
     extends DhisConvenienceTest
 {
     @Mock
@@ -102,7 +102,7 @@ public class PredictionAnalyticsDataFetcherTest
     // -------------------------------------------------------------------------
 
     @BeforeEach
-    public void initTest()
+    void initTest()
     {
         periodA = createPeriod( "202101" );
         periodB = createPeriod( "202102" );
@@ -131,7 +131,7 @@ public class PredictionAnalyticsDataFetcherTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testGetValues()
+    void testGetValues()
     {
         // ---------------------------------------------------------------------
         // Items with Attribute Option Combos
@@ -275,7 +275,7 @@ public class PredictionAnalyticsDataFetcherTest
     }
 
     @Test
-    public void testGetValuesEmpty()
+    void testGetValuesEmpty()
     {
         fetcher.init( periods, Collections.emptySet() );
 

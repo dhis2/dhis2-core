@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-public class DimensionFilteringAndPagingServiceTest
+class DimensionFilteringAndPagingServiceTest
 {
 
     private final FieldFilterService fieldFilterService = mock( FieldFilterService.class );
@@ -56,7 +56,7 @@ public class DimensionFilteringAndPagingServiceTest
     private DimensionFilteringAndPagingService service;
 
     @BeforeEach
-    public void setup()
+    void setup()
     {
         service = new DimensionFilteringAndPagingService( fieldFilterService, dimensionMapperService );
 
@@ -73,7 +73,7 @@ public class DimensionFilteringAndPagingServiceTest
     }
 
     @Test
-    public void testPaging()
+    void testPaging()
     {
         DimensionsCriteria criteria = new DimensionsCriteria();
         criteria.setPageSize( 5 );
@@ -87,7 +87,7 @@ public class DimensionFilteringAndPagingServiceTest
     }
 
     @Test
-    public void testFiltering()
+    void testFiltering()
     {
         DimensionsCriteria criteria = new DimensionsCriteria();
         criteria.setFilter( "name:eq:test" );

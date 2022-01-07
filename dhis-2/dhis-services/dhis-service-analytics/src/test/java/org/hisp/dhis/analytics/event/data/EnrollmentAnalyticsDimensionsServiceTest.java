@@ -47,12 +47,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class EnrollmentAnalyticsDimensionsServiceTest
+class EnrollmentAnalyticsDimensionsServiceTest
 {
     private EnrollmentAnalyticsDimensionsService enrollmentAnalyticsDimensionsService;
 
     @BeforeEach
-    public void setup()
+    void setup()
     {
         ProgramService programService = mock( ProgramService.class );
 
@@ -68,7 +68,7 @@ public class EnrollmentAnalyticsDimensionsServiceTest
     }
 
     @Test
-    public void testQueryDoesntContainDisallowedValueTypes()
+    void testQueryDoesntContainDisallowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = enrollmentAnalyticsDimensionsService
             .getQueryDimensionsByProgramStageId( "anUid" );
@@ -90,7 +90,7 @@ public class EnrollmentAnalyticsDimensionsServiceTest
     }
 
     @Test
-    public void testAggregateOnlyContainsAllowedValueTypes()
+    void testAggregateOnlyContainsAllowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = enrollmentAnalyticsDimensionsService
             .getAggregateDimensionsByProgramStageId( "anUid" );

@@ -64,7 +64,7 @@ import com.google.common.collect.Lists;
  * @author Jim Grace
  */
 
-public class PredictionContextGeneratorTest
+class PredictionContextGeneratorTest
     extends DhisConvenienceTest
 {
     private final OrganisationUnit ouA = createOrganisationUnit( 'A' );
@@ -264,7 +264,7 @@ public class PredictionContextGeneratorTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testGetContextsWithAocData()
+    void testGetContextsWithAocData()
     {
         // valueMap for attributeOptionCombo A, period B:
         Map<DimensionalItemObject, Object> aocAPerBValueMap = ImmutableMap.of(
@@ -305,7 +305,7 @@ public class PredictionContextGeneratorTest
     }
 
     @Test
-    public void testGetContextsWithNonAocData()
+    void testGetContextsWithNonAocData()
     {
         // valueMap for attributeOptionCombo X, period B:
         Map<DimensionalItemObject, Object> aocXPerBValueMap = ImmutableMap.of(
@@ -332,7 +332,7 @@ public class PredictionContextGeneratorTest
     }
 
     @Test
-    public void testGetContextsWithAocAndNonAocData()
+    void testGetContextsWithAocAndNonAocData()
     {
         // valueMap for attributeOptionCombo A, period B:
         Map<DimensionalItemObject, Object> aocAPerBValueMap = ImmutableMap.of(
@@ -381,7 +381,7 @@ public class PredictionContextGeneratorTest
     }
 
     @Test
-    public void testGetContextsWithNoData()
+    void testGetContextsWithNoData()
     {
         PredictionContext expected1 = new PredictionContext( aocX, periodB, emptyPeriodValueMap, emptyValueMap );
         PredictionContext expected2 = new PredictionContext( aocX, periodC, emptyPeriodValueMap, emptyValueMap );

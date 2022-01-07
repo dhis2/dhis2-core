@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableList;
 
-public class ProgramStageDataElementMapperTest
+class ProgramStageDataElementMapperTest
 {
 
     private static final ValueType VALUE_TYPE = ValueType.TEXT;
@@ -49,7 +49,7 @@ public class ProgramStageDataElementMapperTest
     private static final String PROGRAM_STAGE_UID = "PSUID";
 
     @Test
-    public void testProgramStageDataElementMapper()
+    void testProgramStageDataElementMapper()
     {
         asserter( new ProgramStageDataElementMapper(),
             ProgramStageDataElement::new,

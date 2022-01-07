@@ -68,7 +68,7 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 @ExtendWith( MockitoExtension.class )
-public class PredictionDataConsolidatorTest
+class PredictionDataConsolidatorTest
     extends DhisConvenienceTest
 {
     @Mock
@@ -191,7 +191,7 @@ public class PredictionDataConsolidatorTest
     // -------------------------------------------------------------------------
 
     @BeforeEach
-    public void initTest()
+    void initTest()
     {
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
@@ -357,7 +357,7 @@ public class PredictionDataConsolidatorTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testGetData()
+    void testGetData()
     {
         // ---------------------------------------------------------------------
         // Test strategy
