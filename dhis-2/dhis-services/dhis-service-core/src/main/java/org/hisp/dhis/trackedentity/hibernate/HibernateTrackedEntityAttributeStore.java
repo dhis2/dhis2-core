@@ -177,6 +177,30 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     @Override
+    public Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes()
+    {
+        Set<TrackedEntityAttribute> result = new HashSet<>();
+
+        Query programTeaQuery = sessionFactory.getCurrentSession()
+            .createQuery( "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true" );
+        Query tetypeAttributeQuery = sessionFactory.getCurrentSession()
+            .createQuery(
+                "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true" );
+        Query uniqueAttributeQuery = sessionFactory.getCurrentSession()
+            .createQuery( "from TrackedEntityAttribute tea where tea.unique=true" );
+
+        List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
+        List<TrackedEntityAttribute> trackedEntityTypeSearchableAttributes = tetypeAttributeQuery.list();
+        List<TrackedEntityAttribute> uniqueAttributes = uniqueAttributeQuery.list();
+
+        result.addAll( programSearchableTrackedEntityAttributes );
+        result.addAll( trackedEntityTypeSearchableAttributes );
+        result.addAll( uniqueAttributes );
+
+        return result;
+    }
+
+    @Override
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     public Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram()
     {

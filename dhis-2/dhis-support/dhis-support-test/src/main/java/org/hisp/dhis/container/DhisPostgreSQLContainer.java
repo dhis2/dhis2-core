@@ -57,6 +57,7 @@ public class DhisPostgreSQLContainer<SELF extends DhisPostgreSQLContainer<SELF>>
         addEnv( "POSTGRES_USER", getUsername() );
         addEnv( "POSTGRES_PASSWORD", getPassword() );
         setCommand( getPostgresCommandWithCustomConfigs() );
+        withInitScript( "db/extensions.sql" );
     }
 
     private String getPostgresCommandWithCustomConfigs()

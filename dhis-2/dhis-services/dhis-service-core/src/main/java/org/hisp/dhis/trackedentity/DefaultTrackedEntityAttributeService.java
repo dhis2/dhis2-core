@@ -345,6 +345,13 @@ public class DefaultTrackedEntityAttributeService
         return programAttributeStore.get( program, trackedEntityAttribute );
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes()
+    {
+        return attributeStore.getAllSearchableAndUniqueTrackedEntityAttributes();
+    }
+
     // -------------------------------------------------------------------------
     // ProgramTrackedEntityAttribute
     // -------------------------------------------------------------------------
