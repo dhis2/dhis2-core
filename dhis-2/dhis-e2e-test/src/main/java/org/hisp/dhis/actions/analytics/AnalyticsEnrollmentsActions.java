@@ -60,14 +60,12 @@ public class AnalyticsEnrollmentsActions
 
     public ApiResponse getDimensions( String programId )
     {
-
         return this.get( "/dimensions", new QueryParamsBuilder().add( "programId", programId ) )
             .validateStatus( 200 );
     }
 
     public ApiResponse getDimensions( String programId, QueryParamsBuilder queryParamsBuilder )
     {
-
         queryParamsBuilder.add( "programId", programId );
         return this.get( "/dimensions", queryParamsBuilder )
             .validateStatus( 200 );
