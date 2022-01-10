@@ -1888,7 +1888,7 @@ public class JdbcEventStore implements EventStore
 
         if ( params.getOrgUnit() != null && !params.isPathOrganisationUnitMode() )
         {
-            orgUnitSql.append( " ou.organisationunitid = " + params.getOrgUnit().getId() + " ");
+            orgUnitSql.append( " ou.organisationunitid = " + params.getOrgUnit().getId() + " " );
         }
 
         else
