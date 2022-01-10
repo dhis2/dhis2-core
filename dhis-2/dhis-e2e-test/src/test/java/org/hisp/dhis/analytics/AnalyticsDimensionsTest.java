@@ -110,13 +110,6 @@ public class AnalyticsDimensionsTest
     @ParameterizedTest
     public void shouldFilterByDimensionType( String dimensionType )
     {
-        Consumer<ApiResponse> validate = response -> {
-            response.validate()
-                .body( "dimensions", notNullValue() )
-                .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
-                .body( "dimensions.dimensionType", everyItem( equalTo( dimensionType ) ) );
-        };
-
         analyticsEnrollmentsActions.query().getDimensionsByDimensionType( trackerProgram.getUid(), dimensionType )
             .validate()
             .body( "dimensions", notNullValue() )
