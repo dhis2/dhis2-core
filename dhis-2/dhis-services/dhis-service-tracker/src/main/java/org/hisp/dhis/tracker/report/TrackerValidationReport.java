@@ -78,11 +78,11 @@ public class TrackerValidationReport
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    public void add( TrackerValidationReport validationReport )
+    public void add( TrackerValidationReport report )
     {
-        add( validationReport.getErrorReports() );
-        addWarnings( validationReport.getWarningReports() );
-        addPerfReports( validationReport.getPerformanceReport() );
+        add( report.getErrorReports() );
+        addWarnings( report.getWarningReports() );
+        addPerfReports( report.getPerformanceReport() );
     }
 
     public void add( TrackerErrorReport error )
@@ -90,9 +90,9 @@ public class TrackerValidationReport
         addErrorIfNotExisting( error );
     }
 
-    public void add( List<TrackerErrorReport> errorReports )
+    public void add( List<TrackerErrorReport> errors )
     {
-        for ( TrackerErrorReport errorReport : errorReports )
+        for ( TrackerErrorReport errorReport : errors )
         {
             addErrorIfNotExisting( errorReport );
         }
@@ -103,22 +103,22 @@ public class TrackerValidationReport
         addWarningIfNotExisting( warning );
     }
 
-    public void addWarnings( List<TrackerWarningReport> warningReportsReports )
+    public void addWarnings( List<TrackerWarningReport> warnings )
     {
-        for ( TrackerWarningReport warningReport : warningReportsReports )
+        for ( TrackerWarningReport warningReport : warnings )
         {
             addWarningIfNotExisting( warningReport );
         }
     }
 
-    public void addPerfReports( List<TrackerValidationHookTimerReport> reports )
+    public void addPerfReports( List<TrackerValidationHookTimerReport> timerReports )
     {
-        this.performanceReport.addAll( reports );
+        this.performanceReport.addAll( timerReports );
     }
 
-    public void add( TrackerValidationHookTimerReport report )
+    public void add( TrackerValidationHookTimerReport timerReport )
     {
-        performanceReport.add( report );
+        performanceReport.add( timerReport );
     }
 
     public boolean hasErrors()
@@ -150,20 +150,20 @@ public class TrackerValidationReport
         return this.getErrorReports().stream().map( TrackerErrorReport::getUid ).distinct().count();
     }
 
-    private void addErrorIfNotExisting( TrackerErrorReport report )
+    private void addErrorIfNotExisting( TrackerErrorReport error )
     {
-        if ( !this.errorReports.contains( report ) )
+        if ( !this.errorReports.contains( error ) )
         {
-            this.errorReports.add( report );
-            this.invalidDTOs.computeIfAbsent( report.getTrackerType(), k -> new ArrayList<>() ).add( report.getUid() );
+            this.errorReports.add( error );
+            this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new ArrayList<>() ).add( error.getUid() );
         }
     }
 
-    private void addWarningIfNotExisting( TrackerWarningReport report )
+    private void addWarningIfNotExisting( TrackerWarningReport warning )
     {
-        if ( !this.warningReports.contains( report ) )
+        if ( !this.warningReports.contains( warning ) )
         {
-            this.warningReports.add( report );
+            this.warningReports.add( warning );
         }
     }
 
@@ -171,9 +171,9 @@ public class TrackerValidationReport
      * Checks if a TrackerDto with given type and uid is invalid (i.e. has at
      * least one TrackerErrorReport in the TrackerValidationReport).
      */
-    public boolean isInvalid( TrackerType trackerType, String uid )
+    public boolean isInvalid( TrackerType type, String uid )
     {
-        return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
+        return this.invalidDTOs.getOrDefault( type, new ArrayList<>() ).contains( uid );
     }
 
     /**
