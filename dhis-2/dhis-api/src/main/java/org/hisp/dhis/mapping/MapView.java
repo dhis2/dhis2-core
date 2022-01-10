@@ -46,6 +46,7 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendSet;
@@ -483,6 +484,15 @@ public class MapView
      */
     @Override
     public List<SimpleDimension> getSimpleDimensions()
+    {
+        return Collections.emptyList();
+    }
+
+    /**
+     * This method is not used/implemented in MapView.
+     */
+    @Override
+    public List<EventRepetition> getEventRepetitions()
     {
         return Collections.emptyList();
     }

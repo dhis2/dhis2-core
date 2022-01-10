@@ -29,18 +29,7 @@ package org.hisp.dhis.scheduling;
 
 import java.util.Map;
 
-import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
-import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
-import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
-import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
-import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
-import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-import org.hisp.dhis.scheduling.parameters.MockJobParameters;
-import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
-import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
-import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
-import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.*;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -82,6 +71,10 @@ public enum JobType
         "/api/validationRuleGroups" ) ),
     PUSH_ANALYSIS( true, SchedulingType.CRON, PushAnalysisJobParameters.class, ImmutableMap.of(
         "pushAnalysis", "/api/pushAnalysis" ) ),
+    // TODO: Update API in tracker search optimization job map to reflect actual
+    // api url after implementation
+    TRACKER_SEARCH_OPTIMIZATION( true, SchedulingType.CRON, TrackerTrigramIndexJobParameters.class, ImmutableMap.of(
+        "attributes", "/api/trackedEntityAttributes/indexable" ) ),
     PREDICTOR( true, SchedulingType.CRON, PredictorJobParameters.class, ImmutableMap.of(
         "predictors", "/api/predictors", "predictorGroups", "/api/predictorGroups" ) ),
     DATA_SET_NOTIFICATION( false ),

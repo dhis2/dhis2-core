@@ -136,8 +136,7 @@ public interface Cache<V>
     void invalidate( String key );
 
     /**
-     * Discards all entries in this cache instance. If a shared cache is used,
-     * this method does not clear anything.
+     * Discards all entries in this cache instance.
      */
     void invalidateAll();
 

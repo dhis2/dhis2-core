@@ -69,6 +69,15 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
     }
 
     @Test
+    void testField_Collection_DefaultIsSize()
+    {
+        JsonArray matches = GET( "/userGroups/gist?fields=name,users&headless=true" ).content();
+        assertEquals( 1, matches.size() );
+        assertEquals( 1, matches.getObject( 0 ).getNumber( "users" ).intValue() );
+        assertTrue( matches.getObject( 0 ).getObject( "apiEndpoints" ).getString( "users" ).exists() );
+    }
+
+    @Test
     void testField_Single_OwnerObject()
     {
         assertEquals( "admin", GET( "/users/{uid}/surname/gist", getSuperuserUid() ).content().string() );

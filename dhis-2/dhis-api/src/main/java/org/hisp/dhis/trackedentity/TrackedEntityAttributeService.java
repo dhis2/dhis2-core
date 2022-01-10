@@ -124,6 +124,15 @@ public interface TrackedEntityAttributeService
         TrackedEntityAttribute trackedEntityAttribute );
 
     /**
+     * Returns all {@link TrackedEntityAttribute} that are candidates for
+     * creating trigram indexes.
+     *
+     * @return a set of all TrackedEntityAttribute, or an empty List if there
+     *         are no TrackedEntityAttributes that are indexable
+     */
+    Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes();
+
+    /**
      * Returns all {@link TrackedEntityAttribute}
      *
      * @return a List of all system wide uniqe TrackedEntityAttribute, or an

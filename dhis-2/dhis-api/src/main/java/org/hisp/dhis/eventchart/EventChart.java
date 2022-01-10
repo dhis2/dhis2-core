@@ -44,6 +44,7 @@ import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -330,6 +331,12 @@ public class EventChart
      */
     @Override
     public List<SimpleDimension> getSimpleDimensions()
+    {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<EventRepetition> getEventRepetitions()
     {
         return Collections.emptyList();
     }
