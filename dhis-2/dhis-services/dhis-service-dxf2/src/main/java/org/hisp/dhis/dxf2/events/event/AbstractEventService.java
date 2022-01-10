@@ -69,7 +69,6 @@ import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -850,7 +849,7 @@ public abstract class AbstractEventService
         {
             if ( params.getOrgUnit() != null )
             {
-                return Arrays.asList( params.getOrgUnit() );
+                return Collections.emptyList();
             }
 
             return getAccessibleOrgUnits( params, user );
@@ -888,7 +887,7 @@ public abstract class AbstractEventService
     {
         if ( params.getOrgUnit() != null )
         {
-            return Arrays.asList( params.getOrgUnit() );
+            return Collections.emptyList();
         }
 
         if ( !userCanSearchOuModeALL( user ) )
@@ -896,9 +895,7 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "User is not authorized to use ALL organisation units. " );
         }
 
-        return organisationUnitService
-            .getOrganisationUnitsWithChildren( organisationUnitService.getRootOrganisationUnits().stream()
-                .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+        return Collections.emptyList();
     }
 
     private List<OrganisationUnit> getChildrenOrgUnits( EventSearchParams params )
@@ -908,8 +905,7 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "Organisation unit is required to use CHILDREN scope." );
         }
 
-        return organisationUnitService.getOrganisationUnitsWithChildren( params.getOrgUnit().getChildren().stream()
-            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+        return Arrays.asList( params.getOrgUnit() );
     }
 
     private List<OrganisationUnit> getSelectedOrgUnits( EventSearchParams params )
@@ -919,7 +915,7 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "Organisation unit is required to use SELECTED scope. " );
         }
 
-        return Collections.singletonList( params.getOrgUnit() );
+        return Collections.emptyList();
     }
 
     private List<OrganisationUnit> getDescendantOrgUnits( EventSearchParams params )
@@ -929,14 +925,14 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "Organisation unit is required to use DESCENDANTS scope. " );
         }
 
-        return organisationUnitService.getOrganisationUnitWithChildren( params.getOrgUnit().getUid() );
+        return Arrays.asList( params.getOrgUnit() );
     }
 
     private List<OrganisationUnit> getCaptureOrgUnits( EventSearchParams params, User user )
     {
         if ( params.getOrgUnit() != null )
         {
-            return Arrays.asList( params.getOrgUnit() );
+            return Collections.emptyList();
         }
 
         if ( user == null )
@@ -944,15 +940,14 @@ public abstract class AbstractEventService
             throw new IllegalQueryException( "User is required to use CAPTURE scope." );
         }
 
-        return organisationUnitService.getOrganisationUnitsWithChildren( user.getOrganisationUnits().stream()
-            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+        return user.getOrganisationUnits().stream().collect( Collectors.toList() );
     }
 
     private List<OrganisationUnit> getAccessibleOrgUnits( EventSearchParams params, User user )
     {
         if ( params.getOrgUnit() != null )
         {
-            return Arrays.asList( params.getOrgUnit() );
+            return Collections.emptyList();
         }
 
         if ( user == null )
@@ -972,8 +967,9 @@ public abstract class AbstractEventService
             }
         }
 
-        return organisationUnitService.getOrganisationUnitsWithChildren( orgUnits.stream()
-            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
+        params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE );
+
+        return orgUnits.stream().collect( Collectors.toList() );
     }
 
     private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user,
