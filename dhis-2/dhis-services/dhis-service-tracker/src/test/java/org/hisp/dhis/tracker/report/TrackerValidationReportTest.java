@@ -119,6 +119,50 @@ class TrackerValidationReportTest
     }
 
     @Test
+    void hasErrorReportFound()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+        TrackerErrorReport error = newError();
+        report.add( error );
+
+        assertTrue( report.hasErrorReport( r -> error.getUid().equals( r.getUid() ) ) );
+    }
+
+    @Test
+    void hasErrorReportNotFound()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+        TrackerErrorReport error = newError( TrackerErrorCode.E1006 );
+        report.add( error );
+
+        assertFalse( report.hasErrorReport( r -> TrackerErrorCode.E1048 == r.getErrorCode() ) );
+    }
+
+    @Test
+    void hasWarningReportFound()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+        TrackerWarningReport warning = newWarning();
+        report.addWarning( warning );
+
+        assertTrue( report.hasWarningReport( r -> warning.getUid().equals( r.getUid() ) ) );
+    }
+
+    @Test
+    void hasWarningReportNotFound()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+        TrackerWarningReport warning = newWarning( TrackerErrorCode.E1006 );
+        report.addWarning( warning );
+
+        assertFalse( report.hasWarningReport( r -> TrackerErrorCode.E1048 == r.getWarningCode() ) );
+    }
+
+    @Test
     void sizeReturnsErrorCountUniqueByUid()
     {
 
@@ -163,6 +207,11 @@ class TrackerValidationReportTest
         return newError( CodeGenerator.generateUid(), TrackerErrorCode.E9999 );
     }
 
+    private TrackerErrorReport newError( TrackerErrorCode code )
+    {
+        return newError( CodeGenerator.generateUid(), code );
+    }
+
     private TrackerErrorReport newError( TrackerDto dto )
     {
         return TrackerErrorReport.builder()
@@ -185,6 +234,14 @@ class TrackerValidationReportTest
         return TrackerWarningReport.builder()
             .uid( CodeGenerator.generateUid() )
             .warningCode( TrackerErrorCode.E9999 )
+            .build( TrackerBundle.builder().build() );
+    }
+
+    private TrackerWarningReport newWarning( TrackerErrorCode code )
+    {
+        return TrackerWarningReport.builder()
+            .uid( CodeGenerator.generateUid() )
+            .warningCode( code )
             .build( TrackerBundle.builder().build() );
     }
 }
