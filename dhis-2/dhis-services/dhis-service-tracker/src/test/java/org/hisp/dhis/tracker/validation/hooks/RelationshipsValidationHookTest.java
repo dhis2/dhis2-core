@@ -44,6 +44,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4013;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4014;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -70,29 +71,19 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
 class RelationshipsValidationHookTest
 {
 
     private RelationshipsValidationHook validationHook;
 
-    @Mock
     private TrackerBundle bundle;
 
-    @Mock
     private TrackerImportValidationContext ctx;
 
-    @Mock
     private TrackerPreheat preheat;
 
     private ValidationErrorReporter reporter;
@@ -102,10 +93,14 @@ class RelationshipsValidationHookTest
     {
         validationHook = new RelationshipsValidationHook();
 
+        ctx = mock( TrackerImportValidationContext.class );
+        preheat = mock( TrackerPreheat.class );
+        bundle = TrackerBundle.builder()
+            .preheat( preheat )
+            .validationMode( ValidationMode.FULL )
+            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
+            .build();
         when( ctx.getBundle() ).thenReturn( bundle );
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( bundle.getPreheat() ).thenReturn( preheat );
     }
 
     @Test
@@ -338,7 +333,8 @@ class RelationshipsValidationHookTest
         trackedEntityInstance.setUid( trackedEntityUid );
         trackedEntityInstance.setTrackedEntityType( teiTrackedEntityType );
 
-        when( ctx.getTrackedEntityInstance( trackedEntityUid ) ).thenReturn( trackedEntityInstance );
+        when( ctx.getBundle().getPreheat().getTrackedEntity( ctx.getBundle().getIdentifier(), trackedEntityUid ) )
+            .thenReturn( trackedEntityInstance );
 
         reporter = new ValidationErrorReporter( ctx );
         validationHook.validateRelationship( reporter, relationship );
@@ -380,7 +376,7 @@ class RelationshipsValidationHookTest
         trackedEntity.setTrackedEntityType( CodeGenerator.generateUid() );
         trackedEntities.add( trackedEntity );
 
-        when( bundle.getTrackedEntities() ).thenReturn( trackedEntities );
+        bundle.setTrackedEntities( trackedEntities );
 
         reporter = new ValidationErrorReporter( ctx );
         validationHook.validateRelationship( reporter, relationship );

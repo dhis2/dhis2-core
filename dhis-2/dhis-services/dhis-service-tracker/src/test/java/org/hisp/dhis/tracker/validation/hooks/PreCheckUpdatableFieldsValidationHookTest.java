@@ -37,7 +37,6 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1127;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1128;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.program.Program;
@@ -46,11 +45,11 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -87,23 +86,22 @@ class PreCheckUpdatableFieldsValidationHookTest
     private TrackerImportValidationContext ctx;
 
     @Mock
-    private TrackerBundle bundle;
+    private TrackerPreheat preheat;
 
     @BeforeEach
     public void setUp()
     {
         validationHook = new PreCheckUpdatableFieldsValidationHook();
 
+        TrackerBundle bundle = TrackerBundle.builder().preheat( preheat ).build();
         when( ctx.getBundle() ).thenReturn( bundle );
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        when( ctx.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( ctx.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( ctx.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
-
-        when( ctx.getTrackedEntityInstance( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
-        when( ctx.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( programInstance() );
-        when( ctx.getProgramStageInstance( EVENT_ID ) ).thenReturn( programStageInstance() );
+        when( preheat.getTrackedEntity( bundle.getIdentifier(), TRACKED_ENTITY_ID ) )
+            .thenReturn( trackedEntityInstance() );
+        when( preheat.getEnrollment( bundle.getIdentifier(), ENROLLMENT_ID ) )
+            .thenReturn( programInstance() );
+        when( preheat.getEvent( bundle.getIdentifier(), EVENT_ID ) )
+            .thenReturn( programStageInstance() );
     }
 
     @Test

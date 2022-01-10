@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
 import static org.hisp.dhis.tracker.TrackerType.EVENT;
-import static org.hisp.dhis.tracker.ValidationMode.FULL;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1055;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1056;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1057;
@@ -52,11 +51,12 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,6 +75,9 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
 
     @Mock
     private I18nManager i18nManager;
+
+    @Mock
+    private TrackerPreheat preheat;
 
     @Mock
     private TrackerImportValidationContext validationContext;
@@ -142,16 +145,14 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         event.setProgram( program.getUid() );
         event.setOccurredAt( EVENT_INSTANT );
 
-        User user = createUser( 'A' );
-
         TrackerBundle bundle = TrackerBundle.builder()
-            .user( user )
-            .validationMode( FULL )
+            .user( createUser( 'A' ) )
+            .validationMode( ValidationMode.FULL )
+            .preheat( preheat )
             .build();
-
         when( validationContext.getBundle() ).thenReturn( bundle );
 
-        when( validationContext.getProgram( program.getUid() ) )
+        when( validationContext.getBundle().getPreheat().<Program> get( Program.class, program.getUid() ) )
             .thenReturn( program );
 
         when( i18nManager.getI18nFormat() )

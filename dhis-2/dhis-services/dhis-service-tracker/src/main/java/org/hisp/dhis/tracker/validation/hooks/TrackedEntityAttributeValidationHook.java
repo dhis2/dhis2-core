@@ -82,13 +82,15 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        TrackedEntityType trackedEntityType = reporter.getValidationContext()
-            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+        TrackedEntityType trackedEntityType = reporter.getValidationContext().getBundle().getPreheat()
+            .get( TrackedEntityType.class, trackedEntity.getTrackedEntityType() );
 
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
+        TrackedEntityInstance tei = context.getBundle().getPreheat()
+            .getTrackedEntity( context.getBundle().getIdentifier(), trackedEntity.getTrackedEntity() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat().get( OrganisationUnit.class,
+            trackedEntity.getOrgUnit() );
 
         validateMandatoryAttributes( reporter, trackedEntity, trackedEntityType );
         validateAttributes( reporter, trackedEntity, tei, organisationUnit, trackedEntityType );
@@ -133,8 +135,8 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
-            TrackedEntityAttribute tea = reporter.getValidationContext()
-                .getTrackedEntityAttribute( attribute.getAttribute() );
+            TrackedEntityAttribute tea = reporter.getValidationContext().getBundle().getPreheat()
+                .get( TrackedEntityAttribute.class, attribute.getAttribute() );
 
             if ( tea == null )
             {
@@ -213,7 +215,8 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             return;
         }
 
-        FileResource fileResource = reporter.getValidationContext().getFileResource( attr.getValue() );
+        FileResource fileResource = reporter.getValidationContext().getBundle().getPreheat().get( FileResource.class,
+            attr.getValue() );
 
         addErrorIfNull( fileResource, reporter, te, E1084, attr.getValue() );
         addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, te, E1009, attr.getValue() );

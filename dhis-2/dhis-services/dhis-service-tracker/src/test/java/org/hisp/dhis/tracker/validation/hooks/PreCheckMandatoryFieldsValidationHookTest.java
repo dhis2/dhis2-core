@@ -39,13 +39,12 @@ import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReport
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -61,21 +60,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class PreCheckMandatoryFieldsValidationHookTest
 {
 
     private PreCheckMandatoryFieldsValidationHook validationHook;
-
-    @Mock
-    private TrackerBundle bundle;
 
     @Mock
     private TrackerImportValidationContext ctx;
@@ -88,10 +81,8 @@ class PreCheckMandatoryFieldsValidationHookTest
     {
         validationHook = new PreCheckMandatoryFieldsValidationHook();
 
+        TrackerBundle bundle = TrackerBundle.builder().preheat( preheat ).build();
         when( ctx.getBundle() ).thenReturn( bundle );
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
-        when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( bundle.getPreheat() ).thenReturn( preheat );
     }
 
     @Test
@@ -245,7 +236,8 @@ class PreCheckMandatoryFieldsValidationHookTest
             .build();
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( event.getProgramStage() );
-        when( ctx.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( preheat.<ProgramStage> get( eq( ProgramStage.class ), anyString() ) )
+            .thenReturn( programStage );
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
         validationHook.validateEvent( reporter, event );

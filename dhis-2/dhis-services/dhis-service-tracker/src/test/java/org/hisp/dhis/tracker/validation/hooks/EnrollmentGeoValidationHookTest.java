@@ -40,6 +40,7 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,13 +49,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class EnrollmentGeoValidationHookTest
 {
@@ -64,6 +62,9 @@ class EnrollmentGeoValidationHookTest
     private EnrollmentGeoValidationHook hookToTest;
 
     @Mock
+    private TrackerPreheat preheat;
+
+    @Mock
     private TrackerImportValidationContext validationContext;
 
     @BeforeEach
@@ -71,13 +72,8 @@ class EnrollmentGeoValidationHookTest
     {
         hookToTest = new EnrollmentGeoValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
-
+        TrackerBundle bundle = TrackerBundle.builder().preheat( preheat ).build();
         when( validationContext.getBundle() ).thenReturn( bundle );
-
-        Program program = new Program();
-        program.setFeatureType( FeatureType.POINT );
-        when( validationContext.getProgram( PROGRAM ) ).thenReturn( program );
     }
 
     @Test
@@ -91,6 +87,11 @@ class EnrollmentGeoValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
+        Program program = new Program();
+        program.setFeatureType( FeatureType.POINT );
+        when( preheat.<Program> get( Program.class, PROGRAM ) )
+            .thenReturn( program );
+
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
         // then
@@ -123,7 +124,8 @@ class EnrollmentGeoValidationHookTest
 
         // when
         Program program = new Program();
-        when( validationContext.getProgram( PROGRAM ) ).thenReturn( program );
+        when( preheat.<Program> get( Program.class, PROGRAM ) )
+            .thenReturn( program );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
@@ -145,7 +147,8 @@ class EnrollmentGeoValidationHookTest
         // when
         Program program = new Program();
         program.setFeatureType( FeatureType.NONE );
-        when( validationContext.getProgram( PROGRAM ) ).thenReturn( program );
+        when( preheat.<Program> get( Program.class, PROGRAM ) )
+            .thenReturn( program );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
@@ -167,7 +170,8 @@ class EnrollmentGeoValidationHookTest
         // when
         Program program = new Program();
         program.setFeatureType( FeatureType.MULTI_POLYGON );
-        when( validationContext.getProgram( PROGRAM ) ).thenReturn( program );
+        when( preheat.<Program> get( Program.class, PROGRAM ) )
+            .thenReturn( program );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 

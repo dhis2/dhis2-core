@@ -222,7 +222,8 @@ public class RelationshipsValidationHook
 
     private Optional<String> getTrackedEntityTypeFromTrackedEntity( TrackerImportValidationContext ctx, String uid )
     {
-        final TrackedEntityInstance trackedEntity = ctx.getTrackedEntityInstance( uid );
+        final TrackedEntityInstance trackedEntity = ctx.getBundle().getPreheat()
+            .getTrackedEntity( ctx.getBundle().getIdentifier(), uid );
 
         return trackedEntity != null ? Optional.of( trackedEntity.getTrackedEntityType().getUid() ) : Optional.empty();
     }

@@ -43,6 +43,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4012;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,8 @@ public class PreCheckDataRelationsValidationHook
 {
     private final CategoryService categoryService;
 
+    private final Map<String, String> cachedEventAOCProgramCC = new HashMap<>();
+
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
         TrackedEntity trackedEntity )
@@ -98,12 +101,14 @@ public class PreCheckDataRelationsValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = context.getProgram( enrollment.getProgram() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
+        Program program = context.getBundle().getPreheat().get( Program.class, enrollment.getProgram() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat().get( OrganisationUnit.class,
+            enrollment.getOrgUnit() );
 
         addErrorIf( () -> !program.isRegistration(), reporter, enrollment, E1014, program );
 
-        if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        if ( !programHasOrgUnit( program, organisationUnit,
+            context.getBundle().getPreheat().getProgramWithOrgUnitsMap() ) )
         {
             addError( reporter, enrollment, E1041, organisationUnit, program );
         }
@@ -121,9 +126,10 @@ public class PreCheckDataRelationsValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-        Program program = context.getProgram( event.getProgram() );
+        ProgramStage programStage = context.getBundle().getPreheat().get( ProgramStage.class, event.getProgramStage() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat().get( OrganisationUnit.class,
+            event.getOrgUnit() );
+        Program program = context.getBundle().getPreheat().get( Program.class, event.getProgram() );
 
         if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
         {
@@ -147,7 +153,8 @@ public class PreCheckDataRelationsValidationHook
             }
         }
 
-        if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
+        if ( !programHasOrgUnit( program, organisationUnit,
+            context.getBundle().getPreheat().getProgramWithOrgUnitsMap() ) )
         {
             addError( reporter, event, E1029, organisationUnit, program );
         }
@@ -210,7 +217,8 @@ public class PreCheckDataRelationsValidationHook
 
         if ( !optionComboIsEmpty && categoryOptionsIsEmpty )
         {
-            categoryOptionCombo = context.getCategoryOptionCombo( event.getAttributeOptionCombo() );
+            categoryOptionCombo = context.getBundle().getPreheat().get( CategoryOptionCombo.class,
+                event.getAttributeOptionCombo() );
         }
         else if ( !optionComboIsEmpty && program.getCategoryCombo() != null )
         {
@@ -238,12 +246,12 @@ public class PreCheckDataRelationsValidationHook
         CategoryCombo categoryCombo = program.getCategoryCombo();
         String cacheKey = attributeCategoryOptions + categoryCombo.getUid();
 
-        Optional<String> cachedEventAOCProgramCC = reporter.getValidationContext()
-            .getCachedEventAOCProgramCC( cacheKey );
+        Optional<String> cachedCategoryOptionCombo = getCachedEventAOCProgramCC( cacheKey );
 
-        if ( cachedEventAOCProgramCC.isPresent() )
+        if ( cachedCategoryOptionCombo.isPresent() )
         {
-            categoryOptionCombo = context.getCategoryOptionCombo( cachedEventAOCProgramCC.get() );
+            categoryOptionCombo = context.getBundle().getPreheat().get( CategoryOptionCombo.class,
+                cachedCategoryOptionCombo.get() );
         }
         else
         {
@@ -253,7 +261,7 @@ public class PreCheckDataRelationsValidationHook
             categoryOptionCombo = resolveCategoryOptionCombo( reporter, event,
                 categoryCombo, categoryOptions );
 
-            reporter.getValidationContext().putCachedEventAOCProgramCC( cacheKey,
+            putCachedEventAOCProgramCC( cacheKey,
                 categoryOptionCombo != null ? categoryOptionCombo.getUid() : null );
         }
         return categoryOptionCombo;
@@ -291,7 +299,8 @@ public class PreCheckDataRelationsValidationHook
 
         for ( String uid : attributeCategoryOptions )
         {
-            CategoryOption categoryOption = reporter.getValidationContext().getCategoryOption( uid );
+            CategoryOption categoryOption = reporter.getValidationContext().getBundle().getPreheat()
+                .get( CategoryOption.class, uid );
             if ( categoryOption == null )
             {
                 addError( reporter, event, E1116, uid );
@@ -322,14 +331,16 @@ public class PreCheckDataRelationsValidationHook
     private String getEnrollmentProgramUidFromEvent( TrackerImportValidationContext context,
         Event event )
     {
-        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
+        ProgramInstance programInstance = context.getBundle().getPreheat()
+            .getEnrollment( context.getBundle().getIdentifier(), event.getEnrollment() );
         if ( programInstance != null )
         {
             return programInstance.getProgram().getUid();
         }
         else
         {
-            final Optional<ReferenceTrackerEntity> reference = context.getReference( event.getEnrollment() );
+            final Optional<ReferenceTrackerEntity> reference = context.getBundle().getPreheat()
+                .getReference( event.getEnrollment() );
             if ( reference.isPresent() )
             {
                 final Optional<Enrollment> enrollment = context.getBundle()
@@ -346,15 +357,16 @@ public class PreCheckDataRelationsValidationHook
     private String getTrackedEntityTypeUidFromEnrollment( TrackerImportValidationContext context,
         Enrollment enrollment )
     {
-        final TrackedEntityInstance trackedEntityInstance = context
-            .getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        final TrackedEntityInstance trackedEntityInstance = context.getBundle().getPreheat()
+            .getTrackedEntity( context.getBundle().getIdentifier(), enrollment.getTrackedEntity() );
         if ( trackedEntityInstance != null )
         {
             return trackedEntityInstance.getTrackedEntityType().getUid();
         }
         else
         {
-            final Optional<ReferenceTrackerEntity> reference = context.getReference( enrollment.getTrackedEntity() );
+            final Optional<ReferenceTrackerEntity> reference = context.getBundle().getPreheat()
+                .getReference( enrollment.getTrackedEntity() );
             if ( reference.isPresent() )
             {
                 final Optional<TrackedEntity> tei = context.getBundle()
@@ -373,6 +385,21 @@ public class PreCheckDataRelationsValidationHook
     {
         return programAndOrgUnitsMap.containsKey( program.getUid() )
             && programAndOrgUnitsMap.get( program.getUid() ).contains( orgUnit.getUid() );
+    }
+
+    private void putCachedEventAOCProgramCC( String cacheKey, String value )
+    {
+        cachedEventAOCProgramCC.put( cacheKey, value );
+    }
+
+    private Optional<String> getCachedEventAOCProgramCC( String cacheKey )
+    {
+        String cached = cachedEventAOCProgramCC.get( cacheKey );
+        if ( cached == null )
+        {
+            return Optional.empty();
+        }
+        return Optional.of( cached );
     }
 
     @Override

@@ -47,7 +47,7 @@ public class EnrollmentGeoValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = context.getProgram( enrollment.getProgram() );
+        Program program = context.getBundle().getPreheat().get( Program.class, enrollment.getProgram() );
 
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 

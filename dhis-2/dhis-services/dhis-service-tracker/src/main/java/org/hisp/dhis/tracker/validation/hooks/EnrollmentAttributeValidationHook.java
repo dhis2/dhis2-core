@@ -78,13 +78,14 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        Program program = context.getProgram( enrollment.getProgram() );
+        Program program = context.getBundle().getPreheat().get( Program.class, enrollment.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = context.getTrackedEntityInstance( enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = context.getBundle().getPreheat()
+            .getTrackedEntity( context.getBundle().getIdentifier(), enrollment.getTrackedEntity() );
 
-        OrganisationUnit orgUnit = context
-            .getOrganisationUnit( getOrgUnitUidFromTei( context, enrollment.getTrackedEntity() ) );
+        OrganisationUnit orgUnit = context.getBundle().getPreheat().get( OrganisationUnit.class,
+            getOrgUnitUidFromTei( context, enrollment.getTrackedEntity() ) );
 
         Map<String, String> attributeValueMap = Maps.newHashMap();
 
@@ -92,7 +93,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         {
             validateRequiredProperties( reporter, enrollment, attribute, program );
 
-            TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
+            TrackedEntityAttribute teAttribute = context.getBundle().getPreheat().get( TrackedEntityAttribute.class,
+                attribute.getAttribute() );
 
             if ( attribute.getAttribute() != null && attribute.getValue() != null && teAttribute != null )
             {
@@ -133,8 +135,8 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         if ( attribute.getAttribute() != null )
         {
-            TrackedEntityAttribute teAttribute = reporter.getValidationContext()
-                .getTrackedEntityAttribute( attribute.getAttribute() );
+            TrackedEntityAttribute teAttribute = reporter.getValidationContext().getBundle().getPreheat()
+                .get( TrackedEntityAttribute.class, attribute.getAttribute() );
 
             addErrorIfNull( teAttribute, reporter, enrollment, E1006, attribute.getAttribute() );
         }
@@ -201,7 +203,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
     private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid )
     {
 
-        final Optional<ReferenceTrackerEntity> reference = context.getReference( teiUid );
+        final Optional<ReferenceTrackerEntity> reference = context.getBundle().getPreheat().getReference( teiUid );
         if ( reference.isPresent() )
         {
             final Optional<TrackedEntity> tei = context.getBundle()

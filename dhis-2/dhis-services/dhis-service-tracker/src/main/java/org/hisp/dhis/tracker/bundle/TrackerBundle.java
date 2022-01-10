@@ -219,6 +219,11 @@ public class TrackerBundle
             .collect( Collectors.toMap( RuleEffects::getTrackerObjectUid, RuleEffects::getRuleEffects ) );
     }
 
+    public TrackerImportStrategy getStrategy( TrackerDto dto )
+    {
+        return this.getResolvedStrategyMap().get( dto.getTrackerType() ).get( dto.getUid() );
+    }
+
     public TrackerImportStrategy setStrategy( TrackerDto dto, TrackerImportStrategy strategy )
     {
         return this.getResolvedStrategyMap().get( dto.getTrackerType() ).put( dto.getUid(), strategy );

@@ -75,13 +75,14 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
         if ( valueType.equals( ValueType.ORGANISATION_UNIT ) )
         {
-            error = context.getOrganisationUnit( attr.getValue() ) == null
-                ? " Value " + attr.getValue() + " is not a valid org unit value"
-                : null;
+            error = context.getBundle().getPreheat().<OrganisationUnit> get( OrganisationUnit.class,
+                attr.getValue() ) == null
+                    ? " Value " + attr.getValue() + " is not a valid org unit value"
+                    : null;
         }
         else if ( valueType.equals( ValueType.USERNAME ) )
         {
-            error = context.usernameExists( attr.getValue() ) ? null
+            error = context.getBundle().getPreheat().getUsers().containsKey( attr.getValue() ) ? null
                 : " Value " + attr.getValue() + " is not a valid username value";
         }
         else

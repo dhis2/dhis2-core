@@ -63,13 +63,15 @@ public class PreCheckMetaValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( tei.getOrgUnit() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat().get( OrganisationUnit.class,
+            tei.getOrgUnit() );
         if ( organisationUnit == null )
         {
             addError( reporter, tei, TrackerErrorCode.E1049, tei.getOrgUnit() );
         }
 
-        TrackedEntityType entityType = context.getTrackedEntityType( tei.getTrackedEntityType() );
+        TrackedEntityType entityType = context.getBundle().getPreheat().get( TrackedEntityType.class,
+            tei.getTrackedEntityType() );
         if ( entityType == null )
         {
             addError( reporter, tei, E1005, tei.getTrackedEntityType() );
@@ -81,10 +83,11 @@ public class PreCheckMetaValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat().get( OrganisationUnit.class,
+            enrollment.getOrgUnit() );
         addErrorIfNull( organisationUnit, reporter, enrollment, E1070, enrollment.getOrgUnit() );
 
-        Program program = context.getProgram( enrollment.getProgram() );
+        Program program = context.getBundle().getPreheat().get( Program.class, enrollment.getProgram() );
         addErrorIfNull( program, reporter, enrollment, E1069, enrollment.getProgram() );
 
         addErrorIf( () -> !trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ), reporter, enrollment,
@@ -96,13 +99,14 @@ public class PreCheckMetaValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
+        OrganisationUnit organisationUnit = context.getBundle().getPreheat().get( OrganisationUnit.class,
+            event.getOrgUnit() );
         addErrorIfNull( organisationUnit, reporter, event, E1011, event.getOrgUnit() );
 
-        Program program = context.getProgram( event.getProgram() );
+        Program program = context.getBundle().getPreheat().get( Program.class, event.getProgram() );
         addErrorIfNull( program, reporter, event, E1010, event.getProgram() );
 
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramStage programStage = context.getBundle().getPreheat().get( ProgramStage.class, event.getProgramStage() );
         addErrorIfNull( programStage, reporter, event, E1013, event.getProgramStage() );
     }
 
@@ -111,7 +115,8 @@ public class PreCheckMetaValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        RelationshipType relationshipType = context.getRelationShipType( relationship.getRelationshipType() );
+        RelationshipType relationshipType = context.getBundle().getPreheat().get( RelationshipType.class,
+            relationship.getRelationshipType() );
 
         addErrorIfNull( relationshipType, reporter, relationship, E4006, relationship.getRelationshipType() );
     }

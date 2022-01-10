@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.tracker.validation.hooks.AssertValidationErrorReporter.hasTrackerError;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -74,6 +75,9 @@ class EnrollmentAttributeValidationHookTest
     private EnrollmentAttributeValidationHook hookToTest;
 
     @Mock
+    private TrackerPreheat preheat;
+
+    @Mock
     private TrackerImportValidationContext validationContext;
 
     @Mock
@@ -81,9 +85,6 @@ class EnrollmentAttributeValidationHookTest
 
     @Mock
     private Program program;
-
-    @Mock
-    private TrackerPreheat preheat;
 
     @Mock
     private TrackedEntityInstance trackedEntityInstance;
@@ -110,10 +111,13 @@ class EnrollmentAttributeValidationHookTest
             false );
         trackedEntityAttribute1.setUid( trackedAttribute1 );
 
-        when( validationContext.getProgram( anyString() ) ).thenReturn( program );
+        when( preheat.<Program> get( eq( Program.class ), anyString() ) )
+            .thenReturn( program );
         when( enrollment.getProgram() ).thenReturn( "program" );
-        when( validationContext.getTrackedEntityAttribute( trackedAttribute ) ).thenReturn( trackedEntityAttribute );
-        when( validationContext.getTrackedEntityAttribute( trackedAttribute1 ) ).thenReturn( trackedEntityAttribute1 );
+        when( preheat.<TrackedEntityAttribute> get( TrackedEntityAttribute.class,
+            trackedAttribute ) ).thenReturn( trackedEntityAttribute );
+        when( preheat.<TrackedEntityAttribute> get( TrackedEntityAttribute.class,
+            trackedAttribute1 ) ).thenReturn( trackedEntityAttribute1 );
 
         String uid = CodeGenerator.generateUid();
         when( enrollment.getUid() ).thenReturn( uid );
@@ -121,9 +125,7 @@ class EnrollmentAttributeValidationHookTest
         when( enrollment.getTrackerType() ).thenCallRealMethod();
         enrollment.setTrackedEntity( trackedEntity );
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
-        bundle.setPreheat( preheat );
-
+        TrackerBundle bundle = TrackerBundle.builder().preheat( preheat ).build();
         when( validationContext.getBundle() ).thenReturn( bundle );
     }
 

@@ -60,9 +60,10 @@ public class RepeatedEventsValidationHook
         Map<Pair<String, String>, List<Event>> eventsByEnrollmentAndNotRepeatableProgramStage = bundle.getEvents()
             .stream()
             .filter( e -> !reporter.isInvalid( e ) )
-            .filter( e -> !context.getStrategy( e ).isDelete() )
+            .filter( e -> !context.getBundle().getStrategy( e ).isDelete() )
             .filter( e -> {
-                ProgramStage programStage = context.getProgramStage( e.getProgramStage() );
+                ProgramStage programStage = context.getBundle().getPreheat().get( ProgramStage.class,
+                    e.getProgramStage() );
                 return programStage.getProgram().isRegistration() && !programStage.getRepeatable();
             } )
             .collect( Collectors.groupingBy( e -> Pair.of( e.getProgramStage(), e.getEnrollment() ) ) );
@@ -86,14 +87,15 @@ public class RepeatedEventsValidationHook
     private void validateNotMultipleEvents( ValidationErrorReporter reporter,
         TrackerImportValidationContext context, Event event )
     {
-        ProgramInstance programInstance = context.getProgramInstance( event.getEnrollment() );
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+        ProgramInstance programInstance = context.getBundle().getPreheat()
+            .getEnrollment( context.getBundle().getIdentifier(), event.getEnrollment() );
+        ProgramStage programStage = context.getBundle().getPreheat().get( ProgramStage.class, event.getProgramStage() );
 
-        TrackerImportStrategy strategy = context.getStrategy( event );
-
-        if ( strategy == TrackerImportStrategy.CREATE && programStage != null && programInstance != null
+        if ( context.getBundle().getStrategy( event ) == TrackerImportStrategy.CREATE
+            && programStage != null && programInstance != null
             && !programStage.getRepeatable()
-            && context.programStageHasEvents( programStage.getUid(), programInstance.getUid() ) )
+            && context.getBundle().getPreheat().getProgramStageWithEvents()
+                .contains( Pair.of( programStage.getUid(), programInstance.getUid() ) ) )
         {
             addError( reporter, event, TrackerErrorCode.E1039, event.getProgramStage() );
         }

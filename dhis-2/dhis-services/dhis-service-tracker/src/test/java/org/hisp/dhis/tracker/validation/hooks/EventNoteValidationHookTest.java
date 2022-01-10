@@ -42,7 +42,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
@@ -52,16 +51,10 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
 class EventNoteValidationHookTest
 {
 
@@ -85,13 +78,12 @@ class EventNoteValidationHookTest
         // Given
         final Note note = rnd.nextObject( Note.class );
 
-        TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
         TrackerPreheat preheat = mock( TrackerPreheat.class );
-        when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( trackerBundle.getPreheat() ).thenReturn( preheat );
-        when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
+        TrackerBundle bundle = TrackerBundle.builder().preheat( preheat ).build();
+        when( ctx.getBundle() ).thenReturn( bundle );
+        when( preheat.getNote( note.getNote() ) )
+            .thenReturn( Optional.of( new TrackedEntityComment() ) );
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         event.setNotes( Collections.singletonList( note ) );
@@ -113,12 +105,10 @@ class EventNoteValidationHookTest
         // Given
         final Note note = rnd.nextObject( Note.class );
         note.setValue( null );
-        TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
-        when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
+        TrackerBundle bundle = TrackerBundle.builder().build();
+        when( ctx.getBundle() ).thenReturn( bundle );
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         event.setNotes( Collections.singletonList( note ) );
@@ -136,11 +126,10 @@ class EventNoteValidationHookTest
     {
         // Given
         final List<Note> notes = rnd.objects( Note.class, 5 ).collect( Collectors.toList() );
-        TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
-        when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        TrackerBundle bundle = TrackerBundle.builder().preheat( mock( TrackerPreheat.class ) ).build();
+        when( ctx.getBundle() ).thenReturn( bundle );
         ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
 
         event.setNotes( notes );

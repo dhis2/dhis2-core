@@ -43,6 +43,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +62,9 @@ class EnrollmentDateValidationHookTest
     private EnrollmentDateValidationHook hookToTest;
 
     @Mock
+    private TrackerPreheat preheat;
+
+    @Mock
     private TrackerImportValidationContext validationContext;
 
     @BeforeEach
@@ -68,8 +72,7 @@ class EnrollmentDateValidationHookTest
     {
         hookToTest = new EnrollmentDateValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
-
+        TrackerBundle bundle = TrackerBundle.builder().preheat( preheat ).build();
         when( validationContext.getBundle() ).thenReturn( bundle );
     }
 
@@ -83,7 +86,8 @@ class EnrollmentDateValidationHookTest
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
-        when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+        when( preheat.<Program> get( Program.class, enrollment.getProgram() ) )
+            .thenReturn( new Program() );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
@@ -103,7 +107,8 @@ class EnrollmentDateValidationHookTest
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
-        when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+        when( preheat.<Program> get( Program.class, enrollment.getProgram() ) )
+            .thenReturn( new Program() );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
@@ -123,7 +128,8 @@ class EnrollmentDateValidationHookTest
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
-        when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
+        when( preheat.<Program> get( Program.class, enrollment.getProgram() ) )
+            .thenReturn( new Program() );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
@@ -145,7 +151,8 @@ class EnrollmentDateValidationHookTest
         Program program = new Program();
         program.setSelectEnrollmentDatesInFuture( true );
         program.setSelectIncidentDatesInFuture( true );
-        when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( program );
+        when( preheat.<Program> get( Program.class, enrollment.getProgram() ) )
+            .thenReturn( program );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 
@@ -165,7 +172,8 @@ class EnrollmentDateValidationHookTest
 
         Program program = new Program();
         program.setDisplayIncidentDate( true );
-        when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( program );
+        when( preheat.<Program> get( Program.class, enrollment.getProgram() ) )
+            .thenReturn( program );
 
         this.hookToTest.validateEnrollment( reporter, enrollment );
 

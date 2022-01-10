@@ -36,7 +36,6 @@ import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -66,31 +65,28 @@ class AssignedUserValidationHookTest
     @Mock
     private TrackerImportValidationContext validationContext;
 
+    @Mock
+    private TrackerPreheat preheat;
+
     @BeforeEach
     public void setUp()
     {
         hookToTest = new AssignedUserValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
-        TrackerPreheat preheat = new TrackerPreheat();
-
-        User user = new User();
-        user.setUid( USER_ID );
-        preheat.put( TrackerIdentifier.UID, user );
-
-        bundle.setPreheat( preheat );
-
+        TrackerBundle bundle = TrackerBundle.builder().preheat( preheat ).build();
         when( validationContext.getBundle() ).thenReturn( bundle );
 
         ProgramStage programStage = new ProgramStage();
         programStage.setEnableUserAssignment( true );
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
+        when( preheat.<ProgramStage> get( ProgramStage.class, PROGRAM_STAGE ) )
+            .thenReturn( programStage );
     }
 
     @Test
     void testAssignedUserIsValid()
     {
         // given
+        setupUser();
         Event event = new Event();
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
@@ -133,10 +129,7 @@ class AssignedUserValidationHookTest
 
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
-        // when
-        TrackerBundle bundle = TrackerBundle.builder().build();
-        bundle.setPreheat( new TrackerPreheat() );
-        when( validationContext.getBundle() ).thenReturn( bundle );
+        when( preheat.get( User.class, USER_ID ) ).thenReturn( null );
 
         this.hookToTest.validateEvent( reporter, event );
 
@@ -148,6 +141,7 @@ class AssignedUserValidationHookTest
     void testEventWithNotEnabledUserAssignment()
     {
         // given
+        setupUser();
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( USER_ID );
@@ -158,7 +152,8 @@ class AssignedUserValidationHookTest
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setEnableUserAssignment( false );
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
+        when( preheat.<ProgramStage> get( ProgramStage.class, PROGRAM_STAGE ) )
+            .thenReturn( programStage );
 
         this.hookToTest.validateEvent( reporter, event );
 
@@ -174,6 +169,7 @@ class AssignedUserValidationHookTest
     void testEventWithNullEnabledUserAssignment()
     {
         // given
+        setupUser();
         Event event = new Event();
         event.setEvent( CodeGenerator.generateUid() );
         event.setAssignedUser( USER_ID );
@@ -184,7 +180,8 @@ class AssignedUserValidationHookTest
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setEnableUserAssignment( null );
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
+        when( preheat.<ProgramStage> get( ProgramStage.class, PROGRAM_STAGE ) )
+            .thenReturn( programStage );
 
         this.hookToTest.validateEvent( reporter, event );
 
@@ -194,5 +191,12 @@ class AssignedUserValidationHookTest
         assertTrue( reporter.hasWarningReport( r -> E1120.equals( r.getWarningCode() ) &&
             TrackerType.EVENT.equals( r.getTrackerType() ) &&
             event.getUid().equals( r.getUid() ) ) );
+    }
+
+    private void setupUser()
+    {
+        User user = new User();
+        user.setUid( USER_ID );
+        when( preheat.get( User.class, USER_ID ) ).thenReturn( user );
     }
 }

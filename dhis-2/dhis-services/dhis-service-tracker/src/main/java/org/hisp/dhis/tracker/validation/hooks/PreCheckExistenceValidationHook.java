@@ -61,10 +61,9 @@ public class PreCheckExistenceValidationHook
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy importStrategy = context.getStrategy( trackedEntity );
 
-        TrackedEntityInstance existingTe = context
-            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
+        TrackedEntityInstance existingTe = context.getBundle().getPreheat()
+            .getTrackedEntity( context.getBundle().getIdentifier(), trackedEntity.getTrackedEntity() );
 
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingTe != null && existingTe.isDeleted() )
@@ -73,6 +72,7 @@ public class PreCheckExistenceValidationHook
             return;
         }
 
+        TrackerImportStrategy importStrategy = context.getBundle().getStrategy( trackedEntity );
         if ( existingTe != null && importStrategy.isCreate() )
         {
             addError( reporter, trackedEntity, E1002, trackedEntity.getTrackedEntity() );
@@ -87,9 +87,9 @@ public class PreCheckExistenceValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy importStrategy = context.getStrategy( enrollment );
 
-        ProgramInstance existingPi = context.getProgramInstance( enrollment.getEnrollment() );
+        ProgramInstance existingPi = context.getBundle().getPreheat()
+            .getEnrollment( context.getBundle().getIdentifier(), enrollment.getEnrollment() );
 
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingPi != null && existingPi.isDeleted() )
@@ -98,6 +98,7 @@ public class PreCheckExistenceValidationHook
             return;
         }
 
+        TrackerImportStrategy importStrategy = context.getBundle().getStrategy( enrollment );
         if ( existingPi != null && importStrategy.isCreate() )
         {
             addError( reporter, enrollment, E1080, enrollment.getEnrollment() );
@@ -112,9 +113,9 @@ public class PreCheckExistenceValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy importStrategy = context.getStrategy( event );
 
-        ProgramStageInstance existingPsi = context.getProgramStageInstance( event.getEvent() );
+        ProgramStageInstance existingPsi = context.getBundle().getPreheat()
+            .getEvent( context.getBundle().getIdentifier(), event.getEvent() );
 
         // If the event is soft-deleted no operation is allowed
         if ( existingPsi != null && existingPsi.isDeleted() )
@@ -123,6 +124,7 @@ public class PreCheckExistenceValidationHook
             return;
         }
 
+        TrackerImportStrategy importStrategy = context.getBundle().getStrategy( event );
         if ( existingPsi != null && importStrategy.isCreate() )
         {
             addError( reporter, event, E1030, event.getEvent() );
@@ -138,7 +140,8 @@ public class PreCheckExistenceValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        org.hisp.dhis.relationship.Relationship existingRelationship = context.getRelationship( relationship );
+        org.hisp.dhis.relationship.Relationship existingRelationship = context.getBundle().getPreheat()
+            .getRelationship( context.getBundle().getIdentifier(), relationship );
 
         if ( existingRelationship != null )
         {

@@ -63,7 +63,7 @@ public class EnrollmentInExistingValidationHook
 
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
 
-        Program program = validationContext.getProgram( enrollment.getProgram() );
+        Program program = validationContext.getBundle().getPreheat().get( Program.class, enrollment.getProgram() );
 
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
@@ -139,9 +139,11 @@ public class EnrollmentInExistingValidationHook
 
     private TrackedEntityInstance getTrackedEntityInstance( ValidationErrorReporter reporter, String uid )
     {
-        TrackedEntityInstance tei = reporter.getValidationContext().getTrackedEntityInstance( uid );
+        TrackerImportValidationContext trackerImportValidationContext = reporter.getValidationContext();
+        TrackedEntityInstance tei = trackerImportValidationContext.getBundle().getPreheat()
+            .getTrackedEntity( trackerImportValidationContext.getBundle().getIdentifier(), uid );
 
-        if ( tei == null && reporter.getValidationContext().getReference( uid ).isPresent() )
+        if ( tei == null && reporter.getValidationContext().getBundle().getPreheat().getReference( uid ).isPresent() )
         {
             tei = new TrackedEntityInstance();
             tei.setUid( uid );

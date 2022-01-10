@@ -42,6 +42,7 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,13 +51,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 /**
  * @author Enrico Colasante
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
 class EventGeoValidationHookTest
 {
@@ -66,6 +64,9 @@ class EventGeoValidationHookTest
     private EventGeoValidationHook hookToTest;
 
     @Mock
+    private TrackerPreheat preheat;
+
+    @Mock
     private TrackerImportValidationContext validationContext;
 
     @BeforeEach
@@ -73,13 +74,8 @@ class EventGeoValidationHookTest
     {
         hookToTest = new EventGeoValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
-
+        TrackerBundle bundle = TrackerBundle.builder().preheat( preheat ).build();
         when( validationContext.getBundle() ).thenReturn( bundle );
-
-        ProgramStage programStage = new ProgramStage();
-        programStage.setFeatureType( FeatureType.POINT );
-        when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
     }
 
     @Test
@@ -93,6 +89,11 @@ class EventGeoValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
+        ProgramStage programStage = new ProgramStage();
+        programStage.setFeatureType( FeatureType.POINT );
+        when( validationContext.getBundle().getPreheat().<ProgramStage> get( ProgramStage.class, PROGRAM_STAGE ) )
+            .thenReturn( programStage );
+
         this.hookToTest.validateEvent( reporter, event );
 
         // then
@@ -125,7 +126,8 @@ class EventGeoValidationHookTest
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
-        when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( new ProgramStage() );
+        when( validationContext.getBundle().getPreheat().<ProgramStage> get( ProgramStage.class,
+            event.getProgramStage() ) ).thenReturn( new ProgramStage() );
 
         this.hookToTest.validateEvent( reporter, event );
 
@@ -147,7 +149,8 @@ class EventGeoValidationHookTest
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setFeatureType( NONE );
-        when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( validationContext.getBundle().getPreheat().<ProgramStage> get( ProgramStage.class,
+            event.getProgramStage() ) ).thenReturn( programStage );
 
         this.hookToTest.validateEvent( reporter, event );
 
@@ -169,7 +172,8 @@ class EventGeoValidationHookTest
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setFeatureType( MULTI_POLYGON );
-        when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( validationContext.getBundle().getPreheat().<ProgramStage> get( ProgramStage.class,
+            event.getProgramStage() ) ).thenReturn( programStage );
 
         this.hookToTest.validateEvent( reporter, event );
 

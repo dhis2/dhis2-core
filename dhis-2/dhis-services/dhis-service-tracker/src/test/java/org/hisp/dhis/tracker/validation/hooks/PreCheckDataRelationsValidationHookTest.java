@@ -143,22 +143,25 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         organisationUnit = createOrganisationUnit( 'A' );
         organisationUnit.setUid( ORG_UNIT_ID );
-        when( ctx.getOrganisationUnit( ORG_UNIT_ID ) ).thenReturn( organisationUnit );
+        when( preheat.<OrganisationUnit> get( OrganisationUnit.class, ORG_UNIT_ID ) )
+            .thenReturn( organisationUnit );
 
         anotherOrganisationUnit = createOrganisationUnit( 'B' );
         anotherOrganisationUnit.setUid( ANOTHER_ORG_UNIT_ID );
-        when( ctx.getOrganisationUnit( ANOTHER_ORG_UNIT_ID ) ).thenReturn( anotherOrganisationUnit );
+        when( preheat.<OrganisationUnit> get( OrganisationUnit.class, ANOTHER_ORG_UNIT_ID ) )
+            .thenReturn( anotherOrganisationUnit );
 
         trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityType.setUid( TEI_TYPE_ID );
-        when( ctx.getTrackedEntityType( TEI_TYPE_ID ) ).thenReturn( trackedEntityType );
+        when( preheat.<TrackedEntityType> get( TrackedEntityType.class, TEI_TYPE_ID ) )
+            .thenReturn( trackedEntityType );
 
         setupPrograms();
 
         Map<String, List<String>> programWithOrgUnits = Maps.newHashMap();
         programWithOrgUnits.put( PROGRAM_WITH_REGISTRATION_ID, Lists.newArrayList( ORG_UNIT_ID ) );
 
-        when( ctx.getProgramWithOrgUnitsMap() ).thenReturn( programWithOrgUnits );
+        when( preheat.getProgramWithOrgUnitsMap() ).thenReturn( programWithOrgUnits );
     }
 
     private void setupPrograms()
@@ -168,31 +171,36 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
         programWithoutRegistration.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         programWithoutRegistration.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         programWithoutRegistration.setTrackedEntityType( trackedEntityType );
-        when( ctx.getProgram( PROGRAM_WITHOUT_REGISTRATION_ID ) ).thenReturn( programWithoutRegistration );
+        when( preheat.<Program> get( Program.class, PROGRAM_WITHOUT_REGISTRATION_ID ) )
+            .thenReturn( programWithoutRegistration );
 
         programWithRegistration = createProgram( 'B' );
         programWithRegistration.setUid( PROGRAM_WITH_REGISTRATION_ID );
         programWithRegistration.setProgramType( ProgramType.WITH_REGISTRATION );
         programWithRegistration.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         programWithRegistration.setTrackedEntityType( trackedEntityType );
-        when( ctx.getProgram( PROGRAM_WITH_REGISTRATION_ID ) ).thenReturn( programWithRegistration );
+        when( preheat.<Program> get( Program.class, PROGRAM_WITH_REGISTRATION_ID ) )
+            .thenReturn( programWithRegistration );
     }
 
     private void setupForEvents()
     {
         ProgramStage programStage = createProgramStage( 'A', programWithRegistration );
         programStage.setUid( PROGRAM_STAGE_ID );
-        when( ctx.getProgramStage( PROGRAM_STAGE_ID ) ).thenReturn( programStage );
+        when( preheat.<ProgramStage> get( ProgramStage.class, PROGRAM_STAGE_ID ) )
+            .thenReturn( programStage );
 
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( ENROLLMENT_ID );
         programInstance.setProgram( programWithRegistration );
-        when( ctx.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( programInstance );
+        when( preheat.getEnrollment( ctx.getBundle().getIdentifier(), ENROLLMENT_ID ) )
+            .thenReturn( programInstance );
 
         ProgramInstance anotherProgramInstance = new ProgramInstance();
         anotherProgramInstance.setUid( ANOTHER_ENROLLMENT_ID );
         anotherProgramInstance.setProgram( programWithoutRegistration );
-        when( ctx.getProgramInstance( ANOTHER_ENROLLMENT_ID ) ).thenReturn( anotherProgramInstance );
+        when( preheat.getEnrollment( ctx.getBundle().getIdentifier(), ANOTHER_ENROLLMENT_ID ) )
+            .thenReturn( anotherProgramInstance );
 
         when( preheat.getDefault( CategoryOptionCombo.class ) ).thenReturn( createCategoryOptionCombo( 'A' ) );
     }
@@ -201,19 +209,22 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
     {
         TrackedEntityType anotherTrackedEntityType = createTrackedEntityType( 'B' );
         anotherTrackedEntityType.setUid( ANOTHER_TEI_TYPE_ID );
-        when( ctx.getTrackedEntityType( ANOTHER_TEI_TYPE_ID ) ).thenReturn( anotherTrackedEntityType );
+        when( preheat.<TrackedEntityType> get( TrackedEntityType.class, ANOTHER_TEI_TYPE_ID ) )
+            .thenReturn( anotherTrackedEntityType );
 
         TrackedEntityInstance trackedEntity = createTrackedEntityInstance( organisationUnit );
         trackedEntity.setUid( TEI_ID );
         trackedEntity.setTrackedEntityType( trackedEntityType );
 
-        when( ctx.getTrackedEntityInstance( TEI_ID ) ).thenReturn( trackedEntity );
+        when( preheat.getTrackedEntity( ctx.getBundle().getIdentifier(), TEI_ID ) )
+            .thenReturn( trackedEntity );
 
         TrackedEntityInstance anotherTrackedEntity = createTrackedEntityInstance( organisationUnit );
         anotherTrackedEntity.setUid( ANOTHER_TEI_ID );
         anotherTrackedEntity.setTrackedEntityType( anotherTrackedEntityType );
 
-        when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( anotherTrackedEntity );
+        when( preheat.getTrackedEntity( ctx.getBundle().getIdentifier(), ANOTHER_TEI_ID ) )
+            .thenReturn( anotherTrackedEntity );
     }
 
     @Test
@@ -304,7 +315,8 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         reporter = new ValidationErrorReporter( ctx );
 
-        when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( null );
+        when( preheat.getTrackedEntity( ctx.getBundle().getIdentifier(), ANOTHER_TEI_ID ) )
+            .thenReturn( null );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( ANOTHER_TEI_ID )
@@ -462,11 +474,13 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         TrackedEntityInstance validTrackedEntity = new TrackedEntityInstance();
         validTrackedEntity.setUid( "validTrackedEntity" );
-        when( ctx.getTrackedEntityInstance( "validTrackedEntity" ) ).thenReturn( validTrackedEntity );
+        when( preheat.getTrackedEntity( ctx.getBundle().getIdentifier(), "validTrackedEntity" ) )
+            .thenReturn( validTrackedEntity );
 
         ReferenceTrackerEntity anotherValidTrackedEntity = new ReferenceTrackerEntity( "anotherValidTrackedEntity",
             null );
-        when( ctx.getReference( "anotherValidTrackedEntity" ) ).thenReturn( Optional.of( anotherValidTrackedEntity ) );
+        when( preheat.getReference( "anotherValidTrackedEntity" ) )
+            .thenReturn( Optional.of( anotherValidTrackedEntity ) );
 
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 

@@ -103,7 +103,8 @@ public class ValidationUtils
             {
                 // If a note having the same UID already exist in the db, raise
                 // warning, ignore the note and continue
-                if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
+                if ( isNotEmpty( note.getNote() )
+                    && context.getBundle().getPreheat().getNote( note.getNote() ).isPresent() )
                 {
                     TrackerWarningReport warning = TrackerWarningReport.builder()
                         .uid( dto.getUid() )
@@ -201,16 +202,19 @@ public class ValidationUtils
 
     public static boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
     {
-        return context.getTrackedEntityInstance( teiUid ) != null || context.getReference( teiUid ).isPresent();
+        return context.getBundle().getPreheat().getTrackedEntity( context.getBundle().getIdentifier(), teiUid ) != null
+            || context.getBundle().getPreheat().getReference( teiUid ).isPresent();
     }
 
     public static boolean enrollmentExist( TrackerImportValidationContext context, String enrollmentUid )
     {
-        return context.getProgramInstance( enrollmentUid ) != null || context.getReference( enrollmentUid ).isPresent();
+        return context.getBundle().getPreheat().getEnrollment( context.getBundle().getIdentifier(),
+            enrollmentUid ) != null || context.getBundle().getPreheat().getReference( enrollmentUid ).isPresent();
     }
 
     public static boolean eventExist( TrackerImportValidationContext context, String eventUid )
     {
-        return context.getProgramStageInstance( eventUid ) != null || context.getReference( eventUid ).isPresent();
+        return context.getBundle().getPreheat().getEvent( context.getBundle().getIdentifier(), eventUid ) != null
+            || context.getBundle().getPreheat().getReference( eventUid ).isPresent();
     }
 }

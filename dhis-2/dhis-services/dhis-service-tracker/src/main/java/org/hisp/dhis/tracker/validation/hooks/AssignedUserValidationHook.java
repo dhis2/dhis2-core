@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
 import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
@@ -60,7 +61,8 @@ public class AssignedUserValidationHook
 
     private Boolean isNotEnabledUserAssignment( ValidationErrorReporter reporter, Event event )
     {
-        Boolean userAssignmentEnabled = reporter.getValidationContext().getProgramStage( event.getProgramStage() )
+        Boolean userAssignmentEnabled = reporter.getValidationContext().getBundle().getPreheat()
+            .<ProgramStage> get( ProgramStage.class, event.getProgramStage() )
             .isEnableUserAssignment();
 
         return !Optional.ofNullable( userAssignmentEnabled )
