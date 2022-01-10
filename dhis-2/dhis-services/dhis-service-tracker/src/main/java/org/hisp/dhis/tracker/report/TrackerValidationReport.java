@@ -70,12 +70,22 @@ public class TrackerValidationReport
         addPerfReports( validationReport.getPerformanceReport() );
     }
 
+    public void add( TrackerErrorReport error )
+    {
+        addErrorIfNotExisting( error );
+    }
+
     public void add( List<TrackerErrorReport> errorReports )
     {
         for ( TrackerErrorReport errorReport : errorReports )
         {
             addErrorIfNotExisting( errorReport );
         }
+    }
+
+    public void addWarning( TrackerWarningReport warning )
+    {
+        addWarningIfNotExisting( warning );
     }
 
     public void addWarnings( List<TrackerWarningReport> warningReportsReports )
@@ -99,6 +109,11 @@ public class TrackerValidationReport
     public boolean hasErrors()
     {
         return !errorReports.isEmpty();
+    }
+
+    public boolean hasWarnings()
+    {
+        return !warningReports.isEmpty();
     }
 
     /**
