@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -228,7 +227,7 @@ public class ObjectReport implements ErrorReportContainer
     public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
     {
         errorReportsByCode.values().stream().flatMap( errors -> errors.stream() )
-            .collect( Collectors.toList() ).forEach( errorReport -> reportConsumer.accept( errorReport ) );
+            .forEach( errorReport -> reportConsumer.accept( errorReport ) );
     }
 
     public boolean isEmpty()

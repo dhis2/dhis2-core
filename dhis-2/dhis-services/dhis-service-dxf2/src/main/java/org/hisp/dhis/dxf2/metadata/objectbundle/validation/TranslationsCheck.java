@@ -45,6 +45,9 @@ import org.hisp.dhis.translation.Translation;
 import org.springframework.stereotype.Component;
 
 /**
+ * This class contains all validations to be performed on {@link Translation}
+ * objects as a part of the validation sequence in MetadataImportService
+ *
  * @author viet@dhis2.org
  */
 @Component
@@ -125,7 +128,10 @@ public class TranslationsCheck implements ObjectValidationCheck
                     new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( klass ) );
             }
 
-            addReports.accept( objectReport );
+            if ( objectReport.hasErrorReports() )
+            {
+                addReports.accept( objectReport );
+            }
         }
     }
 }

@@ -228,8 +228,6 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     {
         String id = assertStatus( HttpStatus.CREATED,
             POST( "/dataSets/", "{'name':'My data set', 'periodType':'Monthly'}" ) );
-        JsonArray translations = GET( "/dataSets/{id}/translations", id )
-            .content().getArray( "translations" );
 
         JsonWebMessage message = assertWebMessage( "Conflict", 409, "WARNING",
             "One more more errors occurred, please see full details in import report.",
