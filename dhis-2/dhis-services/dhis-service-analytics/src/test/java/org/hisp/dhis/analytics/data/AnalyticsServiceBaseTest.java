@@ -39,6 +39,7 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
 import org.hisp.dhis.analytics.data.handler.DataAggregator;
@@ -118,6 +119,9 @@ abstract class AnalyticsServiceBaseTest
     @Mock
     private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
+    @Mock
+    private ExecutionPlanCache executionPlanCache;
+
     DataAggregator target;
 
     @BeforeEach
@@ -129,7 +133,7 @@ abstract class AnalyticsServiceBaseTest
         MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );
         DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager, constantService,
             resolvers, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
-            organisationUnitService );
+            organisationUnitService, executionPlanCache );
 
         target = new DataAggregator( headerHandler, metadataHandler, dataHandler );
         target.feedHandlers();
