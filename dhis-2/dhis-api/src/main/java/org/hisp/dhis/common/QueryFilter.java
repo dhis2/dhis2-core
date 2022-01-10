@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,6 +28,19 @@
 package org.hisp.dhis.common;
 
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.common.QueryOperator.EQ;
+import static org.hisp.dhis.common.QueryOperator.GE;
+import static org.hisp.dhis.common.QueryOperator.GT;
+import static org.hisp.dhis.common.QueryOperator.IEQ;
+import static org.hisp.dhis.common.QueryOperator.ILIKE;
+import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.QueryOperator.LE;
+import static org.hisp.dhis.common.QueryOperator.LIKE;
+import static org.hisp.dhis.common.QueryOperator.LT;
+import static org.hisp.dhis.common.QueryOperator.NE;
+import static org.hisp.dhis.common.QueryOperator.NIEQ;
+import static org.hisp.dhis.common.QueryOperator.NILIKE;
+import static org.hisp.dhis.common.QueryOperator.NLIKE;
 
 import java.util.List;
 import java.util.function.Function;
@@ -47,14 +60,19 @@ public class QueryFilter
 
     public static final ImmutableMap<QueryOperator, Function<Boolean, String>> OPERATOR_MAP = ImmutableMap
         .<QueryOperator, Function<Boolean, String>> builder()
-        .put( QueryOperator.EQ, isValueNull -> isValueNull ? "is" : "=" )
-        .put( QueryOperator.GT, unused -> ">" )
-        .put( QueryOperator.GE, unused -> ">=" )
-        .put( QueryOperator.LT, unused -> "<" )
-        .put( QueryOperator.LE, unused -> "<=" )
-        .put( QueryOperator.NE, isValueNull -> isValueNull ? "is not" : "!=" )
-        .put( QueryOperator.LIKE, unused -> "like" )
-        .put( QueryOperator.IN, unused -> "in" ).build();
+        .put( EQ, isValueNull -> isValueNull ? "is" : "=" )
+        .put( NE, isValueNull -> isValueNull ? "is not" : "!=" )
+        .put( IEQ, isValueNull -> isValueNull ? "is" : "=" )
+        .put( NIEQ, isValueNull -> isValueNull ? "is not" : "=" )
+        .put( GT, unused -> ">" )
+        .put( GE, unused -> ">=" )
+        .put( LT, unused -> "<" )
+        .put( LE, unused -> "<=" )
+        .put( ILIKE, unused -> "ilike" )
+        .put( NILIKE, unused -> "not ilike" )
+        .put( LIKE, unused -> "like" )
+        .put( NLIKE, unused -> "not like" )
+        .put( IN, unused -> "in" ).build();
 
     protected QueryOperator operator;
 
@@ -106,12 +124,12 @@ public class QueryFilter
     // TODO: unused. Remove ?
     public String getJavaOperator()
     {
-        if ( operator == null || operator == QueryOperator.LIKE || operator == QueryOperator.IN )
+        if ( operator == null || operator == LIKE || operator == IN )
         {
             return null;
         }
 
-        if ( operator == QueryOperator.EQ ) // TODO why special case?
+        if ( operator == EQ ) // TODO why special case?
         {
             return "==";
         }
@@ -119,31 +137,67 @@ public class QueryFilter
         return safelyGetOperator();
     }
 
-    public String getSqlFilter( String encodedFilter )
+    public String getSqlFilter( final String encodedFilter )
     {
         if ( operator == null || encodedFilter == null )
         {
             return null;
         }
 
-        if ( QueryOperator.LIKE.equals( operator ) )
+        if ( LIKE == operator || NLIKE == operator || ILIKE == operator || NILIKE == operator )
         {
             return "'%" + encodedFilter + "%'";
         }
-        else if ( QueryOperator.EQ.equals( operator ) || QueryOperator.NE.equals( operator ) )
+        else if ( EQ == operator || NE == operator || IEQ == operator || NIEQ == operator )
         {
             if ( encodedFilter.equals( NV ) )
             {
                 return "null";
             }
         }
-        else if ( QueryOperator.IN.equals( operator ) )
+        else if ( IN == operator )
         {
             return getFilterItems( encodedFilter ).stream()
                 .map( this::quote )
                 .collect( Collectors.joining( ",", "(", ")" ) );
         }
+
         return "'" + encodedFilter + "'";
+    }
+
+    public String getSqlFilter( final String encodedFilter, final ValueType valueType )
+    {
+        final String sqlFilter = getSqlFilter( encodedFilter );
+
+        // Force lowercase so we can do "equal" comparison ignoring case.
+        if ( IEQ == operator || NIEQ == operator )
+        {
+            return valueType.isText() ? sqlFilter.toLowerCase() : sqlFilter;
+        }
+
+        return sqlFilter;
+    }
+
+    public String getSqlFilterColumn( final String column, final ValueType valueType )
+    {
+        // Force lowercase so we can do "equal" comparison ignoring case.
+        if ( IEQ == operator || NIEQ == operator )
+        {
+            return valueType.isText() ? wrapLower( column ) : column;
+        }
+
+        return column;
+    }
+
+    /**
+     * Wraps the provided column name in Postgres 'lower' directive
+     *
+     * @param column a column name
+     * @return a String
+     */
+    private String wrapLower( String column )
+    {
+        return "lower(" + column + ")";
     }
 
     protected String quote( String filterItem )
