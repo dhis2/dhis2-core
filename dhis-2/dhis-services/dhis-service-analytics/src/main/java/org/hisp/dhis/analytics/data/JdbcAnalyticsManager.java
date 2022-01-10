@@ -70,7 +70,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.analyze.SqlStatementStack;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsSqlUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -128,10 +128,10 @@ public class JdbcAnalyticsManager
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final SqlStatementStack sqlStatementStack;
+    private final ExecutionPlanCache sqlStatementStack;
 
     public JdbcAnalyticsManager( QueryPlanner queryPlanner,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, SqlStatementStack sqlStatementStack )
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ExecutionPlanCache sqlStatementStack )
     {
         checkNotNull( queryPlanner );
         checkNotNull( jdbcTemplate );

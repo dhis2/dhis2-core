@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.analyze;
+package org.hisp.dhis.common;
 
 import java.io.Serializable;
 
@@ -35,13 +35,25 @@ import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
+/**
+ * @author Dusan Bernat
+ */
 @Getter
 @Setter
 public class ExecutionPlan implements Serializable
 {
     @JsonProperty
+    private Double totalTimeEstimation;
+
+    @JsonProperty
+    private Double planningTime;
+
+    @JsonProperty
+    private Double executionTime;
+
+    @JsonProperty
     private String query;
 
     @JsonProperty
-    private JsonNode execution;
+    private JsonNode plan;
 }

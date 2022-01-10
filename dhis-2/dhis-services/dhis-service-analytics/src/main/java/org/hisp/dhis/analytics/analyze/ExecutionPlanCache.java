@@ -29,7 +29,9 @@ package org.hisp.dhis.analytics.analyze;
 
 import java.util.List;
 
-public interface SqlStatementStack
+import org.hisp.dhis.common.ExecutionPlan;
+
+public interface ExecutionPlanCache
 {
     void addExecutionPlan( String params, String sql );
 

@@ -43,7 +43,7 @@ import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.analyze.SqlStatementStack;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -91,7 +91,7 @@ class JdbcAnalyticsManagerTest
     private JdbcAnalyticsManager subject;
 
     @Mock
-    private SqlStatementStack sqlStatementStack;
+    private ExecutionPlanCache sqlStatementStack;
 
     @BeforeEach
     public void setUp()
