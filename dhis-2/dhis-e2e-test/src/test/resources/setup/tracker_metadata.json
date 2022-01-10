@@ -54,13 +54,6 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -75,13 +68,6 @@
       },
       "trackedEntityType": {
         "id": "Q9GufDoplCL"
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "programTrackedEntityAttributes": [
         {
@@ -387,13 +373,6 @@
       "categoryCombo": {
         "id": "p0bh43XdKy5"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -408,13 +387,6 @@
       },
       "trackedEntityType": {
         "id": "Q9GufDoplCL"
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "programTrackedEntityAttributes": [
         {
@@ -668,26 +640,12 @@
       "orgunitScope": false,
       "unique": false,
       "inherit": false,
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -713,26 +671,12 @@
       "optionSet": {
         "id": "FhjFRDxk1FG"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -756,13 +700,6 @@
       "orgunitScope": false,
       "unique": false,
       "inherit": false,
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -774,13 +711,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -804,13 +734,6 @@
       "orgunitScope": false,
       "unique": false,
       "inherit": false,
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -822,13 +745,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -851,26 +767,12 @@
       "orgunitScope": false,
       "unique": false,
       "inherit": false,
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -894,13 +796,6 @@
       "orgunitScope": false,
       "unique": false,
       "inherit": false,
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -912,13 +807,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -948,26 +836,12 @@
       "program": {
         "id": "uzHRdFi1a4x"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "notificationTemplates": [],
       "programStageDataElements": [
@@ -1077,13 +951,6 @@
       "program": {
         "id": "f1AyMswryyQ"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -1095,13 +962,6 @@
         "external": false,
         "public": "rwrw----",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "notificationTemplates": [],
       "programStageDataElements": [
@@ -1250,13 +1110,6 @@
       "program": {
         "id": "f1AyMswryyQ"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -1268,13 +1121,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "notificationTemplates": [],
       "programStageDataElements": [
@@ -1579,9 +1425,6 @@
         "id": "Zd2rkv8FsWq",
         "code": "TA EVENT_PROGRAM"
       },
-      "lastUpdatedBy": {
-        "id": "M5zQapPyTZI"
-      },
       "notificationTemplates": [],
       "programStageDataElements": [
         {
@@ -1695,26 +1538,12 @@
       "id": "FhjFRDxk1FG",
       "version": 3,
       "valueType": "TEXT",
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "attributeValues": [],
       "translations": [],
@@ -1739,13 +1568,6 @@
       "allowAuditLog": true,
       "featureType": "POLYGON",
       "minAttributesRequiredToSearch": 1,
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -1757,13 +1579,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "attributeValues": [],
       "trackedEntityTypeAttributes": [
@@ -1858,13 +1673,6 @@
       "program": {
         "id": "f1AyMswryyQ"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -1876,13 +1684,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "analyticsPeriodBoundaries": [
@@ -1977,13 +1778,6 @@
       "programRuleActionType": "ASSIGN",
       "data": "d2:yearsBetween( A{TA AGE}, V{current_date} )",
       "evaluationTime": "ALWAYS",
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "trackedEntityAttribute": {
         "id": "ypGAwVRNtVY"
       },
@@ -2005,13 +1799,6 @@
       "id": "bvSo9pP0reO",
       "programRuleVariableSourceType": "TEI_ATTRIBUTE",
       "useCodeForOptionSet": false,
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "program": {
         "id": "f1AyMswryyQ"
       },
@@ -2029,13 +1816,6 @@
       "id": "u3AYlaM80Jj",
       "priority": 3,
       "condition": "d2:hasValue(A{TA AGE})",
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "program": {
         "id": "f1AyMswryyQ"
       },
@@ -2491,13 +2271,6 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -2509,13 +2282,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -2536,13 +2302,6 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -2554,13 +2313,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -2581,13 +2333,6 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -2599,13 +2344,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -2626,13 +2364,6 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -2644,13 +2375,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -2671,13 +2395,6 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -2689,13 +2406,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -2716,13 +2426,6 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -2734,13 +2437,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
@@ -2761,13 +2457,6 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {
@@ -2779,13 +2468,6 @@
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "translations": [],
       "attributeValues": [],
