@@ -2,6 +2,7 @@
   "categoryOptionGroupSets": [
     {
       "id": "a3DyYqCZrJ5",
+      "code": "TA_CATEGORY_OPTION_GROUP_SET",
       "name": "TA category option group set",
       "shortName": "TA cat opt group set",
       "dataDimensionType": "ATTRIBUTE",
@@ -56,10 +57,12 @@
       "translations": [],
       "categories": [
         {
-          "id": "saPUs0jjtP0"
+          "id": "saPUs0jjtP0",
+          "code": "TA_CATEGORY_ATTRIBUTE"
         },
         {
-          "id": "X7EZvFo6ero"
+          "id": "X7EZvFo6ero",
+          "code": "TA_CATEGORY_ATTRIBUTE_2"
         }
       ]
     },
@@ -90,6 +93,7 @@
   ],
   "categories": [
     {
+      "code": "TA_CATEGORY_ATTRIBUTE",
       "created": "2022-01-07T14:55:50.486",
       "lastUpdated": "2022-01-07T14:55:57.359",
       "name": "TA Category attribute",
@@ -97,26 +101,12 @@
       "shortName": "TA Category attribute",
       "dataDimensionType": "ATTRIBUTE",
       "dataDimension": true,
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "attributeValues": [],
       "translations": [],
@@ -131,26 +121,12 @@
       "shortName": "TA category attribute 2",
       "dataDimensionType": "ATTRIBUTE",
       "dataDimension": true,
-      "lastUpdatedBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
-      },
       "sharing": {
         "owner": "M5zQapPyTZI",
         "userGroups": {},
         "external": false,
         "public": "rw------",
         "users": {}
-      },
-      "createdBy": {
-        "code": "admin",
-        "displayName": "admin admin",
-        "name": "admin admin",
-        "id": "M5zQapPyTZI",
-        "username": "admin"
       },
       "attributeValues": [],
       "translations": [],
