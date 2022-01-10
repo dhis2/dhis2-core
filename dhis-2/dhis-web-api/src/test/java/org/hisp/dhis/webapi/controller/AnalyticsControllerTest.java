@@ -47,7 +47,7 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.analyze.SqlStatementStack;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.Grid;
@@ -96,7 +96,7 @@ class AnalyticsControllerTest
     private DimensionService dimensionService;
 
     @Mock
-    private SqlStatementStack sqlStatementStack;
+    private ExecutionPlanCache sqlStatementStack;
 
     @BeforeEach
     public void setUp()

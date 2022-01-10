@@ -37,6 +37,8 @@ import java.util.concurrent.TimeUnit;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -46,17 +48,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * @author Dusan Bernat
+ */
 @Service
-public class HttpRequestSqlStatementStack implements SqlStatementStack
+public class RequestExecutionPlanCache implements ExecutionPlanCache
 {
-    private final Map<String, List<ExecutionPlan>> stack = new HashMap<>();
+    private final Map<String, List<ExecutionPlan>> executionPlanMap = new HashMap<>();
 
     @NotNull
     private final JdbcTemplate jdbcTemplate;
 
     private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool( 10 );
 
-    public HttpRequestSqlStatementStack( @Qualifier( "executionPlanJdbcTemplate" ) JdbcTemplate jdbcTemplate )
+    public RequestExecutionPlanCache( @Qualifier( "executionPlanJdbcTemplate" ) JdbcTemplate jdbcTemplate )
     {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -68,23 +73,44 @@ public class HttpRequestSqlStatementStack implements SqlStatementStack
 
         executionPlan.setQuery( sql );
 
-        executionPlan.setExecution( getExecutionPlan( sql ) );
+        JsonNode root = getExecutionPlan( sql );
+
+        if ( root != null && root.get( 0 ) != null && root.get( 0 ).get( "Plan" ) != null )
+        {
+            JsonNode plan = root.get( 0 ).get( "Plan" );
+
+            executionPlan.setPlan( plan );
+
+            double execTime = root.get( 0 ).get( "Execution Time" ) != null
+                ? root.get( 0 ).get( "Execution Time" ).asDouble()
+                : 0.0;
+
+            double planTime = root.get( 0 ).get( "Planning Time" ) != null
+                ? root.get( 0 ).get( "Planning Time" ).asDouble()
+                : 0.0;
+
+            executionPlan.setExecutionTime( execTime );
+
+            executionPlan.setPlanningTime( planTime );
+
+            executionPlan.setTotalTimeEstimation( Precision.round( execTime + planTime, 3 ) );
+        }
 
         synchronized ( this )
         {
-            if ( stack.containsKey( key ) )
+            if ( executionPlanMap.containsKey( key ) )
             {
-                List<ExecutionPlan> oldList = stack.get( key );
+                List<ExecutionPlan> oldList = executionPlanMap.get( key );
 
                 List<ExecutionPlan> newList = new ArrayList<>( oldList );
 
                 newList.add( executionPlan );
 
-                stack.replace( key, newList );
+                executionPlanMap.replace( key, newList );
             }
             else
             {
-                stack.put( key, List.of( executionPlan ) );
+                executionPlanMap.put( key, List.of( executionPlan ) );
             }
         }
     }
@@ -122,9 +148,9 @@ public class HttpRequestSqlStatementStack implements SqlStatementStack
     @Override
     public List<ExecutionPlan> getExecutionPlans( String key )
     {
-        if ( stack.containsKey( key ) )
+        if ( executionPlanMap.containsKey( key ) )
         {
-            return stack.get( key );
+            return executionPlanMap.get( key );
         }
 
         return new ArrayList<>();
@@ -133,6 +159,6 @@ public class HttpRequestSqlStatementStack implements SqlStatementStack
     @Override
     public void removeExecutionPlans( String key )
     {
-        executorService.schedule( () -> stack.remove( key ), 1, TimeUnit.SECONDS );
+        executorService.schedule( () -> executionPlanMap.remove( key ), 1, TimeUnit.SECONDS );
     }
 }

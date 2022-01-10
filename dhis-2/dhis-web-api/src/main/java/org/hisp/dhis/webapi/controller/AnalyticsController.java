@@ -41,7 +41,7 @@ import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.analyze.SqlStatementStack;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
 import org.hisp.dhis.common.DataQueryRequest;
@@ -82,7 +82,7 @@ public class AnalyticsController
     private final ContextUtils contextUtils;
 
     @NonNull
-    private final SqlStatementStack sqlStatementStack;
+    private final ExecutionPlanCache sqlStatementStack;
 
     // -------------------------------------------------------------------------
     // Resources

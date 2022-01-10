@@ -48,6 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
@@ -95,7 +96,7 @@ public class ListGrid
      */
     private Map<String, Object> metaData;
 
-    private Map<String, Object> executionPlanData;
+    private List<ExecutionPlan> executionPlanData;
 
     /**
      * A Map which can hold internal arbitrary meta data. Will not be
@@ -133,7 +134,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
-        this.executionPlanData = new HashMap<>();
+        this.executionPlanData = new ArrayList<>();
         this.grid = new ArrayList<>();
     }
 
@@ -146,7 +147,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
-        this.executionPlanData = new HashMap<>();
+        this.executionPlanData = new ArrayList<>();
         this.grid = new ArrayList<>();
     }
 
@@ -354,23 +355,16 @@ public class ListGrid
     }
 
     @Override
-    public Grid addExecutionPlanData( String key, Object value )
-    {
-        this.executionPlanData.put( key, value );
-        return this;
-    }
-
-    @Override
-    @JsonProperty
-    public Map<String, Object> getExecutionPlanData()
+    @JsonProperty( "executionPlans" )
+    public List<ExecutionPlan> getExecutionPlanData()
     {
         return executionPlanData;
     }
 
     @Override
-    public Grid setExecutionPlanData( Map<String, Object> executionPlanData )
+    public Grid setExecutionPlanData( List<ExecutionPlan> executionPlanData )
     {
-        this.executionPlanData = internalMetaData;
+        this.executionPlanData = executionPlanData;
         return this;
     }
 

@@ -127,8 +127,7 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
-import org.hisp.dhis.analytics.analyze.ExecutionPlan;
-import org.hisp.dhis.analytics.analyze.SqlStatementStack;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
@@ -138,6 +137,7 @@ import org.hisp.dhis.common.DimensionItemObjectValue;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.constant.Constant;
@@ -193,7 +193,7 @@ public class DataHandler
     private DataAggregator dataAggregator;
 
     @Autowired
-    private SqlStatementStack sqlStatementStack;
+    private ExecutionPlanCache sqlStatementStack;
 
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
         ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
@@ -230,15 +230,8 @@ public class DataHandler
             String key = params.getAnalyzeOrderId();
 
             List<ExecutionPlan> plans = sqlStatementStack.getExecutionPlans( key );
-            // grid.addExecutionPlanData( params.getAnalyzeOrderId(),
-            // plans.stream().map( p ->
-            grid.addExecutionPlanData( params.getAnalyzeOrderId(), plans.stream().map( p -> {
-                ExecutionPlan ep = new ExecutionPlan();
-                ep.setQuery( p.getQuery() );
-                ep.setExecution( p.getExecution() );
 
-                return ep;
-            } ).collect( Collectors.toList() ) );
+            grid.setExecutionPlanData( plans );
 
             sqlStatementStack.removeExecutionPlans( key );
         }

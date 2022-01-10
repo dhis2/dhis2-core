@@ -45,7 +45,7 @@ import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.analyze.SqlStatementStack;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
@@ -72,7 +72,7 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     private JdbcTemplate jdbcTemplate;
 
     @Mock
-    private SqlStatementStack sqlStatementStack;
+    private ExecutionPlanCache sqlStatementStack;
 
     private AnalyticsManager analyticsManager;
 

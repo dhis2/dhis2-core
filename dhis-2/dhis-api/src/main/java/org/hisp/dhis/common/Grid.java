@@ -101,11 +101,9 @@ public interface Grid
      */
     Map<String, Object> getInternalMetaData();
 
-    Grid addExecutionPlanData( String key, Object value );
+    List<ExecutionPlan> getExecutionPlanData();
 
-    Map<String, Object> getExecutionPlanData();
-
-    Grid setExecutionPlanData( Map<String, Object> executionPlanData );
+    Grid setExecutionPlanData( List<ExecutionPlan> executionPlanData );
 
     /**
      * Sets a map of internal meta-data.
