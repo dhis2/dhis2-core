@@ -154,7 +154,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.Timer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -192,13 +191,13 @@ public class DataHandler
 
     private DataAggregator dataAggregator;
 
-    @Autowired
-    private ExecutionPlanCache sqlStatementStack;
+    private final ExecutionPlanCache executionPlanCache;
 
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
         ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
-        AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService )
+        AnalyticsManager analyticsManager, OrganisationUnitService organisationUnitService,
+        ExecutionPlanCache executionPlanCache )
     {
         checkNotNull( eventAnalyticsService );
         checkNotNull( rawAnalyticsManager );
@@ -210,6 +209,7 @@ public class DataHandler
         checkNotNull( systemSettingManager );
         checkNotNull( analyticsManager );
         checkNotNull( organisationUnitService );
+        checkNotNull( executionPlanCache );
 
         this.eventAnalyticsService = eventAnalyticsService;
         this.rawAnalyticsManager = rawAnalyticsManager;
@@ -221,6 +221,7 @@ public class DataHandler
         this.systemSettingManager = systemSettingManager;
         this.analyticsManager = analyticsManager;
         this.organisationUnitService = organisationUnitService;
+        this.executionPlanCache = executionPlanCache;
     }
 
     void addExecutionPlanData( DataQueryParams params, Grid grid )
@@ -229,11 +230,11 @@ public class DataHandler
         {
             String key = params.getAnalyzeOrderId();
 
-            List<ExecutionPlan> plans = sqlStatementStack.getExecutionPlans( key );
+            List<ExecutionPlan> plans = executionPlanCache.getExecutionPlans( key );
 
             grid.setExecutionPlanData( plans );
 
-            sqlStatementStack.removeExecutionPlans( key );
+            executionPlanCache.removeExecutionPlans( key );
         }
     }
 
