@@ -28,7 +28,11 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -36,9 +40,12 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
+import static org.hisp.dhis.common.ValueType.TEXT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +56,14 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
@@ -96,32 +110,13 @@ public abstract class AbstractAnalyticsService
 
         Grid grid = createGridWithHeaders( params );
 
-        for ( DimensionalObject dimension : params.getDimensions() )
+        if ( params.hasHeaders() )
         {
-            grid.addHeader( new GridHeader( dimension.getDimension(), dimension.getDimensionDisplayName(),
-                ValueType.TEXT, false, true ) );
+            populateGridWithCustomHeaders( params, grid );
         }
-
-        for ( QueryItem item : params.getItems() )
+        else
         {
-            /**
-             * Special case: If the request contains an item of Org Unit value
-             * type and the item UID is linked to coordinates (coordinateField),
-             * then create an Header of ValueType COORDINATE and type "Point"
-             */
-            if ( item.getValueType() == ValueType.ORGANISATION_UNIT
-                && params.getCoordinateField().equals( item.getItem().getUid() ) )
-            {
-                grid.addHeader( new GridHeader( item.getItem().getUid(),
-                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
-                    false, true, item.getOptionSet(), item.getLegendSet() ) );
-            }
-            else
-            {
-                grid.addHeader( new GridHeader( item.getItem().getUid(),
-                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
-                    false, true, item.getOptionSet(), item.getLegendSet() ) );
-            }
+            populateGridWithDefaultHeaders( params, grid );
         }
 
         // ---------------------------------------------------------------------
@@ -157,6 +152,81 @@ public abstract class AbstractAnalyticsService
         }
 
         return grid;
+    }
+
+    private void populateGridWithDefaultHeaders( final EventQueryParams params, final Grid grid )
+    {
+        for ( final DimensionalObject dimension : params.getDimensions() )
+        {
+            grid.addHeader(
+                new GridHeader( dimension.getDimension(), dimension.getDimensionDisplayName(), TEXT, false,
+                    true ) );
+        }
+
+        for ( final QueryItem item : params.getItems() )
+        {
+            /**
+             * Special case: If the request contains an item of Org Unit value
+             * type and the item UID is linked to coordinates (coordinateField),
+             * then create an Header of ValueType COORDINATE and type "Point"
+             */
+            if ( item.getValueType() == ORGANISATION_UNIT
+                && params.getCoordinateField().equals( item.getItem().getUid() ) )
+            {
+                grid.addHeader( new GridHeader( item.getItem().getUid(),
+                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
+                    false, true, item.getOptionSet(), item.getLegendSet() ) );
+            }
+            else
+            {
+                grid.addHeader( new GridHeader( item.getItem().getUid(),
+                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
+                    false, true, item.getOptionSet(), item.getLegendSet() ) );
+            }
+        }
+    }
+
+    private void populateGridWithCustomHeaders( final EventQueryParams params, final Grid grid )
+    {
+        final List<String> headers = new ArrayList<>( params.getHeaders() );
+
+        for ( final DimensionalObject dimension : params.getDimensions() )
+        {
+            if ( headers.contains( dimension.getDimension() ) )
+            {
+                grid.replaceHeader( headers.indexOf( dimension.getDimension() ),
+                    new GridHeader( dimension.getDimension(), dimension.getDimensionDisplayName(), TEXT, false,
+                        true ) );
+            }
+        }
+
+        for ( final QueryItem item : params.getItems() )
+        {
+            if ( headers.contains( item.getItem().getUid() ) )
+            {
+                /**
+                 * Special case: If the request contains an item of Org Unit
+                 * value type and the item UID is linked to coordinates
+                 * (coordinateField), then create an Header of ValueType
+                 * COORDINATE and type "Point"
+                 */
+                if ( item.getValueType() == ORGANISATION_UNIT
+                    && params.getCoordinateField().equals( item.getItem().getUid() ) )
+                {
+                    grid.replaceHeader( headers.indexOf( item.getItem().getUid() ),
+                        new GridHeader( item.getItem().getUid(),
+                            item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
+                            false, true, item.getOptionSet(), item.getLegendSet() ) );
+                }
+                else
+                {
+                    grid.replaceHeader( headers.indexOf( item.getItem().getUid() ),
+                        new GridHeader( item.getItem().getUid(),
+                            item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
+                            false, true, item.getOptionSet(), item.getLegendSet() ) );
+                }
+            }
+        }
     }
 
     protected abstract Grid createGridWithHeaders( EventQueryParams params );

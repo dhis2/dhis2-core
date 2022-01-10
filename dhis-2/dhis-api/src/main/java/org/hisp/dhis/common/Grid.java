@@ -131,6 +131,15 @@ public interface Grid
     Grid addHeader( GridHeader header );
 
     /**
+     * Replaces a header grid in the specified position.
+     *
+     * @param headerIndex the index of the header grid to be replaced.
+     * @param header the grid header.
+     * @return the current Grid
+     */
+    Grid replaceHeader( int headerIndex, GridHeader header );
+
+    /**
      * Adds a header value at the given column index.
      *
      * @param headerIndex the index to insert the grid header at.

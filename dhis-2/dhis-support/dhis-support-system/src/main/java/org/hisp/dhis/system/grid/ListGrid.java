@@ -135,6 +135,20 @@ public class ListGrid
     }
 
     /**
+     * @param initialHeaderSize the total of initial empty elements in the
+     *        header.
+     */
+    public ListGrid( int initialHeaderSize )
+    {
+        this.headers = new ArrayList<>();
+        addEmptyHeaders( initialHeaderSize );
+
+        this.metaData = new HashMap<>();
+        this.internalMetaData = new HashMap<>();
+        this.grid = new ArrayList<>();
+    }
+
+    /**
      * @param metaData meta data.
      * @param internalMetaData internal meta data.
      */
@@ -209,6 +223,16 @@ public class ListGrid
     public Grid addHeader( int headerIndex, GridHeader header )
     {
         headers.add( headerIndex, header );
+
+        updateColumnIndexMap();
+
+        return this;
+    }
+
+    @Override
+    public Grid replaceHeader( int headerIndex, GridHeader header )
+    {
+        headers.set( headerIndex, header );
 
         updateColumnIndexMap();
 

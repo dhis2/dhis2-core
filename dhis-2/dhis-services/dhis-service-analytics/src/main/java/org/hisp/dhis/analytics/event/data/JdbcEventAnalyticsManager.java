@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_LATITUDE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.getSelectableColumns;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
@@ -39,6 +41,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.commons.collection.ListUtils.distinctUnion;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
@@ -53,7 +56,6 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.Rectangle;
@@ -72,7 +74,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -188,7 +189,7 @@ public class JdbcEventAnalyticsManager
         columns.add( params.isIncludeClusterPoints() ? "array_to_string(array_agg(psi), ',') as points"
             : "case when count(psi) = 1 then array_to_string(array_agg(psi), ',') end as points" );
 
-        String sql = "select " + StringUtils.join( columns, "," ) + " ";
+        String sql = "select " + join( columns, "," ) + " ";
 
         sql += getFromClause( params );
 
@@ -317,19 +318,26 @@ public class JdbcEventAnalyticsManager
     @Override
     protected String getSelectClause( EventQueryParams params )
     {
-        ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-            .add( "psi", "ps", "executiondate", "storedby", "lastupdated" );
-
-        if ( params.getProgram().isRegistration() )
+        if ( params.hasHeaders() )
         {
-            cols.add( "enrollmentdate", "incidentdate", "tei", "pi" );
+            return "select " + join( getSelectableColumns( params.getHeaders() ), "," ) + " ";
         }
+        else
+        {
+            ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
+                .add( "psi", "ps", "executiondate", "storedby", "lastupdated" );
 
-        cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode" );
+            if ( params.getProgram().isRegistration() )
+            {
+                cols.add( "enrollmentdate", "incidentdate", "tei", "pi" );
+            }
 
-        List<String> selectCols = ListUtils.distinctUnion( cols.build(), getSelectColumns( params ) );
+            cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode" );
 
-        return "select " + StringUtils.join( selectCols, "," ) + " ";
+            List<String> selectCols = distinctUnion( cols.build(), getSelectColumns( params ) );
+
+            return "select " + join( selectCols, "," ) + " ";
+        }
     }
 
     /**

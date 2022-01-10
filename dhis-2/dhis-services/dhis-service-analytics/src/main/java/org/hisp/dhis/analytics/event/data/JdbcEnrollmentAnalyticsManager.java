@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.join;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.getSelectableColumns;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.commons.collection.ListUtils.distinctUnion;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
@@ -56,7 +59,6 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -350,9 +352,16 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     protected String getSelectClause( EventQueryParams params )
     {
-        List<String> selectCols = ListUtils.distinctUnion( COLUMNS, getSelectColumns( params ) );
+        if ( params.hasHeaders() )
+        {
+            return "select " + join( getSelectableColumns( params.getHeaders() ), "," ) + " ";
+        }
+        else
+        {
+            List<String> selectCols = distinctUnion( COLUMNS, getSelectColumns( params ) );
 
-        return "select " + StringUtils.join( selectCols, "," ) + " ";
+            return "select " + join( selectCols, "," ) + " ";
+        }
     }
 
     /**

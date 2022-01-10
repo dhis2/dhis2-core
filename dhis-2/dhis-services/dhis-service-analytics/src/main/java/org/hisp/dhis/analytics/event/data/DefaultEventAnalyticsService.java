@@ -30,27 +30,16 @@ package org.hisp.dhis.analytics.event.data;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.DIVISOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.FACTOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.MULTIPLIER_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
-import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.createGridWithAggregatedHeaders;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.createGridWithClusterHeaders;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.createGridWithDefaultHeaders;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.createGridWithParamHeaders;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.hisp.dhis.common.ValueType.DATE;
-import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,7 +49,6 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
@@ -75,14 +63,12 @@ import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -117,42 +103,6 @@ public class DefaultEventAnalyticsService
         CATEGORYOPTIONCOMBO_DIM_ID, "categoryoptioncombo",
         PERIOD_DIM_ID, "period",
         ORGUNIT_DIM_ID, "organisationunit" );
-
-    private static final String NAME_EVENT = "Event";
-
-    private static final String NAME_TRACKED_ENTITY_INSTANCE = "Tracked entity instance";
-
-    private static final String NAME_PROGRAM_INSTANCE = "Program instance";
-
-    private static final String NAME_PROGRAM_STAGE = "Program stage";
-
-    private static final String NAME_EVENT_DATE = "Event date";
-
-    private static final String NAME_STORED_BY = "Stored by";
-
-    private static final String NAME_LAST_UPDATED = "Last Updated";
-
-    private static final String NAME_ENROLLMENT_DATE = "Enrollment date";
-
-    private static final String NAME_INCIDENT_DATE = "Incident date";
-
-    private static final String NAME_GEOMETRY = "Geometry";
-
-    private static final String NAME_LONGITUDE = "Longitude";
-
-    private static final String NAME_LATITUDE = "Latitude";
-
-    private static final String NAME_ORG_UNIT_NAME = "Organisation unit name";
-
-    private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
-
-    private static final String NAME_COUNT = "Count";
-
-    private static final String NAME_CENTER = "Center";
-
-    private static final String NAME_EXTENT = "Extent";
-
-    private static final String NAME_POINTS = "Points";
 
     private static final Option OPT_TRUE = new Option( "Yes", "1" );
 
@@ -495,13 +445,13 @@ public class DefaultEventAnalyticsService
     {
         params.removeProgramIndicatorItems();
 
-        Grid grid = new ListGrid();
-
         int maxLimit = queryValidator.getMaxLimit();
 
         // ---------------------------------------------------------------------
         // Headers and data
         // ---------------------------------------------------------------------
+
+        Grid grid = new ListGrid();
 
         if ( !params.isSkipData() )
         {
@@ -509,39 +459,7 @@ public class DefaultEventAnalyticsService
             // Headers
             // -----------------------------------------------------------------
 
-            if ( params.isCollapseDataDimensions() || params.isAggregateData() )
-            {
-                grid.addHeader( new GridHeader( DimensionalObject.DATA_COLLAPSED_DIM_ID,
-                    DataQueryParams.DISPLAY_NAME_DATA_X, ValueType.TEXT, false, true ) );
-            }
-            else
-            {
-                for ( QueryItem item : params.getItems() )
-                {
-                    grid.addHeader( new GridHeader(
-                        item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ),
-                        item.getValueType(), false, true, item.getOptionSet(), item.getLegendSet() ) );
-                }
-            }
-
-            for ( DimensionalObject dimension : params.getDimensions() )
-            {
-                grid.addHeader( new GridHeader(
-                    dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ),
-                    TEXT, false, true ) );
-            }
-
-            grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false ) );
-
-            if ( params.isIncludeNumDen() )
-            {
-                grid
-                    .addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false ) )
-                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, false, false ) )
-                    .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, false, false ) )
-                    .addHeader( new GridHeader( MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, false, false ) )
-                    .addHeader( new GridHeader( DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, false, false ) );
-            }
+            grid = createGridWithAggregatedHeaders( params );
 
             // -----------------------------------------------------------------
             // Data
@@ -651,17 +569,11 @@ public class DefaultEventAnalyticsService
 
         queryValidator.validate( params );
 
-        Grid grid = new ListGrid();
-
         // ---------------------------------------------------------------------
         // Headers
         // ---------------------------------------------------------------------
 
-        grid
-            .addHeader( new GridHeader( ITEM_COUNT, NAME_COUNT, NUMBER, false, false ) )
-            .addHeader( new GridHeader( ITEM_CENTER, NAME_CENTER, TEXT, false, false ) )
-            .addHeader( new GridHeader( ITEM_EXTENT, NAME_EXTENT, TEXT, false, false ) )
-            .addHeader( new GridHeader( ITEM_POINTS, NAME_POINTS, TEXT, false, false ) );
+        Grid grid = createGridWithClusterHeaders();
 
         // ---------------------------------------------------------------------
         // Data
@@ -704,46 +616,16 @@ public class DefaultEventAnalyticsService
     @Override
     protected Grid createGridWithHeaders( EventQueryParams params )
     {
-        Grid grid = new ListGrid();
-
-        grid
-            .addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, TEXT, false, true ) )
-            .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, TEXT, false, true ) )
-            .addHeader( new GridHeader( ITEM_EVENT_DATE,
-                LabelMapper.getEventDateLabel( params.getProgramStage(), NAME_EVENT_DATE ), DATE, false, true ) )
-            .addHeader( new GridHeader( ITEM_STORED_BY, NAME_STORED_BY, TEXT, false, true ) )
-            .addHeader( new GridHeader( ITEM_LAST_UPDATED, NAME_LAST_UPDATED, DATE, false, true ) );
-
-        if ( params.getProgram().isRegistration() )
+        // It means that the client is enforcing specific Grid response headers
+        // along with their respective data.
+        if ( params.hasHeaders() )
         {
-            grid
-                .addHeader( new GridHeader(
-                    ITEM_ENROLLMENT_DATE,
-                    LabelMapper.getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false,
-                    true ) )
-                .addHeader( new GridHeader(
-                    ITEM_INCIDENT_DATE,
-                    LabelMapper.getIncidentDateLabel( params.getProgramStage(), NAME_INCIDENT_DATE ), DATE, false,
-                    true ) )
-                .addHeader( new GridHeader(
-                    ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, TEXT, false, true ) )
-                .addHeader( new GridHeader(
-                    ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, TEXT, false, true ) );
+            return createGridWithParamHeaders( new ArrayList<>( params.getHeaders() ), params );
         }
-
-        grid
-            .addHeader( new GridHeader(
-                ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) );
-
-        return grid;
+        else
+        {
+            return createGridWithDefaultHeaders( params );
+        }
     }
 
     /**

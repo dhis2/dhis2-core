@@ -28,11 +28,11 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ENROLLMENT_DATE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_EVENT_DATE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_INCIDENT_DATE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_CODE;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_ENROLLMENT_DATE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_EVENT_DATE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_INCIDENT_DATE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_ORG_UNIT_CODE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_ORG_UNIT_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
@@ -251,6 +251,7 @@ public class DefaultEventDataQueryService
             .withOrgUnitField( request.getOrgUnitField() )
             .withCoordinateField( getCoordinateField( request.getCoordinateField() ) )
             .withFallbackCoordinateField( getFallbackCoordinateField( request.getFallbackCoordinateField() ) )
+            .withHeaders( request.getHeaders() )
             .withPage( request.getPage() )
             .withPageSize( request.getPageSize() )
             .withPaging( request.isPaging() )

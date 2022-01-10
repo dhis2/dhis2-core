@@ -42,42 +42,6 @@ import org.hisp.dhis.common.Grid;
  */
 public interface EventAnalyticsService
 {
-    String ITEM_EVENT = "psi";
-
-    String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
-
-    String ITEM_PROGRAM_INSTANCE = "pi";
-
-    String ITEM_PROGRAM_STAGE = "ps";
-
-    String ITEM_EVENT_DATE = "eventdate";
-
-    String ITEM_STORED_BY = "storedby";
-
-    String ITEM_LAST_UPDATED = "lastupdated";
-
-    String ITEM_ENROLLMENT_DATE = "enrollmentdate";
-
-    String ITEM_INCIDENT_DATE = "incidentdate";
-
-    String ITEM_GEOMETRY = "geometry";
-
-    String ITEM_LONGITUDE = "longitude";
-
-    String ITEM_LATITUDE = "latitude";
-
-    String ITEM_ORG_UNIT_NAME = "ouname";
-
-    String ITEM_ORG_UNIT_CODE = "oucode";
-
-    String ITEM_COUNT = "count";
-
-    String ITEM_CENTER = "center";
-
-    String ITEM_EXTENT = "extent";
-
-    String ITEM_POINTS = "points";
-
     /**
      * Generates aggregated event data for the given query.
      *
