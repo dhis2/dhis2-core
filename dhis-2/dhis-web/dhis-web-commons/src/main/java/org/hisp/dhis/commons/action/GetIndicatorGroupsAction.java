@@ -37,6 +37,7 @@ import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.system.filter.IndicatorGroupWithoutGroupSetFilter;
+import org.hisp.dhis.user.User;
 
 /**
  * @author mortenoh
@@ -87,6 +88,8 @@ public class GetIndicatorGroupsAction
     @Override
     public String execute()
     {
+        canReadType( IndicatorGroup.class );
+
         indicatorGroups = new ArrayList<>( indicatorService.getAllIndicatorGroups() );
 
         if ( filterNoGroupSet )
@@ -100,6 +103,9 @@ public class GetIndicatorGroupsAction
         }
 
         Collections.sort( indicatorGroups );
+
+        User currentUser = currentUserService.getCurrentUser();
+        indicatorGroups.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         if ( usePaging )
         {

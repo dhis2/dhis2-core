@@ -35,7 +35,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Torgeir Lorange Ostby
  */
-public class GetIndicatorGroupAction
+public class GetIndicatorGroupAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -81,11 +81,15 @@ public class GetIndicatorGroupAction
     @Override
     public String execute()
     {
+        canReadType( IndicatorGroup.class );
+
         if ( id != null )
         {
             indicatorGroup = indicatorService.getIndicatorGroup( id );
             memberCount = indicatorGroup.getMembers().size();
         }
+
+        canReadInstance( indicatorGroup, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }
