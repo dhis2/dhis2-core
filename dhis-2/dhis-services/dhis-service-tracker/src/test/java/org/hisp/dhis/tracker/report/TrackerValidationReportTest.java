@@ -33,6 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
@@ -61,6 +63,17 @@ class TrackerValidationReportTest
     }
 
     @Test
+    void addErrorsDoesNotAddNull()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+
+        report.add( Collections.emptyList() );
+
+        assertFalse( report.hasErrors() );
+    }
+
+    @Test
     void addWarningIfItDoesNotExist()
     {
 
@@ -76,6 +89,17 @@ class TrackerValidationReportTest
         report.addWarning( warning );
 
         assertEquals( 1, report.getWarningReports().size() );
+    }
+
+    @Test
+    void addWarningsDoesNotAddNull()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+
+        report.addWarnings( Collections.emptyList() );
+
+        assertFalse( report.hasWarnings() );
     }
 
     @Test
