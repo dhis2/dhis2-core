@@ -28,12 +28,17 @@
 package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.tracker.TrackerType;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -58,6 +63,15 @@ public class TrackerValidationReport
     @JsonIgnore
     @Builder.Default
     private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
+
+    /*
+     * Keeps track of all the invalid Tracker objects (i.e. objects with at
+     * least one TrackerErrorReport in the TrackerValidationReport) encountered
+     * during the validation process.
+     */
+    @JsonIgnore
+    @Builder.Default
+    private Map<TrackerType, List<String>> invalidDTOs = new HashMap<>();
 
     // -----------------------------------------------------------------------------------
     // Utility Methods
@@ -130,6 +144,7 @@ public class TrackerValidationReport
         if ( !this.errorReports.contains( report ) )
         {
             this.errorReports.add( report );
+            this.invalidDTOs.computeIfAbsent( report.getTrackerType(), k -> new ArrayList<>() ).add( report.getUid() );
         }
     }
 
@@ -139,5 +154,23 @@ public class TrackerValidationReport
         {
             this.warningReports.add( report );
         }
+    }
+
+    /**
+     * Checks if a TrackerDto with given type and uid is invalid (i.e. has at
+     * least one TrackerErrorReport in the TrackerValidationReport).
+     */
+    public boolean isInvalid( TrackerType trackerType, String uid )
+    {
+        return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
+    }
+
+    /**
+     * Checks if the given TrackerDto is invalid (i.e. has at least one
+     * TrackerErrorReport in the TrackerValidationReport).
+     */
+    public boolean isInvalid( TrackerDto dto )
+    {
+        return this.isInvalid( dto.getTrackerType(), dto.getUid() );
     }
 }

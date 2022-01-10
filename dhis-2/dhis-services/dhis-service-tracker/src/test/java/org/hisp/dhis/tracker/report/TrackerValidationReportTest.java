@@ -35,6 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.junit.jupiter.api.Test;
 
 class TrackerValidationReportTest
@@ -134,12 +136,39 @@ class TrackerValidationReportTest
         assertEquals( 2, report.size() );
     }
 
+    @Test
+    void isInvalidReturnsTrueWhenDtoHasError()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+        Event event = Event.builder().event( CodeGenerator.generateUid() ).build();
+
+        report.add( newError( event ) );
+
+        assertTrue( report.isInvalid( event ) );
+    }
+
+    @Test
+    void isInvalidReturnsFalseWhenDtoHasNoError()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+        Event event = Event.builder().event( CodeGenerator.generateUid() ).build();
+
+        assertFalse( report.isInvalid( event ) );
+    }
+
     private TrackerErrorReport newError()
     {
+        return newError( CodeGenerator.generateUid(), TrackerErrorCode.E9999 );
+    }
+
+    private TrackerErrorReport newError( TrackerDto dto )
+    {
         return TrackerErrorReport.builder()
-            .uid( CodeGenerator.generateUid() )
-            .errorCode( TrackerErrorCode.E1006 )
-            .addArg( "missingAttribute" )
+            .uid( dto.getUid() )
+            .trackerType( dto.getTrackerType() )
+            .errorCode( TrackerErrorCode.E9999 )
             .build( TrackerBundle.builder().build() );
     }
 
@@ -155,8 +184,7 @@ class TrackerValidationReportTest
     {
         return TrackerWarningReport.builder()
             .uid( CodeGenerator.generateUid() )
-            .warningCode( TrackerErrorCode.E1006 )
-            .addArg( "missingAttribute" )
+            .warningCode( TrackerErrorCode.E9999 )
             .build( TrackerBundle.builder().build() );
     }
 }
