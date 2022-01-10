@@ -305,9 +305,7 @@ public class QueryItem
      */
     public String getSqlFilter( QueryFilter filter, String encodedFilter )
     {
-        String sqlFilter = filter.getSqlFilter( encodedFilter );
-
-        return isText() ? sqlFilter.toLowerCase() : sqlFilter;
+        return filter.getSqlFilter( encodedFilter, valueType );
     }
 
     // -------------------------------------------------------------------------

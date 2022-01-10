@@ -465,7 +465,8 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    String field = getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() );
+                    String field = getSelectSql( filter, item, params.getEarliestStartDate(),
+                        params.getLatestEndDate() );
 
                     if ( IN.equals( filter.getOperator() ) )
                     {
@@ -489,7 +490,7 @@ public class JdbcEventAnalyticsManager
                 for ( QueryFilter filter : item.getFilters() )
                 {
                     sql += hlp.whereAnd() + " "
-                        + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
+                        + getSelectSql( filter, item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
                         " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }

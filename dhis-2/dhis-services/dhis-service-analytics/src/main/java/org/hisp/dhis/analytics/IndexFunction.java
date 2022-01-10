@@ -27,31 +27,24 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.QUOTE;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
-
-class AnalyticsIndexTest
+/**
+ * Represents SQL functions that can be used by indexes.
+ *
+ * @author maikel arabori
+ */
+public enum IndexFunction
 {
+    LOWER( "lower" );
 
-    @Test
-    void testGetIndexName()
+    private final String value;
+
+    IndexFunction( final String value )
     {
-        AnalyticsIndex indexA = new AnalyticsIndex( "analytics_2017_temp", Lists.newArrayList( quote( "quarterly" ) ),
-            null );
-        AnalyticsIndex indexB = new AnalyticsIndex( "analytics_2018_temp",
-            Lists.newArrayList( quote( "ax" ), quote( "co" ) ), null );
-        AnalyticsIndex indexC = new AnalyticsIndex( "analytics_2019_temp", Lists.newArrayList( quote( "YtbsuPPo010" ) ),
-            null );
-        assertTrue(
-            getIndexName( indexA, AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_quarterly_ax_2017_" ) );
-        assertTrue( getIndexName( indexB, AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_ax_co_ax_2018_" ) );
-        assertTrue(
-            getIndexName( indexC, AnalyticsTableType.DATA_VALUE ).startsWith( QUOTE + "in_YtbsuPPo010_ax_2019_" ) );
+        this.value = value;
+    }
+
+    public String value()
+    {
+        return value;
     }
 }
