@@ -127,6 +127,8 @@ import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
+import org.hisp.dhis.analytics.analyze.ExecutionPlan;
+import org.hisp.dhis.analytics.analyze.SqlStatementStack;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
@@ -152,6 +154,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.Timer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -189,6 +192,9 @@ public class DataHandler
 
     private DataAggregator dataAggregator;
 
+    @Autowired
+    private SqlStatementStack sqlStatementStack;
+
     public DataHandler( EventAnalyticsService eventAnalyticsService, RawAnalyticsManager rawAnalyticsManager,
         ConstantService constantService, ExpressionResolvers resolvers, ExpressionService expressionService,
         QueryPlanner queryPlanner, QueryValidator queryValidator, SystemSettingManager systemSettingManager,
@@ -215,6 +221,27 @@ public class DataHandler
         this.systemSettingManager = systemSettingManager;
         this.analyticsManager = analyticsManager;
         this.organisationUnitService = organisationUnitService;
+    }
+
+    void addExecutionPlanData( DataQueryParams params, Grid grid )
+    {
+        if ( params.analyzeOnly() )
+        {
+            String key = params.getAnalyzeOrderId();
+
+            List<ExecutionPlan> plans = sqlStatementStack.getExecutionPlans( key );
+            // grid.addExecutionPlanData( params.getAnalyzeOrderId(),
+            // plans.stream().map( p ->
+            grid.addExecutionPlanData( params.getAnalyzeOrderId(), plans.stream().map( p -> {
+                ExecutionPlan ep = new ExecutionPlan();
+                ep.setQuery( p.getQuery() );
+                ep.setExecution( p.getExecution() );
+
+                return ep;
+            } ).collect( Collectors.toList() ) );
+
+            sqlStatementStack.removeExecutionPlans( key );
+        }
     }
 
     /**
@@ -328,7 +355,7 @@ public class DataHandler
      */
     void addDataElementValues( DataQueryParams params, Grid grid )
     {
-        if ( !params.getAllDataElements().isEmpty() && !params.isSkipData() )
+        if ( !params.getAllDataElements().isEmpty() && (!params.isSkipData() || params.analyzeOnly()) )
         {
             DataQueryParams dataSourceParams = newBuilder( params )
                 .retainDataDimension( DATA_ELEMENT )
@@ -1176,4 +1203,5 @@ public class DataHandler
     {
         this.dataAggregator = dataAggregator;
     }
+
 }

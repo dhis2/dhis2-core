@@ -89,6 +89,16 @@ public class DataSourceConfig
         return jdbcTemplate;
     }
 
+    @Bean( "executionPlanJdbcTemplate" )
+    @DependsOn( "dataSource" )
+    public JdbcTemplate executionPlanJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
+    {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
+        jdbcTemplate.setFetchSize( 1000 );
+        jdbcTemplate.setQueryTimeout( 10 );
+        return jdbcTemplate;
+    }
+
     @Bean( "readOnlyJdbcTemplate" )
     @DependsOn( "dataSource" )
     public JdbcTemplate readOnlyJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )

@@ -95,6 +95,8 @@ public class ListGrid
      */
     private Map<String, Object> metaData;
 
+    private Map<String, Object> executionPlanData;
+
     /**
      * A Map which can hold internal arbitrary meta data. Will not be
      * serialized.
@@ -131,6 +133,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
+        this.executionPlanData = new HashMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -143,6 +146,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
+        this.executionPlanData = new HashMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -346,6 +350,27 @@ public class ListGrid
     public Grid setInternalMetaData( Map<String, Object> internalMetaData )
     {
         this.internalMetaData = internalMetaData;
+        return this;
+    }
+
+    @Override
+    public Grid addExecutionPlanData( String key, Object value )
+    {
+        this.executionPlanData.put( key, value );
+        return this;
+    }
+
+    @Override
+    @JsonProperty
+    public Map<String, Object> getExecutionPlanData()
+    {
+        return executionPlanData;
+    }
+
+    @Override
+    public Grid setExecutionPlanData( Map<String, Object> executionPlanData )
+    {
+        this.executionPlanData = internalMetaData;
         return this;
     }
 

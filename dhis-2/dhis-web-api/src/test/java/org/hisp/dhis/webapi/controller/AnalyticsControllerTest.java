@@ -47,6 +47,7 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.analytics.analyze.SqlStatementStack;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.Grid;
@@ -94,6 +95,9 @@ class AnalyticsControllerTest
     @Mock
     private DimensionService dimensionService;
 
+    @Mock
+    private SqlStatementStack sqlStatementStack;
+
     @BeforeEach
     public void setUp()
     {
@@ -106,7 +110,7 @@ class AnalyticsControllerTest
 
         // Controller under test
         final AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,
-            contextUtils );
+            contextUtils, sqlStatementStack );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
 

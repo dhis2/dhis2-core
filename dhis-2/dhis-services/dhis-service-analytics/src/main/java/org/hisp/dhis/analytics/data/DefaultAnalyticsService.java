@@ -103,13 +103,13 @@ public class DefaultAnalyticsService
 
         queryValidator.validate( params );
 
-        if ( analyticsCache.isEnabled() )
-        {
-            final DataQueryParams immutableParams = newBuilder( params ).build();
-
-            return analyticsCache.getOrFetch( params,
-                p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
-        }
+        // if ( analyticsCache.isEnabled() )
+        // {
+        // final DataQueryParams immutableParams = newBuilder( params ).build();
+        //
+        // return analyticsCache.getOrFetch( params,
+        // p -> dataAggregator.getAggregatedDataValueGrid( immutableParams ) );
+        // }
 
         return dataAggregator.getAggregatedDataValueGrid( params );
     }
