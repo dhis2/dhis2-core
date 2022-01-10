@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,28 +46,28 @@ public class ExpressionResolvers implements ExpressionResolverCollection
     private final List<ExpressionResolver> expressionResolvers;
 
     public ExpressionResolvers(
-        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupTaglessResolver" ) ExpressionResolver cogTaglessExpressionResolver,
-        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" ) ExpressionResolver cogExpressionResolver,
         @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionResolver" ) ExpressionResolver coExpressionResolver,
-        @Qualifier( "org.hisp.dhis.analytics.resolver.DataElementGroupResolver" ) ExpressionResolver degExpressionResolver )
+        @Qualifier( "org.hisp.dhis.analytics.resolver.DataElementGroupResolver" ) ExpressionResolver degExpressionResolver,
+        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupTaglessResolver" ) ExpressionResolver cogTaglessExpressionResolver,
+        @Qualifier( "org.hisp.dhis.analytics.resolver.CategoryOptionGroupResolver" ) ExpressionResolver cogExpressionResolver )
     {
-        checkNotNull( cogTaglessExpressionResolver );
-
-        checkNotNull( cogExpressionResolver );
-
         checkNotNull( coExpressionResolver );
 
         checkNotNull( degExpressionResolver );
 
+        checkNotNull( cogTaglessExpressionResolver );
+
+        checkNotNull( cogExpressionResolver );
+
         expressionResolvers = new ArrayList<>();
-
-        expressionResolvers.add( cogTaglessExpressionResolver );
-
-        expressionResolvers.add( cogExpressionResolver );
 
         expressionResolvers.add( coExpressionResolver );
 
         expressionResolvers.add( degExpressionResolver );
+
+        expressionResolvers.add( cogTaglessExpressionResolver );
+
+        expressionResolvers.add( cogExpressionResolver );
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,12 +42,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Jan Bernitt
  */
 @Getter
-@Builder
+@Builder( toBuilder = true )
 @ToString
 @EqualsAndHashCode
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public final class RequestInfo
 {
+
     @JsonProperty
     private final String headerXRequestID;
+
+    /**
+     * Since the xRequestID is a user provided input that will be used in logs
+     * and potentially other places we need to make sure it is secure to be
+     * used. Therefore, it is limited to unique identifier patterns such as UUID
+     * strings or the UIDs used by DHIS2.
+     *
+     * A valid ID is alphanumeric (which dash and underscored being allowed too)
+     * and has a length between 1 and 36.
+     *
+     * @param xRequestID the ID to check, may be null
+     * @return true, if the provided ID is legal (null is legal) or false if it
+     *         is not
+     */
+    public static boolean isValidXRequestID( String xRequestID )
+    {
+        return xRequestID == null || xRequestID.matches( "[-_a-zA-Z0-9]{1,36}" );
+    }
 }

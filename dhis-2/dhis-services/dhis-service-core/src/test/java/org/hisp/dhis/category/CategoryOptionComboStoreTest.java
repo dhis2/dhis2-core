@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,8 @@ import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,6 +58,9 @@ class CategoryOptionComboStoreTest extends DhisSpringTest
 
     @Autowired
     private CategoryOptionGroupStore categoryOptionGroupStore;
+
+    @Autowired
+    private DataElementService dataElementService;
 
     private Category categoryA;
 
@@ -78,6 +83,8 @@ class CategoryOptionComboStoreTest extends DhisSpringTest
     private CategoryOptionCombo categoryOptionComboB;
 
     private CategoryOptionCombo categoryOptionComboC;
+
+    private DataElement dataElementA;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -111,6 +118,9 @@ class CategoryOptionComboStoreTest extends DhisSpringTest
         categoryComboB.addCategory( categoryA );
         categoryService.addCategoryCombo( categoryComboA );
         categoryService.addCategoryCombo( categoryComboB );
+        dataElementA = createDataElement( 'A' );
+        dataElementA.setCategoryCombo( categoryComboA );
+        dataElementService.addDataElement( dataElementA );
     }
 
     // -------------------------------------------------------------------------
@@ -262,10 +272,10 @@ class CategoryOptionComboStoreTest extends DhisSpringTest
         CategoryOptionGroup catOptionGroup = createCategoryOptionGroup( 'A' );
         catOptionGroup.addCategoryOption( categoryOptionA );
         catOptionGroup.addCategoryOption( categoryOptionB );
-        categoryOptionGroupStore.save( catOptionGroup );
+        categoryService.saveCategoryOptionGroup( catOptionGroup );
         List<CategoryOptionCombo> result = categoryOptionComboStore
-            .getCategoryOptionCombosByGroupUid( catOptionGroup.getUid() );
+            .getCategoryOptionCombosByGroupUid( catOptionGroup.getUid(), dataElementA.getUid() );
         assertNotNull( result );
-        assertEquals( 6, result.size() );
+        assertEquals( categoryComboA.getOptionCombos(), Sets.newHashSet( result ) );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import javax.validation.constraints.NotNull;
 
 import lombok.Data;
 
@@ -102,18 +104,21 @@ public class SimpleDimension implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
     private Attribute parent;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
     private String dimension;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    @NotNull
     private List<String> values = new ArrayList<>();
 
     boolean belongsTo( final Attribute parent )
     {
-        return this.parent.equals( parent );
+        return this.parent == parent;
     }
 }

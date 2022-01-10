@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -205,7 +205,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) );
         dbmsManager.flushSession();
-        dataValueSetService.writeDataValueSetJson( params, out );
+        dataValueSetService.exportDataValueSetJson( params, out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         Set<String> expectedOptionCombos = Sets.newHashSet( cocA.getUid(), cocB.getUid() );
         assertNotNull( dvs );
@@ -242,7 +242,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) );
         dbmsManager.flushSession();
-        dataValueSetService.writeDataValueSetJson( params, out );
+        dataValueSetService.exportDataValueSetJson( params, out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
@@ -272,7 +272,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) );
         dbmsManager.flushSession();
-        assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) );
+        assertThrows( IllegalQueryException.class, () -> dataValueSetService.exportDataValueSetJson( params, out ) );
     }
 
     /**
@@ -297,7 +297,7 @@ class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
         DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
             .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) )
             .setAttributeOptionCombos( Sets.newHashSet( cocA ) );
-        assertThrows( IllegalQueryException.class, () -> dataValueSetService.writeDataValueSetJson( params, out ) );
+        assertThrows( IllegalQueryException.class, () -> dataValueSetService.exportDataValueSetJson( params, out ) );
     }
 
     /**

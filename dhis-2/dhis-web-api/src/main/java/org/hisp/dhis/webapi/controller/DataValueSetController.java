@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -147,7 +147,7 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML,
-            out -> dataValueSetService.writeDataValueSetXml( dataValueSetService.getFromUrl( params ), out ) );
+            out -> dataValueSetService.exportDataValueSetXml( dataValueSetService.getFromUrl( params ), out ) );
     }
 
     @GetMapping( produces = CONTENT_TYPE_XML_ADX )
@@ -177,7 +177,7 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "json", response, CONTENT_TYPE_JSON,
-            out -> dataValueSetService.writeDataValueSetJson( dataValueSetService.getFromUrl( params ), out ) );
+            out -> dataValueSetService.exportDataValueSetJson( dataValueSetService.getFromUrl( params ), out ) );
     }
 
     @GetMapping( produces = CONTENT_TYPE_CSV )
@@ -187,7 +187,7 @@ public class DataValueSetController
         HttpServletResponse response )
     {
         getDataValueSet( attachment, compression, "csv", response, CONTENT_TYPE_CSV,
-            out -> dataValueSetService.writeDataValueSetCsv( dataValueSetService.getFromUrl( params ),
+            out -> dataValueSetService.exportDataValueSetCsv( dataValueSetService.getFromUrl( params ),
                 new PrintWriter( out ) ) );
     }
 
@@ -223,7 +223,7 @@ public class DataValueSetController
         {
             return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_XML, request );
         }
-        ImportSummary summary = dataValueSetService.saveDataValueSet( request.getInputStream(), importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetXml( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
 
         return importSummary( summary ).withPlainResponseBefore( V38 );
@@ -256,7 +256,7 @@ public class DataValueSetController
         {
             return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_JSON, request );
         }
-        ImportSummary summary = dataValueSetService.saveDataValueSetJson( request.getInputStream(), importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetJson( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
 
         return importSummary( summary ).withPlainResponseBefore( V38 );
@@ -272,7 +272,7 @@ public class DataValueSetController
         {
             return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_CSV, request );
         }
-        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( request.getInputStream(), importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetCsv( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
 
         return importSummary( summary ).withPlainResponseBefore( V38 );
@@ -288,7 +288,7 @@ public class DataValueSetController
         {
             return startAsyncImport( importOptions, ImportDataValueTask.FORMAT_PDF, request );
         }
-        ImportSummary summary = dataValueSetService.saveDataValueSetPdf( request.getInputStream(), importOptions );
+        ImportSummary summary = dataValueSetService.importDataValueSetPdf( request.getInputStream(), importOptions );
         summary.setImportOptions( importOptions );
 
         return importSummary( summary ).withPlainResponseBefore( V38 );

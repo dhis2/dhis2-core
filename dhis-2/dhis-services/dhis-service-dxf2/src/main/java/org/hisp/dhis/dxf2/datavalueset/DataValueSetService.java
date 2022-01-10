@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,9 +56,9 @@ public interface DataValueSetService
 
     void decideAccess( DataExportParams params );
 
-    void writeDataValueSetXml( DataExportParams params, OutputStream out );
+    void exportDataValueSetXml( DataExportParams params, OutputStream out );
 
-    void writeDataValueSetJson( DataExportParams params, OutputStream out );
+    void exportDataValueSetJson( DataExportParams params, OutputStream out );
 
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
@@ -68,7 +68,7 @@ public interface DataValueSetService
      * @param outputStream the stream to write to
      * @param idSchemes idSchemes
      */
-    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
+    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes );
 
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
@@ -80,31 +80,31 @@ public interface DataValueSetService
      * @param pageSize pageSize
      * @param page page
      */
-    void writeDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
+    void exportDataValueSetJson( Date lastUpdated, OutputStream outputStream, IdSchemes idSchemes, int pageSize,
         int page );
 
-    void writeDataValueSetCsv( DataExportParams params, Writer writer );
+    void exportDataValueSetCsv( DataExportParams params, Writer writer );
 
     RootNode getDataValueSetTemplate( DataSet dataSet, Period period, List<String> orgUnits, boolean writeComments,
         String ouScheme, String deScheme );
 
-    ImportSummary saveDataValueSet( InputStream in );
+    ImportSummary importDataValueSetXml( InputStream in );
 
-    ImportSummary saveDataValueSetJson( InputStream in );
+    ImportSummary importDataValueSetJson( InputStream in );
 
-    ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions );
+    ImportSummary importDataValueSetXml( InputStream in, ImportOptions importOptions );
 
-    ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions );
+    ImportSummary importDataValueSetJson( InputStream in, ImportOptions importOptions );
 
-    ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions );
+    ImportSummary importDataValueSetCsv( InputStream in, ImportOptions importOptions );
 
-    ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions );
+    ImportSummary importDataValueSetPdf( InputStream in, ImportOptions importOptions );
 
-    ImportSummary saveDataValueSet( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
+    ImportSummary importDataValueSetXml( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
 
-    ImportSummary saveDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
+    ImportSummary importDataValueSetJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId );
 
-    ImportSummary saveDataValueSetCsv( InputStream in, ImportOptions importOptions, JobConfiguration id );
+    ImportSummary importDataValueSetCsv( InputStream in, ImportOptions importOptions, JobConfiguration id );
 
-    ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions, JobConfiguration id );
+    ImportSummary importDataValueSetPdf( InputStream in, ImportOptions importOptions, JobConfiguration id );
 }

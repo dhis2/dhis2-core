@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@ import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
 import static org.hisp.dhis.eventvisualization.Attribute.ROW;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -49,6 +50,7 @@ import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
@@ -379,6 +381,12 @@ public class EventReport
     public List<SimpleDimension> getSimpleDimensions()
     {
         return simpleDimensions;
+    }
+
+    @Override
+    public List<EventRepetition> getEventRepetitions()
+    {
+        return Collections.emptyList();
     }
 
     public void setSimpleDimensions( final List<SimpleDimension> simpleDimensions )

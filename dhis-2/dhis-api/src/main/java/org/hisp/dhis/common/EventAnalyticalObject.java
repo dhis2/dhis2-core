@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -52,6 +53,8 @@ public interface EventAnalyticalObject
     Date getEndDate();
 
     List<SimpleDimension> getSimpleDimensions();
+
+    List<EventRepetition> getEventRepetitions();
 
     EventOutputType getOutputType();
 

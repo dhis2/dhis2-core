@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -104,6 +104,15 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
             .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
     }
 
+    @GetMapping( value = "/{uid}/gist", produces = "text/csv" )
+    public void getObjectGistAsCsv( @PathVariable( "uid" ) String uid,
+        HttpServletRequest request, HttpServletResponse response )
+        throws IOException
+    {
+        gistToCsvResponse( response, createGistQuery( request, getEntityClass(), GistAutoType.L )
+            .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
+    }
+
     @GetMapping( value = "/gist", produces = APPLICATION_JSON_VALUE )
     public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
         HttpServletRequest request, HttpServletResponse response )
@@ -113,7 +122,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     }
 
     @GetMapping( value = "/gist", produces = "text/csv" )
-    public @ResponseBody void getObjectListGistAsCsv( HttpServletRequest request, HttpServletResponse response )
+    public void getObjectListGistAsCsv( HttpServletRequest request, HttpServletResponse response )
         throws IOException
     {
         gistToCsvResponse( response, createGistQuery( request, getEntityClass(), GistAutoType.S ) );
@@ -127,7 +136,6 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         throws Exception
     {
         Property objProperty = getSchema().getProperty( property );
-
         if ( objProperty == null )
         {
             throw new BadRequestException( "No such property: " + property );
@@ -140,16 +148,35 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
                 .withField( property ) );
         }
 
-        @SuppressWarnings( "unchecked" )
-        GistQuery query = createGistQuery( request, (Class<IdentifiableObject>) objProperty.getItemKlass(),
-            GistAutoType.M )
-                .withOwner( Owner.builder()
-                    .id( uid )
-                    .type( getEntityClass() )
-                    .collectionProperty( property ).build() );
-
-        return gistToJsonArrayResponse( request, query,
+        return gistToJsonArrayResponse( request, createPropertyQuery( uid, property, request, objProperty ),
             schemaService.getDynamicSchema( objProperty.getItemKlass() ) );
+    }
+
+    @GetMapping( value = "/{uid}/{property}/gist", produces = "text/csv" )
+    public void getObjectPropertyGistAsCsv(
+        @PathVariable( "uid" ) String uid,
+        @PathVariable( "property" ) String property,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        Property objProperty = getSchema().getProperty( property );
+        if ( objProperty == null )
+        {
+            throw new BadRequestException( "No such property: " + property );
+        }
+        gistToCsvResponse( response, createPropertyQuery( uid, property, request, objProperty ) );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private GistQuery createPropertyQuery( @PathVariable( "uid" ) String uid,
+        @PathVariable( "property" ) String property, HttpServletRequest request, Property objProperty )
+    {
+        return createGistQuery( request, (Class<IdentifiableObject>) objProperty.getItemKlass(), GistAutoType.M )
+            .withOwner( Owner.builder()
+                .id( uid )
+                .type( getEntityClass() )
+                .collectionProperty( property )
+                .build() );
     }
 
     private static GistQuery createGistQuery( HttpServletRequest request,

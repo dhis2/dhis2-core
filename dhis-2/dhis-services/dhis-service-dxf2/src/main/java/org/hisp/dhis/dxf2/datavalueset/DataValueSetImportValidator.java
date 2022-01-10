@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,7 +95,7 @@ public class DataValueSetImportValidator
      */
     interface DataValueValidation
     {
-        void validate( DataValue dataValue, ImportContext context, DataSetContext dataSetContext,
+        void validate( DataValueEntry dataValue, ImportContext context, DataSetContext dataSetContext,
             DataValueContext valueContext );
     }
 
@@ -238,7 +238,7 @@ public class DataValueSetImportValidator
      * DataValue validation
      */
 
-    public boolean skipDataValue( DataValue dataValue, ImportContext context,
+    public boolean skipDataValue( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         ImportSummary summary = context.getSummary();
@@ -256,7 +256,7 @@ public class DataValueSetImportValidator
         return false;
     }
 
-    private static void validateDataValueDataElementExists( DataValue dataValue, ImportContext context,
+    private static void validateDataValueDataElementExists( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( valueContext.getDataElement() == null )
@@ -266,7 +266,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValuePeriodExists( DataValue dataValue, ImportContext context,
+    private static void validateDataValuePeriodExists( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( valueContext.getPeriod() == null )
@@ -276,7 +276,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueOrgUnitExists( DataValue dataValue, ImportContext context,
+    private static void validateDataValueOrgUnitExists( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( valueContext.getOrgUnit() == null )
@@ -286,7 +286,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueCategoryOptionComboExists( DataValue dataValue, ImportContext context,
+    private static void validateDataValueCategoryOptionComboExists( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( valueContext.getCategoryOptionCombo() == null
@@ -297,7 +297,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private void validateDataValueCategoryOptionComboAccess( DataValue dataValue, ImportContext context,
+    private void validateDataValueCategoryOptionComboAccess( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( valueContext.getCategoryOptionCombo() != null )
@@ -314,7 +314,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueAttrOptionComboExists( DataValue dataValue, ImportContext context,
+    private static void validateDataValueAttrOptionComboExists( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( valueContext.getAttrOptionCombo() == null
@@ -325,7 +325,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private void validateDataValueAttrOptionComboAccess( DataValue dataValue, ImportContext context,
+    private void validateDataValueAttrOptionComboAccess( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( valueContext.getAttrOptionCombo() != null )
@@ -342,7 +342,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueOrgUnitInUserHierarchy( DataValue dataValue, ImportContext context,
+    private static void validateDataValueOrgUnitInUserHierarchy( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         boolean inUserHierarchy = context.getOrgUnitInHierarchyMap().get( valueContext.getOrgUnit().getUid(),
@@ -356,7 +356,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueIsDefined( DataValue dataValue, ImportContext context,
+    private static void validateDataValueIsDefined( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( dataValue.isNullValue() && !dataValue.isDeletedValue() && !context.getStrategy().isDelete() )
@@ -366,14 +366,13 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueIsValid( DataValue dataValue, ImportContext context,
+    private static void validateDataValueIsValid( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
-        dataValue.setValueForced(
-            ValidationUtils.normalizeBoolean( dataValue.getValue(),
-                valueContext.getDataElement().getValueType() ) );
+        String value = ValidationUtils.normalizeBoolean( dataValue.getValue(),
+            valueContext.getDataElement().getValueType() );
 
-        String errorKey = ValidationUtils.dataValueIsValid( dataValue.getValue(), valueContext.getDataElement() );
+        String errorKey = ValidationUtils.dataValueIsValid( value, valueContext.getDataElement() );
 
         if ( errorKey != null )
         {
@@ -383,7 +382,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueCommentIsValid( DataValue dataValue, ImportContext context,
+    private static void validateDataValueCommentIsValid( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         String errorKey = ValidationUtils.commentIsValid( dataValue.getComment() );
@@ -394,7 +393,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void validateDataValueOptionsExist( DataValue dataValue, ImportContext context,
+    private static void validateDataValueOptionsExist( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         Optional<Set<String>> optionCodes = context.getDataElementOptionsMap().get(
@@ -414,7 +413,7 @@ public class DataValueSetImportValidator
      * DataValue Constraints
      */
 
-    private static void checkDataValueCategoryOptionCombo( DataValue dataValue, ImportContext context,
+    private static void checkDataValueCategoryOptionCombo( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( valueContext.getCategoryOptionCombo() == null )
@@ -431,7 +430,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueAttrOptionCombo( DataValue dataValue, ImportContext context,
+    private static void checkDataValueAttrOptionCombo( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( valueContext.getAttrOptionCombo() == null )
@@ -448,7 +447,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValuePeriodType( DataValue dataValue, ImportContext context,
+    private static void checkDataValuePeriodType( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( context.isStrictPeriods() && !context.getDataElementPeriodTypesMap()
@@ -462,7 +461,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueStrictDataElement( DataValue dataValue, ImportContext context,
+    private static void checkDataValueStrictDataElement( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( context.isStrictDataElements()
@@ -474,7 +473,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueStrictCategoryOptionCombos( DataValue dataValue, ImportContext context,
+    private static void checkDataValueStrictCategoryOptionCombos( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( context.isStrictCategoryOptionCombos()
@@ -488,7 +487,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueStrictAttrOptionCombos( DataValue dataValue, ImportContext context,
+    private static void checkDataValueStrictAttrOptionCombos( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( context.isStrictAttrOptionCombos()
@@ -502,7 +501,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueStrictOrgUnits( DataValue dataValue, ImportContext context,
+    private static void checkDataValueStrictOrgUnits( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( context.isStrictOrgUnits()
@@ -516,7 +515,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueStoredByIsValid( DataValue dataValue, ImportContext context,
+    private static void checkDataValueStoredByIsValid( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         String errorKey = ValidationUtils.storedByIsValid( dataValue.getStoredBy() );
@@ -528,7 +527,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValuePeriodWithinAttrOptionComboRange( DataValue dataValue, ImportContext context,
+    private static void checkDataValuePeriodWithinAttrOptionComboRange( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         final CategoryOptionCombo aoc = valueContext.getAttrOptionCombo();
@@ -552,7 +551,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueOrgUnitValidForAttrOptionCombo( DataValue dataValue, ImportContext context,
+    private static void checkDataValueOrgUnitValidForAttrOptionCombo( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( !context.getAttrOptionComboOrgUnitMap()
@@ -571,7 +570,7 @@ public class DataValueSetImportValidator
         return aocOrgUnits == null || valueContext.getOrgUnit().isDescendant( aocOrgUnits );
     }
 
-    private void checkDataValueTodayNotPastPeriodExpiry( DataValue dataValue, ImportContext context,
+    private void checkDataValueTodayNotPastPeriodExpiry( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         final DataSet approvalDataSet = context.getApprovalDataSet( dataSetContext, valueContext );
@@ -591,7 +590,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueNotAfterLatestOpenFuturePeriod( DataValue dataValue, ImportContext context,
+    private static void checkDataValueNotAfterLatestOpenFuturePeriod( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         final DataSet approvalDataSet = context.getApprovalDataSet( dataSetContext, valueContext );
@@ -612,7 +611,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private void checkDataValueNotAlreadyApproved( DataValue dataValue, ImportContext context,
+    private void checkDataValueNotAlreadyApproved( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         final DataSet approvalDataSet = context.getApprovalDataSet( dataSetContext, valueContext );
@@ -647,7 +646,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValuePeriodIsOpenNow( DataValue dataValue, ImportContext context,
+    private static void checkDataValuePeriodIsOpenNow( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         final DataSet approvalDataSet = context.getApprovalDataSet( dataSetContext, valueContext );
@@ -661,7 +660,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private static void checkDataValueConformsToOpenPeriodsOfAssociatedDataSets( DataValue dataValue,
+    private static void checkDataValueConformsToOpenPeriodsOfAssociatedDataSets( DataValueEntry dataValue,
         ImportContext context, DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( !context.isForceDataInput()
@@ -675,7 +674,7 @@ public class DataValueSetImportValidator
         }
     }
 
-    private void checkDataValueFileResourceExists( DataValue dataValue, ImportContext context,
+    private void checkDataValueFileResourceExists( DataValueEntry dataValue, ImportContext context,
         DataSetContext dataSetContext, DataValueContext valueContext )
     {
         if ( context.getStrategy().isDelete() && valueContext.getDataElement().isFileType()

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -64,6 +64,7 @@ import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroupSetDimension;
 import org.hisp.dhis.eventvisualization.Attribute;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.SimpleDimension;
 import org.hisp.dhis.eventvisualization.SimpleDimension.Type;
 import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
@@ -540,20 +541,56 @@ public abstract class BaseAnalyticalObject
     protected DimensionalObject getDimensionalObject( final EventAnalyticalObject eventAnalyticalObject,
         final String dimension, final Attribute parent )
     {
-        final Optional<DimensionalObject> dimensionalObject = getDimensionalObject( dimension );
+        final Optional<DimensionalObject> optionalDimensionalObject = getDimensionalObject( dimension );
 
-        if ( dimensionalObject.isPresent() )
+        if ( optionalDimensionalObject.isPresent() )
         {
-            return dimensionalObject.get();
+            return linkAssociations( eventAnalyticalObject, optionalDimensionalObject.get(), parent );
         }
         else if ( Type.contains( dimension ) )
         {
-            return new SimpleDimensionHandler( eventAnalyticalObject ).getDimensionalObject( dimension, parent );
+            final DimensionalObject dimensionalObject = new SimpleDimensionHandler( eventAnalyticalObject )
+                .getDimensionalObject( dimension, parent );
+
+            return linkAssociations( eventAnalyticalObject, dimensionalObject, parent );
         }
         else
         {
             throw new IllegalArgumentException( format( NOT_A_VALID_DIMENSION, dimension ) );
         }
+    }
+
+    /**
+     * This method links existing associations between objects. This is mainly
+     * needed in cases where attributes need to be programmatically associated
+     * to fulfill client requirements.
+     *
+     * @param eventAnalyticalObject the source object
+     * @param dimensionalObject where the associations will happen
+     * @param parent the parent attribute, where the association object should
+     *        be appended to
+     * @return the dimensional object containing the correct associations.
+     */
+    private DimensionalObject linkAssociations( final EventAnalyticalObject eventAnalyticalObject,
+        final DimensionalObject dimensionalObject, final Attribute parent )
+    {
+        // Associating event repetitions.
+        final List<EventRepetition> repetitions = eventAnalyticalObject.getEventRepetitions();
+
+        if ( isNotEmpty( repetitions ) )
+        {
+            for ( final EventRepetition eventRepetition : repetitions )
+            {
+                if ( eventRepetition.getDimension() != null
+                    && eventRepetition.getDimension().equals( dimensionalObject.getDimension() )
+                    && parent == eventRepetition.getParent() )
+                {
+                    ((BaseDimensionalObject) dimensionalObject).setEventRepetition( eventRepetition );
+                }
+            }
+        }
+
+        return dimensionalObject;
     }
 
     /**

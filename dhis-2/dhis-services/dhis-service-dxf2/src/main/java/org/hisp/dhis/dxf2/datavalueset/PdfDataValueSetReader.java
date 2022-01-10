@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,86 +28,45 @@
 package org.hisp.dhis.dxf2.datavalueset;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 
-import org.hisp.dhis.dxf2.datavalue.DataValue;
-import org.hisp.dhis.dxf2.datavalue.StreamingCsvDataValue;
+import lombok.AllArgsConstructor;
 
-import com.csvreader.CsvReader;
-import com.csvreader.CsvWriter;
+import org.hisp.dhis.dxf2.pdfform.PdfDataEntryFormUtil;
 
 /**
- * @author Lars Helge Overland
+ * Reads {@link DataValueSet} from PDF input.
+ *
+ * @author Jan Bernitt
  */
-public class StreamingCsvDataValueSet
-    extends DataValueSet
+@AllArgsConstructor
+final class PdfDataValueSetReader implements DataValueSetReader
 {
-    private CsvWriter writer;
+    private final InputStream in;
 
-    private CsvReader reader;
-
-    public StreamingCsvDataValueSet( CsvWriter writer )
+    @Override
+    public DataValueSet readHeader()
     {
-        this.writer = writer;
-
-        try
-        {
-            this.writer.writeRecord( StreamingCsvDataValue.getHeaders() ); // Write
-                                                                           // headers
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to write CSV headers", ex );
-        }
-    }
-
-    public StreamingCsvDataValueSet( CsvReader reader )
-    {
-        this.reader = reader;
+        return PdfDataEntryFormUtil.getDataValueSet( in );
     }
 
     @Override
-    public boolean hasNextDataValue()
+    public DataValueEntry readNext()
     {
-        try
-        {
-            return reader.readRecord();
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to read record", ex );
-        }
-    }
-
-    @Override
-    public DataValue getNextDataValue()
-    {
-        try
-        {
-            return new StreamingCsvDataValue( reader.getValues() );
-        }
-        catch ( IOException ex )
-        {
-            throw new RuntimeException( "Failed to get CSV values", ex );
-        }
-    }
-
-    @Override
-    public DataValue getDataValueInstance()
-    {
-        return new StreamingCsvDataValue( writer );
+        return null; // header contains the values
     }
 
     @Override
     public void close()
     {
-        if ( writer != null )
+        try
         {
-            writer.close();
+            in.close();
         }
-
-        if ( reader != null )
+        catch ( IOException ex )
         {
-            reader.close();
+            throw new UncheckedIOException( ex );
         }
     }
 }

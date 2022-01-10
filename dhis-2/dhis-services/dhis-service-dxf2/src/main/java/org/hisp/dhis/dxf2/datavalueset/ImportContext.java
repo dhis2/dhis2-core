@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -217,7 +216,7 @@ public final class ImportContext
         summary.addConflict( ImportConflict.createConflict( i18n, singularNameForType, index, descriptor, objects ) );
     }
 
-    public String getStoredBy( DataValue dataValue )
+    public String getStoredBy( DataValueEntry dataValue )
     {
         return dataValue.getStoredBy() == null || dataValue.getStoredBy().trim().isEmpty()
             ? getCurrentUserName()
