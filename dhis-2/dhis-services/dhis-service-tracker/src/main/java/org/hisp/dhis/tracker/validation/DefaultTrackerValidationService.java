@@ -100,9 +100,9 @@ public class DefaultTrackerValidationService
 
                 hook.validate( reporter, context );
 
-                validationReport.addTiming( Timing.builder()
-                    .name( hook.getClass().getName() )
-                    .totalTime( hookTimer.toString() ).build() );
+                validationReport.addTiming( new Timing(
+                    hook.getClass().getName(),
+                    hookTimer.toString() ) );
             }
         }
         catch ( ValidationFailFastException e )
