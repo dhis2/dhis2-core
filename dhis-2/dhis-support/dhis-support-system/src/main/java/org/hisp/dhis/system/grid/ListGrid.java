@@ -134,7 +134,6 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
-        this.performanceMetrics = new PerformanceMetrics();
         this.grid = new ArrayList<>();
     }
 
@@ -147,7 +146,6 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
-        this.performanceMetrics = new PerformanceMetrics();
         this.grid = new ArrayList<>();
     }
 

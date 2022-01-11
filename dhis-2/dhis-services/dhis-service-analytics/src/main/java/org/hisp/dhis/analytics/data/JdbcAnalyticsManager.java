@@ -128,7 +128,7 @@ public class JdbcAnalyticsManager
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final ExecutionPlanCache sqlStatementStack;
+    private final ExecutionPlanCache executionPlanCache;
 
     public JdbcAnalyticsManager( QueryPlanner queryPlanner,
         @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ExecutionPlanCache sqlStatementStack )
@@ -139,7 +139,7 @@ public class JdbcAnalyticsManager
 
         this.queryPlanner = queryPlanner;
         this.jdbcTemplate = jdbcTemplate;
-        this.sqlStatementStack = sqlStatementStack;
+        this.executionPlanCache = sqlStatementStack;
     }
 
     // -------------------------------------------------------------------------
@@ -184,7 +184,7 @@ public class JdbcAnalyticsManager
 
             if ( params.analyzeOnly() )
             {
-                sqlStatementStack.addExecutionPlan( params.getAnalyzeOrderId(), sql );
+                executionPlanCache.addExecutionPlan( params.getAnalyzeOrderId(), sql );
                 return new AsyncResult<>( Maps.newHashMap() );
             }
 
