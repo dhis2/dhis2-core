@@ -129,6 +129,20 @@ public class FieldFilterService
         return objectNodes;
     }
 
+    public ObjectNode createObjectNode()
+    {
+        return jsonMapper.createObjectNode();
+    }
+
+    public ArrayNode createArrayNode()
+    {
+        return jsonMapper.createArrayNode();
+    }
+
+    // ------------------------------------------------------------------------------------------------------------------
+    // HELPERS
+    // ------------------------------------------------------------------------------------------------------------------
+
     private void applyTransformers( JsonNode node, JsonNode parent, String path,
         Map<String, List<FieldTransformer>> fieldTransformers )
     {

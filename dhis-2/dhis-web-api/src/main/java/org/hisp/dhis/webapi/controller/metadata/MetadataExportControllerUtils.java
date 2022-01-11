@@ -38,6 +38,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 /**
  * Utilities for metadata export controllers.
  *
@@ -59,8 +61,11 @@ public abstract class MetadataExportControllerUtils
      * @return the response with the metadata.
      */
     @Nonnull
-    public static ResponseEntity<RootNode> getWithDependencies( @Nonnull ContextService contextService,
-        @Nonnull MetadataExportService exportService, @Nonnull IdentifiableObject identifiableObject, boolean download )
+    public static ResponseEntity<RootNode> getWithDependencies( @Nonnull
+    ContextService contextService,
+        @Nonnull
+        MetadataExportService exportService, @Nonnull
+        IdentifiableObject identifiableObject, boolean download )
     {
         final MetadataExportParams exportParams = exportService
             .getParamsFromMap( contextService.getParameterValuesMap() );
@@ -81,7 +86,21 @@ public abstract class MetadataExportControllerUtils
      * @return the response with the metadata.
      */
     @Nonnull
-    public static ResponseEntity<RootNode> createResponseEntity( @Nonnull RootNode rootNode, boolean download )
+    public static ResponseEntity<RootNode> createResponseEntity( @Nonnull
+    RootNode rootNode, boolean download )
+    {
+        HttpHeaders headers = new HttpHeaders();
+        if ( download )
+        {
+            // triggers that corresponding message converter adds also a file
+            // name with a correct extension
+            headers.add( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
+        }
+        return new ResponseEntity<>( rootNode, headers, HttpStatus.OK );
+    }
+
+    @Nonnull
+    public static ResponseEntity<JsonNode> createJsonNodeResponseEntity( JsonNode rootNode, boolean download )
     {
         HttpHeaders headers = new HttpHeaders();
         if ( download )
