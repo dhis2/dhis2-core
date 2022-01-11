@@ -37,18 +37,13 @@ import lombok.Data;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
-import org.hisp.dhis.tracker.domain.*;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
 /**
  * A class that collects {@link TrackerErrorReport} during the validation
  * process.
- *
- * Each {@link TrackerErrorReport} collection is connected to a specific Tracker
- * entity (Tracked Entity, Enrollment, etc.) via the "mainUid" attribute
- *
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -64,16 +59,6 @@ public class ValidationErrorReporter
     private final boolean isFailFast;
 
     private final TrackerImportValidationContext validationContext;
-
-    /*
-     * The Tracker object uid to which this reporter is associated.
-     */
-    private String mainId;
-
-    /*
-     * The type of object associated to this report
-     */
-    private TrackerType dtoType;
 
     /*
      * A map that keep tracks of all the invalid Tracker objects encountered
@@ -104,41 +89,6 @@ public class ValidationErrorReporter
         this.invalidDTOs = new HashMap<>();
     }
 
-    public ValidationErrorReporter( TrackerImportValidationContext context, TrackerDto dto, TrackerType trackerType )
-    {
-        this( context );
-        this.dtoType = trackerType;
-        this.mainId = dto.getUid();
-    }
-
-    public ValidationErrorReporter( TrackerImportValidationContext context, TrackedEntity trackedEntity )
-    {
-        this( context );
-        this.dtoType = TrackerType.TRACKED_ENTITY;
-        this.mainId = trackedEntity.getTrackedEntity();
-    }
-
-    public ValidationErrorReporter( TrackerImportValidationContext context, Enrollment enrollment )
-    {
-        this( context );
-        this.dtoType = TrackerType.ENROLLMENT;
-        this.mainId = enrollment.getEnrollment();
-    }
-
-    public ValidationErrorReporter( TrackerImportValidationContext context, Event event )
-    {
-        this( context );
-        this.dtoType = TrackerType.EVENT;
-        this.mainId = event.getEvent();
-    }
-
-    public ValidationErrorReporter( TrackerImportValidationContext context, Relationship relationship )
-    {
-        this( context );
-        this.dtoType = TrackerType.RELATIONSHIP;
-        this.mainId = relationship.getRelationship();
-    }
-
     public boolean hasErrors()
     {
         return !this.reportList.isEmpty();
@@ -159,16 +109,10 @@ public class ValidationErrorReporter
         return !this.warningsReportList.isEmpty();
     }
 
-    public void addError( TrackerErrorReport.TrackerErrorReportBuilder builder )
+    public void addError( TrackerErrorReport error )
     {
-        builder.trackerType( this.dtoType );
-
-        if ( this.mainId != null )
-        {
-            builder.uid( this.mainId );
-        }
-
-        getReportList().add( builder.build( this.validationContext.getBundle() ) );
+        getReportList().add( error );
+        this.invalidDTOs.computeIfAbsent( error.getTrackerType(), k -> new ArrayList<>() ).add( error.getUid() );
 
         if ( isFailFast() )
         {
@@ -176,27 +120,9 @@ public class ValidationErrorReporter
         }
     }
 
-    public void addWarning( TrackerWarningReport.TrackerWarningReportBuilder builder )
+    public void addWarning( TrackerWarningReport warning )
     {
-        builder.trackerType( this.dtoType );
-
-        if ( this.mainId != null )
-        {
-            builder.uid( this.mainId );
-        }
-        getWarningsReportList().add( builder.build( this.validationContext.getBundle() ) );
-    }
-
-    public void merge( ValidationErrorReporter reporter )
-    {
-        // add the root invalid object to the map, if invalid
-        if ( reporter.getReportList().size() > 0 )
-        {
-            this.invalidDTOs.computeIfAbsent( reporter.dtoType, k -> new ArrayList<>() ).add( reporter.mainId );
-
-            this.reportList.addAll( reporter.getReportList() );
-        }
-        this.warningsReportList.addAll( reporter.getWarningsReportList() );
+        getWarningsReportList().add( warning );
     }
 
     /**
@@ -211,10 +137,5 @@ public class ValidationErrorReporter
     public boolean isInvalid( TrackerDto dto )
     {
         return this.isInvalid( dto.getTrackerType(), dto.getUid() );
-    }
-
-    public TrackerPreheat getPreheat()
-    {
-        return this.getValidationContext().getBundle().getPreheat();
     }
 }

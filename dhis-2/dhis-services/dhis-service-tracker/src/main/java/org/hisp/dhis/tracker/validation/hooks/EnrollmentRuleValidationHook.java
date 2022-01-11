@@ -68,6 +68,6 @@ public class EnrollmentRuleValidationHook
                 .getOrDefault( enrollment.getEnrollment(), Lists.newArrayList() ).stream() )
             .collect( Collectors.toList() );
 
-        addIssuesToReporter( reporter, programRuleIssues );
+        addIssuesToReporter( reporter, enrollment, programRuleIssues );
     }
 }

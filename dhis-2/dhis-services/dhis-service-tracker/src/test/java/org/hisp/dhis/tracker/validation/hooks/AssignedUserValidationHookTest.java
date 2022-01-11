@@ -95,7 +95,7 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -113,7 +113,7 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( "not_valid_uid" );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         this.hookToTest.validateEvent( reporter, event );
@@ -131,7 +131,7 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         TrackerBundle bundle = TrackerBundle.builder().build();
@@ -153,7 +153,7 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         ProgramStage programStage = new ProgramStage();
@@ -179,7 +179,7 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
 
         // when
         ProgramStage programStage = new ProgramStage();

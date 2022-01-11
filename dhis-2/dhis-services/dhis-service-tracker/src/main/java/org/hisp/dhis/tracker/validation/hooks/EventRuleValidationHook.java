@@ -69,6 +69,6 @@ public class EventRuleValidationHook
                     .getOrDefault( event.getEvent(), Lists.newArrayList() ).stream() )
             .collect( Collectors.toList() );
 
-        addIssuesToReporter( reporter, programRuleIssues );
+        addIssuesToReporter( reporter, event, programRuleIssues );
     }
 }

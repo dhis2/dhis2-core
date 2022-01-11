@@ -68,13 +68,13 @@ public class EventDateValidationHook
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
-            addError( reporter, E1031, event );
+            addError( reporter, event, E1031, event );
             return;
         }
 
         if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
         {
-            addError( reporter, E1050, event );
+            addError( reporter, event, E1050, event );
             return;
         }
 
@@ -100,13 +100,13 @@ public class EventDateValidationHook
         {
             if ( event.getCompletedAt() == null )
             {
-                addErrorIfNull( event.getCompletedAt(), reporter, E1042, event );
+                addErrorIfNull( event.getCompletedAt(), reporter, event, E1042, event );
             }
             else
             {
                 if ( now().isAfter( event.getCompletedAt().plus( ofDays( program.getCompleteEventsExpiryDays() ) ) ) )
                 {
-                    addError( reporter, E1043, event );
+                    addError( reporter, event, E1043, event );
                 }
             }
         }
@@ -131,7 +131,7 @@ public class EventDateValidationHook
 
         if ( referenceDate == null )
         {
-            addError( reporter, E1046, event );
+            addError( reporter, event, E1046, event );
             return;
         }
 
@@ -139,7 +139,7 @@ public class EventDateValidationHook
 
         if ( referenceDate.isBefore( period.getStartDate().toInstant() ) )
         {
-            addError( reporter, E1047, event );
+            addError( reporter, event, E1047, event );
         }
     }
 

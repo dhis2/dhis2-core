@@ -27,8 +27,14 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1005;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1010;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1011;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1013;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1068;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1069;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1070;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4006;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.trackedEntityInstanceExist;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -60,13 +66,13 @@ public class PreCheckMetaValidationHook
         OrganisationUnit organisationUnit = context.getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )
         {
-            addError( reporter, TrackerErrorCode.E1049, tei.getOrgUnit() );
+            addError( reporter, tei, TrackerErrorCode.E1049, tei.getOrgUnit() );
         }
 
         TrackedEntityType entityType = context.getTrackedEntityType( tei.getTrackedEntityType() );
         if ( entityType == null )
         {
-            addError( reporter, E1005, tei.getTrackedEntityType() );
+            addError( reporter, tei, E1005, tei.getTrackedEntityType() );
         }
     }
 
@@ -76,13 +82,13 @@ public class PreCheckMetaValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
-        addErrorIfNull( organisationUnit, reporter, E1070, enrollment.getOrgUnit() );
+        addErrorIfNull( organisationUnit, reporter, enrollment, E1070, enrollment.getOrgUnit() );
 
         Program program = context.getProgram( enrollment.getProgram() );
-        addErrorIfNull( program, reporter, E1069, enrollment.getProgram() );
+        addErrorIfNull( program, reporter, enrollment, E1069, enrollment.getProgram() );
 
-        addErrorIf( () -> !trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ),
-            reporter, E1068, enrollment.getTrackedEntity() );
+        addErrorIf( () -> !trackedEntityInstanceExist( context, enrollment.getTrackedEntity() ), reporter, enrollment,
+            E1068, enrollment.getTrackedEntity() );
     }
 
     @Override
@@ -91,13 +97,13 @@ public class PreCheckMetaValidationHook
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
-        addErrorIfNull( organisationUnit, reporter, E1011, event.getOrgUnit() );
+        addErrorIfNull( organisationUnit, reporter, event, E1011, event.getOrgUnit() );
 
         Program program = context.getProgram( event.getProgram() );
-        addErrorIfNull( program, reporter, E1010, event.getProgram() );
+        addErrorIfNull( program, reporter, event, E1010, event.getProgram() );
 
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        addErrorIfNull( programStage, reporter, E1013, event.getProgramStage() );
+        addErrorIfNull( programStage, reporter, event, E1013, event.getProgramStage() );
     }
 
     @Override
@@ -107,7 +113,7 @@ public class PreCheckMetaValidationHook
 
         RelationshipType relationshipType = context.getRelationShipType( relationship.getRelationshipType() );
 
-        addErrorIfNull( relationshipType, reporter, E4006, relationship.getRelationshipType() );
+        addErrorIfNull( relationshipType, reporter, relationship, E4006, relationship.getRelationshipType() );
     }
 
     @Override
