@@ -101,40 +101,46 @@ public class TrackerValidationReport
         return Collections.unmodifiableList( timings );
     }
 
-    public void addError( TrackerErrorReport error )
+    public TrackerValidationReport addError( TrackerErrorReport error )
     {
         addErrorIfNotExisting( error );
+        return this;
     }
 
-    public void addErrors( List<TrackerErrorReport> errors )
+    public TrackerValidationReport addErrors( List<TrackerErrorReport> errors )
     {
         for ( TrackerErrorReport error : errors )
         {
             addErrorIfNotExisting( error );
         }
+        return this;
     }
 
-    public void addWarning( TrackerWarningReport warning )
+    public TrackerValidationReport addWarning( TrackerWarningReport warning )
     {
         addWarningIfNotExisting( warning );
+        return this;
     }
 
-    public void addWarnings( List<TrackerWarningReport> warnings )
+    public TrackerValidationReport addWarnings( List<TrackerWarningReport> warnings )
     {
         for ( TrackerWarningReport warning : warnings )
         {
             addWarningIfNotExisting( warning );
         }
+        return this;
     }
 
-    public void addTimings( List<Timing> timings )
-    {
-        this.timings.addAll( timings );
-    }
-
-    public void addTiming( Timing timing )
+    public TrackerValidationReport addTiming( Timing timing )
     {
         timings.add( timing );
+        return this;
+    }
+
+    public TrackerValidationReport addTimings( List<Timing> timings )
+    {
+        this.timings.addAll( timings );
+        return this;
     }
 
     public boolean hasErrors()

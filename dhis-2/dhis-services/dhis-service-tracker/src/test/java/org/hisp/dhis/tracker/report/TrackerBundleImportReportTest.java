@@ -157,10 +157,9 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         TrackerValidationReport tvr = new TrackerValidationReport();
         // Error Reports - Validation Report
         tvr.addError( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
-            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) );
-        // Warning Reports - Validation Report
-        tvr.addWarning( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
-            TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
+            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) )
+            .addWarning( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
+                TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
         // Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
@@ -267,13 +266,12 @@ class TrackerBundleImportReportTest extends DhisSpringTest
 
     private TrackerValidationReport createValidationReport()
     {
-        TrackerValidationReport report = new TrackerValidationReport();
-        report.addError(
-            new TrackerErrorReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) );
-        report.addWarning(
-            new TrackerWarningReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) );
-        report.addTiming( new Timing( "1min", "validation" ) );
-        return report;
+        return new TrackerValidationReport()
+            .addError(
+                new TrackerErrorReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
+            .addWarning(
+                new TrackerWarningReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) )
+            .addTiming( new Timing( "1min", "validation" ) );
     }
 
     private TrackerBundleReport createBundleReport()
