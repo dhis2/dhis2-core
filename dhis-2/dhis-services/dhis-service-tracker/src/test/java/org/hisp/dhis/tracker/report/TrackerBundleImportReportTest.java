@@ -80,7 +80,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         assertNotNull( report.getValidationReport() );
         assertTrue( report.getValidationReport().hasErrors() );
         assertFalse( report.getValidationReport().hasWarnings() );
-        assertFalse( report.getValidationReport().hasPerfs() );
+        assertFalse( report.getValidationReport().hasTimings() );
         assertNull( report.getTimingsStats() );
     }
 
@@ -95,7 +95,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         assertNotNull( report.getValidationReport() );
         assertTrue( report.getValidationReport().hasErrors() );
         assertTrue( report.getValidationReport().hasWarnings() );
-        assertFalse( report.getValidationReport().hasPerfs() );
+        assertFalse( report.getValidationReport().hasTimings() );
         assertNull( report.getTimingsStats() );
     }
 
@@ -110,7 +110,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         assertNotNull( report.getValidationReport() );
         assertTrue( report.getValidationReport().hasErrors() );
         assertTrue( report.getValidationReport().hasWarnings() );
-        assertTrue( report.getValidationReport().hasPerfs() );
+        assertTrue( report.getValidationReport().hasTimings() );
         assertNotNull( report.getTimingsStats() );
         assertEquals( "1 sec.", report.getTimingsStats().getProgramRule() );
         assertEquals( "2 sec.", report.getTimingsStats().getCommit() );
@@ -272,7 +272,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
             new TrackerErrorReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) );
         report.addWarning(
             new TrackerWarningReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) );
-        report.addPerfReport( new TrackerValidationHookTimerReport( "1min", "validation" ) );
+        report.addTiming( new Timing( "1min", "validation" ) );
         return report;
     }
 

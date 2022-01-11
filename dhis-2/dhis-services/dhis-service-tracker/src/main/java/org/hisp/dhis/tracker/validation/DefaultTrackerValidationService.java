@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerValidationHookTimerReport;
+import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
@@ -100,7 +100,7 @@ public class DefaultTrackerValidationService
 
                 hook.validate( reporter, context );
 
-                validationReport.addPerfReport( TrackerValidationHookTimerReport.builder()
+                validationReport.addTiming( Timing.builder()
                     .name( hook.getClass().getName() )
                     .totalTime( hookTimer.toString() ).build() );
             }

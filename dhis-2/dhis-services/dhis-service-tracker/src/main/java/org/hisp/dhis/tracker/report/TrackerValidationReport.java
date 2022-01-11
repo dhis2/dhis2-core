@@ -57,7 +57,7 @@ public class TrackerValidationReport
     private final List<TrackerWarningReport> warningReports;
 
     @JsonIgnore
-    private final List<TrackerValidationHookTimerReport> performanceReport;
+    private final List<Timing> timings;
 
     /*
      * Keeps track of all the invalid Tracker objects (i.e. objects with at
@@ -71,7 +71,7 @@ public class TrackerValidationReport
     {
         this.errorReports = new ArrayList<>();
         this.warningReports = new ArrayList<>();
-        this.performanceReport = new ArrayList<>();
+        this.timings = new ArrayList<>();
         this.invalidDTOs = new HashMap<>();
     }
 
@@ -83,7 +83,7 @@ public class TrackerValidationReport
     {
         addErrors( report.getErrors() );
         addWarnings( report.getWarnings() );
-        addPerfReports( report.getPerformanceReport() );
+        addTimings( report.getTimings() );
     }
 
     public List<TrackerErrorReport> getErrors()
@@ -96,9 +96,9 @@ public class TrackerValidationReport
         return Collections.unmodifiableList( warningReports );
     }
 
-    public List<TrackerValidationHookTimerReport> getPerformanceReport()
+    public List<Timing> getTimings()
     {
-        return Collections.unmodifiableList( performanceReport );
+        return Collections.unmodifiableList( timings );
     }
 
     public void addError( TrackerErrorReport error )
@@ -127,14 +127,14 @@ public class TrackerValidationReport
         }
     }
 
-    public void addPerfReports( List<TrackerValidationHookTimerReport> timerReports )
+    public void addTimings( List<Timing> timings )
     {
-        this.performanceReport.addAll( timerReports );
+        this.timings.addAll( timings );
     }
 
-    public void addPerfReport( TrackerValidationHookTimerReport timerReport )
+    public void addTiming( Timing timing )
     {
-        performanceReport.add( timerReport );
+        timings.add( timing );
     }
 
     public boolean hasErrors()
@@ -157,9 +157,9 @@ public class TrackerValidationReport
         return warningReports.stream().anyMatch( test );
     }
 
-    public boolean hasPerfs()
+    public boolean hasTimings()
     {
-        return !performanceReport.isEmpty();
+        return !timings.isEmpty();
     }
 
     /**

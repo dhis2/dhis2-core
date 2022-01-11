@@ -148,7 +148,7 @@ class TrackerValidationReportTest
 
         TrackerValidationReport report = new TrackerValidationReport();
 
-        assertFalse( report.hasPerfs() );
+        assertFalse( report.hasTimings() );
     }
 
     @Test
@@ -157,9 +157,9 @@ class TrackerValidationReportTest
 
         TrackerValidationReport report = new TrackerValidationReport();
 
-        report.addPerfReport( new TrackerValidationHookTimerReport( "1min", "validation" ) );
+        report.addTiming( new Timing( "1min", "validation" ) );
 
-        assertTrue( report.hasPerfs() );
+        assertTrue( report.hasTimings() );
     }
 
     @Test

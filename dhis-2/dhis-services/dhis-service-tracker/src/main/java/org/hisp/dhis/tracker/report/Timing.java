@@ -40,7 +40,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Data
 @Builder
-public class TrackerValidationHookTimerReport
+public class Timing
 {
     @JsonProperty
     public String totalTime;
