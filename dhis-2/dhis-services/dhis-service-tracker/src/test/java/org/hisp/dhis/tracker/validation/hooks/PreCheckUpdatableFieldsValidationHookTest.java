@@ -113,8 +113,8 @@ class PreCheckUpdatableFieldsValidationHookTest
         TrackedEntity trackedEntity = validTei();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        validationHook.validateTrackedEntity( reporter, ctx, trackedEntity );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -128,8 +128,8 @@ class PreCheckUpdatableFieldsValidationHookTest
         trackedEntity.setTrackedEntityType( "NewTrackedEntityTypeId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
-        validationHook.validateTrackedEntity( reporter, trackedEntity );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        validationHook.validateTrackedEntity( reporter, ctx, trackedEntity );
 
         // then
         hasTrackerError( reporter, E1126, TRACKED_ENTITY, trackedEntity.getUid() );
@@ -142,8 +142,8 @@ class PreCheckUpdatableFieldsValidationHookTest
         Enrollment enrollment = validEnrollment();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
-        validationHook.validateEnrollment( reporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -157,8 +157,8 @@ class PreCheckUpdatableFieldsValidationHookTest
         enrollment.setProgram( "NewProgramId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
-        validationHook.validateEnrollment( reporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         // then
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
@@ -173,8 +173,8 @@ class PreCheckUpdatableFieldsValidationHookTest
         enrollment.setTrackedEntity( "NewTrackedEntityId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
-        validationHook.validateEnrollment( reporter, enrollment );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        validationHook.validateEnrollment( reporter, ctx, enrollment );
 
         // then
         hasTrackerError( reporter, E1127, ENROLLMENT, enrollment.getUid() );
@@ -188,8 +188,8 @@ class PreCheckUpdatableFieldsValidationHookTest
         Event event = validEvent();
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
-        validationHook.validateEvent( reporter, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        validationHook.validateEvent( reporter, ctx, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -203,8 +203,8 @@ class PreCheckUpdatableFieldsValidationHookTest
         event.setProgramStage( "NewProgramStageId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
-        validationHook.validateEvent( reporter, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        validationHook.validateEvent( reporter, ctx, event );
 
         // then
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );
@@ -219,8 +219,8 @@ class PreCheckUpdatableFieldsValidationHookTest
         event.setEnrollment( "NewEnrollmentId" );
 
         // when
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
-        validationHook.validateEvent( reporter, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        validationHook.validateEvent( reporter, ctx, event );
 
         // then
         hasTrackerError( reporter, E1128, EVENT, event.getUid() );

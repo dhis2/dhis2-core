@@ -90,10 +90,10 @@ class EventGeoValidationHookTest
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -107,10 +107,11 @@ class EventGeoValidationHookTest
         event.setProgramStage( null );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         // when
-        assertThrows( NullPointerException.class, () -> this.hookToTest.validateEvent( reporter, event ) );
+        assertThrows( NullPointerException.class,
+            () -> this.hookToTest.validateEvent( reporter, validationContext, event ) );
     }
 
     @Test
@@ -122,12 +123,12 @@ class EventGeoValidationHookTest
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         // when
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( new ProgramStage() );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
         hasTrackerError( reporter, E1074, EVENT, event.getUid() );
@@ -142,14 +143,14 @@ class EventGeoValidationHookTest
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setFeatureType( NONE );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
         hasTrackerError( reporter, E1012, EVENT, event.getUid() );
@@ -164,14 +165,14 @@ class EventGeoValidationHookTest
         event.setProgramStage( PROGRAM_STAGE );
         event.setGeometry( new GeometryFactory().createPoint() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setFeatureType( MULTI_POLYGON );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
         hasTrackerError( reporter, E1012, EVENT, event.getUid() );

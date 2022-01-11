@@ -116,7 +116,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter();
 
         validatorToTest.validate( errorReporter, ctx );
 
@@ -138,8 +138,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStageWithEvents() )
             .thenReturn( Lists.newArrayList( Pair.of( event.getProgramStage(), event.getEnrollment() ) ) );
         bundle.setEvents( Lists.newArrayList( event ) );
-        ValidationErrorReporter errorReporter = new ValidationErrorReporter(
-            new TrackerImportValidationContext( bundle ) );
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter();
 
         validatorToTest.validate( errorReporter, ctx );
 
@@ -159,8 +158,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ), notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = new ValidationErrorReporter(
-            new TrackerImportValidationContext( bundle ) );
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter();
 
         validatorToTest.validate( errorReporter, ctx );
 
@@ -185,7 +183,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( repeatableEvent( "A" ), repeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter();
 
         validatorToTest.validate( errorReporter, ctx );
 
@@ -199,7 +197,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( invalidEvent, notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter();
         errorReporter.getInvalidDTOs().put( TrackerType.EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
 
         validatorToTest.validate( errorReporter, ctx );
@@ -216,7 +214,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( eventEnrollmentA, eventEnrollmentB );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter();
 
         validatorToTest.validate( errorReporter, ctx );
 
@@ -231,7 +229,7 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( eventProgramA, eventProgramB );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
-        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter();
 
         validatorToTest.validate( errorReporter, ctx );
 

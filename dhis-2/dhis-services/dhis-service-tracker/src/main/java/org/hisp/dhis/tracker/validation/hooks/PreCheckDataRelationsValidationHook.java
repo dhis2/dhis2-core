@@ -89,17 +89,16 @@ public class PreCheckDataRelationsValidationHook
     private final CategoryService categoryService;
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter,
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
         TrackedEntity trackedEntity )
     {
         // NOTHING TO DO HERE
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         Program program = context.getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
 
@@ -116,8 +115,8 @@ public class PreCheckDataRelationsValidationHook
                 .uid( ((TrackerDto) enrollment).getUid() )
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1041 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), organisationUnit )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .addArg( context.getBundle().getIdentifier(), organisationUnit )
+                .addArg( context.getBundle().getIdentifier(), program )
                 .build();
             reporter.addError( error );
         }
@@ -131,17 +130,15 @@ public class PreCheckDataRelationsValidationHook
                 .trackerType( ((TrackerDto) enrollment).getTrackerType() )
                 .errorCode( E1022 )
                 .addArg( enrollment.getTrackedEntity() )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .addArg( context.getBundle().getIdentifier(), program )
                 .build();
             reporter.addError( error );
         }
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         Program program = context.getProgram( event.getProgram() );
@@ -153,8 +150,8 @@ public class PreCheckDataRelationsValidationHook
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1089 )
                 .addArg( event )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), programStage )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .addArg( context.getBundle().getIdentifier(), programStage )
+                .addArg( context.getBundle().getIdentifier(), program )
                 .build();
             reporter.addError( error );
         }
@@ -182,7 +179,7 @@ public class PreCheckDataRelationsValidationHook
                         .trackerType( ((TrackerDto) event).getTrackerType() )
                         .errorCode( E1079 )
                         .addArg( event )
-                        .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                        .addArg( context.getBundle().getIdentifier(), program )
                         .addArg( event.getEnrollment() )
                         .build();
                     reporter.addError( error );
@@ -196,29 +193,29 @@ public class PreCheckDataRelationsValidationHook
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( E1029 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), organisationUnit )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .addArg( context.getBundle().getIdentifier(), organisationUnit )
+                .addArg( context.getBundle().getIdentifier(), program )
                 .build();
             reporter.addError( error );
         }
 
-        validateEventCategoryCombo( reporter, event, program );
+        validateEventCategoryCombo( reporter, context, event, program );
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Relationship relationship )
     {
-        validateRelationshipReference( reporter, relationship, relationship.getFrom() );
-        validateRelationshipReference( reporter, relationship, relationship.getTo() );
+        validateRelationshipReference( reporter, context, relationship, relationship.getFrom() );
+        validateRelationshipReference( reporter, context, relationship, relationship.getTo() );
     }
 
-    private void validateRelationshipReference( ValidationErrorReporter reporter, Relationship relationship,
+    private void validateRelationshipReference( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
+        Relationship relationship,
         RelationshipItem item )
     {
         Optional<String> uid = getUidFromRelationshipItem( item );
         TrackerType trackerType = relationshipItemValueType( item );
-
-        TrackerImportValidationContext ctx = reporter.getValidationContext();
 
         if ( TRACKED_ENTITY.equals( trackerType ) )
         {
@@ -266,11 +263,10 @@ public class PreCheckDataRelationsValidationHook
 
     // TODO: This method needs some love and care, the logic here is very hard
     // to read.
-    protected void validateEventCategoryCombo( ValidationErrorReporter reporter,
+    protected void validateEventCategoryCombo( ValidationErrorReporter reporter, TrackerImportValidationContext context,
         Event event, Program program )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+        TrackerPreheat preheat = context.getBundle().getPreheat();
 
         // if event has "attribute option combo" set only, fetch the aoc
         // directly
@@ -285,7 +281,7 @@ public class PreCheckDataRelationsValidationHook
         }
         else if ( !optionComboIsEmpty && program.getCategoryCombo() != null )
         {
-            categoryOptionCombo = resolveCategoryOptions( reporter, event, program, context );
+            categoryOptionCombo = resolveCategoryOptions( reporter, context, event, program );
         }
 
         categoryOptionCombo = getDefault( event, preheat, optionComboIsEmpty, categoryOptionCombo );
@@ -302,21 +298,19 @@ public class PreCheckDataRelationsValidationHook
         }
         else
         {
-            reporter.getValidationContext()
-                .cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo );
+            context.cacheEventCategoryOptionCombo( event.getUid(), categoryOptionCombo );
         }
     }
 
-    private CategoryOptionCombo resolveCategoryOptions( ValidationErrorReporter reporter, Event event, Program program,
-        TrackerImportValidationContext context )
+    private CategoryOptionCombo resolveCategoryOptions( ValidationErrorReporter reporter,
+        TrackerImportValidationContext context, Event event, Program program )
     {
         CategoryOptionCombo categoryOptionCombo;
         String attributeCategoryOptions = event.getAttributeCategoryOptions();
         CategoryCombo categoryCombo = program.getCategoryCombo();
         String cacheKey = attributeCategoryOptions + categoryCombo.getUid();
 
-        Optional<String> cachedEventAOCProgramCC = reporter.getValidationContext()
-            .getCachedEventAOCProgramCC( cacheKey );
+        Optional<String> cachedEventAOCProgramCC = context.getCachedEventAOCProgramCC( cacheKey );
 
         if ( cachedEventAOCProgramCC.isPresent() )
         {
@@ -327,10 +321,10 @@ public class PreCheckDataRelationsValidationHook
             Set<String> categoryOptions = TextUtils
                 .splitToArray( attributeCategoryOptions, TextUtils.SEMICOLON );
 
-            categoryOptionCombo = resolveCategoryOptionCombo( reporter, event,
+            categoryOptionCombo = resolveCategoryOptionCombo( reporter, context, event,
                 categoryCombo, categoryOptions );
 
-            reporter.getValidationContext().putCachedEventAOCProgramCC( cacheKey,
+            context.putCachedEventAOCProgramCC( cacheKey,
                 categoryOptionCombo != null ? categoryOptionCombo.getUid() : null );
         }
         return categoryOptionCombo;
@@ -361,14 +355,15 @@ public class PreCheckDataRelationsValidationHook
         return categoryOptionCombo;
     }
 
-    private CategoryOptionCombo resolveCategoryOptionCombo( ValidationErrorReporter reporter, Event event,
+    private CategoryOptionCombo resolveCategoryOptionCombo( ValidationErrorReporter reporter,
+        TrackerImportValidationContext context, Event event,
         CategoryCombo programCategoryCombo, Set<String> attributeCategoryOptions )
     {
         Set<CategoryOption> categoryOptions = new HashSet<>();
 
         for ( String uid : attributeCategoryOptions )
         {
-            CategoryOption categoryOption = reporter.getValidationContext().getCategoryOption( uid );
+            CategoryOption categoryOption = context.getCategoryOption( uid );
             if ( categoryOption == null )
             {
                 TrackerErrorReport error = TrackerErrorReport.builder()
@@ -393,14 +388,14 @@ public class PreCheckDataRelationsValidationHook
                 .uid( event.getUid() )
                 .trackerType( event.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1117 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), programCategoryCombo )
+                .addArg( context.getBundle().getIdentifier(), programCategoryCombo )
                 .addArg( categoryOptions )
                 .build();
             reporter.addError( error );
         }
         else
         {
-            TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
+            TrackerPreheat preheat = context.getBundle().getPreheat();
             TrackerIdentifier identifier = preheat.getIdentifiers().getCategoryOptionComboIdScheme();
             preheat.put( identifier, attrOptCombo );
         }

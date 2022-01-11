@@ -61,6 +61,8 @@ class AssignedUserValidationHookTest
 
     private static final String PROGRAM_STAGE = "ProgramStage";
 
+    private TrackerBundle bundle;
+
     private AssignedUserValidationHook hookToTest;
 
     @Mock
@@ -71,7 +73,7 @@ class AssignedUserValidationHookTest
     {
         hookToTest = new AssignedUserValidationHook();
 
-        TrackerBundle bundle = TrackerBundle.builder().build();
+        bundle = TrackerBundle.builder().build();
         TrackerPreheat preheat = new TrackerPreheat();
 
         User user = new User();
@@ -79,8 +81,6 @@ class AssignedUserValidationHookTest
         preheat.put( TrackerIdentifier.UID, user );
 
         bundle.setPreheat( preheat );
-
-        when( validationContext.getBundle() ).thenReturn( bundle );
 
         ProgramStage programStage = new ProgramStage();
         programStage.setEnableUserAssignment( true );
@@ -95,10 +95,11 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
+        when( validationContext.getBundle() ).thenReturn( bundle );
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -113,10 +114,10 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( "not_valid_uid" );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         // when
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
         hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
@@ -131,14 +132,14 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         // when
         TrackerBundle bundle = TrackerBundle.builder().build();
         bundle.setPreheat( new TrackerPreheat() );
         when( validationContext.getBundle() ).thenReturn( bundle );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
         hasTrackerError( reporter, E1118, TrackerType.EVENT, event.getUid() );
@@ -153,14 +154,15 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setEnableUserAssignment( false );
         when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
+        when( validationContext.getBundle() ).thenReturn( bundle );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -179,14 +181,15 @@ class AssignedUserValidationHookTest
         event.setAssignedUser( USER_ID );
         event.setProgramStage( PROGRAM_STAGE );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         // when
         ProgramStage programStage = new ProgramStage();
         programStage.setEnableUserAssignment( null );
         when( validationContext.getProgramStage( PROGRAM_STAGE ) ).thenReturn( programStage );
+        when( validationContext.getBundle() ).thenReturn( bundle );
 
-        this.hookToTest.validateEvent( reporter, event );
+        this.hookToTest.validateEvent( reporter, validationContext, event );
 
         // then
         assertFalse( reporter.hasErrors() );

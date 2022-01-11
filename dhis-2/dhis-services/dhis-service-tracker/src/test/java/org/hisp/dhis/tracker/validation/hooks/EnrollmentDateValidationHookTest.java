@@ -41,7 +41,6 @@ import java.time.Instant;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -67,10 +66,6 @@ class EnrollmentDateValidationHookTest
     public void setUp()
     {
         hookToTest = new EnrollmentDateValidationHook();
-
-        TrackerBundle bundle = TrackerBundle.builder().build();
-
-        when( validationContext.getBundle() ).thenReturn( bundle );
     }
 
     @Test
@@ -81,11 +76,11 @@ class EnrollmentDateValidationHookTest
         enrollment.setProgram( CodeGenerator.generateUid() );
         enrollment.setOccurredAt( Instant.now() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         hasTrackerError( reporter, E1025, ENROLLMENT, enrollment.getUid() );
     }
@@ -101,11 +96,11 @@ class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( dateInTheFuture );
         enrollment.setEnrolledAt( dateInTheFuture );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         hasTrackerError( reporter, E1020, ENROLLMENT, enrollment.getUid() );
         hasTrackerError( reporter, E1021, ENROLLMENT, enrollment.getUid() );
@@ -121,11 +116,11 @@ class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( today );
         enrollment.setEnrolledAt( today );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( new Program() );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -140,14 +135,14 @@ class EnrollmentDateValidationHookTest
         enrollment.setOccurredAt( dateInTheFuture );
         enrollment.setEnrolledAt( dateInTheFuture );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         Program program = new Program();
         program.setSelectEnrollmentDatesInFuture( true );
         program.setSelectIncidentDatesInFuture( true );
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -161,13 +156,13 @@ class EnrollmentDateValidationHookTest
 
         enrollment.setEnrolledAt( Instant.now() );
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         Program program = new Program();
         program.setDisplayIncidentDate( true );
         when( validationContext.getProgram( enrollment.getProgram() ) ).thenReturn( program );
 
-        this.hookToTest.validateEnrollment( reporter, enrollment );
+        this.hookToTest.validateEnrollment( reporter, validationContext, enrollment );
 
         hasTrackerError( reporter, E1023, ENROLLMENT, enrollment.getUid() );
     }

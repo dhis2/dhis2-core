@@ -91,11 +91,10 @@ public class ValidationUtils
         }
     }
 
-    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerDto dto,
+    protected static List<Note> validateNotes( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackerDto dto,
         List<Note> notesToCheck )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         final List<Note> notes = new ArrayList<>();
         for ( Note note : notesToCheck )
         {

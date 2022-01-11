@@ -227,9 +227,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -245,9 +245,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( TrackerErrorCode.E1014, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -264,9 +264,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ANOTHER_ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( TrackerErrorCode.E1041, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -283,9 +283,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( ANOTHER_TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( TrackerErrorCode.E1022, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -302,7 +302,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .trackedEntity( ANOTHER_TEI_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
         when( ctx.getTrackedEntityInstance( ANOTHER_TEI_ID ) ).thenReturn( null );
 
@@ -313,7 +313,7 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
 
         bundle.setTrackedEntities( Lists.newArrayList( trackedEntity ) );
 
-        validatorToTest.validateEnrollment( reporter, enrollment );
+        validatorToTest.validateEnrollment( reporter, ctx, enrollment );
 
         assertTrue( reporter.hasErrors() );
         assertEquals( TrackerErrorCode.E1022, reporter.getReportList().get( 0 ).getErrorCode() );
@@ -331,9 +331,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateEvent( reporter, event );
+        validatorToTest.validateEvent( reporter, ctx, event );
 
         assertFalse( reporter.hasErrors() );
     }
@@ -349,9 +349,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ANOTHER_ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateEvent( reporter, event );
+        validatorToTest.validateEvent( reporter, ctx, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
@@ -370,9 +370,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .orgUnit( ORG_UNIT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateEvent( reporter, event );
+        validatorToTest.validateEvent( reporter, ctx, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
@@ -392,9 +392,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ANOTHER_ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateEvent( reporter, event );
+        validatorToTest.validateEvent( reporter, ctx, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
@@ -414,9 +414,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .enrollment( ENROLLMENT_ID )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateEvent( reporter, event );
+        validatorToTest.validateEvent( reporter, ctx, event );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
@@ -440,9 +440,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateRelationship( reporter, relationship );
+        validatorToTest.validateRelationship( reporter, ctx, relationship );
 
         assertTrue( reporter.hasErrors() );
         assertThat(
@@ -481,9 +481,9 @@ class PreCheckDataRelationsValidationHookTest extends DhisConvenienceTest
             .relationshipType( relType.getUid() )
             .build();
 
-        reporter = new ValidationErrorReporter( ctx );
+        reporter = new ValidationErrorReporter();
 
-        validatorToTest.validateRelationship( reporter, relationship );
+        validatorToTest.validateRelationship( reporter, ctx, relationship );
 
         assertFalse( reporter.hasErrors() );
     }

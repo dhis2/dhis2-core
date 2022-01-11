@@ -40,7 +40,7 @@ class ValidationErrorReporterTest
     void hasErrorReportFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
         TrackerErrorReport error = TrackerErrorReport.builder()
             .errorCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
@@ -54,7 +54,7 @@ class ValidationErrorReporterTest
     void hasErrorReportNotFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
         TrackerErrorReport error = TrackerErrorReport.builder()
             .errorCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
@@ -68,7 +68,7 @@ class ValidationErrorReporterTest
     void hasWarningReportFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
         TrackerWarningReport warning = TrackerWarningReport.builder()
             .warningCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )
@@ -82,7 +82,7 @@ class ValidationErrorReporterTest
     void hasWarningReportNotFound()
     {
 
-        ValidationErrorReporter reporter = ValidationErrorReporter.emptyReporter();
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
         TrackerWarningReport warning = TrackerWarningReport.builder()
             .warningCode( TrackerErrorCode.E1000 )
             .trackerType( TrackerType.EVENT )

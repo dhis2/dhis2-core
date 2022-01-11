@@ -63,10 +63,8 @@ public class EventDataValuesValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
 
         checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
@@ -89,7 +87,7 @@ public class EventDataValuesValidationHook
                 continue;
             }
 
-            validateDataElement( reporter, dataElement, dataValue, programStage, event );
+            validateDataElement( reporter, context, dataElement, dataValue, programStage, event );
             if ( dataValue.getValue() != null )
             {
                 validateOptionSet( reporter, event, dataElement, dataValue.getValue() );
@@ -125,7 +123,8 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateDataElement( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        DataElement dataElement,
         DataValue dataValue, ProgramStage programStage, Event event )
     {
         final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
@@ -144,7 +143,7 @@ public class EventDataValuesValidationHook
         else
         {
             validateNullDataValues( reporter, dataElement, programStage, dataValue, event );
-            validateFileNotAlreadyAssigned( reporter, event, dataValue, dataElement );
+            validateFileNotAlreadyAssigned( reporter, context, event, dataValue, dataElement );
         }
     }
 
@@ -203,7 +202,8 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, Event event, DataValue dataValue,
+    private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
+        TrackerImportValidationContext context, Event event, DataValue dataValue,
         DataElement dataElement )
     {
         if ( dataValue == null || dataValue.getValue() == null )
@@ -217,7 +217,7 @@ public class EventDataValuesValidationHook
             return;
         }
 
-        FileResource fileResource = reporter.getValidationContext().getFileResource( dataValue.getValue() );
+        FileResource fileResource = context.getFileResource( dataValue.getValue() );
 
         reporter.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) event).getUid() )

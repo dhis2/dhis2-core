@@ -89,15 +89,14 @@ class EventNoteValidationHookTest
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
         TrackerPreheat preheat = mock( TrackerPreheat.class );
         when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
 
         event.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEvent( reporter, event );
+        this.hook.validateEvent( reporter, ctx, event );
 
         // Then
         assertTrue( reporter.hasWarnings() );
@@ -117,14 +116,13 @@ class EventNoteValidationHookTest
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
 
         event.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEvent( reporter, event );
+        this.hook.validateEvent( reporter, ctx, event );
 
         // Then
         assertFalse( reporter.hasErrors() );
@@ -140,13 +138,12 @@ class EventNoteValidationHookTest
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
 
         event.setNotes( notes );
 
         // When
-        this.hook.validateEvent( reporter, event );
+        this.hook.validateEvent( reporter, ctx, event );
 
         // Then
         assertFalse( reporter.hasErrors() );

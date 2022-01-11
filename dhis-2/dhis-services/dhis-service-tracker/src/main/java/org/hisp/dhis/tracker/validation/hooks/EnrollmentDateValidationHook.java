@@ -54,10 +54,9 @@ public class EnrollmentDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         validateMandatoryDates( reporter, enrollment );
 
         Program program = context.getProgram( enrollment.getProgram() );

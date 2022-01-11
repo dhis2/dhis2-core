@@ -90,7 +90,7 @@ public class DefaultTrackerValidationService
         // TODO(TECH-880) remove reliance on context from reporter, then context
         // altogether.
         // the bundle is probably enough
-        ValidationErrorReporter reporter = new ValidationErrorReporter( context );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( context.getBundle().getValidationMode() );
 
         try
         {

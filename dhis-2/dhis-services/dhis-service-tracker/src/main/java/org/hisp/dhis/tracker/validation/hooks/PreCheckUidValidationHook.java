@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,7 +50,8 @@ public class PreCheckUidValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackedEntity trackedEntity )
     {
         if ( !CodeGenerator.isValidUid( trackedEntity.getTrackedEntity() ) )
         {
@@ -66,7 +68,8 @@ public class PreCheckUidValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment )
     {
         if ( !CodeGenerator.isValidUid( enrollment.getEnrollment() ) )
         {
@@ -85,7 +88,7 @@ public class PreCheckUidValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
     {
         if ( !CodeGenerator.isValidUid( event.getEvent() ) )
         {
@@ -104,7 +107,8 @@ public class PreCheckUidValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Relationship relationship )
     {
         if ( !CodeGenerator.isValidUid( relationship.getRelationship() ) )
         {

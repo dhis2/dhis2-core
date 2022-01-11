@@ -40,7 +40,6 @@ import lombok.Data;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
 /**
@@ -60,34 +59,25 @@ public class ValidationErrorReporter
 
     private final boolean isFailFast;
 
-    private final TrackerImportValidationContext validationContext;
-
     /*
      * A map that keep tracks of all the invalid Tracker objects encountered
      * during the validation process
      */
     private Map<TrackerType, List<String>> invalidDTOs;
 
-    public static ValidationErrorReporter emptyReporter()
-    {
-        return new ValidationErrorReporter();
-    }
-
-    private ValidationErrorReporter()
+    public ValidationErrorReporter()
     {
         this.warningsReportList = new ArrayList<>();
         this.reportList = new ArrayList<>();
         this.isFailFast = false;
-        this.validationContext = null;
         this.invalidDTOs = new HashMap<>();
     }
 
-    public ValidationErrorReporter( TrackerImportValidationContext context )
+    public ValidationErrorReporter( ValidationMode mode )
     {
-        this.validationContext = context;
         this.reportList = new ArrayList<>();
         this.warningsReportList = new ArrayList<>();
-        this.isFailFast = validationContext.getBundle().getValidationMode() == ValidationMode.FAIL_FAST;
+        this.isFailFast = mode == ValidationMode.FAIL_FAST;
         this.invalidDTOs = new HashMap<>();
     }
 

@@ -60,7 +60,8 @@ public class EnrollmentInExistingValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
@@ -69,9 +70,7 @@ public class EnrollmentInExistingValidationHook
             return;
         }
 
-        TrackerImportValidationContext validationContext = reporter.getValidationContext();
-
-        Program program = validationContext.getProgram( enrollment.getProgram() );
+        Program program = context.getProgram( enrollment.getProgram() );
 
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
@@ -81,17 +80,18 @@ public class EnrollmentInExistingValidationHook
             return;
         }
 
-        validateTeiNotEnrolledAlready( reporter, enrollment, program );
+        validateTeiNotEnrolledAlready( reporter, context, enrollment, program );
     }
 
     private void validateTeiNotEnrolledAlready( ValidationErrorReporter reporter,
+        TrackerImportValidationContext context,
         Enrollment enrollment, Program program )
     {
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = getTrackedEntityInstance( reporter, enrollment.getTrackedEntity() );
+        TrackedEntityInstance tei = getTrackedEntityInstance( context, enrollment.getTrackedEntity() );
 
-        Set<Enrollment> payloadEnrollment = reporter.getValidationContext().getBundle().getEnrollments()
+        Set<Enrollment> payloadEnrollment = context.getBundle().getEnrollments()
             .stream().filter( Objects::nonNull )
             .filter( pi -> pi.getProgram().equals( program.getUid() ) )
             .filter( pi -> pi.getTrackedEntity().equals( tei.getUid() )
@@ -99,7 +99,7 @@ public class EnrollmentInExistingValidationHook
             .filter( pi -> EnrollmentStatus.ACTIVE == pi.getStatus() || EnrollmentStatus.COMPLETED == pi.getStatus() )
             .collect( Collectors.toSet() );
 
-        Set<Enrollment> dbEnrollment = reporter.getValidationContext().getBundle().getPreheat()
+        Set<Enrollment> dbEnrollment = context.getBundle().getPreheat()
             .getTrackedEntityToProgramInstanceMap().getOrDefault( enrollment.getTrackedEntity(), new ArrayList<>() )
             .stream()
             .filter( Objects::nonNull )
@@ -130,8 +130,8 @@ public class EnrollmentInExistingValidationHook
                     .uid( enrollment.getUid() )
                     .trackerType( enrollment.getTrackerType() )
                     .errorCode( E1015 )
-                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), tei )
-                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                    .addArg( context.getBundle().getIdentifier(), tei )
+                    .addArg( context.getBundle().getIdentifier(), program )
                     .build();
                 reporter.addError( error );
             }
@@ -143,8 +143,8 @@ public class EnrollmentInExistingValidationHook
                 .uid( enrollment.getUid() )
                 .trackerType( enrollment.getTrackerType() )
                 .errorCode( E1016 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), tei )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .addArg( context.getBundle().getIdentifier(), tei )
+                .addArg( context.getBundle().getIdentifier(), program )
                 .build();
             reporter.addError( error );
         }
@@ -159,11 +159,11 @@ public class EnrollmentInExistingValidationHook
         return enrollment;
     }
 
-    private TrackedEntityInstance getTrackedEntityInstance( ValidationErrorReporter reporter, String uid )
+    private TrackedEntityInstance getTrackedEntityInstance( TrackerImportValidationContext context, String uid )
     {
-        TrackedEntityInstance tei = reporter.getValidationContext().getTrackedEntityInstance( uid );
+        TrackedEntityInstance tei = context.getTrackedEntityInstance( uid );
 
-        if ( tei == null && reporter.getValidationContext().getReference( uid ).isPresent() )
+        if ( tei == null && context.getReference( uid ).isPresent() )
         {
             tei = new TrackedEntityInstance();
             tei.setUid( uid );

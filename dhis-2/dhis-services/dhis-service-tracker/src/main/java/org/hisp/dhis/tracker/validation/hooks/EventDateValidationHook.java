@@ -62,10 +62,8 @@ public class EventDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         Program program = context.getProgram( event.getProgram() );
 
         if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
@@ -92,13 +90,13 @@ public class EventDateValidationHook
             return;
         }
 
-        validateExpiryDays( reporter, event, program );
+        validateExpiryDays( reporter, context, event, program );
         validatePeriodType( reporter, event, program );
     }
 
-    private void validateExpiryDays( ValidationErrorReporter reporter, Event event, Program program )
+    private void validateExpiryDays( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Event event, Program program )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
         User actingUser = context.getBundle().getUser();
 
         checkNotNull( actingUser, TrackerImporterAssertErrors.USER_CANT_BE_NULL );

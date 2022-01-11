@@ -82,18 +82,15 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     }
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackedEntity trackedEntity )
     {
-        TrackedEntityType trackedEntityType = reporter.getValidationContext()
-            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
-
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
+        TrackedEntityType trackedEntityType = context.getTrackedEntityType( trackedEntity.getTrackedEntityType() );
         TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
 
         validateMandatoryAttributes( reporter, trackedEntity, trackedEntityType );
-        validateAttributes( reporter, trackedEntity, tei, organisationUnit, trackedEntityType );
+        validateAttributes( reporter, context, trackedEntity, tei, organisationUnit, trackedEntityType );
     }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackedEntity trackedEntity,
@@ -128,6 +125,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     }
 
     protected void validateAttributes( ValidationErrorReporter reporter,
+        TrackerImportValidationContext context,
         TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit,
         TrackedEntityType trackedEntityType )
     {
@@ -144,8 +142,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         for ( Attribute attribute : trackedEntity.getAttributes() )
         {
-            TrackedEntityAttribute tea = reporter.getValidationContext()
-                .getTrackedEntityAttribute( attribute.getAttribute() );
+            TrackedEntityAttribute tea = context.getTrackedEntityAttribute( attribute.getAttribute() );
 
             if ( tea == null )
             {
@@ -184,13 +181,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             }
 
             validateAttributeValue( reporter, trackedEntity, tea, attribute.getValue() );
-            validateAttrValueType( reporter, trackedEntity, attribute, tea );
+            validateAttrValueType( reporter, context, trackedEntity, attribute, tea );
             validateOptionSet( reporter, trackedEntity, tea,
                 attribute.getValue() );
 
-            validateAttributeUniqueness( reporter, trackedEntity, attribute.getValue(), tea, tei, orgUnit );
+            validateAttributeUniqueness( reporter, context, trackedEntity, attribute.getValue(), tea, tei, orgUnit );
 
-            validateFileNotAlreadyAssigned( reporter, trackedEntity, attribute, valueMap );
+            validateFileNotAlreadyAssigned( reporter, context, trackedEntity, attribute, valueMap );
         }
     }
 
@@ -232,7 +229,8 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             .build() );
     }
 
-    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, TrackedEntity te,
+    protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
+        TrackerImportValidationContext context, TrackedEntity te,
         Attribute attr, Map<String, TrackedEntityAttributeValue> valueMap )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
@@ -252,7 +250,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             return;
         }
 
-        FileResource fileResource = reporter.getValidationContext().getFileResource( attr.getValue() );
+        FileResource fileResource = context.getFileResource( attr.getValue() );
 
         reporter.addErrorIf( () -> fileResource == null, () -> TrackerErrorReport.builder()
             .uid( te.getUid() )

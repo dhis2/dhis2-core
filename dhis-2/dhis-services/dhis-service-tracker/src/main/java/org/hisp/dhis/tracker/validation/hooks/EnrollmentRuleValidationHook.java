@@ -58,10 +58,9 @@ public class EnrollmentRuleValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
             .flatMap( v -> v.validateEnrollments( context.getBundle() )

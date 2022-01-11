@@ -92,9 +92,9 @@ public class PreCheckSecurityOwnershipValidationHook
     private final OrganisationUnitService organisationUnitService;
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
@@ -107,13 +107,13 @@ public class PreCheckSecurityOwnershipValidationHook
         // scope has to be checked
         if ( strategy.isCreate() || strategy.isDelete() )
         {
-            checkOrgUnitInCaptureScope( reporter, trackedEntity,
+            checkOrgUnitInCaptureScope( reporter, context, trackedEntity,
                 context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
         }
         // if its to update trackedEntity, search scope has to be checked
         else
         {
-            checkOrgUnitInSearchScope( reporter, trackedEntity,
+            checkOrgUnitInSearchScope( reporter, context, trackedEntity,
                 context.getOrganisationUnit( trackedEntity.getOrgUnit() ) );
         }
 
@@ -128,8 +128,8 @@ public class PreCheckSecurityOwnershipValidationHook
                     .uid( trackedEntity.getUid() )
                     .trackerType( TrackerType.TRACKED_ENTITY )
                     .errorCode( E1100 )
-                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
-                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), tei )
+                    .addArg( context.getBundle().getIdentifier(), user )
+                    .addArg( context.getBundle().getIdentifier(), tei )
                     .build();
                 reporter.addError( error );
             }
@@ -137,13 +137,14 @@ public class PreCheckSecurityOwnershipValidationHook
 
         TrackedEntityType trackedEntityType = context
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
-        checkTeiTypeWriteAccess( reporter, trackedEntity.getUid(), trackedEntityType );
+        checkTeiTypeWriteAccess( reporter, context, trackedEntity.getUid(), trackedEntityType );
     }
 
-    private void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, String teUid,
+    private void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        String teUid,
         TrackedEntityType trackedEntityType )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -155,17 +156,17 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( teUid )
                 .trackerType( TrackerType.TRACKED_ENTITY )
                 .errorCode( TrackerErrorCode.E1001 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), trackedEntityType )
+                .addArg( context.getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), trackedEntityType )
                 .build();
             reporter.addError( error );
         }
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( enrollment );
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
@@ -181,7 +182,7 @@ public class PreCheckSecurityOwnershipValidationHook
         // has to be checked
         if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
         {
-            checkOrgUnitInCaptureScope( reporter, enrollment,
+            checkOrgUnitInCaptureScope( reporter, context, enrollment,
                 context.getOrganisationUnit( enrollment.getOrgUnit() ) );
         }
 
@@ -197,21 +198,20 @@ public class PreCheckSecurityOwnershipValidationHook
                     .uid( enrollment.getUid() )
                     .trackerType( TrackerType.ENROLLMENT )
                     .errorCode( E1103 )
-                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                    .addArg( context.getBundle().getIdentifier(), user )
                     .addArg( enrollment.getEnrollment() )
                     .build();
                 reporter.addError( error );
             }
         }
 
-        checkWriteEnrollmentAccess( reporter, enrollment, program, enrollment.getTrackedEntity(),
+        checkWriteEnrollmentAccess( reporter, context, enrollment, program, enrollment.getTrackedEntity(),
             ownerOrgUnit );
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy strategy = context.getStrategy( event );
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
@@ -228,7 +228,7 @@ public class PreCheckSecurityOwnershipValidationHook
         // has to be checked
         if ( program.isWithoutRegistration() || strategy.isCreate() || strategy.isDelete() )
         {
-            checkOrgUnitInCaptureScope( reporter, event, organisationUnit );
+            checkOrgUnitInCaptureScope( reporter, context, event, organisationUnit );
         }
 
         String teiUid = getTeiUidFromEvent( context, event, program );
@@ -240,13 +240,13 @@ public class PreCheckSecurityOwnershipValidationHook
         {
             ProgramStageInstance programStageInstance = context.getProgramStageInstance( event.getEvent() );
             TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
-            validateUpdateAndDeleteEvent( reporter, event, programStageInstance,
+            validateUpdateAndDeleteEvent( reporter, context, event, programStageInstance,
                 entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
         }
         else
         {
 
-            validateCreateEvent( reporter, event, user,
+            validateCreateEvent( reporter, context, event, user,
                 categoryOptionCombo,
                 programStage,
                 teiUid,
@@ -257,12 +257,14 @@ public class PreCheckSecurityOwnershipValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Relationship relationship )
     {
         // NOTHING TO DO HERE
     }
 
-    private void validateCreateEvent( ValidationErrorReporter reporter, Event event, User actingUser,
+    private void validateCreateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Event event, User actingUser,
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
         OrganisationUnit organisationUnit, OrganisationUnit ownerOrgUnit, Program program,
         boolean isCreatableInSearchScope )
@@ -275,25 +277,26 @@ public class PreCheckSecurityOwnershipValidationHook
 
         programStage = noProgramStageAndProgramIsWithoutReg ? program.getProgramStageByStage( 1 ) : programStage;
 
-        checkEventWriteAccess( reporter, event, programStage, organisationUnit, ownerOrgUnit,
+        checkEventWriteAccess( reporter, context, event, programStage, organisationUnit, ownerOrgUnit,
             categoryOptionCombo,
             teiUid, isCreatableInSearchScope ); // TODO: calculate correct
         // isCreatableInSearchScope
         // value
     }
 
-    private void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, Event event,
+    private void validateUpdateAndDeleteEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Event event,
         ProgramStageInstance programStageInstance,
         String teiUid, OrganisationUnit ownerOrgUnit )
     {
-        TrackerImportStrategy strategy = reporter.getValidationContext().getStrategy( event );
-        User user = reporter.getValidationContext().getBundle().getUser();
+        TrackerImportStrategy strategy = context.getStrategy( event );
+        User user = context.getBundle().getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
-        checkEventWriteAccess( reporter, event, programStageInstance.getProgramStage(),
+        checkEventWriteAccess( reporter, context, event, programStageInstance.getProgramStage(),
             programStageInstance.getOrganisationUnit(), ownerOrgUnit,
             programStageInstance.getAttributeOptionCombo(),
             teiUid, programStageInstance.isCreatableInSearchScope() );
@@ -307,7 +310,7 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( event.getUid() )
                 .trackerType( TrackerType.EVENT )
                 .errorCode( E1083 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), user )
                 .build();
             reporter.addError( error );
         }
@@ -347,10 +350,11 @@ public class PreCheckSecurityOwnershipValidationHook
         return true;
     }
 
-    private void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackerDto dto,
         OrganisationUnit orgUnit )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -362,17 +366,18 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1000 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), orgUnit )
+                .addArg( context.getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), orgUnit )
                 .build();
             reporter.addError( error );
         }
     }
 
-    private void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackerDto dto,
         OrganisationUnit orgUnit )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -384,14 +389,15 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1003 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), orgUnit )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), orgUnit )
+                .addArg( context.getBundle().getIdentifier(), user )
                 .build();
             reporter.addError( error );
         }
     }
 
-    private void checkTeiTypeAndTeiProgramAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkTeiTypeAndTeiProgramAccess( ValidationErrorReporter reporter,
+        TrackerImportValidationContext context, TrackerDto dto,
         User user,
         String trackedEntityInstance,
         OrganisationUnit ownerOrganisationUnit,
@@ -408,9 +414,9 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1104 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program.getTrackedEntityType() )
+                .addArg( context.getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), program )
+                .addArg( context.getBundle().getIdentifier(), program.getTrackedEntityType() )
                 .build();
             reporter.addError( error );
         }
@@ -423,39 +429,41 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1102 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), user )
                 .addArg( trackedEntityInstance )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .addArg( context.getBundle().getIdentifier(), program )
                 .build();
             reporter.addError( error );
         }
     }
 
-    private void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Enrollment enrollment, Program program,
+    private void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment, Program program,
         String trackedEntity, OrganisationUnit ownerOrgUnit )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
-        checkProgramWriteAccess( reporter, enrollment, user, program );
+        checkProgramWriteAccess( reporter, context, enrollment, user, program );
 
         if ( program.isRegistration() )
         {
             checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-            checkTeiTypeAndTeiProgramAccess( reporter, enrollment, user, trackedEntity,
+            checkTeiTypeAndTeiProgramAccess( reporter, context, enrollment, user, trackedEntity,
                 ownerOrgUnit, program );
         }
     }
 
-    private void checkEventWriteAccess( ValidationErrorReporter reporter, Event event, ProgramStage programStage,
+    private void checkEventWriteAccess( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Event event, ProgramStage programStage,
         OrganisationUnit eventOrgUnit, OrganisationUnit ownerOrgUnit,
         CategoryOptionCombo categoryOptionCombo,
         String trackedEntity, boolean isCreatableInSearchScope )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -471,24 +479,24 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( event.getUid() )
                 .trackerType( TrackerType.EVENT )
                 .errorCode( TrackerErrorCode.E1000 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), eventOrgUnit )
+                .addArg( context.getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), eventOrgUnit )
                 .build();
             reporter.addError( error );
         }
 
         if ( programStage.getProgram().isWithoutRegistration() )
         {
-            checkProgramWriteAccess( reporter, event, user, programStage.getProgram() );
+            checkProgramWriteAccess( reporter, context, event, user, programStage.getProgram() );
         }
         else
         {
-            checkProgramStageWriteAccess( reporter, event, user, programStage );
+            checkProgramStageWriteAccess( reporter, context, event, user, programStage );
             final Program program = programStage.getProgram();
 
-            checkProgramReadAccess( reporter, event, user, program );
+            checkProgramReadAccess( reporter, context, event, user, program );
 
-            checkTeiTypeAndTeiProgramAccess( reporter, event, user,
+            checkTeiTypeAndTeiProgramAccess( reporter, context, event, user,
                 trackedEntity,
                 ownerOrgUnit,
                 programStage.getProgram() );
@@ -496,11 +504,12 @@ public class PreCheckSecurityOwnershipValidationHook
 
         if ( categoryOptionCombo != null )
         {
-            checkWriteCategoryOptionComboAccess( reporter, event, categoryOptionCombo );
+            checkWriteCategoryOptionComboAccess( reporter, context, event, categoryOptionCombo );
         }
     }
 
-    private void checkProgramReadAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramReadAccess( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackerDto dto,
         User user,
         Program program )
     {
@@ -513,14 +522,15 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1096 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .addArg( context.getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), program )
                 .build();
             reporter.addError( error );
         }
     }
 
-    private void checkProgramStageWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramStageWriteAccess( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackerDto dto,
         User user,
         ProgramStage programStage )
     {
@@ -533,14 +543,15 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1095 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), programStage )
+                .addArg( context.getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), programStage )
                 .build();
             reporter.addError( error );
         }
     }
 
-    private void checkProgramWriteAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    private void checkProgramWriteAccess( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackerDto dto,
         User user,
         Program program )
     {
@@ -553,17 +564,18 @@ public class PreCheckSecurityOwnershipValidationHook
                 .uid( dto.getUid() )
                 .trackerType( dto.getTrackerType() )
                 .errorCode( TrackerErrorCode.E1091 )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
-                .addArg( reporter.getValidationContext().getBundle().getIdentifier(), program )
+                .addArg( context.getBundle().getIdentifier(), user )
+                .addArg( context.getBundle().getIdentifier(), program )
                 .build();
             reporter.addError( error );
         }
     }
 
-    public void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter, TrackerDto dto,
+    public void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter,
+        TrackerImportValidationContext context, TrackerDto dto,
         CategoryOptionCombo categoryOptionCombo )
     {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
+        TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -577,8 +589,8 @@ public class PreCheckSecurityOwnershipValidationHook
                     .uid( dto.getUid() )
                     .trackerType( dto.getTrackerType() )
                     .errorCode( TrackerErrorCode.E1099 )
-                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), user )
-                    .addArg( reporter.getValidationContext().getBundle().getIdentifier(), categoryOption )
+                    .addArg( context.getBundle().getIdentifier(), user )
+                    .addArg( context.getBundle().getIdentifier(), categoryOption )
                     .build();
                 reporter.addError( error );
             }

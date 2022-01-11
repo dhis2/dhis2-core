@@ -61,10 +61,9 @@ public class PreCheckMetaValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackedEntity tei )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         OrganisationUnit organisationUnit = context.getOrganisationUnit( tei.getOrgUnit() );
         if ( organisationUnit == null )
         {
@@ -91,10 +90,9 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
         reporter.addErrorIf( () -> organisationUnit == null, () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) enrollment).getUid() )
@@ -121,10 +119,8 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
         reporter.addErrorIf( () -> organisationUnit == null, () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) event).getUid() )
@@ -151,10 +147,9 @@ public class PreCheckMetaValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Relationship relationship )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         RelationshipType relationshipType = context.getRelationShipType( relationship.getRelationshipType() );
 
         reporter.addErrorIf( () -> relationshipType == null, () -> TrackerErrorReport.builder()

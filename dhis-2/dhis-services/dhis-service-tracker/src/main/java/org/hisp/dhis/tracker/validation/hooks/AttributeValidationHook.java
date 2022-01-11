@@ -60,15 +60,14 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         this.teAttrService = teAttrService;
     }
 
-    protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerDto dto, Attribute attr,
+    protected void validateAttrValueType( ValidationErrorReporter errorReporter, TrackerImportValidationContext context,
+        TrackerDto dto, Attribute attr,
         TrackedEntityAttribute teAttr )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );
         checkNotNull( teAttr, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
 
         ValueType valueType = teAttr.getValueType();
-
-        TrackerImportValidationContext context = errorReporter.getValidationContext();
 
         String error;
 
@@ -113,6 +112,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
     }
 
     protected void validateAttributeUniqueness( ValidationErrorReporter errorReporter,
+        TrackerImportValidationContext context,
         TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
@@ -124,8 +124,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         if ( Boolean.FALSE.equals( trackedEntityAttribute.isUnique() ) )
             return;
 
-        List<UniqueAttributeValue> uniqueAttributeValues = errorReporter
-            .getValidationContext().getBundle().getPreheat().getUniqueAttributeValues();
+        List<UniqueAttributeValue> uniqueAttributeValues = context.getBundle().getPreheat().getUniqueAttributeValues();
 
         for ( UniqueAttributeValue uniqueAttributeValue : uniqueAttributeValues )
         {

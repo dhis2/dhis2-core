@@ -89,15 +89,14 @@ class EnrollmentNoteValidationHookTest
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
         TrackerPreheat preheat = mock( TrackerPreheat.class );
         when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
 
         enrollment.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEnrollment( reporter, enrollment );
+        this.hook.validateEnrollment( reporter, ctx, enrollment );
 
         // Then
         assertTrue( reporter.hasWarnings() );
@@ -117,14 +116,13 @@ class EnrollmentNoteValidationHookTest
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ValidationMode.FULL );
 
         enrollment.setNotes( Collections.singletonList( note ) );
 
         // When
-        this.hook.validateEnrollment( reporter, enrollment );
+        this.hook.validateEnrollment( reporter, ctx, enrollment );
 
         // Then
         assertFalse( reporter.hasErrors() );
@@ -140,13 +138,12 @@ class EnrollmentNoteValidationHookTest
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
-        when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx );
+        ValidationErrorReporter reporter = new ValidationErrorReporter();
 
         enrollment.setNotes( notes );
 
         // When
-        this.hook.validateEnrollment( reporter, enrollment );
+        this.hook.validateEnrollment( reporter, ctx, enrollment );
 
         // Then
         assertFalse( reporter.hasErrors() );

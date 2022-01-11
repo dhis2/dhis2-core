@@ -157,7 +157,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( i18nManager.getI18nFormat() )
             .thenReturn( I18N_FORMAT );
 
-        reporter = new ValidationErrorReporter( validationContext );
+        reporter = new ValidationErrorReporter();
     }
 
     @Test
@@ -170,7 +170,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( defaultCatOptionCombo );
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, validationContext, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -186,7 +186,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( defaultCatOptionCombo );
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, validationContext, event );
 
         // then
         hasTrackerError( reporter, E1055, EVENT, event.getUid() );
@@ -199,7 +199,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, validationContext, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -216,7 +216,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, validationContext, event );
 
         // then
         assertFalse( reporter.hasErrors() );
@@ -232,7 +232,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, validationContext, event );
 
         // then
         hasTrackerError( reporter, E1056, EVENT, event.getUid() );
@@ -248,7 +248,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, validationContext, event );
 
         // then
         hasTrackerError( reporter, E1057, EVENT, event.getUid() );
@@ -265,7 +265,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( validationContext.getCachedEventCategoryOptionCombo( any() ) )
             .thenReturn( attOptionCombo );
 
-        hook.validateEvent( reporter, event );
+        hook.validateEvent( reporter, validationContext, event );
 
         // then
         assertFalse( reporter.hasErrors() );

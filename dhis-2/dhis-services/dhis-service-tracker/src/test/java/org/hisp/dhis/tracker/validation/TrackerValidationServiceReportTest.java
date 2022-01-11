@@ -37,7 +37,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 import lombok.Builder;
 
@@ -62,27 +61,34 @@ class TrackerValidationServiceReportTest
     @Builder
     private static class ValidationHook extends AbstractTrackerDtoValidationHook
     {
+        interface TriConsumer<T, U, V>
+        {
+            void accept( T t, U u, V v );
+        }
+
         boolean removeOnError;
 
-        private BiConsumer<ValidationErrorReporter, Event> validateEvent;
+        private TriConsumer<ValidationErrorReporter, TrackerImportValidationContext, Event> validateEvent;
 
-        private BiConsumer<ValidationErrorReporter, Enrollment> validateEnrollment;
+        private TriConsumer<ValidationErrorReporter, TrackerImportValidationContext, Enrollment> validateEnrollment;
 
         @Override
-        public void validateEvent( ValidationErrorReporter reporter, Event event )
+        public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+            Event event )
         {
             if ( this.validateEvent != null )
             {
-                this.validateEvent.accept( reporter, event );
+                this.validateEvent.accept( reporter, context, event );
             }
         }
 
         @Override
-        public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+        public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+            Enrollment enrollment )
         {
             if ( this.validateEnrollment != null )
             {
-                this.validateEnrollment.accept( reporter, enrollment );
+                this.validateEnrollment.accept( reporter, context, enrollment );
             }
         }
 
@@ -134,7 +140,7 @@ class TrackerValidationServiceReportTest
 
         ValidationHook removeOnError = ValidationHook.builder()
             .removeOnError( true )
-            .validateEvent( ( reporter, event ) -> {
+            .validateEvent( ( reporter, context, event ) -> {
                 if ( invalidEvent.equals( event ) )
                 {
                     reporter.addError(
@@ -147,7 +153,7 @@ class TrackerValidationServiceReportTest
             .build();
         ValidationHook doNotRemoveOnError = ValidationHook.builder()
             .removeOnError( false )
-            .validateEnrollment( ( reporter, enrollment ) -> {
+            .validateEnrollment( ( reporter, context, enrollment ) -> {
                 if ( invalidEnrollment.equals( enrollment ) )
                 {
                     reporter.addError(
@@ -214,7 +220,7 @@ class TrackerValidationServiceReportTest
 
         ValidationHook hook1 = ValidationHook.builder()
             .removeOnError( true )
-            .validateEvent( ( reporter, event ) -> {
+            .validateEvent( ( reporter, context, event ) -> {
                 if ( invalidEvent.equals( event ) )
                 {
                     reporter.addError(
@@ -256,7 +262,7 @@ class TrackerValidationServiceReportTest
             .build();
 
         ValidationHook hook = ValidationHook.builder()
-            .validateEvent( ( reporter, event ) -> {
+            .validateEvent( ( reporter, context, event ) -> {
                 if ( validEvent.equals( event ) )
                 {
                     reporter.addWarning(

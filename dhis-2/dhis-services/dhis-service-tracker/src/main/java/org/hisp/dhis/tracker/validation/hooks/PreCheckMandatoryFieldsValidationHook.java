@@ -55,7 +55,8 @@ public class PreCheckMandatoryFieldsValidationHook
     private static final String ORG_UNIT = "orgUnit";
 
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackedEntity trackedEntity )
     {
         reporter.addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getTrackedEntityType() ),
             () -> TrackerErrorReport.builder()
@@ -73,7 +74,8 @@ public class PreCheckMandatoryFieldsValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment )
     {
         reporter.addErrorIf( () -> StringUtils.isEmpty( enrollment.getOrgUnit() ), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) enrollment).getUid() )
@@ -97,7 +99,7 @@ public class PreCheckMandatoryFieldsValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
     {
         reporter.addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), () -> TrackerErrorReport.builder()
             .uid( ((TrackerDto) event).getUid() )
@@ -113,7 +115,6 @@ public class PreCheckMandatoryFieldsValidationHook
             .build() );
 
         // TODO remove if once metadata import is fixed
-        TrackerImportValidationContext context = reporter.getValidationContext();
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
         if ( programStage != null )
         {
@@ -146,7 +147,8 @@ public class PreCheckMandatoryFieldsValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Relationship relationship )
     {
         reporter.addErrorIf( () -> relationship.getFrom() == null, () -> TrackerErrorReport.builder()
             .uid( relationship.getUid() )

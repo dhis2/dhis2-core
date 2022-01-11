@@ -60,9 +60,9 @@ public class PreCheckExistenceValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        TrackedEntity trackedEntity )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy importStrategy = context.getStrategy( trackedEntity );
 
         TrackedEntityInstance existingTe = context
@@ -104,9 +104,9 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
+    public void validateEnrollment( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Enrollment enrollment )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy importStrategy = context.getStrategy( enrollment );
 
         ProgramInstance existingPi = context.getProgramInstance( enrollment.getEnrollment() );
@@ -147,9 +147,8 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void validateEvent( ValidationErrorReporter reporter, TrackerImportValidationContext context, Event event )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerImportStrategy importStrategy = context.getStrategy( event );
 
         ProgramStageInstance existingPsi = context.getProgramStageInstance( event.getEvent() );
@@ -190,10 +189,9 @@ public class PreCheckExistenceValidationHook
     }
 
     @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Relationship relationship )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         org.hisp.dhis.relationship.Relationship existingRelationship = context.getRelationship( relationship );
 
         if ( existingRelationship != null )

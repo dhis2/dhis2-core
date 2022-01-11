@@ -65,10 +65,9 @@ public class RelationshipsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
 
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
+    public void validateRelationship( ValidationErrorReporter reporter, TrackerImportValidationContext context,
+        Relationship relationship )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
         TrackerBundle bundle = context.getBundle();
 
         boolean isValid = validateMandatoryData( reporter, relationship,
@@ -80,7 +79,7 @@ public class RelationshipsValidationHook
         if ( isValid )
         {
             validateRelationshipLinkToOneEntity( reporter, relationship );
-            validateRelationshipConstraint( reporter, relationship, bundle );
+            validateRelationshipConstraint( reporter, context, relationship, bundle );
 
             validateAutoRelationship( reporter, relationship );
 
@@ -115,15 +114,16 @@ public class RelationshipsValidationHook
                 .build() );
     }
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
+    private void validateRelationshipConstraint( ValidationErrorReporter reporter,
+        TrackerImportValidationContext context, Relationship relationship,
         TrackerBundle bundle )
     {
         getRelationshipType( bundle.getPreheat().getAll( RelationshipType.class ),
             relationship.getRelationshipType() ).ifPresent( relationshipType -> {
-                validateRelationshipConstraint( reporter, relationship, "from", relationship.getFrom(),
-                    relationshipType.getFromConstraint(), reporter.getValidationContext() );
-                validateRelationshipConstraint( reporter, relationship, "to", relationship.getTo(),
-                    relationshipType.getToConstraint(), reporter.getValidationContext() );
+                validateRelationshipConstraint( reporter, context, relationship, "from", relationship.getFrom(),
+                    relationshipType.getFromConstraint() );
+                validateRelationshipConstraint( reporter, context, relationship, "to", relationship.getTo(),
+                    relationshipType.getToConstraint() );
             } );
     }
 
@@ -165,10 +165,11 @@ public class RelationshipsValidationHook
         }
     }
 
-    private void validateRelationshipConstraint( ValidationErrorReporter reporter, Relationship relationship,
+    private void validateRelationshipConstraint( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
+        Relationship relationship,
         String relSide,
         RelationshipItem item,
-        RelationshipConstraint constraint, TrackerImportValidationContext ctx )
+        RelationshipConstraint constraint )
     {
         if ( relationshipItemValueType( item ) == null )
         {
