@@ -2330,16 +2330,12 @@ function displayUserDetails()
 {
 	if ( dhis2.de.currentCompletedByUser )
 	{
-		var url = '../dhis-web-commons-ajax-json/getUser.action';
+		var url = '../api/35/userLookup';
 
-		$.getJSON( url, { username: dhis2.de.currentCompletedByUser }, function( json ) 
+		$.getJSON( url, { query: dhis2.de.currentCompletedByUser }, function( json )
 		{
-			$( '#userFullName' ).html( json.user.firstName + ' ' + json.user.surname );
-			$( '#userUsername' ).html( json.user.username );
-			$( '#userEmail' ).html( json.user.email );
-			$( '#userPhoneNumber' ).html( json.user.phoneNumber );
-			$( '#userOrganisationUnits' ).html( joinNameableObjects( json.user.organisationUnits ) );
-			$( '#userUserRoles' ).html( joinNameableObjects( json.user.roles ) );
+			$( '#userFullName' ).html( json.users[0].displayName );
+			$( '#userUsername' ).html( dhis2.de.currentCompletedByUser );
 
 			$( '#completedByDiv' ).dialog( {
 	        	modal : true,
