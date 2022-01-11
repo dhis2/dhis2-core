@@ -141,6 +141,11 @@ public class TrackerValidationReport
         return warningReports.stream().anyMatch( test );
     }
 
+    public boolean hasPerfs()
+    {
+        return !performanceReport.isEmpty();
+    }
+
     /**
      * Returns the size of all the Tracker DTO that did not pass validation
      */

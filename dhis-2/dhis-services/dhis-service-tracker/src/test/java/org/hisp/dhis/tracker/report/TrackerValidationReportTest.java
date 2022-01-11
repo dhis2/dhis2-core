@@ -143,6 +143,26 @@ class TrackerValidationReportTest
     }
 
     @Test
+    void hasPerfsReturnsFalse()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+
+        assertFalse( report.hasPerfs() );
+    }
+
+    @Test
+    void hasPerfsReturnsTrue()
+    {
+
+        TrackerValidationReport report = new TrackerValidationReport();
+
+        report.addPerfReport( new TrackerValidationHookTimerReport( "1min", "validation" ) );
+
+        assertTrue( report.hasPerfs() );
+    }
+
+    @Test
     void hasErrorReportFound()
     {
 
