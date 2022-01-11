@@ -33,8 +33,8 @@ import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLite
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NumericLiteralContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
+import org.hisp.dhis.system.util.SqlUtils;
 
 /**
  * Gets literal value Strings from an ANTLR parse tree for use in SQL queries.
@@ -51,17 +51,12 @@ public class SqlLiteral
     @Override
     public Object getStringLiteral( StringLiteralContext ctx )
     {
-        return "'" + escapeSql( unescapeJava( trimQuotes( ctx.getText() ) ) ) + "'";
+        return "'" + SqlUtils.escapeSql( unescapeJava( trimQuotes( ctx.getText() ) ) ) + "'";
     }
 
     @Override
     public Object getBooleanLiteral( BooleanLiteralContext ctx )
     {
         return ctx.getText();
-    }
-
-    private String escapeSql( String str )
-    {
-        return str == null ? null : StringUtils.replace( str, "'", "''" );
     }
 }
