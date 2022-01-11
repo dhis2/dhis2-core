@@ -131,15 +131,15 @@ public class JdbcAnalyticsManager
     private final ExecutionPlanCache executionPlanCache;
 
     public JdbcAnalyticsManager( QueryPlanner queryPlanner,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ExecutionPlanCache sqlStatementStack )
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate, ExecutionPlanCache executionPlanCache )
     {
         checkNotNull( queryPlanner );
         checkNotNull( jdbcTemplate );
-        checkNotNull( sqlStatementStack );
+        checkNotNull( executionPlanCache );
 
         this.queryPlanner = queryPlanner;
         this.jdbcTemplate = jdbcTemplate;
-        this.executionPlanCache = sqlStatementStack;
+        this.executionPlanCache = executionPlanCache;
     }
 
     // -------------------------------------------------------------------------
