@@ -126,7 +126,7 @@ public class TrackerValidationReport
         return !errorReports.isEmpty();
     }
 
-    public boolean hasErrorReport( Predicate<TrackerErrorReport> test )
+    public boolean hasError( Predicate<TrackerErrorReport> test )
     {
         return errorReports.stream().anyMatch( test );
     }
@@ -136,7 +136,7 @@ public class TrackerValidationReport
         return !warningReports.isEmpty();
     }
 
-    public boolean hasWarningReport( Predicate<TrackerWarningReport> test )
+    public boolean hasWarning( Predicate<TrackerWarningReport> test )
     {
         return warningReports.stream().anyMatch( test );
     }

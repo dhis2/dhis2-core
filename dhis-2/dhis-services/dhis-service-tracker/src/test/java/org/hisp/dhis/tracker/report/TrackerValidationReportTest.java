@@ -150,7 +150,7 @@ class TrackerValidationReportTest
         TrackerErrorReport error = newError();
         report.addError( error );
 
-        assertTrue( report.hasErrorReport( r -> error.getUid().equals( r.getUid() ) ) );
+        assertTrue( report.hasError( r -> error.getUid().equals( r.getUid() ) ) );
     }
 
     @Test
@@ -161,7 +161,7 @@ class TrackerValidationReportTest
         TrackerErrorReport error = newError( TrackerErrorCode.E1006 );
         report.addError( error );
 
-        assertFalse( report.hasErrorReport( r -> TrackerErrorCode.E1048 == r.getErrorCode() ) );
+        assertFalse( report.hasError( r -> TrackerErrorCode.E1048 == r.getErrorCode() ) );
     }
 
     @Test
@@ -172,7 +172,7 @@ class TrackerValidationReportTest
         TrackerWarningReport warning = newWarning();
         report.addWarning( warning );
 
-        assertTrue( report.hasWarningReport( r -> warning.getUid().equals( r.getUid() ) ) );
+        assertTrue( report.hasWarning( r -> warning.getUid().equals( r.getUid() ) ) );
     }
 
     @Test
@@ -183,7 +183,7 @@ class TrackerValidationReportTest
         TrackerWarningReport warning = newWarning( TrackerErrorCode.E1006 );
         report.addWarning( warning );
 
-        assertFalse( report.hasWarningReport( r -> TrackerErrorCode.E1048 == r.getWarningCode() ) );
+        assertFalse( report.hasWarning( r -> TrackerErrorCode.E1048 == r.getWarningCode() ) );
     }
 
     @Test
