@@ -159,7 +159,7 @@ public class DefaultTrackerImportService
     private boolean addToValidationReport( TrackerImportParams params, TrackerTimingsStats opsTimer,
         TrackerValidationReport validationReport, TrackerBundle trackerBundle )
     {
-        validationReport.add( opsTimer.exec( VALIDATION_OPS,
+        validationReport.addValidationReport( opsTimer.exec( VALIDATION_OPS,
             () -> validateBundle( params, trackerBundle, opsTimer ) ) );
 
         if ( exitOnError( validationReport, params ) )
@@ -169,7 +169,7 @@ public class DefaultTrackerImportService
 
         if ( !trackerBundle.isSkipRuleEngine() && !params.getImportStrategy().isDelete() )
         {
-            validationReport.add( execRuleEngine( params, opsTimer, trackerBundle ) );
+            validationReport.addValidationReport( execRuleEngine( params, opsTimer, trackerBundle ) );
         }
 
         return exitOnError( validationReport, params );
@@ -227,7 +227,7 @@ public class DefaultTrackerImportService
     {
         TrackerValidationReport ruleEngineValidationReport = new TrackerValidationReport();
 
-        ruleEngineValidationReport.add( trackerValidationService.validateRuleEngine( trackerBundle ) );
+        ruleEngineValidationReport.addValidationReport( trackerValidationService.validateRuleEngine( trackerBundle ) );
 
         return ruleEngineValidationReport;
     }
@@ -370,39 +370,32 @@ public class DefaultTrackerImportService
      * @return a copy of the current TrackerImportReport
      */
     @Override
-    public TrackerImportReport buildImportReport( TrackerImportReport trackerImportReport,
+    public TrackerImportReport buildImportReport( TrackerImportReport originalImportReport,
         TrackerBundleReportMode reportMode )
     {
-        TrackerImportReport.TrackerImportReportBuilder trackerImportReportClone = TrackerImportReport.builder()
-            .status( trackerImportReport.getStatus() )
-            .stats( trackerImportReport.getStats() )
-            .bundleReport( trackerImportReport.getBundleReport() ).message( trackerImportReport.getMessage() );
+        TrackerImportReport.TrackerImportReportBuilder importReportBuilder = TrackerImportReport.builder()
+            .status( originalImportReport.getStatus() )
+            .stats( originalImportReport.getStats() )
+            .bundleReport( originalImportReport.getBundleReport() ).message( originalImportReport.getMessage() );
 
+        TrackerValidationReport originalValidationReport = originalImportReport.getValidationReport();
         TrackerValidationReport validationReport = new TrackerValidationReport();
-
-        Optional.ofNullable( trackerImportReport.getValidationReport() )
-            .ifPresent( trackerValidationReport -> {
-                validationReport.setErrorReports( trackerValidationReport.getErrorReports() );
-                validationReport.setWarningReports( trackerValidationReport.getWarningReports() );
-                validationReport.setPerformanceReport( trackerValidationReport.getPerformanceReport() );
-            } );
-
-        switch ( reportMode )
+        if ( originalValidationReport != null )
         {
-        case ERRORS:
-            validationReport.setPerformanceReport( null );
-            validationReport.setWarningReports( null );
-            break;
-        case WARNINGS:
-            validationReport.setPerformanceReport( null );
-            break;
-        case FULL:
-            trackerImportReportClone.timingsStats( trackerImportReport.getTimingsStats() );
-            break;
+            validationReport.addErrors( originalValidationReport.getErrorReports() );
         }
+        if ( originalValidationReport != null && TrackerBundleReportMode.WARNINGS == reportMode )
+        {
+            validationReport.addWarnings( originalValidationReport.getWarningReports() );
+        }
+        else if ( originalValidationReport != null && TrackerBundleReportMode.FULL == reportMode )
+        {
+            validationReport.addWarnings( originalValidationReport.getWarningReports() );
+            validationReport.addPerfReports( originalValidationReport.getPerformanceReport() );
+            importReportBuilder.timingsStats( originalImportReport.getTimingsStats() );
+        }
+        importReportBuilder.validationReport( validationReport );
 
-        trackerImportReportClone.validationReport( validationReport );
-
-        return trackerImportReportClone.build();
+        return importReportBuilder.build();
     }
 }
