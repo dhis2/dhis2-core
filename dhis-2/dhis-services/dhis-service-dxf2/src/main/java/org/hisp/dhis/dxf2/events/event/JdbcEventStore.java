@@ -171,14 +171,7 @@ public class JdbcEventStore
 
         boolean isSuperUser = isSuper( user );
 
-        if ( !isSuperUser )
-        {
-            params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
-                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
-
-            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
-                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
-        }
+        setAccessiblePrograms( user, params );
 
         Map<String, Event> eventUidToEventMap = new HashMap<>( params.getPageSizeWithDefault() );
         List<Event> events = new ArrayList<>();
@@ -404,6 +397,10 @@ public class JdbcEventStore
     @Override
     public List<Map<String, String>> getEventsGrid( EventSearchParams params, List<OrganisationUnit> organisationUnits )
     {
+        User user = currentUserService.getCurrentUser();
+
+        setAccessiblePrograms( user, params );
+
         String sql = buildGridSql( params, organisationUnits );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
@@ -439,14 +436,7 @@ public class JdbcEventStore
 
         boolean isSuperUser = isSuper( user );
 
-        if ( !isSuperUser )
-        {
-            params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
-                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
-
-            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
-                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
-        }
+        setAccessiblePrograms( user, params );
 
         List<EventRow> eventRows = new ArrayList<>();
 
@@ -614,16 +604,7 @@ public class JdbcEventStore
     {
         User user = currentUserService.getCurrentUser();
 
-        boolean isSuperUser = isSuper( user );
-
-        if ( !isSuperUser )
-        {
-            params.setAccessiblePrograms( manager.getDataReadAll( Program.class )
-                .stream().map( Program::getUid ).collect( Collectors.toSet() ) );
-
-            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class )
-                .stream().map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
-        }
+        setAccessiblePrograms( user, params );
 
         String sql;
 
@@ -792,7 +773,8 @@ public class JdbcEventStore
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid=psi.attributeoptioncomboid "
             + "inner join categoryoptioncombos_categoryoptions cocco on psi.attributeoptioncomboid=cocco.categoryoptioncomboid "
             + "inner join dataelementcategoryoption deco on cocco.categoryoptionid=deco.categoryoptionid "
-            + "inner join organisationunit ou on (psi.organisationunitid=ou.organisationunitid) "
+            + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
+            + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
             + "left join trackedentityinstance tei on tei.trackedentityinstanceid=pi.trackedentityinstanceid "
             + "left join organisationunit teiou on (tei.organisationunitid=teiou.organisationunitid) "
             + "left join users auc on (psi.assigneduserid=auc.userid) "
@@ -1018,7 +1000,8 @@ public class JdbcEventStore
             + "inner join program p on p.programid = pi.programid "
             + "inner join programstage ps on ps.programstageid = psi.programstageid "
             + "inner join categoryoptioncombo coc on coc.categoryoptioncomboid = psi.attributeoptioncomboid "
-            + "inner join organisationunit ou on psi.organisationunitid = ou.organisationunitid "
+            + "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid) "
+            + "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) "
             + "left join users auc on (psi.assigneduserid=auc.userid) "
             + "left join userinfo au on (auc.userid=au.userinfoid) ";
 
@@ -1461,6 +1444,19 @@ public class JdbcEventStore
                 }
             }
         }
+    }
+
+    private void setAccessiblePrograms( User user, EventSearchParams params )
+    {
+        if ( !isSuper( user ) )
+        {
+            params.setAccessiblePrograms(
+                manager.getDataReadAll( Program.class ).stream().map( Program::getUid ).collect( Collectors.toSet() ) );
+
+            params.setAccessibleProgramStages( manager.getDataReadAll( ProgramStage.class ).stream()
+                .map( ProgramStage::getUid ).collect( Collectors.toSet() ) );
+        }
+
     }
 
     private String getOrgUnitSql( SqlHelper hlp, EventSearchParams params, List<OrganisationUnit> organisationUnits )
