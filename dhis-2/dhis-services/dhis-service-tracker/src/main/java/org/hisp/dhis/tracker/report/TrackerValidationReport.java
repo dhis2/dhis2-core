@@ -34,9 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.TrackerDto;
@@ -47,22 +46,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class TrackerValidationReport
 {
     @JsonProperty
-    @Builder.Default
-    private List<TrackerErrorReport> errorReports = new ArrayList<>();
+    private final List<TrackerErrorReport> errorReports;
 
     @JsonProperty
-    @Builder.Default
-    private List<TrackerWarningReport> warningReports = new ArrayList<>();
+    private final List<TrackerWarningReport> warningReports;
 
     @JsonIgnore
-    @Builder.Default
-    private List<TrackerValidationHookTimerReport> performanceReport = new ArrayList<>();
+    private final List<TrackerValidationHookTimerReport> performanceReport;
 
     /*
      * Keeps track of all the invalid Tracker objects (i.e. objects with at
@@ -70,8 +65,15 @@ public class TrackerValidationReport
      * during the validation process.
      */
     @JsonIgnore
-    @Builder.Default
-    private Map<TrackerType, List<String>> invalidDTOs = new HashMap<>();
+    private final Map<TrackerType, List<String>> invalidDTOs;
+
+    public TrackerValidationReport()
+    {
+        this.errorReports = new ArrayList<>();
+        this.warningReports = new ArrayList<>();
+        this.performanceReport = new ArrayList<>();
+        this.invalidDTOs = new HashMap<>();
+    }
 
     // -----------------------------------------------------------------------------------
     // Utility Methods
