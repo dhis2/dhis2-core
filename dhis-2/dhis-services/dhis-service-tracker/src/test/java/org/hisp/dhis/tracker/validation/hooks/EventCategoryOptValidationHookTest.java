@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -157,7 +157,7 @@ class EventCategoryOptValidationHookTest extends DhisConvenienceTest
         when( i18nManager.getI18nFormat() )
             .thenReturn( I18N_FORMAT );
 
-        reporter = new ValidationErrorReporter( validationContext, event );
+        reporter = new ValidationErrorReporter( validationContext );
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +27,19 @@
  */
 package org.hisp.dhis.analytics.table;
 
+import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
+import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexes;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
-import org.hisp.dhis.analytics.AnalyticsTableColumn;
 import org.hisp.dhis.analytics.AnalyticsTableManager;
 import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableService;
@@ -55,8 +54,6 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.Clock;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -274,36 +271,8 @@ public class DefaultAnalyticsTableService
         AnalyticsTableType type = getAnalyticsTableType();
         log.info( "No of analytics table indexes: " + indexes.size() );
         progress.runStageInParallel( getProcessNo(), indexes,
-            index -> index.getIndexName( type ).replace( "\"", "" ),
+            index -> getIndexName( index, type ).replace( "\"", "" ),
             tableManager::createIndex );
-    }
-
-    /**
-     * Returns a queue of analytics table indexes.
-     *
-     * @param partitions the list of {@link AnalyticsTablePartition}.
-     * @return a {@link ConcurrentLinkedQueue} of indexes.
-     */
-    private List<AnalyticsIndex> getIndexes( List<AnalyticsTablePartition> partitions )
-    {
-        List<AnalyticsIndex> indexes = new ArrayList<>();
-
-        for ( AnalyticsTablePartition partition : partitions )
-        {
-            List<AnalyticsTableColumn> columns = partition.getMasterTable().getDimensionColumns();
-
-            for ( AnalyticsTableColumn col : columns )
-            {
-                if ( !col.isSkipIndex() )
-                {
-                    List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns()
-                        : Lists.newArrayList( col.getName() );
-
-                    indexes.add( new AnalyticsIndex( partition.getTempTableName(), indexColumns, col.getIndexType() ) );
-                }
-            }
-        }
-        return indexes;
     }
 
     /**

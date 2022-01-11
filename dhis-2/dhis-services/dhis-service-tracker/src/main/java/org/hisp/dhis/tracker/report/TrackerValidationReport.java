@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,12 +68,6 @@ public class TrackerValidationReport
         add( validationReport.getErrorReports() );
         addWarnings( validationReport.getWarningReports() );
         addPerfReports( validationReport.getPerformanceReport() );
-    }
-
-    public void add( ValidationErrorReporter validationReporter )
-    {
-        add( validationReporter.getReportList() );
-        addWarnings( validationReporter.getWarningsReportList() );
     }
 
     public void add( List<TrackerErrorReport> errorReports )

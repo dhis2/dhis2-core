@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.analytics.dimension;
+
+import static java.util.Comparator.comparing;
+import static java.util.Comparator.nullsFirst;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -60,15 +63,15 @@ public class DimensionFilteringAndPagingService
 
     private final DimensionMapperService dimensionMapperService;
 
-    private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = Comparator
-        .comparing( DimensionResponse::getCreated, Comparator.nullsFirst( Comparator.naturalOrder() ) );
+    private static final Comparator<DimensionResponse> DEFAULT_COMPARATOR = nullsFirst(
+        comparing( DimensionResponse::getCreated ) );
 
     private static final Map<String, Comparator<DimensionResponse>> ORDERING_MAP = Map.of(
-        "lastUpdated", Comparator.comparing( DimensionResponse::getLastUpdated ),
-        "code", Comparator.comparing( DimensionResponse::getCode ),
-        "uid", Comparator.comparing( DimensionResponse::getId ),
-        "id", Comparator.comparing( DimensionResponse::getId ),
-        "name", Comparator.comparing( DimensionResponse::getName ) );
+        "lastUpdated", nullsFirst( comparing( DimensionResponse::getLastUpdated ) ),
+        "code", nullsFirst( comparing( DimensionResponse::getCode ) ),
+        "uid", nullsFirst( comparing( DimensionResponse::getId ) ),
+        "id", nullsFirst( comparing( DimensionResponse::getId ) ),
+        "name", nullsFirst( comparing( DimensionResponse::getName ) ) );
 
     public PagingWrapper<ObjectNode> pageAndFilter(
         Collection<BaseIdentifiableObject> dimensions,

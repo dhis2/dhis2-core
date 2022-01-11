@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -85,6 +85,16 @@ class HibernateDatabaseInfoProviderTest
         Mockito.when(
             jdbcTemplate.queryForObject( Mockito.eq( "select postgis_full_version();" ), Mockito.eq( String.class ) ) )
             .thenReturn( "2" );
+
+        Mockito.when(
+            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='pg_trgm';" ),
+                Mockito.eq( String.class ) ) )
+            .thenReturn( "pg_trgm" );
+
+        Mockito.when(
+            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='btree_gin';" ),
+                Mockito.eq( String.class ) ) )
+            .thenReturn( "btree_gin" );
 
         Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_URL ) ) )
             .thenReturn( "jdbc:postgresql:dhisx" );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,8 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
 
 /**
  * Class representing an index on a database table column.
@@ -44,8 +37,6 @@ import org.hisp.dhis.common.CodeGenerator;
  */
 public class AnalyticsIndex
 {
-    public static final String PREFIX_INDEX = "in_";
-
     /**
      * Table name.
      */
@@ -62,8 +53,13 @@ public class AnalyticsIndex
     private IndexType type;
 
     /**
+     * Function to be used by the index, if any
+     */
+    private IndexFunction function;
+
+    /**
      * @param table table name.
-     * @param column column name.
+     * @param columns column name.
      * @param type index type.
      */
     public AnalyticsIndex( String table, List<String> columns, IndexType type )
@@ -73,40 +69,29 @@ public class AnalyticsIndex
         this.type = type;
     }
 
+    /**
+     * @param table table name.
+     * @param columns column name.
+     * @param type index type.
+     */
+    public AnalyticsIndex( String table, List<String> columns, IndexType type, IndexFunction function )
+    {
+        this( table, columns, type );
+        this.function = function;
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
 
-    /**
-     * Returns index name for column. Purpose of code suffix is to avoid
-     * uniqueness collision between indexes for temporary and real tables.
-     *
-     * @param tableType the {@link AnalyticsTableType}.
-     */
-    public String getIndexName( AnalyticsTableType tableType )
-    {
-        String columnName = StringUtils.join( this.getColumns(), "_" );
-
-        return quote( PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( this.getTable(), tableType )
-            + "_" + CodeGenerator.generateCode( 5 ) );
-    }
-
-    /**
-     * Shortens the given table name.
-     *
-     * @param table the table name.
-     */
-    private static String shortenTableName( String table, AnalyticsTableType tableType )
-    {
-        table = table.replaceAll( tableType.getTableName(), "ax" );
-        table = table.replaceAll( TABLE_TEMP_SUFFIX, StringUtils.EMPTY );
-
-        return table;
-    }
-
     public boolean hasType()
     {
         return type != null;
+    }
+
+    public boolean hasFunction()
+    {
+        return function != null;
     }
 
     // -------------------------------------------------------------------------
@@ -126,6 +111,11 @@ public class AnalyticsIndex
     public IndexType getType()
     {
         return type;
+    }
+
+    public IndexFunction getFunction()
+    {
+        return function;
     }
 
     @Override
