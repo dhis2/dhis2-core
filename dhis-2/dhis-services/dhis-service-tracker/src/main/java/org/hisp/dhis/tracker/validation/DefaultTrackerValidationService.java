@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerValidationHookTimerReport;
+import org.hisp.dhis.tracker.report.Timing;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
@@ -100,9 +100,9 @@ public class DefaultTrackerValidationService
 
                 hook.validate( reporter, context );
 
-                validationReport.addPerfReport( TrackerValidationHookTimerReport.builder()
-                    .name( hook.getClass().getName() )
-                    .totalTime( hookTimer.toString() ).build() );
+                validationReport.addTiming( new Timing(
+                    hook.getClass().getName(),
+                    hookTimer.toString() ) );
             }
         }
         catch ( ValidationFailFastException e )
@@ -111,8 +111,9 @@ public class DefaultTrackerValidationService
         }
         // TODO(TECH-880) can be removed once the ValidationErrorReporter is
         // removed and we only work with TrackerValidationReport
-        validationReport.addErrors( reporter.getReportList() );
-        validationReport.addWarnings( reporter.getWarningsReportList() );
+        validationReport
+            .addErrors( reporter.getReportList() )
+            .addWarnings( reporter.getWarningsReportList() );
 
         removeInvalidObjects( bundle, reporter );
 

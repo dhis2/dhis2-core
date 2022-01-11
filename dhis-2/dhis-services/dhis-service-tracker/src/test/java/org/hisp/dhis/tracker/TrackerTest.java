@@ -140,7 +140,7 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
 
     protected void assertNoImportErrors( TrackerImportReport report )
     {
-        assertTrue( report.getValidationReport().getErrorReports().isEmpty() );
+        assertTrue( report.getValidationReport().getErrors().isEmpty() );
     }
 
     @Override

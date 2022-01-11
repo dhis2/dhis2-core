@@ -57,7 +57,7 @@ public class TrackerValidationReport
     private final List<TrackerWarningReport> warningReports;
 
     @JsonIgnore
-    private final List<TrackerValidationHookTimerReport> performanceReport;
+    private final List<Timing> timings;
 
     /*
      * Keeps track of all the invalid Tracker objects (i.e. objects with at
@@ -71,7 +71,7 @@ public class TrackerValidationReport
     {
         this.errorReports = new ArrayList<>();
         this.warningReports = new ArrayList<>();
-        this.performanceReport = new ArrayList<>();
+        this.timings = new ArrayList<>();
         this.invalidDTOs = new HashMap<>();
     }
 
@@ -81,60 +81,66 @@ public class TrackerValidationReport
 
     public void addValidationReport( TrackerValidationReport report )
     {
-        addErrors( report.getErrorReports() );
-        addWarnings( report.getWarningReports() );
-        addPerfReports( report.getPerformanceReport() );
+        addErrors( report.getErrors() );
+        addWarnings( report.getWarnings() );
+        addTimings( report.getTimings() );
     }
 
-    public List<TrackerErrorReport> getErrorReports()
+    public List<TrackerErrorReport> getErrors()
     {
         return Collections.unmodifiableList( errorReports );
     }
 
-    public List<TrackerWarningReport> getWarningReports()
+    public List<TrackerWarningReport> getWarnings()
     {
         return Collections.unmodifiableList( warningReports );
     }
 
-    public List<TrackerValidationHookTimerReport> getPerformanceReport()
+    public List<Timing> getTimings()
     {
-        return Collections.unmodifiableList( performanceReport );
+        return Collections.unmodifiableList( timings );
     }
 
-    public void addError( TrackerErrorReport error )
+    public TrackerValidationReport addError( TrackerErrorReport error )
     {
         addErrorIfNotExisting( error );
+        return this;
     }
 
-    public void addErrors( List<TrackerErrorReport> errors )
+    public TrackerValidationReport addErrors( List<TrackerErrorReport> errors )
     {
         for ( TrackerErrorReport error : errors )
         {
             addErrorIfNotExisting( error );
         }
+        return this;
     }
 
-    public void addWarning( TrackerWarningReport warning )
+    public TrackerValidationReport addWarning( TrackerWarningReport warning )
     {
         addWarningIfNotExisting( warning );
+        return this;
     }
 
-    public void addWarnings( List<TrackerWarningReport> warnings )
+    public TrackerValidationReport addWarnings( List<TrackerWarningReport> warnings )
     {
         for ( TrackerWarningReport warning : warnings )
         {
             addWarningIfNotExisting( warning );
         }
+        return this;
     }
 
-    public void addPerfReports( List<TrackerValidationHookTimerReport> timerReports )
+    public TrackerValidationReport addTiming( Timing timing )
     {
-        this.performanceReport.addAll( timerReports );
+        timings.add( timing );
+        return this;
     }
 
-    public void addPerfReport( TrackerValidationHookTimerReport timerReport )
+    public TrackerValidationReport addTimings( List<Timing> timings )
     {
-        performanceReport.add( timerReport );
+        this.timings.addAll( timings );
+        return this;
     }
 
     public boolean hasErrors()
@@ -157,9 +163,9 @@ public class TrackerValidationReport
         return warningReports.stream().anyMatch( test );
     }
 
-    public boolean hasPerfs()
+    public boolean hasTimings()
     {
-        return !performanceReport.isEmpty();
+        return !timings.isEmpty();
     }
 
     /**
@@ -168,7 +174,7 @@ public class TrackerValidationReport
     public long size()
     {
 
-        return this.getErrorReports().stream().map( TrackerErrorReport::getUid ).distinct().count();
+        return this.getErrors().stream().map( TrackerErrorReport::getUid ).distinct().count();
     }
 
     private void addErrorIfNotExisting( TrackerErrorReport error )

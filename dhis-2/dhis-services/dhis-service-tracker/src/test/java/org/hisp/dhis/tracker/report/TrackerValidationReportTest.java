@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
+import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerType;
@@ -53,24 +53,30 @@ class TrackerValidationReportTest
 
         report.addError( error );
 
-        assertNotNull( report.getErrorReports() );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertContainsOnly( report.getErrorReports(), error );
+        assertNotNull( report.getErrors() );
+        assertEquals( 1, report.getErrors().size() );
+        assertContainsOnly( report.getErrors(), error );
 
         report.addError( error );
 
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrors().size() );
     }
 
     @Test
-    void addErrorsDoesNotAddNull()
+    void addErrorsIfTheyDoNotExist()
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
+        TrackerErrorReport error1 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
+        TrackerErrorReport error2 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
 
-        report.addErrors( Collections.emptyList() );
+        report.addError( error1 );
 
-        assertFalse( report.hasErrors() );
+        assertContainsOnly( report.getErrors(), error1 );
+
+        report.addErrors( List.of( error1, error2 ) );
+
+        assertContainsOnly( report.getErrors(), error1, error2 );
     }
 
     @Test
@@ -82,24 +88,30 @@ class TrackerValidationReportTest
 
         report.addWarning( warning );
 
-        assertNotNull( report.getWarningReports() );
-        assertEquals( 1, report.getWarningReports().size() );
-        assertContainsOnly( report.getWarningReports(), warning );
+        assertNotNull( report.getWarnings() );
+        assertEquals( 1, report.getWarnings().size() );
+        assertContainsOnly( report.getWarnings(), warning );
 
         report.addWarning( warning );
 
-        assertEquals( 1, report.getWarningReports().size() );
+        assertEquals( 1, report.getWarnings().size() );
     }
 
     @Test
-    void addWarningsDoesNotAddNull()
+    void addWarningsIfTheyDoNotExist()
     {
 
         TrackerValidationReport report = new TrackerValidationReport();
+        TrackerWarningReport warning1 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1001 );
+        TrackerWarningReport warning2 = newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E1002 );
 
-        report.addWarnings( Collections.emptyList() );
+        report.addWarning( warning1 );
 
-        assertFalse( report.hasWarnings() );
+        assertContainsOnly( report.getWarnings(), warning1 );
+
+        report.addWarnings( List.of( warning1, warning2 ) );
+
+        assertContainsOnly( report.getWarnings(), warning1, warning2 );
     }
 
     @Test
@@ -148,7 +160,7 @@ class TrackerValidationReportTest
 
         TrackerValidationReport report = new TrackerValidationReport();
 
-        assertFalse( report.hasPerfs() );
+        assertFalse( report.hasTimings() );
     }
 
     @Test
@@ -157,9 +169,9 @@ class TrackerValidationReportTest
 
         TrackerValidationReport report = new TrackerValidationReport();
 
-        report.addPerfReport( new TrackerValidationHookTimerReport( "1min", "validation" ) );
+        report.addTiming( new Timing( "1min", "validation" ) );
 
-        assertTrue( report.hasPerfs() );
+        assertTrue( report.hasTimings() );
     }
 
     @Test
@@ -215,12 +227,13 @@ class TrackerValidationReportTest
         TrackerErrorReport error2 = newError( error1.getUid(), TrackerErrorCode.E1000 );
         TrackerErrorReport error3 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1000 );
 
-        report.addError( error1 );
-        report.addError( error2 );
-        report.addError( error3 );
+        report
+            .addError( error1 )
+            .addError( error2 )
+            .addError( error3 );
 
-        assertNotNull( report.getErrorReports() );
-        assertEquals( 3, report.getErrorReports().size() );
+        assertNotNull( report.getErrors() );
+        assertEquals( 3, report.getErrors().size() );
         assertEquals( 2, report.size() );
     }
 
@@ -268,11 +281,16 @@ class TrackerValidationReportTest
 
     private TrackerWarningReport newWarning()
     {
-        return newWarning( TrackerErrorCode.E9999 );
+        return newWarning( CodeGenerator.generateUid(), TrackerErrorCode.E9999 );
     }
 
     private TrackerWarningReport newWarning( TrackerErrorCode code )
     {
-        return new TrackerWarningReport( "", code, TrackerType.EVENT, CodeGenerator.generateUid() );
+        return newWarning( CodeGenerator.generateUid(), code );
+    }
+
+    private TrackerWarningReport newWarning( String uid, TrackerErrorCode code )
+    {
+        return new TrackerWarningReport( "", code, TrackerType.EVENT, uid );
     }
 }

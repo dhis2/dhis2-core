@@ -140,14 +140,14 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
         User user = userService.getUser( "M5zQapPyTZI" );
         trackerBundleParams.setUser( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         trackerBundleParams = renderService.fromJson(
             new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
             TrackerImportParams.class );
         trackerBundleParams.setUser( user );
         trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         manager.flush();
     }
@@ -244,10 +244,10 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
         user.addOrganisationUnit( organisationUnitA );
         manager.update( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
     }
 
@@ -259,7 +259,7 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
         TrackerImportParams params = createBundleFromJson( "tracker/validations/events_error-no-uncomplete.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         // Change just inserted Event to status COMPLETED...
         ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
@@ -281,8 +281,8 @@ class EventSecurityImportValidationTest extends AbstractImportValidationTest
         trackerBundleParams.setUserId( user.getUid() );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1083 ) ) ) );
     }
 }

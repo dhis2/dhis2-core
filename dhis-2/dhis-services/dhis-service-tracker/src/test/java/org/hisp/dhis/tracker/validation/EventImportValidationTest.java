@@ -127,14 +127,14 @@ class EventImportValidationTest extends AbstractImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerImportParams.setUser( user );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
         trackerImportParams = renderService.fromJson(
             new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
             TrackerImportParams.class );
         trackerImportParams.setUser( user );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
     }
 
@@ -146,8 +146,8 @@ class EventImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/events-with_invalid_option_value.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
     }
 
@@ -158,7 +158,7 @@ class EventImportValidationTest extends AbstractImportValidationTest
         TrackerImportParams params = createBundleFromJson( "tracker/validations/events-with_valid_option_value.json" );
         params.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
     }
 
     @Test
@@ -169,7 +169,7 @@ class EventImportValidationTest extends AbstractImportValidationTest
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
     }
 
     @Test
@@ -181,11 +181,11 @@ class EventImportValidationTest extends AbstractImportValidationTest
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         trackerBundleParams.setImportStrategy( UPDATE );
         trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
     }
 
     @Test
@@ -198,14 +198,14 @@ class EventImportValidationTest extends AbstractImportValidationTest
         trackerImportParams.setUser( user );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 4, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 4, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1099 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1096 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1095 ) ) ) );
     }
 
@@ -218,8 +218,8 @@ class EventImportValidationTest extends AbstractImportValidationTest
         trackerBundleParams.setUser( user );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
     }
 
@@ -232,13 +232,13 @@ class EventImportValidationTest extends AbstractImportValidationTest
             userService.getUser( ADMIN_USER_UID ) );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         trackerImportParams = fromJson( "tracker/validations/events_non-repeatable-programstage_part2.json",
             userService.getUser( ADMIN_USER_UID ) );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1039 ) ) ) );
     }
 
@@ -257,8 +257,8 @@ class EventImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/events_non-default-combo.json" );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1055 ) ) ) );
     }
 
@@ -270,8 +270,8 @@ class EventImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/events_cant-find-cat-opt-combo.json" );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1115 ) ) ) );
     }
 
@@ -283,8 +283,8 @@ class EventImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/events_cant-find-cat-option.json" );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1116 ) ) ) );
     }
 
@@ -296,8 +296,8 @@ class EventImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/events_cant-find-cat-option-combo-set.json" );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1117 ) ) ) );
     }
 
@@ -309,10 +309,10 @@ class EventImportValidationTest extends AbstractImportValidationTest
             "tracker/validations/events_combo-date-wrong.json" );
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 2, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 2, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1056 ) ) ) );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1057 ) ) ) );
     }
 
@@ -388,8 +388,8 @@ class EventImportValidationTest extends AbstractImportValidationTest
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
         // When
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
-        assertEquals( 1, trackerImportReport.getValidationReport().getErrorReports().size() );
-        assertThat( trackerImportReport.getValidationReport().getErrorReports(),
+        assertEquals( 1, trackerImportReport.getValidationReport().getErrors().size() );
+        assertThat( trackerImportReport.getValidationReport().getErrors(),
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1082 ) ) ) );
     }
 
@@ -403,7 +403,7 @@ class EventImportValidationTest extends AbstractImportValidationTest
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
         // Then
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
-        assertEquals( 0, trackerImportReport.getValidationReport().getErrorReports().size() );
+        assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         return trackerImportReport;
     }
 
