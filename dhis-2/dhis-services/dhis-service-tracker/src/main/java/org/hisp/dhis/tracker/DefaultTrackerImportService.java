@@ -378,29 +378,22 @@ public class DefaultTrackerImportService
             .stats( originalImportReport.getStats() )
             .bundleReport( originalImportReport.getBundleReport() ).message( originalImportReport.getMessage() );
 
+        TrackerValidationReport originalValidationReport = originalImportReport.getValidationReport();
         TrackerValidationReport validationReport = new TrackerValidationReport();
-
-        Optional.ofNullable( originalImportReport.getValidationReport() )
-            .ifPresent( trackerValidationReport -> {
-                validationReport.setErrorReports( trackerValidationReport.getErrorReports() );
-                validationReport.setWarningReports( trackerValidationReport.getWarningReports() );
-                validationReport.setPerformanceReport( trackerValidationReport.getPerformanceReport() );
-            } );
-
-        switch ( reportMode )
+        if ( originalImportReport != null )
         {
-        case ERRORS:
-            validationReport.setPerformanceReport( null );
-            validationReport.setWarningReports( null );
-            break;
-        case WARNINGS:
-            validationReport.setPerformanceReport( null );
-            break;
-        case FULL:
-            importReportBuilder.timingsStats( originalImportReport.getTimingsStats() );
-            break;
+            validationReport.addErrors( originalValidationReport.getErrorReports() );
         }
-
+        if ( originalImportReport != null && TrackerBundleReportMode.WARNINGS == reportMode )
+        {
+            validationReport.addWarnings( originalValidationReport.getWarningReports() );
+        }
+        else if ( originalImportReport != null && TrackerBundleReportMode.FULL == reportMode )
+        {
+            validationReport.addWarnings( originalValidationReport.getWarningReports() );
+            validationReport.addPerfReports( originalValidationReport.getPerformanceReport() );
+            importReportBuilder.timingsStats( originalImportReport.getTimingsStats() );
+        }
         importReportBuilder.validationReport( validationReport );
 
         return importReportBuilder.build();

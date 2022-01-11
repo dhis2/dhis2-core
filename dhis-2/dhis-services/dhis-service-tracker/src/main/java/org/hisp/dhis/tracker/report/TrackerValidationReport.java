@@ -35,7 +35,7 @@ import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerType;
@@ -47,7 +47,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Data
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

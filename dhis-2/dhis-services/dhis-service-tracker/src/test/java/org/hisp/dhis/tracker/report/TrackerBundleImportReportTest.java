@@ -36,6 +36,7 @@ import static org.hisp.dhis.tracker.report.TrackerTimingsStats.TOTAL_OPS;
 import static org.hisp.dhis.tracker.report.TrackerTimingsStats.TOTAL_REQUEST_OPS;
 import static org.hisp.dhis.tracker.report.TrackerTimingsStats.VALIDATION_OPS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -77,9 +78,9 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
         assertNotNull( report.getValidationReport() );
-        assertNotNull( report.getValidationReport().getErrorReports() );
-        assertNull( report.getValidationReport().getWarningReports() );
-        assertNull( report.getValidationReport().getPerformanceReport() );
+        assertTrue( report.getValidationReport().hasErrors() );
+        assertFalse( report.getValidationReport().hasWarnings() );
+        assertFalse( report.getValidationReport().hasPerfs() );
         assertNull( report.getTimingsStats() );
     }
 
@@ -92,9 +93,9 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
         assertNotNull( report.getValidationReport() );
-        assertNotNull( report.getValidationReport().getErrorReports() );
-        assertNotNull( report.getValidationReport().getWarningReports() );
-        assertNull( report.getValidationReport().getPerformanceReport() );
+        assertTrue( report.getValidationReport().hasErrors() );
+        assertTrue( report.getValidationReport().hasWarnings() );
+        assertFalse( report.getValidationReport().hasPerfs() );
         assertNull( report.getTimingsStats() );
     }
 
