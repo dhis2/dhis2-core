@@ -392,13 +392,11 @@ public abstract class AbstractEnrollmentService
             .map( ImportSummary::getUpdatedTei )
             .filter( Objects::nonNull ).collect( Collectors.toSet() );
 
-        importSummaries.addImportSummaries( importSummariesWithUpdatedTeis );
-
-        teiService.updateTrackedEntityInstanceLastUpdated( updatedTeis,
-            new Date() );
-
         if ( !updatedTeis.isEmpty() )
         {
+            teiService.updateTrackedEntityInstanceLastUpdated( updatedTeis,
+                new Date(), user == null ? null : user.getId() );
+
             String userName = User.username( user );
 
             trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit(
@@ -431,58 +429,42 @@ public abstract class AbstractEnrollmentService
         }
         else if ( importOptions.getImportStrategy().isSync() )
         {
-            for ( Enrollment trackedEntityInstance : enrollments )
+            for ( Enrollment enrollment : enrollments )
             {
-                if ( Boolean.TRUE.equals( trackedEntityInstance.isDeleted() ) )
+                if ( Boolean.TRUE.equals( enrollment.isDeleted() ) )
                 {
-                    delete.add( trackedEntityInstance );
+                    delete.add( enrollment );
                 }
                 else
                 {
-                    sortCreatesAndUpdates( trackedEntityInstance, workContext, create, update );
+                    sortCreatesAndUpdates( List.of( enrollment ), workContext, create, update );
                 }
             }
         }
     }
 
     private void sortCreatesAndUpdates( List<Enrollment> enrollments, WorkContext workContext,
-        List<Enrollment> create, List<Enrollment> update )
-    {
-        Map<String, ProgramInstance> programInstanceMap = workContext
-            .getProgramInstanceMap();
-
-        for ( Enrollment trackedEntityInstance : enrollments )
-        {
-            if ( !programInstanceMap.containsKey( trackedEntityInstance.getEnrollment() ) )
-            {
-                create.add( trackedEntityInstance );
-            }
-            else
-            {
-                update.add( trackedEntityInstance );
-            }
-        }
-    }
-
-    private void sortCreatesAndUpdates( Enrollment enrollment, WorkContext workContext,
         List<Enrollment> create,
         List<Enrollment> update )
     {
         Map<String, ProgramInstance> programInstanceMap = workContext.getProgramInstanceMap();
 
-        if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
+        for ( Enrollment enrollment : enrollments )
         {
-            create.add( enrollment );
-        }
-        else
-        {
-            if ( !programInstanceMap.containsKey( enrollment.getEnrollment() ) )
+            if ( StringUtils.isEmpty( enrollment.getEnrollment() ) )
             {
                 create.add( enrollment );
             }
-            else if ( !programInstanceMap.get( enrollment.getEnrollment() ).isDeleted() )
+            else
             {
-                update.add( enrollment );
+                if ( !programInstanceMap.containsKey( enrollment.getEnrollment() ) )
+                {
+                    create.add( enrollment );
+                }
+                else if ( !programInstanceMap.get( enrollment.getEnrollment() ).isDeleted() )
+                {
+                    update.add( enrollment );
+                }
             }
         }
     }
@@ -1114,13 +1096,7 @@ public abstract class AbstractEnrollmentService
 
             programInstanceService.deleteProgramInstance( programInstance );
 
-            programInstance.getEntityInstance().setLastUpdatedBy( importOptions.getUser() );
-            programInstance.getEntityInstance().setLastUpdated( new Date() );
-
-            sessionFactory.getCurrentSession().merge( programInstance.getEntityInstance() );
             importSummary.setUpdatedTei( programInstance.getEntityInstance().getUid() );
-            // teiService.updateTrackedEntityInstance(
-            // programInstance.getEntityInstance() );
 
             importSummary.setReference( uid );
             importSummary.setStatus( ImportStatus.SUCCESS );

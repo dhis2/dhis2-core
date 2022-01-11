@@ -97,7 +97,8 @@ public interface TrackedEntityInstanceStore
      */
     void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
 
-    void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated );
+    void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated,
+        Long userId );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 

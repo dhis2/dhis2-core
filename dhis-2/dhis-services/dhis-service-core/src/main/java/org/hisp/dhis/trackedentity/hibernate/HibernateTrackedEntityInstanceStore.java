@@ -68,6 +68,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
+import org.hibernate.type.LongType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -1462,7 +1463,8 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    public void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
+    public void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated,
+        Long userId )
     {
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( trackedEntityInstanceUIDs ), 20000 );
 
@@ -1471,6 +1473,7 @@ public class HibernateTrackedEntityInstanceStore
                 teis -> getSession().getNamedQuery( "updateTeisLastUpdated" )
                     .setParameter( "trackedEntityInstances", teis )
                     .setParameter( "lastUpdated", lastUpdated )
+                    .setParameter( "lastupdatedby", userId, new LongType() )
                     .executeUpdate() );
     }
 

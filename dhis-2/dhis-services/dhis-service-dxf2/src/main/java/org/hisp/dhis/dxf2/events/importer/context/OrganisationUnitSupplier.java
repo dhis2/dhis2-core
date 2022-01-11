@@ -117,11 +117,11 @@ public class OrganisationUnitSupplier extends AbstractSupplier
                 {
                     OrganisationUnit organisationUnit = mapFromResultSet( rs );
 
-                    for ( String event : orgUnitToEntity
+                    for ( String entityIdentifier : orgUnitToEntity
                         .get( idScheme.isAttribute() ? rs.getString( ATTRIBUTESCHEME_COL )
                             : getIdentifierBasedOnIdScheme( organisationUnit, idScheme ) ) )
                     {
-                        organisationUnitMap.put( event, organisationUnit );
+                        organisationUnitMap.put( entityIdentifier, organisationUnit );
                     }
 
                 }

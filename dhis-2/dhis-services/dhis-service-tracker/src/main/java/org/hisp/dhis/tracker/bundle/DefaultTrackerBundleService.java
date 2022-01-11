@@ -166,7 +166,8 @@ public class DefaultTrackerBundleService
     private void updateTeisLastUpdated( TrackerBundle bundle )
     {
         Optional.ofNullable( bundle.getUpdatedTeis() ).filter( ut -> !ut.isEmpty() ).ifPresent(
-            teis -> trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated( teis, new Date() ) );
+            teis -> trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated( teis, new Date(),
+                bundle.getUser().getId() ) );
     }
 
     @Override

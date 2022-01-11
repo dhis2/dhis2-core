@@ -50,7 +50,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Luciano Fiandesio
+ * @author Luca Cambi
  */
 @Component( "workContextProgramInstancesSupplier" )
 public class ProgramInstanceSupplier extends AbstractSupplier
