@@ -370,17 +370,17 @@ public class DefaultTrackerImportService
      * @return a copy of the current TrackerImportReport
      */
     @Override
-    public TrackerImportReport buildImportReport( TrackerImportReport trackerImportReport,
+    public TrackerImportReport buildImportReport( TrackerImportReport originalImportReport,
         TrackerBundleReportMode reportMode )
     {
-        TrackerImportReport.TrackerImportReportBuilder trackerImportReportClone = TrackerImportReport.builder()
-            .status( trackerImportReport.getStatus() )
-            .stats( trackerImportReport.getStats() )
-            .bundleReport( trackerImportReport.getBundleReport() ).message( trackerImportReport.getMessage() );
+        TrackerImportReport.TrackerImportReportBuilder importReportBuilder = TrackerImportReport.builder()
+            .status( originalImportReport.getStatus() )
+            .stats( originalImportReport.getStats() )
+            .bundleReport( originalImportReport.getBundleReport() ).message( originalImportReport.getMessage() );
 
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
-        Optional.ofNullable( trackerImportReport.getValidationReport() )
+        Optional.ofNullable( originalImportReport.getValidationReport() )
             .ifPresent( trackerValidationReport -> {
                 validationReport.setErrorReports( trackerValidationReport.getErrorReports() );
                 validationReport.setWarningReports( trackerValidationReport.getWarningReports() );
@@ -397,12 +397,12 @@ public class DefaultTrackerImportService
             validationReport.setPerformanceReport( null );
             break;
         case FULL:
-            trackerImportReportClone.timingsStats( trackerImportReport.getTimingsStats() );
+            importReportBuilder.timingsStats( originalImportReport.getTimingsStats() );
             break;
         }
 
-        trackerImportReportClone.validationReport( validationReport );
+        importReportBuilder.validationReport( validationReport );
 
-        return trackerImportReportClone.build();
+        return importReportBuilder.build();
     }
 }
