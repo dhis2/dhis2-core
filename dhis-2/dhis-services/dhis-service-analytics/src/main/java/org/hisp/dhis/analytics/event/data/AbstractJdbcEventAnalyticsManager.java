@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -590,17 +590,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Wraps the provided column name in Postgres 'lower' directive
-     *
-     * @param column a column name
-     * @return a String
-     */
-    private String wrapLower( String column )
-    {
-        return "lower(" + column + ")";
-    }
-
-    /**
      * Returns an SQL to select the expression or column of the item. If the
      * item is a program indicator, the program indicator expression is
      * returned; if the item is a data element, the item column name is
@@ -608,7 +597,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      *
      * @param item the {@link QueryItem}.
      */
-    protected String getSelectSql( QueryItem item, Date startDate, Date endDate )
+    protected String getSelectSql( QueryFilter filter, QueryItem item, Date startDate, Date endDate )
     {
         if ( item.isProgramIndicator() )
         {
@@ -618,7 +607,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
         else
         {
-            return item.isText() ? wrapLower( getColumn( item ) ) : getColumn( item );
+            return filter.getSqlFilterColumn( getColumn( item ), item.getValueType() );
         }
     }
 

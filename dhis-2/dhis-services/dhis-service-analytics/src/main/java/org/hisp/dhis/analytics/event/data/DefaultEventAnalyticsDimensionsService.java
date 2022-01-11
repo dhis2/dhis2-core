@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,23 +66,29 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     @Override
     public List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId )
     {
-        return Optional.of( programStageId )
-            .map( programStageService::getProgramStage )
-            .map( ProgramStage::getProgram )
-            .map( p -> collectDimensions(
-                List.of(
-                    p.getProgramIndicators(),
-                    filterByValueType(
-                        QUERY,
-                        p.getDataElements(),
-                        DataElement::getValueType ),
-                    filterByValueType(
-                        QUERY,
-                        getTeasIfRegistrationAndNotConfidential( p ),
-                        TrackedEntityAttribute::getValueType ),
-                    getCategoriesIfNeeded( p ),
-                    getAttributeCategoryOptionGroupSetsIfNeeded( p ) ) ) )
-            .orElse( Collections.emptyList() );
+        Optional<ProgramStage> programStage = Optional.of( programStageId )
+            .map( programStageService::getProgramStage );
+
+        if ( programStage.isPresent() )
+        {
+            return programStage
+                .map( ProgramStage::getProgram )
+                .map( p -> collectDimensions(
+                    List.of(
+                        p.getProgramIndicators(),
+                        filterByValueType(
+                            QUERY,
+                            programStage.get().getDataElements(),
+                            DataElement::getValueType ),
+                        filterByValueType(
+                            QUERY,
+                            getTeasIfRegistrationAndNotConfidential( p ),
+                            TrackedEntityAttribute::getValueType ),
+                        getCategoriesIfNeeded( p ),
+                        getAttributeCategoryOptionGroupSetsIfNeeded( p ) ) ) )
+                .orElse( Collections.emptyList() );
+        }
+        return Collections.emptyList();
     }
 
     @Override

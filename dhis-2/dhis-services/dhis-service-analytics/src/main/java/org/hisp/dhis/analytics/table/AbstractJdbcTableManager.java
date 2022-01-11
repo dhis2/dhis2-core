@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.table;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
+import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -192,14 +194,10 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    public void createIndex( AnalyticsIndex index )
+    public void createIndex( final AnalyticsIndex index )
     {
-        final String indexName = index.getIndexName( getAnalyticsTableType() );
-        final String indexColumns = StringUtils.join( index.getColumns(), "," );
-
-        final String sql = "create index " + indexName + " " +
-            "on " + index.getTable() + " " +
-            "using " + index.getType().keyword() + " (" + indexColumns + ");";
+        final String indexName = getIndexName( index, getAnalyticsTableType() );
+        final String sql = createIndexStatement( index, getAnalyticsTableType() );
 
         log.debug( "Create index: '{}' with SQL: '{}'", indexName, sql );
 

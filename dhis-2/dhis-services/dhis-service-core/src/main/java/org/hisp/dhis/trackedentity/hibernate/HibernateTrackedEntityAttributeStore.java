@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -174,6 +174,30 @@ public class HibernateTrackedEntityAttributeStore
         return trackedEntityTypeAttributes.stream()
             .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
             .collect( Collectors.toSet() );
+    }
+
+    @Override
+    public Set<TrackedEntityAttribute> getAllSearchableAndUniqueTrackedEntityAttributes()
+    {
+        Set<TrackedEntityAttribute> result = new HashSet<>();
+
+        Query programTeaQuery = sessionFactory.getCurrentSession()
+            .createQuery( "select attribute from ProgramTrackedEntityAttribute ptea where ptea.searchable=true" );
+        Query tetypeAttributeQuery = sessionFactory.getCurrentSession()
+            .createQuery(
+                "select trackedEntityAttribute from TrackedEntityTypeAttribute teta where teta.searchable=true" );
+        Query uniqueAttributeQuery = sessionFactory.getCurrentSession()
+            .createQuery( "from TrackedEntityAttribute tea where tea.unique=true" );
+
+        List<TrackedEntityAttribute> programSearchableTrackedEntityAttributes = programTeaQuery.list();
+        List<TrackedEntityAttribute> trackedEntityTypeSearchableAttributes = tetypeAttributeQuery.list();
+        List<TrackedEntityAttribute> uniqueAttributes = uniqueAttributeQuery.list();
+
+        result.addAll( programSearchableTrackedEntityAttributes );
+        result.addAll( trackedEntityTypeSearchableAttributes );
+        result.addAll( uniqueAttributes );
+
+        return result;
     }
 
     @Override

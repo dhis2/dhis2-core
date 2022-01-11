@@ -41,6 +41,9 @@
     <properties>
         <!-- Build Properties-->
         <rootDir></rootDir>
+        <!-- Custom source directory property, as <build><sourceDirectory> cannot be set in a profile.
+             See https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
+        <sourceDir>${project.basedir}/src/main/java</sourceDir>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -487,9 +490,41 @@
             </build>
         </profile>
 
+        <profile>
+            <id>javadoc</id>
+            <properties>
+                <sourceDir>${project.build.directory}/generated-sources/delombok</sourceDir>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok-maven-plugin</artifactId>
+                        <version>${lombok-maven-plugin.version}</version>
+                        <configuration>
+                            <addOutputDirectory>false</addOutputDirectory>
+                            <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>delombok</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
     </profiles>
 
     <build>
+        <!-- <build><sourceDirectory> cannot be set in a profile, so it needs a custom property for overwriting it,
+             see https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
+        <sourceDirectory>${sourceDir}</sourceDirectory>
+
         <pluginManagement>
             <plugins>
                 <plugin>
