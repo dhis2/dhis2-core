@@ -51,13 +51,13 @@ class TrackerValidationReportTest
         TrackerValidationReport report = new TrackerValidationReport();
         TrackerErrorReport error = newError();
 
-        report.add( error );
+        report.addError( error );
 
         assertNotNull( report.getErrorReports() );
         assertEquals( 1, report.getErrorReports().size() );
         assertContainsOnly( report.getErrorReports(), error );
 
-        report.add( error );
+        report.addError( error );
 
         assertEquals( 1, report.getErrorReports().size() );
     }
@@ -68,7 +68,7 @@ class TrackerValidationReportTest
 
         TrackerValidationReport report = new TrackerValidationReport();
 
-        report.add( Collections.emptyList() );
+        report.addErrors( Collections.emptyList() );
 
         assertFalse( report.hasErrors() );
     }
@@ -117,7 +117,7 @@ class TrackerValidationReportTest
 
         TrackerValidationReport report = new TrackerValidationReport();
 
-        report.add( newError() );
+        report.addError( newError() );
 
         assertTrue( report.hasErrors() );
     }
@@ -148,7 +148,7 @@ class TrackerValidationReportTest
 
         TrackerValidationReport report = new TrackerValidationReport();
         TrackerErrorReport error = newError();
-        report.add( error );
+        report.addError( error );
 
         assertTrue( report.hasErrorReport( r -> error.getUid().equals( r.getUid() ) ) );
     }
@@ -159,7 +159,7 @@ class TrackerValidationReportTest
 
         TrackerValidationReport report = new TrackerValidationReport();
         TrackerErrorReport error = newError( TrackerErrorCode.E1006 );
-        report.add( error );
+        report.addError( error );
 
         assertFalse( report.hasErrorReport( r -> TrackerErrorCode.E1048 == r.getErrorCode() ) );
     }
@@ -195,9 +195,9 @@ class TrackerValidationReportTest
         TrackerErrorReport error2 = newError( error1.getUid(), TrackerErrorCode.E1000 );
         TrackerErrorReport error3 = newError( CodeGenerator.generateUid(), TrackerErrorCode.E1000 );
 
-        report.add( error1 );
-        report.add( error2 );
-        report.add( error3 );
+        report.addError( error1 );
+        report.addError( error2 );
+        report.addError( error3 );
 
         assertNotNull( report.getErrorReports() );
         assertEquals( 3, report.getErrorReports().size() );
@@ -211,7 +211,7 @@ class TrackerValidationReportTest
         TrackerValidationReport report = new TrackerValidationReport();
         Event event = Event.builder().event( CodeGenerator.generateUid() ).build();
 
-        report.add( newError( event ) );
+        report.addError( newError( event ) );
 
         assertTrue( report.isInvalid( event ) );
     }

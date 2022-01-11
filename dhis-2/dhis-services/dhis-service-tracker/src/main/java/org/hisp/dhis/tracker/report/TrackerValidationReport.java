@@ -78,19 +78,19 @@ public class TrackerValidationReport
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    public void add( TrackerValidationReport report )
+    public void addValidationReport( TrackerValidationReport report )
     {
-        add( report.getErrorReports() );
+        addErrors( report.getErrorReports() );
         addWarnings( report.getWarningReports() );
         addPerfReports( report.getPerformanceReport() );
     }
 
-    public void add( TrackerErrorReport error )
+    public void addError( TrackerErrorReport error )
     {
         addErrorIfNotExisting( error );
     }
 
-    public void add( List<TrackerErrorReport> errors )
+    public void addErrors( List<TrackerErrorReport> errors )
     {
         for ( TrackerErrorReport errorReport : errors )
         {
@@ -116,7 +116,7 @@ public class TrackerValidationReport
         this.performanceReport.addAll( timerReports );
     }
 
-    public void add( TrackerValidationHookTimerReport timerReport )
+    public void addPerfReport( TrackerValidationHookTimerReport timerReport )
     {
         performanceReport.add( timerReport );
     }

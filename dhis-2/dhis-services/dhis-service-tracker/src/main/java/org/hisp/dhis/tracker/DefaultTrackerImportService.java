@@ -159,7 +159,7 @@ public class DefaultTrackerImportService
     private boolean addToValidationReport( TrackerImportParams params, TrackerTimingsStats opsTimer,
         TrackerValidationReport validationReport, TrackerBundle trackerBundle )
     {
-        validationReport.add( opsTimer.exec( VALIDATION_OPS,
+        validationReport.addValidationReport( opsTimer.exec( VALIDATION_OPS,
             () -> validateBundle( params, trackerBundle, opsTimer ) ) );
 
         if ( exitOnError( validationReport, params ) )
@@ -169,7 +169,7 @@ public class DefaultTrackerImportService
 
         if ( !trackerBundle.isSkipRuleEngine() && !params.getImportStrategy().isDelete() )
         {
-            validationReport.add( execRuleEngine( params, opsTimer, trackerBundle ) );
+            validationReport.addValidationReport( execRuleEngine( params, opsTimer, trackerBundle ) );
         }
 
         return exitOnError( validationReport, params );
@@ -227,7 +227,7 @@ public class DefaultTrackerImportService
     {
         TrackerValidationReport ruleEngineValidationReport = new TrackerValidationReport();
 
-        ruleEngineValidationReport.add( trackerValidationService.validateRuleEngine( trackerBundle ) );
+        ruleEngineValidationReport.addValidationReport( trackerValidationService.validateRuleEngine( trackerBundle ) );
 
         return ruleEngineValidationReport;
     }

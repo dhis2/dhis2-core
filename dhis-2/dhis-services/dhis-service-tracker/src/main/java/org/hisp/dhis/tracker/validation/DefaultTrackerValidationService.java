@@ -100,7 +100,7 @@ public class DefaultTrackerValidationService
 
                 hook.validate( reporter, context );
 
-                validationReport.add( TrackerValidationHookTimerReport.builder()
+                validationReport.addPerfReport( TrackerValidationHookTimerReport.builder()
                     .name( hook.getClass().getName() )
                     .totalTime( hookTimer.toString() ).build() );
             }
@@ -111,7 +111,7 @@ public class DefaultTrackerValidationService
         }
         // TODO(TECH-880) can be removed once the ValidationErrorReporter is
         // removed and we only work with TrackerValidationReport
-        validationReport.add( reporter.getReportList() );
+        validationReport.addErrors( reporter.getReportList() );
         validationReport.addWarnings( reporter.getWarningsReportList() );
 
         removeInvalidObjects( bundle, reporter );
