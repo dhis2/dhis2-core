@@ -2296,7 +2296,8 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-api</artifactId>
                     </exclusion>
-<!--        Junit 4 cannot be excluded yet -->
+<!-- Junit 4 cannot be excluded yet, because of this issue -->
+<!-- https://github.com/testcontainers/testcontainers-java/issues/970 -->
 <!--                    <exclusion>-->
 <!--                        <groupId>junit</groupId>-->
 <!--                        <artifactId>junit</artifactId>-->
