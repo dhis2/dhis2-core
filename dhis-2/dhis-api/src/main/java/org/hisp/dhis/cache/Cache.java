@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -136,8 +136,7 @@ public interface Cache<V>
     void invalidate( String key );
 
     /**
-     * Discards all entries in this cache instance. If a shared cache is used,
-     * this method does not clear anything.
+     * Discards all entries in this cache instance.
      */
     void invalidateAll();
 

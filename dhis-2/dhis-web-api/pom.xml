@@ -55,6 +55,10 @@
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-external</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-service-field-filtering</artifactId>
         </dependency>
         <dependency>
@@ -80,6 +84,21 @@
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.validator</groupId>
+            <artifactId>hibernate-validator</artifactId>
+        </dependency>
+
+        <!-- application monitoring -->
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-spring-legacy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
         <!-- Batik -->

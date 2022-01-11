@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -101,6 +101,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.NotOwnerReferencesChe
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SecurityCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueAttributesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueMultiPropertiesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniquenessCheck;
@@ -130,6 +131,7 @@ import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
 import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -214,7 +216,8 @@ public class ServiceConfig
                 getValidationCheckByClass( MandatoryAttributesCheck.class ),
                 getValidationCheckByClass( UniqueAttributesCheck.class ),
                 getValidationCheckByClass( ReferencesCheck.class ),
-                getValidationCheckByClass( NotOwnerReferencesCheck.class ) ),
+                getValidationCheckByClass( NotOwnerReferencesCheck.class ),
+                getValidationCheckByClass( TranslationsCheck.class ) ),
             CREATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -226,7 +229,8 @@ public class ServiceConfig
                 getValidationCheckByClass( MandatoryAttributesCheck.class ),
                 getValidationCheckByClass( UniqueAttributesCheck.class ),
                 getValidationCheckByClass( ReferencesCheck.class ),
-                getValidationCheckByClass( NotOwnerReferencesCheck.class ) ),
+                getValidationCheckByClass( NotOwnerReferencesCheck.class ),
+                getValidationCheckByClass( TranslationsCheck.class ) ),
             UPDATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -238,7 +242,8 @@ public class ServiceConfig
                 getValidationCheckByClass( MandatoryAttributesCheck.class ),
                 getValidationCheckByClass( UniqueAttributesCheck.class ),
                 getValidationCheckByClass( ReferencesCheck.class ),
-                getValidationCheckByClass( NotOwnerReferencesCheck.class ) ),
+                getValidationCheckByClass( NotOwnerReferencesCheck.class ),
+                getValidationCheckByClass( TranslationsCheck.class ) ),
             DELETE, newArrayList(
                 getValidationCheckByClass( SecurityCheck.class ),
                 getValidationCheckByClass( DeletionCheck.class ) ) );
@@ -249,47 +254,54 @@ public class ServiceConfig
      */
 
     @Bean
-    public Map<ImportStrategy, List<Checker>> checkersByImportStrategy()
+    public List<Checker> checkersRunOnInsert()
     {
-        return ImmutableMap.of(
-            CREATE, newArrayList(
-                getCheckerByClass( EventDateCheck.class ),
-                getCheckerByClass( OrgUnitCheck.class ),
-                getCheckerByClass( SharedProgramCheck.class ),
-                getCheckerByClass( ProgramStageCheck.class ),
-                getCheckerByClass( TrackedEntityInstanceCheck.class ),
-                getCheckerByClass( ProgramInstanceCheck.class ),
-                getCheckerByClass( ProgramInstanceRepeatableStageCheck.class ),
-                getCheckerByClass( ProgramOrgUnitCheck.class ),
-                getCheckerByClass( EventGeometryCheck.class ),
-                getCheckerByClass( EventCreationAclCheck.class ),
-                getCheckerByClass( EventBaseCheck.class ),
-                getCheckerByClass( AttributeOptionComboCheck.class ),
-                getCheckerByClass( AttributeOptionComboDateCheck.class ),
-                getCheckerByClass( AttributeOptionComboAclCheck.class ),
-                getCheckerByClass( DataValueCheck.class ),
-                getCheckerByClass( FilteredDataValueCheck.class ),
-                getCheckerByClass( DataValueAclCheck.class ),
-                getCheckerByClass( ExpirationDaysCheck.class ) ),
-            UPDATE, newArrayList(
-                getCheckerByClass( EventSimpleCheck.class ),
-                getCheckerByClass( EventBaseCheck.class ),
-                getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
-                getCheckerByClass( UpdateProgramStageInstanceAclCheck.class ),
-                getCheckerByClass( SharedProgramCheck.class ),
-                getCheckerByClass( ProgramInstanceCheck.class ),
-                getCheckerByClass( ProgramStageInstanceAuthCheck.class ),
-                getCheckerByClass( AttributeOptionComboCheck.class ),
-                getCheckerByClass( AttributeOptionComboDateCheck.class ),
-                getCheckerByClass( EventGeometryCheck.class ),
-                getCheckerByClass( DataValueCheck.class ),
-                getCheckerByClass( FilteredDataValueCheck.class ),
-                getCheckerByClass( ExpirationDaysCheck.class ) ),
-            DELETE, newArrayList(
-                getCheckerByClass(
-                    DeleteProgramStageInstanceAclCheck.class ) )
+        return ImmutableList.of(
+            getCheckerByClass( EventDateCheck.class ),
+            getCheckerByClass( OrgUnitCheck.class ),
+            getCheckerByClass( SharedProgramCheck.class ),
+            getCheckerByClass( ProgramStageCheck.class ),
+            getCheckerByClass( TrackedEntityInstanceCheck.class ),
+            getCheckerByClass( ProgramInstanceCheck.class ),
+            getCheckerByClass( ProgramInstanceRepeatableStageCheck.class ),
+            getCheckerByClass( ProgramOrgUnitCheck.class ),
+            getCheckerByClass( EventGeometryCheck.class ),
+            getCheckerByClass( EventCreationAclCheck.class ),
+            getCheckerByClass( EventBaseCheck.class ),
+            getCheckerByClass( AttributeOptionComboCheck.class ),
+            getCheckerByClass( AttributeOptionComboDateCheck.class ),
+            getCheckerByClass( AttributeOptionComboAclCheck.class ),
+            getCheckerByClass( DataValueCheck.class ),
+            getCheckerByClass( FilteredDataValueCheck.class ),
+            getCheckerByClass( DataValueAclCheck.class ),
+            getCheckerByClass( ExpirationDaysCheck.class ) );
+    }
 
-        );
+    @Bean
+    public List<Checker> checkersRunOnUpdate()
+    {
+        return ImmutableList.of(
+            getCheckerByClass( EventSimpleCheck.class ),
+            getCheckerByClass( EventBaseCheck.class ),
+            getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
+            getCheckerByClass( UpdateProgramStageInstanceAclCheck.class ),
+            getCheckerByClass( SharedProgramCheck.class ),
+            getCheckerByClass( ProgramInstanceCheck.class ),
+            getCheckerByClass( ProgramStageInstanceAuthCheck.class ),
+            getCheckerByClass( AttributeOptionComboCheck.class ),
+            getCheckerByClass( AttributeOptionComboDateCheck.class ),
+            getCheckerByClass( EventGeometryCheck.class ),
+            getCheckerByClass( DataValueCheck.class ),
+            getCheckerByClass( FilteredDataValueCheck.class ),
+            getCheckerByClass( ExpirationDaysCheck.class ) );
+    }
+
+    @Bean
+    public List<Checker> checkersRunOnDelete()
+    {
+        return ImmutableList.of(
+            getCheckerByClass(
+                DeleteProgramStageInstanceAclCheck.class ) );
     }
 
     private Checker getCheckerByClass( Class<? extends Checker> checkerClass )

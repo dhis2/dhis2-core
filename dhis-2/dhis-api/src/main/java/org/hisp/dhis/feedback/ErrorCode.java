@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,8 @@ public enum ErrorCode
     E1103( "Category option combo not found or not accessible: `{0}`" ),
     E1104( "Attribute option combo not found or not accessible: `{0}`" ),
     E1105( "Data set not found or not accessible: `{0}`" ),
+    E1106( "There are duplicate translation record for property `{0}` and locale `{1}`" ),
+    E1107( "Object type `{0}` is not translatable." ),
 
     /* Org unit merge */
     E1500( "At least two source orgs unit must be specified" ),
@@ -370,7 +372,11 @@ public enum ErrorCode
         "Data is already approved for data set: `{3}` period: `{1}` organisation unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
-    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" );
+    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" ),
+
+    // datastore query validation
+    E7650( "Not a valid path: `{0}`" ),
+    E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" );
 
     private String message;
 

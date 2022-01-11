@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -503,7 +503,7 @@ public class DefaultDataIntegrityService
             .section( "Legacy" )
             .description( name.replace( '_', ' ' ) )
             .runDetailsCheck( c -> new DataIntegrityDetails( c, check.get() ) )
-            .runSummaryCheck( c -> null ) // not supported
+            .runSummaryCheck( c -> new DataIntegritySummary( c, check.get().size(), null ) )
             .build() );
     }
 

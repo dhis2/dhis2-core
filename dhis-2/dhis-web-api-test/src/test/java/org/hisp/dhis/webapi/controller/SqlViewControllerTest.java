@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,10 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.Assert.assertEquals;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -71,5 +73,16 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest
     {
         assertWebMessage( "Not Found", 404, "ERROR", "SQL view does not exist: xyz",
             POST( "/sqlViews/xyz/refresh" ).content( HttpStatus.NOT_FOUND ) );
+    }
+
+    @Test
+    public void testCreateWithDefaultValues()
+    {
+        String uid = assertStatus( HttpStatus.CREATED,
+            POST( "/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}" ) );
+
+        JsonResponse sqlView = GET( "/sqlViews/{uid}", uid ).content();
+        assertEquals( "VIEW", sqlView.getString( "type" ).string() );
+        assertEquals( "RESPECT_SYSTEM_SETTING", sqlView.getString( "cacheStrategy" ).string() );
     }
 }

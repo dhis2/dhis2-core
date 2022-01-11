@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,8 +56,8 @@ class TrackerImportReportTest
         trackerTypeReportMap.put( TrackerType.ENROLLMENT, createTypeReport( TrackerType.ENROLLMENT, 3, 3, 0 ) );
         TrackerBundleReport bundleReport = new TrackerBundleReport( TrackerStatus.OK, trackerTypeReportMap );
         // Create validation report with 3 objects
-        TrackerValidationReport validationReport = TrackerValidationReport.builder()
-            .errorReports( rnd.objects( TrackerErrorReport.class, 3 ).collect( Collectors.toList() ) ).build();
+        TrackerValidationReport validationReport = new TrackerValidationReport();
+        validationReport.addErrors( rnd.objects( TrackerErrorReport.class, 3 ).collect( Collectors.toList() ) );
         // Create empty Timing Stats report
         TrackerTimingsStats timingsStats = new TrackerTimingsStats();
         // Create payload map
@@ -65,7 +65,7 @@ class TrackerImportReportTest
         originalPayload.put( TrackerType.TRACKED_ENTITY, 10 );
         originalPayload.put( TrackerType.ENROLLMENT, 8 );
         // Method under test
-        TrackerImportReport rep = TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.OK, bundleReport,
+        TrackerImportReport rep = TrackerImportReport.withImportCompleted( TrackerStatus.OK, bundleReport,
             validationReport, timingsStats, originalPayload );
         assertThat( rep.getStats().getCreated(), is( 8 ) );
         assertThat( rep.getStats().getUpdated(), is( 6 ) );

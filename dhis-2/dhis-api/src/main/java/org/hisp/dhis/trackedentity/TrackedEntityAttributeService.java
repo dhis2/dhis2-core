@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -122,6 +122,15 @@ public interface TrackedEntityAttributeService
 
     ProgramTrackedEntityAttribute getProgramTrackedEntityAttribute( Program program,
         TrackedEntityAttribute trackedEntityAttribute );
+
+    /**
+     * Returns all {@link TrackedEntityAttribute} that are candidates for
+     * creating trigram indexes.
+     *
+     * @return a set of all TrackedEntityAttribute, or an empty List if there
+     *         are no TrackedEntityAttributes that are indexable
+     */
+    Set<TrackedEntityAttribute> getAllTrigramIndexableTrackedEntityAttributes();
 
     /**
      * Returns all {@link TrackedEntityAttribute}

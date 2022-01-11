@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.tracker.TrackerType.EVENT;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1039;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -114,8 +116,9 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
+        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
 
-        ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
+        validatorToTest.validate( errorReporter, ctx );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
@@ -135,11 +138,16 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         when( preheat.getProgramStageWithEvents() )
             .thenReturn( Lists.newArrayList( Pair.of( event.getProgramStage(), event.getEnrollment() ) ) );
         bundle.setEvents( Lists.newArrayList( event ) );
-        ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter(
+            new TrackerImportValidationContext( bundle ) );
+
+        validatorToTest.validate( errorReporter, ctx );
 
         // then
         assertEquals( 1, errorReporter.getReportList().size() );
-        assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertTrue( errorReporter.hasErrorReport( err -> E1039.equals( err.getErrorCode() ) &&
+            EVENT.equals( err.getTrackerType() ) &&
+            event.getUid().equals( err.getUid() ) ) );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
@@ -151,15 +159,21 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( notRepeatableEvent( "A" ), notRepeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
+        ValidationErrorReporter errorReporter = new ValidationErrorReporter(
+            new TrackerImportValidationContext( bundle ) );
 
-        ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
+        validatorToTest.validate( errorReporter, ctx );
 
         assertEquals( 2, errorReporter.getReportList().size() );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertThat( errorReporter.getReportList().get( 0 ).getTrackerType(), is( EVENT ) );
+        assertThat( errorReporter.getReportList().get( 0 ).getUid(), is( events.get( 0 ).getUid() ) );
         assertThat( errorReporter.getReportList().get( 0 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
         assertThat( errorReporter.getReportList().get( 1 ).getErrorCode(), is( TrackerErrorCode.E1039 ) );
+        assertThat( errorReporter.getReportList().get( 1 ).getTrackerType(), is( EVENT ) );
+        assertThat( errorReporter.getReportList().get( 1 ).getUid(), is( events.get( 1 ).getUid() ) );
         assertThat( errorReporter.getReportList().get( 1 ).getErrorMessage(),
             is( "ProgramStage: `" + NOT_REPEATABLE_PROGRAM_STAGE_WITH_REGISTRATION +
                 "`, is not repeatable and an event already exists." ) );
@@ -171,8 +185,9 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( repeatableEvent( "A" ), repeatableEvent( "B" ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
+        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
 
-        ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
+        validatorToTest.validate( errorReporter, ctx );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
@@ -182,11 +197,12 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
     {
         Event invalidEvent = notRepeatableEvent( "A" );
         List<Event> events = Lists.newArrayList( invalidEvent, notRepeatableEvent( "B" ) );
-        ctx.getRootReporter().getInvalidDTOs().put( TrackerType.EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
+        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
+        errorReporter.getInvalidDTOs().put( TrackerType.EVENT, Lists.newArrayList( invalidEvent.getUid() ) );
 
-        ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
+        validatorToTest.validate( errorReporter, ctx );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
@@ -200,8 +216,9 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( eventEnrollmentA, eventEnrollmentB );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
+        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
 
-        ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
+        validatorToTest.validate( errorReporter, ctx );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
@@ -214,8 +231,9 @@ class RepeatedEventsValidationHookTest extends DhisConvenienceTest
         List<Event> events = Lists.newArrayList( eventProgramA, eventProgramB );
         bundle.setEvents( events );
         events.forEach( e -> bundle.setStrategy( e, TrackerImportStrategy.CREATE_AND_UPDATE ) );
+        ValidationErrorReporter errorReporter = ValidationErrorReporter.emptyReporter();
 
-        ValidationErrorReporter errorReporter = validatorToTest.validate( ctx );
+        validatorToTest.validate( errorReporter, ctx );
 
         assertTrue( errorReporter.getReportList().isEmpty() );
     }
