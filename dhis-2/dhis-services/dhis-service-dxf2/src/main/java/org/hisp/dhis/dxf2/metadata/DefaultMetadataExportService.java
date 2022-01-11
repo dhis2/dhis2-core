@@ -35,8 +35,6 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.Category;
@@ -62,9 +60,7 @@ import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventreport.EventReport;
 import org.hisp.dhis.eventvisualization.EventVisualization;
-import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.fieldfilter.FieldFilterParams;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.interpretation.Interpretation;
@@ -72,8 +68,6 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.node.NodeUtils;
-import org.hisp.dhis.node.config.InclusionStrategy;
-import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
@@ -108,8 +102,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.common.base.Enums;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -222,16 +217,20 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            FieldFilterParams fieldFilterParams = new FieldFilterParams( metadata.get( klass ),
-                params.getFields( klass ), params.getDefaults(), params.getSkipSharing() );
-            fieldFilterParams.setUser( params.getUser() );
+            /**
+             * FieldFilterParams fieldFilterParams = new FieldFilterParams(
+             * metadata.get( klass ), params.getFields( klass ),
+             * params.getDefaults(), params.getSkipSharing() );
+             * fieldFilterParams.setUser( params.getUser() );
+             */
 
-            CollectionNode collectionNode = fieldFilterService.toCollectionNode( klass, fieldFilterParams );
-
-            if ( !collectionNode.getChildren().isEmpty() )
-            {
-                rootNode.addChild( collectionNode );
-            }
+            /*
+             * CollectionNode collectionNode =
+             * fieldFilterService.toCollectionNode( klass, fieldFilterParams );
+             * 
+             * if ( !collectionNode.getChildren().isEmpty() ) {
+             * rootNode.addChild( collectionNode ); }
+             */
         }
 
         return rootNode;
@@ -268,11 +267,6 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         MetadataExportParams params = new MetadataExportParams();
         Map<Class<? extends IdentifiableObject>, Map<String, List<String>>> map = new HashMap<>();
-
-        params.setDefaults( getEnumWithDefault( Defaults.class, parameters, "defaults", Defaults.INCLUDE ) );
-        params
-            .setInclusionStrategy( getEnumWithDefault( InclusionStrategy.Include.class, parameters, "inclusionStrategy",
-                InclusionStrategy.Include.NON_NULL ) );
 
         if ( parameters.containsKey( "fields" ) )
         {
@@ -393,23 +387,42 @@ public class DefaultMetadataExportService implements MetadataExportService
     {
         SetMap<Class<? extends IdentifiableObject>, IdentifiableObject> metadata = new SetMap<>();
 
-        if ( OptionSet.class.isInstance( object ) )
+        if ( object instanceof OptionSet )
+        {
             return handleOptionSet( metadata, (OptionSet) object );
-        if ( DataSet.class.isInstance( object ) )
+        }
+
+        if ( object instanceof DataSet )
+        {
             return handleDataSet( metadata, (DataSet) object );
-        if ( Program.class.isInstance( object ) )
+        }
+
+        if ( object instanceof Program )
+        {
             return handleProgram( metadata, (Program) object );
-        if ( CategoryCombo.class.isInstance( object ) )
+        }
+
+        if ( object instanceof CategoryCombo )
+        {
             return handleCategoryCombo( metadata, (CategoryCombo) object );
-        if ( Dashboard.class.isInstance( object ) )
+        }
+
+        if ( object instanceof Dashboard )
+        {
             return handleDashboard( metadata, (Dashboard) object );
-        if ( DataElementGroup.class.isInstance( object ) )
+        }
+
+        if ( object instanceof DataElementGroup )
+        {
             return handleDataElementGroup( metadata, (DataElementGroup) object );
+        }
+
         return metadata;
     }
 
     @Override
-    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull MetadataExportParams params )
+    public RootNode getMetadataWithDependenciesAsNode( IdentifiableObject object, @Nonnull
+    MetadataExportParams params )
     {
         RootNode rootNode = NodeUtils.createMetadata();
         rootNode.addChild( new SimpleNode( "date", new Date(), true ) );
@@ -419,10 +432,12 @@ public class DefaultMetadataExportService implements MetadataExportService
 
         for ( Class<? extends IdentifiableObject> klass : metadata.keySet() )
         {
-            FieldFilterParams fieldFilterParams = new FieldFilterParams( Lists.newArrayList( metadata.get( klass ) ),
-                Lists.newArrayList( ":owner" ) );
-            fieldFilterParams.setSkipSharing( params.getSkipSharing() );
-            rootNode.addChild( fieldFilterService.toCollectionNode( klass, fieldFilterParams ) );
+            // FieldFilterParams fieldFilterParams = new FieldFilterParams(
+            // Lists.newArrayList( metadata.get( klass ) ),
+            // Lists.newArrayList( ":owner" ) );
+            // fieldFilterParams.setSkipSharing( params.getSkipSharing() );
+            // rootNode.addChild( fieldFilterService.toCollectionNode( klass,
+            // fieldFilterParams ) );
         }
 
         return rootNode;
@@ -432,7 +447,8 @@ public class DefaultMetadataExportService implements MetadataExportService
     // Utility Methods
     // -----------------------------------------------------------------------------------
 
-    private boolean isSelectedClass( @Nonnull List<String> values )
+    private boolean isSelectedClass( @Nonnull
+    List<String> values )
     {
         if ( values.stream().anyMatch( "false"::equalsIgnoreCase ) )
         {
