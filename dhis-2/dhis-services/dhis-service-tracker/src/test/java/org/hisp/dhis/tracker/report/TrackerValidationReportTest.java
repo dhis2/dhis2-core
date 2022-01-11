@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Collections;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.junit.jupiter.api.Test;
@@ -248,7 +248,7 @@ class TrackerValidationReportTest
 
     private TrackerErrorReport newError()
     {
-        return newError( CodeGenerator.generateUid(), TrackerErrorCode.E9999 );
+        return newError( TrackerErrorCode.E9999 );
     }
 
     private TrackerErrorReport newError( TrackerErrorCode code )
@@ -256,36 +256,23 @@ class TrackerValidationReportTest
         return newError( CodeGenerator.generateUid(), code );
     }
 
-    private TrackerErrorReport newError( TrackerDto dto )
-    {
-        return TrackerErrorReport.builder()
-            .uid( dto.getUid() )
-            .trackerType( dto.getTrackerType() )
-            .errorCode( TrackerErrorCode.E9999 )
-            .build( TrackerBundle.builder().build() );
-    }
-
     private TrackerErrorReport newError( String uid, TrackerErrorCode code )
     {
-        return TrackerErrorReport.builder()
-            .uid( uid )
-            .errorCode( code )
-            .build( TrackerBundle.builder().build() );
+        return new TrackerErrorReport( "", code, TrackerType.EVENT, uid );
+    }
+
+    private TrackerErrorReport newError( TrackerDto dto )
+    {
+        return new TrackerErrorReport( "", TrackerErrorCode.E9999, dto.getTrackerType(), dto.getUid() );
     }
 
     private TrackerWarningReport newWarning()
     {
-        return TrackerWarningReport.builder()
-            .uid( CodeGenerator.generateUid() )
-            .warningCode( TrackerErrorCode.E9999 )
-            .build( TrackerBundle.builder().build() );
+        return newWarning( TrackerErrorCode.E9999 );
     }
 
     private TrackerWarningReport newWarning( TrackerErrorCode code )
     {
-        return TrackerWarningReport.builder()
-            .uid( CodeGenerator.generateUid() )
-            .warningCode( code )
-            .build( TrackerBundle.builder().build() );
+        return new TrackerWarningReport( "", code, TrackerType.EVENT, CodeGenerator.generateUid() );
     }
 }
