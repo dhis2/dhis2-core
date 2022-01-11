@@ -47,9 +47,9 @@ public class Timing
 {
     @NonNull
     @JsonProperty
-    public String totalTime;
+    public final String totalTime;
 
     @NonNull
     @JsonProperty
-    public String name;
+    public final String name;
 }
