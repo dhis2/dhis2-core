@@ -108,9 +108,9 @@ public class TrackerValidationReport
 
     public void addErrors( List<TrackerErrorReport> errors )
     {
-        for ( TrackerErrorReport errorReport : errors )
+        for ( TrackerErrorReport error : errors )
         {
-            addErrorIfNotExisting( errorReport );
+            addErrorIfNotExisting( error );
         }
     }
 
@@ -121,9 +121,9 @@ public class TrackerValidationReport
 
     public void addWarnings( List<TrackerWarningReport> warnings )
     {
-        for ( TrackerWarningReport warningReport : warnings )
+        for ( TrackerWarningReport warning : warnings )
         {
-            addWarningIfNotExisting( warningReport );
+            addWarningIfNotExisting( warning );
         }
     }
 
