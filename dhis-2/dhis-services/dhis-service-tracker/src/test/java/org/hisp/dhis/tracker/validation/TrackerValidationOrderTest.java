@@ -71,7 +71,7 @@ class TrackerValidationOrderTest extends DhisSpringTest
         TrackerValidationReport report = trackerValidationService.validate( bundle );
 
         assertTrue( report.hasErrors() );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertEquals( E1048, report.getErrorReports().get( 0 ).getErrorCode() );
+        assertEquals( 1, report.getErrors().size() );
+        assertEquals( E1048, report.getErrors().get( 0 ).getErrorCode() );
     }
 }

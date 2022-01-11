@@ -204,21 +204,21 @@ class TrackerBundleImportReportTest extends DhisSpringTest
             deserializedReportTrackerTypeReport.getObjectReports() );
         assertEquals( serializedReportTrackerTypeReport.getStats(), deserializedReportTrackerTypeReport.getStats() );
         // Verify Validation Report - Error Reports
-        assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage(),
-            deserializedReport.getValidationReport().getErrorReports().get( 0 ).getErrorMessage() );
-        assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode(),
-            deserializedReport.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
-        assertEquals( toSerializeReport.getValidationReport().getErrorReports().get( 0 ).getUid(),
-            deserializedReport.getValidationReport().getErrorReports().get( 0 ).getUid() );
+        assertEquals( toSerializeReport.getValidationReport().getErrors().get( 0 ).getErrorMessage(),
+            deserializedReport.getValidationReport().getErrors().get( 0 ).getErrorMessage() );
+        assertEquals( toSerializeReport.getValidationReport().getErrors().get( 0 ).getErrorCode(),
+            deserializedReport.getValidationReport().getErrors().get( 0 ).getErrorCode() );
+        assertEquals( toSerializeReport.getValidationReport().getErrors().get( 0 ).getUid(),
+            deserializedReport.getValidationReport().getErrors().get( 0 ).getUid() );
         // Verify Validation Report - Warning Reports
-        assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getWarningMessage(),
-            deserializedReport.getValidationReport().getWarningReports().get( 0 ).getWarningMessage() );
-        assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getWarningCode(),
-            deserializedReport.getValidationReport().getWarningReports().get( 0 ).getWarningCode() );
-        assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getUid(),
-            deserializedReport.getValidationReport().getWarningReports().get( 0 ).getUid() );
-        assertEquals( toSerializeReport.getValidationReport().getWarningReports().get( 0 ).getTrackerType(),
-            deserializedReport.getValidationReport().getWarningReports().get( 0 ).getTrackerType() );
+        assertEquals( toSerializeReport.getValidationReport().getWarnings().get( 0 ).getWarningMessage(),
+            deserializedReport.getValidationReport().getWarnings().get( 0 ).getWarningMessage() );
+        assertEquals( toSerializeReport.getValidationReport().getWarnings().get( 0 ).getWarningCode(),
+            deserializedReport.getValidationReport().getWarnings().get( 0 ).getWarningCode() );
+        assertEquals( toSerializeReport.getValidationReport().getWarnings().get( 0 ).getUid(),
+            deserializedReport.getValidationReport().getWarnings().get( 0 ).getUid() );
+        assertEquals( toSerializeReport.getValidationReport().getWarnings().get( 0 ).getTrackerType(),
+            deserializedReport.getValidationReport().getWarnings().get( 0 ).getTrackerType() );
         // Verify TimingsStats
         assertEquals( toSerializeReport.getTimingsStats().getCommit(),
             deserializedReport.getTimingsStats().getCommit() );

@@ -132,7 +132,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         TrackerImportReport importReport = trackerImportService.importTracker( params );
         assertEquals( TrackerStatus.ERROR, importReport.getStatus() );
         assertTrue( importReport.getValidationReport().hasErrors() );
-        List<TrackerErrorReport> trackerErrorReports = importReport.getValidationReport().getErrorReports();
+        List<TrackerErrorReport> trackerErrorReports = importReport.getValidationReport().getErrors();
         assertEquals( TrackerErrorCode.E1081, trackerErrorReports.get( 0 ).getErrorCode() );
     }
 

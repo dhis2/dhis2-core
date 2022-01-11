@@ -53,13 +53,13 @@ class TrackerValidationReportTest
 
         report.addError( error );
 
-        assertNotNull( report.getErrorReports() );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertContainsOnly( report.getErrorReports(), error );
+        assertNotNull( report.getErrors() );
+        assertEquals( 1, report.getErrors().size() );
+        assertContainsOnly( report.getErrors(), error );
 
         report.addError( error );
 
-        assertEquals( 1, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrors().size() );
     }
 
     @Test
@@ -82,13 +82,13 @@ class TrackerValidationReportTest
 
         report.addWarning( warning );
 
-        assertNotNull( report.getWarningReports() );
-        assertEquals( 1, report.getWarningReports().size() );
-        assertContainsOnly( report.getWarningReports(), warning );
+        assertNotNull( report.getWarnings() );
+        assertEquals( 1, report.getWarnings().size() );
+        assertContainsOnly( report.getWarnings(), warning );
 
         report.addWarning( warning );
 
-        assertEquals( 1, report.getWarningReports().size() );
+        assertEquals( 1, report.getWarnings().size() );
     }
 
     @Test
@@ -219,8 +219,8 @@ class TrackerValidationReportTest
         report.addError( error2 );
         report.addError( error3 );
 
-        assertNotNull( report.getErrorReports() );
-        assertEquals( 3, report.getErrorReports().size() );
+        assertNotNull( report.getErrors() );
+        assertEquals( 3, report.getErrors().size() );
         assertEquals( 2, report.size() );
     }
 

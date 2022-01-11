@@ -382,15 +382,15 @@ public class DefaultTrackerImportService
         TrackerValidationReport validationReport = new TrackerValidationReport();
         if ( originalValidationReport != null )
         {
-            validationReport.addErrors( originalValidationReport.getErrorReports() );
+            validationReport.addErrors( originalValidationReport.getErrors() );
         }
         if ( originalValidationReport != null && TrackerBundleReportMode.WARNINGS == reportMode )
         {
-            validationReport.addWarnings( originalValidationReport.getWarningReports() );
+            validationReport.addWarnings( originalValidationReport.getWarnings() );
         }
         else if ( originalValidationReport != null && TrackerBundleReportMode.FULL == reportMode )
         {
-            validationReport.addWarnings( originalValidationReport.getWarningReports() );
+            validationReport.addWarnings( originalValidationReport.getWarnings() );
             validationReport.addPerfReports( originalValidationReport.getPerformanceReport() );
             importReportBuilder.timingsStats( originalImportReport.getTimingsStats() );
         }

@@ -81,17 +81,17 @@ public class TrackerValidationReport
 
     public void addValidationReport( TrackerValidationReport report )
     {
-        addErrors( report.getErrorReports() );
-        addWarnings( report.getWarningReports() );
+        addErrors( report.getErrors() );
+        addWarnings( report.getWarnings() );
         addPerfReports( report.getPerformanceReport() );
     }
 
-    public List<TrackerErrorReport> getErrorReports()
+    public List<TrackerErrorReport> getErrors()
     {
         return Collections.unmodifiableList( errorReports );
     }
 
-    public List<TrackerWarningReport> getWarningReports()
+    public List<TrackerWarningReport> getWarnings()
     {
         return Collections.unmodifiableList( warningReports );
     }
@@ -168,7 +168,7 @@ public class TrackerValidationReport
     public long size()
     {
 
-        return this.getErrorReports().stream().map( TrackerErrorReport::getUid ).distinct().count();
+        return this.getErrors().stream().map( TrackerErrorReport::getUid ).distinct().count();
     }
 
     private void addErrorIfNotExisting( TrackerErrorReport error )
