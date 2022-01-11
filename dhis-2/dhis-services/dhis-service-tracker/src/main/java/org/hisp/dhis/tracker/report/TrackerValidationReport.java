@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,6 @@ import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerType;
@@ -47,7 +47,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -83,6 +82,21 @@ public class TrackerValidationReport
         addErrors( report.getErrorReports() );
         addWarnings( report.getWarningReports() );
         addPerfReports( report.getPerformanceReport() );
+    }
+
+    public List<TrackerErrorReport> getErrorReports()
+    {
+        return Collections.unmodifiableList( errorReports );
+    }
+
+    public List<TrackerWarningReport> getWarningReports()
+    {
+        return Collections.unmodifiableList( warningReports );
+    }
+
+    public List<TrackerValidationHookTimerReport> getPerformanceReport()
+    {
+        return Collections.unmodifiableList( performanceReport );
     }
 
     public void addError( TrackerErrorReport error )

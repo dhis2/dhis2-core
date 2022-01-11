@@ -156,13 +156,11 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         // Build ValidationReport
         TrackerValidationReport tvr = new TrackerValidationReport();
         // Error Reports - Validation Report
-        tvr.getErrorReports()
-            .add( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
-                TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) );
+        tvr.addError( new TrackerErrorReport( "Could not find OrganisationUnit: ``, linked to Tracked Entity.",
+            TrackerErrorCode.E1049, TRACKED_ENTITY, "BltTZV9HvEZ" ) );
         // Warning Reports - Validation Report
-        tvr.getWarningReports()
-            .add( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
-                TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
+        tvr.addWarning( new TrackerWarningReport( "ProgramStage `l8oDIfJJhtg` does not allow user assignment",
+            TrackerErrorCode.E1120, TrackerType.EVENT, "BltTZV9HvEZ" ) );
         // Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
