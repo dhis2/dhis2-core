@@ -93,7 +93,7 @@ public class RequestExecutionPlanCache implements ExecutionPlanCache
 
             executionPlan.setPlanningTime( planTime );
 
-            executionPlan.setTotalTimeEstimation( Precision.round( execTime + planTime, 3 ) );
+            executionPlan.setTimeEstimation( Precision.round( execTime + planTime, 3 ) );
         }
 
         synchronized ( this )

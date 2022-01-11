@@ -293,8 +293,9 @@ public class AnalyticsController
 
         if ( analyzeOnly )
         {
-            params = DataQueryParams.newBuilder( params ).withAnalyzeOrderId().build();
+            params = DataQueryParams.newBuilder( params ).withSkipData( false ).withAnalyzeOrderId().build();
         }
+
         contextUtils.configureAnalyticsResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, null,
             false, params.getLatestEndDate() );
 

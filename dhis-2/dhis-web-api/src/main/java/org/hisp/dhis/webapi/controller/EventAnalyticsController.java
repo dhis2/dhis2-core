@@ -71,6 +71,8 @@ public class EventAnalyticsController
 {
     private static final String RESOURCE_PATH = "/analytics/events";
 
+    private static final String ANALYZE_PATH = "/analyze";
+
     @NonNull
     private final EventDataQueryService eventDataService;
 
@@ -89,6 +91,23 @@ public class EventAnalyticsController
     // -------------------------------------------------------------------------
     // Aggregate
     // -------------------------------------------------------------------------
+
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}" + ANALYZE_PATH, produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
+    public @ResponseBody Grid getAnalyzeAggregateJson( // JSON, JSONP
+        @PathVariable String program,
+        EventsAnalyticsQueryCriteria criteria,
+        DhisApiVersion apiVersion,
+        HttpServletResponse response )
+        throws Exception
+    {
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
+
+        configResponseForJson( response );
+
+        return analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
+            getItemsFromParam( criteria.getRows() ) );
+    }
 
     @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
