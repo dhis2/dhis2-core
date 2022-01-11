@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -292,7 +293,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     void verifyGetColumnsWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
         // Given
-
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
@@ -312,10 +312,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends
             .withSkipMeta( false )
             .build();
 
-        final List<String> columns = this.subject.getSelectColumns( params );
+        final List<String> columns = new ArrayList<>( this.subject.getSelectColumns( params ).values() );
 
         // Then
-
         assertThat( columns, hasSize( 3 ) );
         assertThat( columns, containsInAnyOrder( "ax.\"pe\"", "ax.\"ou\"",
             "'[' || round(ST_X(ST_Centroid(\"" + deA.getUid() + "_geom"
@@ -327,7 +326,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends
     void verifyGetWhereClauseWithAttributeOrgUnitTypeAndCoordinatesReturnsFetchesCoordinatesFromOrgUnite()
     {
         // Given
-
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
             newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );

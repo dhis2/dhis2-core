@@ -28,7 +28,17 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.getSelectableColumns;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_ENROLLMENT_DATE;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_INCIDENT_DATE;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_LAST_UPDATED;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_LATITUDE;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_LONGITUDE;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_ORG_UNIT_CODE;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_PROGRAM_INSTANCE;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_STORED_BY;
+import static org.hisp.dhis.analytics.event.data.EnrollmentGridHeaderHandler.ITEM_TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
@@ -39,7 +49,11 @@ import static org.hisp.dhis.commons.collection.ListUtils.distinctUnion;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,7 +88,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -93,8 +106,27 @@ public class JdbcEnrollmentAnalyticsManager
 
     private static final String ORDER_BY_EXECUTION_DATE_DESC_LIMIT_1 = "order by executiondate desc limit 1";
 
-    private List<String> COLUMNS = Lists.newArrayList( "pi", "tei", "enrollmentdate", "incidentdate",
-        "storedby", "lastupdated", "ST_AsGeoJSON(pigeometry)", "longitude", "latitude", "ouname", "oucode" );
+    private static final Map<String, String> DEFAULT_COLUMNS = new LinkedHashMap<>();
+
+    static
+    {
+        // These Maps represents the grid column and its respective database
+        // column associations.
+
+        // @formatter:off
+        DEFAULT_COLUMNS.put( ITEM_PROGRAM_INSTANCE, "pi" );
+        DEFAULT_COLUMNS.put( ITEM_TRACKED_ENTITY_INSTANCE, "tei" );
+        DEFAULT_COLUMNS.put( ITEM_ENROLLMENT_DATE, "enrollmentdate" );
+        DEFAULT_COLUMNS.put( ITEM_INCIDENT_DATE, "incidentdate" );
+        DEFAULT_COLUMNS.put( ITEM_STORED_BY, "storedby" );
+        DEFAULT_COLUMNS.put( ITEM_LAST_UPDATED, "lastupdated" );
+        DEFAULT_COLUMNS.put( ITEM_GEOMETRY, "ST_AsGeoJSON(pigeometry)" );
+        DEFAULT_COLUMNS.put( ITEM_LONGITUDE, "longitude" );
+        DEFAULT_COLUMNS.put( ITEM_LATITUDE, "latitude" );
+        DEFAULT_COLUMNS.put( ITEM_ORG_UNIT_NAME, "ouname" );
+        DEFAULT_COLUMNS.put( ITEM_ORG_UNIT_CODE, "oucode" );
+        // @formatter:on
+    }
 
     public JdbcEnrollmentAnalyticsManager( JdbcTemplate jdbcTemplate, StatementBuilder statementBuilder,
         ProgramIndicatorService programIndicatorService,
@@ -354,15 +386,21 @@ public class JdbcEnrollmentAnalyticsManager
     @Override
     protected String getSelectClause( EventQueryParams params )
     {
+        final Map<String, String> dynamicColumnsMap = getSelectColumns( params );
+
         if ( params.hasHeaders() )
         {
-            return "select " + join( getSelectableColumns( params.getHeaders() ), "," ) + " ";
+            dynamicColumnsMap.putAll( DEFAULT_COLUMNS );
+            final Set<String> columnsOfHeadersOnly = getSelectableDbColumns( params.getHeaders(), dynamicColumnsMap );
+
+            return "select " + join( columnsOfHeadersOnly, "," ) + " ";
         }
         else
         {
-            List<String> selectCols = distinctUnion( COLUMNS, getSelectColumns( params ) );
+            final List<String> selectAllCols = distinctUnion( new ArrayList<>( DEFAULT_COLUMNS.values() ),
+                new ArrayList<>( dynamicColumnsMap.values() ) );
 
-            return "select " + join( selectCols, "," ) + " ";
+            return "select " + join( selectAllCols, "," ) + " ";
         }
     }
 

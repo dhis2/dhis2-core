@@ -112,11 +112,11 @@ public abstract class AbstractAnalyticsService
 
         if ( params.hasHeaders() )
         {
-            populateGridWithCustomHeaders( params, grid );
+            populateGridWithDynamicDefaultHeaders( params, grid );
         }
         else
         {
-            populateGridWithDefaultHeaders( params, grid );
+            populateGridWithDynamicParamHeaders( params, grid );
         }
 
         // ---------------------------------------------------------------------
@@ -154,7 +154,7 @@ public abstract class AbstractAnalyticsService
         return grid;
     }
 
-    private void populateGridWithDefaultHeaders( final EventQueryParams params, final Grid grid )
+    private void populateGridWithDynamicDefaultHeaders( final EventQueryParams params, final Grid grid )
     {
         for ( final DimensionalObject dimension : params.getDimensions() )
         {
@@ -186,7 +186,7 @@ public abstract class AbstractAnalyticsService
         }
     }
 
-    private void populateGridWithCustomHeaders( final EventQueryParams params, final Grid grid )
+    private void populateGridWithDynamicParamHeaders( final EventQueryParams params, final Grid grid )
     {
         final List<String> headers = new ArrayList<>( params.getHeaders() );
 

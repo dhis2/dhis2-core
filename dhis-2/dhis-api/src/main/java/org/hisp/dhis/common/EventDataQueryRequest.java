@@ -238,9 +238,9 @@ public class EventDataQueryRequest
             return startDate( criteria.getStartDate() )
                 .timeField( criteria.getTimeField() )
                 .endDate( criteria.getEndDate() )
-                .dimension(
-                    criteria.getDimension() )
+                .dimension( criteria.getDimension() )
                 .filter( criteria.getFilter() )
+                .headers( criteria.getHeaders() )
                 .ouMode( criteria.getOuMode() )
                 .asc( criteria.getAsc() )
                 .desc( criteria.getDesc() )

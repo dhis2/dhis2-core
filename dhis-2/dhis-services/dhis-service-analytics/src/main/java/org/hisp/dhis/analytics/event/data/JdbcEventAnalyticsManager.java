@@ -29,9 +29,20 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_ENROLLMENT_DATE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_EVENT;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_EVENT_DATE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_GEOMETRY;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_INCIDENT_DATE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_LAST_UPDATED;
 import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_LONGITUDE;
-import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.getSelectableColumns;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_ORG_UNIT_CODE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_ORG_UNIT_NAME;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_PROGRAM_INSTANCE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_PROGRAM_STAGE;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_STORED_BY;
+import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.analytics.table.JdbcEventAnalyticsTableManager.OU_GEOMETRY_COL_SUFFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.DATE_PERIOD_STRUCT_ALIAS;
@@ -49,9 +60,12 @@ import static org.hisp.dhis.feedback.ErrorCode.E7133;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +106,6 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -111,6 +124,37 @@ public class JdbcEventAnalyticsManager
     protected static final String OPEN_IN = " in (";
 
     private static final String ORG_UNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
+
+    private static final Map<String, String> DEFAULT_COLUMNS = new LinkedHashMap<>();
+
+    private static final Map<String, String> PROGRAM_REGISTRATION_COLUMNS = new LinkedHashMap<>();
+
+    private static final Map<String, String> LOCATION_COLUMNS = new LinkedHashMap<>();
+
+    static
+    {
+        // These Maps represents the grid column and its respective database
+        // column associations.
+
+        // @formatter:off
+        DEFAULT_COLUMNS.put( ITEM_EVENT, "psi" );
+        DEFAULT_COLUMNS.put( ITEM_PROGRAM_STAGE, "ps" );
+        DEFAULT_COLUMNS.put( ITEM_EVENT_DATE, "executiondate" );
+        DEFAULT_COLUMNS.put( ITEM_STORED_BY, "storedby" );
+        DEFAULT_COLUMNS.put( ITEM_LAST_UPDATED, "lastupdated" );
+
+        PROGRAM_REGISTRATION_COLUMNS.put( ITEM_ENROLLMENT_DATE, "enrollmentdate");
+        PROGRAM_REGISTRATION_COLUMNS.put( ITEM_INCIDENT_DATE, "incidentdate");
+        PROGRAM_REGISTRATION_COLUMNS.put( ITEM_TRACKED_ENTITY_INSTANCE, "tei");
+        PROGRAM_REGISTRATION_COLUMNS.put( ITEM_PROGRAM_INSTANCE, "pi");
+
+        LOCATION_COLUMNS.put( ITEM_GEOMETRY, "ST_AsGeoJSON(psigeometry, 6)" );
+        LOCATION_COLUMNS.put( ITEM_LONGITUDE, "longitude" );
+        LOCATION_COLUMNS.put( ITEM_LATITUDE, "latitude" );
+        LOCATION_COLUMNS.put( ITEM_ORG_UNIT_NAME, "ouname" );
+        LOCATION_COLUMNS.put( ITEM_ORG_UNIT_CODE, "oucode" );
+        // @formatter:on
+    }
 
     private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
@@ -318,23 +362,24 @@ public class JdbcEventAnalyticsManager
     @Override
     protected String getSelectClause( EventQueryParams params )
     {
+        final Map<String, String> dynamicColumnsMap = getSelectColumns( params );
+
         if ( params.hasHeaders() )
         {
-            return "select " + join( getSelectableColumns( params.getHeaders() ), "," ) + " ";
+            dynamicColumnsMap.putAll( DEFAULT_COLUMNS );
+            dynamicColumnsMap.putAll( PROGRAM_REGISTRATION_COLUMNS );
+            dynamicColumnsMap.putAll( LOCATION_COLUMNS );
+
+            final Set<String> columnsOfHeadersOnly = getSelectableDbColumns( params.getHeaders(), dynamicColumnsMap );
+
+            return "select " + join( columnsOfHeadersOnly, "," ) + " ";
         }
         else
         {
-            ImmutableList.Builder<String> cols = new ImmutableList.Builder<String>()
-                .add( "psi", "ps", "executiondate", "storedby", "lastupdated" );
-
-            if ( params.getProgram().isRegistration() )
-            {
-                cols.add( "enrollmentdate", "incidentdate", "tei", "pi" );
-            }
-
-            cols.add( "ST_AsGeoJSON(psigeometry, 6) as geometry", "longitude", "latitude", "ouname", "oucode" );
-
-            List<String> selectCols = distinctUnion( cols.build(), getSelectColumns( params ) );
+            final List<String> selectCols = distinctUnion( new ArrayList<>( DEFAULT_COLUMNS.values() ),
+                new ArrayList<>( PROGRAM_REGISTRATION_COLUMNS.values() ),
+                new ArrayList<>( LOCATION_COLUMNS.values() ),
+                new ArrayList<>( dynamicColumnsMap.values() ) );
 
             return "select " + join( selectCols, "," ) + " ";
         }

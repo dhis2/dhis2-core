@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
@@ -42,19 +40,17 @@ import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.event.data.LabelMapper.getEnrollmentDateLabel;
 import static org.hisp.dhis.analytics.event.data.LabelMapper.getEventDateLabel;
 import static org.hisp.dhis.analytics.event.data.LabelMapper.getIncidentDateLabel;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
 import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalObject;
@@ -141,13 +137,7 @@ public final class EventGridHeaderHandler
 
     public static final String ITEM_POINTS = "points";
 
-    private static final String GEOMETRY_DB_COLUMN = "ST_AsGeoJSON(psigeometry, 6) as geometry";
-
-    private static final String EXECUTION_DATE_DB_COLUMN = "executiondate";
-
     private static final Map<String, GridHeader> ALLOWED_GRID_HEADER_MAP = new HashMap<>();
-
-    private static final Map<String, String> HEADER_DB_COLUMN_MAP = new HashMap<>();
 
     static
     {
@@ -164,9 +154,6 @@ public final class EventGridHeaderHandler
             ALLOWED_GRID_HEADER_MAP.put( ITEM_ORG_UNIT_NAME, new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) );
             ALLOWED_GRID_HEADER_MAP.put( ITEM_ORG_UNIT_CODE, new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) );
             // @formatter:on
-
-        HEADER_DB_COLUMN_MAP.put( ITEM_GEOMETRY, GEOMETRY_DB_COLUMN );
-        HEADER_DB_COLUMN_MAP.put( ITEM_EVENT_DATE, EXECUTION_DATE_DB_COLUMN );
     }
 
     static Grid createGridWithDefaultHeaders( final EventQueryParams params )
@@ -185,9 +172,7 @@ public final class EventGridHeaderHandler
         {
             grid
                 .addHeader( new GridHeader( ITEM_ENROLLMENT_DATE,
-                    LabelMapper.getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE,
-                    false,
-                    true ) )
+                    getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false, true ) )
                 .addHeader( new GridHeader(
                     ITEM_INCIDENT_DATE,
                     getIncidentDateLabel( params.getProgramStage(), NAME_INCIDENT_DATE ), DATE, false, true ) )
@@ -285,36 +270,12 @@ public final class EventGridHeaderHandler
         return grid;
     }
 
-    /**
-     * This method will return the list of database columns associated with the
-     * given headers. If no association is found in the internal mapping
-     * (HEADER_ROW_COLUMN_MAP), the header value itself is returned.
-     *
-     * @param headers the headers where the selectable columns will extracted
-     *        from
-     * @return the list of selectable database columns
-     */
-    static Set<String> getSelectableColumns( final Set<String> headers )
-    {
-        final Set<String> rawColumns = new LinkedHashSet<>();
-
-        if ( isNotEmpty( headers ) )
-        {
-            for ( final String header : headers )
-            {
-                rawColumns.add( quoteAlias( defaultIfBlank( HEADER_DB_COLUMN_MAP.get( header ), header ) ) );
-            }
-        }
-
-        return rawColumns;
-    }
-
     private static Map<String, GridHeader> getGridHeadersWithDynamicNames( final EventQueryParams params )
     {
         // @formatter:off
             return Map.of(
                 ITEM_ENROLLMENT_DATE, new GridHeader( ITEM_ENROLLMENT_DATE,
-                    LabelMapper.getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false, true ),
+                    getEnrollmentDateLabel( params.getProgramStage(), NAME_ENROLLMENT_DATE ), DATE, false, true ),
 
                 ITEM_INCIDENT_DATE, new GridHeader( ITEM_INCIDENT_DATE,
                     LabelMapper.getIncidentDateLabel( params.getProgramStage(), NAME_INCIDENT_DATE ), DATE, false, true ),

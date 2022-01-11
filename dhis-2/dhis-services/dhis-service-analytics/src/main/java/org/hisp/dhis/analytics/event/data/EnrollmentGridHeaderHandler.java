@@ -27,18 +27,13 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quoteAlias;
 import static org.hisp.dhis.common.ValueType.DATE;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
@@ -72,33 +67,29 @@ public final class EnrollmentGridHeaderHandler
 
     private static final String NAME_ORG_UNIT_CODE = "Organisation unit code";
 
-    private static final String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
+    public static final String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
 
-    private static final String ITEM_PROGRAM_INSTANCE = "pi";
+    public static final String ITEM_PROGRAM_INSTANCE = "pi";
 
-    private static final String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+    public static final String ITEM_ENROLLMENT_DATE = "enrollmentdate";
 
-    private static final String ITEM_INCIDENT_DATE = "incidentdate";
+    public static final String ITEM_INCIDENT_DATE = "incidentdate";
 
-    private static final String ITEM_STORED_BY = "storedby";
+    public static final String ITEM_STORED_BY = "storedby";
 
-    private static final String ITEM_LAST_UPDATED = "lastupdated";
+    public static final String ITEM_LAST_UPDATED = "lastupdated";
 
-    private static final String ITEM_GEOMETRY = "geometry";
+    public static final String ITEM_GEOMETRY = "geometry";
 
-    private static final String ITEM_LONGITUDE = "longitude";
+    public static final String ITEM_LONGITUDE = "longitude";
 
-    private static final String ITEM_LATITUDE = "latitude";
+    public static final String ITEM_LATITUDE = "latitude";
 
-    private static final String ITEM_ORG_UNIT_NAME = "ouname";
+    public static final String ITEM_ORG_UNIT_NAME = "ouname";
 
-    private static final String ITEM_ORG_UNIT_CODE = "oucode";
-
-    private static final String GEOMETRY_DB_COLUMN = "ST_AsGeoJSON(pigeometry)";
+    public static final String ITEM_ORG_UNIT_CODE = "oucode";
 
     private static final Map<String, GridHeader> ALLOWED_GRID_HEADER_MAP = new HashMap<>();
-
-    private static final Map<String, String> HEADER_DB_COLUMN_MAP = new HashMap<>();
 
     static
     {
@@ -115,8 +106,6 @@ public final class EnrollmentGridHeaderHandler
             ALLOWED_GRID_HEADER_MAP.put( ITEM_INCIDENT_DATE, new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, TEXT, false, true ) );
             ALLOWED_GRID_HEADER_MAP.put( ITEM_ENROLLMENT_DATE, new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, TEXT, false, true ) );
             // @formatter:on
-
-        HEADER_DB_COLUMN_MAP.put( ITEM_GEOMETRY, GEOMETRY_DB_COLUMN );
     }
 
     static Grid createGridWithDefaultHeaders()
@@ -160,29 +149,4 @@ public final class EnrollmentGridHeaderHandler
 
         return grid;
     }
-
-    /**
-     * This method will return the list of database columns associated with the
-     * given headers. If no association is found in the internal mapping
-     * (HEADER_ROW_COLUMN_MAP), the header value itself is returned.
-     *
-     * @param headers the headers where the selectable columns will extracted
-     *        from
-     * @return the list of selectable database columns
-     */
-    static Set<String> getSelectableColumns( final Set<String> headers )
-    {
-        final Set<String> rawColumns = new LinkedHashSet<>();
-
-        if ( isNotEmpty( headers ) )
-        {
-            for ( final String header : headers )
-            {
-                rawColumns.add( quoteAlias( defaultIfBlank( HEADER_DB_COLUMN_MAP.get( header ), header ) ) );
-            }
-        }
-
-        return rawColumns;
-    }
-
 }
