@@ -139,6 +139,12 @@ public class DefaultEventDataQueryService
     @Override
     public EventQueryParams getFromRequest( EventDataQueryRequest request )
     {
+        return getFromRequest( request, false );
+    }
+
+    @Override
+    public EventQueryParams getFromRequest( EventDataQueryRequest request, boolean analyzeOnly )
+    {
         I18nFormat format = i18nManager.getI18nFormat();
 
         EventQueryParams.Builder params = new EventQueryParams.Builder();
@@ -222,7 +228,7 @@ public class DefaultEventDataQueryService
             params.withAggregationType( AnalyticsAggregationType.fromAggregationType( request.getAggregationType() ) );
         }
 
-        return params
+        EventQueryParams.Builder builder = params
             .withValue( getValueDimension( request.getValue() ) )
             .withSkipRounding( request.isSkipRounding() )
             .withShowHierarchy( request.isShowHierarchy() )
@@ -255,9 +261,16 @@ public class DefaultEventDataQueryService
             .withPageSize( request.getPageSize() )
             .withPaging( request.isPaging() )
             .withProgramStatus( request.getProgramStatus() )
-            .withApiVersion( request.getApiVersion() )
-            .build();
+            .withApiVersion( request.getApiVersion() );
 
+        if ( analyzeOnly )
+        {
+            builder = builder
+                .withSkipData( true )
+                .withAnalyzeOrderId();
+        }
+
+        return builder.build();
     }
 
     @Override

@@ -128,7 +128,12 @@ public abstract class AbstractAnalyticsService
         // Data
         // ---------------------------------------------------------------------
 
-        long count = addEventData( grid, params );
+        long count = 0;
+
+        if ( !params.isSkipData() || params.analyzeOnly() )
+        {
+            count = addEventData( grid, params );
+        }
 
         // ---------------------------------------------------------------------
         // Meta-data

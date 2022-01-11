@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -276,7 +277,8 @@ public class EventQueryParams
         params.timeField = this.timeField;
         params.orgUnitField = this.orgUnitField;
         params.apiVersion = this.apiVersion;
-
+        params.skipData = this.skipData;
+        params.skipMeta = this.skipMeta;
         params.partitions = new Partitions( this.partitions );
         params.tableName = this.tableName;
         params.periodType = this.periodType;
@@ -313,8 +315,8 @@ public class EventQueryParams
         params.programStatus = this.programStatus;
         params.includeMetadataDetails = this.includeMetadataDetails;
         params.dataIdScheme = this.dataIdScheme;
-
         params.periodType = this.periodType;
+        params.analyzeOrderId = this.analyzeOrderId;
 
         return params;
     }
@@ -1385,6 +1387,12 @@ public class EventQueryParams
         public Builder withOutputIdScheme( IdScheme outputIdScheme )
         {
             this.params.outputIdScheme = outputIdScheme;
+            return this;
+        }
+
+        public Builder withAnalyzeOrderId()
+        {
+            this.params.analyzeOrderId = UUID.randomUUID().toString();
             return this;
         }
 

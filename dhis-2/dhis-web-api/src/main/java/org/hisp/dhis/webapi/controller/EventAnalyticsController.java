@@ -33,11 +33,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.analytics.dataitem.DimensionalItemFilteringAndPagingService;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionalItemService;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
@@ -53,6 +55,7 @@ import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.hisp.dhis.webapi.utils.PerformanceMetricsUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -88,6 +91,9 @@ public class EventAnalyticsController
     @NonNull
     private final EventAnalyticsDimensionalItemService eventAnalyticsDimensionalItemService;
 
+    @NotNull
+    private final ExecutionPlanCache executionPlanCache;
+
     // -------------------------------------------------------------------------
     // Aggregate
     // -------------------------------------------------------------------------
@@ -101,12 +107,16 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true );
 
         configResponseForJson( response );
 
-        return analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
+        Grid grid = analyticsService.getAggregatedEventData( params, getItemsFromParam( criteria.getColumns() ),
             getItemsFromParam( criteria.getRows() ) );
+
+        PerformanceMetricsUtils.addPerformanceMetrics( executionPlanCache, params, grid );
+
+        return grid;
     }
 
     @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}", produces = { APPLICATION_JSON_VALUE,
@@ -118,7 +128,7 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
         configResponseForJson( response );
 
@@ -215,7 +225,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
         configResponseForJson( response );
 
@@ -237,7 +247,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
         params = new EventQueryParams.Builder( params )
             .withClusterSize( clusterSize )
@@ -254,6 +264,25 @@ public class EventAnalyticsController
     // Query
     // -------------------------------------------------------------------------
 
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}" + ANALYZE_PATH, produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
+    public @ResponseBody Grid getAnalyzeQueryJson( // JSON, JSONP
+        @PathVariable String program,
+        EventsAnalyticsQueryCriteria criteria,
+        DhisApiVersion apiVersion,
+        HttpServletResponse response )
+    {
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true );
+
+        configResponseForJson( response );
+
+        Grid grid = analyticsService.getEvents( params );
+
+        PerformanceMetricsUtils.addPerformanceMetrics( executionPlanCache, params, grid );
+
+        return grid;
+    }
+
     @GetMapping( value = RESOURCE_PATH + "/query/{program}", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
@@ -262,7 +291,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
         configResponseForJson( response );
 
@@ -352,7 +381,7 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
         contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
             file, false );
@@ -365,21 +394,21 @@ public class EventAnalyticsController
         String contentType, String file, boolean attachment,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
 
         contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, attachment );
         return analyticsService.getEvents( params );
     }
 
     private EventQueryParams getEventQueryParams( String program, EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion )
+        DhisApiVersion apiVersion, boolean analyzeOnly )
     {
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( criteria )
             .program( program )
             .apiVersion( apiVersion ).build();
 
-        return eventDataService.getFromRequest( request );
+        return eventDataService.getFromRequest( request, analyzeOnly );
     }
 
     private void configResponseForJson( HttpServletResponse response )
@@ -387,4 +416,5 @@ public class EventAnalyticsController
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
     }
+
 }

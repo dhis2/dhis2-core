@@ -25,23 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.utils;
 
-import java.io.Serializable;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.Setter;
+import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
+import org.hisp.dhis.common.ExecutionPlan;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.PerformanceMetrics;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-@Getter
-@Setter
-public class PerformanceMetrics implements Serializable
+/**
+ * @author Dusan Bernat
+ */
+public class PerformanceMetricsUtils
 {
-    @JsonProperty
-    private double totalTimeEstimation;
+    public static void addPerformanceMetrics( final ExecutionPlanCache executionPlanCache, final DataQueryParams params,
+        final Grid grid )
+    {
+        if ( params.analyzeOnly() )
+        {
+            String key = params.getAnalyzeOrderId();
 
-    @JsonProperty
-    private List<ExecutionPlan> executionPlans;
+            List<ExecutionPlan> plans = executionPlanCache.getExecutionPlans( key );
+
+            PerformanceMetrics performanceMetrics = new PerformanceMetrics();
+
+            double total = plans.stream().map( ExecutionPlan::getTimeEstimation ).reduce( 0.0, Double::sum );
+
+            performanceMetrics.setTotalTimeEstimation( Precision.round( total, 3 ) );
+
+            performanceMetrics.setExecutionPlans( plans );
+
+            grid.setPerformanceMetrics( performanceMetrics );
+
+            executionPlanCache.removeExecutionPlans( key );
+        }
+    }
 }
