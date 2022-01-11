@@ -41,12 +41,12 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-class DimensionFilteringAndPagingServiceTest
+public class DimensionFilteringAndPagingServiceTest
 {
 
     private final FieldFilterService fieldFilterService = mock( FieldFilterService.class );
@@ -55,8 +55,8 @@ class DimensionFilteringAndPagingServiceTest
 
     private DimensionFilteringAndPagingService service;
 
-    @BeforeEach
-    void setup()
+    @Before
+    public void setup()
     {
         service = new DimensionFilteringAndPagingService( fieldFilterService, dimensionMapperService );
 
@@ -73,7 +73,7 @@ class DimensionFilteringAndPagingServiceTest
     }
 
     @Test
-    void testPaging()
+    public void testPaging()
     {
         DimensionsCriteria criteria = new DimensionsCriteria();
         criteria.setPageSize( 5 );
@@ -87,7 +87,7 @@ class DimensionFilteringAndPagingServiceTest
     }
 
     @Test
-    void testFiltering()
+    public void testFiltering()
     {
         DimensionsCriteria criteria = new DimensionsCriteria();
         criteria.setFilter( "name:eq:test" );
