@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.report.TrackerTimingsStats.VALIDATION_OPS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerType;
@@ -71,12 +73,13 @@ class TrackerBundleImportReportTest extends DhisSpringTest
     {
         TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(),
             TrackerBundleReportMode.ERRORS );
+
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
         assertNotNull( report.getValidationReport() );
-        assertNull( report.getValidationReport().getPerformanceReport() );
-        assertNull( report.getValidationReport().getWarningReports() );
         assertNotNull( report.getValidationReport().getErrorReports() );
+        assertNull( report.getValidationReport().getWarningReports() );
+        assertNull( report.getValidationReport().getPerformanceReport() );
         assertNull( report.getTimingsStats() );
     }
 
@@ -85,12 +88,13 @@ class TrackerBundleImportReportTest extends DhisSpringTest
     {
         TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(),
             TrackerBundleReportMode.WARNINGS );
+
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
         assertNotNull( report.getValidationReport() );
-        assertNull( report.getValidationReport().getPerformanceReport() );
         assertNotNull( report.getValidationReport().getErrorReports() );
         assertNotNull( report.getValidationReport().getWarningReports() );
+        assertNull( report.getValidationReport().getPerformanceReport() );
         assertNull( report.getTimingsStats() );
     }
 
@@ -99,12 +103,13 @@ class TrackerBundleImportReportTest extends DhisSpringTest
     {
         TrackerImportReport report = trackerImportService.buildImportReport( createImportReport(),
             TrackerBundleReportMode.FULL );
+
         assertEquals( TrackerStatus.OK, report.getStatus() );
         assertStats( report );
         assertNotNull( report.getValidationReport() );
-        assertNotNull( report.getValidationReport().getPerformanceReport() );
-        assertNotNull( report.getValidationReport().getErrorReports() );
-        assertNotNull( report.getValidationReport().getWarningReports() );
+        assertTrue( report.getValidationReport().hasErrors() );
+        assertTrue( report.getValidationReport().hasWarnings() );
+        assertTrue( report.getValidationReport().hasPerfs() );
         assertNotNull( report.getTimingsStats() );
         assertEquals( "1 sec.", report.getTimingsStats().getProgramRule() );
         assertEquals( "2 sec.", report.getTimingsStats().getCommit() );
@@ -239,7 +244,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         assertEquals( 1, report.getStats().getCreated() );
         assertEquals( 0, report.getStats().getUpdated() );
         assertEquals( 0, report.getStats().getDeleted() );
-        assertEquals( 0, report.getStats().getIgnored() );
+        assertEquals( 1, report.getStats().getIgnored() );
     }
 
     private TrackerImportReport createImportReport()
@@ -263,7 +268,13 @@ class TrackerBundleImportReportTest extends DhisSpringTest
 
     private TrackerValidationReport createValidationReport()
     {
-        return new TrackerValidationReport();
+        TrackerValidationReport report = new TrackerValidationReport();
+        report.addError(
+            new TrackerErrorReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) );
+        report.addWarning(
+            new TrackerWarningReport( "", TrackerErrorCode.E9999, TrackerType.EVENT, CodeGenerator.generateUid() ) );
+        report.addPerfReport( new TrackerValidationHookTimerReport( "1min", "validation" ) );
+        return report;
     }
 
     private TrackerBundleReport createBundleReport()
