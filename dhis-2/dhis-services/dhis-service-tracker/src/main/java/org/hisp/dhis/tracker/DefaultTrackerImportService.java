@@ -380,15 +380,15 @@ public class DefaultTrackerImportService
 
         TrackerValidationReport originalValidationReport = originalImportReport.getValidationReport();
         TrackerValidationReport validationReport = new TrackerValidationReport();
-        if ( originalImportReport != null )
+        if ( originalValidationReport != null )
         {
             validationReport.addErrors( originalValidationReport.getErrorReports() );
         }
-        if ( originalImportReport != null && TrackerBundleReportMode.WARNINGS == reportMode )
+        if ( originalValidationReport != null && TrackerBundleReportMode.WARNINGS == reportMode )
         {
             validationReport.addWarnings( originalValidationReport.getWarningReports() );
         }
-        else if ( originalImportReport != null && TrackerBundleReportMode.FULL == reportMode )
+        else if ( originalValidationReport != null && TrackerBundleReportMode.FULL == reportMode )
         {
             validationReport.addWarnings( originalValidationReport.getWarningReports() );
             validationReport.addPerfReports( originalValidationReport.getPerformanceReport() );
