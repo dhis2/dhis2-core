@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -465,7 +465,8 @@ public class JdbcEventAnalyticsManager
             {
                 for ( QueryFilter filter : item.getFilters() )
                 {
-                    String field = getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() );
+                    String field = getSelectSql( filter, item, params.getEarliestStartDate(),
+                        params.getLatestEndDate() );
 
                     if ( IN.equals( filter.getOperator() ) )
                     {
@@ -489,7 +490,7 @@ public class JdbcEventAnalyticsManager
                 for ( QueryFilter filter : item.getFilters() )
                 {
                     sql += hlp.whereAnd() + " "
-                        + getSelectSql( item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
+                        + getSelectSql( filter, item, params.getEarliestStartDate(), params.getLatestEndDate() ) +
                         " " + filter.getSqlOperator() + " " + getSqlFilter( filter, item ) + " ";
                 }
             }
