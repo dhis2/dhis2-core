@@ -226,7 +226,8 @@ public class ObjectReport implements ErrorReportContainer
     @Override
     public void forEachErrorReport( Consumer<ErrorReport> reportConsumer )
     {
-        errorReportsByCode.values().forEach( reports -> reports.forEach( reportConsumer ) );
+        errorReportsByCode.values().stream().flatMap( errors -> errors.stream() )
+            .forEach( errorReport -> reportConsumer.accept( errorReport ) );
     }
 
     public boolean isEmpty()
@@ -249,5 +250,4 @@ public class ObjectReport implements ErrorReportContainer
             .add( "errorReports", getErrorReports() )
             .toString();
     }
-
 }
