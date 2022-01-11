@@ -1928,6 +1928,12 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-geojson</artifactId>
                 <version>${geotools.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>junit</groupId>
+                        <artifactId>junit</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -2324,6 +2330,12 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-api</artifactId>
                     </exclusion>
+<!-- Junit 4 cannot be excluded yet, because of this issue -->
+<!-- https://github.com/testcontainers/testcontainers-java/issues/970 -->
+<!--                    <exclusion>-->
+<!--                        <groupId>junit</groupId>-->
+<!--                        <artifactId>junit</artifactId>-->
+<!--                    </exclusion>-->
                 </exclusions>
             </dependency>
             <dependency>
