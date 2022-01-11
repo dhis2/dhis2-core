@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,19 +43,19 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 
-@RunWith( MockitoJUnitRunner.class )
-public class StrategyPreProcessorTest
-    extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class StrategyPreProcessorTest extends DhisConvenienceTest
 {
+
     private final static String TEI_UID = "TeiUid";
 
     private final static String NEW_TEI_UID = "NewTeiUid";
@@ -101,45 +101,33 @@ public class StrategyPreProcessorTest
     @Mock
     private TrackerPreheat preheat;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         tei = new TrackedEntityInstance();
         tei.setUid( TEI_UID );
-
         trackedEntity = new TrackedEntity();
         trackedEntity.setTrackedEntity( TEI_UID );
-
         newTrackedEntity = new TrackedEntity();
         newTrackedEntity.setTrackedEntity( NEW_TEI_UID );
-
         pi = new ProgramInstance();
         pi.setUid( ENROLLMENT_UID );
-
         enrollment = new Enrollment();
         enrollment.setEnrollment( ENROLLMENT_UID );
-
         newEnrollment = new Enrollment();
         newEnrollment.setEnrollment( NEW_ENROLLMENT_UID );
-
         psi = new ProgramStageInstance();
         psi.setUid( EVENT_UID );
-
         event = new Event();
         event.setEvent( EVENT_UID );
-
         newEvent = new Event();
         newEvent.setEvent( NEW_EVENT_UID );
-
         relationship = new Relationship();
         relationship.setUid( RELATIONSHIP_UID );
-
         payloadRelationship = new org.hisp.dhis.tracker.domain.Relationship();
         payloadRelationship.setRelationship( RELATIONSHIP_UID );
-
         newPayloadRelationship = new org.hisp.dhis.tracker.domain.Relationship();
         newPayloadRelationship.setRelationship( NEW_RELATIONSHIP_UID );
-
         Mockito.when( preheat.getTrackedEntity( TrackerIdScheme.UID, TEI_UID ) ).thenReturn( tei );
         Mockito.when( preheat.getEnrollment( TrackerIdScheme.UID, ENROLLMENT_UID ) ).thenReturn( pi );
         Mockito.when( preheat.getEvent( TrackerIdScheme.UID, EVENT_UID ) ).thenReturn( psi );
@@ -147,34 +135,27 @@ public class StrategyPreProcessorTest
     }
 
     @Test
-    public void testStrategyPreprocessForCreateAndUpdate()
+    void testStrategyPreprocessForCreateAndUpdate()
     {
         TrackerBundle bundle = TrackerBundle.builder()
             .trackedEntities( Lists.newArrayList( trackedEntity, newTrackedEntity ) )
             .enrollments( Lists.newArrayList( enrollment, newEnrollment ) )
             .events( Lists.newArrayList( event, newEvent ) )
             .relationships( Lists.newArrayList( payloadRelationship, newPayloadRelationship ) )
-            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
-            .preheat( preheat )
-            .build();
-
+            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE ).preheat( preheat ).build();
         preProcessorToTest.process( bundle );
-
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.TRACKED_ENTITY ).get( TEI_UID ),
             Matchers.is( TrackerImportStrategy.UPDATE ) );
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.TRACKED_ENTITY ).get( NEW_TEI_UID ),
             Matchers.is( TrackerImportStrategy.CREATE ) );
-
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.ENROLLMENT ).get( ENROLLMENT_UID ),
             Matchers.is( TrackerImportStrategy.UPDATE ) );
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.ENROLLMENT ).get( NEW_ENROLLMENT_UID ),
             Matchers.is( TrackerImportStrategy.CREATE ) );
-
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.EVENT ).get( EVENT_UID ),
             Matchers.is( TrackerImportStrategy.UPDATE ) );
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.EVENT ).get( NEW_EVENT_UID ),
             Matchers.is( TrackerImportStrategy.CREATE ) );
-
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.RELATIONSHIP ).get( RELATIONSHIP_UID ),
             Matchers.is( TrackerImportStrategy.UPDATE ) );
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.RELATIONSHIP ).get( NEW_RELATIONSHIP_UID ),
@@ -182,34 +163,27 @@ public class StrategyPreProcessorTest
     }
 
     @Test
-    public void testStrategyPreprocessForDelete()
+    void testStrategyPreprocessForDelete()
     {
         TrackerBundle bundle = TrackerBundle.builder()
             .trackedEntities( Lists.newArrayList( trackedEntity, newTrackedEntity ) )
             .enrollments( Lists.newArrayList( enrollment, newEnrollment ) )
             .events( Lists.newArrayList( event, newEvent ) )
             .relationships( Lists.newArrayList( payloadRelationship, newPayloadRelationship ) )
-            .importStrategy( TrackerImportStrategy.DELETE )
-            .preheat( preheat )
-            .build();
-
+            .importStrategy( TrackerImportStrategy.DELETE ).preheat( preheat ).build();
         preProcessorToTest.process( bundle );
-
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.TRACKED_ENTITY ).get( TEI_UID ),
             Matchers.is( TrackerImportStrategy.DELETE ) );
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.TRACKED_ENTITY ).get( NEW_TEI_UID ),
             Matchers.is( TrackerImportStrategy.DELETE ) );
-
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.ENROLLMENT ).get( ENROLLMENT_UID ),
             Matchers.is( TrackerImportStrategy.DELETE ) );
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.ENROLLMENT ).get( NEW_ENROLLMENT_UID ),
             Matchers.is( TrackerImportStrategy.DELETE ) );
-
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.EVENT ).get( EVENT_UID ),
             Matchers.is( TrackerImportStrategy.DELETE ) );
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.EVENT ).get( NEW_EVENT_UID ),
             Matchers.is( TrackerImportStrategy.DELETE ) );
-
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.RELATIONSHIP ).get( RELATIONSHIP_UID ),
             Matchers.is( TrackerImportStrategy.DELETE ) );
         assertThat( bundle.getResolvedStrategyMap().get( TrackerType.RELATIONSHIP ).get( NEW_RELATIONSHIP_UID ),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,10 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DEFAULT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -60,7 +61,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.CurrentUserServiceTarget;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -70,9 +71,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-public class DataValueSetExportAccessControlTest
-    extends TransactionalIntegrationTest
+class DataValueSetExportAccessControlTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private DataValueSetService dataValueSetService;
 
@@ -133,17 +134,12 @@ public class DataValueSetExportAccessControlTest
     public void setUpTest()
     {
         userService = _userService;
-
         createAndInjectAdminUser();
-
         // Metadata
-
         PeriodType ptA = periodService.getPeriodTypeByName( MonthlyPeriodType.NAME );
-
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         idObjectManager.save( Lists.newArrayList( deA, deB ) );
-
         coA = createCategoryOption( 'A' );
         coA.getSharing().setPublicAccess( DEFAULT );
         coB = createCategoryOption( 'B' );
@@ -156,34 +152,26 @@ public class DataValueSetExportAccessControlTest
         idObjectManager.save( coB, false );
         idObjectManager.save( coC, false );
         idObjectManager.save( coD, false );
-
         caA = createCategory( 'A', coA, coB );
         caB = createCategory( 'B', coC, coD );
         idObjectManager.save( Lists.newArrayList( caA, caB ) );
-
         ccA = createCategoryCombo( 'A', caA, caB );
         idObjectManager.save( ccA );
-
         cocA = createCategoryOptionCombo( ccA, coA, coC );
         cocB = createCategoryOptionCombo( ccA, coA, coD );
         cocC = createCategoryOptionCombo( ccA, coB, coC );
         cocD = createCategoryOptionCombo( ccA, coB, coD );
         idObjectManager.save( Lists.newArrayList( cocA, cocB, cocC, cocD ) );
-
         dsA = createDataSet( 'A', ptA, ccA );
         dsA.getSharing().setPublicAccess( DEFAULT );
         dsA.addDataSetElement( deA );
         dsA.addDataSetElement( deB );
         idObjectManager.save( dsA, false );
-
         peA = createPeriod( "201901" );
         idObjectManager.save( peA );
-
         ouA = createOrganisationUnit( 'A' );
         idObjectManager.save( ouA );
-
         // Data values
-
         dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocA, "1" ) );
         dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocB, "2" ) );
         dataValueService.addDataValue( new DataValue( deA, peA, ouA, cocA, cocC, "3" ) );
@@ -196,48 +184,33 @@ public class DataValueSetExportAccessControlTest
      * combinations are returned.
      */
     @Test
-    public void testExportAttributeOptionComboAccessLimitedUserA()
+    void testExportAttributeOptionComboAccessLimitedUserA()
         throws IOException
     {
         // User
-
         User user = createUser( 'A' );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
         setCurrentUser( user );
-
         // Sharing
-
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, coC, DATA_READ );
         enableDataSharing( user, coD, DATA_READ );
         enableDataSharing( user, dsA, DATA_READ );
-
         idObjectManager.update( coA );
         idObjectManager.update( coC );
         idObjectManager.update( coD );
         idObjectManager.update( dsA );
-
         // Test
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        DataExportParams params = new DataExportParams()
-            .setDataSets( Sets.newHashSet( dsA ) )
-            .setPeriods( Sets.newHashSet( peA ) )
-            .setOrganisationUnits( Sets.newHashSet( ouA ) );
-
+        DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
+            .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) );
         dbmsManager.flushSession();
-
-        dataValueSetService.writeDataValueSetJson( params, out );
-
+        dataValueSetService.exportDataValueSetJson( params, out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
-
         Set<String> expectedOptionCombos = Sets.newHashSet( cocA.getUid(), cocB.getUid() );
-
         assertNotNull( dvs );
         assertNotNull( dvs.getDataValues() );
         assertEquals( 2, dvs.getDataValues().size() );
-
         for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
         {
             assertNotNull( dv );
@@ -252,41 +225,27 @@ public class DataValueSetExportAccessControlTest
      * combinations are used.
      */
     @Test
-    public void testExportAttributeOptionComboAccessSuperUser()
+    void testExportAttributeOptionComboAccessSuperUser()
         throws IOException
     {
         // User
-
         User user = createUser( 'A', Lists.newArrayList( "ALL" ) );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
         setCurrentUser( user );
-
         // Sharing
-
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, coB, DATA_READ );
-
         idObjectManager.update( coA );
         idObjectManager.update( coB );
-
         // Test
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        DataExportParams params = new DataExportParams()
-            .setDataSets( Sets.newHashSet( dsA ) )
-            .setPeriods( Sets.newHashSet( peA ) )
-            .setOrganisationUnits( Sets.newHashSet( ouA ) );
-
+        DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
+            .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) );
         dbmsManager.flushSession();
-
-        dataValueSetService.writeDataValueSetJson( params, out );
-
+        dataValueSetService.exportDataValueSetJson( params, out );
         DataValueSet dvs = jsonMapper.readValue( out.toByteArray(), DataValueSet.class );
-
         assertNotNull( dvs );
         assertNotNull( dvs.getDataSet() );
-
         assertEquals( 4, dvs.getDataValues().size() );
     }
 
@@ -294,73 +253,51 @@ public class DataValueSetExportAccessControlTest
      * User does not have data read sharing access to data set. Verifies that
      * validation fails.
      */
-    @Test( expected = IllegalQueryException.class )
-    public void testExportDataSetAccess()
+    @Test
+    void testExportDataSetAccess()
     {
         // User
-
         User user = createUser( 'A' );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
         setCurrentUser( user );
-
         // Sharing
-
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, coC, DATA_READ );
-
         idObjectManager.update( coA );
         idObjectManager.update( coC );
         idObjectManager.update( coD );
         idObjectManager.update( dsA );
-
         // Test
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        DataExportParams params = new DataExportParams()
-            .setDataSets( Sets.newHashSet( dsA ) )
-            .setPeriods( Sets.newHashSet( peA ) )
-            .setOrganisationUnits( Sets.newHashSet( ouA ) );
-
+        DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
+            .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) );
         dbmsManager.flushSession();
-
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertThrows( IllegalQueryException.class, () -> dataValueSetService.exportDataValueSetJson( params, out ) );
     }
 
     /**
      * User has no data read sharing access to cocA through category options.
      * Verifies that validation fails.
      */
-    @Test( expected = IllegalQueryException.class )
-    public void testExportExplicitAttributeOptionComboAccess()
+    @Test
+    void testExportExplicitAttributeOptionComboAccess()
     {
         // User
-
         User user = createUser( 'A' );
         user.setOrganisationUnits( Sets.newHashSet( ouA ) );
         setCurrentUser( user );
-
         // Sharing
-
         enableDataSharing( user, coA, DATA_READ );
         enableDataSharing( user, dsA, DATA_READ );
-
         idObjectManager.update( coA );
         idObjectManager.update( dsA );
-
         dbmsManager.flushSession();
-
         // Test
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        DataExportParams params = new DataExportParams()
-            .setDataSets( Sets.newHashSet( dsA ) )
-            .setPeriods( Sets.newHashSet( peA ) )
-            .setOrganisationUnits( Sets.newHashSet( ouA ) )
+        DataExportParams params = new DataExportParams().setDataSets( Sets.newHashSet( dsA ) )
+            .setPeriods( Sets.newHashSet( peA ) ).setOrganisationUnits( Sets.newHashSet( ouA ) )
             .setAttributeOptionCombos( Sets.newHashSet( cocA ) );
-
-        dataValueSetService.writeDataValueSetJson( params, out );
+        assertThrows( IllegalQueryException.class, () -> dataValueSetService.exportDataValueSetJson( params, out ) );
     }
 
     /**
@@ -371,9 +308,7 @@ public class DataValueSetExportAccessControlTest
     private void setCurrentUser( User user )
     {
         userService.addUser( user );
-
         CurrentUserService currentUserService = new MockCurrentUserService( user );
-
         setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
             currentUserService, dataValueSetService, dataValueSetStore, organisationUnitService );
     }

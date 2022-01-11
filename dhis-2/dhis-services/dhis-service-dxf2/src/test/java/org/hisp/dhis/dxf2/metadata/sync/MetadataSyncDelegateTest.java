@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
@@ -41,19 +41,11 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.hisp.dhis.system.util.HttpUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,13 +53,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author aamerm
  */
-@RunWith( PowerMockRunner.class )
-@PrepareForTest( HttpUtils.class )
-@PowerMockIgnore( { "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "org.w3c.*" } )
-public class MetadataSyncDelegateTest
+@ExtendWith( MockitoExtension.class )
+class MetadataSyncDelegateTest
 {
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @InjectMocks
     private MetadataSyncDelegate metadataSyncDelegate;
@@ -81,15 +69,8 @@ public class MetadataSyncDelegateTest
     @Mock
     private RenderService renderService;
 
-    @Before
-    public void setup()
-    {
-        PowerMockito.mockStatic( HttpUtils.class );
-
-    }
-
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInLocal()
+    void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInLocal()
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         SystemInfo systemInfo = new SystemInfo();
@@ -99,7 +80,7 @@ public class MetadataSyncDelegateTest
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInRemote()
+    void testShouldVerifyIfStopSyncReturnFalseIfNoSystemVersionInRemote()
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         SystemInfo systemInfo = new SystemInfo();
@@ -110,7 +91,7 @@ public class MetadataSyncDelegateTest
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnTrueIfDHISVersionMismatch()
+    void testShouldVerifyIfStopSyncReturnTrueIfDHISVersionMismatch()
         throws IOException
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-06-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\","
@@ -131,7 +112,7 @@ public class MetadataSyncDelegateTest
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfDHISVersionSame()
+    void testShouldVerifyIfStopSyncReturnFalseIfDHISVersionSame()
         throws IOException
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
@@ -150,7 +131,7 @@ public class MetadataSyncDelegateTest
     }
 
     @Test
-    public void testShouldVerifyIfStopSyncReturnFalseIfStopSyncIsNotSet()
+    void testShouldVerifyIfStopSyncReturnFalseIfStopSyncIsNotSet()
     {
         String versionSnapshot = "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
         SystemInfo systemInfo = new SystemInfo();

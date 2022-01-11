@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.utils;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.commons.util.RelationshipUtils;
@@ -40,12 +40,12 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class RelationshipUtilsTest
-    extends DhisConvenienceTest
+class RelationshipUtilsTest extends DhisConvenienceTest
 {
+
     private TrackedEntityInstance teiA, teiB;
 
     private ProgramInstance piA;
@@ -54,24 +54,21 @@ public class RelationshipUtilsTest
 
     private RelationshipType relationshipType;
 
-    @Before
-    public void setup()
+    @BeforeEach
+    void setup()
     {
         OrganisationUnit ou = createOrganisationUnit( 'A' );
         teiA = createTrackedEntityInstance( 'A', ou );
         teiB = createTrackedEntityInstance( 'B', ou );
-
         Program p = createProgram( 'A' );
         piA = createProgramInstance( p, teiA, ou );
-
         ProgramStage ps = createProgramStage( 'A', p );
         psiA = createProgramStageInstance( ps, piA, ou );
-
         relationshipType = createRelationshipType( 'A' );
     }
 
     @Test
-    public void testExtractRelationshipItemUid()
+    void testExtractRelationshipItemUid()
     {
         RelationshipItem itemA = new RelationshipItem();
         RelationshipItem itemB = new RelationshipItem();
@@ -79,42 +76,37 @@ public class RelationshipUtilsTest
         itemA.setTrackedEntityInstance( teiA );
         itemB.setProgramInstance( piA );
         itemC.setProgramStageInstance( psiA );
-
         assertEquals( teiA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemA ) );
         assertEquals( piA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemB ) );
         assertEquals( psiA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemC ) );
     }
 
     @Test
-    public void testGenerateRelationshipKey()
+    void testGenerateRelationshipKey()
     {
         RelationshipItem from = new RelationshipItem();
         RelationshipItem to = new RelationshipItem();
         from.setTrackedEntityInstance( teiA );
         to.setTrackedEntityInstance( teiB );
-
         Relationship relationship = new Relationship();
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( from );
         relationship.setTo( to );
-
         String key = relationshipType.getUid() + "_" + teiA.getUid() + "_" + teiB.getUid();
         assertEquals( key, RelationshipUtils.generateRelationshipKey( relationship ) );
     }
 
     @Test
-    public void testGenerateRelationshipInvertedKey()
+    void testGenerateRelationshipInvertedKey()
     {
         RelationshipItem from = new RelationshipItem();
         RelationshipItem to = new RelationshipItem();
         from.setTrackedEntityInstance( teiA );
         to.setTrackedEntityInstance( teiB );
-
         Relationship relationship = new Relationship();
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( from );
         relationship.setTo( to );
-
         String invertedKey = relationshipType.getUid() + "_" + teiB.getUid() + "_" + teiA.getUid();
         assertEquals( invertedKey, RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
     }

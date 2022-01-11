@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,16 +28,31 @@
 package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hamcrest.Matchers.both;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_DATA_X;
 import static org.hisp.dhis.analytics.DataQueryParams.DISPLAY_NAME_ORGUNIT;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryGroups;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.QueryPlannerParams;
+import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -48,12 +63,11 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -61,8 +75,10 @@ import com.google.common.collect.Lists;
 /**
  * @author Luciano Fiandesio
  */
-public class QueryPlannerGroupByAggregationTypeTest
+@ExtendWith( MockitoExtension.class )
+class QueryPlannerGroupByAggregationTypeTest
 {
+
     private QueryPlanner subject;
 
     @Mock
@@ -71,17 +87,14 @@ public class QueryPlannerGroupByAggregationTypeTest
     @Mock
     private PartitionManager partitionManager;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new DefaultQueryPlanner( queryValidator, partitionManager );
     }
 
     @Test
-    public void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent()
+    void verifyMultipleDataElementIsAggregatedWithTwoQueryGroupWhenDataTypeIsDifferent()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
         periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
@@ -115,7 +128,7 @@ public class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifySingleNonDataElementRetainAggregationTypeButNullDataType()
+    void verifySingleNonDataElementRetainAggregationTypeButNullDataType()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
         periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
@@ -142,7 +155,7 @@ public class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyASingleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
+    void verifyASingleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
     {
         // DataQueryParams with **one** DataElement as filter
         DataQueryParams queryParams = createDataQueryParams(
@@ -167,7 +180,7 @@ public class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyMultipleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
+    void verifyMultipleDataElementAsFilterRetainAggregationTypeAndAggregationDataType()
     {
         // DataQueryParams with **two** DataElement as filter
         // Both have DataType NUMERIC and AggregationType SUM
@@ -189,7 +202,7 @@ public class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyMultipleDataElementAsFilterHavingDifferentAggTypeDoNotRetainAggregationType()
+    void verifyMultipleDataElementAsFilterHavingDifferentAggTypeDoNotRetainAggregationType()
     {
         // DataQueryParams with **two** DataElement as filter
         // Both have DataType NUMERIC but different AggregationType
@@ -211,7 +224,7 @@ public class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyMultipleDataElementAsFilterHavingDifferentAggTypeRetainAggregationType()
+    void verifyMultipleDataElementAsFilterHavingDifferentAggTypeRetainAggregationType()
     {
         // DataQueryParams with **two** DataElement as filter
         // Both have DataType NUMERIC but different AggregationType
@@ -236,7 +249,7 @@ public class QueryPlannerGroupByAggregationTypeTest
     }
 
     @Test
-    public void verifyMultipleDataElementAsFilterHavingDifferentDataTypeDoNotRetainAggregationType()
+    void verifyMultipleDataElementAsFilterHavingDifferentDataTypeDoNotRetainAggregationType()
     {
         // DataQueryParams with **two** DataElement as filter
         // One Data Element has Type Numeric

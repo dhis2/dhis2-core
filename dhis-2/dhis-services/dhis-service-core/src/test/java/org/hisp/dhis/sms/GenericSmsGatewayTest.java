@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,9 +29,9 @@ package org.hisp.dhis.sms;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -54,14 +54,13 @@ import org.hisp.dhis.sms.config.SimplisticHttpGetGateWay;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -74,8 +73,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Zubair Asghar.
  */
-public class GenericSmsGatewayTest
+@ExtendWith( MockitoExtension.class )
+class GenericSmsGatewayTest
 {
+
     private static final String GATEWAY_URL = "http://gateway.com/messages";
 
     private static final String UID = "UID-123";
@@ -89,9 +90,6 @@ public class GenericSmsGatewayTest
     private static final String SUBJECT = "Greeting";
 
     private static final Set<String> RECIPIENTS = Sets.newHashSet( "4033XXYY, 404YYXXX" );
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private RestTemplate restTemplate;
@@ -119,7 +117,7 @@ public class GenericSmsGatewayTest
 
     private Map<String, String> valueStore = new HashMap<>();
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new SimplisticHttpGetGateWay( restTemplate, pbeStringEncryptor );
@@ -150,7 +148,7 @@ public class GenericSmsGatewayTest
     }
 
     @Test
-    public void testSendSms_Json()
+    void testSendSms_Json()
     {
         strSubstitutor = new StringSubstitutor( valueStore );
         body = strSubstitutor.replace( CONFIG_TEMPLATE_JSON );
@@ -193,7 +191,7 @@ public class GenericSmsGatewayTest
     }
 
     @Test
-    public void testSendSms_Url()
+    void testSendSms_Url()
     {
         username.setHeader( false );
         password.setHeader( false );

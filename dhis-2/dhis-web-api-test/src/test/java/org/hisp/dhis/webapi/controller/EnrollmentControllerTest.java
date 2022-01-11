@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -37,53 +37,53 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class EnrollmentControllerTest extends DhisControllerConvenienceTest
+class EnrollmentControllerTest extends DhisControllerConvenienceTest
 {
 
     @Test
-    public void testPostEnrollmentJson_ValidationError()
+    void testPostEnrollmentJson_ValidationError()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "TrackedEntityInstance does not exist.",
             POST( "/enrollments/", "{}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testUpdateEnrollmentForNoteJson_NoSuchObject()
+    void testUpdateEnrollmentForNoteJson_NoSuchObject()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
             POST( "/enrollments/xyz/note", "{}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testUpdateEnrollmentJson()
+    void testUpdateEnrollmentJson()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
             PUT( "/enrollments/xyz", "{}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testCancelEnrollment()
+    void testCancelEnrollment()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Enrollment not found for ID xyz",
             PUT( "/enrollments/xyz/cancelled" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testCompleteEnrollment()
+    void testCompleteEnrollment()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Enrollment not found for ID xyz",
             PUT( "/enrollments/xyz/completed" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testIncompleteEnrollment()
+    void testIncompleteEnrollment()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Enrollment not found for ID xyz",
             PUT( "/enrollments/xyz/incompleted" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testDeleteEnrollment()
+    void testDeleteEnrollment()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             DELETE( "/enrollments/xyz" ).content( HttpStatus.OK ) );

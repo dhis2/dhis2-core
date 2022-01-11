@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,13 @@
  */
 package org.hisp.dhis.dataset.notifications;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,21 +62,21 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Zubair Asghar.
  */
-public class DataSetNotificationServiceTest extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class DataSetNotificationServiceTest extends DhisConvenienceTest
 {
     public static final String TEMPALTE_A_UID = "smsTemplateA";
 
@@ -111,9 +116,6 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
 
     private CategoryOptionCombo categoryOptionCombo;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Mock
     private DataSetNotificationTemplateService dsntService;
 
@@ -152,7 +154,7 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
 
     private DataSetNotificationService subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         this.subject = new DefaultDataSetNotificationService( dsntService, internalMessageService,
@@ -212,7 +214,7 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testShouldReturnNullIfRegistrationIsNull()
+    void testShouldReturnNullIfRegistrationIsNull()
     {
         subject.sendCompleteDataSetNotifications( null );
 
@@ -220,7 +222,7 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfNotTemplateFoundForDataSet()
+    void testIfNotTemplateFoundForDataSet()
     {
         when( dsntService.getCompleteNotifications( any( DataSet.class ) ) ).thenReturn( null );
 
@@ -232,7 +234,7 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendCompletionSMSNotification()
+    void testSendCompletionSMSNotification()
     {
         when( renderer.render( any( CompleteDataSetRegistration.class ), any( DataSetNotificationTemplate.class ) ) )
             .thenReturn( notificationMessage );

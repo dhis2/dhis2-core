@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.calendar.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Date;
 import java.util.List;
@@ -40,121 +41,108 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class EthiopianCalendarTest
+class EthiopianCalendarTest
 {
+
     private Calendar calendar;
 
-    @Before
-    public void init()
+    @BeforeEach
+    void init()
     {
         calendar = EthiopianCalendar.getInstance();
     }
 
     @Test
-    public void testIsoStartOfYear()
+    void testIsoStartOfYear()
     {
         DateTimeUnit startOfYear = calendar.isoStartOfYear( 2007 );
-
         assertEquals( 2014, startOfYear.getYear() );
         assertEquals( 9, startOfYear.getMonth() );
         assertEquals( 11, startOfYear.getDay() );
     }
 
-    @Test( expected = RuntimeException.class )
-    public void testDaysInMonth13()
+    @Test
+    void testDaysInMonth13()
     {
-        calendar.daysInMonth( 2007, 13 );
+        assertThrows( RuntimeException.class, () -> calendar.daysInMonth( 2007, 13 ) );
     }
 
     @Test
-    public void testDaysInYear()
+    void testDaysInYear()
     {
         int daysInYear = calendar.daysInYear( 2006 );
         assertEquals( 12 * 30, daysInYear );
     }
 
     @Test
-    public void testGenerateDailyPeriods()
+    void testGenerateDailyPeriods()
     {
         Date startDate = new Cal( 1975, 1, 1, true ).time();
         Date endDate = new Cal( 2025, 1, 2, true ).time();
-
         List<Period> days = new DailyPeriodType().generatePeriods( calendar, startDate, endDate );
         assertEquals( 18001, days.size() );
     }
 
     @Test
-    public void testGenerateQuarterlyPeriods()
+    void testGenerateQuarterlyPeriods()
     {
         Date startDate = new Cal( 1975, 1, 1, true ).time();
         Date endDate = new Cal( 2025, 1, 2, true ).time();
-
         List<Period> quarters = new QuarterlyPeriodType().generatePeriods( calendar, startDate, endDate );
         assertEquals( 201, quarters.size() );
     }
 
     @Test
-    public void testGenerateMonthlyPeriods()
+    void testGenerateMonthlyPeriods()
     {
         Date startDate = new Cal( 1975, 1, 1, true ).time();
         Date endDate = new Cal( 2025, 1, 2, true ).time();
-
         List<Period> monthly = new MonthlyPeriodType().generatePeriods( calendar, startDate, endDate );
         assertEquals( 601, monthly.size() );
     }
 
     @Test
-    public void testGenerateWeeklyPeriods()
+    void testGenerateWeeklyPeriods()
     {
         Date startDate = new Cal( 1975, 1, 1, true ).time();
         Date endDate = new Cal( 2025, 1, 2, true ).time();
-
         List<Period> weeks = new WeeklyPeriodType().generatePeriods( calendar, startDate, endDate );
         assertEquals( 2610, weeks.size() );
     }
 
     @Test
-    public void testPlusDays()
+    void testPlusDays()
     {
         DateTimeUnit dateTimeUnit = new DateTimeUnit( 2006, 1, 1 );
-
         DateTimeUnit testDateTimeUnit = calendar.plusDays( dateTimeUnit, 43 );
         assertEquals( 2006, testDateTimeUnit.getYear() );
         assertEquals( 2, testDateTimeUnit.getMonth() );
         assertEquals( 14, testDateTimeUnit.getDay() );
-
         testDateTimeUnit = calendar.plusDays( dateTimeUnit, 65 );
         assertEquals( 2006, testDateTimeUnit.getYear() );
         assertEquals( 3, testDateTimeUnit.getMonth() );
         assertEquals( 6, testDateTimeUnit.getDay() );
-
         testDateTimeUnit = calendar.plusDays( dateTimeUnit, (12 * 30) + 5 );
         assertEquals( 2007, testDateTimeUnit.getYear() );
         assertEquals( 1, testDateTimeUnit.getMonth() );
         assertEquals( 6, testDateTimeUnit.getDay() );
-
         dateTimeUnit = new DateTimeUnit( 2006, 2, 29 );
-
         testDateTimeUnit = calendar.plusDays( dateTimeUnit, 10 );
         assertEquals( 2006, testDateTimeUnit.getYear() );
         assertEquals( 3, testDateTimeUnit.getMonth() );
         assertEquals( 9, testDateTimeUnit.getDay() );
-
         dateTimeUnit = new DateTimeUnit( 2006, 3, 9 );
-
         testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
         assertEquals( 2006, testDateTimeUnit.getYear() );
         assertEquals( 3, testDateTimeUnit.getMonth() );
         assertEquals( 8, testDateTimeUnit.getDay() );
-
         dateTimeUnit = new DateTimeUnit( 2006, 1, 1 );
-
         testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
         assertEquals( 2005, testDateTimeUnit.getYear() );
         assertEquals( 12, testDateTimeUnit.getMonth() );
@@ -162,10 +150,9 @@ public class EthiopianCalendarTest
     }
 
     @Test
-    public void testMinusDays()
+    void testMinusDays()
     {
         DateTimeUnit dateTimeUnit = new DateTimeUnit( 2007, 1, 1 );
-
         DateTimeUnit testDateTimeUnit = calendar.minusDays( dateTimeUnit, 2 );
         assertEquals( 2006, testDateTimeUnit.getYear() );
         assertEquals( 12, testDateTimeUnit.getMonth() );

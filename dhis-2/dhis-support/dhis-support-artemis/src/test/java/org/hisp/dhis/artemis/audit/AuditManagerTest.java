@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.artemis.audit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,14 +39,14 @@ import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditAttributes;
 import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class AuditManagerTest
+@ExtendWith( MockitoExtension.class )
+class AuditManagerTest
 {
     private AuditManager auditManager;
 
@@ -65,10 +65,7 @@ public class AuditManagerTest
     @Mock
     private UsernameSupplier usernameSupplier;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         auditManager = new AuditManager( auditProducerSupplier, auditScheduler,
@@ -77,7 +74,7 @@ public class AuditManagerTest
     }
 
     @Test
-    public void testCollectAuditAttributes()
+    void testCollectAuditAttributes()
     {
         DataElement dataElement = new DataElement();
         dataElement.setUid( "DataElementUID" );

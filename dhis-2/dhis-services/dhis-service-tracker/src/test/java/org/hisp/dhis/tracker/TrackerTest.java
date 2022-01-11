@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -58,6 +58,7 @@ import org.springframework.core.io.ClassPathResource;
  */
 public abstract class TrackerTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     protected IdentifiableObjectManager manager;
 
@@ -80,14 +81,10 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     protected void setUpTest()
         throws IOException
     {
-
         preCreateInjectAdminUserWithoutPersistence();
-
         renderService = _renderService;
         userService = _userService;
-
         initTest();
-
         // Clear the session to simulate different API call after the setup
         manager.clear();
     }
@@ -98,21 +95,16 @@ public abstract class TrackerTest extends TransactionalIntegrationTest
     protected ObjectBundle setUpMetadata( String path )
         throws IOException
     {
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( path ).getInputStream(), RenderFormat.JSON );
-
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+            .fromMetadata( new ClassPathResource( path ).getInputStream(), RenderFormat.JSON );
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
-
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         assertFalse( validationReport.hasErrorReports() );
-
         objectBundleService.commit( bundle );
-
         return bundle;
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 
@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -46,9 +46,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Enrico Colasante
  */
-public class EventExporterTest
-    extends TrackerTest
+class EventExporterTest extends TrackerTest
 {
+
     @Autowired
     private EventService eventService;
 
@@ -67,39 +67,30 @@ public class EventExporterTest
         throws IOException
     {
         setUpMetadata( "tracker/simple_metadata.json" );
-
         userA = userService.getUser( "M5zQapPyTZI" );
-
         TrackerImportParams enrollmentParams = fromJson( "tracker/event_and_enrollment.json", userA.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
-
         orgUnit = manager.get( OrganisationUnit.class, "h4w96yEMlzO" );
-
         manager.flush();
     }
 
     @Test
-    public void testExportEvents()
+    void testExportEvents()
     {
-
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
         Events events = eventService.getEvents( params );
-
         assertNotNull( events );
         assertEquals( 2, events.getEvents().size() );
     }
 
     @Test
-    public void testExportEventsWhenFilteringByEnrollment()
+    void testExportEventsWhenFilteringByEnrollment()
     {
-
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-
         params.setProgramInstances( Sets.newHashSet( "TvctPPhpD8z" ) );
         Events events = eventService.getEvents( params );
-
         assertNotNull( events );
         assertEquals( 1, events.getEvents().size() );
     }

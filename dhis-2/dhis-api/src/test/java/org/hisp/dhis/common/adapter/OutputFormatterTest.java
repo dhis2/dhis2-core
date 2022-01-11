@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,93 +32,82 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for the OutputFormatter class.
  *
  * @author maikel arabori
  */
-public class OutputFormatterTest
+class OutputFormatterTest
 {
+
     @Test
-    public void testMaybeFormatWhenObjectIsDoubleUnder10Million()
+    void testMaybeFormatWhenObjectIsDoubleUnder10Million()
     {
         // Given
         final Double under10Million = 10000d;
-
         // When
         final Object result = maybeFormat( under10Million );
-
         // Then
         assertThat( result, is( instanceOf( String.class ) ) );
         assertThat( result, is( "10000.0" ) );
     }
 
     @Test
-    public void testMaybeFormatWhenObjectIsDoubleOver10Million()
+    void testMaybeFormatWhenObjectIsDoubleOver10Million()
     {
         // Given
         final Double over10Million = 10000001d;
-
         // When
         final Object result = maybeFormat( over10Million );
-
         // Then
         assertThat( result, is( instanceOf( String.class ) ) );
         assertThat( result, is( "10000001.0" ) );
     }
 
     @Test
-    public void testMaybeFormatWhenObjectIsDoubleWithDecimalDigitsOver10Million()
+    void testMaybeFormatWhenObjectIsDoubleWithDecimalDigitsOver10Million()
     {
         // Given
         final Double over10Million = 10000000.2575899d;
-
         // When
         final Object result = maybeFormat( over10Million );
-
         // Then
         assertThat( result, is( instanceOf( String.class ) ) );
         assertThat( result, is( "10000000.2575899" ) );
     }
 
     @Test
-    public void testMaybeFormatWhenObjectIsNull()
+    void testMaybeFormatWhenObjectIsNull()
     {
         // Given
         final Object nullObject = null;
-
         // When
         final Object result = maybeFormat( nullObject );
-
         // Then
         assertThat( result, is( nullObject ) );
     }
 
     @Test
-    public void testMaybeFormatWhenObjectIsNotSupportedShort()
+    void testMaybeFormatWhenObjectIsNotSupportedShort()
     {
         // Given
         final Short notSupportedObject = 44;
-
         // When
         final Object result = maybeFormat( notSupportedObject );
-
         // Then
         assertThat( result, is( instanceOf( Short.class ) ) );
         assertThat( result, is( notSupportedObject ) );
     }
 
     @Test
-    public void testMaybeFormatWhenObjectIsNotSupportedLong()
+    void testMaybeFormatWhenObjectIsNotSupportedLong()
     {
         // Given
         final Long notSupportedObject = 4455555l;
-
         // When
         final Object result = maybeFormat( notSupportedObject );
-
         // Then
         assertThat( result, is( instanceOf( Long.class ) ) );
         assertThat( result, is( notSupportedObject ) );

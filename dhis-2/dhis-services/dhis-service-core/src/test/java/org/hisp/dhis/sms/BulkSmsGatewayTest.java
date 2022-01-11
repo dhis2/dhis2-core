@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.sms;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
@@ -53,13 +53,14 @@ import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -70,8 +71,11 @@ import org.springframework.web.client.RestTemplate;
 /**
  * @author Zubair Asghar.
  */
-public class BulkSmsGatewayTest extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class BulkSmsGatewayTest extends DhisConvenienceTest
 {
+
     private static final String MESSAGE = "text-MESSAGE";
 
     private static final String SUBJECT = "subject";
@@ -81,9 +85,6 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     private static final String SUCCESS_RESPONSE_STRING = "0|abc|5656";
 
     private static final String ERROR_RESPONSE_STRING = "24|abc|5656";
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private RestTemplate restTemplate;
@@ -102,7 +103,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
 
     private List<OutboundMessage> outboundMessageList = new ArrayList<>();
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         smsGatewayConfig = new BulkSmsGatewayConfig();
@@ -122,7 +123,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testAccept()
+    void testAccept()
     {
         boolean result = bulkSmsGateway.accept( smsGatewayConfig );
 
@@ -135,7 +136,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSuccessful()
+    void testSuccessful()
     {
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
@@ -150,7 +151,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testBulkSend()
+    void testBulkSend()
     {
         ResponseEntity<String> successResponse = new ResponseEntity<>( SUCCESS_RESPONSE_STRING, HttpStatus.OK );
 
@@ -165,7 +166,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testFailureCode()
+    void testFailureCode()
     {
         ResponseEntity<String> errorResponse = new ResponseEntity<>( ERROR_RESPONSE_STRING, HttpStatus.CONFLICT );
 
@@ -181,7 +182,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWhenServerResponseIsNull()
+    void testWhenServerResponseIsNull()
     {
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
             eq( String.class ) ) )
@@ -195,7 +196,7 @@ public class BulkSmsGatewayTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testException()
+    void testException()
     {
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
             eq( String.class ) ) )

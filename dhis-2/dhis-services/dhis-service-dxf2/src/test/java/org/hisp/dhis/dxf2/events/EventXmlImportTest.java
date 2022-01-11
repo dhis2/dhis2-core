@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dxf2.events;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,16 +57,16 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Enrico Colasante
  */
-public class EventXmlImportTest
-    extends TransactionalIntegrationTest
+class EventXmlImportTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private EventService eventService;
 
@@ -95,31 +95,25 @@ public class EventXmlImportTest
         throws Exception
     {
         userService = _userService;
-
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitA.setUid( "A" );
         manager.save( organisationUnitA );
-
         dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
         dataElementA.setUid( "A" );
         manager.save( dataElementA );
-
         programStageA = createProgramStage( 'A', 0 );
         programStageA.setFeatureType( FeatureType.POINT );
         programStageA.setUid( "A" );
         manager.save( programStageA );
-
         ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
         programStageDataElement.setDataElement( dataElementA );
         programStageDataElement.setProgramStage( programStageA );
         programStageDataElementService.addProgramStageDataElement( programStageDataElement );
-
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         programA.setUid( "A" );
         manager.save( programA );
-
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setProgram( programA );
         programInstance.setAutoFields();
@@ -127,19 +121,16 @@ public class EventXmlImportTest
         programInstance.setIncidentDate( new Date() );
         programInstance.setStatus( ProgramStatus.ACTIVE );
         programInstanceService.addProgramInstance( programInstance );
-
         programStageA.getProgramStageDataElements().add( programStageDataElement );
         programStageA.setProgram( programA );
         programA.getProgramStages().add( programStageA );
-
         manager.update( programStageA );
         manager.update( programA );
-
         createUserAndInjectSecurityContext( true );
     }
 
     @Test
-    public void testGeometry()
+    void testGeometry()
         throws IOException
     {
         InputStream is = createEventXmlInputStream();
@@ -152,18 +143,16 @@ public class EventXmlImportTest
     }
 
     @Test
-    public void testNoAccessEvent()
+    void testNoAccessEvent()
         throws IOException
     {
         InputStream is = createEventXmlInputStream();
         ImportSummaries importSummaries = eventService.addEventsXml( is, null );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
-
         // Get by admin
         Events events = eventService.getEvents( new EventSearchParams().setProgram( programA )
             .setOrgUnitSelectionMode( OrganisationUnitSelectionMode.ACCESSIBLE ) );
         assertEquals( 1, events.getEvents().size() );
-
         // Get by user without access
         User user = createUser( "A" );
         userService.addUser( user );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.sms;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,9 +42,9 @@ import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.config.SMPPGateway;
 import org.hisp.dhis.sms.config.SMPPGatewayConfig;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -54,14 +56,13 @@ import com.google.common.collect.Sets;
  * user:     smppclient1
  * password: password
  */
-
 /**
  * @Author Zubair Asghar.
  */
-
-@Ignore( "Test to run manually" )
-public class SMPPGatewayTest extends DhisSpringTest
+@Disabled( "Test to run manually" )
+class SMPPGatewayTest extends DhisSpringTest
 {
+
     private static final String SYSTEM_ID = "smppclient1";
 
     private static final String SYSTEM_TYPE = "cp";
@@ -83,8 +84,8 @@ public class SMPPGatewayTest extends DhisSpringTest
     @Autowired
     private SMPPGateway gateway;
 
-    @Before
-    public void init()
+    @BeforeEach
+    void init()
     {
         config = new SMPPGatewayConfig();
         config.setUrlTemplate( HOST );
@@ -95,18 +96,16 @@ public class SMPPGatewayTest extends DhisSpringTest
     }
 
     @Test
-    public void testSuccessfulMessage()
+    void testSuccessfulMessage()
     {
         OutboundMessageResponse response;
-
         response = gateway.send( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ), config );
-
         assertTrue( response.isOk() );
         assertEquals( GatewayResponse.RESULT_CODE_0, response.getResponseObject() );
     }
 
     @Test
-    public void testBulkMessage()
+    void testBulkMessage()
     {
         List<OutboundMessage> messages = new ArrayList<>();
         messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
@@ -117,11 +116,8 @@ public class SMPPGatewayTest extends DhisSpringTest
         messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
         messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
         messages.add( new OutboundMessage( SUBJECT, TEXT, Sets.newHashSet( RECIPIENT ) ) );
-
         OutboundMessageBatch batch = new OutboundMessageBatch( messages, DeliveryChannel.SMS );
-
         List<OutboundMessageResponse> responses = gateway.sendBatch( batch, config );
-
         assertNotNull( responses );
         assertEquals( 8, responses.size() );
         responses.forEach( r -> assertTrue( r.isOk() ) );

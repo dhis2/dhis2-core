@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,26 +43,24 @@ import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramIndicatorSubqueryBuilderTest
+@ExtendWith( MockitoExtension.class )
+class ProgramIndicatorSubqueryBuilderTest
 {
+
     private final static String DUMMY_EXPRESSION = "#{1234567}";
 
     private final static String DUMMY_FILTER_EXPRESSION = "#{1234567.filter}";
 
     private final static BeanRandomizer rnd = BeanRandomizer.create();
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ProgramIndicatorService programIndicatorService;
@@ -75,7 +73,7 @@ public class ProgramIndicatorSubqueryBuilderTest
 
     private DefaultProgramIndicatorSubqueryBuilder subject;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         program = createProgram( 'A' );
@@ -85,7 +83,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyProgramIndicatorSubQueryWithAliasTable()
+    void verifyProgramIndicatorSubQueryWithAliasTable()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -103,7 +101,7 @@ public class ProgramIndicatorSubqueryBuilderTest
      * join is type EVENT
      */
     @Test
-    public void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
+    void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setAggregationType( null );
@@ -118,7 +116,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyJoinWhenOuterQueryIsEnrollment()
+    void verifyJoinWhenOuterQueryIsEnrollment()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -132,7 +130,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyJoinWhenRelationshipTypeIsPresent()
+    void verifyJoinWhenRelationshipTypeIsPresent()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
 
@@ -158,7 +156,7 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     @Test
-    public void verifyProgramIndicatorWithFilter()
+    void verifyProgramIndicatorWithFilter()
     {
         ProgramIndicator pi = createProgramIndicator( 'A', program, DUMMY_EXPRESSION, "" );
         pi.setFilter( DUMMY_FILTER_EXPRESSION );

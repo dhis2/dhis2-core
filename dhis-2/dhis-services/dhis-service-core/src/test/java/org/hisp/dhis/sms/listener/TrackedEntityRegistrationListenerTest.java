@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.anyString;
@@ -66,19 +67,19 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Zubair Asghar.
  */
-public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
 {
     private static final String TEI_REGISTRATION_COMMAND = "tei";
 
@@ -89,9 +90,6 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private static final String ORIGINATOR = "47400000";
 
     private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private ProgramInstanceService programInstanceService;
@@ -156,7 +154,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
 
     private String message = "";
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         subject = new TrackedEntityRegistrationSMSListener( programService, programInstanceService,
@@ -185,7 +183,7 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testTeiRegistration()
+    void testTeiRegistration()
     {
         // Mock for trackedEntityInstanceService
         when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
@@ -207,13 +205,15 @@ public class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         verify( incomingSmsService, times( 1 ) ).update( any() );
     }
 
-    @Test( expected = SMSParserException.class )
-    public void testIfProgramHasNoOu()
+    @Test
+    void testIfProgramHasNoOu()
     {
         Program programA = createProgram( 'P' );
 
         teiRegistrationCommand.setProgram( programA );
-        subject.receive( incomingSms );
+
+        assertThrows( SMSParserException.class,
+            () -> subject.receive( incomingSms ) );
 
         verify( trackedEntityTypeService, never() ).getTrackedEntityByName( anyString() );
     }

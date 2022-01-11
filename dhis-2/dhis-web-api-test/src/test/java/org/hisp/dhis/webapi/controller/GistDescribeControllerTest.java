@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,50 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@code describe=true} parameter of the Gist API.
  *
  * @author Jan Bernitt
  */
-public class GistDescribeControllerTest extends AbstractGistControllerTest
+class GistDescribeControllerTest extends AbstractGistControllerTest
 {
+
     @Test
-    public void testDescribe_Object()
+    void testDescribe_Object()
     {
         JsonObject description = GET( "/users/{uid}/gist?describe=true", getSuperuserUid() ).content();
-
         assertBaseDescription( description );
         assertFalse( description.getObject( "hql" ).has( "count" ) );
     }
 
     @Test
-    public void testDescribe_ObjectList()
+    void testDescribe_ObjectList()
     {
         JsonObject description = GET( "/users/gist?describe=true", getSuperuserUid() ).content();
-
         assertBaseDescription( description );
         assertFalse( description.getObject( "hql" ).has( "count" ) );
     }
 
     @Test
-    public void testDescribe_ObjectCollectionList()
+    void testDescribe_ObjectCollectionList()
     {
         JsonObject description = GET( "/users/{uid}/userGroups/gist?describe=true", getSuperuserUid() ).content();
-
         assertBaseDescription( description );
         assertFalse( description.getObject( "hql" ).has( "count" ) );
     }
 
     @Test
-    public void testDescribe_Error_PlanningFailed()
+    void testDescribe_Error_PlanningFailed()
     {
         JsonObject description = GET( "/users/{uid}/userGroups/gist?describe=true&filter=foo:eq:bar",
             getSuperuserUid() ).content();
-
         assertTrue( description.has( "error", "unplanned", "status" ) );
         assertTrue( description.getObject( "error" ).has( "type", "message" ) );
         assertTrue( description.getObject( "unplanned" ).has( "fields", "filters", "orders" ) );
@@ -81,11 +78,10 @@ public class GistDescribeControllerTest extends AbstractGistControllerTest
     }
 
     @Test
-    public void testDescribe_Error_ValidationFailed()
+    void testDescribe_Error_ValidationFailed()
     {
-        JsonObject description = GET( "/users/gist?describe=true&fields=userCredentials.password",
-            getSuperuserUid() ).content();
-
+        JsonObject description = GET( "/users/gist?describe=true&fields=userCredentials.password", getSuperuserUid() )
+            .content();
         assertTrue( description.has( "error", "unplanned", "planned", "status" ) );
         assertTrue( description.getObject( "error" ).has( "type", "message" ) );
         assertTrue( description.getObject( "unplanned" ).has( "fields", "filters", "orders" ) );
@@ -95,20 +91,18 @@ public class GistDescribeControllerTest extends AbstractGistControllerTest
     }
 
     @Test
-    public void testDescribe_Total()
+    void testDescribe_Total()
     {
         JsonObject description = GET( "/users/gist?describe=true&total=true", getSuperuserUid() ).content();
-
         assertBaseDescription( description );
         assertTrue( description.getObject( "hql" ).has( "count" ) );
     }
 
     @Test
-    public void testDescribe_FetchParameters()
+    void testDescribe_FetchParameters()
     {
         JsonObject description = GET( "/users/gist?describe=true&filter=surname:startsWith:Jo", getSuperuserUid() )
             .content();
-
         assertBaseDescription( description );
         JsonObject hql = description.getObject( "hql" );
         assertTrue( hql.has( "parameters" ) );
@@ -120,19 +114,17 @@ public class GistDescribeControllerTest extends AbstractGistControllerTest
     }
 
     @Test
-    public void testDescribe_Authorisation_Guest()
+    void testDescribe_Authorisation_Guest()
     {
         switchToGuestUser();
-
         JsonObject description = GET( "/users/{uid}/gist?describe=true", getSuperuserUid() ).content();
         assertFalse( description.has( "hql" ) );
     }
 
     @Test
-    public void testDescribe_Authorisation_Admin()
+    void testDescribe_Authorisation_Admin()
     {
         switchToNewUser( "guest", "Test_skipSharingCheck", "F_METADATA_EXPORT" );
-
         assertBaseDescription( GET( "/users/{uid}/gist?describe=true", getSuperuserUid() ).content() );
     }
 

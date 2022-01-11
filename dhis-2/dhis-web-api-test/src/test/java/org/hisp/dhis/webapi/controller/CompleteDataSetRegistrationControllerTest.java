@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,12 @@ import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_XML;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 
@@ -46,26 +46,27 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-public class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienceTest
+class CompleteDataSetRegistrationControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPostCompleteRegistrationsJson()
+    void testPostCompleteRegistrationsJson()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
             POST( "/38/completeDataSetRegistrations", "{}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testPostCompleteRegistrationsJson_Pre38()
+    void testPostCompleteRegistrationsJson_Pre38()
     {
-        JsonImportSummary summary = POST( "/37/completeDataSetRegistrations", "{}" )
-            .content( HttpStatus.OK ).as( JsonImportSummary.class );
+        JsonImportSummary summary = POST( "/37/completeDataSetRegistrations", "{}" ).content( HttpStatus.OK )
+            .as( JsonImportSummary.class );
         assertEquals( "ImportSummary", summary.getResponseType() );
         assertEquals( "ERROR", summary.getStatus() );
     }
 
     @Test
-    public void testPostCompleteRegistrationsXml()
+    void testPostCompleteRegistrationsXml()
     {
         HttpResponse response = POST( "/38/completeDataSetRegistrations",
             Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),
@@ -76,7 +77,7 @@ public class CompleteDataSetRegistrationControllerTest extends DhisControllerCon
     }
 
     @Test
-    public void testPostCompleteRegistrationsXml_Pre38()
+    void testPostCompleteRegistrationsXml_Pre38()
     {
         HttpResponse response = POST( "/37/completeDataSetRegistrations",
             Body( "<completeDataSetRegistrations></completeDataSetRegistrations>" ), ContentType( CONTENT_TYPE_XML ),

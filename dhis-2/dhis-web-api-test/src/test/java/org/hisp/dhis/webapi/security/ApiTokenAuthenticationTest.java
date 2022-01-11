@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.security;
 
 import static org.hisp.dhis.webapi.WebClient.ApiTokenHeader;
 import static org.hisp.dhis.webapi.WebClient.Header;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,9 +42,9 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -52,7 +52,7 @@ import org.springframework.http.HttpStatus;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-public class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
+class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
 {
 
     public static final String URI = "/me?fields=settings,id";
@@ -67,6 +67,7 @@ public class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTe
 
     private static class TokenAndKey
     {
+
         String key;
 
         ApiToken apiToken;
@@ -80,14 +81,14 @@ public class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTe
         }
     }
 
-    @BeforeClass
-    public static void setUpClass()
+    @BeforeAll
+    static void setUpClass()
     {
         DhisWebApiWebSecurityConfig.setApiContextPath( "" );
     }
 
-    @Before
-    public final void setup()
+    @BeforeEach
+    public void setup()
         throws Exception
     {
         super.setup();
@@ -100,7 +101,6 @@ public class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTe
         token.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
         token = apiTokenService.initToken( token );
         apiTokenStore.save( token );
-
         final String key = token.getKey();
         final String hashedKey = apiTokenService.hashKey( key );
         token.setKey( hashedKey );
@@ -109,117 +109,92 @@ public class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTe
     }
 
     @Test
-    public void testApiTokenAuthentication()
+    void testApiTokenAuthentication()
     {
         final TokenAndKey tokenAndKey = createNewToken();
-
         JsonUser user = GET( URI, ApiTokenHeader( tokenAndKey.key ) ).content().as( JsonUser.class );
         assertEquals( adminUser.getUid(), user.getId() );
-
         assertEquals( "The API token does not exists.",
-            GET( URI, ApiTokenHeader( "FAKE_KEY" ) )
-                .error( HttpStatus.UNAUTHORIZED ).getMessage() );
+            GET( URI, ApiTokenHeader( "FAKE_KEY" ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
     }
 
     @Test
-    public void testInvalidApiTokenAuthentication()
+    void testInvalidApiTokenAuthentication()
     {
         final TokenAndKey tokenAndKey = createNewToken();
-
         JsonUser user = GET( URI, ApiTokenHeader( tokenAndKey.key ) ).content().as( JsonUser.class );
         assertEquals( adminUser.getUid(), user.getId() );
     }
 
     @Test
-    public void testAllowedIpRule()
+    void testAllowedIpRule()
     {
         final TokenAndKey tokenAndKey = createNewToken();
         final String key = tokenAndKey.key;
         final ApiToken apiToken = tokenAndKey.apiToken;
-
         apiToken.addIpToAllowedList( "192.168.2.1" );
         apiTokenService.update( apiToken );
-
         assertEquals( "Failed to authenticate API token, request ip address is not allowed.",
-            GET( URI, ApiTokenHeader( key ) )
-                .error( HttpStatus.UNAUTHORIZED ).getMessage() );
-
+            GET( URI, ApiTokenHeader( key ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
         apiToken.addIpToAllowedList( "127.0.0.1" );
         apiTokenService.update( apiToken );
-
         JsonUser user = GET( URI, ApiTokenHeader( key ) ).content().as( JsonUser.class );
         assertEquals( adminUser.getUid(), user.getId() );
     }
 
     @Test
-    public void testAllowedMethodRule()
+    void testAllowedMethodRule()
     {
         final TokenAndKey tokenAndKey = createNewToken();
         final String key = tokenAndKey.key;
         final ApiToken apiToken = tokenAndKey.apiToken;
-
         apiToken.addMethodToAllowedList( "POST" );
         apiTokenService.update( apiToken );
-
         assertEquals( "Failed to authenticate API token, request http method is not allowed.",
-            GET( URI, ApiTokenHeader( key ) )
-                .error( HttpStatus.UNAUTHORIZED ).getMessage() );
-
+            GET( URI, ApiTokenHeader( key ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
         apiToken.addMethodToAllowedList( "GET" );
         apiTokenService.update( apiToken );
-
         JsonUser user = GET( URI, ApiTokenHeader( key ) ).content().as( JsonUser.class );
         assertEquals( adminUser.getUid(), user.getId() );
     }
 
     @Test
-    public void testAllowedReferrerRule()
+    void testAllowedReferrerRule()
     {
         final TokenAndKey tokenAndKey = createNewToken();
         final String key = tokenAndKey.key;
         final ApiToken apiToken = tokenAndKey.apiToken;
-
         apiToken.addReferrerToAllowedList( "https://one.io" );
         apiTokenService.update( apiToken );
-
         assertEquals( "Failed to authenticate API token, request http referrer is missing or not allowed.",
-            GET( URI, ApiTokenHeader( key ) )
-                .error( HttpStatus.UNAUTHORIZED ).getMessage() );
-
+            GET( URI, ApiTokenHeader( key ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
         apiToken.addReferrerToAllowedList( "https://two.io" );
         apiTokenService.update( apiToken );
-
-        JsonUser user = GET( URI, ApiTokenHeader( key ), Header( "referer", "https://two.io" ) )
-            .content().as( JsonUser.class );
+        JsonUser user = GET( URI, ApiTokenHeader( key ), Header( "referer", "https://two.io" ) ).content()
+            .as( JsonUser.class );
         assertEquals( adminUser.getUid(), user.getId() );
     }
 
     @Test
-    public void testExpiredToken()
+    void testExpiredToken()
     {
         final TokenAndKey tokenAndKey = createNewToken();
         final String key = tokenAndKey.key;
         final ApiToken apiToken = tokenAndKey.apiToken;
-
         apiToken.setExpire( System.currentTimeMillis() - 36000 );
-
         assertEquals( "Failed to authenticate API token, token has expired.",
-            GET( URI, ApiTokenHeader( key ) )
-                .error( HttpStatus.UNAUTHORIZED ).getMessage() );
+            GET( URI, ApiTokenHeader( key ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
     }
 
     @Test
-    public void testAuthWithDisabledUser()
+    void testAuthWithDisabledUser()
     {
         final TokenAndKey tokenAndKey = createNewToken();
         final String key = tokenAndKey.key;
-
         UserCredentials userCredentials = adminUser.getUserCredentials();
         userCredentials.setDisabled( true );
         userService.updateUserCredentials( userCredentials );
-
         assertEquals( "The API token is disabled, locked or 2FA is enabled.",
-            GET( URI, ApiTokenHeader( key ) )
-                .error( HttpStatus.UNAUTHORIZED ).getMessage() );
+            GET( URI, ApiTokenHeader( key ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
     }
 }

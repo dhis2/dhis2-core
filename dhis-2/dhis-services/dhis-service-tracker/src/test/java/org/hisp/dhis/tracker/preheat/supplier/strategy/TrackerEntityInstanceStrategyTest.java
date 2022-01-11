@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier.strategy;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
@@ -42,19 +42,19 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
  */
-public class TrackerEntityInstanceStrategyTest
+@ExtendWith( MockitoExtension.class )
+class TrackerEntityInstanceStrategyTest
 {
     @InjectMocks
     private TrackerEntityInstanceStrategy strategy;
@@ -62,13 +62,10 @@ public class TrackerEntityInstanceStrategyTest
     @Mock
     private TrackedEntityInstanceStore trackedEntityInstanceStore;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
     @Test
-    public void verifyStrategyFiltersOutNonRootTei()
+    void verifyStrategyFiltersOutNonRootTei()
     {
         // Create preheat params
         final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )
@@ -96,7 +93,7 @@ public class TrackerEntityInstanceStrategyTest
     }
 
     @Test
-    public void verifyStrategyIgnoresPersistedTei()
+    void verifyStrategyIgnoresPersistedTei()
     {
         // Create preheat params
         final List<TrackedEntity> trackedEntities = rnd.objects( TrackedEntity.class, 2 )

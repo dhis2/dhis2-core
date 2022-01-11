@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,34 @@
  */
 package org.hisp.dhis.period;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class PeriodTypeTest
+class PeriodTypeTest
 {
+
     @Test
-    public void testGetByIndex()
+    void testGetByIndex()
     {
         assertNull( PeriodType.getByIndex( -1 ) );
-
         PeriodType yearly = PeriodType.getByNameIgnoreCase( "Yearly" );
         assertNotNull( yearly );
-
         int yearlyIndex = PeriodType.getAvailablePeriodTypes().indexOf( yearly ) + 1;
         assertEquals( new YearlyPeriodType(), PeriodType.getByIndex( yearlyIndex ) );
         assertNull( PeriodType.getByIndex( 999 ) );
     }
 
     @Test
-    public void testGetPeriodTypeFromIsoString()
+    void testGetPeriodTypeFromIsoString()
     {
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011" ).getName(), "Yearly" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "201101" ).getName(), "Monthly" );
@@ -67,7 +68,6 @@ public class PeriodTypeTest
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011April" ).getName(), "FinancialApril" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011July" ).getName(), "FinancialJuly" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011Oct" ).getName(), "FinancialOct" );
-
         assertNull( PeriodType.getPeriodTypeFromIsoString( "201" ) );
         assertNull( PeriodType.getPeriodTypeFromIsoString( "20111" ) );
         assertNull( PeriodType.getPeriodTypeFromIsoString( "201W2" ) );
@@ -78,7 +78,7 @@ public class PeriodTypeTest
     }
 
     @Test
-    public void testGetIsoDurationFromIsoString()
+    void testGetIsoDurationFromIsoString()
     {
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "2011" ).getIso8601Duration(), "P1Y" );
         assertEquals( PeriodType.getPeriodTypeFromIsoString( "201101" ).getIso8601Duration(), "P1M" );
@@ -94,35 +94,27 @@ public class PeriodTypeTest
     }
 
     @Test
-    public void testGetPeriodTypePeriods()
+    void testGetPeriodTypePeriods()
     {
         Calendar calendar = PeriodType.getCalendar();
-
         Period jan2018 = PeriodType.getPeriodFromIsoString( "201801" );
         Period q12018 = PeriodType.getPeriodFromIsoString( "2018Q1" );
         Period y2018 = PeriodType.getPeriodFromIsoString( "2018" );
         Period fyApril2018 = PeriodType.getPeriodFromIsoString( "2018April" );
-
         int inxMonthly = PeriodType.PERIOD_TYPES.indexOf( new MonthlyPeriodType() );
         int inxQuarterly = PeriodType.PERIOD_TYPES.indexOf( new QuarterlyPeriodType() );
         int inxYearly = PeriodType.PERIOD_TYPES.indexOf( new YearlyPeriodType() );
         int inxFinancialApril = PeriodType.PERIOD_TYPES.indexOf( new FinancialAprilPeriodType() );
-
         List<Period> periods = PeriodType.getPeriodTypePeriods( jan2018, calendar );
-
         assertEquals( jan2018, periods.get( inxMonthly ) );
         assertEquals( q12018, periods.get( inxQuarterly ) );
         assertEquals( y2018, periods.get( inxYearly ) );
-
         periods = PeriodType.getPeriodTypePeriods( y2018, calendar );
-
         assertNull( periods.get( inxMonthly ) );
         assertNull( periods.get( inxQuarterly ) );
         assertEquals( y2018, periods.get( inxYearly ) );
         assertNull( periods.get( inxFinancialApril ) );
-
         periods = PeriodType.getPeriodTypePeriods( fyApril2018, calendar );
-
         assertNull( periods.get( inxMonthly ) );
         assertNull( periods.get( inxQuarterly ) );
         assertNull( periods.get( inxYearly ) );

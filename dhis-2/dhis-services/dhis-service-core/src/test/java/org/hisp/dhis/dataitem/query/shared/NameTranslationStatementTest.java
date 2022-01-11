@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,24 +34,23 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
 import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for NameTranslationStatement.
  *
  * @author maikel arabori
  */
-public class NameTranslationStatementTest
+class NameTranslationStatementTest
 {
+
     @Test
-    public void testTranslationNamesJoinsOn()
+    void testTranslationNamesJoinsOn()
     {
         // Given
         final String table = "indicator";
-
         // When
         final String actualStatement = translationNamesJoinsOn( table );
-
         // Then
         assertThat( actualStatement,
             containsString( "left join jsonb_to_recordset(indicator.translations) as indicator" ) );
@@ -61,112 +60,94 @@ public class NameTranslationStatementTest
     }
 
     @Test
-    public void testTranslationNamesJoinsOnWhenTableIsNull()
+    void testTranslationNamesJoinsOnWhenTableIsNull()
     {
         // Given
         final String nullTable = null;
-
         // When
         final String actualStatement = translationNamesJoinsOn( nullTable );
-
         // Then
         assertThat( actualStatement, containsString( EMPTY ) );
     }
 
     @Test
-    public void testTranslationNamesJoinsOnWhenTableIsBlank()
+    void testTranslationNamesJoinsOnWhenTableIsBlank()
     {
         // Given
         final String blankTable = " ";
-
         // When
         final String actualStatement = translationNamesJoinsOn( blankTable );
-
         // Then
         assertThat( actualStatement, containsString( EMPTY ) );
     }
 
     @Test
-    public void testTranslationNamesJoinsOnWithProgram()
+    void testTranslationNamesJoinsOnWithProgram()
     {
         // Given
         final String table = "indicator";
-
         // When
         final String actualStatement = translationNamesJoinsOn( table, true );
-
         // Then
         assertThat( actualStatement,
             containsString( "left join jsonb_to_recordset(indicator.translations) as indicator" ) );
         assertThat( actualStatement,
             containsString( "indicator_displayname(value TEXT, locale TEXT, property TEXT) on indicator" ) );
-        assertThat( actualStatement,
-            containsString(
-                "left join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT)" ) );
-        assertThat( actualStatement,
-            containsString(
-                "left join jsonb_to_recordset(program.translations) as p_displayshortname(value TEXT, locale TEXT, property TEXT)" ) );
+        assertThat( actualStatement, containsString(
+            "left join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT)" ) );
+        assertThat( actualStatement, containsString(
+            "left join jsonb_to_recordset(program.translations) as p_displayshortname(value TEXT, locale TEXT, property TEXT)" ) );
     }
 
     @Test
-    public void testTranslationNamesColumnsForWhenTableIsNull()
+    void testTranslationNamesColumnsForWhenTableIsNull()
     {
         // Given
         final String nullTable = null;
-
         // When
         final String actualStatement = translationNamesJoinsOn( null );
-
         // Then
         assertThat( actualStatement, containsString( EMPTY ) );
     }
 
     @Test
-    public void testTranslationNamesColumnsForWhenTableIsEmpty()
+    void testTranslationNamesColumnsForWhenTableIsEmpty()
     {
         // Given
         final String emptyTable = null;
-
         // When
         final String actualStatement = translationNamesJoinsOn( emptyTable );
-
         // Then
         assertThat( actualStatement, containsString( EMPTY ) );
     }
 
     @Test
-    public void testTranslationNamesColumnsFor()
+    void testTranslationNamesColumnsFor()
     {
         // Given
         final String table = "indicator";
-
         // When
         final String actualStatement = translationNamesColumnsFor( table );
-
         // Then
         assertThat( actualStatement,
             containsString( "(case when indicator_displayname.value is not null then indicator_displayname.value" ) );
-        assertThat( actualStatement,
-            containsString(
-                "(case when indicator_displayshortname.value is not null then indicator_displayshortname.value" ) );
+        assertThat( actualStatement, containsString(
+            "(case when indicator_displayshortname.value is not null then indicator_displayshortname.value" ) );
         assertThat( actualStatement, not( containsString( "program" ) ) );
     }
 
     @Test
-    public void testTranslationNamesColumnsForWithProgram()
+    void testTranslationNamesColumnsForWithProgram()
     {
         // Given
         final String table = "indicator";
-
         // When
         final String actualStatement = translationNamesColumnsFor( table, true );
-
         // Then
         assertThat( actualStatement,
             containsString( "(case when indicator_displayname.value is not null then indicator_displayname.value" ) );
-        assertThat( actualStatement,
-            containsString(
-                "(case when indicator_displayshortname.value is not null then indicator_displayshortname.value" ) );
+        assertThat( actualStatement, containsString(
+            "(case when indicator_displayshortname.value is not null then indicator_displayshortname.value" ) );
         assertThat( actualStatement, containsString(
             "(case when p_displayname.value is not null then p_displayname.value else program.name end) as i18n_first_name" ) );
         assertThat( actualStatement, containsString(
@@ -174,27 +155,23 @@ public class NameTranslationStatementTest
     }
 
     @Test
-    public void testTranslationNamesColumnsForWithProgramWhenTableIsNull()
+    void testTranslationNamesColumnsForWithProgramWhenTableIsNull()
     {
         // Given
         final String nullTable = null;
-
         // When
         final String actualStatement = translationNamesColumnsFor( nullTable, true );
-
         // Then
         assertThat( actualStatement, containsString( EMPTY ) );
     }
 
     @Test
-    public void testTranslationNamesColumnsForWithProgramWhenTableIsEmpty()
+    void testTranslationNamesColumnsForWithProgramWhenTableIsEmpty()
     {
         // Given
         final String emptyTable = null;
-
         // When
         final String actualStatement = translationNamesColumnsFor( emptyTable, true );
-
         // Then
         assertThat( actualStatement, containsString( EMPTY ) );
     }

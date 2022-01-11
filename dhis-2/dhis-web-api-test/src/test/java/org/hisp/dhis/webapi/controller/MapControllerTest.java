@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -39,18 +39,18 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class MapControllerTest extends DhisControllerConvenienceTest
+class MapControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPutJsonObject()
+    void testPutJsonObject()
     {
         String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
-
         assertStatus( HttpStatus.NO_CONTENT, PUT( "/maps/" + mapId, "{'name':'My updated map'}" ) );
     }
 
     @Test
-    public void testPutJsonObject_NotFound()
+    void testPutJsonObject_NotFound()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Map does not exist: xyz",
             PUT( "/maps/xyz", "{'name':'My updated map'}" ).content( HttpStatus.NOT_FOUND ) );

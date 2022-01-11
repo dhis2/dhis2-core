@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -201,6 +201,7 @@ public enum ErrorCode
     /* ProgramRuleVariable validation */
     E4051( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4052( "For program rule variable with name `{0}` following keywords are forbidden : and , or , not" ),
+    E4053( "Program stage `{0}` must reference a program." ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
@@ -369,7 +370,11 @@ public enum ErrorCode
         "Data is already approved for data set: `{3}` period: `{1}` organisation unit: `{0}` attribute option combo: `{2}`" ),
     E7643( "Period: `{0}` is not open for this data set at this time: `{1}`" ),
     E7644( "Period: `{0}` does not conform to the open periods of associated data sets" ),
-    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" );
+    E7645( "No data value for file resource exist for the given combination for data element: `{0}`" ),
+
+    // datastore query validation
+    E7650( "Not a valid path: `{0}`" ),
+    E7651( "Illegal fields expression. Expected `,`, `[` or `]` at position {0} but found `{1}`" );
 
     private String message;
 

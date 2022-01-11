@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,7 +106,7 @@ public class DefaultAclStore
     private List<Long> executeAclQuery( String userUID, List<String> userGroupUIDs, String sql, String primaryKey )
     {
         MapSqlParameterSource parameterMap = new MapSqlParameterSource();
-        parameterMap.addValue( USER_SQL_PARAM_NAME, "'" + userUID + "'" );
+        parameterMap.addValue( USER_SQL_PARAM_NAME, userUID );
 
         if ( !CollectionUtils.isEmpty( userGroupUIDs ) )
         {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.HideEmptyItemStrategy;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.RegressionType;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.legend.LegendDisplayStrategy;
 import org.hisp.dhis.legend.LegendSet;
@@ -54,7 +55,6 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.VisualizationType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -64,8 +64,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
+ *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
+ *             NEW FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
+ *
  * @author Lars Helge Overland
  */
+@Deprecated
 @JacksonXmlRootElement( localName = "baseChart", namespace = DxfNamespaces.DXF_2_0 )
 public abstract class BaseChart
     extends BaseAnalyticalObject
@@ -74,7 +79,7 @@ public abstract class BaseChart
 
     protected String rangeAxisLabel;
 
-    protected VisualizationType type;
+    protected EventVisualizationType type;
 
     protected boolean hideLegend;
 
@@ -149,11 +154,6 @@ public abstract class BaseChart
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
-
-    public boolean isType( VisualizationType type )
-    {
-        return this.type != null && this.type.equals( type );
-    }
 
     public boolean isTargetLine()
     {
@@ -305,12 +305,12 @@ public abstract class BaseChart
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( value = PropertyType.CONSTANT, required = TRUE )
     @PropertyRange( min = 1, max = 40 )
-    public VisualizationType getType()
+    public EventVisualizationType getType()
     {
         return type;
     }
 
-    public void setType( VisualizationType type )
+    public void setType( EventVisualizationType type )
     {
         this.type = type;
     }

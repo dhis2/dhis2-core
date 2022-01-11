@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.job;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -41,35 +41,29 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Zubair Asghar
  */
-public class TrackerSideEffectDataBundleTest
+class TrackerSideEffectDataBundleTest
 {
+
     @Test
-    public void testSideEffectDataBundleForEnrollment()
+    void testSideEffectDataBundleForEnrollment()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setEnrollment( "test-enrollment" );
-
         Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
         enrollmentRuleEffects.put( enrollment.getEnrollment(), Lists.newArrayList() );
-
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setAutoFields();
-
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
-            .enrollmentRuleEffects( enrollmentRuleEffects )
-            .accessedBy( "testUser" )
-            .importStrategy( TrackerImportStrategy.CREATE )
-            .object( programInstance.getUid() )
-            .klass( ProgramInstance.class )
-            .build();
-
+            .enrollmentRuleEffects( enrollmentRuleEffects ).accessedBy( "testUser" )
+            .importStrategy( TrackerImportStrategy.CREATE ).object( programInstance.getUid() )
+            .klass( ProgramInstance.class ).build();
         assertEquals( programInstance.getUid(), bundle.getObject() );
         assertEquals( ProgramInstance.class, bundle.getKlass() );
         assertTrue( bundle.getEnrollmentRuleEffects().containsKey( "test-enrollment" ) );
@@ -79,23 +73,16 @@ public class TrackerSideEffectDataBundleTest
     }
 
     @Test
-    public void testSideEffectDataBundleForEvent()
+    void testSideEffectDataBundleForEvent()
     {
         Event event = new Event();
         event.setEvent( "test-event" );
-
         Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
         eventRuleEffects.put( event.getEvent(), Lists.newArrayList() );
-
         ProgramStageInstance programStageInstance = new ProgramStageInstance();
         programStageInstance.setAutoFields();
-
-        TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
-            .eventRuleEffects( eventRuleEffects )
-            .object( programStageInstance.getUid() )
-            .klass( ProgramStageInstance.class )
-            .build();
-
+        TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder().eventRuleEffects( eventRuleEffects )
+            .object( programStageInstance.getUid() ).klass( ProgramStageInstance.class ).build();
         assertEquals( programStageInstance.getUid(), bundle.getObject() );
         assertEquals( ProgramStageInstance.class, bundle.getKlass() );
         assertTrue( bundle.getEventRuleEffects().containsKey( "test-event" ) );

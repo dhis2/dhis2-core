@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import lombok.Data;
 
@@ -143,19 +144,19 @@ public class ValidationErrorReporter
         return !this.reportList.isEmpty();
     }
 
+    public boolean hasErrorReport( Predicate<TrackerErrorReport> test )
+    {
+        return reportList.stream().anyMatch( test );
+    }
+
+    public boolean hasWarningReport( Predicate<TrackerWarningReport> test )
+    {
+        return warningsReportList.stream().anyMatch( test );
+    }
+
     public boolean hasWarnings()
     {
         return !this.warningsReportList.isEmpty();
-    }
-
-    public static TrackerErrorReport.TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
-    {
-        return TrackerErrorReport.builder().errorCode( errorCode );
-    }
-
-    public static TrackerWarningReport.TrackerWarningReportBuilder newWarningReport( TrackerErrorCode errorCode )
-    {
-        return TrackerWarningReport.builder().warningCode( errorCode );
     }
 
     public void addError( TrackerErrorReport.TrackerErrorReportBuilder builder )

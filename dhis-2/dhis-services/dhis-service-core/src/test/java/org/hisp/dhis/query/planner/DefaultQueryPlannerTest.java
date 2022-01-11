@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.query.planner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.beans.PropertyDescriptor;
 import java.util.HashMap;
@@ -43,35 +43,32 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.descriptors.OrganisationUnitSchemaDescriptor;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class DefaultQueryPlannerTest
+@ExtendWith( MockitoExtension.class )
+class DefaultQueryPlannerTest
 {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private DefaultQueryPlanner subject;
 
     @Mock
     private SchemaService schemaService;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         this.subject = new DefaultQueryPlanner( schemaService );
     }
 
     @Test
-    public void verifyPlanQueryReturnsPersistedAndNotPersistedQueries()
+    void verifyPlanQueryReturnsPersistedAndNotPersistedQueries()
         throws Exception
     {
         // Create schema with attributes
@@ -110,7 +107,7 @@ public class DefaultQueryPlannerTest
      * the target table
      */
     @Test
-    public void verifyPlanQueryReturnsNonPersistedQueryWithCriterion()
+    void verifyPlanQueryReturnsNonPersistedQueryWithCriterion()
         throws Exception
     {
         // Create schema with attributes
@@ -147,7 +144,7 @@ public class DefaultQueryPlannerTest
     }
 
     @Test
-    public void verifyPlanQueryReturnsNonPersistedQueryWithCriterion2()
+    void verifyPlanQueryReturnsNonPersistedQueryWithCriterion2()
         throws Exception
     {
         // Create schema with attributes

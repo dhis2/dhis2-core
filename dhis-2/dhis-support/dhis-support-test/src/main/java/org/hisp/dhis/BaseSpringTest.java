@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.utils.TestUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -56,6 +56,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Slf4j
 public abstract class BaseSpringTest extends DhisConvenienceTest implements ApplicationContextAware
 {
+
     public static final String ORG_HISP_DHIS_DATASOURCE_QUERY = "org.hisp.dhis.datasource.query";
 
     protected ApplicationContext applicationContext;
@@ -96,28 +97,25 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
     @Autowired
     protected DhisConfigurationProvider dhisConfigurationProvider;
 
-    @BeforeClass
-    public static void beforeClass()
+    @BeforeAll
+    static void beforeClass()
     {
         // We usually don't want all the create db/tables statements in the
         // query logger
         Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
     }
 
-    @AfterClass
-    public static void afterClass()
+    @AfterAll
+    static void afterClass()
     {
-        if ( dataInit ) // only truncate tables if IntegrationTestData is used
+        if ( // only truncate tables if IntegrationTestData is used
+        dataInit )
         {
             // truncate all tables
-            String truncateAll = "DO $$ DECLARE\n" +
-                "  r RECORD;\n" +
-                "BEGIN\n" +
-                "  FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP\n" +
-                "    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';\n" +
-                "  END LOOP;\n" +
-                "END $$;";
-
+            String truncateAll = "DO $$ DECLARE\n" + "  r RECORD;\n" + "BEGIN\n"
+                + "  FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = current_schema()) LOOP\n"
+                + "    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' CASCADE';\n" + "  END LOOP;\n"
+                + "END $$;";
             jdbcTemplate.execute( truncateAll );
         }
         // reset data init state
@@ -144,9 +142,7 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         throws Exception
     {
         clearSecurityContext();
-
         tearDownTest();
-
         try
         {
             dbmsManager.clearSession();
@@ -155,15 +151,12 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         {
             log.info( "Failed to clear hibernate session, reason:" + e.getMessage() );
         }
-
         unbindSession();
-
         if ( emptyDatabaseAfterTest() )
         {
             // We normally don't want all the delete/empty db statements in the
             // query logger
             Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.WARN );
-
             transactionTemplate.execute( status -> {
                 dbmsManager.emptyDatabase();
                 return null;
@@ -175,14 +168,11 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         throws Exception
     {
         TestUtils.executeStartupRoutines( applicationContext );
-
         if ( !dataInit )
         {
             TestUtils.executeIntegrationTestDataScript( this.getClass(), jdbcTemplate );
         }
-
         boolean enableQueryLogging = dhisConfigurationProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING );
-
         // Enable to query logger to log only what's happening inside the test
         // method
         if ( enableQueryLogging )
@@ -190,7 +180,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
             Configurator.setLevel( ORG_HISP_DHIS_DATASOURCE_QUERY, Level.INFO );
             Configurator.setRootLevel( Level.INFO );
         }
-
         setUpTest();
     }
 
@@ -217,7 +206,6 @@ public abstract class BaseSpringTest extends DhisConvenienceTest implements Appl
         SessionFactory sessionFactory = (SessionFactory) applicationContext.getBean( "sessionFactory" );
         SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
             .unbindResource( sessionFactory );
-
         SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }
 }

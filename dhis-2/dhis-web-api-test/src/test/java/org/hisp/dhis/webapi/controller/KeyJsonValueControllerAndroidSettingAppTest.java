@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,11 +31,11 @@ import static java.util.Collections.singletonList;
 import static org.hisp.dhis.appmanager.AndroidSettingApp.AUTHORITY;
 import static org.hisp.dhis.appmanager.AndroidSettingApp.NAMESPACE;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -46,11 +46,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerConvenienceTest
+class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerConvenienceTest
 {
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/" + NAMESPACE + "/key", "['yes']" ) );
     }
@@ -59,7 +59,7 @@ public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerC
      * Everyone can read the keys
      */
     @Test
-    public void testGetKeysInNamespace()
+    void testGetKeysInNamespace()
     {
         switchToNewUser( "not-an-android-manager" );
         assertEquals( singletonList( "key" ), GET( "/dataStore/" + NAMESPACE ).content().stringValues() );
@@ -69,7 +69,7 @@ public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerC
      * Everyone can read the value
      */
     @Test
-    public void testGetKeyJsonValue()
+    void testGetKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
         assertEquals( singletonList( "yes" ), GET( "/dataStore/" + NAMESPACE + "/key" ).content().stringValues() );
@@ -79,7 +79,7 @@ public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerC
      * Everyone can read the meta data
      */
     @Test
-    public void testGetKeyJsonValueMetaData()
+    void testGetKeyJsonValueMetaData()
     {
         switchToNewUser( "not-an-android-manager" );
         assertStatus( HttpStatus.OK, GET( "/dataStore/" + NAMESPACE + "/key/metaData" ) );
@@ -91,13 +91,11 @@ public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerC
      * the NS.
      */
     @Test
-    public void testDeleteNamespace()
+    void testDeleteNamespace()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals(
-            "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
             DELETE( "/dataStore/" + NAMESPACE ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/" + NAMESPACE ) );
     }
@@ -108,37 +106,31 @@ public class KeyJsonValueControllerAndroidSettingAppTest extends DhisControllerC
      * the NS.
      */
     @Test
-    public void testAddKeyJsonValue()
+    void testAddKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals(
-            "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
             POST( "/dataStore/" + NAMESPACE + "/new-key", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/" + NAMESPACE + "/new-key", "[]" ) );
     }
 
     @Test
-    public void testUpdateKeyJsonValue()
+    void testUpdateKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals(
-            "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
             PUT( "/dataStore/" + NAMESPACE + "/key", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.OK, PUT( "/dataStore/" + NAMESPACE + "/key", "[]" ) );
     }
 
     @Test
-    public void testDeleteKeyJsonValue()
+    void testDeleteKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals(
-            "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
             DELETE( "/dataStore/" + NAMESPACE + "/key" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/" + NAMESPACE + "/key" ) );
     }

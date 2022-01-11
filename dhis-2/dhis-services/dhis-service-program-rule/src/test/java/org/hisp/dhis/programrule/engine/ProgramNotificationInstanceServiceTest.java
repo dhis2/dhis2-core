@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -53,14 +53,15 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair Asghar
  */
-public class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
+class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
 {
+
     private Program program;
 
     private ProgramRule programRule;
@@ -107,77 +108,59 @@ public class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
     {
         organisationUnit = createOrganisationUnit( 'O' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         program = createProgram( 'P' );
         programService.addProgram( program );
-
         trackedEntityInstance = createTrackedEntityInstance( 'T', organisationUnit );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance );
-
         programRule = createProgramRule( 'R', program );
         programRule.setCondition( "true" );
         manager.save( programRule );
-
         programNotificationTemplate = createProgramNotificationTemplate( "test", 1, NotificationTrigger.PROGRAM_RULE,
             ProgramNotificationRecipient.USER_GROUP );
         programNotificationTemplate.setAutoFields();
         programNotificationTemplateService.save( programNotificationTemplate );
-
         programRuleAction = createProgramRuleAction( 'A' );
         programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SCHEDULEMESSAGE );
         programRuleAction.setTemplateUid( programNotificationTemplate.getUid() );
         programRuleAction.setData( "'2020-12-12'" );
         manager.save( programRuleAction );
-
         programRule.getProgramRuleActions().add( programRuleAction );
         manager.update( programRule );
-
         programInstance = createProgramInstance( program, trackedEntityInstance, organisationUnit );
         programInstanceService.addProgramInstance( programInstance );
-
         programInstanceB = createProgramInstance( program, trackedEntityInstance, organisationUnit );
         programInstanceService.addProgramInstance( programInstanceB );
     }
 
     @Test
-    public void testGetProgramNotificationInstance()
+    void testGetProgramNotificationInstance()
     {
         programRuleEngineService.evaluateEnrollmentAndRunEffects( programInstance.getId() );
-
         List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
-                .programInstance( programInstance ).build() );
-
+            .getProgramNotificationInstances(
+                ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() );
         assertFalse( programNotificationInstances.isEmpty() );
         assertSame( programInstance, programNotificationInstances.get( 0 ).getProgramInstance() );
-
         ProgramNotificationInstanceParam param = ProgramNotificationInstanceParam.builder()
             .programInstance( programInstance ).build();
-
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances( param );
-
         assertFalse( instances.isEmpty() );
     }
 
     @Test
-    public void testDeleteProgramNotificationInstance()
+    void testDeleteProgramNotificationInstance()
     {
         programRuleEngineService.evaluateEnrollmentAndRunEffects( programInstanceB.getId() );
-
         List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
-            .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
-                .programInstance( programInstanceB ).build() );
-
+            .getProgramNotificationInstances(
+                ProgramNotificationInstanceParam.builder().programInstance( programInstanceB ).build() );
         assertFalse( programNotificationInstances.isEmpty() );
         assertSame( programInstanceB, programNotificationInstances.get( 0 ).getProgramInstance() );
-
         programNotificationInstanceService.delete( programNotificationInstances.get( 0 ) );
-
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
-            .getProgramNotificationInstances( ProgramNotificationInstanceParam.builder()
-                .programInstance( programInstanceB ).build() );
-
+            .getProgramNotificationInstances(
+                ProgramNotificationInstanceParam.builder().programInstance( programInstanceB ).build() );
         assertTrue( instances.isEmpty() );
     }
 }

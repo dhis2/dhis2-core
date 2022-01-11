@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.converter;
 
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -52,21 +52,24 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RunWith( MockitoJUnitRunner.class )
-public class EventTrackerConverterServiceTest
-    extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EventTrackerConverterServiceTest extends DhisConvenienceTest
 {
+
     private final static String PROGRAM_INSTANCE_UID = "programInstanceUid";
 
     private final static String PROGRAM_STAGE_UID = "ProgramStageUid";
@@ -98,30 +101,22 @@ public class EventTrackerConverterServiceTest
 
     private User user;
 
-    @Before
-    public void setUpTest()
+    @BeforeEach
+    void setUpTest()
     {
         trackerConverterService = new EventTrackerConverterService( notesConverterService );
-
         dataElement = createDataElement( 'D' );
-
         user = createUser( 'U' );
-
         ProgramStage programStage = createProgramStage( 'A', 1 );
         programStage.setUid( PROGRAM_STAGE_UID );
-
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnit.setUid( ORGANISATION_UNIT_UID );
-
         program.setUid( PROGRAM_UID );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-
         programStage.setProgram( program );
-
         tei = createTrackedEntityInstance( organisationUnit );
         programInstance = createProgramInstance( program, tei, organisationUnit );
         programInstance.setUid( PROGRAM_INSTANCE_UID );
-
         psi = new ProgramStageInstance();
         psi.setAutoFields();
         psi.setAttributeOptionCombo( createCategoryOptionCombo( 'C' ) );
@@ -136,7 +131,6 @@ public class EventTrackerConverterServiceTest
         psi.setStoredBy( user.getUsername() );
         psi.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
         psi.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
-
         when( preheat.getUsers() ).thenReturn( Collections.singletonMap( USERNAME, user ) );
         when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
         when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
@@ -145,13 +139,12 @@ public class EventTrackerConverterServiceTest
     }
 
     @Test
-    public void testToProgramStageInstance()
+    void testToProgramStageInstance()
     {
         Event event = new Event();
         event.setProgramStage( PROGRAM_STAGE_UID );
         event.setProgram( PROGRAM_UID );
         event.setOrgUnit( ORGANISATION_UNIT_UID );
-
         DataValue dataValue = new DataValue();
         dataValue.setValue( "value" );
         dataValue.setCreatedBy( USERNAME );
@@ -160,23 +153,17 @@ public class EventTrackerConverterServiceTest
         dataValue.setStoredBy( USERNAME );
         dataValue.setUpdatedAt( Instant.now() );
         dataValue.setDataElement( dataElement.getUid() );
-
         event.setDataValues( Sets.newHashSet( dataValue ) );
-
         ProgramStageInstance programStageInstance = trackerConverterService.from( preheat, event );
-
         assertNotNull( programStageInstance );
         assertNotNull( programStageInstance.getProgramStage() );
         assertNotNull( programStageInstance.getProgramStage().getProgram() );
         assertNotNull( programStageInstance.getOrganisationUnit() );
-
         assertEquals( PROGRAM_UID, programStageInstance.getProgramStage().getProgram().getUid() );
         assertEquals( PROGRAM_STAGE_UID, programStageInstance.getProgramStage().getUid() );
         assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
         assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
-
         Set<EventDataValue> eventDataValues = programStageInstance.getEventDataValues();
-
         eventDataValues.forEach( e -> {
             assertEquals( USERNAME, e.getCreatedByUserInfo().getUsername() );
             assertEquals( USERNAME, e.getLastUpdatedByUserInfo().getUsername() );
@@ -184,7 +171,7 @@ public class EventTrackerConverterServiceTest
     }
 
     @Test
-    public void testToEvent()
+    void testToEvent()
     {
         EventDataValue eventDataValue = new EventDataValue();
         eventDataValue.setAutoFields();
@@ -195,14 +182,10 @@ public class EventTrackerConverterServiceTest
         eventDataValue.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
         eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
         psi.getEventDataValues().add( eventDataValue );
-
         Event event = trackerConverterService.to( psi );
-
         assertEquals( event.getEnrollment(), PROGRAM_INSTANCE_UID );
         assertEquals( event.getStoredBy(), user.getUsername() );
-
         event.getDataValues().forEach( e -> {
-
             assertEquals( DateUtils.fromInstant( e.getCreatedAt() ), psi.getCreated() );
             assertEquals( e.getLastUpdatedBy(), psi.getLastUpdatedByUserInfo().getUsername() );
             assertEquals( e.getLastUpdatedBy(), psi.getCreatedByUserInfo().getUsername() );

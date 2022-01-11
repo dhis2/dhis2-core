@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,18 @@ import java.beans.PropertyDescriptor;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.schema.Property;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link Order}.
  *
  * @author Volker Schmidt
  */
-public class OrderTest
+class OrderTest
 {
+
     private TestObject object1;
 
     private TestObject object2;
@@ -55,8 +56,8 @@ public class OrderTest
 
     private Order orderDesc;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
         throws Exception
     {
         object1 = new TestObject();
@@ -70,42 +71,42 @@ public class OrderTest
     }
 
     @Test
-    public void bothNull()
+    void bothNull()
     {
-        Assert.assertEquals( 0, orderAsc.compare( object1, object2 ) );
-        Assert.assertEquals( 0, orderAsc.compare( object2, object1 ) );
+        Assertions.assertEquals( 0, orderAsc.compare( object1, object2 ) );
+        Assertions.assertEquals( 0, orderAsc.compare( object2, object1 ) );
     }
 
     @Test
-    public void leftNullAsc()
-    {
-        object2.setValue( "Test" );
-        Assert.assertEquals( 1, orderAsc.compare( object1, object2 ) );
-    }
-
-    @Test
-    public void rightNullAsc()
-    {
-        object1.setValue( "Test" );
-        Assert.assertEquals( -1, orderAsc.compare( object1, object2 ) );
-    }
-
-    @Test
-    public void leftNullDesc()
+    void leftNullAsc()
     {
         object2.setValue( "Test" );
-        Assert.assertEquals( -1, orderDesc.compare( object1, object2 ) );
+        Assertions.assertEquals( 1, orderAsc.compare( object1, object2 ) );
     }
 
     @Test
-    public void rightNullDesc()
+    void rightNullAsc()
     {
         object1.setValue( "Test" );
-        Assert.assertEquals( 1, orderDesc.compare( object1, object2 ) );
+        Assertions.assertEquals( -1, orderAsc.compare( object1, object2 ) );
     }
 
     @Test
-    public void bothNonNullAsc()
+    void leftNullDesc()
+    {
+        object2.setValue( "Test" );
+        Assertions.assertEquals( -1, orderDesc.compare( object1, object2 ) );
+    }
+
+    @Test
+    void rightNullDesc()
+    {
+        object1.setValue( "Test" );
+        Assertions.assertEquals( 1, orderDesc.compare( object1, object2 ) );
+    }
+
+    @Test
+    void bothNonNullAsc()
     {
         object1.setValue( "Test1" );
         object2.setValue( "Test2" );
@@ -113,31 +114,32 @@ public class OrderTest
     }
 
     @Test
-    public void toOrderStringAsc()
+    void toOrderStringAsc()
     {
-        Assert.assertEquals( "value:asc", Order.from( "asc", valueProperty ).toOrderString() );
+        Assertions.assertEquals( "value:asc", Order.from( "asc", valueProperty ).toOrderString() );
     }
 
     @Test
-    public void toOrderStringDesc()
+    void toOrderStringDesc()
     {
-        Assert.assertEquals( "value:desc", Order.from( "desc", valueProperty ).toOrderString() );
+        Assertions.assertEquals( "value:desc", Order.from( "desc", valueProperty ).toOrderString() );
     }
 
     @Test
-    public void toOrderStringIAsc()
+    void toOrderStringIAsc()
     {
-        Assert.assertEquals( "value:iasc", Order.from( "iasc", valueProperty ).toOrderString() );
+        Assertions.assertEquals( "value:iasc", Order.from( "iasc", valueProperty ).toOrderString() );
     }
 
     @Test
-    public void toOrderStringIDesc()
+    void toOrderStringIDesc()
     {
-        Assert.assertEquals( "value:idesc", Order.from( "idesc", valueProperty ).toOrderString() );
+        Assertions.assertEquals( "value:idesc", Order.from( "idesc", valueProperty ).toOrderString() );
     }
 
     public static class TestObject
     {
+
         private String value;
 
         public String getValue()

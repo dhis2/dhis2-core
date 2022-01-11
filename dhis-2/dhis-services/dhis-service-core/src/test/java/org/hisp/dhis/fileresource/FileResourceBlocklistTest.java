@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,19 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class FileResourceBlocklistTest
+class FileResourceBlocklistTest
 {
+
     @Test
-    public void testValid()
+    void testValid()
     {
         FileResource frA = new FileResource( "My_Checklist.pdf", "application/pdf", 324, "",
             FileResourceDomain.DATA_VALUE );
@@ -48,25 +49,28 @@ public class FileResourceBlocklistTest
         FileResource frC = new FileResource( "FinancialReport.xlsx",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 143, "",
             FileResourceDomain.DATA_VALUE );
-
         assertTrue( FileResourceBlocklist.isValid( frA ) );
         assertTrue( FileResourceBlocklist.isValid( frB ) );
         assertTrue( FileResourceBlocklist.isValid( frC ) );
     }
 
     @Test
-    public void testInvalid()
+    void testInvalid()
     {
         FileResource frA = new FileResource( "Click_Me.exe", "application/x-ms-dos-executable", 451, "",
             FileResourceDomain.DATA_VALUE );
-        FileResource frB = new FileResource( "evil_script.sh", "application/pdf", 125, "",
-            FileResourceDomain.MESSAGE_ATTACHMENT ); // Fake content type
-        FileResource frC = new FileResource( "cookie_stealer", "text/javascript", 631, "",
-            FileResourceDomain.USER_AVATAR ); // No file extension
-        FileResource frD = new FileResource( "malicious_software.msi", null, 235, "", FileResourceDomain.USER_AVATAR ); // No
-                                                                                                                        // content
-                                                                                                                        // type
-
+        FileResource frB = new FileResource( "evil_script.sh", "application/pdf", 125, "", // Fake
+                                                                                           // content
+                                                                                           // type
+            FileResourceDomain.MESSAGE_ATTACHMENT );
+        FileResource frC = new FileResource( "cookie_stealer", "text/javascript", 631, "", // No
+                                                                                           // file
+                                                                                           // extension
+            FileResourceDomain.USER_AVATAR );
+        // No
+        FileResource frD = new FileResource( "malicious_software.msi", null, 235, "", FileResourceDomain.USER_AVATAR );
+        // content
+        // type
         assertFalse( FileResourceBlocklist.isValid( frA ) );
         assertFalse( FileResourceBlocklist.isValid( frB ) );
         assertFalse( FileResourceBlocklist.isValid( frC ) );

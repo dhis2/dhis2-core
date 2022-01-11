@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ package org.hisp.dhis.programrule.engine;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
@@ -47,16 +47,17 @@ import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
  * @author Zubair Asghar
  */
-public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
+class ProgramRuleEngineDescriptionTest extends DhisSpringTest
 {
+
     private String conditionTextAtt = "A{Program_Rule_Variable_Text_Attr} == 'text_att' || d2:hasValue(V{current_date})";
 
     private String conditionWithD2HasValue = "d2:hasValue('Program_Rule_Variable_Text_Attr')";
@@ -133,68 +134,57 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Autowired
     private ProgramRuleService programRuleService;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         constantPI = createConstant( 'P', 3.14 );
         constantArea = createConstant( 'A', 22.1 );
-
         textDataElement = createDataElement( 'D' );
         textDataElement.setValueType( ValueType.TEXT );
         numericDataElement = createDataElement( 'E' );
         numericDataElement.setValueType( ValueType.NUMBER );
-
         textAttribute = createTrackedEntityAttribute( 'A' );
         textAttribute.setValueType( ValueType.TEXT );
         numericAttribute = createTrackedEntityAttribute( 'B' );
         numericAttribute.setValueType( ValueType.NUMBER );
-
         constantService.saveConstant( constantPI );
         constantService.saveConstant( constantArea );
         dataElementService.addDataElement( textDataElement );
         dataElementService.addDataElement( numericDataElement );
         attributeService.addTrackedEntityAttribute( textAttribute );
         attributeService.addTrackedEntityAttribute( numericAttribute );
-
         program = createProgram( 'P' );
         programService.addProgram( program );
-
         programRuleVariableTextAtt = createProgramRuleVariable( 'R', program );
         programRuleVariableNumericAtt = createProgramRuleVariable( 'S', program );
         programRuleVariableTextDE = createProgramRuleVariable( 'T', program );
         programRuleVariableNumericDE = createProgramRuleVariable( 'U', program );
-
         programRuleVariableTextAtt.setName( "Program_Rule_Variable_Text_Attr" );
         programRuleVariableTextAtt.setAttribute( textAttribute );
         programRuleVariableTextAtt.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableNumericAtt.setName( "Program_Rule_Variable_Numeric_Attr" );
         programRuleVariableNumericAtt.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableNumericAtt.setAttribute( numericAttribute );
-
         programRuleVariableTextDE.setName( "Program_Rule_Variable_Text_DE" );
         programRuleVariableTextDE.setDataElement( textDataElement );
         programRuleVariableTextDE.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
         programRuleVariableNumericDE.setName( "Program_Rule_Variable_Numeric_DE" );
         programRuleVariableNumericDE.setDataElement( numericDataElement );
         programRuleVariableNumericDE.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-
         ruleVariableService.addProgramRuleVariable( programRuleVariableTextAtt );
         ruleVariableService.addProgramRuleVariable( programRuleVariableNumericAtt );
         ruleVariableService.addProgramRuleVariable( programRuleVariableTextDE );
         ruleVariableService.addProgramRuleVariable( programRuleVariableNumericDE );
-
         programRuleTextAtt = createProgramRule( 'P', program );
         programRuleWithD2HasValue = createProgramRule( 'D', program );
         programRuleNumericAtt = createProgramRule( 'Q', program );
         programRuleTextDE = createProgramRule( 'R', program );
         programRuleNumericDE = createProgramRule( 'S', program );
-
         programRuleTextAtt.setCondition( conditionTextAtt );
         programRuleWithD2HasValue.setCondition( conditionWithD2HasValue );
         programRuleNumericAtt.setCondition( conditionNumericAtt );
         programRuleTextDE.setCondition( conditionTextDE );
         programRuleNumericDE.setCondition( conditionNumericDE );
-
         programRuleService.addProgramRule( programRuleTextAtt );
         programRuleService.addProgramRule( programRuleWithD2HasValue );
         programRuleService.addProgramRule( programRuleNumericAtt );
@@ -203,7 +193,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithTextTrackedEntityAttribute()
+    void testProgramRuleWithTextTrackedEntityAttribute()
     {
         RuleValidationResult result = validateRuleCondition( programRuleTextAtt.getCondition(), program );
         assertNotNull( result );
@@ -212,7 +202,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithD2HasValueTrackedEntityAttribute()
+    void testProgramRuleWithD2HasValueTrackedEntityAttribute()
     {
         RuleValidationResult result = validateRuleCondition( programRuleWithD2HasValue.getCondition(), program );
         assertNotNull( result );
@@ -221,7 +211,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithD2HasValueTrackedEntityAttribute2()
+    void testProgramRuleWithD2HasValueTrackedEntityAttribute2()
     {
         programRuleWithD2HasValue.setCondition( conditionWithD2HasValue2 );
         RuleValidationResult result = validateRuleCondition( programRuleWithD2HasValue.getCondition(), program );
@@ -231,7 +221,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithNumericTrackedEntityAttribute()
+    void testProgramRuleWithNumericTrackedEntityAttribute()
     {
         RuleValidationResult result = validateRuleCondition( programRuleNumericAtt.getCondition(), program );
         assertNotNull( result );
@@ -240,7 +230,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithNumericTrackedEntityAttributeWithOr()
+    void testProgramRuleWithNumericTrackedEntityAttributeWithOr()
     {
         RuleValidationResult result = validateRuleCondition( conditionNumericAttWithOR, program );
         assertNotNull( result );
@@ -249,7 +239,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithNumericTrackedEntityAttributeWithAnd()
+    void testProgramRuleWithNumericTrackedEntityAttributeWithAnd()
     {
         RuleValidationResult result = validateRuleCondition( conditionNumericAttWithAND, program );
         assertNotNull( result );
@@ -258,7 +248,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithTextDataElement()
+    void testProgramRuleWithTextDataElement()
     {
         RuleValidationResult result = validateRuleCondition( programRuleTextDE.getCondition(), program );
         assertNotNull( result );
@@ -267,7 +257,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithNumericDataElement()
+    void testProgramRuleWithNumericDataElement()
     {
         RuleValidationResult result = validateRuleCondition( programRuleNumericDE.getCondition(), program );
         assertNotNull( result );
@@ -276,7 +266,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithLiterals()
+    void testProgramRuleWithLiterals()
     {
         RuleValidationResult result = validateRuleCondition( conditionLiteralString, program );
         assertNotNull( result );
@@ -285,7 +275,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testProgramRuleWithD2DaysBetween()
+    void testProgramRuleWithD2DaysBetween()
     {
         RuleValidationResult result = validateRuleCondition( conditionWithD2DaysBetween, program );
         assertNotNull( result );
@@ -294,7 +284,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testIncorrectRuleWithLiterals()
+    void testIncorrectRuleWithLiterals()
     {
         RuleValidationResult result = validateRuleCondition( "1 > 2 +", program );
         assertNotNull( result );
@@ -303,7 +293,7 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testIncorrectRuleWithDataElement()
+    void testIncorrectRuleWithDataElement()
     {
         RuleValidationResult result = validateRuleCondition( incorrectConditionTextDE, program );
         assertNotNull( result );
@@ -312,44 +302,37 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     }
 
     @Test
-    public void testDataFieldExpressionDescription()
+    void testDataFieldExpressionDescription()
     {
         RuleValidationResult result = programRuleEngineNew.getDataExpressionDescription( "1 + 2 +", program );
         assertNotNull( result );
         assertFalse( result.isValid() );
         assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
-
         result = programRuleEngineNew
             .getDataExpressionDescription( "d2:daysBetween(V{completed_date},V{current_date}) > 0 )", program );
         assertNotNull( result );
         assertFalse( result.isValid() );
         assertThat( result.getException(), instanceOf( IllegalStateException.class ) );
-
         result = programRuleEngineNew.getDataExpressionDescription( conditionWithD2DaysBetween, program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "d2:daysBetween(Completed date,Current date) > 0", result.getDescription() );
-
         result = programRuleEngineNew.getDataExpressionDescription( programRuleNumericDE.getCondition(), program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "DataElementE == 14", result.getDescription() );
-
         result = programRuleEngineNew.getDataExpressionDescription( programRuleNumericAtt.getCondition(), program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "AttributeB == 12 || Current date", result.getDescription() );
-
         result = programRuleEngineNew.getDataExpressionDescription( "'2020-12-12'", program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "'2020-12-12'", result.getDescription() );
-
         result = programRuleEngineNew.getDataExpressionDescription( "1 + 1", program );
         assertNotNull( result );
         assertTrue( result.isValid() );
         assertEquals( "1 + 1", result.getDescription() );
-
         result = programRuleEngineNew.getDataExpressionDescription( "'sample text'", program );
         assertNotNull( result );
         assertTrue( result.isValid() );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -55,14 +55,15 @@ import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
+class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private ProgramSupplier programSupplier;
 
@@ -95,9 +96,8 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
     // PROGRAM ACL TESTS
     // ----------------------------------------------------------------------------
     //
-
     @Test
-    public void verifyUserHasNoWriteAccessToProgram()
+    void verifyUserHasNoWriteAccessToProgram()
     {
         // Given
         final User demo = createUser( "demo" );
@@ -105,190 +105,149 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         program.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
         dbmsManager.flushSession();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertFalse( aclService.canDataWrite( demo, programs.get( program.getUid() ) ) );
     }
 
     @Test
-    public void verifyUserHasWriteAccessToProgramForUserAccess()
+    void verifyUserHasWriteAccessToProgramForUserAccess()
     {
         // Given
         final User user = createUser( "A" );
         final Program program = createProgram( 'A' );
-
         UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
-
         Set<UserAccess> userAccesses = new HashSet<>();
         userAccesses.add( userAccess );
         program.setUserAccesses( userAccesses );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertTrue( aclService.canDataWrite( user, programs.get( program.getUid() ) ) );
     }
 
     @Test
-    public void verifyUserHasWriteAccessToProgramForUserGroupAccess()
+    void verifyUserHasWriteAccessToProgramForUserGroupAccess()
     {
         // Given
         final User user = createUser( "A" );
         final Program program = createProgram( 'A' );
-
         UserGroup userGroup = new UserGroup( "test-group", singleton( user ) );
         manager.save( userGroup, true );
         user.getGroups().add( userGroup );
-
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
-
         program.setUserGroupAccesses( singleton( userGroupAccess ) );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertTrue( aclService.canDataWrite( user, programs.get( program.getUid() ) ) );
     }
 
     @Test
-    public void verifyUserHasWriteAccessToProgramForSharing()
+    void verifyUserHasWriteAccessToProgramForSharing()
     {
         // Given
         final User user = createUser( "A" );
         final Program program = createProgram( 'A' );
         program.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertTrue( aclService.canDataWrite( user, programs.get( program.getUid() ) ) );
     }
 
     @Test
-    public void verifyUserHasNoWriteAccessToProgramStage()
+    void verifyUserHasNoWriteAccessToProgramStage()
     {
         // Given
         final User demo = createUser( "demo" );
         final ProgramStage programStage = createProgramStage( 'A', 1 );
         programStage.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( programStage );
-
         final Program program = createProgram( 'A' );
         program.setProgramStages( singleton( programStage ) );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertFalse( aclService.canDataWrite( demo, getProgramStage( programs.get( program.getUid() ) ) ) );
     }
 
     @Test
-    public void verifyUserHasWriteAccessToProgramStageForUserAccess()
+    void verifyUserHasWriteAccessToProgramStageForUserAccess()
     {
         // Given
         final User user = createUser( "user2" );
-
         final ProgramStage programStage = createProgramStage( 'B', 1 );
-
         UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
         programStage.setUserAccesses( singleton( userAccess ) );
-
         manager.save( programStage, false );
-
         final Program program = createProgram( 'A' );
         program.setProgramStages( singleton( programStage ) );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertTrue( aclService.canDataWrite( user, getProgramStage( programs.get( program.getUid() ) ) ) );
     }
 
     @Test
-    public void verifyUserHasWriteAccessToProgramStageForGroupAccess()
+    void verifyUserHasWriteAccessToProgramStageForGroupAccess()
     {
         // Given
         final User user = createUser( "user1" );
-
         final ProgramStage programStage = createProgramStage( 'A', 1 );
         programStage.setPublicAccess( AccessStringHelper.DEFAULT );
-
         UserGroup userGroup = new UserGroup( "test-group-programstage", singleton( user ) );
         manager.save( userGroup, true );
-
         user.getGroups().add( userGroup );
-
         programStage.getSharing().addUserGroupAccess(
             new org.hisp.dhis.user.sharing.UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE ) );
         manager.save( programStage, false );
-
         final Program program = createProgram( 'A' );
         program.setProgramStages( singleton( programStage ) );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertTrue( aclService.canDataWrite( user, getProgramStage( programs.get( program.getUid() ) ) ) );
     }
 
     @Test
-    public void verifyUserHasWriteAccessToProgramStageForSharing()
+    void verifyUserHasWriteAccessToProgramStageForSharing()
     {
         // Given
         final User user = createUser( "user1" );
-
         final ProgramStage programStage = createProgramStage( 'A', 1 );
         programStage.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
-
         manager.save( programStage, false );
-
         final Program program = createProgram( 'A' );
         program.setProgramStages( singleton( programStage ) );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertTrue( aclService.canDataWrite( user, getProgramStage( programs.get( program.getUid() ) ) ) );
@@ -298,113 +257,87 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
     // TRACKED ENTITY TYPE ACL TESTS
     // ----------------------------------------------------------------------------
     //
-
     @Test
-    public void verifyUserHasNoWriteAccessToTrackedEntityType()
+    void verifyUserHasNoWriteAccessToTrackedEntityType()
     {
         // Given
         final User demo = createUser( "demo" );
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         tet.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( tet );
-
         final Program program = createProgram( 'A' );
-
         program.setTrackedEntityType( tet );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertFalse( aclService.canDataWrite( demo, getTrackedEntityType( programs.get( program.getUid() ) ) ) );
     }
 
     @Test
-    public void verifyUserHasWriteAccessToTrackedEntityTypeForUserAccess()
+    void verifyUserHasWriteAccessToTrackedEntityTypeForUserAccess()
     {
         // Given
         final User user = createUser( "A" );
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         manager.save( tet );
-
         UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
-
         tet.setUserAccesses( Collections.singleton( userAccess ) );
         manager.save( tet, false );
-
         final Program program = createProgram( 'A' );
-
         program.setTrackedEntityType( tet );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertTrue( aclService.canDataWrite( user, getTrackedEntityType( programs.get( program.getUid() ) ) ) );
     }
 
     @Test
-    public void verifyUserHasWriteAccessToTrackedEntityTypeForGroupAccess()
+    void verifyUserHasWriteAccessToTrackedEntityTypeForGroupAccess()
     {
         // Given
         final User user = createUser( "user1" );
-
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         manager.save( tet );
-
         UserGroup userGroup = new UserGroup( "test-group-tet", singleton( user ) );
         manager.save( userGroup, true );
         user.getGroups().add( userGroup );
-
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
-
         tet.setUserGroupAccesses( singleton( userGroupAccess ) );
         manager.save( tet, false );
-
         final Program program = createProgram( 'A' );
         program.setTrackedEntityType( tet );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertTrue( aclService.canDataWrite( user, getTrackedEntityType( programs.get( program.getUid() ) ) ) );
     }
 
     @Test
-    public void verifyUserHasWriteAccessToTrackedEntityTypeForSharing()
+    void verifyUserHasWriteAccessToTrackedEntityTypeForSharing()
     {
         // Given
         final User user = createUser( "user1" );
-
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         tet.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.save( tet, false );
-
         final Program program = createProgram( 'A' );
         program.setTrackedEntityType( tet );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
-
         manager.flush();
-
         // When
         final Map<String, Program> programs = programSupplier.get( getDefaultImportOptions(), singletonList( event ) );
-
         // Then
         assertThat( programs.keySet(), hasSize( 1 ) );
         assertTrue( aclService.canDataWrite( user, getTrackedEntityType( programs.get( program.getUid() ) ) ) );

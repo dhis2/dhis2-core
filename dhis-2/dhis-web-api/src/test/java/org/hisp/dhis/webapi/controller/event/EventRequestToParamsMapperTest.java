@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -45,7 +44,9 @@ import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -54,18 +55,23 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  *
  * @author Ameen
  */
-public class EventRequestToParamsMapperTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EventRequestToParamsMapperTest
 {
+
     @Mock
     private CurrentUserService currentUserService;
 
@@ -93,12 +99,9 @@ public class EventRequestToParamsMapperTest
     @Mock
     private SchemaService schemaService;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private RequestToSearchParamsMapper requestToSearchParamsMapper;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         requestToSearchParamsMapper = new RequestToSearchParamsMapper( currentUserService, programService,
@@ -124,7 +127,7 @@ public class EventRequestToParamsMapperTest
     }
 
     @Test
-    public void testEventRequestToSearchParamsMapperSuccess()
+    void testEventRequestToSearchParamsMapperSuccess()
     {
 
         EventSearchParams eventSearchParams = requestToSearchParamsMapper.map( "programuid",

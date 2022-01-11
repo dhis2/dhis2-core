@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.category;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +41,7 @@ import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -49,9 +50,9 @@ import com.google.common.collect.Lists;
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class CategoryComboServiceTest
-    extends DhisSpringTest
+class CategoryComboServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private CategoryService categoryService;
 
@@ -89,12 +90,10 @@ public class CategoryComboServiceTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
     {
         categories = new ArrayList<>();
-
         categoryOptionA = new CategoryOption( "OptionA" );
         categoryOptionB = new CategoryOption( "OptionB" );
         categoryOptionC = new CategoryOption( "OptionC" );
@@ -102,7 +101,6 @@ public class CategoryComboServiceTest
         categoryOptionE = new CategoryOption( "OptionE" );
         categoryOptionF = new CategoryOption( "OptionF" );
         categoryOptionG = new CategoryOption( "OptionG" );
-
         categoryService.addCategoryOption( categoryOptionA );
         categoryService.addCategoryOption( categoryOptionB );
         categoryService.addCategoryOption( categoryOptionC );
@@ -110,15 +108,12 @@ public class CategoryComboServiceTest
         categoryService.addCategoryOption( categoryOptionE );
         categoryService.addCategoryOption( categoryOptionF );
         categoryService.addCategoryOption( categoryOptionG );
-
         categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
         categoryB = createCategory( 'B', categoryOptionC, categoryOptionD );
         categoryC = createCategory( 'C', categoryOptionE, categoryOptionF );
-
         categoryService.addCategory( categoryA );
         categoryService.addCategory( categoryB );
         categoryService.addCategory( categoryC );
-
         categories.add( categoryA );
         categories.add( categoryB );
         categories.add( categoryC );
@@ -127,78 +122,61 @@ public class CategoryComboServiceTest
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
-
     @Test
-    public void testAddGet()
+    void testAddGet()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
         categoryComboC = new CategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
-
         long idA = categoryService.addCategoryCombo( categoryComboA );
         long idB = categoryService.addCategoryCombo( categoryComboB );
         long idC = categoryService.addCategoryCombo( categoryComboC );
-
         assertEquals( categoryComboA, categoryService.getCategoryCombo( idA ) );
         assertEquals( categoryComboB, categoryService.getCategoryCombo( idB ) );
         assertEquals( categoryComboC, categoryService.getCategoryCombo( idC ) );
-
         assertEquals( categories, categoryService.getCategoryCombo( idA ).getCategories() );
         assertEquals( categories, categoryService.getCategoryCombo( idB ).getCategories() );
         assertEquals( categories, categoryService.getCategoryCombo( idC ).getCategories() );
     }
 
     @Test
-    public void testDelete()
+    void testDelete()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
         categoryComboC = new CategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
-
         long idA = categoryService.addCategoryCombo( categoryComboA );
         long idB = categoryService.addCategoryCombo( categoryComboB );
         long idC = categoryService.addCategoryCombo( categoryComboC );
-
         assertNotNull( categoryService.getCategoryCombo( idA ) );
         assertNotNull( categoryService.getCategoryCombo( idB ) );
         assertNotNull( categoryService.getCategoryCombo( idC ) );
-
         categoryService.deleteCategoryCombo( categoryComboA );
-
         assertNull( categoryService.getCategoryCombo( idA ) );
         assertNotNull( categoryService.getCategoryCombo( idB ) );
         assertNotNull( categoryService.getCategoryCombo( idC ) );
-
         categoryService.deleteCategoryCombo( categoryComboB );
-
         assertNull( categoryService.getCategoryCombo( idA ) );
         assertNull( categoryService.getCategoryCombo( idB ) );
         assertNotNull( categoryService.getCategoryCombo( idC ) );
     }
 
     @Test
-    public void testDeleteCategoryComboLinkedToCategory()
+    void testDeleteCategoryComboLinkedToCategory()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
-
         long idA = categoryService.addCategoryCombo( categoryComboA );
         long idB = categoryService.addCategoryCombo( categoryComboB );
-
         long catIdA = categoryA.getId();
         long catIdB = categoryB.getId();
-
         assertNotNull( categoryService.getCategoryCombo( idA ) );
         assertNotNull( categoryService.getCategoryCombo( idB ) );
-
         categoryA.setCategoryCombos( Lists.newArrayList( categoryComboA, categoryComboB ) );
         categoryB.setCategoryCombos( Lists.newArrayList( categoryComboA, categoryComboB ) );
-
         categoryService.updateCategory( categoryA );
         categoryService.updateCategory( categoryB );
-
         categoryService.deleteCategoryCombo( categoryComboA );
-
         assertNull( categoryService.getCategoryCombo( idA ) );
         assertNotNull( categoryService.getCategoryCombo( idB ) );
         assertNotNull( categoryService.getCategory( catIdA ) );
@@ -211,77 +189,61 @@ public class CategoryComboServiceTest
         assertTrue( categoryService.getCategory( catIdB ).getCategoryCombos().contains( categoryComboB ) );
     }
 
-    @Test( expected = DeleteNotAllowedException.class )
-    public void testDeleteCategory()
+    @Test
+    void testDeleteCategory()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
-
         categoryService.addCategoryCombo( categoryComboA );
         categoryService.addCategoryCombo( categoryComboB );
-
         categoryA.setCategoryCombos( Lists.newArrayList( categoryComboA, categoryComboB ) );
-
         categoryService.updateCategory( categoryA );
-
-        categoryService.deleteCategory( categoryA );
+        assertThrows( DeleteNotAllowedException.class, () -> categoryService.deleteCategory( categoryA ) );
     }
 
     @Test
-    public void testGetAll()
+    void testGetAll()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryComboB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION, categories );
         categoryComboC = new CategoryCombo( "CategoryComboC", DataDimensionType.DISAGGREGATION, categories );
-
         categoryService.addCategoryCombo( categoryComboA );
         categoryService.addCategoryCombo( categoryComboB );
         categoryService.addCategoryCombo( categoryComboC );
-
         List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
-
-        assertEquals( 4, categoryCombos.size() ); // Including default
+        // Including default
+        assertEquals( 4, categoryCombos.size() );
         assertTrue( categoryCombos.contains( categoryComboA ) );
         assertTrue( categoryCombos.contains( categoryComboB ) );
         assertTrue( categoryCombos.contains( categoryComboC ) );
     }
 
     @Test
-    public void testGenerateCategoryOptionCombos()
+    void testGenerateCategoryOptionCombos()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryService.addCategoryCombo( categoryComboA );
-
         categoryService.generateOptionCombos( categoryComboA );
-
         Set<CategoryOptionCombo> optionCombos = categoryComboA.getOptionCombos();
-
         assertEquals( 8, optionCombos.size() );
-
         assertOptionCombos( optionCombos );
     }
 
     @Test
-    public void testUpdateCategoryOptionCombosA()
+    void testUpdateCategoryOptionCombosA()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryService.addCategoryCombo( categoryComboA );
-
         categoryService.generateOptionCombos( categoryComboA );
-
         assertNotNull( categoryComboA.getOptionCombos() );
         assertEquals( 8, categoryComboA.getOptionCombos().size() );
         assertOptionCombos( categoryComboA.getOptionCombos() );
-
         categoryC.addCategoryOption( categoryOptionG );
         categoryService.updateCategory( categoryC );
-
         categoryService.updateOptionCombos( categoryComboA );
-
         assertNotNull( categoryComboA.getOptionCombos() );
         assertEquals( 12, categoryComboA.getOptionCombos().size() );
         assertOptionCombos( categoryComboA.getOptionCombos() );
-
         assertTrue( categoryComboA.getOptionCombos().contains(
             createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionG ) ) );
         assertTrue( categoryComboA.getOptionCombos().contains(
@@ -293,45 +255,35 @@ public class CategoryComboServiceTest
     }
 
     @Test
-    public void testUpdateCategoryOptionCombosB()
+    void testUpdateCategoryOptionCombosB()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryService.addCategoryCombo( categoryComboA );
-
         categoryService.generateOptionCombos( categoryComboA );
-
         assertNotNull( categoryComboA.getOptionCombos() );
         assertEquals( 8, categoryComboA.getOptionCombos().size() );
         assertOptionCombos( categoryComboA.getOptionCombos() );
-
         categoryService.updateOptionCombos( categoryComboA );
-
         assertNotNull( categoryComboA.getOptionCombos() );
         assertEquals( 8, categoryComboA.getOptionCombos().size() );
         assertOptionCombos( categoryComboA.getOptionCombos() );
     }
 
     @Test
-    public void testUpdateCategoryOptionCombosC()
+    void testUpdateCategoryOptionCombosC()
     {
         categoryComboA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION, categories );
         categoryService.addCategoryCombo( categoryComboA );
-
         categoryService.generateOptionCombos( categoryComboA );
-
         assertNotNull( categoryComboA.getOptionCombos() );
         assertEquals( 8, categoryComboA.getOptionCombos().size() );
         assertOptionCombos( categoryComboA.getOptionCombos() );
-
         categoryC.addCategoryOption( categoryOptionG );
         categoryService.updateCategory( categoryC );
-
         categoryService.updateOptionCombos( categoryC );
-
         assertNotNull( categoryComboA.getOptionCombos() );
         assertEquals( 12, categoryComboA.getOptionCombos().size() );
         assertOptionCombos( categoryComboA.getOptionCombos() );
-
         assertTrue( categoryComboA.getOptionCombos().contains(
             createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionG ) ) );
         assertTrue( categoryComboA.getOptionCombos().contains(
@@ -343,42 +295,29 @@ public class CategoryComboServiceTest
     }
 
     @Test
-    public void testAddAndPruneCategoryOptionCombo()
+    void testAddAndPruneCategoryOptionCombo()
     {
         categories.clear();
         categories.add( categoryA );
         categories.add( categoryB );
-
         CategoryCombo categoryComboT = new CategoryCombo( "CategoryComboT", DataDimensionType.DISAGGREGATION,
             categories );
-
         long id = categoryService.addCategoryCombo( categoryComboT );
-
         categoryComboT = categoryService.getCategoryCombo( id );
-
         assertNotNull( categoryComboT );
-
         assertEquals( categories, categoryComboT.getCategories() );
-
         categoryManager.addAndPruneAllOptionCombos();
-
         assertTrue( categoryComboT.getOptionCombos()
             .contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionC ) ) );
-
         assertFalse( categoryComboT.getOptionCombos()
             .contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionE ) ) );
-
         categoryB.removeCategoryOption( categoryOptionC );
         categoryB.addCategoryOption( categoryOptionE );
         categoryService.updateCategory( categoryB );
-
         categoryManager.addAndPruneAllOptionCombos();
-
         categoryComboT = categoryService.getCategoryCombo( id );
-
         assertFalse( categoryComboT.getOptionCombos()
             .contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionC ) ) );
-
         assertTrue( categoryComboT.getOptionCombos()
             .contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionE ) ) );
     }

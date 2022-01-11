@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program.notification;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -40,14 +40,15 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Zubair Asghar
  */
-public class ProgramNotificationTemplateServiceTest extends DhisSpringTest
+class ProgramNotificationTemplateServiceTest extends DhisSpringTest
 {
+
     private Program program;
 
     private ProgramStage programStage;
@@ -78,17 +79,14 @@ public class ProgramNotificationTemplateServiceTest extends DhisSpringTest
     {
         organisationUnit = createOrganisationUnit( 'O' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         program = createProgram( 'P' );
         program.setAutoFields();
         program.setUid( "P_UID_1" );
         programService.addProgram( program );
-
         programStage = createProgramStage( 'S', program );
         programStage.setAutoFields();
         programStage.setUid( "PS_UID_1" );
         programStageService.saveProgramStage( programStage );
-
         pnt1 = createProgramNotificationTemplate( "test1", 1, NotificationTrigger.PROGRAM_RULE,
             ProgramNotificationRecipient.USER_GROUP );
         pnt1.setAutoFields();
@@ -101,23 +99,19 @@ public class ProgramNotificationTemplateServiceTest extends DhisSpringTest
             ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
         pnt3.setAutoFields();
         pnt3.setUid( "PNT_UID_3" );
-
         programNotificationTemplateService.save( pnt1 );
         programNotificationTemplateService.save( pnt2 );
         programNotificationTemplateService.save( pnt3 );
-
         program.getNotificationTemplates().add( pnt1 );
         program.getNotificationTemplates().add( pnt2 );
     }
 
     @Test
-    public void testGetProgramNotificationTemplates()
+    void testGetProgramNotificationTemplates()
     {
         ProgramNotificationTemplateParam param = ProgramNotificationTemplateParam.builder().program( program ).build();
-
         List<ProgramNotificationTemplate> templates = programNotificationTemplateService
             .getProgramNotificationTemplates( param );
-
         assertFalse( templates.isEmpty() );
         assertEquals( 2, templates.size() );
         assertTrue( templates.contains( pnt1 ) );
@@ -126,17 +120,14 @@ public class ProgramNotificationTemplateServiceTest extends DhisSpringTest
     }
 
     @Test
-    public void testCountProgramNotificationTemplates()
+    void testCountProgramNotificationTemplates()
     {
         ProgramNotificationTemplateParam param = ProgramNotificationTemplateParam.builder().program( program ).build();
         ProgramNotificationTemplateParam param2 = ProgramNotificationTemplateParam.builder()
             .programStage( programStage ).build();
-
-        assertEquals( programNotificationTemplateService
-            .getProgramNotificationTemplates( param ).size(),
+        assertEquals( programNotificationTemplateService.getProgramNotificationTemplates( param ).size(),
             programNotificationTemplateService.countProgramNotificationTemplates( param ) );
-        assertEquals( programNotificationTemplateService
-            .getProgramNotificationTemplates( param2 ).size(),
+        assertEquals( programNotificationTemplateService.getProgramNotificationTemplates( param2 ).size(),
             programNotificationTemplateService.countProgramNotificationTemplates( param2 ) );
     }
 }

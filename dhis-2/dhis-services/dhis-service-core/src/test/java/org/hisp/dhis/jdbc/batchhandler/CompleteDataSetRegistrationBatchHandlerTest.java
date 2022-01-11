@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.jdbc.batchhandler;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -36,7 +40,9 @@ import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataset.*;
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -44,15 +50,15 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class CompleteDataSetRegistrationBatchHandlerTest
-    extends DhisTest
+class CompleteDataSetRegistrationBatchHandlerTest extends DhisTest
 {
+
     @Autowired
     private BatchHandlerFactory batchHandlerFactory;
 
@@ -101,32 +107,22 @@ public class CompleteDataSetRegistrationBatchHandlerTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
     {
         batchHandler = batchHandlerFactory.createBatchHandler( CompleteDataSetRegistrationBatchHandler.class );
-
         periodTypeA = PeriodType.getPeriodTypeByName( MonthlyPeriodType.NAME );
-
         dataSetA = createDataSet( 'A', periodTypeA );
-
         idObjectManager.save( dataSetA );
-
         periodA = createPeriod( periodTypeA, getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) );
         periodB = createPeriod( periodTypeA, getDate( 2000, 2, 1 ), getDate( 2000, 2, 28 ) );
-
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
-
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
-
         idObjectManager.save( unitA );
         idObjectManager.save( unitB );
-
         attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-
         regA = new CompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo, now, storedBy, now,
             lastUpdatedBy, true );
         regB = new CompleteDataSetRegistration( dataSetA, periodA, unitB, attributeOptionCombo, now, storedBy, now,
@@ -135,7 +131,6 @@ public class CompleteDataSetRegistrationBatchHandlerTest
             lastUpdatedBy, true );
         regD = new CompleteDataSetRegistration( dataSetA, periodB, unitB, attributeOptionCombo, now, storedBy, now,
             lastUpdatedBy, true );
-
         batchHandler.init();
     }
 
@@ -148,22 +143,17 @@ public class CompleteDataSetRegistrationBatchHandlerTest
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
-
     @Test
-    public void testAddObject()
+    void testAddObject()
     {
         batchHandler.addObject( regA );
         batchHandler.addObject( regB );
         batchHandler.addObject( regC );
         batchHandler.addObject( regD );
-
         batchHandler.flush();
-
         List<CompleteDataSetRegistration> registrations = registrationService.getAllCompleteDataSetRegistrations();
-
         assertNotNull( registrations );
         assertEquals( 4, registrations.size() );
-
         assertTrue( registrations.contains( regA ) );
         assertTrue( registrations.contains( regB ) );
         assertTrue( registrations.contains( regC ) );
@@ -171,58 +161,46 @@ public class CompleteDataSetRegistrationBatchHandlerTest
     }
 
     @Test
-    public void testFindObject()
+    void testFindObject()
     {
         registrationService.saveCompleteDataSetRegistration( regA );
         registrationService.saveCompleteDataSetRegistration( regD );
-
         CompleteDataSetRegistration retrievedRegA = batchHandler.findObject( regA );
         CompleteDataSetRegistration retrievedRegB = batchHandler.findObject( regB );
-
         assertNotNull( retrievedRegA.getStoredBy() );
-
         assertEquals( retrievedRegA.getStoredBy(), regA.getStoredBy() );
-
         assertNull( retrievedRegB );
     }
 
     @Test
-    public void testObjectExists()
+    void testObjectExists()
     {
         registrationService.saveCompleteDataSetRegistration( regA );
         registrationService.saveCompleteDataSetRegistration( regD );
-
         assertTrue( batchHandler.objectExists( regA ) );
         assertTrue( batchHandler.objectExists( regD ) );
-
         assertFalse( batchHandler.objectExists( regB ) );
         assertFalse( batchHandler.objectExists( regC ) );
     }
 
     @Test
-    public void testUpdateObject()
+    void testUpdateObject()
     {
         registrationService.saveCompleteDataSetRegistration( regA );
-
         regA.setStoredBy( "tom" );
-
         batchHandler.updateObject( regA );
-
         assertEquals( "tom", registrationService
             .getCompleteDataSetRegistration( dataSetA, periodA, unitA, attributeOptionCombo ).getStoredBy() );
     }
 
     @Test
-    public void testDeleteObject()
+    void testDeleteObject()
     {
         registrationService.saveCompleteDataSetRegistration( regA );
         registrationService.saveCompleteDataSetRegistration( regD );
-
         assertTrue( batchHandler.objectExists( regA ) );
         assertTrue( batchHandler.objectExists( regD ) );
-
         batchHandler.deleteObject( regD );
-
         assertTrue( batchHandler.objectExists( regA ) );
         assertFalse( batchHandler.objectExists( regD ) );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
@@ -42,7 +42,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -50,9 +50,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-public class TrackerOrgUnitMergeHandlerTest
-    extends DhisSpringTest
+class TrackerOrgUnitMergeHandlerTest extends DhisSpringTest
 {
+
     @Autowired
     private TrackedEntityInstanceService teiService;
 
@@ -103,61 +103,44 @@ public class TrackerOrgUnitMergeHandlerTest
     public void setUpTest()
     {
         prA = createProgram( 'A', Sets.newHashSet(), ouA );
-
         idObjectManager.save( prA );
-
         psA = createProgramStage( 'A', prA );
-
         idObjectManager.save( psA );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
-
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
-
         teiA = createTrackedEntityInstance( 'A', ouA );
         teiB = createTrackedEntityInstance( 'B', ouB );
         teiC = createTrackedEntityInstance( 'C', ouC );
-
         teiService.addTrackedEntityInstance( teiA );
         teiService.addTrackedEntityInstance( teiB );
         teiService.addTrackedEntityInstance( teiC );
-
         piA = createProgramInstance( prA, teiA, ouA );
         piB = createProgramInstance( prA, teiB, ouB );
         piC = createProgramInstance( prA, teiC, ouA );
-
         piService.addProgramInstance( piA );
         piService.addProgramInstance( piB );
         piService.addProgramInstance( piC );
-
         psiA = new ProgramStageInstance( piA, psA, ouA );
         psiB = new ProgramStageInstance( piB, psA, ouB );
         psiC = new ProgramStageInstance( piC, psA, ouA );
-
         psiService.addProgramStageInstance( psiA );
         psiService.addProgramStageInstance( psiB );
         psiService.addProgramStageInstance( psiC );
     }
 
     @Test
-    public void testMigrateProgramInstances()
+    void testMigrateProgramInstances()
     {
         assertEquals( 2, getProgramInstanceCount( ouA ) );
         assertEquals( 1, getProgramInstanceCount( ouB ) );
         assertEquals( 0, getProgramInstanceCount( ouC ) );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).build();
         mergeHandler.mergeProgramInstances( request );
-
         assertEquals( 0, getProgramInstanceCount( ouA ) );
         assertEquals( 0, getProgramInstanceCount( ouB ) );
         assertEquals( 3, getProgramInstanceCount( ouC ) );
@@ -174,7 +157,6 @@ public class TrackerOrgUnitMergeHandlerTest
     {
         return (Long) sessionFactory.getCurrentSession()
             .createQuery( "select count(*) from ProgramInstance pi where pi.organisationUnit = :target" )
-            .setParameter( "target", target )
-            .uniqueResult();
+            .setParameter( "target", target ).uniqueResult();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,8 @@ import static org.hisp.dhis.audit.AuditType.READ;
 import static org.hisp.dhis.audit.AuditType.SEARCH;
 import static org.hisp.dhis.audit.AuditType.SECURITY;
 import static org.hisp.dhis.audit.AuditType.UPDATE;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Map;
@@ -49,36 +49,33 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AuditMatrixConfigurerTest
+@ExtendWith( MockitoExtension.class )
+class AuditMatrixConfigurerTest
 {
     @Mock
     private DhisConfigurationProvider config;
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     private AuditMatrixConfigurer subject;
 
     private Map<AuditScope, Map<AuditType, Boolean>> matrix;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         this.subject = new AuditMatrixConfigurer( config );
     }
 
     @Test
-    public void verifyConfigurationForMatrixIsIngested()
+    void verifyConfigurationForMatrixIsIngested()
     {
         when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "READ;" );
         when( config.getProperty( ConfigurationKey.AUDIT_TRACKER_MATRIX ) ).thenReturn( "CREATE;READ;UPDATE;DELETE" );
@@ -100,7 +97,7 @@ public class AuditMatrixConfigurerTest
     }
 
     @Test
-    public void allDisabled()
+    void allDisabled()
     {
         when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "DISABLED" );
         when( config.getProperty( ConfigurationKey.AUDIT_TRACKER_MATRIX ) ).thenReturn( "DISABLED" );
@@ -114,7 +111,7 @@ public class AuditMatrixConfigurerTest
     }
 
     @Test
-    public void verifyInvalidConfigurationIsIgnored()
+    void verifyInvalidConfigurationIsIgnored()
     {
         when( config.getProperty( ConfigurationKey.AUDIT_METADATA_MATRIX ) ).thenReturn( "READX;UPDATE" );
 
@@ -124,7 +121,7 @@ public class AuditMatrixConfigurerTest
     }
 
     @Test
-    public void verifyDefaultAuditingConfiguration()
+    void verifyDefaultAuditingConfiguration()
     {
         matrix = this.subject.configure();
         assertMatrixDisabled( METADATA, READ );

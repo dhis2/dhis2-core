@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,13 @@ package org.hisp.dhis.validation;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createDataValue;
+import static org.hisp.dhis.DhisConvenienceTest.createExpression2;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.hisp.dhis.DhisConvenienceTest.createValidationRule;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,17 +64,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Luciano Fiandesio
  */
-public class DataValidationTaskTest
+@ExtendWith( MockitoExtension.class )
+class DataValidationTaskTest
 {
     @Mock
     private ExpressionService expressionService;
@@ -84,9 +90,6 @@ public class DataValidationTaskTest
 
     @Mock
     private AnalyticsService analyticsService;
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     private PeriodType MONTHLY = PeriodType.getPeriodTypeFromIsoString( "201901" );
 
@@ -108,7 +111,7 @@ public class DataValidationTaskTest
 
     private Map<String, Constant> constantMap;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new DataValidationTask( expressionService, dataValueService, categoryService, periodService );
@@ -140,7 +143,7 @@ public class DataValidationTaskTest
      * Verify that a single rule passes against a Data Element
      */
     @Test
-    public void verifySimpleValidation_oneRule_noErrors()
+    void verifySimpleValidation_oneRule_noErrors()
     {
         Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
         Expression rightExpression = createExpression2( 'B', "-10" );
@@ -189,7 +192,7 @@ public class DataValidationTaskTest
     }
 
     @Test
-    public void verifyValidationSkippedOnNoData()
+    void verifyValidationSkippedOnNoData()
     {
         Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
         Expression rightExpression = createExpression2( 'B', "-10" );

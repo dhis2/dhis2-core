@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,40 +46,40 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ExpirationDaysCheckTest extends BaseValidationTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class ExpirationDaysCheckTest extends BaseValidationTest
 {
+
     private ExpirationDaysCheck rule;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         rule = new ExpirationDaysCheck();
-
         // Prepare import options
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setUser( new User() );
         when( workContext.getImportOptions() ).thenReturn( importOptions );
-
     }
 
     @Test
-    public void failWhenProgramStageInstanceHasNoCompletedDateAndProgramHasExpiryDays()
+    void failWhenProgramStageInstanceHasNoCompletedDateAndProgramHasExpiryDays()
     {
         // Given
-
         // Prepare program
         Program program = createProgram( 'P' );
         program.setCompleteEventsExpiryDays( 3 );
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
         // Prepare program stage instance
         Map<String, ProgramStageInstance> psiMap = new HashMap<>();
         ProgramStageInstance psi = new ProgramStageInstance();
@@ -87,53 +87,44 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         psi.setUid( event.getUid() );
         psiMap.put( event.getUid(), psi );
         when( workContext.getProgramStageInstanceMap() ).thenReturn( psiMap );
-
         // Prepare event
         event.setProgram( program.getUid() );
         event.setStatus( EventStatus.COMPLETED );
-
         // When
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         // Then
         assertHasError( importSummary, event, "Event needs to have completed date" );
     }
 
     @Test
-    public void failWhenEventHasNoCompletedDateAndProgramHasExpiryDays()
+    void failWhenEventHasNoCompletedDateAndProgramHasExpiryDays()
     {
         // Given
-
         // Prepare program
         Program program = createProgram( 'P' );
         program.setCompleteEventsExpiryDays( 3 );
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
         // Prepare event
         event.setProgram( program.getUid() );
         event.setStatus( EventStatus.COMPLETED );
-
         // When
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         // Then
         assertHasError( importSummary, event, "Event needs to have completed date" );
     }
 
     @Test
-    public void failWhenProgramStageInstanceCompletedDateFallsAfterCurrentDay()
+    void failWhenProgramStageInstanceCompletedDateFallsAfterCurrentDay()
     {
         // Given
-
         // Prepare program
         Program program = createProgram( 'P' );
         program.setCompleteEventsExpiryDays( 3 );
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
         // Prepare program stage instance
         Map<String, ProgramStageInstance> psiMap = new HashMap<>();
         ProgramStageInstance psi = new ProgramStageInstance();
@@ -142,24 +133,20 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         psi.setUid( event.getUid() );
         psiMap.put( event.getUid(), psi );
         when( workContext.getProgramStageInstanceMap() ).thenReturn( psiMap );
-
         // Prepare event
         event.setProgram( program.getUid() );
         event.setStatus( EventStatus.COMPLETED );
-
         // When
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         // Then
         assertHasError( importSummary, event,
             "The event's completeness date has expired. Not possible to make changes to this event" );
     }
 
     @Test
-    public void failWhenProgramStageInstanceHasNoExecDateAndProgramHasPeriodType()
+    void failWhenProgramStageInstanceHasNoExecDateAndProgramHasPeriodType()
     {
         // Given
-
         // Prepare program
         Program program = createProgram( 'P' );
         program.setCompleteEventsExpiryDays( 3 );
@@ -168,7 +155,6 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
         // Prepare program stage instance
         Map<String, ProgramStageInstance> psiMap = new HashMap<>();
         ProgramStageInstance psi = new ProgramStageInstance();
@@ -176,19 +162,16 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         psi.setUid( event.getUid() );
         psiMap.put( event.getUid(), psi );
         when( workContext.getProgramStageInstanceMap() ).thenReturn( psiMap );
-
         // Prepare event
         event.setProgram( program.getUid() );
-
         // When
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         // Then
         assertHasError( importSummary, event, "Event needs to have event date" );
     }
 
     @Test
-    public void failWhenProgramStageInstanceHasExecutionDateBeforeAllowedProgramExpiryDaysBasedOnPeriod()
+    void failWhenProgramStageInstanceHasExecutionDateBeforeAllowedProgramExpiryDaysBasedOnPeriod()
     {
         // Given
         final String monthlyPeriodType = new SimpleDateFormat( "yyyyMM" ).format( new Date() );
@@ -199,29 +182,26 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
         // Prepare program stage instance
         Map<String, ProgramStageInstance> psiMap = new HashMap<>();
         ProgramStageInstance psi = new ProgramStageInstance();
-        psi.setExecutionDate( getTodayMinusDays( 35 ) ); // month length + 5
-                                                         // days
+        // month length + 5
+        psi.setExecutionDate( getTodayMinusDays( 35 ) );
+        // days
         psi.setUid( event.getUid() );
         psiMap.put( event.getUid(), psi );
         when( workContext.getProgramStageInstanceMap() ).thenReturn( psiMap );
-
         // Prepare event
         event.setProgram( program.getUid() );
-
         // When
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         // Then
         assertHasError( importSummary, event,
             "The program's expiry date has passed. It is not possible to make changes to this event" );
     }
 
     @Test
-    public void failWhenEventHasNoDateAndProgramExpiryDaysBasedOnPeriod()
+    void failWhenEventHasNoDateAndProgramExpiryDaysBasedOnPeriod()
     {
         // Given
         final String monthlyPeriodType = new SimpleDateFormat( "yyyyMM" ).format( new Date() );
@@ -232,19 +212,16 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
         // Prepare event
         event.setProgram( program.getUid() );
-
         // When
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         // Then
         assertHasError( importSummary, event, "Event needs to have at least one (event or schedule) date" );
     }
 
     @Test
-    public void failWhenEventHasDateBeforeCurrentDateAndProgramExpiryDaysBasedOnPeriod()
+    void failWhenEventHasDateBeforeCurrentDateAndProgramExpiryDaysBasedOnPeriod()
     {
         // Given
         final String monthlyPeriodType = new SimpleDateFormat( "yyyyMM" ).format( new Date() );
@@ -255,14 +232,11 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
         // Prepare event
         event.setProgram( program.getUid() );
         event.setEventDate( new SimpleDateFormat( "yyyy-MM-dd" ).format( getTodayMinusDays( 100 ) ) );
-
         // When
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
-
         // Then
         assertHasError( importSummary, event,
             "The event's date belongs to an expired period. It is not possible to create such event" );
@@ -281,5 +255,4 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
             .minusDays( days );
         return Date.from( localDateTime.atZone( ZoneId.systemDefault() ).toInstant() );
     }
-
 }

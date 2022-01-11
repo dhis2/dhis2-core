@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,34 +38,36 @@ import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageCheckTest extends BaseValidationTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class ProgramStageCheckTest extends BaseValidationTest
 {
+
     private ProgramStageCheck rule;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         rule = new ProgramStageCheck();
     }
 
     @Test
-    public void failOnNullProgramStage()
+    void failOnNullProgramStage()
     {
         Program program = new Program();
         program.setUid( CodeGenerator.generateUid() );
         program.setProgramType( ProgramType.WITH_REGISTRATION );
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
-
         event.setProgram( program.getUid() );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
             "Event.programStage does not point to a valid programStage: " + event.getProgramStage() );

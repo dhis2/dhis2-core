@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,32 @@
  */
 package org.hisp.dhis.security;
 
-import static junit.framework.TestCase.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Halvdan Hoem Grelland
  */
-public class PasswordManagerTest
-    extends DhisSpringTest
+class PasswordManagerTest extends DhisSpringTest
 {
+
     @Autowired
     private PasswordManager passwordManager;
 
     @Test
-    public void testEncodeValidatePassword()
+    void testEncodeValidatePassword()
     {
         String password = "district";
-
         String encodedPassword1 = passwordManager.encode( password );
         String encodedPassword2 = passwordManager.encode( password );
-
         assertFalse( encodedPassword1.equals( encodedPassword2 ) );
         assertFalse( password.equals( encodedPassword1 ) );
-
         assertTrue( passwordManager.matches( password, encodedPassword1 ) );
         assertTrue( passwordManager.matches( password, encodedPassword2 ) );
-
         assertFalse( passwordManager.matches( password, "anotherPassword" ) );
     }
 }

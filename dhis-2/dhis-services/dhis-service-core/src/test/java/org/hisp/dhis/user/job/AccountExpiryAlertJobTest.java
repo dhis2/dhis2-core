@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
 package org.hisp.dhis.user.job;
 
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -47,8 +47,8 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.UserAccountExpiryInfo;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 /**
@@ -57,7 +57,7 @@ import org.mockito.ArgumentCaptor;
  *
  * @author Jan Bernitt
  */
-public class AccountExpiryAlertJobTest
+class AccountExpiryAlertJobTest
 {
 
     private final UserService userService = mock( UserService.class );
@@ -68,8 +68,8 @@ public class AccountExpiryAlertJobTest
 
     private final AccountExpiryAlertJob job = new AccountExpiryAlertJob( userService, messageSender, settingManager );
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         // mock normal run conditions
         when( settingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) ).thenReturn( true );
@@ -77,24 +77,19 @@ public class AccountExpiryAlertJobTest
     }
 
     @Test
-    public void testDisabledJobDoesNotExecute()
+    void testDisabledJobDoesNotExecute()
     {
         when( settingManager.getBoolSetting( SettingKey.ACCOUNT_EXPIRY_ALERT ) ).thenReturn( false );
-
         job.execute( new JobConfiguration(), NoopJobProgress.INSTANCE );
-
         verify( userService, never() ).getExpiringUserAccounts( anyInt() );
     }
 
     @Test
-    public void testEnabledJobSendsEmail()
+    void testEnabledJobSendsEmail()
     {
-        when( userService.getExpiringUserAccounts( anyInt() ) )
-            .thenReturn( singletonList( new UserAccountExpiryInfo( "username", "email@example.com",
-                Date.valueOf( "2021-08-23" ) ) ) );
-
+        when( userService.getExpiringUserAccounts( anyInt() ) ).thenReturn( singletonList(
+            new UserAccountExpiryInfo( "username", "email@example.com", Date.valueOf( "2021-08-23" ) ) ) );
         job.execute( new JobConfiguration(), NoopJobProgress.INSTANCE );
-
         ArgumentCaptor<String> subject = ArgumentCaptor.forClass( String.class );
         ArgumentCaptor<String> text = ArgumentCaptor.forClass( String.class );
         ArgumentCaptor<String> recipient = ArgumentCaptor.forClass( String.class );
@@ -107,22 +102,19 @@ public class AccountExpiryAlertJobTest
     }
 
     @Test
-    public void testValidate()
+    void testValidate()
     {
         when( messageSender.isConfigured() ).thenReturn( true );
-
         assertNull( job.validate() );
     }
 
     @Test
-    public void testValidate_Error()
+    void testValidate_Error()
     {
         when( messageSender.isConfigured() ).thenReturn( false );
-
         ErrorReport report = job.validate();
         assertEquals( ErrorCode.E7010, report.getErrorCode() );
         assertEquals( "Failed to validate job runtime: `EMAIL gateway configuration does not exist`",
             report.getMessage() );
     }
-
 }

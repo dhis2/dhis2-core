@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +27,17 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
-public class ProgramTrackedEntityAttributeStoreTest
-    extends DhisSpringTest
+class ProgramTrackedEntityAttributeStoreTest extends DhisSpringTest
 {
 
     @Autowired
@@ -51,24 +50,20 @@ public class ProgramTrackedEntityAttributeStoreTest
     private ProgramTrackedEntityAttributeStore teaStore;
 
     @Test
-    public void testGetAttributesByPrograms()
+    void testGetAttributesByPrograms()
     {
         Program programA = createProgram( 'A' );
         Program programB = createProgram( 'B' );
         Program programC = createProgram( 'C' );
-
         programStore.save( programB );
         programStore.save( programA );
         programStore.save( programC );
-
         TrackedEntityAttribute attributeA = createTrackedEntityAttribute( 'A' );
         attributeStore.save( attributeA );
-
         ProgramTrackedEntityAttribute tea = createProgramTrackedEntityAttribute( programA, attributeA );
         ProgramTrackedEntityAttribute teb = createProgramTrackedEntityAttribute( programC, attributeA );
         teaStore.save( tea );
         teaStore.save( teb );
-
         assertEquals( 1, teaStore.getAttributes( Lists.newArrayList( programA ) ).size() );
         assertEquals( 0, teaStore.getAttributes( Lists.newArrayList( programB ) ).size() );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
@@ -36,12 +36,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.visualization.Visualization;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class AnalyticalObjectOrgUnitMergeHandlerTest
-    extends DhisSpringTest
+class AnalyticalObjectOrgUnitMergeHandlerTest extends DhisSpringTest
 {
+
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
@@ -63,48 +63,35 @@ public class AnalyticalObjectOrgUnitMergeHandlerTest
     public void setUpTest()
     {
         deA = createDataElement( 'A' );
-
         idObjectManager.save( deA );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
-
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
     }
 
     @Test
-    public void testMergeVisualizations()
+    void testMergeVisualizations()
     {
         Visualization vA = createVisualization( 'A' );
         vA.addDataDimensionItem( deA );
         vA.getOrganisationUnits().add( ouA );
         vA.getOrganisationUnits().add( ouB );
-
         Visualization vB = createVisualization( 'B' );
         vB.addDataDimensionItem( deA );
         vB.getOrganisationUnits().add( ouA );
         vB.getOrganisationUnits().add( ouB );
-
         idObjectManager.save( vA );
         idObjectManager.save( vB );
-
         assertEquals( 2, getVisualizationCount( ouA ) );
         assertEquals( 2, getVisualizationCount( ouB ) );
         assertEquals( 0, getVisualizationCount( ouC ) );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).build();
         handler.mergeAnalyticalObjects( request );
-
         idObjectManager.update( ouC );
-
         assertEquals( 0, getVisualizationCount( ouA ) );
         assertEquals( 0, getVisualizationCount( ouB ) );
         assertEquals( 2, getVisualizationCount( ouC ) );
@@ -122,7 +109,6 @@ public class AnalyticalObjectOrgUnitMergeHandlerTest
         return (Long) sessionFactory.getCurrentSession()
             .createQuery(
                 "select count(distinct v) from Visualization v where :target in elements(v.organisationUnits)" )
-            .setParameter( "target", target )
-            .uniqueResult();
+            .setParameter( "target", target ).uniqueResult();
     }
 }

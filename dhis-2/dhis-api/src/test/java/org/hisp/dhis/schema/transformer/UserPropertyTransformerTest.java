@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,24 @@
  */
 package org.hisp.dhis.schema.transformer;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.UUID;
 
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class UserPropertyTransformerTest
+class UserPropertyTransformerTest
 {
+
     private static final UUID uuid = UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" );
 
     @Test
-    public void testUserTransform()
+    void testUserTransform()
     {
         User user = new User();
         UserCredentials userCredentials = new UserCredentials();
@@ -51,13 +52,10 @@ public class UserPropertyTransformerTest
         userCredentials.setCreatedBy( user );
         userCredentials.setUsername( "test" );
         userCredentials.setUserInfo( user );
-
         user.setUserCredentials( userCredentials );
         user.setCreatedBy( user );
-
         UserPropertyTransformer transformer = new UserPropertyTransformer();
         UserPropertyTransformer.UserDto userDto = (UserPropertyTransformer.UserDto) transformer.transform( user );
-
         // assertEquals( uuid.toString(), userDto.getId() );
         assertEquals( user.getUid(), userDto.getId() );
         assertEquals( "test", userDto.getUsername() );

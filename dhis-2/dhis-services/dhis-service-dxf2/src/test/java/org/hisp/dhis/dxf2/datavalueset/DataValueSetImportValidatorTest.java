@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@ package org.hisp.dhis.dxf2.datavalueset;
 
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -75,15 +75,15 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link DataValueSetImportValidator}
  *
  * @author Jan Bernitt
  */
-public class DataValueSetImportValidatorTest
+class DataValueSetImportValidatorTest
 {
 
     private AclService aclService;
@@ -100,8 +100,8 @@ public class DataValueSetImportValidatorTest
 
     private DataValueSetImportValidator validator;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         aclService = mock( AclService.class );
         accessManager = mock( AggregateAccessManager.class );
@@ -119,78 +119,62 @@ public class DataValueSetImportValidatorTest
     /*
      * Data Set validation (should the set be aborted)
      */
-
     @Test
-    public void testValidateDataSetExists()
+    void testValidateDataSetExists()
     {
         DataValueSet dataValueSet = createEmptyDataValueSet();
-
         ImportContext context = createMinimalImportContext( null ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
         assertConflict( ErrorCode.E7600, "Data set not found or not accessible: `<object1>`", context,
             dataValueSet.getDataSet() );
     }
 
     @Test
-    public void testValidateDataSetIsAccessibleByUser()
+    void testValidateDataSetIsAccessibleByUser()
     {
         // simulate that user does not have access:
         when( aclService.canDataRead( any(), any() ) ).thenReturn( false );
-
         DataValueSet dataValueSet = createEmptyDataValueSet();
-
         ImportContext context = createMinimalImportContext( null ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( dataValueSet ).build();
-
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
         assertConflict( ErrorCode.E7601, "User does not have write access for DataSet: `<object1>`", context,
             dataValueSet.getDataSet() );
     }
 
     @Test
-    public void testValidateDataSetExistsStrictDataElements()
+    void testValidateDataSetExistsStrictDataElements()
     {
         when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
-
         DataValueSet dataValueSet = new DataValueSet();
-
-        ImportContext context = createMinimalImportContext( null )
-            .strictDataElements( true ).build();
+        ImportContext context = createMinimalImportContext( null ).strictDataElements( true ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( dataValueSet ).build();
-
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
         assertConflict( ErrorCode.E7602, "A valid dataset is required", context );
     }
 
     @Test
-    public void testValidateDataSetOrgUnitExists()
+    void testValidateDataSetOrgUnitExists()
     {
         when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
-
         DataValueSet dataValueSet = new DataValueSet();
         dataValueSet.setOrgUnit( CodeGenerator.generateUid() );
-
         ImportContext context = createMinimalImportContext( null ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
         assertConflict( ErrorCode.E7603, "Org unit not found or not accessible: `<object1>`", context,
             dataValueSet.getOrgUnit(), dataValueSet.getDataSet() );
     }
 
     @Test
-    public void testValidateDataSetAttrOptionComboExists()
+    void testValidateDataSetAttrOptionComboExists()
     {
         when( aclService.canDataRead( any(), any() ) ).thenReturn( true );
-
         DataValueSet dataValueSet = new DataValueSet();
         dataValueSet.setAttributeOptionCombo( CodeGenerator.generateUid() );
-
         ImportContext context = createMinimalImportContext( null ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-
         assertTrue( validator.abortDataSetImport( dataValueSet, context, dataSetContext ) );
         assertConflict( ErrorCode.E7604, "Attribute option combo not found or not accessible: `<object1>`", context,
             dataValueSet.getAttributeOptionCombo(), dataValueSet.getDataSet() );
@@ -199,60 +183,48 @@ public class DataValueSetImportValidatorTest
     /*
      * Data Value validation (should the entry be skipped)
      */
-
     @Test
-    public void testValidateDataValueDataElementExists()
+    void testValidateDataValueDataElementExists()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = DataValueContext.builder().build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7610, "Data element not found or not accessible: `<object1>`", context,
             dataValue.getDataElement() );
     }
 
     @Test
-    public void testValidateDataValuePeriodExists()
+    void testValidateDataValuePeriodExists()
     {
         DataValue dataValue = createRandomDataValue();
-
-        DataValueContext valueContext = createDataValueContext( dataValue )
-            .period( null ).build();
+        DataValueContext valueContext = createDataValueContext( dataValue ).period( null ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7611, "Period not valid: `<object1>`", context, dataValue.getPeriod() );
     }
 
     @Test
-    public void testValidateDataValueOrgUnitExists()
+    void testValidateDataValueOrgUnitExists()
     {
         DataValue dataValue = createRandomDataValue();
-
-        DataValueContext valueContext = createDataValueContext( dataValue )
-            .orgUnit( null ).build();
+        DataValueContext valueContext = createDataValueContext( dataValue ).orgUnit( null ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7612, "Organisation unit not found or not accessible: `<object1>`", context,
             dataValue.getOrgUnit() );
     }
 
     @Test
-    public void testValidateDataValueCategoryOptionComboExists()
+    void testValidateDataValueCategoryOptionComboExists()
     {
         DataValue dataValue = createRandomDataValue();
-
-        DataValueContext valueContext = createDataValueContext( dataValue )
-            .categoryOptionCombo( null ).build();
+        DataValueContext valueContext = createDataValueContext( dataValue ).categoryOptionCombo( null ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7613,
             "Category option combo not found or not accessible for writing data: `<object1>`", context,
@@ -260,15 +232,12 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testValidateDataValueAttrOptionComboExists()
+    void testValidateDataValueAttrOptionComboExists()
     {
         DataValue dataValue = createRandomDataValue();
-
-        DataValueContext valueContext = createDataValueContext( dataValue )
-            .attrOptionCombo( null ).build();
+        DataValueContext valueContext = createDataValueContext( dataValue ).attrOptionCombo( null ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7615,
             "Attribute option combo not found or not accessible for writing data: `<object1>`", context,
@@ -276,16 +245,13 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testValidateDataValueCategoryOptionComboAccess()
+    void testValidateDataValueCategoryOptionComboAccess()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         setupUserCanWriteCategoryOptions( false );
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7614, "Category option combo: `<object1>` option not accessible: `<object2>`",
             context, dataValue.getCategoryOptionCombo(),
@@ -293,18 +259,15 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testValidateDataValueAttrOptionComboAccess()
+    void testValidateDataValueAttrOptionComboAccess()
     {
         DataValue dataValue = createRandomDataValue();
         // so that we got to later validation
         dataValue.setCategoryOptionCombo( null );
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         setupUserCanWriteCategoryOptions( false );
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7616, "Attribute option combo: `<object1>` option not accessible: `<object2>`",
             context, dataValue.getAttributeOptionCombo(),
@@ -312,16 +275,12 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testValidateDataValueOrgUnitInUserHierarchy()
+    void testValidateDataValueOrgUnitInUserHierarchy()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .currentOrgUnits( emptySet() )
-            .build();
-
+        ImportContext context = createMinimalImportContext( valueContext ).currentOrgUnits( emptySet() ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         String currentUserId = context.getCurrentUser().getUid();
         assertConflict( ErrorCode.E7617,
@@ -330,16 +289,14 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testValidateDataValueIsDefined()
+    void testValidateDataValueIsDefined()
     {
         DataValue dataValue = createRandomDataValue();
         dataValue.setComment( null );
         dataValue.setValue( null );
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7618,
             "Data value or comment not specified for data element: `" + dataValue.getDataElement() + "`", context,
@@ -347,47 +304,41 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testValidateDataValueIsValid()
+    void testValidateDataValueIsValid()
     {
         DataValue dataValue = createRandomDataValue();
         dataValue.setValue( "not-a-bool" );
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7619, "Value must match data element's `<object1>` type constraints: value_not_bool",
             context, dataValue.getDataElement(), "value_not_bool" );
     }
 
     @Test
-    public void testValidateDataValueCommentIsValid()
+    void testValidateDataValueCommentIsValid()
     {
         DataValue dataValue = createRandomDataValue();
         char[] chars = new char[50001];
         Arrays.fill( chars, 'a' );
         dataValue.setComment( new String( chars ) );
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7620, "Invalid comment: comment_length_greater_than_max_length", context,
             "comment_length_greater_than_max_length" );
     }
 
     @Test
-    public void testValidateDataValueOptionsExist()
+    void testValidateDataValueOptionsExist()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         valueContext.getDataElement().setOptionSet( new OptionSet() );
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7621, "Data value is not a valid option of the data element option set: `<object1>`",
             context, dataValue.getDataElement() );
@@ -396,101 +347,76 @@ public class DataValueSetImportValidatorTest
     /*
      * DataValue Constraints
      */
-
     @Test
-    public void testCheckDataValueCategoryOptionCombo()
+    void testCheckDataValueCategoryOptionCombo()
     {
         DataValue dataValue = createRandomDataValue();
         dataValue.setCategoryOptionCombo( null );
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .requireCategoryOptionCombo( true )
-            .build();
-
+        ImportContext context = createMinimalImportContext( valueContext ).requireCategoryOptionCombo( true ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7630, "Category option combo is required but is not specified", context );
     }
 
     @Test
-    public void testCheckDataValueAttrOptionCombo()
+    void testCheckDataValueAttrOptionCombo()
     {
         DataValue dataValue = createRandomDataValue();
         dataValue.setAttributeOptionCombo( null );
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .requireAttrOptionCombo( true )
-            .build();
-
+        ImportContext context = createMinimalImportContext( valueContext ).requireAttrOptionCombo( true ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7631, "Attribute option combo is required but is not specified", context );
     }
 
     @Test
-    public void testCheckDataValuePeriodType()
+    void testCheckDataValuePeriodType()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .strictPeriods( true )
-            .build();
-
+        ImportContext context = createMinimalImportContext( valueContext ).strictPeriods( true ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7632, "Period type of period: `<object1>` not valid for data element: `<object2>`",
             context, dataValue.getPeriod(), dataValue.getDataElement() );
     }
 
     @Test
-    public void testCheckDataValueStrictDataElement()
+    void testCheckDataValueStrictDataElement()
     {
         DataValue dataValue = createRandomDataValue();
         DataValueSet dataValueSet = createEmptyDataValueSet();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( dataValueSet ).build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .strictDataElements( true )
-            .build();
-
+        ImportContext context = createMinimalImportContext( valueContext ).strictDataElements( true ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( ErrorCode.E7633, "Data element: `<object1>` is not part of dataset: `<object2>`",
-            context, dataValue.getDataElement(), dataValueSet.getDataSet() );
+        assertConflict( ErrorCode.E7633, "Data element: `<object1>` is not part of dataset: `<object2>`", context,
+            dataValue.getDataElement(), dataValueSet.getDataSet() );
     }
 
     @Test
-    public void testCheckDataValueStrictCategoryOptionCombos()
+    void testCheckDataValueStrictCategoryOptionCombos()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         valueContext.getDataElement().setCategoryCombo( new CategoryCombo() );
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .strictCategoryOptionCombos( true )
-            .build();
-
+        ImportContext context = createMinimalImportContext( valueContext ).strictCategoryOptionCombos( true ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7634,
-            "Category option combo: `<object1>` must be part of category combo of data element: `<object2>`",
-            context, dataValue.getCategoryOptionCombo(), dataValue.getDataElement() );
+            "Category option combo: `<object1>` must be part of category combo of data element: `<object2>`", context,
+            dataValue.getCategoryOptionCombo(), dataValue.getDataElement() );
     }
 
     @Test
-    public void testCheckDataValueStrictAttrOptionCombos()
+    void testCheckDataValueStrictAttrOptionCombos()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .strictAttrOptionCombos( true )
-            .build();
-
+        ImportContext context = createMinimalImportContext( valueContext ).strictAttrOptionCombos( true ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7635,
             "Attribute option combo: `<object1>` must be part of category combo of data sets of data element: `<object2>`",
@@ -498,132 +424,111 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testCheckDataValueStrictOrgUnits()
+    void testCheckDataValueStrictOrgUnits()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .strictOrgUnits( true )
-            .build();
-
+        ImportContext context = createMinimalImportContext( valueContext ).strictOrgUnits( true ).build();
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7636,
-            "Data element: `<object2>` must be assigned through data sets to organisation unit: `<object1>`",
-            context, dataValue.getOrgUnit(), dataValue.getDataElement() );
+            "Data element: `<object2>` must be assigned through data sets to organisation unit: `<object1>`", context,
+            dataValue.getOrgUnit(), dataValue.getDataElement() );
     }
 
     @Test
-    public void testCheckDataValueStoredByIsValid()
+    void testCheckDataValueStoredByIsValid()
     {
         DataValue dataValue = createRandomDataValue();
         char[] chars = new char[300];
         Arrays.fill( chars, 'x' );
         String storedBy = new String( chars );
         dataValue.setStoredBy( storedBy );
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( ErrorCode.E7637, "Invalid storedBy: stored_by_length_greater_than_max_length",
-            context, "stored_by_length_greater_than_max_length" );
+        assertConflict( ErrorCode.E7637, "Invalid storedBy: stored_by_length_greater_than_max_length", context,
+            "stored_by_length_greater_than_max_length" );
     }
 
     @Test
-    public void testCheckDataValuePeriodWithinAttrOptionComboRange()
+    void testCheckDataValuePeriodWithinAttrOptionComboRange()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
         String key = valueContext.getAttrOptionCombo().getUid() + valueContext.getDataElement().getUid();
         context.getAttrOptionComboDateRangeMap().put( key, new DateRange( new Date(), null ) );
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7638,
-            "Period: `<object1>` is not within date range of attribute option combo: `<object2>`",
-            context, dataValue.getPeriod(), dataValue.getAttributeOptionCombo() );
+            "Period: `<object1>` is not within date range of attribute option combo: `<object2>`", context,
+            dataValue.getPeriod(), dataValue.getAttributeOptionCombo() );
     }
 
     @Test
-    public void testCheckDataValueOrgUnitValidForAttrOptionCombo()
+    void testCheckDataValueOrgUnitValidForAttrOptionCombo()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext().build();
         ImportContext context = createMinimalImportContext( valueContext ).build();
         String key = valueContext.getAttrOptionCombo().getUid() + valueContext.getOrgUnit().getUid();
         context.getAttrOptionComboOrgUnitMap().put( key, false );
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7639,
-            "Organisation unit: `<object1>` is not valid for attribute option combo: `<object2>`",
-            context, dataValue.getOrgUnit(), dataValue.getAttributeOptionCombo() );
+            "Organisation unit: `<object1>` is not valid for attribute option combo: `<object2>`", context,
+            dataValue.getOrgUnit(), dataValue.getAttributeOptionCombo() );
     }
 
     @Test
-    public void testCheckDataValueTodayNotPastPeriodExpiry()
+    void testCheckDataValueTodayNotPastPeriodExpiry()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .forceDataInput( false )
-            .build();
+        ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).build();
         String key = dataSetContext.getDataSet().getUid() + valueContext.getPeriod().getUid()
             + valueContext.getOrgUnit().getUid();
         context.getDataSetLockedMap().put( key, true );
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7640,
-            "Current date is past expiry days for period: `<object1>`  and data set: `<object2>`",
-            context, dataValue.getPeriod(), dataSetContext.getDataSet().getUid() );
+            "Current date is past expiry days for period: `<object1>`  and data set: `<object2>`", context,
+            dataValue.getPeriod(), dataSetContext.getDataSet().getUid() );
     }
 
     @Test
-    public void testCheckDataValueNotAfterLatestOpenFuturePeriod()
+    void testCheckDataValueNotAfterLatestOpenFuturePeriod()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .forceDataInput( false )
-            .isIso8601( true )
+        ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).isIso8601( true )
             .build();
         context.getDataElementLatestFuturePeriodMap().put( valueContext.getDataElement().getUid(),
             PeriodType.getPeriodFromIsoString( "2020-01" ) );
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7641,
-            "Period: `<object1>` is after latest open future period: `202001` for data element: `<object2>`",
-            context, dataValue.getPeriod(), dataValue.getDataElement() );
+            "Period: `<object1>` is after latest open future period: `202001` for data element: `<object2>`", context,
+            dataValue.getPeriod(), dataValue.getDataElement() );
     }
 
     @Test
-    public void testCheckDataValueNotAlreadyApproved()
+    void testCheckDataValueNotAlreadyApproved()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
         DataApprovalWorkflow workflow = new DataApprovalWorkflow();
         workflow.setUid( CodeGenerator.generateUid() );
         dataSetContext.getDataSet().setWorkflow( workflow );
-        ImportContext context = createMinimalImportContext( valueContext )
-            .forceDataInput( false )
-            .build();
+        ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).build();
         final String workflowPeriodAoc = workflow.getUid() + valueContext.getPeriod().getUid()
             + valueContext.getAttrOptionCombo().getUid();
         String key = valueContext.getOrgUnit().getUid() + workflowPeriodAoc;
-        context.getApprovalMap().put( key, true ); // already approved
-
+        // already approved
+        context.getApprovalMap().put( key, true );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7642,
             "Data is already approved for data set: `<object4>` period: `<object2>` organisation unit: `<object1>` attribute option combo: `<object3>`",
@@ -632,66 +537,52 @@ public class DataValueSetImportValidatorTest
     }
 
     @Test
-    public void testCheckDataValuePeriodIsOpenNow()
+    void testCheckDataValuePeriodIsOpenNow()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .forceDataInput( false )
-            .build();
+        ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).build();
         DataInputPeriod inputPeriod = new DataInputPeriod();
         inputPeriod.setPeriod( PeriodType.getPeriodFromIsoString( "2019" ) );
         dataSetContext.getDataSet().setDataInputPeriods( singleton( inputPeriod ) );
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
-        assertConflict( ErrorCode.E7643,
-            "Period: `<object1>` is not open for this data set at this time: `<object2>`",
+        assertConflict( ErrorCode.E7643, "Period: `<object1>` is not open for this data set at this time: `<object2>`",
             context, dataValue.getPeriod(), dataSetContext.getDataSet().getUid() );
     }
 
     @Test
-    public void testCheckDataValueConformsToOpenPeriodsOfAssociatedDataSets()
+    void testCheckDataValueConformsToOpenPeriodsOfAssociatedDataSets()
     {
         DataValue dataValue = createRandomDataValue();
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .forceDataInput( false )
-            .build();
+        ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false ).build();
         String key = valueContext.getDataElement().getUid() + valueContext.getPeriod().getIsoDate();
         context.getPeriodOpenForDataElement().put( key, false );
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7644,
-            "Period: `<object1>` does not conform to the open periods of associated data sets",
-            context, dataValue.getPeriod() );
+            "Period: `<object1>` does not conform to the open periods of associated data sets", context,
+            dataValue.getPeriod() );
     }
 
     @Test
-    public void testCheckDataValueFileResourceExists()
+    void testCheckDataValueFileResourceExists()
     {
         DataValue dataValue = createRandomDataValue();
         dataValue.setValue( CodeGenerator.generateUid() );
-
         DataValueContext valueContext = createDataValueContext( dataValue ).build();
         valueContext.getDataElement().setValueType( ValueType.FILE_RESOURCE );
         DataSetContext dataSetContext = createMinimalDataSetContext( createEmptyDataValueSet() ).build();
-        ImportContext context = createMinimalImportContext( valueContext )
-            .forceDataInput( false )
-            .strategy( ImportStrategy.DELETE )
-            .build();
-
+        ImportContext context = createMinimalImportContext( valueContext ).forceDataInput( false )
+            .strategy( ImportStrategy.DELETE ).build();
         when( dataValueService.getDataValue( any( DataElement.class ), any( Period.class ),
             any( OrganisationUnit.class ), any( CategoryOptionCombo.class ), any( CategoryOptionCombo.class ) ) )
                 .thenReturn( null );
-
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7645,
-            "No data value for file resource exist for the given combination for data element: `<object1>`",
-            context, dataValue.getDataElement() );
+            "No data value for file resource exist for the given combination for data element: `<object1>`", context,
+            dataValue.getDataElement() );
     }
 
     private static void assertConflict( ErrorCode expectedError, String expectedValue, ImportContext context,
@@ -700,19 +591,18 @@ public class DataValueSetImportValidatorTest
         ImportSummary summary = context.getSummary();
         assertEquals( 1, summary.getConflictCount() );
         ImportConflict conflict = summary.getConflicts().iterator().next();
-
         String object = conflict.getObject();
-        assertEquals( "unexpected conflict type: ", expectedError, conflict.getErrorCode() );
+        assertEquals( expectedError, conflict.getErrorCode(), "unexpected conflict type: " );
         if ( expectedObjects.length > 0 )
         {
-            assertEquals( "unexpected object ID: ", expectedObjects[0], object );
+            assertEquals( expectedObjects[0], object, "unexpected object ID: " );
         }
         Map<String, String> objects = conflict.getObjects();
-        assertEquals( "unexpected number of object IDs: ", expectedObjects.length, objects.size() );
+        assertEquals( expectedObjects.length, objects.size(), "unexpected number of object IDs: " );
         Iterator<String> actualObjectsIter = objects.values().iterator();
         for ( int i = 0; i < expectedObjects.length; i++ )
         {
-            assertEquals( "unexpected object ID for object " + i + ": ", expectedObjects[i], actualObjectsIter.next() );
+            assertEquals( expectedObjects[i], actualObjectsIter.next(), "unexpected object ID for object " + i + ": " );
         }
         assertEquals( substituteObjectPlaceholders( expectedValue, conflict ), conflict.getValue() );
     }
@@ -789,12 +679,8 @@ public class DataValueSetImportValidatorTest
         credentials.setUsername( "Guest" );
         currentUser.setUserCredentials( credentials );
         currentUser.setUid( CodeGenerator.generateUid() );
-        return ImportContext.builder()
-            .summary( new ImportSummary() )
-            .strategy( ImportStrategy.CREATE )
-            .importOptions( new ImportOptions() )
-            .currentUser( currentUser )
-            .i18n( i18n )
+        return ImportContext.builder().summary( new ImportSummary() ).strategy( ImportStrategy.CREATE )
+            .importOptions( new ImportOptions() ).currentUser( currentUser ).i18n( i18n )
             .currentOrgUnits( valueContext == null ? null : singleton( valueContext.getOrgUnit() ) )
             .singularNameForType( DataValueSetImportValidatorTest::getSingularNameForType );
     }

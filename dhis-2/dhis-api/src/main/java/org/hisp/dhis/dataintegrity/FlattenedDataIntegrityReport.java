@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,17 +30,15 @@ package org.hisp.dhis.dataintegrity;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static java.util.stream.Collectors.toUnmodifiableMap;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -61,13 +59,13 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
     private final List<String> dataElementsWithoutGroups;
 
     @JsonProperty
-    private final Map<String, Collection<String>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
+    private final Map<String, List<String>> dataElementsAssignedToDataSetsWithDifferentPeriodTypes;
 
     @JsonProperty
-    private final SortedMap<String, List<String>> dataElementsViolatingExclusiveGroupSets;
+    private final Map<String, List<String>> dataElementsViolatingExclusiveGroupSets;
 
     @JsonProperty
-    private final SortedMap<String, List<String>> dataElementsInDataSetNotInForm;
+    private final Map<String, List<String>> dataElementsInDataSetNotInForm;
 
     @JsonProperty
     private final List<String> invalidCategoryCombos;
@@ -88,7 +86,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
     private final Map<String, String> invalidIndicatorDenominators;
 
     @JsonProperty
-    private final SortedMap<String, List<String>> indicatorsViolatingExclusiveGroupSets;
+    private final Map<String, List<String>> indicatorsViolatingExclusiveGroupSets;
 
     @JsonProperty
     private final List<String> duplicatePeriods;
@@ -103,7 +101,7 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
     private final List<String> organisationUnitsWithoutGroups;
 
     @JsonProperty
-    private final SortedMap<String, List<String>> organisationUnitsViolatingExclusiveGroupSets;
+    private final Map<String, List<String>> organisationUnitsViolatingExclusiveGroupSets;
 
     @JsonProperty
     private final List<String> organisationUnitGroupsWithoutGroupSets;
@@ -127,165 +125,145 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
     private final Map<String, String> invalidProgramIndicatorFilters;
 
     @JsonProperty
-    private final Map<String, Collection<String>> programRulesWithNoCondition;
+    private final Map<String, List<String>> programRulesWithNoCondition;
 
     @JsonProperty
-    private final Map<String, Collection<String>> programRulesWithNoPriority;
+    private final Map<String, List<String>> programRulesWithNoPriority;
 
     @JsonProperty
-    private final Map<String, Collection<String>> programRulesWithNoAction;
+    private final Map<String, List<String>> programRulesWithNoAction;
 
     @JsonProperty
-    private final Map<String, Collection<String>> programRuleVariablesWithNoDataElement;
+    private final Map<String, List<String>> programRuleVariablesWithNoDataElement;
 
     @JsonProperty
-    private final Map<String, Collection<String>> programRuleVariablesWithNoAttribute;
+    private final Map<String, List<String>> programRuleVariablesWithNoAttribute;
 
     @JsonProperty
-    private final Map<String, Collection<String>> programRuleActionsWithNoDataObject;
+    private final Map<String, List<String>> programRuleActionsWithNoDataObject;
 
     @JsonProperty
-    private final Map<String, Collection<String>> programRuleActionsWithNoNotification;
+    private final Map<String, List<String>> programRuleActionsWithNoNotification;
 
     @JsonProperty
-    private final Map<String, Collection<String>> programRuleActionsWithNoSectionId;
+    private final Map<String, List<String>> programRuleActionsWithNoSectionId;
 
     @JsonProperty
-    private final Map<String, Collection<String>> programRuleActionsWithNoStageId;
+    private final Map<String, List<String>> programRuleActionsWithNoStageId;
 
-    public FlattenedDataIntegrityReport( org.hisp.dhis.dataintegrity.DataIntegrityReport report )
+    public FlattenedDataIntegrityReport( Map<String, DataIntegrityDetails> detailsByName )
     {
-        dataElementsWithoutDataSet = mapToListOfDisplayNameOrUid( report.getDataElementsWithoutDataSet() );
+        // name/UID only
+        this.dataElementsWithoutDataSet = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_DATA_SETS.getName() ) );
+        this.dataElementsWithoutGroups = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.DATA_ELEMENTS_WITHOUT_GROUPS.getName() ) );
+        this.invalidCategoryCombos = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.CATEGORY_COMBOS_BEING_INVALID.getName() ) );
+        this.dataSetsNotAssignedToOrganisationUnits = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.DATA_SETS_NOT_ASSIGNED_TO_ORG_UNITS.getName() ) );
+        this.indicatorsWithoutGroups = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.INDICATORS_WITHOUT_GROUPS.getName() ) );
+        this.duplicatePeriods = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PERIODS_DUPLICATES.getName() ) );
+        this.organisationUnitsWithCyclicReferences = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.ORG_UNITS_WITH_CYCLIC_REFERENCES.getName() ) );
+        this.orphanedOrganisationUnits = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.ORG_UNITS_BEING_ORPHANED.getName() ) );
+        this.organisationUnitsWithoutGroups = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.ORG_UNITS_WITHOUT_GROUPS.getName() ) );
+        this.organisationUnitGroupsWithoutGroupSets = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.ORG_UNIT_GROUPS_WITHOUT_GROUP_SETS.getName() ) );
+        this.validationRulesWithoutGroups = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.VALIDATION_RULES_WITHOUT_GROUPS.getName() ) );
+        this.programIndicatorsWithNoExpression = listOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_INDICATORS_WITHOUT_EXPRESSION.getName() ) );
 
-        dataElementsWithoutGroups = mapToListOfDisplayNameOrUid( report.getDataElementsWithoutGroups() );
+        // grouped name/UID
+        this.indicatorsWithIdenticalFormulas = groupedListOfDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.INDICATORS_WITH_IDENTICAL_FORMULAS.getName() ) );
 
-        dataElementsAssignedToDataSetsWithDifferentPeriodTypes = mapToDisplayNameOrId(
-            report.getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
+        // comments ny name/UID
+        this.invalidIndicatorNumerators = mapOfCommentByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.INDICATORS_WITH_INVALID_NUMERATOR.getName() ) );
+        this.invalidIndicatorDenominators = mapOfCommentByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.INDICATORS_WITH_INVALID_DENOMINATOR.getName() ) );
+        this.invalidValidationRuleLeftSideExpressions = mapOfCommentByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_LEFT_SIDE_EXPRESSION.getName() ) );
+        this.invalidValidationRuleRightSideExpressions = mapOfCommentByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.VALIDATION_RULES_WITH_INVALID_RIGHT_SIDE_EXPRESSION.getName() ) );
+        this.invalidProgramIndicatorExpressions = mapOfCommentByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_EXPRESSIONS.getName() ) );
+        this.invalidProgramIndicatorFilters = mapOfCommentByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_INDICATORS_WITH_INVALID_FILTERS.getName() ) );
 
-        dataElementsViolatingExclusiveGroupSets = mapToSortedDisplayNameOrUid(
-            report.getDataElementsViolatingExclusiveGroupSets() );
-
-        dataElementsInDataSetNotInForm = mapToSortedDisplayNameOrUid( report.getDataElementsInDataSetNotInForm() );
-
-        invalidCategoryCombos = mapToListOfDisplayNameOrUid( report.getInvalidCategoryCombos() );
-
-        dataSetsNotAssignedToOrganisationUnits = mapToListOfDisplayNameOrUid(
-            report.getDataSetsNotAssignedToOrganisationUnits() );
-
-        indicatorsWithIdenticalFormulas = mapToListOfListOfDisplayNameOrUid(
-            report.getIndicatorsWithIdenticalFormulas() );
-
-        indicatorsWithoutGroups = mapToListOfDisplayNameOrUid( report.getIndicatorsWithoutGroups() );
-
-        invalidIndicatorNumerators = mapKeyToDisplayNameOrUid( report.getInvalidIndicatorNumerators() );
-
-        invalidIndicatorDenominators = mapKeyToDisplayNameOrUid( report.getInvalidIndicatorDenominators() );
-
-        indicatorsViolatingExclusiveGroupSets = mapToSortedDisplayNameOrUid(
-            report.getIndicatorsViolatingExclusiveGroupSets() );
-
-        duplicatePeriods = mapToListOfDisplayNameOrUid( report.getDuplicatePeriods() );
-
-        organisationUnitsWithCyclicReferences = mapToListOfDisplayNameOrUid(
-            report.getOrganisationUnitsWithCyclicReferences() );
-
-        orphanedOrganisationUnits = mapToListOfDisplayNameOrUid( report.getOrphanedOrganisationUnits() );
-
-        organisationUnitsWithoutGroups = mapToListOfDisplayNameOrUid(
-            report.getOrganisationUnitsWithoutGroups() );
-
-        organisationUnitsViolatingExclusiveGroupSets = mapToSortedDisplayNameOrUid(
-            report.getOrganisationUnitsViolatingExclusiveGroupSets() );
-
-        organisationUnitGroupsWithoutGroupSets = mapToListOfDisplayNameOrUid(
-            report.getOrganisationUnitGroupsWithoutGroupSets() );
-
-        validationRulesWithoutGroups = mapToListOfDisplayNameOrUid(
-            report.getValidationRulesWithoutGroups() );
-
-        invalidValidationRuleLeftSideExpressions = mapKeyToDisplayNameOrUid(
-            report.getInvalidValidationRuleLeftSideExpressions() );
-
-        invalidValidationRuleRightSideExpressions = mapKeyToDisplayNameOrUid(
-            report.getInvalidValidationRuleRightSideExpressions() );
-
-        programIndicatorsWithNoExpression = mapToListOfDisplayNameOrUid(
-            report.getProgramIndicatorsWithNoExpression() );
-
-        invalidProgramIndicatorExpressions = mapKeyToDisplayNameOrUid( report.getInvalidProgramIndicatorExpressions() );
-
-        invalidProgramIndicatorFilters = mapKeyToDisplayNameOrUid( report.getInvalidProgramIndicatorFilters() );
-
-        programRulesWithNoCondition = mapToDisplayNameOrId( report.getProgramRulesWithoutCondition() );
-
-        programRulesWithNoPriority = mapToDisplayNameOrId( report.getProgramRulesWithNoPriority() );
-
-        programRulesWithNoAction = mapToDisplayNameOrId( report.getProgramRulesWithNoAction() );
-
-        programRuleVariablesWithNoDataElement = mapToDisplayNameOrId(
-            report.getProgramRuleVariablesWithNoDataElement() );
-
-        programRuleVariablesWithNoAttribute = mapToDisplayNameOrId(
-            report.getProgramRuleVariablesWithNoAttribute() );
-
-        programRuleActionsWithNoDataObject = mapToDisplayNameOrId(
-            report.getProgramRuleActionsWithNoDataObject() );
-
-        programRuleActionsWithNoNotification = mapToDisplayNameOrId(
-            report.getProgramRuleActionsWithNoNotification() );
-
-        programRuleActionsWithNoSectionId = mapToDisplayNameOrId( report.getProgramRuleActionsWithNoSectionId() );
-
-        programRuleActionsWithNoStageId = mapToDisplayNameOrId( report.getProgramRuleActionsWithNoStageId() );
+        // refs by name/UID
+        this.dataElementsAssignedToDataSetsWithDifferentPeriodTypes = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get(
+                DataIntegrityCheckType.DATA_ELEMENTS_ASSIGNED_TO_DATA_SETS_WITH_DIFFERENT_PERIOD_TYPES.getName() ) );
+        this.dataElementsViolatingExclusiveGroupSets = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.DATA_ELEMENTS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName() ) );
+        this.dataElementsInDataSetNotInForm = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.DATA_ELEMENTS_IN_DATA_SET_NOT_IN_FORM.getName() ) );
+        this.indicatorsViolatingExclusiveGroupSets = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.INDICATORS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName() ) );
+        this.organisationUnitsViolatingExclusiveGroupSets = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.ORG_UNITS_VIOLATING_EXCLUSIVE_GROUP_SETS.getName() ) );
+        this.programRulesWithNoCondition = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_CONDITION.getName() ) );
+        this.programRulesWithNoPriority = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_PRIORITY.getName() ) );
+        this.programRulesWithNoAction = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULES_WITHOUT_ACTION.getName() ) );
+        this.programRuleVariablesWithNoDataElement = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_DATA_ELEMENT.getName() ) );
+        this.programRuleVariablesWithNoAttribute = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULE_VARIABLES_WITHOUT_ATTRIBUTE.getName() ) );
+        this.programRuleActionsWithNoDataObject = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_DATA_OBJECT.getName() ) );
+        this.programRuleActionsWithNoNotification = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_NOTIFICATION.getName() ) );
+        this.programRuleActionsWithNoSectionId = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_SECTION.getName() ) );
+        this.programRuleActionsWithNoStageId = mapOfRefsByDisplayNameOrUid(
+            detailsByName.get( DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE.getName() ) );
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private List<List<String>> mapToListOfListOfDisplayNameOrUid(
-        Collection<? extends Collection<? extends IdentifiableObject>> collection )
+    private List<String> listOfDisplayNameOrUid( DataIntegrityDetails details )
     {
-        return collection == null
+        return details == null
             ? null
-            : collection.stream().map( this::mapToListOfDisplayNameOrUid ).collect( toUnmodifiableList() );
-    }
-
-    private Map<String, String> mapKeyToDisplayNameOrUid( Map<? extends IdentifiableObject, String> map )
-    {
-        return map == null
-            ? null
-            : map.entrySet().stream().collect( toUnmodifiableMap(
-                e -> defaultIfNull( e.getKey() ), Entry::getValue ) );
-    }
-
-    private Map<String, Collection<String>> mapToDisplayNameOrId(
-        Map<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> map )
-    {
-        return map == null
-            ? null
-            : map.entrySet().stream().collect( toUnmodifiableMap(
-                e -> defaultIfNull( e.getKey() ),
-                e -> mapToListOfDisplayNameOrUid( e.getValue() ) ) );
-    }
-
-    private List<String> mapToListOfDisplayNameOrUid( Collection<? extends IdentifiableObject> collection )
-    {
-        return collection == null
-            ? null
-            : collection.stream()
-                .map( o -> defaultIfBlank( o.getDisplayName(), o.getUid() ) )
+            : details.getIssues().stream()
+                .map( DataIntegrityIssue::getName )
                 .collect( toUnmodifiableList() );
     }
 
-    private SortedMap<String, List<String>> mapToSortedDisplayNameOrUid(
-        SortedMap<? extends IdentifiableObject, ? extends Collection<? extends IdentifiableObject>> map )
+    private List<List<String>> groupedListOfDisplayNameOrUid( DataIntegrityDetails details )
     {
-        return map == null
+        return details == null
             ? null
-            : map.entrySet().stream().collect( toMap(
-                e -> defaultIfNull( e.getKey() ),
-                e -> mapToListOfDisplayNameOrUid( e.getValue() ),
+            : details.getIssues().stream()
+                .map( DataIntegrityIssue::getRefs )
+                .collect( toUnmodifiableList() );
+    }
+
+    private static Map<String, String> mapOfCommentByDisplayNameOrUid( DataIntegrityDetails details )
+    {
+        return details == null
+            ? null
+            : details.getIssues().stream().collect( toUnmodifiableMap(
+                DataIntegrityIssue::getName,
+                DataIntegrityIssue::getComment ) );
+    }
+
+    private static SortedMap<String, List<String>> mapOfRefsByDisplayNameOrUid(
+        DataIntegrityDetails details )
+    {
+        return details == null
+            ? null
+            : details.getIssues().stream().collect( toMap(
+                DataIntegrityIssue::getName,
+                DataIntegrityIssue::getRefs,
                 FlattenedDataIntegrityReport::concatLists,
                 TreeMap::new ) );
     }
@@ -303,13 +281,4 @@ public class FlattenedDataIntegrityReport implements WebMessageResponse
         return both;
     }
 
-    private String defaultIfNull( IdentifiableObject object )
-    {
-        if ( object.getDisplayName() == null )
-        {
-            return object.getUid();
-        }
-
-        return object.getDisplayName() + ":" + object.getUid();
-    }
 }

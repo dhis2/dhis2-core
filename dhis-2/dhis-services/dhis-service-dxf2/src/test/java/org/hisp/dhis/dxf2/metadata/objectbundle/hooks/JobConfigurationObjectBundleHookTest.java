@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,22 +38,22 @@ import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * Unit tests for {@link JobConfigurationObjectBundleHook}.
  *
  * @author Volker Schmidt
  */
-public class JobConfigurationObjectBundleHookTest
+@ExtendWith( MockitoExtension.class )
+class JobConfigurationObjectBundleHookTest
 {
     private static final String CRON_HOURLY = "0 0 * ? * *";
 
@@ -71,10 +71,7 @@ public class JobConfigurationObjectBundleHookTest
 
     private JobConfiguration analyticsTableJobConfig;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         analyticsTableJobConfig = new JobConfiguration();
@@ -83,7 +80,7 @@ public class JobConfigurationObjectBundleHookTest
     }
 
     @Test
-    public void validateInternalNonConfigurableChangeError()
+    void validateInternalNonConfigurableChangeError()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -97,12 +94,12 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setEnabled( false );
 
         List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
-        Assert.assertEquals( 1, errorReports.size() );
-        Assert.assertEquals( ErrorCode.E7003, errorReports.get( 0 ).getErrorCode() );
+        Assertions.assertEquals( 1, errorReports.size() );
+        Assertions.assertEquals( ErrorCode.E7003, errorReports.get( 0 ).getErrorCode() );
     }
 
     @Test
-    public void validateInternalNonConfigurableChange()
+    void validateInternalNonConfigurableChange()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -116,11 +113,11 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
-        Assert.assertEquals( 0, errorReports.size() );
+        Assertions.assertEquals( 0, errorReports.size() );
     }
 
     @Test
-    public void validateInternalNonConfigurableShownValidationErrorNonE7010()
+    void validateInternalNonConfigurableShownValidationErrorNonE7010()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -135,12 +132,12 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
-        Assert.assertEquals( 1, errorReports.size() );
-        Assert.assertEquals( ErrorCode.E7000, errorReports.get( 0 ).getErrorCode() );
+        Assertions.assertEquals( 1, errorReports.size() );
+        Assertions.assertEquals( ErrorCode.E7000, errorReports.get( 0 ).getErrorCode() );
     }
 
     @Test
-    public void validateInternalNonConfigurableShownValidationErrorE7010Configurable()
+    void validateInternalNonConfigurableShownValidationErrorE7010Configurable()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -160,12 +157,12 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setJobParameters( jobParameters );
 
         List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
-        Assert.assertEquals( 1, errorReports.size() );
-        Assert.assertEquals( ErrorCode.E7010, errorReports.get( 0 ).getErrorCode() );
+        Assertions.assertEquals( 1, errorReports.size() );
+        Assertions.assertEquals( ErrorCode.E7010, errorReports.get( 0 ).getErrorCode() );
     }
 
     @Test
-    public void validateInternalNonConfigurableShownValidationErrorE7010NoPrevious()
+    void validateInternalNonConfigurableShownValidationErrorE7010NoPrevious()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( null );
@@ -181,12 +178,12 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
-        Assert.assertEquals( 1, errorReports.size() );
-        Assert.assertEquals( ErrorCode.E7010, errorReports.get( 0 ).getErrorCode() );
+        Assertions.assertEquals( 1, errorReports.size() );
+        Assertions.assertEquals( ErrorCode.E7010, errorReports.get( 0 ).getErrorCode() );
     }
 
     @Test
-    public void validateInternalNonConfigurableIgnoredValidationErrorE7010()
+    void validateInternalNonConfigurableIgnoredValidationErrorE7010()
     {
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( "jsdhJSJHD" ) ) )
             .thenReturn( analyticsTableJobConfig );
@@ -201,11 +198,11 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
-        Assert.assertEquals( 0, errorReports.size() );
+        Assertions.assertEquals( 0, errorReports.size() );
     }
 
     @Test
-    public void validateCronExpressionForCronTypeJobs()
+    void validateCronExpressionForCronTypeJobs()
     {
         String jobConfigUid = "jsdhJSJHD";
         Mockito.when( jobConfigurationService.getJobConfigurationByUid( Mockito.eq( jobConfigUid ) ) )
@@ -219,12 +216,12 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setEnabled( true );
 
         List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
-        Assert.assertEquals( 1, errorReports.size() );
-        Assert.assertEquals( ErrorCode.E7004, errorReports.get( 0 ).getErrorCode() );
+        Assertions.assertEquals( 1, errorReports.size() );
+        Assertions.assertEquals( ErrorCode.E7004, errorReports.get( 0 ).getErrorCode() );
     }
 
     @Test
-    public void validateDelayForFixedIntervalTypeJobs()
+    void validateDelayForFixedIntervalTypeJobs()
     {
         String jobConfigUid = "o8kG3Qk3nG3";
         JobConfiguration contAnalyticsTableJobConfig = new JobConfiguration();
@@ -242,7 +239,7 @@ public class JobConfigurationObjectBundleHookTest
         jobConfiguration.setJobParameters( new ContinuousAnalyticsJobParameters( 1, null, null ) );
 
         List<ErrorReport> errorReports = hook.validate( jobConfiguration, null );
-        Assert.assertEquals( 1, errorReports.size() );
-        Assert.assertEquals( ErrorCode.E7007, errorReports.get( 0 ).getErrorCode() );
+        Assertions.assertEquals( 1, errorReports.size() );
+        Assertions.assertEquals( ErrorCode.E7007, errorReports.get( 0 ).getErrorCode() );
     }
 }

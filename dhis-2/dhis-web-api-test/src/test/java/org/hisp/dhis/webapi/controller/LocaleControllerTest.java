@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -38,34 +38,34 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class LocaleControllerTest extends DhisControllerConvenienceTest
+class LocaleControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testAddLocale()
+    void testAddLocale()
     {
         assertWebMessage( "Created", 201, "OK", "Locale created successfully",
             POST( "/locales/dbLocales?language=en&country=GB" ).content( HttpStatus.CREATED ) );
     }
 
     @Test
-    public void testAddLocale_InvalidCountry()
+    void testAddLocale_InvalidCountry()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Invalid country or language code.",
             POST( "/locales/dbLocales?language=en&country=" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testAddLocale_InvalidLanguage()
+    void testAddLocale_InvalidLanguage()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Invalid country or language code.",
             POST( "/locales/dbLocales?language=&country=GB" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testAddLocale_AlreadyExists()
+    void testAddLocale_AlreadyExists()
     {
         assertStatus( HttpStatus.CREATED, POST( "/locales/dbLocales?language=en&country=GB" ) );
-
         assertWebMessage( "Conflict", 409, "ERROR", "Locale code existed.",
             POST( "/locales/dbLocales?language=en&country=GB" ).content( HttpStatus.CONFLICT ) );
     }

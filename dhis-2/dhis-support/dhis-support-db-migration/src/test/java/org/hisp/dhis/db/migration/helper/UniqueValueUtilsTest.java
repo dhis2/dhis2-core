@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,26 @@
 package org.hisp.dhis.db.migration.helper;
 
 import static org.hisp.dhis.db.migration.helper.UniqueValueUtils.addValue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link UniqueValueUtils}.
  *
  * @author Jan Bernitt
  */
-public class UniqueValueUtilsTest
+class UniqueValueUtilsTest
 {
 
     @Test
-    public void addUniqueEnsuresUniqueNames()
+    void addUniqueEnsuresUniqueNames()
     {
         Set<String> uniques = new HashSet<>( Arrays.asList( "abc", "ab1", "bcd", "bc2" ) );
-
         assertEquals( "ab2", addValue( "abc", 3, uniques ) );
         assertEquals( "ab3", addValue( "ab2", 3, uniques ) );
         assertEquals( "new", addValue( "new", 3, uniques ) );

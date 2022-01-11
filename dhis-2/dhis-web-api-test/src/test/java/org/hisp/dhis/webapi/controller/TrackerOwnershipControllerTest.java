@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -41,33 +41,29 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest
+class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest
 {
+
     private String ouId;
 
     private String teiId;
 
     private String pId;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         ouId = assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-
-        String tetId = assertStatus( HttpStatus.CREATED,
-            POST( "/trackedEntityTypes/", "{'name': 'A'}" ) );
-
+        String tetId = assertStatus( HttpStatus.CREATED, POST( "/trackedEntityTypes/", "{'name': 'A'}" ) );
         teiId = assertStatus( HttpStatus.OK, POST( "/trackedEntityInstances",
             "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" ) );
-
         pId = assertStatus( HttpStatus.CREATED,
             POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-
     }
 
     @Test
-    public void testUpdateTrackerProgramOwner()
+    void testUpdateTrackerProgramOwner()
     {
         assertWebMessage( "OK", 200, "OK", "Ownership transferred",
             PUT( "/tracker/ownership/transfer?trackedEntityInstance={tei}&program={prog}&ou={ou}", teiId, pId, ouId )
@@ -75,7 +71,7 @@ public class TrackerOwnershipControllerTest extends DhisControllerConvenienceTes
     }
 
     @Test
-    public void testOverrideOwnershipAccess()
+    void testOverrideOwnershipAccess()
     {
         assertWebMessage( "OK", 200, "OK", "Temporary Ownership granted",
             POST( "/tracker/ownership/override?trackedEntityInstance={tei}&program={prog}&reason=42", teiId, pId )

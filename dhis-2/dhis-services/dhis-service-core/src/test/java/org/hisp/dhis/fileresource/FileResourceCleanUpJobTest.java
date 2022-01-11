@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -58,21 +58,24 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kristian Wærstad
  */
-public class FileResourceCleanUpJobTest
-    extends IntegrationTestBase
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class FileResourceCleanUpJobTest extends IntegrationTestBase
 {
+
     private FileResourceCleanUpJob cleanUpJob;
 
     @Autowired
@@ -112,9 +115,6 @@ public class FileResourceCleanUpJobTest
     @Mock
     private FileResourceContentStore fileResourceContentStore;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private DataValue dataValueA;
 
     private DataValue dataValueB;
@@ -123,7 +123,7 @@ public class FileResourceCleanUpJobTest
 
     private Period period;
 
-    @Before
+    @BeforeEach
     public void init()
     {
         userService = _userService;
@@ -135,7 +135,7 @@ public class FileResourceCleanUpJobTest
     }
 
     @Test
-    public void testNoRetention()
+    void testNoRetention()
     {
         when( fileResourceContentStore.fileResourceContentExists( any( String.class ) ) ).thenReturn( true );
 
@@ -154,7 +154,7 @@ public class FileResourceCleanUpJobTest
     }
 
     @Test
-    public void testRetention()
+    void testRetention()
     {
         when( fileResourceContentStore.fileResourceContentExists( any( String.class ) ) ).thenReturn( true );
 
@@ -189,7 +189,7 @@ public class FileResourceCleanUpJobTest
     }
 
     @Test
-    public void testOrphan()
+    void testOrphan()
     {
         when( fileResourceContentStore.fileResourceContentExists( any( String.class ) ) ).thenReturn( false );
 
@@ -226,9 +226,9 @@ public class FileResourceCleanUpJobTest
         userService.updateUser( userB );
     }
 
+    @Disabled
     @Test
-    @Ignore
-    public void testFalsePositive()
+    void testFalsePositive()
     {
         systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
             FileResourceRetentionStrategy.THREE_MONTHS );
@@ -247,9 +247,9 @@ public class FileResourceCleanUpJobTest
         assertTrue( fileResourceService.getFileResource( uid ).isAssigned() );
     }
 
+    @Disabled
     @Test
-    @Ignore
-    public void testFailedUpload()
+    void testFailedUpload()
     {
         systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
             FileResourceRetentionStrategy.THREE_MONTHS );

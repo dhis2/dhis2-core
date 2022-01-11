@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,18 @@
 package org.hisp.dhis.programrule.engine;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.anySet;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,7 +48,13 @@ import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -49,26 +63,31 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionSendMessage;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.*;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
 /**
  * Created by zubair@dhis2.org on 04.02.18.
  */
-public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 {
+
     private static final String NOTIFICATION_UID = "abc123";
 
     private static final String DATA = "abc123";
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     // -------------------------------------------------------------------------
     // Mocking Dependencies
@@ -115,7 +134,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
     private List<RuleEffect> ruleEffects;
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         ruleEffects = new ArrayList<>();
@@ -132,7 +151,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWhenNoImplementableActionExist_programInstance()
+    void testWhenNoImplementableActionExist_programInstance()
     {
         setProgramRuleActionType_ShowError();
 
@@ -141,7 +160,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWithImplementableActionExist_programInstance()
+    void testWithImplementableActionExist_programInstance()
     {
         doAnswer( invocationOnMock -> {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
@@ -181,7 +200,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWithImplementableActionExist_programStageInstance()
+    void testWithImplementableActionExist_programStageInstance()
     {
         doAnswer( invocationOnMock -> {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
@@ -215,7 +234,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testGetDescription()
+    void testGetDescription()
     {
         RuleValidationResult result = RuleValidationResult.builder().isValid( true ).build();
         when( programRuleService.getProgramRule( anyString() ) ).thenReturn( programRuleA );

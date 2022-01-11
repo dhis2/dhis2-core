@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,24 @@
  */
 package org.hisp.dhis.userkeyjsonvalue;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Stian Sandvold.
  */
-public class UserKeyJsonValueStoreTest
-    extends DhisSpringTest
+class UserKeyJsonValueStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private UserKeyJsonValueStore userKeyJsonValueStore;
 
@@ -59,72 +61,55 @@ public class UserKeyJsonValueStoreTest
     }
 
     @Test
-    public void testAddUserKeyJsonValue()
+    void testAddUserKeyJsonValue()
     {
         UserKeyJsonValue userKeyJsonValue = new UserKeyJsonValue();
-
         userKeyJsonValue.setValue( "{}" );
         userKeyJsonValue.setKey( "test" );
         userKeyJsonValue.setNamespace( "a" );
         userKeyJsonValue.setCreatedBy( user );
-
         userKeyJsonValueStore.save( userKeyJsonValue );
         long id = userKeyJsonValue.getId();
-
         assertNotNull( userKeyJsonValue );
         assertEquals( userKeyJsonValue, userKeyJsonValueStore.get( id ) );
     }
 
     @Test
-    public void testAddUserKeyJsonValuesAndGetNamespacesByUser()
+    void testAddUserKeyJsonValuesAndGetNamespacesByUser()
     {
         UserKeyJsonValue userKeyJsonValueA = new UserKeyJsonValue();
-
         userKeyJsonValueA.setValue( "{}" );
         userKeyJsonValueA.setNamespace( "test_a" );
         userKeyJsonValueA.setKey( "a" );
         userKeyJsonValueA.setCreatedBy( user );
-
         userKeyJsonValueStore.save( userKeyJsonValueA );
-
         UserKeyJsonValue userKeyJsonValueB = new UserKeyJsonValue();
-
         userKeyJsonValueB.setValue( "{}" );
         userKeyJsonValueB.setNamespace( "test_b" );
         userKeyJsonValueB.setKey( "b" );
         userKeyJsonValueB.setCreatedBy( user );
-
         userKeyJsonValueStore.save( userKeyJsonValueB );
-
         List<String> list = userKeyJsonValueStore.getNamespacesByUser( user );
-
         assertTrue( list.contains( "test_a" ) );
         assertTrue( list.contains( "test_b" ) );
     }
 
     @Test
-    public void testAddUserKeyJsonValuesAndGetUserKeyJsonValuesByUser()
+    void testAddUserKeyJsonValuesAndGetUserKeyJsonValuesByUser()
     {
         UserKeyJsonValue userKeyJsonValueA = new UserKeyJsonValue();
-
         userKeyJsonValueA.setValue( "{}" );
         userKeyJsonValueA.setNamespace( "a" );
         userKeyJsonValueA.setKey( "test_a" );
         userKeyJsonValueA.setCreatedBy( user );
-
         userKeyJsonValueStore.save( userKeyJsonValueA );
-
         UserKeyJsonValue userKeyJsonValueB = new UserKeyJsonValue();
-
         userKeyJsonValueB.setValue( "{}" );
         userKeyJsonValueB.setNamespace( "a" );
         userKeyJsonValueB.setKey( "test_b" );
         userKeyJsonValueB.setCreatedBy( user );
-
         userKeyJsonValueStore.save( userKeyJsonValueB );
-
         List<UserKeyJsonValue> list = userKeyJsonValueStore.getUserKeyJsonValueByUserAndNamespace( user, "a" );
-
         assertTrue( list.contains( userKeyJsonValueA ) );
         assertTrue( list.contains( userKeyJsonValueB ) );
     }

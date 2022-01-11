@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,8 @@
 package org.hisp.dhis.webapi.strategy.tracker.imports;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
@@ -36,18 +37,15 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportStrategyImpl;
 import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportSyncStrategyImpl;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class TrackerImportStrategyHandlerTest
+@ExtendWith( MockitoExtension.class )
+class TrackerImportStrategyHandlerTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @InjectMocks
     TrackerImportStrategyImpl importStrategy;
 
@@ -61,7 +59,7 @@ public class TrackerImportStrategyHandlerTest
     ContextService contextService;
 
     @Test
-    public void shouldImportAsync()
+    void shouldImportAsync()
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()
@@ -79,7 +77,7 @@ public class TrackerImportStrategyHandlerTest
     }
 
     @Test
-    public void shouldNotImportAsync()
+    void shouldNotImportAsync()
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()

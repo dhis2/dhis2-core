@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.hisp.dhis.dxf2.Constants.PROGRAM_RULE_VARIABLE_NAME_INVALID_KEYWORDS;
 import static org.hisp.dhis.feedback.ErrorCode.E4051;
 import static org.hisp.dhis.feedback.ErrorCode.E4052;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -46,26 +46,23 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luca Cambi
  */
-public class ProgramRuleVariableObjectBundleHookTest
+@ExtendWith( MockitoExtension.class )
+class ProgramRuleVariableObjectBundleHookTest
 {
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     @InjectMocks
     private ProgramRuleVariableObjectBundleHook programRuleVariableObjectBundleHook;
@@ -91,7 +88,7 @@ public class ProgramRuleVariableObjectBundleHookTest
     @Captor
     private ArgumentCaptor<Class<ProgramRuleVariable>> classArgumentCaptor;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         when( sessionFactory.getCurrentSession() ).thenReturn( session );
@@ -100,7 +97,7 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldFailInsertAlreadyExisting()
+    void shouldFailInsertAlreadyExisting()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE );
@@ -114,7 +111,7 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldNotFailUpdateExistingSameUid()
+    void shouldNotFailUpdateExistingSameUid()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
@@ -135,7 +132,7 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldNotFailUpdateExistingMoreThanOneSameUid()
+    void shouldNotFailUpdateExistingMoreThanOneSameUid()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
@@ -161,7 +158,7 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldFailUpdateExistingDifferentUid()
+    void shouldFailUpdateExistingDifferentUid()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
@@ -183,7 +180,7 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldFailValidationInvalidCountAndInvalidName()
+    void shouldFailValidationInvalidCountAndInvalidName()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE );
@@ -200,7 +197,7 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldFailValidationInvalidName()
+    void shouldFailValidationInvalidName()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( objectBundle.getImportMode() ).thenReturn( ImportStrategy.CREATE_AND_UPDATE );
@@ -229,7 +226,7 @@ public class ProgramRuleVariableObjectBundleHookTest
     }
 
     @Test
-    public void shouldPassValidationWithValidName()
+    void shouldPassValidationWithValidName()
     {
         when( programRuleVariable.getProgram() ).thenReturn( program );
         when( programRuleVariable.getName() ).thenReturn( "WordAndWord" );

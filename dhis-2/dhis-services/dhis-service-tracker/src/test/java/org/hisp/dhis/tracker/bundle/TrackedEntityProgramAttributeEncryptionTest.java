@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,7 +39,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
@@ -47,9 +47,9 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackedEntityProgramAttributeEncryptionTest
-    extends TrackerTest
+class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest
 {
+
     @Autowired
     private TrackerBundleService trackerBundleService;
 
@@ -70,26 +70,18 @@ public class TrackedEntityProgramAttributeEncryptionTest
     }
 
     @Test
-    public void testTrackedEntityProgramAttributeEncryptedValue()
+    void testTrackedEntityProgramAttributeEncryptedValue()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_program_with_tea_encryption_data.json" );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-
         trackerBundleService.commit( trackerBundle );
-
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
-
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(
-                trackedEntityInstance );
-
+            .getTrackedEntityAttributeValues( trackedEntityInstance );
         assertEquals( 5, attributeValues.size() );
-
         // not really a great test, but we are using a random seed for salt, so
         // it changes on every run... we might want to
         // add another EncryptionConfig test profile

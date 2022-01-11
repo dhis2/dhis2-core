@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,29 @@
  */
 package org.hisp.dhis.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-public class ObjectUtilsTest
+class ObjectUtilsTest
 {
+
     @Test
-    public void testJoin()
+    void testJoin()
     {
         DataElement deA = new DataElement( "DataElementA" );
         DataElement deB = new DataElement( "DataElementB" );
         DataElement deC = new DataElement( "DataElementC" );
-
         List<DataElement> elements = Lists.newArrayList( deA, deB, deC );
-
         String actual = ObjectUtils.join( elements, ", ", de -> de.getName() );
-
         assertEquals( "DataElementA, DataElementB, DataElementC", actual );
         assertEquals( null, ObjectUtils.join( null, ", ", null ) );
     }

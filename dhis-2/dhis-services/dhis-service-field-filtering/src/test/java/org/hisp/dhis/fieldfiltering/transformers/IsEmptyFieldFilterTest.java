@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.fieldfiltering.transformers;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,19 +38,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Morten Olav Hansen
  */
-public class IsEmptyFieldFilterTest
+class IsEmptyFieldFilterTest
 {
+
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    public void isEmptyFieldNameTest()
+    void isEmptyFieldNameTest()
     {
         ObjectNode objectNode = jsonMapper.createObjectNode();
         objectNode.set( "a", jsonMapper.createArrayNode() );
-
         IsEmptyFieldTransformer transformer = new IsEmptyFieldTransformer();
         transformer.apply( "a", objectNode.get( "a" ), objectNode );
-
         assertTrue( objectNode.has( "a" ) );
         assertTrue( objectNode.get( "a" ).isBoolean() );
         assertTrue( objectNode.get( "a" ).asBoolean() );

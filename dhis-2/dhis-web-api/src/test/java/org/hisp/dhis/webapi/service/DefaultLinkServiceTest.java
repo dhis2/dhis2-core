@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,14 +37,15 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
@@ -52,7 +53,9 @@ import org.springframework.mock.web.MockHttpServletRequest;
  *
  * @author Volker Schmidt
  */
-public class DefaultLinkServiceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class DefaultLinkServiceTest
 {
     @Mock
     private SchemaService schemaService;
@@ -65,11 +68,8 @@ public class DefaultLinkServiceTest
 
     private MockHttpServletRequest request = new MockHttpServletRequest();
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     @Test
-    public void noLinks()
+    void noLinks()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -83,12 +83,12 @@ public class DefaultLinkServiceTest
 
         final Pager pager = new Pager();
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assert.assertNull( pager.getPrevPage() );
-        Assert.assertNull( pager.getNextPage() );
+        Assertions.assertNull( pager.getPrevPage() );
+        Assertions.assertNull( pager.getNextPage() );
     }
 
     @Test
-    public void nextLinkDefaultParameters()
+    void nextLinkDefaultParameters()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -111,12 +111,12 @@ public class DefaultLinkServiceTest
 
         final Pager pager = new Pager( 1, 1000 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assert.assertNull( pager.getPrevPage() );
-        Assert.assertEquals( "/demo/api/456/organizationUnits?page=2", pager.getNextPage() );
+        Assertions.assertNull( pager.getPrevPage() );
+        Assertions.assertEquals( "/demo/api/456/organizationUnits?page=2", pager.getNextPage() );
     }
 
     @Test
-    public void nextLinkParameters()
+    void nextLinkParameters()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -141,14 +141,14 @@ public class DefaultLinkServiceTest
 
         final Pager pager = new Pager( 1, 1000 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assert.assertNull( pager.getPrevPage() );
-        Assert.assertEquals(
+        Assertions.assertNull( pager.getPrevPage() );
+        Assertions.assertEquals(
             "/demo/api/456/organizationUnits.json?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
             pager.getNextPage() );
     }
 
     @Test
-    public void prevLinkDefaultParameters()
+    void prevLinkDefaultParameters()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -171,12 +171,12 @@ public class DefaultLinkServiceTest
 
         final Pager pager = new Pager( 2, 60 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assert.assertEquals( "/demo/api/456/organizationUnits.xml", pager.getPrevPage() );
-        Assert.assertNull( pager.getNextPage() );
+        Assertions.assertEquals( "/demo/api/456/organizationUnits.xml", pager.getPrevPage() );
+        Assertions.assertNull( pager.getNextPage() );
     }
 
     @Test
-    public void nextLink()
+    void nextLink()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -199,12 +199,12 @@ public class DefaultLinkServiceTest
 
         final Pager pager = new Pager( 2, 60 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assert.assertEquals( "/demo/api/456/organizationUnits.xml.gz", pager.getPrevPage() );
-        Assert.assertNull( pager.getNextPage() );
+        Assertions.assertEquals( "/demo/api/456/organizationUnits.xml.gz", pager.getPrevPage() );
+        Assertions.assertNull( pager.getNextPage() );
     }
 
     @Test
-    public void nextLinkWithDotsInPath()
+    void nextLinkWithDotsInPath()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -227,12 +227,12 @@ public class DefaultLinkServiceTest
 
         final Pager pager = new Pager( 2, 60 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assert.assertEquals( "/2.30/api/30/organizationUnits.xml.gz", pager.getPrevPage() );
-        Assert.assertNull( pager.getNextPage() );
+        Assertions.assertEquals( "/2.30/api/30/organizationUnits.xml.gz", pager.getPrevPage() );
+        Assertions.assertNull( pager.getNextPage() );
     }
 
     @Test
-    public void prevLinkParameters()
+    void prevLinkParameters()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -256,14 +256,14 @@ public class DefaultLinkServiceTest
 
         final Pager pager = new Pager( 3, 110 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assert.assertNull( pager.getNextPage() );
-        Assert.assertEquals(
+        Assertions.assertNull( pager.getNextPage() );
+        Assertions.assertEquals(
             "/demo/api/456/organizationUnits?page=2&fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
             pager.getPrevPage() );
     }
 
     @Test
-    public void prevLinkParametersPage1()
+    void prevLinkParametersPage1()
     {
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( OrganisationUnit.class ) ) )
             .thenAnswer( invocation -> {
@@ -287,8 +287,8 @@ public class DefaultLinkServiceTest
 
         final Pager pager = new Pager( 2, 90 );
         service.generatePagerLinks( pager, OrganisationUnit.class );
-        Assert.assertNull( pager.getNextPage() );
-        Assert.assertEquals(
+        Assertions.assertNull( pager.getNextPage() );
+        Assertions.assertEquals(
             "/demo/api/456/organizationUnits?fields=id%2Cname%2Cvalue%5Bid%2Ctext%5D&value%5Bx%5D=test1&value%5Bx%5D=test2%C3%98",
             pager.getPrevPage() );
     }

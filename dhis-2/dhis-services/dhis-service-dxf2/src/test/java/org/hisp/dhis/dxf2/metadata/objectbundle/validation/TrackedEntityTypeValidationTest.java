@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,11 +44,11 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-public class TrackedEntityTypeValidationTest extends DhisSpringTest
+class TrackedEntityTypeValidationTest extends DhisSpringTest
 {
 
     @Autowired
@@ -69,55 +69,45 @@ public class TrackedEntityTypeValidationTest extends DhisSpringTest
     }
 
     @Test
-    public void shouldSuccessTrackedEntityAttributeExists()
+    void shouldSuccessTrackedEntityAttributeExists()
         throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
             .fromMetadata( new ClassPathResource( "dxf2/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
-
         MetadataImportParams importParams = new MetadataImportParams();
         importParams.setImportMode( ObjectBundleMode.COMMIT );
         importParams.setImportStrategy( ImportStrategy.CREATE );
         importParams.setObjects( metadata );
-
         ImportReport report = importService.importMetadata( importParams );
         assertEquals( Status.OK, report.getStatus() );
-
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> importMetadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/import/te_type_tea_ok.json" ).getInputStream(), RenderFormat.JSON );
-
         MetadataImportParams importParamsFail = new MetadataImportParams();
         importParamsFail.setImportMode( ObjectBundleMode.COMMIT );
         importParamsFail.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importParamsFail.setObjects( importMetadata );
-
         ImportReport importReport = importService.importMetadata( importParamsFail );
         assertEquals( Status.OK, importReport.getStatus() );
     }
 
     @Test
-    public void shouldFailMissingTrackedEntityAttribute()
+    void shouldFailMissingTrackedEntityAttribute()
         throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
             .fromMetadata( new ClassPathResource( "dxf2/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
-
         MetadataImportParams importParams = new MetadataImportParams();
         importParams.setImportMode( ObjectBundleMode.COMMIT );
         importParams.setImportStrategy( ImportStrategy.CREATE );
         importParams.setObjects( metadata );
-
         ImportReport report = importService.importMetadata( importParams );
         assertEquals( Status.OK, report.getStatus() );
-
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> importMetadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/import/te_type_missing_tea.json" ).getInputStream(), RenderFormat.JSON );
-
         MetadataImportParams importParamsFail = new MetadataImportParams();
         importParamsFail.setImportMode( ObjectBundleMode.COMMIT );
         importParamsFail.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
         importParamsFail.setObjects( importMetadata );
-
         ImportReport importReport = importService.importMetadata( importParamsFail );
         assertEquals( Status.ERROR, importReport.getStatus() );
     }

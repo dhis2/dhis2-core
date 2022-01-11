@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,54 +27,53 @@
  */
 package org.hisp.dhis.calendar.impl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class NepaliCalendarTest
+class NepaliCalendarTest
 {
+
     private Calendar calendar;
 
-    @Before
-    public void init()
+    @BeforeEach
+    void init()
     {
         calendar = NepaliCalendar.getInstance();
     }
 
     @Test
-    public void testToIso()
+    void testToIso()
     {
-        Assert.assertEquals( new DateTimeUnit( 2014, 4, 14, true ), calendar.toIso( new DateTimeUnit( 2071, 1, 1 ) ) );
-        Assert.assertEquals( new DateTimeUnit( 2014, 4, 14, true ), calendar.toIso( 2071, 1, 1 ) );
+        Assertions.assertEquals( new DateTimeUnit( 2014, 4, 14, true ),
+            calendar.toIso( new DateTimeUnit( 2071, 1, 1 ) ) );
+        Assertions.assertEquals( new DateTimeUnit( 2014, 4, 14, true ), calendar.toIso( 2071, 1, 1 ) );
     }
 
     @Test
-    public void testFromIso()
+    void testFromIso()
     {
-        Assert.assertEquals( new DateTimeUnit( 2071, 1, 1, false ),
+        Assertions.assertEquals( new DateTimeUnit( 2071, 1, 1, false ),
             calendar.fromIso( new DateTimeUnit( 2014, 4, 14, true ) ) );
-        Assert.assertEquals( new DateTimeUnit( 2071, 1, 1, false ), calendar.fromIso( 2014, 4, 14 ) );
+        Assertions.assertEquals( new DateTimeUnit( 2071, 1, 1, false ), calendar.fromIso( 2014, 4, 14 ) );
     }
 
     @Test
-    public void testPlusDays()
+    void testPlusDays()
     {
         DateTimeUnit dateTimeUnit = new DateTimeUnit( 2014, 12, 30 );
-
         DateTimeUnit testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
         assertEquals( 2014, testDateTimeUnit.getYear() );
         assertEquals( 12, testDateTimeUnit.getMonth() );
         assertEquals( 29, testDateTimeUnit.getDay() );
-
         dateTimeUnit = new DateTimeUnit( 2014, 1, 1 );
-
         testDateTimeUnit = calendar.plusDays( dateTimeUnit, -1 );
         assertEquals( 2013, testDateTimeUnit.getYear() );
         assertEquals( 12, testDateTimeUnit.getMonth() );

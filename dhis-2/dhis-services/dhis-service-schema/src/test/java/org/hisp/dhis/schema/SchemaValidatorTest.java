@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.schema;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.validation.SchemaValidator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,50 +46,46 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SchemaValidatorTest
-    extends DhisSpringTest
+class SchemaValidatorTest extends DhisSpringTest
 {
+
     @Autowired
     private SchemaValidator schemaValidator;
 
     @Test
-    public void testCollectionOutOfMinRange()
+    void testCollectionOutOfMinRange()
     {
         TestCollectionSize objectUnderTest = new TestCollectionSize();
         List<ErrorReport> errorReports = schemaValidator.validate( objectUnderTest, false );
-
         assertEquals( 1, errorReports.size() );
         assertEquals( ErrorCode.E4007, errorReports.get( 0 ).getErrorCode() );
     }
 
     @Test
-    public void testCollectionOutOfMaxRange()
+    void testCollectionOutOfMaxRange()
     {
         TestCollectionSize objectUnderTest = new TestCollectionSize();
         objectUnderTest.getItems().add( "Item #1" );
         objectUnderTest.getItems().add( "Item #2" );
         objectUnderTest.getItems().add( "Item #3" );
-
         List<ErrorReport> errorReports = schemaValidator.validate( objectUnderTest, false );
-
         assertEquals( 1, errorReports.size() );
         assertEquals( ErrorCode.E4007, errorReports.get( 0 ).getErrorCode() );
     }
 
     @Test
-    public void testCollectionInRange()
+    void testCollectionInRange()
     {
         TestCollectionSize objectUnderTest = new TestCollectionSize();
         objectUnderTest.getItems().add( "Item #1" );
         objectUnderTest.getItems().add( "Item #2" );
-
         List<ErrorReport> errorReports = schemaValidator.validate( objectUnderTest, false );
-
         assertTrue( errorReports.isEmpty() );
     }
 
     public static class TestCollectionSize
     {
+
         private List<String> items = new ArrayList<>();
 
         public TestCollectionSize()

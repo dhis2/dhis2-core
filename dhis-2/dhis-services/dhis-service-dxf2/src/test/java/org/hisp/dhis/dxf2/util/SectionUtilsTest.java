@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,15 +46,15 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public class SectionUtilsTest extends DhisSpringTest
+class SectionUtilsTest extends DhisSpringTest
 {
+
     @Autowired
     private DataSetService dataSetService;
 
@@ -65,7 +65,7 @@ public class SectionUtilsTest extends DhisSpringTest
     private SectionUtils sectionUtils;
 
     @Test
-    public void testDataSetSection()
+    void testDataSetSection()
     {
         CategoryOption categoryOptionA = new CategoryOption( "OptionA" );
         CategoryOption categoryOptionB = new CategoryOption( "OptionB" );
@@ -74,7 +74,6 @@ public class SectionUtilsTest extends DhisSpringTest
         CategoryOption categoryOptionE = new CategoryOption( "OptionE" );
         CategoryOption categoryOptionF = new CategoryOption( "OptionF" );
         CategoryOption categoryOptionG = new CategoryOption( "OptionG" );
-
         categoryService.addCategoryOption( categoryOptionA );
         categoryService.addCategoryOption( categoryOptionB );
         categoryService.addCategoryOption( categoryOptionC );
@@ -82,34 +81,26 @@ public class SectionUtilsTest extends DhisSpringTest
         categoryService.addCategoryOption( categoryOptionE );
         categoryService.addCategoryOption( categoryOptionF );
         categoryService.addCategoryOption( categoryOptionG );
-
         Category categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
         Category categoryB = createCategory( 'B', categoryOptionC, categoryOptionD );
         Category categoryC = createCategory( 'C', categoryOptionE, categoryOptionF );
-
         categoryService.addCategory( categoryA );
         categoryService.addCategory( categoryB );
         categoryService.addCategory( categoryC );
-
         List<Category> categoriesAB = new ArrayList<>();
         List<Category> categoriesABC = new ArrayList<>();
-
         categoriesAB.add( categoryA );
         categoriesAB.add( categoryB );
-
         categoriesABC.add( categoryA );
         categoriesABC.add( categoryB );
         categoriesABC.add( categoryC );
-
         CategoryCombo categoryComboAB = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION,
             categoriesAB );
         CategoryCombo categoryComboABC = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION,
             categoriesABC );
-
         long catAB = categoryService.addCategoryCombo( categoryComboAB );
         long catABC = categoryService.addCategoryCombo( categoryComboABC );
         long catDefault = categoryService.getDefaultCategoryCombo().getId();
-
         DataElement dataElementA = createDataElement( 'A' );
         DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C', categoryComboAB );
@@ -119,7 +110,6 @@ public class SectionUtilsTest extends DhisSpringTest
         DataElement dataElementG = createDataElement( 'G', categoryComboABC );
         DataElement dataElementH = createDataElement( 'H', categoryComboAB );
         DataElement dataElementI = createDataElement( 'I', categoryComboABC );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
@@ -129,9 +119,7 @@ public class SectionUtilsTest extends DhisSpringTest
         dataElementService.addDataElement( dataElementG );
         dataElementService.addDataElement( dataElementH );
         dataElementService.addDataElement( dataElementI );
-
         PeriodType periodType = new MonthlyPeriodType();
-
         DataSet dataSetA = createDataSet( 'A', periodType );
         dataSetA.addDataSetElement( dataElementA );
         dataSetA.addDataSetElement( dataElementB );
@@ -142,7 +130,6 @@ public class SectionUtilsTest extends DhisSpringTest
         dataSetA.addDataSetElement( dataElementG );
         dataSetA.addDataSetElement( dataElementH );
         dataSetA.addDataSetElement( dataElementI );
-
         Section section = new Section();
         List<DataElement> dataElements = new ArrayList<>();
         dataElements.add( dataElementA );
@@ -154,49 +141,35 @@ public class SectionUtilsTest extends DhisSpringTest
         dataElements.add( dataElementG );
         dataElements.add( dataElementH );
         dataElements.add( dataElementI );
-
         section.setDataElements( dataElements );
-
         dataSetA.getSections().add( section );
-
         long idA = dataSetService.addDataSet( dataSetA );
-
         DataSet ds = dataSetService.getDataSet( idA );
-
         assertEquals( idA, ds.getId() );
-
         assertEquals( 9, ds.getDataSetElements().size() );
         assertEquals( 1, ds.getSections().size() );
-
         Section sec = ds.getSections().iterator().next();
         assertEquals( 9, sec.getDataElements().size() );
-
         Map<String, Collection<DataElement>> orderedDataElements = sectionUtils.getOrderedDataElementsMap( sec );
-
         List<String> keys = new ArrayList<>( orderedDataElements.keySet() );
-
         assertEquals( 6, orderedDataElements.keySet().size() );
-
         String key1 = sec.getId() + "-" + catDefault + "-" + "0";
         String key2 = sec.getId() + "-" + catAB + "-" + "1";
         String key3 = sec.getId() + "-" + catDefault + "-" + "2";
         String key4 = sec.getId() + "-" + catABC + "-" + "3";
         String key5 = sec.getId() + "-" + catAB + "-" + "4";
         String key6 = sec.getId() + "-" + catABC + "-" + "5";
-
         assertEquals( key1, keys.get( 0 ) );
         assertEquals( key2, keys.get( 1 ) );
         assertEquals( key3, keys.get( 2 ) );
         assertEquals( key4, keys.get( 3 ) );
         assertEquals( key5, keys.get( 4 ) );
         assertEquals( key6, keys.get( 5 ) );
-
         assertEquals( 2, orderedDataElements.get( key1 ).size() );
         assertEquals( 2, orderedDataElements.get( key2 ).size() );
         assertEquals( 1, orderedDataElements.get( key3 ).size() );
         assertEquals( 2, orderedDataElements.get( key4 ).size() );
         assertEquals( 1, orderedDataElements.get( key5 ).size() );
         assertEquals( 1, orderedDataElements.get( key6 ).size() );
-
     }
 }

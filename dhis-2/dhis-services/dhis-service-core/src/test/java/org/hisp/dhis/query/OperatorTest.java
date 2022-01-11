@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.query;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,25 +48,26 @@ import org.hisp.dhis.query.operators.NotEqualOperator;
 import org.hisp.dhis.query.operators.NotLikeOperator;
 import org.hisp.dhis.query.operators.NotNullOperator;
 import org.hisp.dhis.query.operators.NullOperator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OperatorTest
+class OperatorTest
 {
+
     enum TestEnum
     {
+
         A,
         B,
         C
     }
 
     @Test
-    public void testBetweenValidTypes()
+    void testBetweenValidTypes()
     {
         BetweenOperator<String> operator = new BetweenOperator<>( "10", "20" );
-
         assertTrue( operator.isValid( String.class ) );
         assertTrue( operator.isValid( Number.class ) );
         assertTrue( operator.isValid( Date.class ) );
@@ -74,10 +75,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testBetweenInt()
+    void testBetweenInt()
     {
         BetweenOperator<String> operator = new BetweenOperator<>( "10", "20" );
-
         assertTrue( operator.test( 10 ) );
         assertTrue( operator.test( 15 ) );
         assertTrue( operator.test( 20 ) );
@@ -86,10 +86,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testBetweenCollection()
+    void testBetweenCollection()
     {
         BetweenOperator<String> operator = new BetweenOperator<>( "2", "4" );
-
         assertFalse( operator.test( Collections.singletonList( 1 ) ) );
         assertTrue( operator.test( Arrays.asList( 1, 2 ) ) );
         assertTrue( operator.test( Arrays.asList( 1, 2, 3 ) ) );
@@ -98,10 +97,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testEqualValidTypes()
+    void testEqualValidTypes()
     {
         EqualOperator<String> operator = new EqualOperator<>( "operator" );
-
         assertTrue( operator.isValid( String.class ) );
         assertTrue( operator.isValid( Number.class ) );
         assertTrue( operator.isValid( Date.class ) );
@@ -111,7 +109,7 @@ public class OperatorTest
     }
 
     @Test
-    public void testEqual()
+    void testEqual()
     {
         EqualOperator<String> operator = new EqualOperator<>( "operator" );
         assertTrue( operator.test( "operator" ) );
@@ -119,20 +117,18 @@ public class OperatorTest
     }
 
     @Test
-    public void testEqualEnum()
+    void testEqualEnum()
     {
         assertTrue( new EqualOperator<>( "A" ).test( TestEnum.A ) );
         assertTrue( new EqualOperator<>( "B" ).test( TestEnum.B ) );
         assertTrue( new EqualOperator<>( "C" ).test( TestEnum.C ) );
-
         assertFalse( new EqualOperator<>( "A" ).test( "abc" ) );
     }
 
     @Test
-    public void testNotEqualValidTypes()
+    void testNotEqualValidTypes()
     {
         NotEqualOperator<String> operator = new NotEqualOperator<>( "operator" );
-
         assertTrue( operator.isValid( String.class ) );
         assertTrue( operator.isValid( Number.class ) );
         assertTrue( operator.isValid( Date.class ) );
@@ -141,19 +137,17 @@ public class OperatorTest
     }
 
     @Test
-    public void testNotEqual()
+    void testNotEqual()
     {
         NotEqualOperator<String> operator = new NotEqualOperator<>( "operator" );
-
         assertFalse( operator.test( "operator" ) );
         assertTrue( operator.test( Boolean.TRUE ) );
     }
 
     @Test
-    public void testGreaterEqualValidTypes()
+    void testGreaterEqualValidTypes()
     {
         GreaterEqualOperator<String> operator = new GreaterEqualOperator<>( "operator" );
-
         assertTrue( operator.isValid( String.class ) );
         assertTrue( operator.isValid( Number.class ) );
         assertTrue( operator.isValid( Date.class ) );
@@ -162,10 +156,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testGreaterEqual()
+    void testGreaterEqual()
     {
         GreaterEqualOperator<String> operator = new GreaterEqualOperator<>( "10" );
-
         assertFalse( operator.test( 6 ) );
         assertFalse( operator.test( 7 ) );
         assertFalse( operator.test( 8 ) );
@@ -177,10 +170,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testGreaterThanValidTypes()
+    void testGreaterThanValidTypes()
     {
         GreaterThanOperator<String> operator = new GreaterThanOperator<>( "operator" );
-
         assertTrue( operator.isValid( String.class ) );
         assertTrue( operator.isValid( Number.class ) );
         assertTrue( operator.isValid( Date.class ) );
@@ -189,10 +181,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testGreaterThan()
+    void testGreaterThan()
     {
         GreaterThanOperator<String> operator = new GreaterThanOperator<>( "10" );
-
         assertFalse( operator.test( 6 ) );
         assertFalse( operator.test( 7 ) );
         assertFalse( operator.test( 8 ) );
@@ -204,10 +195,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testLikeValidTypes()
+    void testLikeValidTypes()
     {
         LikeOperator<String> operator = new LikeOperator<>( "operator", true, MatchMode.ANYWHERE );
-
         assertTrue( operator.isValid( String.class ) );
         assertFalse( operator.isValid( Number.class ) );
         assertFalse( operator.isValid( Date.class ) );
@@ -216,70 +206,63 @@ public class OperatorTest
     }
 
     @Test
-    public void testLikeAnywhere()
+    void testLikeAnywhere()
     {
         LikeOperator<String> operator = new LikeOperator<>( "oper", true, MatchMode.ANYWHERE );
-
         assertTrue( operator.test( "operator" ) );
         assertFalse( operator.test( "OPERATOR" ) );
         assertFalse( operator.test( "abc" ) );
     }
 
     @Test
-    public void testLikeStart()
+    void testLikeStart()
     {
         LikeOperator<String> operator = new LikeOperator<>( "oper", true, MatchMode.START );
-
         assertTrue( operator.test( "operator" ) );
         assertFalse( operator.test( "OPERATOR" ) );
         assertFalse( operator.test( "abc" ) );
     }
 
     @Test
-    public void testLikeEnd()
+    void testLikeEnd()
     {
         LikeOperator<String> operator = new LikeOperator<>( "ator", true, MatchMode.END );
-
         assertTrue( operator.test( "operator" ) );
         assertFalse( operator.test( "OPERATOR" ) );
         assertFalse( operator.test( "abc" ) );
     }
 
     @Test
-    public void testILikeAnywhere()
+    void testILikeAnywhere()
     {
         LikeOperator<String> operator = new LikeOperator<>( "erat", false, MatchMode.ANYWHERE );
-
         assertTrue( operator.test( "operator" ) );
         assertTrue( operator.test( "OPERATOR" ) );
         assertFalse( operator.test( "abc" ) );
     }
 
     @Test
-    public void testILikeStart()
+    void testILikeStart()
     {
         LikeOperator<String> operator = new LikeOperator<>( "oper", false, MatchMode.START );
-
         assertTrue( operator.test( "operator" ) );
         assertTrue( operator.test( "OPERATOR" ) );
         assertFalse( operator.test( "abc" ) );
     }
 
     @Test
-    public void testILikeEnd()
+    void testILikeEnd()
     {
         LikeOperator<String> operator = new LikeOperator<>( "ator", false, MatchMode.END );
-
         assertTrue( operator.test( "operator" ) );
         assertTrue( operator.test( "OPERATOR" ) );
         assertFalse( operator.test( "abc" ) );
     }
 
     @Test
-    public void testLessEqualValidTypes()
+    void testLessEqualValidTypes()
     {
         LessEqualOperator<String> operator = new LessEqualOperator<>( "operator" );
-
         assertTrue( operator.isValid( String.class ) );
         assertTrue( operator.isValid( Number.class ) );
         assertTrue( operator.isValid( Date.class ) );
@@ -288,10 +271,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testLessEqual()
+    void testLessEqual()
     {
         LessEqualOperator<String> operator = new LessEqualOperator<>( "10" );
-
         assertTrue( operator.test( 6 ) );
         assertTrue( operator.test( 7 ) );
         assertTrue( operator.test( 8 ) );
@@ -303,10 +285,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testLessThanValidTypes()
+    void testLessThanValidTypes()
     {
         LessThanOperator<String> operator = new LessThanOperator<>( "operator" );
-
         assertTrue( operator.isValid( String.class ) );
         assertTrue( operator.isValid( Number.class ) );
         assertTrue( operator.isValid( Date.class ) );
@@ -315,10 +296,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testLessThan()
+    void testLessThan()
     {
         LessThanOperator<String> operator = new LessThanOperator<>( "10" );
-
         assertTrue( operator.test( 6 ) );
         assertTrue( operator.test( 7 ) );
         assertTrue( operator.test( 8 ) );
@@ -330,10 +310,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testNullValidTypes()
+    void testNullValidTypes()
     {
         NullOperator<String> operator = new NullOperator<>();
-
         assertTrue( operator.isValid( String.class ) );
         assertTrue( operator.isValid( Number.class ) );
         assertTrue( operator.isValid( Date.class ) );
@@ -342,19 +321,17 @@ public class OperatorTest
     }
 
     @Test
-    public void testNull()
+    void testNull()
     {
         NullOperator<String> operator = new NullOperator<>();
-
         assertTrue( operator.test( null ) );
         assertFalse( operator.test( "test" ) );
     }
 
     @Test
-    public void testNotNullValidTypes()
+    void testNotNullValidTypes()
     {
         NotNullOperator<String> operator = new NotNullOperator<>();
-
         assertTrue( operator.isValid( String.class ) );
         assertTrue( operator.isValid( Number.class ) );
         assertTrue( operator.isValid( Date.class ) );
@@ -363,26 +340,24 @@ public class OperatorTest
     }
 
     @Test
-    public void testNotNull()
+    void testNotNull()
     {
         NotNullOperator<String> operator = new NotNullOperator<>();
-
         assertFalse( operator.test( null ) );
         assertTrue( operator.test( "test" ) );
     }
 
     @Test
-    public void testInValidTypes()
+    void testInValidTypes()
     {
         InOperator<Integer> operator = new InOperator<>( Arrays.asList( 1, 2, 3 ) );
         assertTrue( operator.isValid( Collection.class ) );
     }
 
     @Test
-    public void testInInt()
+    void testInInt()
     {
         InOperator<Integer> operator = new InOperator<>( Arrays.asList( 1, 2, 3 ) );
-
         assertFalse( operator.test( 0 ) );
         assertTrue( operator.test( 1 ) );
         assertTrue( operator.test( 2 ) );
@@ -391,10 +366,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testInString()
+    void testInString()
     {
         InOperator<String> operator = new InOperator<>( Arrays.asList( "b", "c", "d" ) );
-
         assertFalse( operator.test( "a" ) );
         assertTrue( operator.test( "b" ) );
         assertTrue( operator.test( "c" ) );
@@ -403,10 +377,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testInEnum()
+    void testInEnum()
     {
         InOperator<String> operator = new InOperator<>( Arrays.asList( "A", "B" ) );
-
         assertTrue( operator.test( TestEnum.A ) );
         assertTrue( operator.test( TestEnum.B ) );
         assertFalse( operator.test( TestEnum.C ) );
@@ -414,10 +387,9 @@ public class OperatorTest
     }
 
     @Test
-    public void testNotLikeValidTypes()
+    void testNotLikeValidTypes()
     {
         NotLikeOperator<String> operator = new NotLikeOperator<>( "operator", true, MatchMode.ANYWHERE );
-
         assertTrue( operator.isValid( String.class ) );
         assertFalse( operator.isValid( Number.class ) );
         assertFalse( operator.isValid( Date.class ) );
@@ -426,60 +398,54 @@ public class OperatorTest
     }
 
     @Test
-    public void testNotLikeAnywhere()
+    void testNotLikeAnywhere()
     {
         NotLikeOperator<String> operator = new NotLikeOperator<>( "oper", true, MatchMode.ANYWHERE );
-
         assertFalse( operator.test( "operator" ) );
         assertTrue( operator.test( "OPERATOR" ) );
         assertTrue( operator.test( "abc" ) );
     }
 
     @Test
-    public void testNotLikeStart()
+    void testNotLikeStart()
     {
         NotLikeOperator<String> operator = new NotLikeOperator<>( "oper", true, MatchMode.START );
-
         assertFalse( operator.test( "operator" ) );
         assertTrue( operator.test( "OPERATOR" ) );
         assertTrue( operator.test( "abc" ) );
     }
 
     @Test
-    public void tesNotLikeEnd()
+    void tesNotLikeEnd()
     {
         NotLikeOperator<String> operator = new NotLikeOperator<>( "ator", true, MatchMode.END );
-
         assertFalse( operator.test( "operator" ) );
         assertTrue( operator.test( "OPERATOR" ) );
         assertTrue( operator.test( "abc" ) );
     }
 
     @Test
-    public void testINotLikeAnywhere()
+    void testINotLikeAnywhere()
     {
         NotLikeOperator<String> operator = new NotLikeOperator<>( "erat", false, MatchMode.ANYWHERE );
-
         assertFalse( operator.test( "operator" ) );
         assertFalse( operator.test( "OPERATOR" ) );
         assertTrue( operator.test( "abc" ) );
     }
 
     @Test
-    public void testINotLikeStart()
+    void testINotLikeStart()
     {
         NotLikeOperator<String> operator = new NotLikeOperator<>( "oper", false, MatchMode.START );
-
         assertFalse( operator.test( "operator" ) );
         assertFalse( operator.test( "OPERATOR" ) );
         assertTrue( operator.test( "abc" ) );
     }
 
     @Test
-    public void testINotLikeEnd()
+    void testINotLikeEnd()
     {
         NotLikeOperator<String> operator = new NotLikeOperator<>( "ator", false, MatchMode.END );
-
         assertFalse( operator.test( "operator" ) );
         assertFalse( operator.test( "OPERATOR" ) );
         assertTrue( operator.test( "abc" ) );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,20 @@
  */
 package org.hisp.dhis.dxf2;
 
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
@@ -57,22 +67,22 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class TrackerCrudTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class TrackerCrudTest
 {
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ImportOptions importOptions;
@@ -130,7 +140,7 @@ public class TrackerCrudTest
 
     private static final String orgUnitUid = "orgUnit";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         trackedEntityInstanceService = mock( AbstractTrackedEntityInstanceService.class, CALLS_REAL_METHODS );
@@ -143,6 +153,7 @@ public class TrackerCrudTest
 
         when( notifier.notify( any( JobConfiguration.class ), any( NotificationLevel.class ), anyString(),
             anyBoolean() ) ).thenReturn( notifier );
+        when( notifier.notify( any( JobConfiguration.class ), anyString() ) ).thenReturn( notifier );
         when( notifier.clear( any() ) ).thenReturn( notifier );
 
         when( defaultTrackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceUid, user ) )
@@ -201,7 +212,7 @@ public class TrackerCrudTest
     }
 
     @Test
-    public void shouldAddTrackedEntityWithCreateStrategy()
+    void shouldAddTrackedEntityWithCreateStrategy()
     {
         List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
 
@@ -218,7 +229,7 @@ public class TrackerCrudTest
     }
 
     @Test
-    public void shouldUpdateTrackedEntityWithUpdateStrategy()
+    void shouldUpdateTrackedEntityWithUpdateStrategy()
     {
         List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
 
@@ -237,7 +248,7 @@ public class TrackerCrudTest
     }
 
     @Test
-    public void shouldDeleteTrackedEntityWithDeleteStrategy()
+    void shouldDeleteTrackedEntityWithDeleteStrategy()
     {
         List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
 

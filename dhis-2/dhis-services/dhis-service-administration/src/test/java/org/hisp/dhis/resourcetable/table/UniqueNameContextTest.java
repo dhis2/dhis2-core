@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,22 @@
  */
 package org.hisp.dhis.resourcetable.table;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link UniqueNameContext}.
  *
  * @author Jan Bernitt
  */
-public class UniqueNameContextTest
+class UniqueNameContextTest
 {
+
     private final UniqueNameContext context = new UniqueNameContext();
 
     @Test
-    public void alreadyUniqueNameIsKept()
+    void alreadyUniqueNameIsKept()
     {
         assertEquals( "Foo", context.uniqueName( "Foo" ) );
         assertEquals( "Bar", context.uniqueName( "Bar" ) );
@@ -49,7 +50,7 @@ public class UniqueNameContextTest
     }
 
     @Test
-    public void nonUniqueNameIsExtendedWithCounter()
+    void nonUniqueNameIsExtendedWithCounter()
     {
         assertEquals( "Foo", context.uniqueName( "Foo" ) );
         assertEquals( "Foo1", context.uniqueName( "Foo" ) );
@@ -58,7 +59,7 @@ public class UniqueNameContextTest
     }
 
     @Test
-    public void nonUniqueNameExtensionDoesNotCollideWithExistingNames()
+    void nonUniqueNameExtensionDoesNotCollideWithExistingNames()
     {
         assertEquals( "Foo", context.uniqueName( "Foo" ) );
         assertEquals( "Foo2", context.uniqueName( "Foo2" ) );

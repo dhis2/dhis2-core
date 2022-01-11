@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.sms;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;
@@ -41,7 +41,7 @@ import org.hisp.dhis.sms.outbound.OutboundSmsStatus;
 import org.hisp.dhis.sms.outbound.OutboundSmsStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -49,10 +49,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-
-public class IncomingSmsStoreTest
-    extends DhisSpringTest
+class IncomingSmsStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private IncomingSmsStore incomingSmsStore;
 
@@ -68,13 +67,12 @@ public class IncomingSmsStoreTest
     public void setUpTest()
     {
         this.userService = _userService;
-
         user = createUser( 'A' );
         userService.addUser( user );
     }
 
     @Test
-    public void testGetIncomingSms()
+    void testGetIncomingSms()
     {
         IncomingSms sms = new IncomingSms();
         sms.setText( "testMessage" );
@@ -83,11 +81,8 @@ public class IncomingSmsStoreTest
         sms.setCreatedBy( user );
         sms.setSentDate( new Date() );
         sms.setReceivedDate( new Date() );
-
         incomingSmsStore.save( sms );
-
         List<IncomingSms> incomingSmsList = incomingSmsStore.getSmsByStatus( SmsMessageStatus.INCOMING, "474" );
-
         assertEquals( 1, incomingSmsList.size() );
         assertEquals( "testMessage", incomingSmsList.get( 0 ).getText() );
         assertEquals( 1, incomingSmsStore.getSmsByStatus( SmsMessageStatus.INCOMING, "474", 0, 10, false ).size() );
@@ -95,7 +90,7 @@ public class IncomingSmsStoreTest
     }
 
     @Test
-    public void testOutboundSms()
+    void testOutboundSms()
     {
         OutboundSms outboundSms = new OutboundSms();
         outboundSms.setDate( new Date() );
@@ -104,9 +99,7 @@ public class IncomingSmsStoreTest
         outboundSms.setStatus( OutboundSmsStatus.OUTBOUND );
         outboundSms.setSubject( "testSubject" );
         outboundSms.setRecipients( Sets.newHashSet( "testRecipient" ) );
-
         outboundSmsStore.saveOutboundSms( outboundSms );
-
         assertEquals( 1, outboundSmsStore.get( OutboundSmsStatus.OUTBOUND ).size() );
         assertEquals( 1, outboundSmsStore.get( OutboundSmsStatus.OUTBOUND, 0, 10, false ).size() );
     }

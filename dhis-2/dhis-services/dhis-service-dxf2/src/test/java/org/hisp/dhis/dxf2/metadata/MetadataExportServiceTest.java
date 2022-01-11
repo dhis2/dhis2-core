@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +45,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupAccess;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -53,9 +53,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class MetadataExportServiceTest
-    extends TransactionalIntegrationTest
+class MetadataExportServiceTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private MetadataExportService metadataExportService;
 
@@ -66,122 +66,96 @@ public class MetadataExportServiceTest
     private SchemaService schemaService;
 
     @Test
-    public void testValidate()
+    void testValidate()
     {
         MetadataExportParams params = new MetadataExportParams();
         metadataExportService.validate( params );
     }
 
     @Test
-    public void testMetadataExport()
+    void testMetadataExport()
     {
         DataElementGroup deg1 = createDataElementGroup( 'A' );
         DataElement de1 = createDataElement( 'A' );
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
-
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-
         User user = createUser( 'A' );
         manager.save( user );
-
         deg1.addDataElement( de1 );
         deg1.addDataElement( de2 );
         deg1.addDataElement( de3 );
-
         deg1.setCreatedBy( user );
         manager.save( deg1 );
-
         MetadataExportParams params = new MetadataExportParams();
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService
             .getMetadata( params );
-
         assertEquals( 1, metadata.get( User.class ).size() );
         assertEquals( 1, metadata.get( DataElementGroup.class ).size() );
         assertEquals( 3, metadata.get( DataElement.class ).size() );
     }
 
     @Test
-    public void testMetadataExportWithCustomClasses()
+    void testMetadataExportWithCustomClasses()
     {
         DataElementGroup deg1 = createDataElementGroup( 'A' );
         DataElement de1 = createDataElement( 'A' );
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
-
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-
         User user = createUser( 'A' );
         manager.save( user );
-
         deg1.addDataElement( de1 );
         deg1.addDataElement( de2 );
         deg1.addDataElement( de3 );
-
         deg1.setCreatedBy( user );
         manager.save( deg1 );
-
         MetadataExportParams params = new MetadataExportParams();
         params.addClass( DataElement.class );
-
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService
             .getMetadata( params );
-
         assertFalse( metadata.containsKey( User.class ) );
         assertFalse( metadata.containsKey( DataElementGroup.class ) );
         assertTrue( metadata.containsKey( DataElement.class ) );
-
         assertEquals( 3, metadata.get( DataElement.class ).size() );
     }
 
     @Test
-    public void testMetadataExportWithCustomQueries()
+    void testMetadataExportWithCustomQueries()
     {
         DataElementGroup deg1 = createDataElementGroup( 'A' );
         DataElement de1 = createDataElement( 'A' );
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
-
         manager.save( de1 );
         manager.save( de2 );
         manager.save( de3 );
-
         User user = createUser( 'A' );
         manager.save( user );
-
         deg1.addDataElement( de1 );
         deg1.addDataElement( de2 );
         deg1.addDataElement( de3 );
-
         deg1.setCreatedBy( user );
         manager.save( deg1 );
-
         Query deQuery = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-
         Disjunction disjunction = deQuery.disjunction();
         disjunction.add( Restrictions.eq( "id", de1.getUid() ) );
         disjunction.add( Restrictions.eq( "id", de2.getUid() ) );
-
         deQuery.add( disjunction );
-
         Query degQuery = Query.from( schemaService.getDynamicSchema( DataElementGroup.class ) );
         degQuery.add( Restrictions.eq( "id", "INVALID UID" ) );
-
         MetadataExportParams params = new MetadataExportParams();
         params.addQuery( deQuery );
         params.addQuery( degQuery );
-
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService
             .getMetadata( params );
-
         assertFalse( metadata.containsKey( User.class ) );
         assertFalse( metadata.containsKey( DataElementGroup.class ) );
         assertTrue( metadata.containsKey( DataElement.class ) );
-
         assertEquals( 2, metadata.get( DataElement.class ).size() );
     }
 
@@ -192,7 +166,6 @@ public class MetadataExportServiceTest
         MetadataExportParams params = new MetadataExportParams();
         params.setSkipSharing( true );
         params.setClasses( Sets.newHashSet( DataElement.class ) );
-
         User user = createUser( 'A' );
         UserGroup group = createUserGroup( 'A', Sets.newHashSet( user ) );
         DataElement de1 = createDataElement( 'A' );
@@ -200,13 +173,11 @@ public class MetadataExportServiceTest
         DataElement de3 = createDataElement( 'C' );
         DataElement de4 = createDataElement( 'D' );
         DataElement de5 = createDataElement( 'E' );
-
         de1.setUserAccesses( Sets.newHashSet( new UserAccess( user, "rwrwrwrw" ) ) );
         de2.setPublicAccess( "rwrwrwrw" );
         de3.setCreatedBy( user );
         de4.setUserGroupAccesses( Sets.newHashSet( new UserGroupAccess( group, "rwrwrwrw" ) ) );
         de5.setExternalAccess( true );
-
         manager.save( user );
         manager.save( group );
         manager.save( de1 );
@@ -214,14 +185,10 @@ public class MetadataExportServiceTest
         manager.save( de3 );
         manager.save( de4 );
         manager.save( de5 );
-
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService
             .getMetadata( params );
-
         assertEquals( 5, metadata.get( DataElement.class ).size() );
-
-        metadata.get( DataElement.class ).stream()
-            .forEach( element -> checkSharingFields( element ) );
+        metadata.get( DataElement.class ).stream().forEach( element -> checkSharingFields( element ) );
     }
 
     private void checkSharingFields( IdentifiableObject object )

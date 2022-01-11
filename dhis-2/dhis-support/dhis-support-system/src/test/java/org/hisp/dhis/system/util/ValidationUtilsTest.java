@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,11 @@ import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
 import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
@@ -55,17 +55,18 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
  */
-public class ValidationUtilsTest
+class ValidationUtilsTest
 {
+
     @Test
-    public void testCoordinateIsValid()
+    void testCoordinateIsValid()
     {
         assertTrue( coordinateIsValid( "[+37.99034,-28.94221]" ) );
         assertTrue( coordinateIsValid( "[37.99034,-28.94221]" ) );
@@ -73,7 +74,6 @@ public class ValidationUtilsTest
         assertTrue( coordinateIsValid( "[170.99034,78.94221]" ) );
         assertTrue( coordinateIsValid( "[-167,-28.94221]" ) );
         assertTrue( coordinateIsValid( "[37.99034,28]" ) );
-
         assertFalse( coordinateIsValid( "23.34343,56.3232" ) );
         assertFalse( coordinateIsValid( "23.34343 56.3232" ) );
         assertFalse( coordinateIsValid( "[23.34f43,56.3232]" ) );
@@ -82,7 +82,6 @@ public class ValidationUtilsTest
         assertFalse( coordinateIsValid( "[++37,-28.94221]" ) );
         assertFalse( coordinateIsValid( "S-0.27726 E37.08472" ) );
         assertFalse( coordinateIsValid( null ) );
-
         assertFalse( coordinateIsValid( "-185.12345,45.45423" ) );
         assertFalse( coordinateIsValid( "192.56789,-45.34332" ) );
         assertFalse( coordinateIsValid( "140.34,92.23323" ) );
@@ -92,14 +91,13 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testBboxIsValid()
+    void testBboxIsValid()
     {
         assertTrue( bboxIsValid( "-13.2682125,7.3721619,-10.4261178,9.904012" ) );
         assertTrue( bboxIsValid( "12.26821,-23.3721,13.4261,-21.904" ) );
         assertTrue( bboxIsValid( "4,-23.37,5,-24.904" ) );
         assertTrue( bboxIsValid( "2.23, -23.37, 5.22, -24.90" ) );
         assertTrue( bboxIsValid( "-179.234,-89.342,178.323,88.135" ) );
-
         assertFalse( bboxIsValid( "[12.23,14.41,34.12,12.45]" ) );
         assertFalse( bboxIsValid( "22,23,14,41,34,11,11,41" ) );
         assertFalse( bboxIsValid( "22,23.14,41.34,11.11,41" ) );
@@ -110,7 +108,7 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testGetLongitude()
+    void testGetLongitude()
     {
         assertEquals( "+37.99034", getLongitude( "[+37.99034,-28.94221]" ) );
         assertEquals( "37.99034", getLongitude( "[37.99034,28.94221]" ) );
@@ -119,7 +117,7 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testGetLatitude()
+    void testGetLatitude()
     {
         assertEquals( "-28.94221", getLatitude( "[+37.99034,-28.94221]" ) );
         assertEquals( "28.94221", getLatitude( "[37.99034,28.94221]" ) );
@@ -128,7 +126,7 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testPasswordIsValid()
+    void testPasswordIsValid()
     {
         assertFalse( passwordIsValid( "Johnd1" ) );
         assertFalse( passwordIsValid( "johndoe1" ) );
@@ -137,32 +135,30 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testEmailIsValid()
+    void testEmailIsValid()
     {
         assertFalse( emailIsValid( "john@doe" ) );
         assertTrue( emailIsValid( "john@doe.com" ) );
     }
 
     @Test
-    public void testUuidIsValid()
+    void testUuidIsValid()
     {
         assertTrue( uuidIsValid( "0b976c48-4577-437b-bba6-794d0e7ebde0" ) );
         assertTrue( uuidIsValid( "38052fd0-8c7a-4330-ac45-2c53b3a41a78" ) );
         assertTrue( uuidIsValid( "50be5898-2413-465f-91b9-aced950fc3ab" ) );
-
         assertFalse( uuidIsValid( "Jjg3j3-412-1435-342-jajg8234f" ) );
         assertFalse( uuidIsValid( "6cafdc73_2ca4_4c52-8a0a-d38adec33b24" ) );
         assertFalse( uuidIsValid( "e1809673dbf3482d8f84e493c65f74d9" ) );
     }
 
     @Test
-    public void testUsernameIsValid()
+    void testUsernameIsValid()
     {
         assertTrue( usernameIsValid( "johnmichaeldoe" ) );
         assertTrue( usernameIsValid( "ted@johnson.com" ) );
         assertTrue( usernameIsValid( "harry@gmail.com" ) );
         assertTrue( usernameIsValid( "har_ry@gmail.com" ) );
-
         assertFalse( usernameIsValid( "Harry@gmail.com" ) );
         assertFalse( usernameIsValid( "_harry@gmail.com" ) );
         assertFalse( usernameIsValid( "harry@gmail.com_" ) );
@@ -174,78 +170,57 @@ public class ValidationUtilsTest
         assertFalse( usernameIsValid( "har__ry@gmail.com" ) );
         assertFalse( usernameIsValid( "harry@@gmail.com" ) );
         assertFalse( usernameIsValid( "harry..gmail.com" ) );
-
         assertFalse( usernameIsValid( null ) );
         assertFalse( usernameIsValid( CodeGenerator.generateCode( 400 ) ) );
     }
 
     @Test
-    public void testDataValueIsZeroAndInsignificant()
+    void testDataValueIsZeroAndInsignificant()
     {
         DataElement de = new DataElement( "DEA" );
         de.setValueType( ValueType.INTEGER );
         de.setAggregationType( AggregationType.SUM );
-
         assertTrue( dataValueIsZeroAndInsignificant( "0", de ) );
-
         de.setAggregationType( AggregationType.AVERAGE_SUM_ORG_UNIT );
         assertFalse( dataValueIsZeroAndInsignificant( "0", de ) );
     }
 
     @Test
-    public void testDataValueIsValid()
+    void testDataValueIsValid()
     {
         DataElement de = new DataElement( "DEA" );
         de.setValueType( ValueType.INTEGER );
-
         assertNull( dataValueIsValid( null, de ) );
         assertNull( dataValueIsValid( "", de ) );
-
         assertNull( dataValueIsValid( "34", de ) );
         assertNotNull( dataValueIsValid( "Yes", de ) );
-
         de.setValueType( ValueType.NUMBER );
-
         assertNull( dataValueIsValid( "3.7", de ) );
         assertNotNull( dataValueIsValid( "No", de ) );
-
         de.setValueType( ValueType.INTEGER_POSITIVE );
-
         assertNull( dataValueIsValid( "3", de ) );
         assertNotNull( dataValueIsValid( "-4", de ) );
-
         de.setValueType( ValueType.INTEGER_ZERO_OR_POSITIVE );
-
         assertNull( dataValueIsValid( "3", de ) );
         assertNotNull( dataValueIsValid( "-4", de ) );
-
         de.setValueType( ValueType.INTEGER_NEGATIVE );
-
         assertNull( dataValueIsValid( "-3", de ) );
         assertNotNull( dataValueIsValid( "4", de ) );
-
         de.setValueType( ValueType.TEXT );
-
         assertNull( dataValueIsValid( "0", de ) );
-
         de.setValueType( ValueType.BOOLEAN );
-
         assertNull( dataValueIsValid( "true", de ) );
         assertNull( dataValueIsValid( "false", de ) );
         assertNull( dataValueIsValid( "FALSE", de ) );
         assertNotNull( dataValueIsValid( "yes", de ) );
-
         de.setValueType( ValueType.TRUE_ONLY );
-
         assertNull( dataValueIsValid( "true", de ) );
         assertNull( dataValueIsValid( "TRUE", de ) );
         assertNotNull( dataValueIsValid( "false", de ) );
-
         de.setValueType( ValueType.DATE );
         assertNull( dataValueIsValid( "2013-04-01", de ) );
         assertNotNull( dataValueIsValid( "2012304-01", de ) );
         assertNotNull( dataValueIsValid( "Date", de ) );
-
         de.setValueType( ValueType.DATETIME );
         assertNull( dataValueIsValid( "2021-08-30T13:53:33.767412Z", de ) );
         assertNull( dataValueIsValid( "2021-08-30T13:53:33.767412", de ) );
@@ -259,13 +234,12 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testIsValidHexColor()
+    void testIsValidHexColor()
     {
         assertFalse( isValidHexColor( "abcpqr" ) );
         assertFalse( isValidHexColor( "#qwerty" ) );
         assertFalse( isValidHexColor( "FFAB#O" ) );
         assertFalse( isValidHexColor( "#aaee88ee" ) );
-
         assertTrue( isValidHexColor( "#FF0" ) );
         assertTrue( isValidHexColor( "#FF0000" ) );
         assertTrue( isValidHexColor( "FFFFFF" ) );
@@ -275,11 +249,10 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testExpressionIsValidSQl()
+    void testExpressionIsValidSQl()
     {
         assertFalse( expressionIsValidSQl( "10 == 10; delete from table" ) );
         assertFalse( expressionIsValidSQl( "select from table" ) );
-
         assertTrue( expressionIsValidSQl( "\"abcdef12345\" < 30" ) );
         assertTrue( expressionIsValidSQl( "\"abcdef12345\" >= \"bcdefg23456\"" ) );
         assertTrue( expressionIsValidSQl( "\"DO0v7fkhUNd\" > -30000 and \"DO0v7fkhUNd\" < 30000" ) );
@@ -288,16 +261,14 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testNormalizeBoolean()
+    void testNormalizeBoolean()
     {
         assertEquals( "true", normalizeBoolean( "1", ValueType.BOOLEAN ) );
         assertEquals( "true", normalizeBoolean( "T", ValueType.BOOLEAN ) );
         assertEquals( "true", normalizeBoolean( "true", ValueType.BOOLEAN ) );
         assertEquals( "true", normalizeBoolean( "TRUE", ValueType.BOOLEAN ) );
         assertEquals( "true", normalizeBoolean( "t", ValueType.BOOLEAN ) );
-
         assertEquals( "test", normalizeBoolean( "test", ValueType.TEXT ) );
-
         assertEquals( "false", normalizeBoolean( "0", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "f", ValueType.BOOLEAN ) );
         assertEquals( "false", normalizeBoolean( "False", ValueType.BOOLEAN ) );
@@ -306,29 +277,20 @@ public class ValidationUtilsTest
     }
 
     @Test
-    public void testFileValueTypeOptionValidation()
+    void testFileValueTypeOptionValidation()
         throws IOException
     {
         long oneHundredMegaBytes = 1024 * (1024 * 100L);
-
         ValueType valueType = ValueType.FILE_RESOURCE;
-
         FileTypeValueOptions options = new FileTypeValueOptions();
         options.setMaxFileSize( oneHundredMegaBytes );
         options.setAllowedContentTypes( ImmutableSet.of( "jpg", "pdf" ) );
-
-        FileResource fileResource = new FileResource( "name", "jpg", oneHundredMegaBytes,
-            "md5sum", FileResourceDomain.DOCUMENT );
+        FileResource fileResource = new FileResource( "name", "jpg", oneHundredMegaBytes, "md5sum",
+            FileResourceDomain.DOCUMENT );
         assertNull( dataValueIsValid( fileResource, valueType, options ) );
-
-        fileResource = new FileResource( "name", "jpg", 1024 * (1024 * 101L),
-            "md5sum", FileResourceDomain.DOCUMENT );
-        assertEquals( "not_valid_file_size_too_big",
-            dataValueIsValid( fileResource, valueType, options ) );
-
-        fileResource = new FileResource( "name", "exe", oneHundredMegaBytes,
-            "md5sum", FileResourceDomain.DOCUMENT );
-        assertEquals( "not_valid_file_content_type",
-            dataValueIsValid( fileResource, valueType, options ) );
+        fileResource = new FileResource( "name", "jpg", 1024 * (1024 * 101L), "md5sum", FileResourceDomain.DOCUMENT );
+        assertEquals( "not_valid_file_size_too_big", dataValueIsValid( fileResource, valueType, options ) );
+        fileResource = new FileResource( "name", "exe", oneHundredMegaBytes, "md5sum", FileResourceDomain.DOCUMENT );
+        assertEquals( "not_valid_file_content_type", dataValueIsValid( fileResource, valueType, options ) );
     }
 }

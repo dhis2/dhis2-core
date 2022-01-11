@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker.params;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,13 +56,13 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-public class AtomicModeIntegrationTest
-    extends TransactionalIntegrationTest
+class AtomicModeIntegrationTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private TrackerImportService trackerImportService;
 
@@ -89,38 +89,29 @@ public class AtomicModeIntegrationTest
     {
         renderService = _renderService;
         userService = _userService;
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "tracker/simple_metadata.json" ).getInputStream(),
-                RenderFormat.JSON );
-
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "tracker/simple_metadata.json" ).getInputStream(), RenderFormat.JSON );
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
-
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         assertFalse( validationReport.hasErrorReports() );
-
         objectBundleService.commit( bundle );
-
         userA = userService.getUser( "M5zQapPyTZI" );
     }
 
     @Test
-    public void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI()
+    void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI()
         throws IOException
     {
-
         InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
             .getInputStream();
-
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
         params.setAtomicMode( AtomicMode.OBJECT );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
-
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.OK, trackerImportTeiReport.getStatus() );
         assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrorReports().size() );
@@ -129,18 +120,15 @@ public class AtomicModeIntegrationTest
     }
 
     @Test
-    public void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI()
+    void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI()
         throws IOException
     {
-
         InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
             .getInputStream();
-
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
         params.setAtomicMode( AtomicMode.ALL );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
-
         assertNotNull( trackerImportTeiReport );
         assertEquals( TrackerStatus.ERROR, trackerImportTeiReport.getStatus() );
         assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrorReports().size() );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashSet;
 import java.util.List;
@@ -38,7 +38,7 @@ import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -46,9 +46,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Chau Thu Tran
  */
-public class ProgramStageStoreTest
-    extends DhisSpringTest
+class ProgramStageStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private ProgramStageStore programStageStore;
 
@@ -74,60 +74,48 @@ public class ProgramStageStoreTest
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
-
         stageA = new ProgramStage( "A", program );
         stageA.setProgram( program );
         stageA.setUid( "UID-A" );
-
         stageB = new ProgramStage( "B", program );
         stageB.setProgram( program );
         stageB.setUid( "UID-B" );
-
         stageC = new ProgramStage( "C", program );
         stageB.setProgram( program );
         stageC.setUid( "UID-C" );
     }
 
     @Test
-    public void testGetProgramStageByNameProgram()
+    void testGetProgramStageByNameProgram()
     {
         programStageStore.save( stageA );
         programStageStore.save( stageB );
-
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( stageA );
         programStages.add( stageB );
         program.setProgramStages( programStages );
         programService.updateProgram( program );
-
         assertEquals( stageA, programStageStore.getByNameAndProgram( "A", program ) );
         assertEquals( stageB, programStageStore.getByNameAndProgram( "B", program ) );
     }
 
     @Test
-    public void testGetByDataEntryForm()
+    void testGetByDataEntryForm()
     {
         DataEntryForm formX = createDataEntryForm( 'X' );
         DataEntryForm formY = createDataEntryForm( 'Y' );
-
         dataEntryFormService.addDataEntryForm( formX );
         dataEntryFormService.addDataEntryForm( formY );
-
         stageA.setDataEntryForm( formX );
         stageB.setDataEntryForm( formY );
-
         programStageStore.save( stageA );
         programStageStore.save( stageB );
         programStageStore.save( stageC );
-
         program.setProgramStages( Sets.newHashSet( stageA, stageB, stageC ) );
         programService.updateProgram( program );
-
         List<ProgramStage> hasFormX = programStageStore.getByDataEntryForm( formX );
-
         assertEquals( 1, hasFormX.size() );
         assertEquals( stageA, hasFormX.get( 0 ) );
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +27,30 @@
  */
 package org.hisp.dhis.system.leader;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.leader.election.LeaderManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Ameen Mohamed
  */
-public class LeaderManagerTest extends DhisSpringTest
+class LeaderManagerTest extends DhisSpringTest
 {
+
     @Autowired
     private LeaderManager leaderManager;
 
     @Test
-    public void testNodeInfo()
+    void testNodeInfo()
     {
         assertNotNull( leaderManager.getCurrentNodeUuid() );
         assertNotNull( leaderManager.getLeaderNodeUuid() );
         assertEquals( leaderManager.getCurrentNodeUuid(), leaderManager.getLeaderNodeUuid() );
         assertTrue( leaderManager.isLeader() );
     }
-
 }

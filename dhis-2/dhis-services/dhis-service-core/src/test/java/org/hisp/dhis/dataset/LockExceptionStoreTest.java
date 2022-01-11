@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dataset;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
@@ -36,12 +36,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class LockExceptionStoreTest
-    extends DhisSpringTest
+class LockExceptionStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private DataSetService dataSetService;
 
@@ -63,36 +63,27 @@ public class LockExceptionStoreTest
     {
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
-
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
     }
 
     @Test
-    public void testDeleteByOrganisationUnit()
+    void testDeleteByOrganisationUnit()
     {
         PeriodType periodType = new MonthlyPeriodType();
         Period period = new MonthlyPeriodType().createPeriod();
         DataSet ds = createDataSet( 'A', periodType );
-
         dataSetService.addDataSet( ds );
-
         LockException leA = new LockException( period, ouA, ds );
         LockException leB = new LockException( period, ouB, ds );
-
         store.save( leA );
         store.save( leB );
-
         assertEquals( 1, getLockExceptionCount( ouA ) );
         assertEquals( 1, getLockExceptionCount( ouB ) );
-
         store.delete( ouA );
-
         assertEquals( 0, getLockExceptionCount( ouA ) );
         assertEquals( 1, getLockExceptionCount( ouB ) );
-
         store.delete( ouB );
-
         assertEquals( 0, getLockExceptionCount( ouA ) );
         assertEquals( 0, getLockExceptionCount( ouB ) );
     }
@@ -108,7 +99,6 @@ public class LockExceptionStoreTest
     {
         return (Long) sessionFactory.getCurrentSession()
             .createQuery( "select count(*) from LockException le where le.organisationUnit = :target" )
-            .setParameter( "target", target )
-            .uniqueResult();
+            .setParameter( "target", target ).uniqueResult();
     }
 }

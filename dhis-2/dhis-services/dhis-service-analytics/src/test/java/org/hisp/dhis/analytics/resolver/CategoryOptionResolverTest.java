@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics.resolver;
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -41,20 +41,24 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.expression.ExpressionService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Dusan Bernat
  */
-public class CategoryOptionResolverTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class CategoryOptionResolverTest
 {
+
     @Mock
     private CategoryOptionStore categoryOptionStore;
 
@@ -62,9 +66,6 @@ public class CategoryOptionResolverTest
     private ExpressionService expressionService;
 
     private ExpressionResolver resolver;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private String uid1;
 
@@ -82,7 +83,7 @@ public class CategoryOptionResolverTest
 
     private static final String CATEGORY_OPTION_PREFIX = "co:";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         uid1 = CodeGenerator.generateUid();
@@ -111,7 +112,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsResolvedProperly()
+    void verifyExpressionIsResolvedProperly()
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
@@ -133,7 +134,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
+    void verifyExpressionIsNotResolvedWhenDimensionalItemIdHasNoItem()
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
@@ -155,7 +156,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
+    void verifyExpressionIsNotResolvedWhenCoPrefixNotInUid1()
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,
@@ -176,7 +177,7 @@ public class CategoryOptionResolverTest
     }
 
     @Test
-    public void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
+    void verifyExpressionIsNotResolvedWhenExpressionIsNotValid()
     {
         // arrange
         dimensionalItemId = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, uid1,

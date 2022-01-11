@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,32 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class SqlUtilsTest
+class SqlUtilsTest
 {
+
     @Test
-    public void testQuote()
+    void testQuote()
     {
         assertEquals( "\"Some \"\"special\"\" value\"", SqlUtils.quote( "Some \"special\" value" ) );
         assertEquals( "\"Data element\"", SqlUtils.quote( "Data element" ) );
     }
 
     @Test
-    public void testQuoteWithAlias()
+    void testQuoteWithAlias()
     {
         assertEquals( "ougs.\"Short name\"", SqlUtils.quote( "ougs", "Short name" ) );
         assertEquals( "ous.\"uid\"", SqlUtils.quote( "ous", "uid" ) );
     }
 
     @Test
-    public void testSingleQuote()
+    void testSingleQuote()
     {
         assertEquals( "'jkhYg65ThbF'", SqlUtils.singleQuote( "jkhYg65ThbF" ) );
         assertEquals( "'Some ''special'' value'", SqlUtils.singleQuote( "Some 'special' value" ) );

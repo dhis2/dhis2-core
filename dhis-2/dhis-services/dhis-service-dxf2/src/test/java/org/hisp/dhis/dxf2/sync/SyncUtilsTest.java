@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,15 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public class SyncUtilsTest extends DhisSpringTest
+class SyncUtilsTest extends DhisSpringTest
 {
+
     private static final String USERNAME = "user";
 
     private static final String PASSWORD = "pass";
@@ -56,24 +57,21 @@ public class SyncUtilsTest extends DhisSpringTest
     SystemSettingManager systemSettingManager;
 
     @Test
-    public void getRemoteInstanceTest()
+    void getRemoteInstanceTest()
     {
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_USERNAME, USERNAME );
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_PASSWORD, PASSWORD );
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_URL, URL );
-
         SystemInstance systemInstance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.EVENTS );
-
         assertThat( systemInstance.getUsername(), is( USERNAME ) );
         assertThat( systemInstance.getPassword(), is( PASSWORD ) );
         assertThat( systemInstance.getUrl(), is( EVENTS_URL ) );
     }
 
     @Test
-    public void getRemoteInstanceWithSyncImportStrategyTest()
+    void getRemoteInstanceWithSyncImportStrategyTest()
     {
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_URL, URL );
-
         SystemInstance systemInstance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager,
             SyncEndpoint.EVENTS );
         assertThat( systemInstance.getUrl(), is( EVENTS_URL_WITH_SYNC_STRATEGY ) );

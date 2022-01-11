@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.merge.orgunit.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.stream.Stream;
 
@@ -51,7 +51,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -61,9 +61,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-public class DataOrgUnitMergeHandlerTest
-    extends IntegrationTestBase
+class DataOrgUnitMergeHandlerTest extends IntegrationTestBase
 {
+
     @Autowired
     private CategoryService categoryService;
 
@@ -114,84 +114,60 @@ public class DataOrgUnitMergeHandlerTest
     public void setUpTest()
     {
         cocA = categoryService.getDefaultCategoryOptionCombo();
-
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         idObjectManager.save( deA );
         idObjectManager.save( deB );
-
         PeriodType monthly = periodService.getPeriodTypeByClass( MonthlyPeriodType.class );
         peA = monthly.createPeriod( "202101" );
         peB = monthly.createPeriod( "202102" );
         periodService.addPeriod( peA );
         periodService.addPeriod( peB );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
-
         usA = createUser( 'A' );
         userService.addUser( usA );
-
         dlA = new DataApprovalLevel( "DataApprovalLevelA", 1 );
         idObjectManager.save( dlA );
-
         dwA = new DataApprovalWorkflow( "DataApprovalWorkflowA", monthly, Sets.newHashSet( dlA ) );
         idObjectManager.save( dwA );
     }
 
     @Test
-    public void testMergeDataValues()
+    void testMergeDataValues()
     {
-        addDataValues(
-            createDataValue( deA, peA, ouA, cocA, cocA, "10", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
+        addDataValues( createDataValue( deA, peA, ouA, cocA, cocA, "10", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
             createDataValue( deA, peA, ouB, cocA, cocA, "11", date( 2021, 2, 1 ), date( 2021, 2, 1 ) ),
             createDataValue( deB, peA, ouA, cocA, cocA, "12", date( 2021, 3, 1 ), date( 2021, 3, 1 ) ),
             createDataValue( deB, peA, ouB, cocA, cocA, "13", date( 2021, 4, 1 ), date( 2021, 4, 1 ) ) );
-
         assertEquals( 2, getDataValueCount( ouA ) );
         assertEquals( 2, getDataValueCount( ouB ) );
         assertEquals( 0, getDataValueCount( ouC ) );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .withDataValueMergeStrategy( DataMergeStrategy.LAST_UPDATED )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).withDataValueMergeStrategy( DataMergeStrategy.LAST_UPDATED ).build();
         handler.mergeDataValues( request );
-
         assertEquals( 0, getDataValueCount( ouA ) );
         assertEquals( 0, getDataValueCount( ouB ) );
         assertEquals( 2, getDataValueCount( ouC ) );
     }
 
     @Test
-    public void testMergeDataApprovals()
+    void testMergeDataApprovals()
     {
-        addDataApprovals(
-            new DataApproval( dlA, dwA, peA, ouA, cocA, false, date( 2021, 1, 1 ), usA ),
+        addDataApprovals( new DataApproval( dlA, dwA, peA, ouA, cocA, false, date( 2021, 1, 1 ), usA ),
             new DataApproval( dlA, dwA, peA, ouB, cocA, false, date( 2021, 2, 1 ), usA ),
             new DataApproval( dlA, dwA, peB, ouA, cocA, false, date( 2021, 3, 1 ), usA ),
             new DataApproval( dlA, dwA, peB, ouB, cocA, false, date( 2021, 4, 1 ), usA ) );
-
         assertEquals( 2, getDataApprovalCount( ouA ) );
         assertEquals( 2, getDataApprovalCount( ouB ) );
         assertEquals( 0, getDataApprovalCount( ouC ) );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .withDataApprovalMergeStrategy( DataMergeStrategy.LAST_UPDATED )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).withDataApprovalMergeStrategy( DataMergeStrategy.LAST_UPDATED ).build();
         handler.mergeDataApprovals( request );
-
         assertEquals( 0, getDataApprovalCount( ouA ) );
         assertEquals( 0, getDataApprovalCount( ouB ) );
         assertEquals( 2, getDataApprovalCount( ouC ) );
@@ -200,17 +176,15 @@ public class DataOrgUnitMergeHandlerTest
     private long getDataValueCount( OrganisationUnit target )
     {
         final String sql = "select count(*) from datavalue dv where dv.sourceid = :target_id";
-
-        return jdbcTemplate.queryForObject( sql, new MapSqlParameterSource()
-            .addValue( "target_id", target.getId() ), Long.class );
+        return jdbcTemplate.queryForObject( sql, new MapSqlParameterSource().addValue( "target_id", target.getId() ),
+            Long.class );
     }
 
     private long getDataApprovalCount( OrganisationUnit target )
     {
         final String sql = "select count(*) from dataapproval da where da.organisationunitid = :target_id";
-
-        return jdbcTemplate.queryForObject( sql, new MapSqlParameterSource()
-            .addValue( "target_id", target.getId() ), Long.class );
+        return jdbcTemplate.queryForObject( sql, new MapSqlParameterSource().addValue( "target_id", target.getId() ),
+            Long.class );
     }
 
     private void addDataValues( DataValue... dataValues )

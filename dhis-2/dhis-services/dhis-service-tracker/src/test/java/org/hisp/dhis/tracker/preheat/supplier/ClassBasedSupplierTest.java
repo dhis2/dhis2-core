@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,15 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -39,22 +45,19 @@ import org.hisp.dhis.tracker.preheat.supplier.strategy.ClassBasedSupplierStrateg
 import org.hisp.dhis.tracker.preheat.supplier.strategy.GenericStrategy;
 import org.hisp.dhis.tracker.preheat.supplier.strategy.TrackerEntityInstanceStrategy;
 import org.hisp.dhis.tracker.util.Constant;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationContext;
 
 /**
  * @author Cambi Luca
  */
-public class ClassBasedSupplierTest
+@ExtendWith( MockitoExtension.class )
+class ClassBasedSupplierTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private ClassBasedSupplier classBasedSupplier;
 
     @Mock
@@ -75,7 +78,7 @@ public class ClassBasedSupplierTest
     @Mock
     private HashMap<String, String> strategiesMap;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         classBasedSupplier = new ClassBasedSupplier( identifierCollector, strategiesMap );
@@ -93,7 +96,7 @@ public class ClassBasedSupplierTest
     }
 
     @Test
-    public void verifyGenericStrategy()
+    void verifyGenericStrategy()
     {
         when( strategiesMap.getOrDefault( anyString(), anyString() ) )
             .thenReturn( Constant.GENERIC_STRATEGY_BEAN );
@@ -106,7 +109,7 @@ public class ClassBasedSupplierTest
     }
 
     @Test
-    public void verifyClassBasedSupplierStrategy()
+    void verifyClassBasedSupplierStrategy()
     {
         when( strategiesMap.getOrDefault( anyString(), anyString() ) )
             .thenReturn( "classbasedstrategy" );

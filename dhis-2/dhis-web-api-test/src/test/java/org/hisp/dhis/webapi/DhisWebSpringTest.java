@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,19 +39,19 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.restdocs.JUnitRestDocumentation;
+import org.springframework.restdocs.RestDocumentationContextProvider;
+import org.springframework.restdocs.RestDocumentationExtension;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -62,7 +62,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@RunWith( SpringRunner.class )
+@ExtendWith( { RestDocumentationExtension.class, SpringExtension.class } )
 @WebAppConfiguration
 @ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
@@ -86,11 +86,8 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest
     @Autowired
     protected SchemaService schemaService;
 
-    @Rule
-    public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation( "target/generated-snippets" );
-
-    @Before
-    public void setup()
+    @BeforeEach
+    public void setup( RestDocumentationContextProvider restDocumentation )
         throws Exception
     {
         userService = _userService;
@@ -98,7 +95,7 @@ public abstract class DhisWebSpringTest extends DhisConvenienceTest
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
-            .apply( documentationConfiguration( this.restDocumentation ) )
+            .apply( documentationConfiguration( restDocumentation ) )
             .build();
 
         TestUtils.executeStartupRoutines( webApplicationContext );

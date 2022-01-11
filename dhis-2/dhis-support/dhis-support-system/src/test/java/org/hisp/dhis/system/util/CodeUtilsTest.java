@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,24 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class CodeUtilsTest
+class CodeUtilsTest
 {
+
     @Test
-    public void testFilenameEncode()
+    void testFilenameEncode()
     {
         assertEquals( "nicechart", CodecUtils.filenameEncode( "nicechart" ) );
     }
 
     @Test
-    public void test()
+    void test()
     {
         assertEquals( "Basic am9objpkb2UxMjM=", CodecUtils.getBasicAuthString( "john", "doe123" ) );
         assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", CodecUtils.getBasicAuthString( "admin", "district" ) );

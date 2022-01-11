@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,32 @@
  */
 package org.hisp.dhis.option;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link OptionSet}.
  *
  * @author Volker Schmidt
  */
-public class OptionSetTest
+class OptionSetTest
 {
+
     @Test
-    public void addOptionWithoutOrder()
+    void addOptionWithoutOrder()
     {
         final OptionSet optionSet = new OptionSet();
         final Option option1 = new Option();
         final Option option2 = new Option();
-
         optionSet.addOption( option1 );
         optionSet.addOption( option2 );
-
-        Assert.assertEquals( 2, optionSet.getOptions().size() );
-        Assert.assertSame( option1, optionSet.getOptions().get( 0 ) );
-        Assert.assertSame( option2, optionSet.getOptions().get( 1 ) );
+        Assertions.assertEquals( 2, optionSet.getOptions().size() );
+        Assertions.assertSame( option1, optionSet.getOptions().get( 0 ) );
+        Assertions.assertSame( option2, optionSet.getOptions().get( 1 ) );
     }
 
     @Test
-    public void addOptionWithLowerOrder()
+    void addOptionWithLowerOrder()
     {
         final OptionSet optionSet = new OptionSet();
         final Option option1 = new Option();
@@ -62,19 +61,17 @@ public class OptionSetTest
         option2.setSortOrder( 11 );
         final Option option3 = new Option();
         option3.setSortOrder( 5 );
-
         optionSet.addOption( option1 );
         optionSet.addOption( option2 );
         optionSet.addOption( option3 );
-
-        Assert.assertEquals( 3, optionSet.getOptions().size() );
-        Assert.assertSame( option3, optionSet.getOptions().get( 0 ) );
-        Assert.assertSame( option1, optionSet.getOptions().get( 1 ) );
-        Assert.assertSame( option2, optionSet.getOptions().get( 2 ) );
+        Assertions.assertEquals( 3, optionSet.getOptions().size() );
+        Assertions.assertSame( option3, optionSet.getOptions().get( 0 ) );
+        Assertions.assertSame( option1, optionSet.getOptions().get( 1 ) );
+        Assertions.assertSame( option2, optionSet.getOptions().get( 2 ) );
     }
 
     @Test
-    public void addOptionWithHigherOrder()
+    void addOptionWithHigherOrder()
     {
         final OptionSet optionSet = new OptionSet();
         final Option option1 = new Option();
@@ -83,19 +80,17 @@ public class OptionSetTest
         option2.setSortOrder( 11 );
         final Option option3 = new Option();
         option3.setSortOrder( 12 );
-
         optionSet.addOption( option1 );
         optionSet.addOption( option2 );
         optionSet.addOption( option3 );
-
-        Assert.assertEquals( 3, optionSet.getOptions().size() );
-        Assert.assertSame( option1, optionSet.getOptions().get( 0 ) );
-        Assert.assertSame( option2, optionSet.getOptions().get( 1 ) );
-        Assert.assertSame( option3, optionSet.getOptions().get( 2 ) );
+        Assertions.assertEquals( 3, optionSet.getOptions().size() );
+        Assertions.assertSame( option1, optionSet.getOptions().get( 0 ) );
+        Assertions.assertSame( option2, optionSet.getOptions().get( 1 ) );
+        Assertions.assertSame( option3, optionSet.getOptions().get( 2 ) );
     }
 
     @Test
-    public void addOptionWithSameOrder()
+    void addOptionWithSameOrder()
     {
         final OptionSet optionSet = new OptionSet();
         final Option option1 = new Option();
@@ -104,19 +99,17 @@ public class OptionSetTest
         option2.setSortOrder( 11 );
         final Option option3 = new Option();
         option3.setSortOrder( 11 );
-
         optionSet.addOption( option1 );
         optionSet.addOption( option2 );
         optionSet.addOption( option3 );
-
-        Assert.assertEquals( 3, optionSet.getOptions().size() );
-        Assert.assertSame( option1, optionSet.getOptions().get( 0 ) );
-        Assert.assertSame( option2, optionSet.getOptions().get( 1 ) );
-        Assert.assertSame( option3, optionSet.getOptions().get( 2 ) );
+        Assertions.assertEquals( 3, optionSet.getOptions().size() );
+        Assertions.assertSame( option1, optionSet.getOptions().get( 0 ) );
+        Assertions.assertSame( option2, optionSet.getOptions().get( 1 ) );
+        Assertions.assertSame( option3, optionSet.getOptions().get( 2 ) );
     }
 
     @Test
-    public void addOptionWithBetween()
+    void addOptionWithBetween()
     {
         final OptionSet optionSet = new OptionSet();
         final Option option1 = new Option();
@@ -125,14 +118,12 @@ public class OptionSetTest
         option2.setSortOrder( 10 );
         final Option option3 = new Option();
         option3.setSortOrder( 9 );
-
         optionSet.addOption( option1 );
         optionSet.addOption( option2 );
         optionSet.addOption( option3 );
-
-        Assert.assertEquals( 3, optionSet.getOptions().size() );
-        Assert.assertSame( option1, optionSet.getOptions().get( 0 ) );
-        Assert.assertSame( option2, optionSet.getOptions().get( 2 ) );
-        Assert.assertSame( option3, optionSet.getOptions().get( 1 ) );
+        Assertions.assertEquals( 3, optionSet.getOptions().size() );
+        Assertions.assertSame( option1, optionSet.getOptions().get( 0 ) );
+        Assertions.assertSame( option2, optionSet.getOptions().get( 2 ) );
+        Assertions.assertSame( option3, optionSet.getOptions().get( 1 ) );
     }
 }

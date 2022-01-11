@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -39,24 +39,22 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class ProgramRuleControllerTest extends DhisControllerConvenienceTest
+class ProgramRuleControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testValidateCondition()
+    void testValidateCondition()
     {
         String pId = assertStatus( HttpStatus.CREATED,
             POST( "/programs/", "{'name':'P1', 'shortName':'P1', 'programType':'WITHOUT_REGISTRATION'}" ) );
-
         assertWebMessage( "OK", 200, "OK", "Valid",
-            POST( "/programRules/condition/description?programId=" + pId, "1 != 1" )
-                .content( HttpStatus.OK ) );
+            POST( "/programRules/condition/description?programId=" + pId, "1 != 1" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidateCondition_NoSuchProgram()
+    void testValidateCondition_NoSuchProgram()
     {
         assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
-            POST( "/programRules/condition/description?programId=xyz", "1 != 1" )
-                .content( HttpStatus.OK ) );
+            POST( "/programRules/condition/description?programId=xyz", "1 != 1" ).content( HttpStatus.OK ) );
     }
 }

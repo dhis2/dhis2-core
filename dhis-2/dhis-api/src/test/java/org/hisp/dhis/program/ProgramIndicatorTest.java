@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,24 @@
  */
 package org.hisp.dhis.program;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class ProgramIndicatorTest
+class ProgramIndicatorTest
 {
+
     @Test
-    public void testHasFilter()
+    void testHasFilter()
     {
         ProgramIndicator pi = new ProgramIndicator();
-
         assertFalse( pi.hasFilter() );
-
         pi.setFilter( "true" );
-
         assertTrue( pi.hasFilter() );
     }
-
     // TODO: write more tests
 }

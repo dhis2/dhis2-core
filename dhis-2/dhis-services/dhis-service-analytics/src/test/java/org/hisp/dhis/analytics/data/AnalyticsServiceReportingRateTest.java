@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
@@ -62,16 +62,15 @@ import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-public class AnalyticsServiceReportingRateTest
-    extends AnalyticsServiceBaseTest
+class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 {
     @Test
-    public void verifyReportingRatesValueWhenPeriodIsFilter()
+    void verifyReportingRatesValueWhenPeriodIsFilter()
     {
         int timeUnit = 10;
         double expectedReports = 100D;
@@ -126,7 +125,7 @@ public class AnalyticsServiceReportingRateTest
     }
 
     @Test
-    public void verifyNullValueIsZeroForReportingRate()
+    void verifyNullValueIsZeroForReportingRate()
     {
         double expectedReports = 100D;
         DataSet dataSetA = createDataSet( 'A' );
@@ -165,7 +164,7 @@ public class AnalyticsServiceReportingRateTest
     }
 
     @Test
-    public void verifyNullTargetIsNullForReportingRate()
+    void verifyNullTargetIsNullForReportingRate()
     {
         DataSet dataSetA = createDataSet( 'A' );
         ReportingRate reportingRateA = new ReportingRate( dataSetA );
@@ -205,7 +204,7 @@ public class AnalyticsServiceReportingRateTest
     }
 
     @Test
-    public void verifyReportingRatesForMonthsWithLessThen30DaysAreComputedCorrectly()
+    void verifyReportingRatesForMonthsWithLessThen30DaysAreComputedCorrectly()
     {
         // Create a Dataset with a Daily period type
         DataSet dataSetA = createDataSet( 'A' );
@@ -253,7 +252,7 @@ public class AnalyticsServiceReportingRateTest
     }
 
     @Test
-    public void verifyReportingRatesForMonthsWithMoreThen30DaysAreComputedCorrectly()
+    void verifyReportingRatesForMonthsWithMoreThen30DaysAreComputedCorrectly()
     {
         // Create a Dataset with a Daily period type
         DataSet dataSetA = createDataSet( 'A' );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@ import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.IdScheme.UUID;
 import static org.hisp.dhis.period.PeriodType.getPeriodFromIsoString;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.List;
 import java.util.Map;
@@ -60,29 +59,28 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.junit.MockitoRule;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author maikel arabori
  */
-public class SchemaIdResponseMapperTest
+@ExtendWith( MockitoExtension.class )
+class SchemaIdResponseMapperTest
 {
-    @Rule
-    public MockitoRule mockitoRule = rule();
 
     private SchemaIdResponseMapper schemaIdResponseMapper;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         schemaIdResponseMapper = new SchemaIdResponseMapper();
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName()
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToName()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -110,7 +108,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToCode()
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToCode()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -138,7 +136,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUuid()
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUuid()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -166,7 +164,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUid()
+    void testGetSchemeIdResponseMapWhenOutputIdSchemeIsSetToUid()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -194,7 +192,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToNameForDataValueSet()
     {
         // Given
         final List<DataElement> dataElementsStub = stubDataElements();
@@ -220,7 +218,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCodeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToCodeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -249,7 +247,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuidForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUuidForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -278,7 +276,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUidForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeIsSetToUidForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -307,7 +305,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToNameForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToNameForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -336,7 +334,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCodeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToCodeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -365,7 +363,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuidForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUuidForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -394,7 +392,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUidForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeIsSetToUidForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -423,7 +421,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputOrgUnitIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -455,7 +453,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementIdSchemeOverridesOutputOrgUnitIdSchemeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();
@@ -488,7 +486,7 @@ public class SchemaIdResponseMapperTest
     }
 
     @Test
-    public void testGetSchemeIdResponseMapWhenOutputDataElementAndOrgUnitIdSchemeOverrideOutputOrgUnitIdSchemeForDataValueSet()
+    void testGetSchemeIdResponseMapWhenOutputDataElementAndOrgUnitIdSchemeOverrideOutputOrgUnitIdSchemeForDataValueSet()
     {
         // Given
         final List<DataElementOperand> dataElementOperandsStub = stubDataElementOperands();

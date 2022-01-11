@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.trackedentityfilter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -39,17 +39,16 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public class TrackedEntityInstanceFilterServiceTest
-    extends DhisSpringTest
+class TrackedEntityInstanceFilterServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private ProgramService programService;
 
@@ -63,8 +62,8 @@ public class TrackedEntityInstanceFilterServiceTest
 
     private Program programB;
 
-    @Before
-    public void init()
+    @BeforeEach
+    void init()
     {
         userService = _userService;
     }
@@ -74,20 +73,17 @@ public class TrackedEntityInstanceFilterServiceTest
     {
         programA = createProgram( 'A', null, null );
         programB = createProgram( 'B', null, null );
-
         programService.addProgram( programA );
         programService.addProgram( programB );
     }
 
     @Test
-    public void testAddGet()
+    void testAddGet()
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
         TrackedEntityInstanceFilter trackedEntityInstanceFilterB = createTrackedEntityInstanceFilter( 'B', programB );
-
         long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
         long idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
-
         assertEquals( idA, trackedEntityInstanceFilterA.getId() );
         assertEquals( idB, trackedEntityInstanceFilterB.getId() );
         assertEquals( trackedEntityInstanceFilterA, trackedEntityInstanceFilterService.get( idA ) );
@@ -95,107 +91,80 @@ public class TrackedEntityInstanceFilterServiceTest
     }
 
     @Test
-    public void testGetAll()
+    void testGetAll()
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
         TrackedEntityInstanceFilter trackedEntityInstanceFilterB = createTrackedEntityInstanceFilter( 'B', programB );
-
         trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
         trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
-
         List<TrackedEntityInstanceFilter> trackedEntityInstanceFilters = trackedEntityInstanceFilterService.getAll();
-
         assertEquals( trackedEntityInstanceFilters.size(), 2 );
         assertTrue( trackedEntityInstanceFilters.contains( trackedEntityInstanceFilterA ) );
         assertTrue( trackedEntityInstanceFilters.contains( trackedEntityInstanceFilterB ) );
     }
 
     @Test
-    public void testGetByProgram()
+    void testGetByProgram()
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
         TrackedEntityInstanceFilter trackedEntityInstanceFilterB = createTrackedEntityInstanceFilter( 'B', programB );
         TrackedEntityInstanceFilter trackedEntityInstanceFilterC = createTrackedEntityInstanceFilter( 'C', programA );
-
         trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
         trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
         trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterC );
-
         List<TrackedEntityInstanceFilter> trackedEntityInstanceFilters = trackedEntityInstanceFilterService
             .get( programA );
-
         assertEquals( trackedEntityInstanceFilters.size(), 2 );
         assertTrue( trackedEntityInstanceFilters.contains( trackedEntityInstanceFilterA ) );
         assertTrue( trackedEntityInstanceFilters.contains( trackedEntityInstanceFilterC ) );
         assertFalse( trackedEntityInstanceFilters.contains( trackedEntityInstanceFilterB ) );
-
     }
 
     @Test
-    public void testUpdate()
+    void testUpdate()
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
-
         long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
-
         trackedEntityInstanceFilterA.setProgram( programB );
-
         trackedEntityInstanceFilterService.update( trackedEntityInstanceFilterA );
-
         assertEquals( trackedEntityInstanceFilterA, trackedEntityInstanceFilterService.get( idA ) );
-
         List<TrackedEntityInstanceFilter> trackedEntityInstanceFilters = trackedEntityInstanceFilterService
             .get( programB );
-
         assertEquals( trackedEntityInstanceFilters.size(), 1 );
         assertTrue( trackedEntityInstanceFilters.contains( trackedEntityInstanceFilterA ) );
-
         trackedEntityInstanceFilters = trackedEntityInstanceFilterService.get( programA );
-
         assertEquals( trackedEntityInstanceFilters.size(), 0 );
     }
 
     @Test
-    public void testDelete()
+    void testDelete()
     {
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
         TrackedEntityInstanceFilter trackedEntityInstanceFilterB = createTrackedEntityInstanceFilter( 'B', programB );
-
         long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
         long idB = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterB );
-
         List<TrackedEntityInstanceFilter> trackedEntityInstanceFilters = trackedEntityInstanceFilterService.getAll();
-
         assertEquals( trackedEntityInstanceFilters.size(), 2 );
-
         trackedEntityInstanceFilterService.delete( trackedEntityInstanceFilterService.get( idA ) );
-
         assertNull( trackedEntityInstanceFilterService.get( idA ) );
         assertNotNull( trackedEntityInstanceFilterService.get( idB ) );
     }
 
     @Test
-    public void testSaveWithoutAuthority()
+    void testSaveWithoutAuthority()
     {
         createUserAndInjectSecurityContext( false );
-
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
-
         long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
-
         assertNotNull( trackedEntityInstanceFilterService.get( idA ) );
     }
 
     @Test
-    public void testSaveWithAuthority()
+    void testSaveWithAuthority()
     {
         createUserAndInjectSecurityContext( false, "F_PROGRAMSTAGE_ADD" );
-
         TrackedEntityInstanceFilter trackedEntityInstanceFilterA = createTrackedEntityInstanceFilter( 'A', programA );
-
         long idA = trackedEntityInstanceFilterService.add( trackedEntityInstanceFilterA );
-
         assertNotNull( trackedEntityInstanceFilterService.get( idA ) );
     }
-
 }

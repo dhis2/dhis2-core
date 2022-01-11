@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.reservedvalue.hibernate;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,36 +47,31 @@ import java.util.concurrent.Future;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-public class HibernateSequentialNumberCounterStoreTest
-    extends TransactionalIntegrationTest
+class HibernateSequentialNumberCounterStoreTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private DummyService dummyService;
 
     @Test
-    public void getNextValues()
+    void getNextValues()
     {
-
         List<Integer> result = dummyService.getNextValues( "ABC", "ABC-#", 3 );
-
         assertEquals( 3, result.size() );
         assertTrue( result.contains( 1 ) );
         assertTrue( result.contains( 2 ) );
         assertTrue( result.contains( 3 ) );
-
         result = dummyService.getNextValues( "ABC", "ABC-#", 50 );
-
         assertEquals( 50, result.size() );
         assertTrue( result.contains( 4 ) );
         assertTrue( result.contains( 5 ) );
         assertTrue( result.contains( 52 ) );
         assertTrue( result.contains( 53 ) );
-
     }
 
     private void test( final int threadCount )
@@ -84,23 +79,18 @@ public class HibernateSequentialNumberCounterStoreTest
         ExecutionException
     {
         final String uid = RandomStringUtils.randomAlphabetic( 3 ).toUpperCase();
-
         Callable<List<Integer>> task = () -> dummyService.getNextValues( uid, uid + "-#", 50 );
-
         List<Callable<List<Integer>>> tasks = Collections.nCopies( threadCount, task );
         ExecutorService executorService = Executors.newFixedThreadPool( threadCount );
         List<Future<List<Integer>>> futures = executorService.invokeAll( tasks );
         List<List<Integer>> resultList = new ArrayList<>( futures.size() );
-
         // Check for exceptions
         for ( Future<List<Integer>> future : futures )
         {
             // Throws an exception if an exception was thrown by the task.
             resultList.add( future.get() );
         }
-
         assertEquals( threadCount, futures.size() );
-
         Set<Integer> allIds = new HashSet<>();
         List<Integer> allIdList = new ArrayList<>();
         for ( List<Integer> integers : resultList )
@@ -108,16 +98,14 @@ public class HibernateSequentialNumberCounterStoreTest
             allIds.addAll( integers );
             allIdList.addAll( integers );
         }
-
         assertThat( allIds, hasSize( threadCount * 50 ) );
-
         Collections.sort( allIdList );
         assertThat( allIdList.get( 0 ), is( 1 ) );
         assertThat( allIdList.get( allIdList.size() - 1 ), is( 50 * threadCount ) );
     }
 
     @Test
-    public void test1()
+    void test1()
         throws InterruptedException,
         ExecutionException
     {
@@ -125,7 +113,7 @@ public class HibernateSequentialNumberCounterStoreTest
     }
 
     @Test
-    public void test4()
+    void test4()
         throws InterruptedException,
         ExecutionException
     {
@@ -133,7 +121,7 @@ public class HibernateSequentialNumberCounterStoreTest
     }
 
     @Test
-    public void test8()
+    void test8()
         throws InterruptedException,
         ExecutionException
     {
@@ -141,7 +129,7 @@ public class HibernateSequentialNumberCounterStoreTest
     }
 
     @Test
-    public void test16()
+    void test16()
         throws InterruptedException,
         ExecutionException
     {
@@ -149,7 +137,7 @@ public class HibernateSequentialNumberCounterStoreTest
     }
 
     @Test
-    public void test32()
+    void test32()
         throws InterruptedException,
         ExecutionException
     {
@@ -157,18 +145,14 @@ public class HibernateSequentialNumberCounterStoreTest
     }
 
     @Test
-    public void deleteCounter()
+    void deleteCounter()
     {
         assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
-
         dummyService.deleteCounter( "ABC" );
-
         assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
         assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
         assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
-
         dummyService.deleteCounter( "ABC" );
-
         assertTrue( dummyService.getNextValues( "ABC", "ABC-#", 3 ).contains( 1 ) );
         assertTrue( dummyService.getNextValues( "ABC", "ABC-##", 3 ).contains( 1 ) );
         assertTrue( dummyService.getNextValues( "ABC", "ABC-###", 3 ).contains( 1 ) );
@@ -177,6 +161,7 @@ public class HibernateSequentialNumberCounterStoreTest
     @Configuration
     static class TestConfig
     {
+
         @Autowired
         private SequentialNumberCounterStore sequentialNumberCounterStore;
 

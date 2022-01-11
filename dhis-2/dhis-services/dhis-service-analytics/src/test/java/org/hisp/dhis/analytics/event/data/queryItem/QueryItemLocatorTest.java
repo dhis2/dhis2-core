@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttrib
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
 import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -67,12 +67,11 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -80,8 +79,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-public class QueryItemLocatorTest
+@ExtendWith( MockitoExtension.class )
+class QueryItemLocatorTest
 {
+
     @Mock
     private ProgramStageService programStageService;
 
@@ -102,16 +103,13 @@ public class QueryItemLocatorTest
 
     private QueryItemLocator subject;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private Program programA;
 
     private String dimension;
 
     private String programStageUid;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         programA = createProgram( 'A' );
@@ -124,23 +122,23 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyExceptionOnEmptyDimension()
+    void verifyExceptionOnEmptyDimension()
     {
-        assertThrows( "Item identifier does not reference any data element, attribute or indicator part of the program",
-            IllegalQueryException.class,
-            () -> subject.getQueryItemFromDimension( "", programA, EventOutputType.ENROLLMENT ) );
+        assertThrows( IllegalQueryException.class,
+            () -> subject.getQueryItemFromDimension( "", programA, EventOutputType.ENROLLMENT ),
+            "Item identifier does not reference any data element, attribute or indicator part of the program" );
     }
 
     @Test
-    public void verifyExceptionOnEmptyProgram()
+    void verifyExceptionOnEmptyProgram()
     {
-        assertThrows( "Program can not be null",
-            NullPointerException.class,
-            () -> subject.getQueryItemFromDimension( dimension, null, EventOutputType.ENROLLMENT ) );
+        assertThrows( NullPointerException.class,
+            () -> subject.getQueryItemFromDimension( dimension, null, EventOutputType.ENROLLMENT ),
+            "Program can not be null" );
     }
 
     @Test
-    public void verifyDimensionReturnsDataElementForEventQuery()
+    void verifyDimensionReturnsDataElementForEventQuery()
     {
         DataElement dataElementA = createDataElement( 'A' );
 
@@ -163,7 +161,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void getQueryItemFromDimensionThrowsRightExceptionWhenElementDoesNotBelongToProgram()
+    void getQueryItemFromDimensionThrowsRightExceptionWhenElementDoesNotBelongToProgram()
     {
         // Arrange
         DataElement iBelongDataElement = createDataElement( 'A' );
@@ -182,7 +180,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
+    void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
     {
         DataElement dataElementA = createDataElement( 'A' );
 
@@ -195,13 +193,13 @@ public class QueryItemLocatorTest
 
         when( dataElementService.getDataElement( dimension ) ).thenReturn( dataElementA );
 
-        assertThrows( "Program stage is mandatory for data element dimensions in enrollment analytics queries",
-            IllegalQueryException.class,
-            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT ) );
+        assertThrows( IllegalQueryException.class,
+            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT ),
+            "Program stage is mandatory for data element dimensions in enrollment analytics queries" );
     }
 
     @Test
-    public void verifyDimensionReturnsDataElementForEnrollmentQuery()
+    void verifyDimensionReturnsDataElementForEnrollmentQuery()
     {
         DataElement dataElementA = createDataElement( 'A' );
 
@@ -225,7 +223,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionWithLegendSetReturnsDataElement()
+    void verifyDimensionWithLegendSetReturnsDataElement()
     {
         String legendSetUid = CodeGenerator.generateUid();
 
@@ -254,7 +252,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionWithLegendSetAndProgramStageReturnsDataElement()
+    void verifyDimensionWithLegendSetAndProgramStageReturnsDataElement()
     {
         String legendSetUid = CodeGenerator.generateUid();
 
@@ -289,7 +287,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionReturnsTrackedEntityAttribute()
+    void verifyDimensionReturnsTrackedEntityAttribute()
     {
         OptionSet optionSetA = createOptionSet( 'A' );
 
@@ -316,7 +314,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionReturnsProgramIndicator()
+    void verifyDimensionReturnsProgramIndicator()
     {
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
         programIndicatorA.setUid( dimension );
@@ -335,7 +333,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionReturnsProgramIndicatorWithRelationship()
+    void verifyDimensionReturnsProgramIndicatorWithRelationship()
     {
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
         programIndicatorA.setUid( dimension );
@@ -359,7 +357,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyForeignProgramIndicatorWithoutRelationshipIsNotAccepted()
+    void verifyForeignProgramIndicatorWithoutRelationshipIsNotAccepted()
     {
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );
@@ -368,13 +366,13 @@ public class QueryItemLocatorTest
         when( programIndicatorService.getProgramIndicatorByUid( programIndicatorA.getUid() ) )
             .thenReturn( programIndicatorA );
 
-        assertThrows( "Item identifier does not reference any data element, attribute or indicator part of the program",
-            IllegalQueryException.class,
-            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT ) );
+        assertThrows( IllegalQueryException.class,
+            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.ENROLLMENT ),
+            "Item identifier does not reference any data element, attribute or indicator part of the program" );
     }
 
     @Test
-    public void verifyForeignProgramIndicatorWithRelationshipIsAccepted()
+    void verifyForeignProgramIndicatorWithRelationshipIsAccepted()
     {
 
         ProgramIndicator programIndicatorA = createProgramIndicator( 'A', programA, "", "" );

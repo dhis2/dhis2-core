@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,10 @@ import static org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService.METADATA_STORE_N
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
@@ -45,7 +45,7 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonKeyJsonValue;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
@@ -55,7 +55,7 @@ import org.springframework.http.HttpStatus.Series;
  *
  * @author Jan Bernitt
  */
-public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
+class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
 {
 
     /**
@@ -66,87 +66,78 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     private KeyJsonValueService service;
 
     @Test
-    public void testGetNamespaces()
+    void testGetNamespaces()
     {
         // out of the box (as superuser)
         assertSeries( Series.SUCCESSFUL, POST( "/dataStore/METADATASTORE/key", "{}" ) );
         assertEquals( singletonList( METADATA_STORE_NS ), GET( "/dataStore" ).content().stringValues() );
-
         // after we created an entry in foo namespace
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/colors/blue", "{'answer': 42}" ) );
         assertEquals( asList( METADATA_STORE_NS, "colors" ), GET( "/dataStore" ).content().stringValues() );
     }
 
     @Test
-    public void testGetNamespaces_HiddenNamespaceNotVisible()
+    void testGetNamespaces_HiddenNamespaceNotVisible()
     {
-        switchToNewUser( "anonymous" ); // does not have special authorities
+        // does not have special authorities
+        switchToNewUser( "anonymous" );
         assertEquals( emptyList(), GET( "/dataStore" ).content().stringValues() );
     }
 
     @Test
-    public void testGetNamespaces_RestrictedNamespaceIsVisible()
+    void testGetNamespaces_RestrictedNamespaceIsVisible()
     {
         setUpNamespaceProtection( "fruits", ProtectionType.RESTRICTED, "fruits_ns_authority" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/fruits/apple", "{'answer': 42}" ) );
-        switchToNewUser( "anonymous" ); // does not have special authorities
-
+        // does not have special authorities
+        switchToNewUser( "anonymous" );
         assertEquals( singletonList( "fruits" ), GET( "/dataStore" ).content().stringValues() );
     }
 
     @Test
-    public void testGetKeysInNamespace()
+    void testGetKeysInNamespace()
     {
         assertSeries( Series.SUCCESSFUL, POST( "/dataStore/METADATASTORE/key", "{}" ) );
         assertEquals( singletonList( "key" ),
             GET( "/dataStore/{namespace}", METADATA_STORE_NS ).content().stringValues() );
-
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'answer': 42}" ) );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "{'answer': true}" ) );
-
         assertContainsOnly( GET( "/dataStore/pets" ).content().stringValues(), "cat", "dog" );
     }
 
     @Test
-    public void testGetKeysInNamespace_MustExist()
+    void testGetKeysInNamespace_MustExist()
     {
         assertEquals( "Namespace not found: 'missing'",
             GET( "/dataStore/missing" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
     @Test
-    public void testGetKeysInNamespace_ProtectedNamespaceWhenRestricted()
+    void testGetKeysInNamespace_ProtectedNamespaceWhenRestricted()
     {
         setUpNamespaceProtection( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'answer': 42}" ) );
-
         // as superuser:
         assertEquals( singletonList( "cat" ), GET( "/dataStore/pets" ).content().stringValues() );
-
         // as a user that is a pets admin
         switchToNewUser( "some-user", "pets-admin" );
         assertEquals( singletonList( "cat" ), GET( "/dataStore/pets" ).content().stringValues() );
-
         // as a user that lacks authority
         switchToNewUser( "anonymous" );
-        assertEquals(
-            "Namespace 'pets' is protected, access denied",
+        assertEquals( "Namespace 'pets' is protected, access denied",
             GET( "/dataStore/pets" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
-    public void testGetKeysInNamespace_ProtectedNamespaceWhenHidden()
+    void testGetKeysInNamespace_ProtectedNamespaceWhenHidden()
     {
         setUpNamespaceProtection( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'answer': 42}" ) );
-
         // as superuser:
         assertEquals( singletonList( "cat" ), GET( "/dataStore/pets" ).content().stringValues() );
-
         // as a user that is a pets admin
         switchToNewUser( "some-user", "pets-admin" );
         assertEquals( singletonList( "cat" ), GET( "/dataStore/pets" ).content().stringValues() );
-
         // as a user that lacks authority
         switchToNewUser( "anonymous" );
         assertEquals( "Namespace not found: 'pets'",
@@ -154,201 +145,216 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDeleteNamespace()
+    void testDeleteNamespace()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets" ) );
         assertStatus( HttpStatus.NOT_FOUND, GET( "/dataStore/pets" ) );
     }
 
     @Test
-    public void testDeleteNamespace_MustExist()
+    void testDeleteNamespace_MustExist()
     {
         assertStatus( HttpStatus.NOT_FOUND, DELETE( "/dataStore/missing" ) );
     }
 
     @Test
-    public void testDeleteNamespace_ProtectedNamespaceWhenRestricted()
+    void testDeleteNamespace_ProtectedNamespaceWhenRestricted()
     {
         setUpNamespaceProtection( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         // user that lacks authority
         switchToNewUser( "anonymous" );
         assertStatus( HttpStatus.FORBIDDEN, DELETE( "/dataStore/pets" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets" ) );
     }
 
     @Test
-    public void testDeleteNamespace_ProtectedNamespaceWhenHidden()
+    void testDeleteNamespace_ProtectedNamespaceWhenHidden()
     {
         setUpNamespaceProtection( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         // user that lacks authority
         switchToNewUser( "anonymous" );
         assertStatus( HttpStatus.NOT_FOUND, DELETE( "/dataStore/pets" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets" ) );
     }
 
     @Test
-    public void testDeleteNamespace_ProtectedNamespaceWithSharing()
+    void testDeleteNamespace_ProtectedNamespaceWithSharing()
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             DELETE( "/dataStore/pets" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToSuperuser();
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets" ) );
     }
 
     @Test
-    public void testGetKeyJsonValue()
+    void testGetKeyJsonValue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "'dog'" ) );
-
         assertEquals( "dog", GET( "/dataStore/pets/cat" ).content().string() );
     }
 
     @Test
-    public void testGetKeyJsonValue_ComplexValue()
+    void testGetKeyJsonValue_ComplexValue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'x':[1,2,3]}" ) );
-
         assertEquals( asList( 1, 2, 3 ), GET( "/dataStore/pets/cat" ).content().getArray( "x" ).numberValues() );
     }
 
     @Test
-    public void testGetKeyJsonValue_MustExist()
+    void testGetKeyJsonValue_MustExist()
     {
         assertStatus( HttpStatus.NOT_FOUND, GET( "/dataStore/pets/cat" ) );
     }
 
     @Test
-    public void testGetKeyJsonValue_ProtectedNamespaceWhenHidden()
+    void testGetKeyJsonValue_ProtectedNamespaceWhenHidden()
     {
         setUpNamespaceProtection( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         switchToNewUser( "anonymous" );
-
         assertStatus( HttpStatus.NOT_FOUND, GET( "/dataStore/pets/cat" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertTrue( GET( "/dataStore/pets/cat" ).content().isObject() );
     }
 
     @Test
-    public void testGetKeyJsonValue_ProtectedNamespaceWhenRestricted()
+    void testGetKeyJsonValue_ProtectedNamespaceWhenRestricted()
     {
         setUpNamespaceProtection( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         switchToNewUser( "anonymous" );
-
         assertStatus( HttpStatus.FORBIDDEN, GET( "/dataStore/pets/cat" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertTrue( GET( "/dataStore/pets/cat" ).content().isObject() );
     }
 
     @Test
-    public void testGetKeyJsonValue_ProtectedNamespaceWithSharing()
+    void testGetKeyJsonValue_ProtectedNamespaceWithSharing()
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             GET( "/dataStore/pets/cat" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToSuperuser();
         assertStatus( HttpStatus.OK, GET( "/dataStore/pets/cat" ) );
     }
 
     @Test
-    public void testGetKeyJsonValueMetaData()
+    void testGetKeyJsonValueMetaData()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         JsonKeyJsonValue metaData = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class );
         assertEquals( "pets", metaData.getNamespace() );
         assertEquals( "cat", metaData.getKey() );
-        assertTrue( "metadata should not contain the value", metaData.getValue().isUndefined() );
+        assertTrue( metaData.getValue().isUndefined(), "metadata should not contain the value" );
     }
 
     @Test
-    public void testGetKeyJsonValueMetaData_MustExist()
+    void testGetKeyJsonValueMetaData_MustExist()
     {
         assertStatus( HttpStatus.NOT_FOUND, GET( "/dataStore/pets/missing/metaData" ) );
     }
 
     @Test
-    public void testGetKeyJsonValueMetaData_ProtectedNamespaceWhenRestricted()
+    void testGetKeyJsonValueMetaData_ProtectedNamespaceWhenRestricted()
     {
         setUpNamespaceProtection( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         switchToNewUser( "anonymous" );
-
         assertStatus( HttpStatus.FORBIDDEN, GET( "/dataStore/pets/cat/metaData" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertStatus( HttpStatus.OK, GET( "/dataStore/pets/cat/metaData" ) );
     }
 
     @Test
-    public void testGetKeyJsonValueMetaData_ProtectedNamespaceWhenHidden()
+    void testGetKeyJsonValueMetaData_ProtectedNamespaceWhenHidden()
     {
         setUpNamespaceProtection( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         switchToNewUser( "anonymous" );
-
         assertStatus( HttpStatus.NOT_FOUND, GET( "/dataStore/pets/cat/metaData" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertStatus( HttpStatus.OK, GET( "/dataStore/pets/cat/metaData" ) );
     }
 
     @Test
-    public void testGetKeyJsonValueMetaData_ProtectedNamespaceWithSharing()
+    void testGetKeyJsonValueMetaData_ProtectedNamespaceWithSharing()
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             GET( "/dataStore/pets/cat/metaData" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToSuperuser();
         assertStatus( HttpStatus.OK, GET( "/dataStore/pets/cat/metaData" ) );
     }
 
     @Test
-    public void testAddKeyJsonValue()
+    void testAddKeyJsonValue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
     }
 
     @Test
-    public void testAddKeyJsonValue_Encrypt()
+    void testGetEntries()
+    {
+        assertStatus( HttpStatus.CREATED,
+            POST( "/dataStore/pets/cat", "{\"a\":42,\"b\":\"hello\",\"c\":{\"xz\":42},\"d\":[1,2]}" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "false" ) );
+
+        assertEquals( "[{" +
+            "\"key\":\"cat\"," +
+            "\"b\":\"hello\"," +
+            "\"deep\":{\"c\":{\"xz\":42},\"d\":1}" +
+            "}]",
+            GET( "/dataStore/pets?fields=b,c(deep.c),d[0(deep.d)]" ).content().toString() );
+    }
+
+    @Test
+    void testGetEntries_IncludeAllTrue()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{\"a\":42}" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "false" ) );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/pet", "[42]" ) );
+
+        assertEquals( "[" +
+            "{\"key\":\"cat\",\"a\":42}," +
+            "{\"key\":\"dog\",\"a\":null}," +
+            "{\"key\":\"pet\",\"a\":null}" +
+            "]",
+            GET( "/dataStore/pets?fields=a&includeAll=true" ).content().toString() );
+    }
+
+    @Test
+    void testGetEntries_IllegalPath()
+    {
+        assertWebMessage( "Conflict", 409, "ERROR",
+            "Illegal fields expression. Expected `,`, `[` or `]` at position 7 but found `'`",
+            GET( "/dataStore/pets?fields=illegal'" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void testAddKeyJsonValue_Encrypt()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat?encrypt=true", "{}" ) );
-
         // there is no way to see in the exposed metadata that a value is
         // encrypted, user service
         KeyJsonValue entry = service.getKeyJsonValue( "pets", "cat" );
@@ -358,7 +364,7 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testAddKeyJsonValue_AlreadyExists()
+    void testAddKeyJsonValue_AlreadyExists()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         assertEquals( "Key 'cat' already exists in namespace 'pets'",
@@ -366,29 +372,26 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testAddKeyJsonValue_MustBeJson()
+    void testAddKeyJsonValue_MustBeJson()
     {
         assertEquals( "Invalid JSON value for key 'cat'",
             POST( "/dataStore/pets/cat", "/not JSON/" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
     }
 
     @Test
-    public void testAddKeyJsonValue_ProtectedNamespaceWhenRestricted()
+    void testAddKeyJsonValue_ProtectedNamespaceWhenRestricted()
     {
         setUpNamespaceProtection( "pets", ProtectionType.RESTRICTED, "pets-admin" );
-
         switchToNewUser( "anonymous" );
         assertStatus( HttpStatus.FORBIDDEN, POST( "/dataStore/pets/cat", "{}" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
     }
 
     @Test
-    public void testAddKeyJsonValue_ProtectedNamespaceWhenHidden()
+    void testAddKeyJsonValue_ProtectedNamespaceWhenHidden()
     {
         setUpNamespaceProtection( "pets", ProtectionType.HIDDEN, "pets-admin" );
-
         switchToNewUser( "anonymous" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         // but:
@@ -396,132 +399,115 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testUpdateKeyJsonValue()
+    void testUpdateKeyJsonValue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         assertStatus( HttpStatus.OK, PUT( "/dataStore/pets/cat", "[1,2,3]" ) );
-
         assertEquals( asList( 1, 2, 3 ), GET( "/dataStore/pets/cat" ).content().numberValues() );
     }
 
     @Test
-    public void testUpdateKeyJsonValue_MustExist()
+    void testUpdateKeyJsonValue_MustExist()
     {
         assertEquals( "Key 'cat' not found in namespace 'pets'",
             PUT( "/dataStore/pets/cat", "[]" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
     @Test
-    public void testUpdateKeyJsonValue_MustBeJson()
+    void testUpdateKeyJsonValue_MustBeJson()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         assertEquals( "Invalid JSON value for key 'cat'",
             PUT( "/dataStore/pets/cat", "+not JSON+" ).error( HttpStatus.BAD_REQUEST ).getMessage() );
     }
 
     @Test
-    public void testUpdateKeyJsonValue_ProtectedNamespaceWhenRestricted()
+    void testUpdateKeyJsonValue_ProtectedNamespaceWhenRestricted()
     {
         setUpNamespaceProtection( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         switchToNewUser( "anonymous" );
         assertStatus( HttpStatus.FORBIDDEN, PUT( "/dataStore/pets/cat", "[]" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertStatus( HttpStatus.OK, PUT( "/dataStore/pets/cat", "[]" ) );
     }
 
     @Test
-    public void testUpdateKeyJsonValue_ProtectedNamespaceWhenHidden()
+    void testUpdateKeyJsonValue_ProtectedNamespaceWhenHidden()
     {
         setUpNamespaceProtection( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         switchToNewUser( "anonymous" );
         assertStatus( HttpStatus.NOT_FOUND, PUT( "/dataStore/pets/cat", "[]" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertStatus( HttpStatus.OK, PUT( "/dataStore/pets/cat", "[]" ) );
     }
 
     @Test
-    public void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing()
+    void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing()
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}" ) );
-
         switchToNewUser( "someone", "pets-admin" );
         assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             PUT( "/dataStore/pets/cat", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToSuperuser();
         assertStatus( HttpStatus.OK, PUT( "/dataStore/pets/cat", "[]" ) );
     }
 
     @Test
-    public void testDeleteKeyJsonValue()
+    void testDeleteKeyJsonValue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets/cat" ) );
     }
 
     @Test
-    public void testDeleteKeyJsonValue_MustExist()
+    void testDeleteKeyJsonValue_MustExist()
     {
         assertEquals( "Key 'cat' not found in namespace 'pets'",
             DELETE( "/dataStore/pets/cat" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
     @Test
-    public void testDeleteKeyJsonValue_ProtectedNamespaceWhenRestricted()
+    void testDeleteKeyJsonValue_ProtectedNamespaceWhenRestricted()
     {
         setUpNamespaceProtection( "pets", ProtectionType.RESTRICTED, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         switchToNewUser( "anonymous" );
-        assertEquals(
-            "Namespace 'pets' is protected, access denied",
+        assertEquals( "Namespace 'pets' is protected, access denied",
             DELETE( "/dataStore/pets/cat" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToNewUser( "someone", "pets-admin" );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets/cat" ) );
     }
 
     @Test
-    public void testDeleteKeyJsonValue_ProtectedNamespaceWhenHidden()
+    void testDeleteKeyJsonValue_ProtectedNamespaceWhenHidden()
     {
         setUpNamespaceProtection( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
-
         switchToNewUser( "anonymous" );
         assertEquals( "Key 'cat' not found in namespace 'pets'",
             DELETE( "/dataStore/pets/cat" ).error( HttpStatus.NOT_FOUND ).getMessage() );
-
         switchToNewUser( "someone", "pets-admin" );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets/cat" ) );
     }
 
     @Test
-    public void testDeleteKeyJsonValue_ProtectedNamespaceWithSharing()
+    void testDeleteKeyJsonValue_ProtectedNamespaceWithSharing()
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
         String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
         assertStatus( HttpStatus.OK,
             POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}" ) );
-
         // a user with required authority cannot delete (ACL fails)
         switchToNewUser( "someone", "pets-admin" );
         assertEquals( "Access denied for key 'cat' in namespace 'pets'",
             DELETE( "/dataStore/pets/cat" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         // but the owner still can
         switchToSuperuser();
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets/cat" ) );
@@ -529,14 +515,12 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
 
     private void setUpNamespaceProtection( String namespace, ProtectionType readWrite, String... authorities )
     {
-        service.addProtection(
-            new KeyJsonNamespaceProtection( namespace, readWrite, false, authorities ) );
+        service.addProtection( new KeyJsonNamespaceProtection( namespace, readWrite, false, authorities ) );
     }
 
     private void setUpNamespaceProtectionWithSharing( String namespace, ProtectionType readWrite,
         String... authorities )
     {
-        service.addProtection(
-            new KeyJsonNamespaceProtection( namespace, readWrite, true, authorities ) );
+        service.addProtection( new KeyJsonNamespaceProtection( namespace, readWrite, true, authorities ) );
     }
 }

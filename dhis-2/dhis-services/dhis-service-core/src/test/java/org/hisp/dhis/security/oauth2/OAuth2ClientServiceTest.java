@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,21 @@
  */
 package org.hisp.dhis.security.oauth2;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Collection;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OAuth2ClientServiceTest
-    extends DhisSpringTest
+class OAuth2ClientServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private OAuth2ClientService oAuth2ClientService;
 
@@ -57,35 +57,30 @@ public class OAuth2ClientServiceTest
         clientA = new OAuth2Client();
         clientA.setName( "clientA" );
         clientA.setCid( "clientA" );
-
         clientB = new OAuth2Client();
         clientB.setName( "clientB" );
         clientB.setCid( "clientB" );
-
         clientC = new OAuth2Client();
         clientC.setName( "clientC" );
         clientC.setCid( "clientC" );
     }
 
     @Test
-    public void testGetAll()
+    void testGetAll()
     {
         oAuth2ClientService.saveOAuth2Client( clientA );
         oAuth2ClientService.saveOAuth2Client( clientB );
         oAuth2ClientService.saveOAuth2Client( clientC );
-
         Collection<OAuth2Client> all = oAuth2ClientService.getOAuth2Clients();
-
         assertEquals( 3, all.size() );
     }
 
     @Test
-    public void testGetByClientID()
+    void testGetByClientID()
     {
         oAuth2ClientService.saveOAuth2Client( clientA );
         oAuth2ClientService.saveOAuth2Client( clientB );
         oAuth2ClientService.saveOAuth2Client( clientC );
-
         assertNotNull( oAuth2ClientService.getOAuth2ClientByClientId( "clientA" ) );
         assertNotNull( oAuth2ClientService.getOAuth2ClientByClientId( "clientB" ) );
         assertNotNull( oAuth2ClientService.getOAuth2ClientByClientId( "clientC" ) );

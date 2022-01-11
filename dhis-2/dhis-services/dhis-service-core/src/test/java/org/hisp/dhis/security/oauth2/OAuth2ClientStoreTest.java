@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,21 @@
  */
 package org.hisp.dhis.security.oauth2;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Collection;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class OAuth2ClientStoreTest
-    extends DhisSpringTest
+class OAuth2ClientStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private OAuth2ClientStore oAuth2ClientStore;
 
@@ -57,35 +57,30 @@ public class OAuth2ClientStoreTest
         clientA = new OAuth2Client();
         clientA.setName( "clientA" );
         clientA.setCid( "clientA" );
-
         clientB = new OAuth2Client();
         clientB.setName( "clientB" );
         clientB.setCid( "clientB" );
-
         clientC = new OAuth2Client();
         clientC.setName( "clientC" );
         clientC.setCid( "clientC" );
     }
 
     @Test
-    public void testGetAll()
+    void testGetAll()
     {
         oAuth2ClientStore.save( clientA );
         oAuth2ClientStore.save( clientB );
         oAuth2ClientStore.save( clientC );
-
         Collection<OAuth2Client> all = oAuth2ClientStore.getAll();
-
         assertEquals( 3, all.size() );
     }
 
     @Test
-    public void testGetByClientID()
+    void testGetByClientID()
     {
         oAuth2ClientStore.save( clientA );
         oAuth2ClientStore.save( clientB );
         oAuth2ClientStore.save( clientC );
-
         assertNotNull( oAuth2ClientStore.getByClientId( "clientA" ) );
         assertNotNull( oAuth2ClientStore.getByClientId( "clientB" ) );
         assertNotNull( oAuth2ClientStore.getByClientId( "clientC" ) );

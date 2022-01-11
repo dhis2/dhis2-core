@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dxf2.csv;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,13 +43,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-public class CsvImportServiceTest
-    extends DhisSpringTest
+class CsvImportServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private CsvImportService csvImportService;
 
@@ -78,18 +78,14 @@ public class CsvImportServiceTest
         throws Exception
     {
         inputBasicObjects = new ClassPathResource( "csv/basic_objects.csv" ).getInputStream();
-
         organisationUnitGroup_A = createOrganisationUnitGroup( 'A' );
         organisationUnitGroup_B = createOrganisationUnitGroup( 'B' );
-
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup_A );
         organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup_B );
-
         organisationUnit_A = createOrganisationUnit( 'A' );
         organisationUnit_B = createOrganisationUnit( 'B' );
         organisationUnit_C = createOrganisationUnit( 'C' );
         organisationUnit_D = createOrganisationUnit( 'D' );
-
         organisationUnitService.addOrganisationUnit( organisationUnit_A );
         organisationUnitService.addOrganisationUnit( organisationUnit_B );
         organisationUnitService.addOrganisationUnit( organisationUnit_C );
@@ -97,15 +93,12 @@ public class CsvImportServiceTest
     }
 
     @Test
-    public void testCategoryOptionImport()
+    void testCategoryOptionImport()
         throws IOException
     {
-        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, new CsvImportOptions()
-            .setImportClass( CsvImportClass.CATEGORY_OPTION )
-            .setFirstRowIsHeader( true ) );
-
+        Metadata metadata = csvImportService.fromCsv( inputBasicObjects,
+            new CsvImportOptions().setImportClass( CsvImportClass.CATEGORY_OPTION ).setFirstRowIsHeader( true ) );
         assertEquals( 3, metadata.getCategoryOptions().size() );
-
         for ( CategoryOption categoryOption : metadata.getCategoryOptions() )
         {
             assertNotNull( categoryOption.getUid() );
@@ -115,17 +108,13 @@ public class CsvImportServiceTest
     }
 
     @Test
-    public void testCategoryOptionImportNoHeader()
+    void testCategoryOptionImportNoHeader()
         throws IOException
     {
         inputBasicObjects = new ClassPathResource( "csv/basic_objects_no_header.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( inputBasicObjects, new CsvImportOptions()
-            .setImportClass( CsvImportClass.CATEGORY_OPTION )
-            .setFirstRowIsHeader( false ) );
-
+        Metadata metadata = csvImportService.fromCsv( inputBasicObjects,
+            new CsvImportOptions().setImportClass( CsvImportClass.CATEGORY_OPTION ).setFirstRowIsHeader( false ) );
         assertEquals( 3, metadata.getCategoryOptions().size() );
-
         for ( CategoryOption categoryOption : metadata.getCategoryOptions() )
         {
             assertNotNull( categoryOption.getUid() );
@@ -135,34 +124,26 @@ public class CsvImportServiceTest
     }
 
     @Test
-    public void testOrganisationUnitGroupMembershipImport()
+    void testOrganisationUnitGroupMembershipImport()
         throws IOException
     {
         InputStream in = new ClassPathResource( "csv/org_unit_group_memberships.csv" ).getInputStream();
-
         Metadata metadata = csvImportService.fromCsv( in, new CsvImportOptions()
-            .setImportClass( CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP )
-            .setFirstRowIsHeader( true ) );
-
+            .setImportClass( CsvImportClass.ORGANISATION_UNIT_GROUP_MEMBERSHIP ).setFirstRowIsHeader( true ) );
         assertEquals( 2, metadata.getOrganisationUnitGroups().size() );
     }
 
     @Test
-    public void testImportCategories()
+    void testImportCategories()
         throws IOException
     {
         InputStream in = new ClassPathResource( "csv/categories.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( in, new CsvImportOptions()
-            .setImportClass( CsvImportClass.CATEGORY )
-            .setFirstRowIsHeader( true ) );
-
+        Metadata metadata = csvImportService.fromCsv( in,
+            new CsvImportOptions().setImportClass( CsvImportClass.CATEGORY ).setFirstRowIsHeader( true ) );
         assertEquals( 3, metadata.getCategories().size() );
-
         Category gender = metadata.getCategories().get( 0 );
         Category ageGroup = metadata.getCategories().get( 1 );
         Category partner = metadata.getCategories().get( 2 );
-
         assertEquals( "Gender", gender.getName() );
         assertEquals( DataDimensionType.DISAGGREGATION, gender.getDataDimensionType() );
         assertEquals( "AGEGROUP", ageGroup.getCode() );
@@ -170,20 +151,15 @@ public class CsvImportServiceTest
     }
 
     @Test
-    public void testImportCategoryCombos()
+    void testImportCategoryCombos()
         throws IOException
     {
         InputStream in = new ClassPathResource( "csv/category_combos.csv" ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( in, new CsvImportOptions()
-            .setImportClass( CsvImportClass.CATEGORY_COMBO )
-            .setFirstRowIsHeader( true ) );
-
+        Metadata metadata = csvImportService.fromCsv( in,
+            new CsvImportOptions().setImportClass( CsvImportClass.CATEGORY_COMBO ).setFirstRowIsHeader( true ) );
         assertEquals( 2, metadata.getCategoryCombos().size() );
-
         CategoryCombo genderAge = metadata.getCategoryCombos().get( 0 );
         CategoryCombo partner = metadata.getCategoryCombos().get( 1 );
-
         assertEquals( "Gender and Age", genderAge.getName() );
         assertEquals( DataDimensionType.DISAGGREGATION, genderAge.getDataDimensionType() );
         assertEquals( DataDimensionType.ATTRIBUTE, partner.getDataDimensionType() );

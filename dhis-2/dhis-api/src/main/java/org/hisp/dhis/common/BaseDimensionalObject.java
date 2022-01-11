@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,9 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.QueryKey;
+import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -81,6 +83,16 @@ public class BaseDimensionalObject
     private transient String dimensionDisplayName;
 
     /**
+     * Holds the value type of the parent dimension.
+     */
+    private transient ValueType valueType;
+
+    /**
+     * The option set associated with the dimension, if any.
+     */
+    private transient OptionSet optionSet;
+
+    /**
      * The dimensional items for this dimension.
      */
     private List<DimensionalItemObject> items = new ArrayList<>();
@@ -111,6 +123,12 @@ public class BaseDimensionalObject
      * can be repeated any number of times.
      */
     private String filter;
+
+    /**
+     * Applicable only for events. Holds the indexes relate to the repetition
+     * object.
+     */
+    private EventRepetition eventRepetition;
 
     /**
      * A {@link DimensionItemKeywords} defines a pre-defined group of items. For
@@ -180,6 +198,14 @@ public class BaseDimensionalObject
     public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
         String dimensionDisplayName, LegendSet legendSet, ProgramStage programStage, String filter )
     {
+        this( dimension, dimensionType, dimensionName, dimensionDisplayName, legendSet, programStage, filter, null,
+            null );
+    }
+
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
+        String dimensionDisplayName, LegendSet legendSet, ProgramStage programStage, String filter, ValueType valueType,
+        OptionSet optionSet )
+    {
         this( dimension );
         this.dimensionType = dimensionType;
         this.dimensionName = dimensionName;
@@ -187,6 +213,8 @@ public class BaseDimensionalObject
         this.legendSet = legendSet;
         this.programStage = programStage;
         this.filter = filter;
+        this.valueType = valueType;
+        this.optionSet = optionSet;
     }
 
     // TODO aggregationType in constructors
@@ -357,6 +385,22 @@ public class BaseDimensionalObject
 
     @Override
     @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public ValueType getValueType()
+    {
+        return valueType;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public OptionSet getOptionSet()
+    {
+        return optionSet;
+    }
+
+    @Override
+    @JsonProperty
     @JsonDeserialize( contentAs = BaseDimensionalItemObject.class )
     @JacksonXmlElementWrapper( localName = "items", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "item", namespace = DxfNamespaces.DXF_2_0 )
@@ -438,6 +482,19 @@ public class BaseDimensionalObject
     }
 
     @Override
+    @JsonProperty( "repetition" )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventRepetition getEventRepetition()
+    {
+        return eventRepetition;
+    }
+
+    public void setEventRepetition( final EventRepetition eventRepetition )
+    {
+        this.eventRepetition = eventRepetition;
+    }
+
+    @Override
     @JsonIgnore
     public boolean isFixed()
     {
@@ -475,6 +532,7 @@ public class BaseDimensionalObject
             .add( "dimension", uid )
             .add( "type", dimensionType )
             .add( "dimension display name", dimensionDisplayName )
+            .add( "dimension value type", valueType )
             .add( "items", itemStr )
             .toString();
     }

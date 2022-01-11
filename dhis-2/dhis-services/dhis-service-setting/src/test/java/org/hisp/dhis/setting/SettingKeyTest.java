@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,27 +28,28 @@
 package org.hisp.dhis.setting;
 
 import org.hisp.dhis.common.DisplayProperty;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link SettingKey}.
  *
  * @author Volker Schmidt
  */
-public class SettingKeyTest
+class SettingKeyTest
 {
+
     @Test
-    public void getAsRealClassEnum()
+    void getAsRealClassEnum()
     {
-        Assert.assertSame( DisplayProperty.SHORTNAME,
+        Assertions.assertSame( DisplayProperty.SHORTNAME,
             SettingKey.getAsRealClass( SettingKey.ANALYSIS_DISPLAY_PROPERTY.getName(), "shortName" ) );
     }
 
     @Test
-    public void getAsRealClassOther()
+    void getAsRealClassOther()
     {
-        Assert.assertSame( "Test Layout",
+        Assertions.assertSame( "Test Layout",
             SettingKey.getAsRealClass( SettingKey.TRACKER_DASHBOARD_LAYOUT.getName(), "Test Layout" ) );
     }
 }

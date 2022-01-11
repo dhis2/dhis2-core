@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.trackedentitycomment;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Chau Thu Tran
  */
-public class TrackedEntityCommentServiceTest
-    extends DhisSpringTest
+class TrackedEntityCommentServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private TrackedEntityCommentService commentService;
 
@@ -60,63 +60,52 @@ public class TrackedEntityCommentServiceTest
     }
 
     @Test
-    public void testSaveTrackedEntityComment()
+    void testSaveTrackedEntityComment()
     {
         long idA = commentService.addTrackedEntityComment( commentA );
         long idB = commentService.addTrackedEntityComment( commentB );
-
         assertNotNull( commentService.getTrackedEntityComment( idA ) );
         assertNotNull( commentService.getTrackedEntityComment( idB ) );
     }
 
     @Test
-    public void testDeleteTrackedEntityComment()
+    void testDeleteTrackedEntityComment()
     {
         long idA = commentService.addTrackedEntityComment( commentA );
         long idB = commentService.addTrackedEntityComment( commentB );
-
         assertNotNull( commentService.getTrackedEntityComment( idA ) );
         assertNotNull( commentService.getTrackedEntityComment( idB ) );
-
         commentService.deleteTrackedEntityComment( commentA );
-
         assertNull( commentService.getTrackedEntityComment( idA ) );
         assertNotNull( commentService.getTrackedEntityComment( idB ) );
-
         commentService.deleteTrackedEntityComment( commentB );
-
         assertNull( commentService.getTrackedEntityComment( idA ) );
         assertNull( commentService.getTrackedEntityComment( idB ) );
     }
 
     @Test
-    public void testUpdateTrackedEntityComment()
+    void testUpdateTrackedEntityComment()
     {
         long idA = commentService.addTrackedEntityComment( commentA );
-
         assertNotNull( commentService.getTrackedEntityComment( idA ) );
-
         commentA.setCommentText( "B" );
         commentService.updateTrackedEntityComment( commentA );
-
         assertEquals( "B", commentService.getTrackedEntityComment( idA ).getCommentText() );
     }
 
     @Test
-    public void testGetTrackedEntityCommentById()
+    void testGetTrackedEntityCommentById()
     {
         long idA = commentService.addTrackedEntityComment( commentA );
         long idB = commentService.addTrackedEntityComment( commentB );
-
         assertEquals( commentA, commentService.getTrackedEntityComment( idA ) );
         assertEquals( commentB, commentService.getTrackedEntityComment( idB ) );
     }
 
     @Test
-    public void testCommentExists()
+    void testCommentExists()
     {
         commentService.addTrackedEntityComment( commentA );
-
         assertTrue( commentService.trackedEntityCommentExists( commentA.getUid() ) );
     }
 }

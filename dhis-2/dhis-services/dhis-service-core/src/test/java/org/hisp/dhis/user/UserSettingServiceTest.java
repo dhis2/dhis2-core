@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +27,22 @@
  */
 package org.hisp.dhis.user;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Locale;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kiran Prakash
  */
-public class UserSettingServiceTest
-    extends DhisSpringTest
+class UserSettingServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private UserSettingService userSettingService;
 
@@ -58,7 +58,6 @@ public class UserSettingServiceTest
     protected void setUpTest()
     {
         userSettingService.invalidateCache();
-
         userA = createUser( 'A' );
         userService.addUser( userA );
         UserCredentials userCredentialsA = userA.getUserCredentials();
@@ -68,28 +67,22 @@ public class UserSettingServiceTest
     }
 
     @Test
-    public void testSaveGetDeleteUserSetting()
+    void testSaveGetDeleteUserSetting()
     {
         assertEquals( SettingKey.ANALYSIS_DISPLAY_PROPERTY.getDefaultValue(),
             userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA ) );
         assertEquals( SettingKey.STYLE.getDefaultValue(),
             userSettingService.getUserSetting( UserSettingKey.STYLE, userA ) );
-
         userSettingService.saveUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "shortName", "usernameA" );
         userSettingService.saveUserSetting( UserSettingKey.STYLE, "blue", "usernameA" );
-
         assertEquals( "shortName",
             userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA ) );
         assertEquals( "blue", userSettingService.getUserSetting( UserSettingKey.STYLE, userA ) );
-
         userSettingService.deleteUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA );
-
         assertEquals( SettingKey.ANALYSIS_DISPLAY_PROPERTY.getDefaultValue(),
             userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA ) );
         assertEquals( "blue", userSettingService.getUserSetting( UserSettingKey.STYLE, userA ) );
-
         userSettingService.deleteUserSetting( UserSettingKey.STYLE, userA );
-
         assertEquals( SettingKey.ANALYSIS_DISPLAY_PROPERTY.getDefaultValue(),
             userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA ) );
         assertEquals( SettingKey.STYLE.getDefaultValue(),
@@ -97,58 +90,47 @@ public class UserSettingServiceTest
     }
 
     @Test
-    public void testSaveOrUpdateUserSetting()
+    void testSaveOrUpdateUserSetting()
     {
         userSettingService.saveUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "name", "usernameA" );
         userSettingService.saveUserSetting( UserSettingKey.STYLE, "blue", "usernameA" );
-
         assertEquals( "name", userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA ) );
         assertEquals( "blue", userSettingService.getUserSetting( UserSettingKey.STYLE, userA ) );
-
         userSettingService.saveUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "shortName", "usernameA" );
         userSettingService.saveUserSetting( UserSettingKey.STYLE, "green", "usernameA" );
-
         assertEquals( "shortName",
             userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, userA ) );
         assertEquals( "green", userSettingService.getUserSetting( UserSettingKey.STYLE, userA ) );
     }
 
     @Test
-    public void testGetUserSettingsByUser()
+    void testGetUserSettingsByUser()
     {
         userSettingService.saveUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY, "name", "usernameA" );
         userSettingService.saveUserSetting( UserSettingKey.STYLE, "blue", "usernameA" );
         userSettingService.saveUserSetting( UserSettingKey.MESSAGE_SMS_NOTIFICATION, false, "usernameA" );
         userSettingService.saveUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, false, "usernameA" );
-
         assertEquals( 4, userSettingService.getUserSettings( userA ).size() );
     }
 
     @Test
-    public void testFallbackToDefaultValue()
+    void testFallbackToDefaultValue()
     {
         Boolean emailNotification = (Boolean) userSettingService
             .getUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, userA );
-
         assertEquals( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION.getDefaultValue(), emailNotification );
-
         userSettingService.saveUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION, Boolean.FALSE, userA );
-
         emailNotification = (Boolean) userSettingService.getUserSetting( UserSettingKey.MESSAGE_EMAIL_NOTIFICATION,
             userA );
-
         assertEquals( Boolean.FALSE, emailNotification );
     }
 
     @Test
-    public void testFallbackToSystemSetting()
+    void testFallbackToSystemSetting()
     {
         Locale expected = Locale.FRANCE;
-
         systemSettingManager.saveSystemSetting( SettingKey.UI_LOCALE, expected );
-
         Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE, userA );
-
         assertEquals( expected, locale );
     }
 }

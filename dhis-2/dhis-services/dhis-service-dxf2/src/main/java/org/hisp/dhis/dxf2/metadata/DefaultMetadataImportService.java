@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.dxf2.metadata;
+
+import static org.hisp.dhis.dxf2.metadata.objectbundle.EventReportCompatibilityGuard.handleDeprecationIfEventReport;
 
 import java.util.HashSet;
 import java.util.List;
@@ -122,6 +124,7 @@ public class DefaultMetadataImportService implements MetadataImportService
         preCreateBundle( params );
 
         ObjectBundleParams bundleParams = params.toObjectBundleParams();
+        handleDeprecationIfEventReport( bundleParams );
         ObjectBundle bundle = objectBundleService.create( bundleParams );
 
         postCreateBundle( bundle, bundleParams );

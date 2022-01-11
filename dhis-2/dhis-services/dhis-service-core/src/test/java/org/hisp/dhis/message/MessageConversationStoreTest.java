@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.message;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -39,15 +39,15 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Stian Sandvold
  */
-public class MessageConversationStoreTest
-    extends DhisSpringTest
+class MessageConversationStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private MessageConversationStore messageConversationStore;
 
@@ -71,47 +71,37 @@ public class MessageConversationStoreTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
     {
         userService = _userService;
-
         // 'A' used as currentUser
         setupUser( 'A' );
         userB = setupUser( 'B' );
         userC = setupUser( 'C' );
-
         Set<User> usersA = new HashSet<>();
         usersA.add( userC );
-
         Set<User> usersB = new HashSet<>();
         usersB.add( userC );
         usersB.add( userB );
-
         conversationIds = new HashSet<>();
-
         conversationA = messageService.sendPrivateMessage( usersA, "Subject1", "Text", "Meta", null );
         MessageConversation mc = messageService.getMessageConversation( conversationA );
         mc.markRead( userC );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
-
         messageService.sendReply( mc, "Message 1", "Meta", false, null );
         messageService.sendReply( mc, "Message 2", "Meta", false, null );
         messageService.sendReply( mc, "Message 3", "Meta", false, null );
-
         long conversationB = messageService.sendPrivateMessage( usersA, "Subject2", "Text", "Meta", null );
         mc = messageService.getMessageConversation( conversationB );
         mc.setFollowUp( true );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
-
         long conversationC = messageService.sendPrivateMessage( usersB, "Subject3", "Text", "Meta", null );
         mc = messageService.getMessageConversation( conversationC );
         messageService.updateMessageConversation( mc );
         conversationIds.add( mc.getUid() );
-
     }
 
     private User setupUser( char id )
@@ -123,33 +113,28 @@ public class MessageConversationStoreTest
     }
 
     @Test
-    public void testGetMessageConversationsReturnsCorrectAmountOfConversations()
+    void testGetMessageConversationsReturnsCorrectAmountOfConversations()
     {
-        List<MessageConversation> msgsC = messageConversationStore
-            .getMessageConversations( userC, null, false, false, null, null );
-        List<MessageConversation> msgsB = messageConversationStore
-            .getMessageConversations( userB, null, false, false, null, null );
-
+        List<MessageConversation> msgsC = messageConversationStore.getMessageConversations( userC, null, false, false,
+            null, null );
+        List<MessageConversation> msgsB = messageConversationStore.getMessageConversations( userB, null, false, false,
+            null, null );
         assertEquals( 3, msgsC.size() );
         assertEquals( 1, msgsB.size() );
     }
 
     @Test
-    public void testGetMessageConversationsReturnCorrectNumberOfMessages()
+    void testGetMessageConversationsReturnCorrectNumberOfMessages()
     {
         MessageConversation conversation = messageConversationStore.get( conversationA );
-
         sessionFactory.getCurrentSession().flush();
-
         assertTrue( (conversation.getMessageCount() == 4) );
     }
 
     @Test
-    public void testGetMessageConversations()
+    void testGetMessageConversations()
     {
         List<MessageConversation> conversations = messageConversationStore.getMessageConversations( conversationIds );
-
         assertEquals( 3, conversations.size() );
     }
-
 }

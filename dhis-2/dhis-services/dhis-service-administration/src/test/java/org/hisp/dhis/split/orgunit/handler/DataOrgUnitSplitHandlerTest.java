@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.split.orgunit.handler;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.stream.Stream;
 
@@ -51,7 +51,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.split.orgunit.OrgUnitSplitRequest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -59,9 +59,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-public class DataOrgUnitSplitHandlerTest
-    extends DhisSpringTest
+class DataOrgUnitSplitHandlerTest extends DhisSpringTest
 {
+
     @Autowired
     private CategoryService categoryService;
 
@@ -112,80 +112,56 @@ public class DataOrgUnitSplitHandlerTest
     public void setUpTest()
     {
         cocA = categoryService.getDefaultCategoryOptionCombo();
-
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         idObjectManager.save( deA );
         idObjectManager.save( deB );
-
         PeriodType monthly = periodService.getPeriodTypeByClass( MonthlyPeriodType.class );
         peA = monthly.createPeriod( "202101" );
         peB = monthly.createPeriod( "202102" );
         periodService.addPeriod( peA );
         periodService.addPeriod( peB );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
-
         usA = createUser( 'A' );
         userService.addUser( usA );
-
         dlA = new DataApprovalLevel( "DataApprovalLevelA", 1 );
         idObjectManager.save( dlA );
-
         dwA = new DataApprovalWorkflow( "DataApprovalWorkflowA", monthly, Sets.newHashSet( dlA ) );
         idObjectManager.save( dwA );
     }
 
     @Test
-    public void testMergeDataValues()
+    void testMergeDataValues()
     {
-        addDataValues(
-            createDataValue( deA, peA, ouA, cocA, cocA, "10", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
+        addDataValues( createDataValue( deA, peA, ouA, cocA, cocA, "10", date( 2021, 1, 1 ), date( 2021, 1, 1 ) ),
             createDataValue( deA, peB, ouA, cocA, cocA, "11", date( 2021, 2, 1 ), date( 2021, 2, 1 ) ) );
-
         assertEquals( 2, getDataValueCount( ouA ) );
         assertEquals( 0, getDataValueCount( ouB ) );
         assertEquals( 0, getDataValueCount( ouC ) );
-
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
-            .withSource( ouA )
-            .addTarget( ouB )
-            .addTarget( ouC )
-            .withPrimaryTarget( ouB )
-            .build();
-
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
+            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
         handler.splitData( request );
-
         assertEquals( 0, getDataValueCount( ouA ) );
         assertEquals( 2, getDataValueCount( ouB ) );
         assertEquals( 0, getDataValueCount( ouC ) );
     }
 
     @Test
-    public void testMergeDataApprovals()
+    void testMergeDataApprovals()
     {
-        addDataApprovals(
-            new DataApproval( dlA, dwA, peA, ouA, cocA, false, date( 2021, 1, 1 ), usA ),
+        addDataApprovals( new DataApproval( dlA, dwA, peA, ouA, cocA, false, date( 2021, 1, 1 ), usA ),
             new DataApproval( dlA, dwA, peB, ouA, cocA, false, date( 2021, 3, 1 ), usA ) );
-
         assertEquals( 2, getDataApprovalCount( ouA ) );
         assertEquals( 0, getDataApprovalCount( ouB ) );
         assertEquals( 0, getDataApprovalCount( ouC ) );
-
-        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder()
-            .withSource( ouA )
-            .addTarget( ouB )
-            .addTarget( ouC )
-            .withPrimaryTarget( ouB )
-            .build();
-
+        OrgUnitSplitRequest request = new OrgUnitSplitRequest.Builder().withSource( ouA ).addTarget( ouB )
+            .addTarget( ouC ).withPrimaryTarget( ouB ).build();
         handler.splitData( request );
-
         assertEquals( 0, getDataApprovalCount( ouA ) );
         assertEquals( 2, getDataApprovalCount( ouB ) );
         assertEquals( 0, getDataApprovalCount( ouC ) );
@@ -195,16 +171,14 @@ public class DataOrgUnitSplitHandlerTest
     {
         return (Long) sessionFactory.getCurrentSession()
             .createQuery( "select count(*) from DataValue dv where dv.source = :target" )
-            .setParameter( "target", target )
-            .uniqueResult();
+            .setParameter( "target", target ).uniqueResult();
     }
 
     private long getDataApprovalCount( OrganisationUnit target )
     {
         return (Long) sessionFactory.getCurrentSession()
             .createQuery( "select count(*) from DataApproval da where da.organisationUnit = :target" )
-            .setParameter( "target", target )
-            .uniqueResult();
+            .setParameter( "target", target ).uniqueResult();
     }
 
     private void addDataValues( DataValue... dataValues )

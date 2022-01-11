@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,94 +28,86 @@
 package org.hisp.dhis.keyjsonvalue;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Stian Sandvold.
  */
-public class KeyJsonValueStoreTest extends DhisSpringTest
+class KeyJsonValueStoreTest extends DhisSpringTest
 {
 
     @Autowired
     private KeyJsonValueStore store;
 
     @Test
-    public void testAddKeyJsonValue()
+    void testAddKeyJsonValue()
     {
         KeyJsonValue entry = addKeyJsonValue( "A", "1" );
-
         assertNotNull( entry );
         assertEquals( entry, store.get( entry.getId() ) );
     }
 
     @Test
-    public void testAddKeyJsonValuesAndGetNamespaces()
+    void testAddKeyJsonValuesAndGetNamespaces()
     {
         addKeyJsonValue( "A", "1" );
         addKeyJsonValue( "B", "1" );
-
         assertContainsOnly( store.getNamespaces(), "A", "B" );
     }
 
     @Test
-    public void testAddKeyJsonValuesAndGetKeysFromNamespace()
+    void testAddKeyJsonValuesAndGetKeysFromNamespace()
     {
         addKeyJsonValue( "A", "1" );
         addKeyJsonValue( "A", "2" );
         addKeyJsonValue( "B", "1" );
-
         assertContainsOnly( store.getKeysInNamespace( "A" ), "1", "2" );
     }
 
     @Test
-    public void testAddKeyJsonValueAndGetKeyJsonValue()
+    void testAddKeyJsonValueAndGetKeyJsonValue()
     {
         KeyJsonValue entryA = addKeyJsonValue( "A", "1" );
-
         assertEquals( store.getKeyJsonValue( "A", "1" ), entryA );
     }
 
     @Test
-    public void testGetKeyJsonValuesByNamespace()
+    void testGetKeyJsonValuesByNamespace()
     {
         KeyJsonValue entryA1 = addKeyJsonValue( "A", "1" );
         KeyJsonValue entryA2 = addKeyJsonValue( "A", "2" );
         KeyJsonValue entryA3 = addKeyJsonValue( "A", "3" );
         KeyJsonValue entryB1 = addKeyJsonValue( "B", "1" );
-
         assertContainsOnly( store.getKeyJsonValueByNamespace( "A" ), entryA1, entryA2, entryA3 );
         assertFalse( store.getKeyJsonValueByNamespace( "A" ).contains( entryB1 ) );
     }
 
     @Test
-    public void testCountKeysInNamespace()
+    void testCountKeysInNamespace()
     {
         addKeyJsonValue( "A", "1" );
         addKeyJsonValue( "A", "2" );
         addKeyJsonValue( "A", "3" );
         addKeyJsonValue( "B", "1" );
-
         assertEquals( 3, store.countKeysInNamespace( "A" ) );
         assertEquals( 1, store.countKeysInNamespace( "B" ) );
         assertEquals( 0, store.countKeysInNamespace( "C" ) );
     }
 
     @Test
-    public void deleteNamespace()
+    void deleteNamespace()
     {
         addKeyJsonValue( "A", "1" );
         addKeyJsonValue( "A", "3" );
         addKeyJsonValue( "B", "1" );
         addKeyJsonValue( "C", "1" );
-
         store.deleteNamespace( "A" );
-
         assertContainsOnly( store.getNamespaces(), "B", "C" );
     }
 

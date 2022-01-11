@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.analytics.EventDataType.AGGREGATED_VALUES;
+import static org.hisp.dhis.analytics.EventDataType.EVENTS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
+import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,8 +55,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
+ *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
+ *             NEW FEATURES SHOULD BE ADDED ON TOP OF
+ *             EventVisualizationController.
+ *
  * @author Lars Helge Overland
  */
+@Deprecated
 @Controller
 @RequestMapping( value = EventReportSchemaDescriptor.API_ENDPOINT )
 public class EventReportController
@@ -67,6 +78,8 @@ public class EventReportController
     // CRUD
     // --------------------------------------------------------------------------
 
+    // TODO: ONLY allow querying LINE_LIST and PIVOT_TABLE type.
+
     @Override
     protected EventReport deserializeJsonEntity( HttpServletRequest request )
         throws IOException
@@ -74,12 +87,42 @@ public class EventReportController
         EventReport eventReport = super.deserializeJsonEntity( request );
         mergeEventReport( eventReport );
 
+        applyCompatibilityConversions( eventReport );
+
+        return eventReport;
+    }
+
+    @Override
+    protected EventReport deserializeXmlEntity( HttpServletRequest request )
+        throws IOException
+    {
+        EventReport eventReport = super.deserializeXmlEntity( request );
+        mergeEventReport( eventReport );
+
+        applyCompatibilityConversions( eventReport );
+
         return eventReport;
     }
 
     // --------------------------------------------------------------------------
     // Hooks
     // --------------------------------------------------------------------------
+
+    /**
+     * @deprecated This is a temporary workaround to keep EventReport backward
+     *             compatible with the new EventVisualization entity. Only
+     *             legacy and report related types can be returned by this
+     *             endpoint.
+     *
+     * @param filters
+     */
+    @Deprecated
+    @Override
+    protected void forceFiltering( final List<String> filters )
+    {
+        filters.add( "type:in:[PIVOT_TABLE,LINE_LIST]" );
+        filters.add( "legacy:eq:true" );
+    }
 
     @Override
     protected void postProcessResponseEntity( EventReport report, WebOptions options, Map<String, String> parameters )
@@ -122,9 +165,35 @@ public class EventReportController
         report.getColumnDimensions().clear();
         report.getRowDimensions().clear();
         report.getFilterDimensions().clear();
+        report.getSimpleDimensions().clear();
 
         report.getColumnDimensions().addAll( getDimensions( report.getColumns() ) );
         report.getRowDimensions().addAll( getDimensions( report.getRows() ) );
         report.getFilterDimensions().addAll( getDimensions( report.getFilters() ) );
+        report.associateSimpleDimensions();
+    }
+
+    /**
+     * This method encapsulated the necessary conversions to keep this object
+     * compatible with EventVisualization. This is need to enable backward
+     * compatibility during the deprecation process of the EventReport.
+     *
+     * @param report
+     */
+    private void applyCompatibilityConversions( EventReport report )
+    {
+        if ( report.getDataType() == AGGREGATED_VALUES )
+        {
+            report.setType( PIVOT_TABLE );
+        }
+        else if ( report.getDataType() == EVENTS )
+        {
+            report.setType( LINE_LIST );
+        }
+        else
+        {
+            // This entity only accepts the types above.
+            report.setType( null );
+        }
     }
 }

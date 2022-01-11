@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.dataelement;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 
@@ -37,14 +37,15 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class CategoryComboTest
+class CategoryComboTest
 {
+
     private CategoryOption categoryOptionA;
 
     private CategoryOption categoryOptionB;
@@ -68,9 +69,8 @@ public class CategoryComboTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
-    @Before
-    public void before()
+    @BeforeEach
+    void before()
     {
         categoryOptionA = new CategoryOption( "OptionA" );
         categoryOptionB = new CategoryOption( "OptionB" );
@@ -78,40 +78,33 @@ public class CategoryComboTest
         categoryOptionD = new CategoryOption( "OptionD" );
         categoryOptionE = new CategoryOption( "OptionE" );
         categoryOptionF = new CategoryOption( "OptionF" );
-
         categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
         categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
         categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
-
         categoryA.getCategoryOptions().add( categoryOptionA );
         categoryA.getCategoryOptions().add( categoryOptionB );
         categoryB.getCategoryOptions().add( categoryOptionC );
         categoryB.getCategoryOptions().add( categoryOptionD );
         categoryC.getCategoryOptions().add( categoryOptionE );
         categoryC.getCategoryOptions().add( categoryOptionF );
-
         categoryOptionA.getCategories().add( categoryA );
         categoryOptionB.getCategories().add( categoryA );
         categoryOptionC.getCategories().add( categoryB );
         categoryOptionD.getCategories().add( categoryB );
         categoryOptionE.getCategories().add( categoryC );
         categoryOptionF.getCategories().add( categoryC );
-
         categoryCombo = new CategoryCombo( "CategoryCombo", DataDimensionType.DISAGGREGATION );
-
         categoryCombo.getCategories().add( categoryA );
         categoryCombo.getCategories().add( categoryB );
         categoryCombo.getCategories().add( categoryC );
     }
 
     @Test
-    public void testGenerateOptionCombosList()
+    void testGenerateOptionCombosList()
     {
         List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
-
         assertNotNull( list );
         assertEquals( 8, list.size() );
-
         assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionA, categoryOptionC, categoryOptionE ),
             list.get( 0 ) );
         assertEquals( createCategoryOptionCombo( categoryCombo, categoryOptionA, categoryOptionC, categoryOptionF ),
@@ -131,12 +124,10 @@ public class CategoryComboTest
     }
 
     @Test
-    public void test()
+    void test()
     {
         List<CategoryOptionCombo> list = categoryCombo.generateOptionCombosList();
-
         categoryCombo.generateOptionCombos();
-
         assertEquals( list, categoryCombo.getSortedOptionCombos() );
     }
 
@@ -144,14 +135,11 @@ public class CategoryComboTest
         CategoryOption... categoryOptions )
     {
         CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
-
         categoryOptionCombo.setCategoryCombo( categoryCombo );
-
         for ( CategoryOption categoryOption : categoryOptions )
         {
             categoryOptionCombo.getCategoryOptions().add( categoryOption );
         }
-
         return categoryOptionCombo;
     }
 }

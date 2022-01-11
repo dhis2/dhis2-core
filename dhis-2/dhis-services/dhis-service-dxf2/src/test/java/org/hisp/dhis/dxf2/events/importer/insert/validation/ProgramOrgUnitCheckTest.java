@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,10 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -51,18 +53,20 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramOrgUnitCheckTest extends BaseValidationTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class ProgramOrgUnitCheckTest extends BaseValidationTest
 {
+
     private ProgramOrgUnitCheck rule;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         rule = new ProgramOrgUnitCheck();
     }
 
     @Test
-    public void verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit()
+    void verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit()
     {
         verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( "ABCDE", IdScheme.CODE );
         verifySuccessWhenProgramHasOrgUnitMatchingEventOrgUnit( CodeGenerator.generateUid(), IdScheme.UID );
@@ -74,62 +78,47 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
     {
         // assign a UID to the event's org unit
         event.setOrgUnit( orgUnitId );
-
         // Prepare data
         Program program = createProgram( 'P' );
         program.setId( 1 );
-
         OrganisationUnit ou = new OrganisationUnit();
         ou.setId( 1 );
         ou.setUid( orgUnitId );
         when( workContext.getOrganisationUnitMap() ).thenReturn( ImmutableMap.of( event.getUid(), ou ) );
-
         when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( ImmutableMap.of( 1L, ImmutableList.of( 1L ) ) );
-
         ProgramInstance pi = new ProgramInstance();
         pi.setProgram( program );
-
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         programInstanceMap.put( event.getUid(), pi );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( scheme.name() );
         when( workContext.getImportOptions() ).thenReturn( importOptions );
-
         // method under test
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-
         assertNoError( summary );
     }
 
     @Test
-    public void failWhenProgramHasNoOrgUnitMatchingEventOrgUnit()
+    void failWhenProgramHasNoOrgUnitMatchingEventOrgUnit()
     {
         // assign a UID to the event's org unit
         event.setOrgUnit( CodeGenerator.generateUid() );
-
         // Prepare data
         Program program = createProgram( 'P' );
         program.setId( 1 );
-
         OrganisationUnit ou = new OrganisationUnit();
         ou.setId( 1 );
         ou.setUid( event.getOrgUnit() );
         when( workContext.getOrganisationUnitMap() ).thenReturn( ImmutableMap.of( event.getUid(), ou ) );
-
         when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( new HashMap<>() );
-
         ProgramInstance pi = new ProgramInstance();
         pi.setProgram( program );
-
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         programInstanceMap.put( event.getUid(), pi );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-
         // method under test
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-
         assertHasError( summary, event, "Program is not assigned to this Organisation Unit: " + event.getOrgUnit() );
     }
 }

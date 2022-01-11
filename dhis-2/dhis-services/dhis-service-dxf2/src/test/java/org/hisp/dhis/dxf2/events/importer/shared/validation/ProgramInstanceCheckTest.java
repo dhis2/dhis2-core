@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,53 +45,51 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramInstanceCheckTest extends BaseValidationTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+class ProgramInstanceCheckTest extends BaseValidationTest
 {
+
     private ProgramInstanceCheck rule;
 
     private Program program;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         rule = new ProgramInstanceCheck();
-
         //
         // Program
         //
         program = createProgram( 'P' );
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
-
         when( workContext.getProgramsMap() ).thenReturn( programMap );
     }
 
     @Test
-    public void failOnNoProgramInstanceByActiveProgramAndTei()
+    void failOnNoProgramInstanceByActiveProgramAndTei()
     {
         // Data preparation
-
         //
         // Program Instance
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
-
         //
         // Tracked Entity Instance
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
         when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
-
         event.setProgram( program.getUid() );
-
         //
         // Method under test
         //
@@ -101,54 +99,44 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
     }
 
     @Test
-    public void failOnMultipleProgramInstanceByActiveProgramAndTei()
+    void failOnMultipleProgramInstanceByActiveProgramAndTei()
     {
         // Data preparation
-
         //
         // Program Instance
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
-
         //
         // Tracked Entity Instance
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
         when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
-
         ProgramInstance programInstance1 = new ProgramInstance();
         ProgramInstance programInstance2 = new ProgramInstance();
         when( this.programInstanceStore.get( tei, program, ProgramStatus.ACTIVE ) )
             .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
-
         event.setProgram( program.getUid() );
-
         //
         // Method under test
         //
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event,
-            "Tracked entity instance: " + tei.getUid() + " has multiple active enrollments in program: "
-                + program.getUid() );
+        assertHasError( summary, event, "Tracked entity instance: " + tei.getUid()
+            + " has multiple active enrollments in program: " + program.getUid() );
     }
 
     @Test
-    public void failOnMultipleProgramInstance()
+    void failOnMultipleProgramInstance()
     {
         // Data preparation
-
         Program programNoReg = createProgram( 'P' );
         programNoReg.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( programNoReg.getUid(), programNoReg );
-
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-
         //
         // Program Instance
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
-
         //
         // Tracked Entity Instance
         //
@@ -156,14 +144,11 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), Pair.of( tei, true ) );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
-
         ProgramInstance programInstance1 = new ProgramInstance();
         ProgramInstance programInstance2 = new ProgramInstance();
         when( this.programInstanceStore.get( programNoReg, ProgramStatus.ACTIVE ) )
             .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
-
         event.setProgram( programNoReg.getUid() );
-
         //
         // Method under test
         //

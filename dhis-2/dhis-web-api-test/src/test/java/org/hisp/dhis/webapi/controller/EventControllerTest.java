@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,12 +30,12 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.WebClient.Accept;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -44,10 +44,11 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class EventControllerTest extends DhisControllerConvenienceTest
+class EventControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testPostXmlEvent()
+    void testPostXmlEvent()
     {
         HttpResponse response = POST( "/events/", Body( "<events></events>" ), ContentType( APPLICATION_XML ),
             Accept( APPLICATION_XML ) );
@@ -56,7 +57,7 @@ public class EventControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostXmlEvent_Async()
+    void testPostXmlEvent_Async()
     {
         HttpResponse response = POST( "/events?async=true", Body( "<events></events>" ), ContentType( APPLICATION_XML ),
             Accept( APPLICATION_XML ) );
@@ -65,44 +66,42 @@ public class EventControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPostJsonEvent()
+    void testPostJsonEvent()
     {
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             POST( "/events/", "{'events':[]}" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostJsonEvent_Async()
+    void testPostJsonEvent_Async()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated inMemoryEventImport",
             POST( "/events?async=true", "{'events':[]}" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPostJsonEventForNote_NoSuchObject()
+    void testPostJsonEventForNote_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Event not found for ID xyz",
             POST( "/events/xyz/note", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testPostCsvEvents()
+    void testPostCsvEvents()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
-            POST( "/events", Body( ",," ), ContentType( "text/csv" ) )
-                .content( HttpStatus.CONFLICT ) );
+            POST( "/events", Body( ",," ), ContentType( "text/csv" ) ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testPostCsvEvents_Async()
+    void testPostCsvEvents_Async()
     {
         assertWebMessage( "OK", 200, "OK", "Initiated inMemoryEventImport",
-            POST( "/events?async=true", Body( ",," ), ContentType( "text/csv" ) )
-                .content( HttpStatus.OK ) );
+            POST( "/events?async=true", Body( ",," ), ContentType( "text/csv" ) ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testPutXmlEvent()
+    void testPutXmlEvent()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
             PUT( "/events/xyz", Body( "<event></event>" ), ContentType( APPLICATION_XML ) )
@@ -110,31 +109,29 @@ public class EventControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testPutJsonEvent()
+    void testPutJsonEvent()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
-            PUT( "/events/xyz", Body( "{}" ) )
-                .content( HttpStatus.CONFLICT ) );
+            PUT( "/events/xyz", Body( "{}" ) ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testPutJsonEventSingleValue_NoSuchObject()
+    void testPutJsonEventSingleValue_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "DataElement not found for ID abc",
             PUT( "/events/xyz/abc", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testPutJsonEventForEventDate_NoSuchObject()
+    void testPutJsonEventForEventDate_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "Event not found for ID xyz",
             PUT( "/events/xyz/eventDate", "{}" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testDeleteEvent_NoSuchObject()
+    void testDeleteEvent_NoSuchObject()
     {
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            DELETE( "/events/xyz" ).content( HttpStatus.OK ) );
+        assertWebMessage( "OK", 200, "OK", "Import was successful.", DELETE( "/events/xyz" ).content( HttpStatus.OK ) );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +28,10 @@
 package org.hisp.dhis.commons.jackson.config;
 
 import static java.time.ZoneId.systemDefault;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
@@ -40,7 +40,7 @@ import java.util.Map;
 
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -49,12 +49,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class JacksonObjectMapperConfigTest
+class JacksonObjectMapperConfigTest
 {
+
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    public void testIsoDateSupport()
+    void testIsoDateSupport()
     {
         assertParsedAsDate( DateUtils.parseDate( "2019" ), "2019" );
         assertParsedAsDate( DateUtils.parseDate( "2019-01" ), "2019-01" );
@@ -64,57 +65,54 @@ public class JacksonObjectMapperConfigTest
         assertParsedAsDate( DateUtils.parseDate( "2019-01-01T11:55:01.4444" ), "2019-01-01T11:55:01.4444" );
         Date expected = DateUtils.parseDate( "2019-01-01T11:55:01.4444Z" );
         assertParsedAsDate( expected, "2019-01-01T11:55:01.4444Z" );
-        assertParsedAsDate( expected,
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME
-                .format( expected.toInstant().atZone( systemDefault() ).toLocalDateTime() ) );
+        assertParsedAsDate( expected, DateTimeFormatter.ISO_LOCAL_DATE_TIME
+            .format( expected.toInstant().atZone( systemDefault() ).toLocalDateTime() ) );
     }
 
     @Test
-    public void testUnixEpochTimestamp()
+    void testUnixEpochTimestamp()
     {
         assertParsedAsDate( new Date( 1575118800000L ), "1575118800000" );
         assertParsedAsDate( new Date( 1575118800000L ), 1575118800000L );
     }
 
     @Test
-    public void testNullDate()
+    void testNullDate()
     {
         assertParsedAsDate( null, null );
     }
 
     @Test
-    public void testNaNDate()
+    void testNaNDate()
     {
         assertNotParsedAsDate( "NaN" );
     }
 
     @Test
-    public void testRubbishDate()
+    void testRubbishDate()
     {
         assertNotParsedAsDate( "NaN NaN NaN" );
     }
 
     @Test
-    public void testUnclearDate()
+    void testUnclearDate()
     {
         assertNotParsedAsDate( "999999999" );
     }
 
-    @Test // DHIS2-8582
-    public void testSerializerUserWithUser()
+    // DHIS2-8582
+    @Test
+    void testSerializerUserWithUser()
         throws JsonProcessingException
     {
         User user = new User();
         user.setAutoFields();
         user.setCreatedBy( user );
         user.setLastUpdatedBy( user );
-
         String payload = jsonMapper.writeValueAsString( user );
         User testUser = jsonMapper.readValue( payload, User.class );
-
         assertNotNull( user.getCreatedBy() );
         assertNotNull( user.getLastUpdatedBy() );
-
         assertEquals( user.getUid(), testUser.getUid() );
         assertEquals( user.getUid(), user.getCreatedBy().getUid() );
         assertEquals( user.getUid(), user.getLastUpdatedBy().getUid() );
@@ -126,7 +124,6 @@ public class JacksonObjectMapperConfigTest
         {
             return "{\"date\": null }";
         }
-
         return String.format( "{\"date\": \"%s\"}", str );
     }
 
@@ -135,19 +132,15 @@ public class JacksonObjectMapperConfigTest
         return String.format( "{\"date\": %d}", ts );
     }
 
-    private static class DateMapTypeReference
-        extends
-        TypeReference<Map<String, Date>>
+    private static class DateMapTypeReference extends TypeReference<Map<String, Date>>
     {
     }
 
     private void assertNotParsedAsDate( String value )
     {
         Exception ex = assertThrows( IOException.class, () -> parseAsDate( value ) );
-        assertEquals(
-            "Unexpected IOException (of type java.io.IOException): Invalid date format '" + value
-                + "', only ISO format or UNIX Epoch timestamp is supported.",
-            ex.getMessage() );
+        assertEquals( "Unexpected IOException (of type java.io.IOException): Invalid date format '" + value
+            + "', only ISO format or UNIX Epoch timestamp is supported.", ex.getMessage() );
     }
 
     private void assertParsedAsDate( Date expected, Object value )

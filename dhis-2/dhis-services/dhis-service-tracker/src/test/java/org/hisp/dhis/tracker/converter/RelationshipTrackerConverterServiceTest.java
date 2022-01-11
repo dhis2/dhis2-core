@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.tracker.converter;
 
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.util.Date;
@@ -38,7 +38,14 @@ import java.util.List;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.render.RenderService;
@@ -53,7 +60,7 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
@@ -61,8 +68,7 @@ import org.springframework.core.io.ClassPathResource;
 /**
  * @author Enrico Colasante
  */
-public class RelationshipTrackerConverterServiceTest
-    extends DhisSpringTest
+class RelationshipTrackerConverterServiceTest extends DhisSpringTest
 {
 
     private final static String TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE = "xLmPUYJX8Ks";
@@ -119,23 +125,17 @@ public class RelationshipTrackerConverterServiceTest
         throws IOException
     {
         preCreateInjectAdminUserWithoutPersistence();
-
         renderService = _renderService;
         userService = _userService;
-
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-
         Program program = createProgram( 'A' );
         programService.addProgram( program );
-
         ProgramStage programStage = createProgramStage( 'A', program );
         programStageService.saveProgramStage( programStage );
-
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( 'A', organisationUnit,
             trackedEntityAttribute );
         trackedEntityInstance.setUid( TEI );
@@ -147,39 +147,30 @@ public class RelationshipTrackerConverterServiceTest
         programStageInstance.setUid( EVENT );
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setProgramStage( programStage );
-
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance );
         programInstanceService.addProgramInstance( programInstance );
         programStageInstanceService.addProgramStageInstance( programStageInstance );
-
         RelationshipType relationshipTypeA = createTeiToEnrollmentRelationshipType( 'A', program, trackedEntityType,
             false );
         relationshipTypeA.setUid( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE );
-        RelationshipType relationshipTypeB = createTeiToEventRelationshipType( 'B', program, trackedEntityType,
-            false );
+        RelationshipType relationshipTypeB = createTeiToEventRelationshipType( 'B', program, trackedEntityType, false );
         relationshipTypeB.setUid( TEI_TO_EVENT_RELATIONSHIP_TYPE );
         relationshipTypeService.addRelationshipType( relationshipTypeA );
         relationshipTypeService.addRelationshipType( relationshipTypeB );
-
-        TrackerImportParams trackerImportParams = renderService
-            .fromJson( new ClassPathResource( "tracker/relationships.json" ).getInputStream(),
-                TrackerImportParams.class );
-
+        TrackerImportParams trackerImportParams = renderService.fromJson(
+            new ClassPathResource( "tracker/relationships.json" ).getInputStream(), TrackerImportParams.class );
         User adminUser = createAndInjectAdminUser();
         trackerImportParams.setUser( adminUser );
-
         trackerBundle = trackerBundleService.create( trackerImportParams );
     }
 
     @Test
-    public void testConverterFromRelationships()
+    void testConverterFromRelationships()
     {
         List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
             .from( trackerBundle.getPreheat(), trackerBundle.getRelationships() );
-
         assertNotNull( from );
         assertEquals( 2, from.size() );
-
         from.forEach( relationship -> {
             if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
@@ -195,23 +186,19 @@ public class RelationshipTrackerConverterServiceTest
             {
                 fail( "Unexpected relationshipType found." );
             }
-
             assertNotNull( relationship.getFrom() );
             assertNotNull( relationship.getTo() );
         } );
     }
 
     @Test
-    public void testConverterToRelationships()
+    void testConverterToRelationships()
     {
         List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
             .from( trackerBundle.getPreheat(), trackerBundle.getRelationships() );
-
         List<Relationship> to = relationshipConverterService.to( from );
-
         assertNotNull( to );
         assertEquals( 2, to.size() );
-
         from.forEach( relationship -> {
             if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
@@ -227,7 +214,6 @@ public class RelationshipTrackerConverterServiceTest
             {
                 fail( "Unexpected relationshipType found." );
             }
-
             assertNotNull( relationship.getFrom() );
             assertNotNull( relationship.getTo() );
         } );

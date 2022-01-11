@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,9 @@ package org.hisp.dhis.webapi.controller.datavalue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
-import static org.mockito.junit.MockitoJUnit.rule;
 
 import java.util.Date;
 
@@ -59,14 +57,16 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.LocalDateTime;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class DataValidatorTest
+@ExtendWith( MockitoExtension.class )
+class DataValidatorTest
 {
+
     @Mock
     private CategoryService categoryService;
 
@@ -97,9 +97,6 @@ public class DataValidatorTest
     @Mock
     private DataValidator dataValidator;
 
-    @Rule
-    public MockitoRule mockitoRule = rule();
-
     private Period periodJan;
 
     private Period periodFeb;
@@ -118,7 +115,7 @@ public class DataValidatorTest
 
     private Date feb15;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         dataValidator = new DataValidator( categoryService, organisationUnitService, dataSetService,
@@ -165,7 +162,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testValidateAttributeOptionComboWithValidData()
+    void testValidateAttributeOptionComboWithValidData()
     {
         // Initially
         dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
@@ -204,7 +201,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testGetMissingDataElement()
+    void testGetMissingDataElement()
     {
         final String uid = CodeGenerator.generateUid();
 
@@ -217,7 +214,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testInvalidPeriod()
+    void testInvalidPeriod()
     {
         IllegalQueryException ex = assertThrows( IllegalQueryException.class,
             () -> dataValidator.getAndValidatePeriod( "502" ) );
@@ -226,7 +223,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void testGetMissingOrgUnit()
+    void testGetMissingOrgUnit()
     {
         final String uid = CodeGenerator.generateUid();
 
@@ -238,39 +235,45 @@ public class DataValidatorTest
         assertEquals( ErrorCode.E1102, ex.getErrorCode() );
     }
 
-    @Test( expected = IllegalQueryException.class )
-    public void testValidateAttributeOptionComboWithEarlyData()
+    @Test
+    void testValidateAttributeOptionComboWithEarlyData()
     {
         // Given
         categoryOptionA.setStartDate( feb15 );
 
         // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA );
+
+        assertThrows( IllegalQueryException.class,
+            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodJan, dataSetA, dataElementA ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
-    public void testValidateAttributeOptionComboWithLateData()
+    @Test
+    void testValidateAttributeOptionComboWithLateData()
     {
         // Given
         categoryOptionA.setEndDate( jan15 );
 
         // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA );
+
+        assertThrows( IllegalQueryException.class,
+            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodFeb, null, dataElementA ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
-    public void testValidateAttributeOptionComboWithLateAdjustedData()
+    @Test
+    void testValidateAttributeOptionComboWithLateAdjustedData()
     {
         // Given
         categoryOptionA.setEndDate( jan15 );
         dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
 
         // Then
-        dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA );
+
+        assertThrows( IllegalQueryException.class,
+            () -> dataValidator.validateAttributeOptionCombo( optionComboA, periodMar, dataSetA, dataElementA ) );
     }
 
     @Test
-    public void validateBooleanDataValueWhenValuesAreAcceptableTrue()
+    void validateBooleanDataValueWhenValuesAreAcceptableTrue()
     {
         // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
@@ -300,7 +303,7 @@ public class DataValidatorTest
     }
 
     @Test
-    public void validateBooleanDataValueWhenValuesAreAcceptableFalse()
+    void validateBooleanDataValueWhenValuesAreAcceptableFalse()
     {
         // Given
         final DataElement aBooleanTypeDataElement = new DataElement();
@@ -329,17 +332,15 @@ public class DataValidatorTest
         assertThat( aBooleanDataValue, is( normalizedBooleanValue ) );
     }
 
-    @Test( expected = IllegalQueryException.class )
-    public void validateBooleanDataValueWhenValueIsNotValid()
+    @Test
+    void validateBooleanDataValueWhenValueIsNotValid()
     {
         // Given
         String anInvalidBooleanValue = "InvalidValue";
         final DataElement aBooleanTypeDataElement = new DataElement();
         aBooleanTypeDataElement.setValueType( BOOLEAN );
 
-        // When
-        dataValidator.validateAndNormalizeDataValue( anInvalidBooleanValue, aBooleanTypeDataElement );
-
-        fail( "Should not reach here. It was expected IllegalQueryException." );
+        assertThrows( IllegalQueryException.class,
+            () -> dataValidator.validateAndNormalizeDataValue( anInvalidBooleanValue, aBooleanTypeDataElement ) );
     }
 }

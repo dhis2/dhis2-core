@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,7 @@ import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.user.User;
 
-public abstract class CompressionSMSListenerTest
-    extends
+abstract class CompressionSMSListenerTest extends
     DhisConvenienceTest
 {
     protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";

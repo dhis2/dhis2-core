@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +27,37 @@
  */
 package org.hisp.dhis.common;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.analytics.AggregationType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class ValueTypeTest
+class ValueTypeTest
 {
+
     @Test
-    public void rightInstancesOfEnumsAreConstructedWhenUsed()
+    void rightInstancesOfEnumsAreConstructedWhenUsed()
     {
         // arrange
         ValueType posInt = ValueType.INTEGER_POSITIVE;
         ValueType longText = ValueType.LONG_TEXT;
-
         // act assert
         assertTrue( posInt.isNumeric() );
         assertTrue( longText.isText() );
     }
 
     @Test
-    public void aggregatableFlagOfTextValueTypeIsTrueWhenCalled()
+    void aggregatableFlagOfTextValueTypeIsTrueWhenCalled()
     {
         // arrange act assert
         assertTrue( ValueType.TEXT.isAggregatable( AggregationType.NONE ) );
         assertTrue( ValueType.LONG_TEXT.isAggregatable( AggregationType.COUNT ) );
         assertTrue( ValueType.LETTER.isAggregatable( AggregationType.SUM ) );
-
     }
 
     @Test
-    public void aggregatableFlagOfTextValueTypeIsFalseWhenCalled()
+    void aggregatableFlagOfTextValueTypeIsFalseWhenCalled()
     {
         // arrange act assert
         assertFalse( ValueType.TEXT.isAggregatable( AggregationType.COUNT ) );
@@ -66,7 +66,7 @@ public class ValueTypeTest
     }
 
     @Test
-    public void aggregatableFlagOfNumericValueTypeIsTrueWhenCalled()
+    void aggregatableFlagOfNumericValueTypeIsTrueWhenCalled()
     {
         // arrange act assert
         assertTrue( ValueType.NUMBER.isAggregatable( AggregationType.COUNT ) );
@@ -78,7 +78,7 @@ public class ValueTypeTest
     }
 
     @Test
-    public void aggregatableFlagOfNumericValueTypeIsFalseWhenCalled()
+    void aggregatableFlagOfNumericValueTypeIsFalseWhenCalled()
     {
         // arrange act assert
         assertFalse( ValueType.NUMBER.isAggregatable( AggregationType.NONE ) );
@@ -87,18 +87,17 @@ public class ValueTypeTest
         assertFalse( ValueType.INTEGER_POSITIVE.isAggregatable( AggregationType.CUSTOM ) );
         assertFalse( ValueType.INTEGER_NEGATIVE.isAggregatable( AggregationType.NONE ) );
         assertFalse( ValueType.INTEGER_ZERO_OR_POSITIVE.isAggregatable( AggregationType.NONE ) );
-
     }
 
     @Test
-    public void aggregatableFlagOfFileResourceValueTypeIsTrueWhenCalled()
+    void aggregatableFlagOfFileResourceValueTypeIsTrueWhenCalled()
     {
         // arrange act assert
         assertTrue( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.COUNT ) );
     }
 
     @Test
-    public void aggregatableFlagOfFileResourceValueTypeIsFalseWhenCalled()
+    void aggregatableFlagOfFileResourceValueTypeIsFalseWhenCalled()
     {
         // arrange act assert
         assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.AVERAGE ) );

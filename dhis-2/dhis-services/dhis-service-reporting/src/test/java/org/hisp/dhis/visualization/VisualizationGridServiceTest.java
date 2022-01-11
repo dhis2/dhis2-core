@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,14 +52,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class VisualizationGridServiceTest
+@ExtendWith( MockitoExtension.class )
+class VisualizationGridServiceTest
 {
     @Mock
     private VisualizationService visualizationService;
@@ -76,12 +76,9 @@ public class VisualizationGridServiceTest
     @Mock
     private I18nManager i18nManager;
 
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
     private VisualizationGridService visualizationGridService;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         visualizationGridService = new DefaultVisualizationGridService( visualizationService, analyticsService,
@@ -89,7 +86,7 @@ public class VisualizationGridServiceTest
     }
 
     @Test
-    public void getVisualizationGridByUserWhenItHasOrganisationUnitLevels()
+    void getVisualizationGridByUserWhenItHasOrganisationUnitLevels()
     {
         // Given
         final String anyVisualizationUid = "adbet5RTs";
@@ -124,7 +121,7 @@ public class VisualizationGridServiceTest
     }
 
     @Test
-    public void getVisualizationGridByUserWhenItHasItemOrganisationUnitGroups()
+    void getVisualizationGridByUserWhenItHasItemOrganisationUnitGroups()
     {
         // Given
         final String anyVisualizationUid = "adbet5RTs";

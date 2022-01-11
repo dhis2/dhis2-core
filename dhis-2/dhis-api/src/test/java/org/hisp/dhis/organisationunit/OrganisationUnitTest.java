@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 package org.hisp.dhis.organisationunit;
 
 import static org.hisp.dhis.organisationunit.FeatureType.MULTI_POLYGON;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,22 +37,23 @@ import java.util.List;
 
 import org.geotools.geojson.geom.GeometryJSON;
 import org.hisp.dhis.common.coordinate.CoordinateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitTest
+class OrganisationUnitTest
 {
+
     private List<CoordinatesTuple> multiPolygonCoordinatesList = new ArrayList<>();
 
     private List<CoordinatesTuple> pointCoordinatesList = new ArrayList<>();
 
-    private String multiPolygonCoordinates = "[[[[11.11,22.22],[33.33,44.44],[55.55,66.66],[11.11,22.22]]]," +
-        "[[[77.77,88.88],[99.99,11.11],[22.22,33.33],[77.77,88.88]]]," +
-        "[[[44.44,55.55],[66.66,77.77],[88.88,99.99],[44.44,55.55]]]]";
+    private String multiPolygonCoordinates = "[[[[11.11,22.22],[33.33,44.44],[55.55,66.66],[11.11,22.22]]],"
+        + "[[[77.77,88.88],[99.99,11.11],[22.22,33.33],[77.77,88.88]]],"
+        + "[[[44.44,55.55],[66.66,77.77],[88.88,99.99],[44.44,55.55]]]]";
 
     private CoordinatesTuple tupleA;
 
@@ -72,37 +73,31 @@ public class OrganisationUnitTest
 
     private GeometryJSON geometryJSON = new GeometryJSON();
 
-    @Before
-    public void before()
+    @BeforeEach
+    void before()
     {
         tupleA = new CoordinatesTuple();
         tupleA.addCoordinates( "11.11,22.22" );
         tupleA.addCoordinates( "33.33,44.44" );
         tupleA.addCoordinates( "55.55,66.66" );
-
         tupleB = new CoordinatesTuple();
         tupleB.addCoordinates( "77.77,88.88" );
         tupleB.addCoordinates( "99.99,11.11" );
         tupleB.addCoordinates( "22.22,33.33" );
-
         tupleC = new CoordinatesTuple();
         tupleC.addCoordinates( "44.44,55.55" );
         tupleC.addCoordinates( "66.66,77.77" );
         tupleC.addCoordinates( "88.88,99.99" );
-
         tupleD = new CoordinatesTuple();
         tupleD.addCoordinates( "11.11,22.22" );
-
         multiPolygonCoordinatesList.add( tupleA );
         multiPolygonCoordinatesList.add( tupleB );
         multiPolygonCoordinatesList.add( tupleC );
         pointCoordinatesList.add( tupleD );
-
         unitA = new OrganisationUnit( "OrgUnitA" );
         unitB = new OrganisationUnit( "OrgUnitB" );
         unitC = new OrganisationUnit( "OrgUnitC" );
         unitD = new OrganisationUnit( "OrgUnitD" );
-
         unitA.setUid( "uidA" );
         unitB.setUid( "uidB" );
         unitC.setUid( "uidC" );
@@ -110,91 +105,71 @@ public class OrganisationUnitTest
     }
 
     @Test
-    public void testGetAncestors()
+    void testGetAncestors()
     {
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-
         List<OrganisationUnit> expected = new ArrayList<>( Arrays.asList( unitA, unitB, unitC ) );
-
         assertEquals( expected, unitD.getAncestors() );
     }
 
     @Test
-    public void testGetAncestorNames()
+    void testGetAncestorNames()
     {
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-
         List<String> expected = new ArrayList<>(
             Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(), unitC.getDisplayName() ) );
-
         assertEquals( expected, unitD.getAncestorNames( null, false ) );
-
         expected = new ArrayList<>( Arrays.asList( unitA.getDisplayName(), unitB.getDisplayName(),
             unitC.getDisplayName(), unitD.getDisplayName() ) );
-
         assertEquals( expected, unitD.getAncestorNames( null, true ) );
     }
 
     @Test
-    public void testGetAncestorsWithRoots()
+    void testGetAncestorsWithRoots()
     {
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-
         List<OrganisationUnit> roots = new ArrayList<>( Arrays.asList( unitB ) );
-
         List<OrganisationUnit> expected = new ArrayList<>( Arrays.asList( unitB, unitC ) );
-
         assertEquals( expected, unitD.getAncestors( roots ) );
     }
 
     @Test
-    public void testGetPath()
+    void testGetPath()
     {
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-
         String expected = "/uidA/uidB/uidC/uidD";
-
         assertEquals( expected, unitD.getPath() );
     }
 
     @Test
-    public void testGetParentNameGraph()
+    void testGetParentNameGraph()
     {
         unitD.setParent( unitC );
         unitC.setParent( unitB );
         unitB.setParent( unitA );
-
         List<OrganisationUnit> roots = new ArrayList<>( Arrays.asList( unitB ) );
-
         String expected = "/OrgUnitB/OrgUnitC";
-
         assertEquals( expected, unitD.getParentNameGraph( roots, false ) );
-
         expected = "/OrgUnitA/OrgUnitB/OrgUnitC";
-
         assertEquals( expected, unitD.getParentNameGraph( null, false ) );
     }
 
     @Test
-    public void testGetCoordinatesAsCollection()
+    void testGetCoordinatesAsCollection()
         throws IOException
     {
-
         OrganisationUnit unit = new OrganisationUnit();
         Geometry geometry = geometryJSON
             .read( "{\"type\":\"MultiPolygon\", \"coordinates\":" + multiPolygonCoordinates + "}" );
         unit.setGeometry( geometry );
-
-        assertEquals( 3, CoordinateUtils
-            .getCoordinatesAsList( unit.getCoordinates(), MULTI_POLYGON ).size() );
-
+        assertEquals( 3, CoordinateUtils.getCoordinatesAsList( unit.getCoordinates(), MULTI_POLYGON ).size() );
     }
 }

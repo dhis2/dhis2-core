@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.util.List;
@@ -44,15 +44,15 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackedEntityAttributeTest
-    extends TrackerTest
+class TrackedEntityAttributeTest extends TrackerTest
 {
+
     @Autowired
     private TrackerPreheatService trackerPreheatService;
 
@@ -73,38 +73,30 @@ public class TrackedEntityAttributeTest
     }
 
     @Test
-    public void testTrackedAttributePreheater()
+    void testTrackedAttributePreheater()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_with_tea_data.json" );
-
         TrackerPreheat preheat = trackerPreheatService.preheat( trackerImportParams );
-
         assertNotNull( preheat.get( OrganisationUnit.class, "cNEZTkdAvmg" ) );
         assertNotNull( preheat.get( TrackedEntityType.class, "KrYIdvLxkMb" ) );
-
         assertNotNull( preheat.get( TrackedEntityAttribute.class, "sYn3tkL3XKa" ) );
         assertNotNull( preheat.get( TrackedEntityAttribute.class, "TsfP85GKsU5" ) );
         assertNotNull( preheat.get( TrackedEntityAttribute.class, "sTGqP5JNy6E" ) );
     }
 
     @Test
-    public void testTrackedAttributeValueBundleImporter()
+    void testTrackedAttributeValueBundleImporter()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/te_with_tea_data.json" );
         TrackerBundle bundle = trackerBundleService.create( trackerImportParams );
         trackerBundleService.commit( bundle );
-
         List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
         assertEquals( 1, trackedEntityInstances.size() );
-
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
-
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues(
-                trackedEntityInstance );
-
+            .getTrackedEntityAttributeValues( trackedEntityInstance );
         assertEquals( 3, attributeValues.size() );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,9 @@ import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.userAccess
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.userGroupAccessCondition;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.HAS_USER_GROUP_IDS;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -51,19 +51,18 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
-public class UserAccessStatementTest
+class UserAccessStatementTest
 {
+
     @Test
-    public void testSharingConditionsUsingOneTableAliasWhenGroupUserIdsIsSet()
+    void testSharingConditionsUsingOneTableAliasWhenGroupUserIdsIsSet()
     {
         // Given
         final String tableAlias = "t";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( USER_GROUP_UIDS, "uid-1, uid-2" );
-
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( USER_GROUP_UIDS,
+            "uid-1, uid-2" );
         // When
         final String actualStatement = sharingConditions( tableAlias, READ_ACCESS, theParameterSource );
-
         // Then
         assertThat( actualStatement, containsString( publicAccessCondition( tableAlias, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias ) ) );
@@ -72,16 +71,13 @@ public class UserAccessStatementTest
     }
 
     @Test
-    public void testSharingConditionsUsingOneTableAliasWhenGroupUserIdsIsSetToNull()
+    void testSharingConditionsUsingOneTableAliasWhenGroupUserIdsIsSetToNull()
     {
         // Given
         final String tableAlias = "t";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( USER_GROUP_UIDS, null );
-
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( USER_GROUP_UIDS, null );
         // When
         final String actualStatement = sharingConditions( tableAlias, READ_ACCESS, theParameterSource );
-
         // Then
         assertThat( actualStatement, containsString( publicAccessCondition( tableAlias, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias ) ) );
@@ -90,16 +86,13 @@ public class UserAccessStatementTest
     }
 
     @Test
-    public void testSharingConditionsUsingOneTableAliasWhenGroupUserIdsIsSetToEmpty()
+    void testSharingConditionsUsingOneTableAliasWhenGroupUserIdsIsSetToEmpty()
     {
         // Given
         final String tableAlias = "t";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( USER_GROUP_UIDS, "" );
-
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( USER_GROUP_UIDS, "" );
         // When
         final String actualStatement = sharingConditions( tableAlias, READ_ACCESS, theParameterSource );
-
         // Then
         assertThat( actualStatement, containsString( publicAccessCondition( tableAlias, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias ) ) );
@@ -108,15 +101,13 @@ public class UserAccessStatementTest
     }
 
     @Test
-    public void testSharingConditionsUsingOneTableAliasWhenGroupUserIdsIsNotSet()
+    void testSharingConditionsUsingOneTableAliasWhenGroupUserIdsIsNotSet()
     {
         // Given
         final String tableAlias = "t";
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
-
         // When
         final String actualStatement = sharingConditions( tableAlias, READ_ACCESS, noParameterSource );
-
         // Then
         assertThat( actualStatement, containsString( publicAccessCondition( tableAlias, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( tableAlias ) ) );
@@ -125,23 +116,20 @@ public class UserAccessStatementTest
     }
 
     @Test
-    public void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsSet()
+    void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsSet()
     {
         // Given
         final String aColumn1 = "anyColumn";
         final String aColumn2 = "otherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( USER_GROUP_UIDS, "uid-1, uid-2" );
-
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( USER_GROUP_UIDS,
+            "uid-1, uid-2" );
         // When
         final String actualStatement = sharingConditions( aColumn1, aColumn2, READ_ACCESS, theParameterSource );
-
         // Then
         assertThat( actualStatement, containsString( publicAccessCondition( aColumn1, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( aColumn1 ) ) );
         assertThat( actualStatement, containsString( userAccessCondition( aColumn1, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( userGroupAccessCondition( aColumn1, READ_ACCESS ) ) );
-
         assertThat( actualStatement, containsString( publicAccessCondition( aColumn2, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( aColumn2 ) ) );
         assertThat( actualStatement, containsString( userAccessCondition( aColumn2, READ_ACCESS ) ) );
@@ -149,23 +137,19 @@ public class UserAccessStatementTest
     }
 
     @Test
-    public void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsSetToNull()
+    void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsSetToNull()
     {
         // Given
         final String aColumn1 = "anyColumn";
         final String aColumn2 = "otherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( USER_GROUP_UIDS, null );
-
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( USER_GROUP_UIDS, null );
         // When
         final String actualStatement = sharingConditions( aColumn1, aColumn2, READ_ACCESS, theParameterSource );
-
         // Then
         assertThat( actualStatement, containsString( publicAccessCondition( aColumn1, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( aColumn1 ) ) );
         assertThat( actualStatement, containsString( userAccessCondition( aColumn1, READ_ACCESS ) ) );
         assertThat( actualStatement, not( containsString( userGroupAccessCondition( aColumn1, READ_ACCESS ) ) ) );
-
         assertThat( actualStatement, containsString( publicAccessCondition( aColumn2, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( aColumn2 ) ) );
         assertThat( actualStatement, containsString( userAccessCondition( aColumn2, READ_ACCESS ) ) );
@@ -173,23 +157,19 @@ public class UserAccessStatementTest
     }
 
     @Test
-    public void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsSetToEmpty()
+    void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsSetToEmpty()
     {
         // Given
         String aColumn1 = "anyColumn";
         String aColumn2 = "otherColumn";
-        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( USER_GROUP_UIDS, "" );
-
+        final MapSqlParameterSource theParameterSource = new MapSqlParameterSource().addValue( USER_GROUP_UIDS, "" );
         // When
         final String actualStatement = sharingConditions( aColumn1, aColumn2, READ_ACCESS, theParameterSource );
-
         // Then
         assertThat( actualStatement, containsString( publicAccessCondition( aColumn1, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( aColumn1 ) ) );
         assertThat( actualStatement, containsString( userAccessCondition( aColumn1, READ_ACCESS ) ) );
         assertThat( actualStatement, not( containsString( userGroupAccessCondition( aColumn1, READ_ACCESS ) ) ) );
-
         assertThat( actualStatement, containsString( publicAccessCondition( aColumn2, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( aColumn2 ) ) );
         assertThat( actualStatement, containsString( userAccessCondition( aColumn2, READ_ACCESS ) ) );
@@ -197,22 +177,19 @@ public class UserAccessStatementTest
     }
 
     @Test
-    public void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsNotSet()
+    void testSharingConditionsUsingTwoTableAliasWhenGroupUserIdsIsNotSet()
     {
         // Given
         String aColumn1 = "anyColumn";
         String aColumn2 = "otherColumn";
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
-
         // When
         final String actualStatement = sharingConditions( aColumn1, aColumn2, READ_ACCESS, noParameterSource );
-
         // Then
         assertThat( actualStatement, containsString( publicAccessCondition( aColumn1, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( aColumn1 ) ) );
         assertThat( actualStatement, containsString( userAccessCondition( aColumn1, READ_ACCESS ) ) );
         assertThat( actualStatement, not( containsString( userGroupAccessCondition( aColumn1, READ_ACCESS ) ) ) );
-
         assertThat( actualStatement, containsString( publicAccessCondition( aColumn2, READ_ACCESS ) ) );
         assertThat( actualStatement, containsString( ownerAccessCondition( aColumn2 ) ) );
         assertThat( actualStatement, containsString( userAccessCondition( aColumn2, READ_ACCESS ) ) );
@@ -220,124 +197,104 @@ public class UserAccessStatementTest
     }
 
     @Test
-    public void testOwnerAccessCondition()
+    void testOwnerAccessCondition()
     {
         // Given
         String aColumn = "anyColumn";
         final String expectedStatement = "(jsonb_extract_path_text(" + aColumn + ", 'owner') is null or "
-            + "jsonb_extract_path_text(" + aColumn + ", 'owner') = 'null' or "
-            + "jsonb_extract_path_text(" + aColumn + ", 'owner') = :userUid)";
-
+            + "jsonb_extract_path_text(" + aColumn + ", 'owner') = 'null' or " + "jsonb_extract_path_text(" + aColumn
+            + ", 'owner') = :userUid)";
         // When
         final String actualStatement = ownerAccessCondition( aColumn );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testOwnerAccessConditionWhenTableAliasIsNull()
+    void testOwnerAccessConditionWhenTableAliasIsNull()
     {
         // Given
         final String nullTableAlias = null;
-
         // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
+        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> ownerAccessCondition( nullTableAlias ) );
-
         // Then
         assertThat( thrown.getMessage(), containsString( "The argument columnName cannot be null/blank." ) );
     }
 
     @Test
-    public void testPublicAccessCondition()
+    void testPublicAccessCondition()
     {
         // Given
         String aColumn = "anyColumn";
         final String expectedStatement = "(jsonb_extract_path_text(" + aColumn + ", 'public') is null or "
-            + "jsonb_extract_path_text(" + aColumn + ", 'public') = 'null' or "
-            + "jsonb_extract_path_text(" + aColumn + ", 'public') like 'r%')";
-
+            + "jsonb_extract_path_text(" + aColumn + ", 'public') = 'null' or " + "jsonb_extract_path_text(" + aColumn
+            + ", 'public') like 'r%')";
         // When
         final String actualStatement = publicAccessCondition( aColumn, READ_ACCESS );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testPublicAccessConditionWhenTableAliasIsEmpty()
+    void testPublicAccessConditionWhenTableAliasIsEmpty()
     {
         // Given
         final String nullTableAlias = null;
-
         // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
+        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> publicAccessCondition( nullTableAlias, READ_ACCESS ) );
-
         // Then
         assertThat( thrown.getMessage(), containsString( "The argument columnName cannot be null/blank." ) );
     }
 
     @Test
-    public void testUserAccessCondition()
+    void testUserAccessCondition()
     {
         // Given
         String aColumn = "anyColumn";
         final String expectedStatement = "(jsonb_has_user_id(" + aColumn + ", :" + USER_UID + ") = true "
             + " and jsonb_check_user_access(" + aColumn + ", :" + USER_UID + ", 'r%') = true)";
-
         // When
         final String actualStatement = userAccessCondition( aColumn, READ_ACCESS );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testUserAccessConditionWhenTableAliasIsEmpty()
+    void testUserAccessConditionWhenTableAliasIsEmpty()
     {
         // Given
         final String nullTableAlias = null;
-
         // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
+        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> userAccessCondition( nullTableAlias, READ_ACCESS ) );
-
         // Then
         assertThat( thrown.getMessage(), containsString( "The argument columnName cannot be null/blank." ) );
     }
 
     @Test
-    public void testUserGroupAccessCondition()
+    void testUserGroupAccessCondition()
     {
         // Given
         String aColumn = "anyColumn";
         final String expectedStatement = "(" + HAS_USER_GROUP_IDS + "(" + aColumn + ", :" + USER_GROUP_UIDS
             + ") = true " + " and " + CHECK_USER_GROUPS_ACCESS + "(" + aColumn + ", 'r%', :" + USER_GROUP_UIDS
             + ") = true)";
-
         // When
         final String actualStatement = userGroupAccessCondition( aColumn, READ_ACCESS );
-
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
     }
 
     @Test
-    public void testUserGroupAccessConditionWhenTableAliasIsBlank()
+    void testUserGroupAccessConditionWhenTableAliasIsBlank()
     {
         // Given
         final String nullTableAlias = null;
-
         // When throws
-        final IllegalArgumentException thrown = assertThrows(
-            IllegalArgumentException.class,
+        final IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
             () -> userGroupAccessCondition( nullTableAlias, READ_ACCESS ) );
-
         // Then
         assertThat( thrown.getMessage(), containsString( "The argument columnName cannot be null/blank." ) );
     }

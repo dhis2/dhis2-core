@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import java.util.function.Function;
@@ -38,39 +38,37 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
  */
-public class UidGeneratorTest
+class UidGeneratorTest
 {
+
     private UidGenerator subject;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         subject = new UidGenerator();
     }
 
     @Test
-    public void verifyEventsGetUidAssigned()
+    void verifyEventsGetUidAssigned()
     {
         final String uid = CodeGenerator.generateUid();
         // Given
-
         Event event1 = new Event();
         Event event2 = new Event();
         Event event3 = new Event();
         Event event4 = new Event();
         event4.setEvent( uid );
-
         // When
         List<Event> events = subject.assignUidToEvents( Lists.newArrayList( event1, event2, event3, event4 ) );
-
         // Then
         assertThat( events, hasSize( 4 ) );
         events.forEach( e -> assertNotNull( e.getUid() ) );

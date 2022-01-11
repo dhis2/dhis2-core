@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,30 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Locale;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class LocaleUtilsTest
+class LocaleUtilsTest
 {
+
     @Test
-    public void testGetLocaleFallbacks()
+    void testGetLocaleFallbacks()
     {
         Locale l1 = new Locale( "en", "UK", "en" );
         Locale l2 = new Locale( "en", "UK" );
         Locale l3 = new Locale( "en" );
-
         List<String> locales = LocaleUtils.getLocaleFallbacks( l1 );
-
         assertEquals( 3, locales.size() );
         assertTrue( locales.contains( "en_UK_en" ) );
         assertTrue( locales.contains( "en_UK" ) );
         assertTrue( locales.contains( "en_UK" ) );
-
         assertEquals( 2, LocaleUtils.getLocaleFallbacks( l2 ).size() );
         assertEquals( 1, LocaleUtils.getLocaleFallbacks( l3 ).size() );
     }

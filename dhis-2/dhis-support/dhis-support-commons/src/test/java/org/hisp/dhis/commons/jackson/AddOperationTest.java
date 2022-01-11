@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.commons.jackson;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,109 +45,85 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Morten Olav Hansen
  */
-public class AddOperationTest
+class AddOperationTest
 {
+
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    public void testAddEmptyPath()
+    void testAddEmptyPath()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"\", \"value\": \"bbb\"}" +
-            "]", JsonPatch.class );
-
+        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"add\", \"path\": \"\", \"value\": \"bbb\"}" + "]",
+            JsonPatch.class );
         assertNotNull( patch );
-
         JsonNode root = jsonMapper.createObjectNode();
         root = patch.apply( root );
-
         assertEquals( "bbb", root.asText() );
     }
 
     @Test
-    public void testAddSimpleStringPropertyPath()
+    void testAddSimpleStringPropertyPath()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}" +
-            "]", JsonPatch.class );
-
+        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}" + "]",
+            JsonPatch.class );
         assertNotNull( patch );
-
         JsonNode root = jsonMapper.createObjectNode();
         root = patch.apply( root );
-
         assertTrue( root.has( "aaa" ) );
         assertEquals( "bbb", root.get( "aaa" ).asText() );
     }
 
     @Test
-    public void testAddSimpleNumberPropertyPath()
+    void testAddSimpleNumberPropertyPath()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": 2}" +
-            "]", JsonPatch.class );
-
+        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": 2}" + "]",
+            JsonPatch.class );
         assertNotNull( patch );
-
         JsonNode root = jsonMapper.createObjectNode();
         root = patch.apply( root );
-
         assertTrue( root.has( "aaa" ) );
         assertEquals( 2, root.get( "aaa" ).asInt() );
     }
 
     @Test
-    public void testAddAppendArray()
+    void testAddAppendArray()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/arr/-\", \"value\": 1}," +
-            "{\"op\": \"add\", \"path\": \"/arr/-\", \"value\": 2}," +
-            "{\"op\": \"add\", \"path\": \"/arr/-\", \"value\": 3}" +
-            "]", JsonPatch.class );
-
+        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"add\", \"path\": \"/arr/-\", \"value\": 1},"
+            + "{\"op\": \"add\", \"path\": \"/arr/-\", \"value\": 2},"
+            + "{\"op\": \"add\", \"path\": \"/arr/-\", \"value\": 3}" + "]", JsonPatch.class );
         assertNotNull( patch );
-
         ObjectNode root = jsonMapper.createObjectNode();
         ArrayNode arrayNode = jsonMapper.createArrayNode();
         root.set( "arr", arrayNode );
-
         root = (ObjectNode) patch.apply( root );
-
         assertTrue( root.has( "arr" ) );
         assertEquals( 3, arrayNode.size() );
-
         assertEquals( 1, arrayNode.get( 0 ).asInt() );
         assertEquals( 2, arrayNode.get( 1 ).asInt() );
         assertEquals( 3, arrayNode.get( 2 ).asInt() );
     }
 
     @Test
-    public void testAddModifyArray()
+    void testAddModifyArray()
         throws JsonProcessingException,
         JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/arr/0\", \"value\": 1}" +
-            "]", JsonPatch.class );
-
+        JsonPatch patch = jsonMapper.readValue( "[" + "{\"op\": \"add\", \"path\": \"/arr/0\", \"value\": 1}" + "]",
+            JsonPatch.class );
         assertNotNull( patch );
-
         ObjectNode root = jsonMapper.createObjectNode();
         root.set( "arr", jsonMapper.createArrayNode() );
-
         root = (ObjectNode) patch.apply( root );
-
         JsonNode arrayNode = root.get( "arr" );
         assertNotNull( arrayNode );
-
         assertEquals( 1, arrayNode.get( 0 ).asInt() );
     }
 }

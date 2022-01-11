@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,9 @@ import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
 import static org.hisp.dhis.rules.models.TrackerObjectType.ENROLLMENT;
 import static org.hisp.dhis.rules.models.TrackerObjectType.EVENT;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
@@ -44,7 +46,13 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
-import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.rules.models.RuleAction;
+import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
+import org.hisp.dhis.rules.models.RuleActionShowError;
+import org.hisp.dhis.rules.models.RuleActionShowWarning;
+import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
+import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
@@ -55,19 +63,22 @@ import org.hisp.dhis.tracker.programrule.implementers.ShowErrorValidator;
 import org.hisp.dhis.tracker.programrule.implementers.ShowWarningOnCompleteValidator;
 import org.hisp.dhis.tracker.programrule.implementers.ShowWarningValidator;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-@RunWith( MockitoJUnitRunner.class )
-public class ShowErrorWarningImplementerTest
-    extends DhisConvenienceTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class ShowErrorWarningImplementerTest extends DhisConvenienceTest
 {
+
     private final static String CONTENT = "SHOW ERROR DATA";
 
     private final static String DATA = "2 + 2";
@@ -105,23 +116,21 @@ public class ShowErrorWarningImplementerTest
 
     private ProgramStage anotherProgramStage;
 
-    @Before
-    public void setUpTest()
+    @BeforeEach
+    void setUpTest()
     {
         bundle = TrackerBundle.builder().build();
         bundle.setEvents( getEvents() );
         bundle.setEnrollments( getEnrollments() );
         bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
         bundle.setPreheat( preheat );
-
         programStage = createProgramStage( 'A', 0 );
         programStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setUid( DATA_ELEMENT_ID );
-        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( programStage,
-            dataElementA, 0 );
+        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( programStage, dataElementA,
+            0 );
         programStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
-
         anotherProgramStage = createProgramStage( 'B', 0 );
         anotherProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
         DataElement dataElementB = createDataElement( 'B' );
@@ -129,92 +138,81 @@ public class ShowErrorWarningImplementerTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( anotherProgramStage,
             dataElementB, 0 );
         anotherProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
-
         when( preheat.get( ProgramStage.class, PROGRAM_STAGE_ID ) ).thenReturn( programStage );
     }
 
     @Test
-    public void testValidateShowErrorRuleActionForEvents()
+    void testValidateShowErrorRuleActionForEvents()
     {
         Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
-
         assertErrors( errors, 2 );
     }
 
     @Test
-    public void testValidateShowErrorRuleActionForEventsWithValidationStrategyOnComplete()
+    void testValidateShowErrorRuleActionForEventsWithValidationStrategyOnComplete()
     {
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         bundle.setRuleEffects( getRuleEventEffectsLinkedToDataElement() );
         Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
-
         assertErrors( errors, 1 );
         assertErrorsWithDataElement( errors );
     }
 
     @Test
-    public void testValidateShowErrorForEventsInDifferentProgramStages()
+    void testValidateShowErrorForEventsInDifferentProgramStages()
     {
         bundle.setRuleEffects( getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages() );
         Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
-
         assertErrors( errors, 1 );
         assertErrorsWithDataElement( errors );
     }
 
     @Test
-    public void testValidateShowErrorRuleActionForEnrollment()
+    void testValidateShowErrorRuleActionForEnrollment()
     {
         Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEnrollments( bundle );
-
         assertErrors( errors, 2 );
     }
 
     @Test
-    public void testValidateShowWarningRuleActionForEvents()
+    void testValidateShowWarningRuleActionForEvents()
     {
         Map<String, List<ProgramRuleIssue>> warnings = warningImplementer.validateEvents( bundle );
-
         assertWarnings( warnings, 2 );
     }
 
     @Test
-    public void testValidateShowWarningRuleActionForEnrollment()
+    void testValidateShowWarningRuleActionForEnrollment()
     {
         Map<String, List<ProgramRuleIssue>> warnings = warningImplementer.validateEnrollments( bundle );
-
         assertWarnings( warnings, 2 );
     }
 
     @Test
-    public void testValidateShowErrorOnCompleteRuleActionForEvents()
+    void testValidateShowErrorOnCompleteRuleActionForEvents()
     {
         Map<String, List<ProgramRuleIssue>> errors = errorOnCompleteImplementer.validateEvents( bundle );
-
         assertErrors( errors, 1 );
     }
 
     @Test
-    public void testValidateShowErrorOnCompleteRuleActionForEnrollment()
+    void testValidateShowErrorOnCompleteRuleActionForEnrollment()
     {
         Map<String, List<ProgramRuleIssue>> errors = errorOnCompleteImplementer.validateEnrollments( bundle );
-
         assertErrors( errors, 1 );
     }
 
     @Test
-    public void testValidateShowWarningOnCompleteRuleActionForEvents()
+    void testValidateShowWarningOnCompleteRuleActionForEvents()
     {
         Map<String, List<ProgramRuleIssue>> warnings = warningOnCompleteImplementer.validateEvents( bundle );
-
         assertWarnings( warnings, 1 );
     }
 
     @Test
-    public void testValidateShowWarningOnCompleteRuleActionForEnrollment()
+    void testValidateShowWarningOnCompleteRuleActionForEnrollment()
     {
         Map<String, List<ProgramRuleIssue>> warnings = warningOnCompleteImplementer.validateEnrollments( bundle );
-
         assertWarnings( warnings, 1 );
     }
 
@@ -231,36 +229,25 @@ public class ShowErrorWarningImplementerTest
     private void assertIssues( Map<String, List<ProgramRuleIssue>> errors, int numberOfErrors, IssueType issueType )
     {
         assertFalse( errors.isEmpty() );
-
         assertEquals( numberOfErrors, errors.size() );
-
         errors.forEach( ( key, value ) -> assertEquals( 1, value.size() ) );
-
-        errors
-            .values()
-            .stream()
-            .flatMap( Collection::stream )
-            .forEach( e -> {
-                assertEquals( "", e.getRuleUid() );
-                assertEquals( issueType, e.getIssueType() );
-                assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
-                assertTrue( e.getArgs().get( 0 ).contains( issueType.name() + CONTENT + " " + EVALUATED_DATA ) );
-            } );
+        errors.values().stream().flatMap( Collection::stream ).forEach( e -> {
+            assertEquals( "", e.getRuleUid() );
+            assertEquals( issueType, e.getIssueType() );
+            assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
+            assertTrue( e.getArgs().get( 0 ).contains( issueType.name() + CONTENT + " " + EVALUATED_DATA ) );
+        } );
     }
 
     public void assertErrorsWithDataElement( Map<String, List<ProgramRuleIssue>> errors )
     {
-        errors
-            .values()
-            .stream()
-            .flatMap( Collection::stream )
-            .forEach( e -> {
-                assertEquals( "", e.getRuleUid() );
-                assertEquals( IssueType.ERROR, e.getIssueType() );
-                assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
-                assertEquals( IssueType.ERROR.name() + CONTENT + " " + EVALUATED_DATA + " (" + DATA_ELEMENT_ID + ")",
-                    e.getArgs().get( 0 ) );
-            } );
+        errors.values().stream().flatMap( Collection::stream ).forEach( e -> {
+            assertEquals( "", e.getRuleUid() );
+            assertEquals( IssueType.ERROR, e.getIssueType() );
+            assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
+            assertEquals( IssueType.ERROR.name() + CONTENT + " " + EVALUATED_DATA + " (" + DATA_ELEMENT_ID + ")",
+                e.getArgs().get( 0 ) );
+        } );
     }
 
     private List<Event> getEvents()
@@ -269,12 +256,10 @@ public class ShowErrorWarningImplementerTest
         activeEvent.setEvent( ACTIVE_EVENT_ID );
         activeEvent.setStatus( EventStatus.ACTIVE );
         activeEvent.setProgramStage( PROGRAM_STAGE_ID );
-
         Event completedEvent = new Event();
         completedEvent.setEvent( COMPLETED_EVENT_ID );
         completedEvent.setStatus( EventStatus.COMPLETED );
         completedEvent.setProgramStage( PROGRAM_STAGE_ID );
-
         return Lists.newArrayList( activeEvent, completedEvent );
     }
 
@@ -283,31 +268,26 @@ public class ShowErrorWarningImplementerTest
         Enrollment activeEnrollment = new Enrollment();
         activeEnrollment.setEnrollment( ACTIVE_ENROLLMENT_ID );
         activeEnrollment.setStatus( EnrollmentStatus.ACTIVE );
-
         Enrollment completedEnrollment = new Enrollment();
         completedEnrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
         completedEnrollment.setStatus( EnrollmentStatus.COMPLETED );
-
         return Lists.newArrayList( activeEnrollment, completedEnrollment );
     }
 
     private List<RuleEffects> getRuleEventEffectsLinkedToDataElement()
     {
         List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
-        ruleEffectsByEvent
-            .add( new RuleEffects( EVENT, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
-        ruleEffectsByEvent
-            .add( new RuleEffects( EVENT, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
+        ruleEffectsByEvent.add( new RuleEffects( EVENT, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
+        ruleEffectsByEvent.add( new RuleEffects( EVENT, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
         return ruleEffectsByEvent;
     }
 
     private List<RuleEffects> getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages()
     {
         List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
+        ruleEffectsByEvent.add( new RuleEffects( EVENT, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
         ruleEffectsByEvent
-            .add( new RuleEffects( EVENT, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
-        ruleEffectsByEvent.add(
-            new RuleEffects( EVENT, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataAnotherElement() ) );
+            .add( new RuleEffects( EVENT, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataAnotherElement() ) );
         return ruleEffectsByEvent;
     }
 
@@ -317,22 +297,19 @@ public class ShowErrorWarningImplementerTest
         ruleEffectsByEvent.add( new RuleEffects( EVENT, ACTIVE_EVENT_ID, getRuleEffects() ) );
         ruleEffectsByEvent.add( new RuleEffects( EVENT, COMPLETED_EVENT_ID, getRuleEffects() ) );
         ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
-        ruleEffectsByEvent
-            .add( new RuleEffects( ENROLLMENT, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( new RuleEffects( ENROLLMENT, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
         return ruleEffectsByEvent;
     }
 
     private List<RuleEffect> getRuleEffects()
     {
-        RuleAction actionShowWarning = RuleActionShowWarning
-            .create( IssueType.WARNING.name() + CONTENT, DATA, "", UNKNOWN );
+        RuleAction actionShowWarning = RuleActionShowWarning.create( IssueType.WARNING.name() + CONTENT, DATA, "",
+            UNKNOWN );
         RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
             .create( IssueType.WARNING.name() + CONTENT, DATA, "", UNKNOWN );
-        RuleAction actionShowError = RuleActionShowError
-            .create( IssueType.ERROR.name() + CONTENT, DATA, "", UNKNOWN );
-        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
-            .create( IssueType.ERROR.name() + CONTENT, DATA, "", UNKNOWN );
-
+        RuleAction actionShowError = RuleActionShowError.create( IssueType.ERROR.name() + CONTENT, DATA, "", UNKNOWN );
+        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion.create( IssueType.ERROR.name() + CONTENT,
+            DATA, "", UNKNOWN );
         return Lists.newArrayList( RuleEffect.create( "", actionShowWarning, EVALUATED_DATA ),
             RuleEffect.create( "", actionShowWarningOnComplete, EVALUATED_DATA ),
             RuleEffect.create( "", actionShowError, EVALUATED_DATA ),
@@ -341,15 +318,14 @@ public class ShowErrorWarningImplementerTest
 
     private List<RuleEffect> getRuleEffectsLinkedToDataElement()
     {
-        RuleAction actionShowWarning = RuleActionShowWarning
-            .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowWarning = RuleActionShowWarning.create( IssueType.WARNING.name() + CONTENT, DATA,
+            DATA_ELEMENT_ID, DATA_ELEMENT );
         RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
             .create( IssueType.WARNING.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowError = RuleActionShowError
-            .create( IssueType.ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
-            .create( IssueType.ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
-
+        RuleAction actionShowError = RuleActionShowError.create( IssueType.ERROR.name() + CONTENT, DATA,
+            DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion.create( IssueType.ERROR.name() + CONTENT,
+            DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
         return Lists.newArrayList( RuleEffect.create( "", actionShowWarning, EVALUATED_DATA ),
             RuleEffect.create( "", actionShowWarningOnComplete, EVALUATED_DATA ),
             RuleEffect.create( "", actionShowError, EVALUATED_DATA ),
@@ -358,15 +334,14 @@ public class ShowErrorWarningImplementerTest
 
     private List<RuleEffect> getRuleEffectsLinkedToDataAnotherElement()
     {
-        RuleAction actionShowWarning = RuleActionShowWarning
-            .create( IssueType.WARNING.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowWarning = RuleActionShowWarning.create( IssueType.WARNING.name() + CONTENT, DATA,
+            ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
         RuleAction actionShowWarningOnComplete = RuleActionWarningOnCompletion
             .create( IssueType.WARNING.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowError = RuleActionShowError
-            .create( IssueType.ERROR.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
-        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
-            .create( IssueType.ERROR.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
-
+        RuleAction actionShowError = RuleActionShowError.create( IssueType.ERROR.name() + CONTENT, DATA,
+            ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
+        RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion.create( IssueType.ERROR.name() + CONTENT,
+            DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
         return Lists.newArrayList( RuleEffect.create( "", actionShowWarning, EVALUATED_DATA ),
             RuleEffect.create( "", actionShowWarningOnComplete, EVALUATED_DATA ),
             RuleEffect.create( "", actionShowError, EVALUATED_DATA ),

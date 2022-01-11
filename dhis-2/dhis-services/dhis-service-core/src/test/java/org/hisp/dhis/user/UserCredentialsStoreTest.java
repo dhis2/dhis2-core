@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,22 @@
  */
 package org.hisp.dhis.user;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.UUID;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
  */
-public class UserCredentialsStoreTest
-    extends DhisSpringTest
+class UserCredentialsStoreTest extends DhisSpringTest
 {
 
     public static final String AUTH_A = "AuthA";
@@ -71,78 +70,62 @@ public class UserCredentialsStoreTest
         throws Exception
     {
         super.userService = userService;
-
         roleA = createUserAuthorityGroup( 'A' );
         roleB = createUserAuthorityGroup( 'B' );
         roleC = createUserAuthorityGroup( 'C' );
-
         roleA.getAuthorities().add( AUTH_A );
         roleA.getAuthorities().add( AUTH_B );
         roleA.getAuthorities().add( AUTH_C );
         roleA.getAuthorities().add( AUTH_D );
-
         roleB.getAuthorities().add( AUTH_A );
         roleB.getAuthorities().add( AUTH_B );
-
         roleC.getAuthorities().add( AUTH_C );
-
         userService.addUserAuthorityGroup( roleA );
         userService.addUserAuthorityGroup( roleB );
         userService.addUserAuthorityGroup( roleC );
     }
 
     @Test
-    public void testAddGetUserCredentials()
+    void testAddGetUserCredentials()
     {
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
-
         UserCredentials credentialsA = createUserCredentials( 'A', userA );
         UserCredentials credentialsB = createUserCredentials( 'B', userB );
-
         userCredentialsStore.save( credentialsA );
         long idA = credentialsA.getId();
         userCredentialsStore.save( credentialsB );
         long idB = credentialsB.getId();
-
         assertEquals( credentialsA, userCredentialsStore.get( idA ) );
         assertEquals( credentialsB, userCredentialsStore.get( idB ) );
     }
 
     @Test
-    public void testGetUserCredentialsByUuid()
+    void testGetUserCredentialsByUuid()
     {
         User userA = createUser( 'A' );
         User userB = createUser( 'B' );
-
         UserCredentials credentialsA = createUserCredentials( 'A', userA );
         UserCredentials credentialsB = createUserCredentials( 'B', userB );
-
         userCredentialsStore.save( credentialsA );
         userCredentialsStore.save( credentialsB );
-
         UUID uuidA = credentialsA.getUuid();
         UUID uuidB = credentialsB.getUuid();
-
         UserCredentials ucA = userCredentialsStore.getUserCredentialsByUuid( uuidA );
         UserCredentials ucB = userCredentialsStore.getUserCredentialsByUuid( uuidB );
-
         assertNotNull( ucA );
         assertNotNull( ucB );
-
         assertEquals( uuidA, ucA.getUuid() );
         assertEquals( uuidB, ucB.getUuid() );
     }
 
     @Test
-    public void testGetUserWithAuthority()
+    void testGetUserWithAuthority()
     {
         User userA = addUser( 'A', roleA );
         User userB = addUser( 'B', roleB, roleC );
-
         List<UserCredentials> usersWithAuthorityA = userService.getUsersWithAuthority( AUTH_D );
         assertTrue( usersWithAuthorityA.contains( userA.getUserCredentials() ) );
-
         List<UserCredentials> usersWithAuthorityB = userService.getUsersWithAuthority( AUTH_D );
         assertFalse( usersWithAuthorityB.contains( userB.getUserCredentials() ) );
     }

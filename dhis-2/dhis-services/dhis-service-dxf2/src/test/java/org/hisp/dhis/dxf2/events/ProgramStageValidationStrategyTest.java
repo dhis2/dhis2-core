@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -72,14 +72,15 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David Katuscak
  */
-public class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
+class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private EventService eventService;
 
@@ -131,66 +132,51 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
     {
         final int testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
         userService = _userService;
-
         createUserAndInjectSecurityContext( false, "F_TRACKED_ENTITY_DATAVALUE_ADD",
-            "F_TRACKED_ENTITY_DATAVALUE_DELETE",
-            "F_UNCOMPLETE_EVENT", "F_PROGRAMSTAGE_ADD", "F_PROGRAMSTAGE_DELETE", "F_PROGRAM_PUBLIC_ADD",
-            "F_PROGRAM_PRIVATE_ADD",
-            "F_PROGRAM_DELETE", "F_TRACKED_ENTITY_ADD", "F_TRACKED_ENTITY_UPDATE", "F_TRACKED_ENTITY_DELETE",
-            "F_DATAELEMENT_PUBLIC_ADD",
+            "F_TRACKED_ENTITY_DATAVALUE_DELETE", "F_UNCOMPLETE_EVENT", "F_PROGRAMSTAGE_ADD", "F_PROGRAMSTAGE_DELETE",
+            "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_PRIVATE_ADD", "F_PROGRAM_DELETE", "F_TRACKED_ENTITY_ADD",
+            "F_TRACKED_ENTITY_UPDATE", "F_TRACKED_ENTITY_DELETE", "F_DATAELEMENT_PUBLIC_ADD",
             "F_DATAELEMENT_PRIVATE_ADD", "F_DATAELEMENT_DELETE", "F_CATEGORY_COMBO_PUBLIC_ADD",
-            "F_CATEGORY_COMBO_PRIVATE_ADD",
-            "F_CATEGORY_COMBO_DELETE" );
-
+            "F_CATEGORY_COMBO_PRIVATE_ADD", "F_CATEGORY_COMBO_DELETE" );
         User currentUser = currentUserService.getCurrentUser();
         UserAccess userAccess1 = new UserAccess( currentUser, "rwrw----" );
         UserAccess userAccess2 = new UserAccess( currentUser, "rwrw----" );
         UserAccess userAccess3 = new UserAccess( currentUser, "rwrw----" );
-
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitA.addUser( currentUser );
         organisationUnitA.getSharing().addUserAccess( userAccess1 );
         currentUser.getTeiSearchOrganisationUnits().add( organisationUnitA );
         manager.save( organisationUnitA, false );
         userService.updateUser( currentUser );
-
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityType.getSharing().addUserAccess( userAccess1 );
         manager.save( trackedEntityType, false );
-
         org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( organisationUnitA );
         maleA.setTrackedEntityType( trackedEntityType );
         maleA.getSharing().addUserAccess( userAccess1 );
         maleA.setCreatedBy( currentUser );
         manager.save( maleA, false );
-
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
-
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
         dataElementA.getSharing().addUserAccess( userAccess1 );
         manager.save( dataElementA, false );
-
         DataElement dataElementB = createDataElement( 'B' );
         dataElementB.setValueType( ValueType.TEXT );
         dataElementB.getSharing().addUserAccess( userAccess2 );
         manager.save( dataElementB, false );
-
         DataElement dataElementC = createDataElement( 'C' );
         dataElementC.setValueType( ValueType.INTEGER );
         dataElementC.getSharing().addUserAccess( userAccess3 );
         manager.save( dataElementC, false );
-
         programStageA = createProgramStage( 'A', 0 );
         programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
         programStageA.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageA, false );
-
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         programA.getSharing().addUserAccess( userAccess1 );
         manager.save( programA, false );
-
         // Create a compulsory PSDE
         ProgramStageDataElement programStageDataElementA = new ProgramStageDataElement();
         programStageDataElementA.setDataElement( dataElementA );
@@ -198,7 +184,6 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
         programStageDataElementA.setCompulsory( true );
         programStageDataElementA.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageDataElementA, false );
-
         // Create a compulsory PSDE
         ProgramStageDataElement programStageDataElementB = new ProgramStageDataElement();
         programStageDataElementB.setDataElement( dataElementB );
@@ -206,7 +191,6 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
         programStageDataElementB.setCompulsory( true );
         programStageDataElementB.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageDataElementB, false );
-
         // Create a NON-compulsory PSDE
         ProgramStageDataElement programStageDataElementC = new ProgramStageDataElement();
         programStageDataElementC.setDataElement( dataElementC );
@@ -214,7 +198,6 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
         programStageDataElementC.setCompulsory( false );
         programStageDataElementC.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageDataElementC, false );
-
         // Assign all 3 created PSDEs to created ProgramStage programStageA and
         // to
         // created Program programA
@@ -223,10 +206,8 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
         programStageA.getProgramStageDataElements().add( programStageDataElementC );
         programStageA.setProgram( programA );
         programA.getProgramStages().add( programStageA );
-
         manager.update( programStageA );
         manager.update( programA );
-
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setProgram( programA );
         programInstance.setIncidentDate( new Date() );
@@ -234,14 +215,11 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
         programInstance.setEntityInstance( maleA );
         programInstance.getSharing().addUserAccess( userAccess1 );
         maleA.getProgramInstances().add( programInstance );
-
         manager.save( programInstance, false );
         manager.update( maleA );
-
         Period periodA = createPeriod( testYear + "03" );
         periodA.getSharing().addUserAccess( userAccess1 );
         manager.save( periodA, false );
-
         CategoryCombo categoryComboA = createCategoryCombo( 'A' );
         CategoryOptionCombo categoryOptionComboA = createCategoryOptionCombo( 'A' );
         categoryOptionComboA.setCategoryCombo( categoryComboA );
@@ -249,11 +227,9 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
         categoryOptionComboA.getSharing().addUserAccess( userAccess1 );
         manager.save( categoryComboA, false );
         manager.save( categoryOptionComboA, false );
-
         dataValueAMissing = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementA.getUid(), "" );
         dataValueBMissing = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementB.getUid(), "" );
         dataValueCMissing = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementC.getUid(), "" );
-
         dataValueA = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementA.getUid(), "42" );
         dataValueB = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementB.getUid(), "Ford Prefect" );
         dataValueC = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementC.getUid(), "84" );
@@ -274,54 +250,44 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
      * #########################################################################
      * #### #################################
      */
-
     /*
      * ####################################################### Tests with
      * ValidationStrategy.ON_UPDATE_AND_INSERT
      * #######################################################
      */
-
     @Test
-    public void missingCompulsoryDataElementWithValidationOnUpdateShouldFailTest()
+    void missingCompulsoryDataElementWithValidationOnUpdateShouldFailTest()
     {
         validationOnInsertUpdate( programStageA );
-
         assertInvalidImport( addEvent( createDefaultEvent( dataValueA, dataValueBMissing, dataValueC ) ) );
     }
 
     @Test
-    public void correctCompulsoryDataElementsWithValidationOnUpdateShouldPassTest()
+    void correctCompulsoryDataElementsWithValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-
         Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
         assertSuccessfulImport( addEvent( event ) );
-
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
     }
 
     @Test
-    public void missingCompulsoryDataElementAndCompletedEventWithValidationOnUpdateShouldFailTest()
+    void missingCompulsoryDataElementAndCompletedEventWithValidationOnUpdateShouldFailTest()
     {
         validationOnInsertUpdate( programStageA );
-
         Event event = createDefaultEvent( dataValueA, dataValueBMissing, dataValueC );
         event.setStatus( EventStatus.COMPLETED );
-
         assertInvalidImport( addEvent( event ) );
     }
 
     @Test
-    public void correctCompulsoryDataElementAndCompletedEventWithValidationOnUpdateShouldPassTest()
+    void correctCompulsoryDataElementAndCompletedEventWithValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-
         Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
         event.setStatus( EventStatus.COMPLETED );
-
         assertSuccessfulImport( addEvent( event ) );
-
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
     }
@@ -331,52 +297,41 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
      * ValidationStrategy.ON_COMPLETE
      * #######################################################
      */
-
     @Test
-    public void missingCompulsoryDataElementWithValidationOnCompleteShouldPassTest()
+    void missingCompulsoryDataElementWithValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-
         Event event = createDefaultEvent( dataValueA, dataValueBMissing, dataValueC );
         assertSuccessfulImport( addEvent( event ) );
-
-        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ),
-            checkDataValue( dataValueC ) );
+        assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
     }
 
     @Test
-    public void correctCompulsoryDataElementsWithValidationOnCompleteShouldPassTest()
+    void correctCompulsoryDataElementsWithValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-
         Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
         assertSuccessfulImport( addEvent( event ) );
-
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
     }
 
     @Test
-    public void missingCompulsoryDataElementAndCompletedEventWithValidationOnCompleteShouldFailTest()
+    void missingCompulsoryDataElementAndCompletedEventWithValidationOnCompleteShouldFailTest()
     {
         validationOnComplete( programStageA );
-
         Event event = createDefaultEvent( dataValueA, dataValueBMissing, dataValueC );
         event.setStatus( EventStatus.COMPLETED );
-
         assertInvalidImport( addEvent( event ) );
     }
 
     @Test
-    public void correctCompulsoryDataElementAndCompletedEventWithValidationOnCompleteShouldPassTest()
+    void correctCompulsoryDataElementAndCompletedEventWithValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-
         Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
         event.setStatus( EventStatus.COMPLETED );
-
         assertSuccessfulImport( addEvent( event ) );
-
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
     }
@@ -397,109 +352,88 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
      * #########################################################################
      * #### ##########################################
      */
-
     /*
      * ####################################################### Tests with
      * ValidationStrategy.ON_UPDATE_AND_INSERT
      * #######################################################
      */
-
     @Test
-    public void compulsoryDataElementWithEmptyValueAndValidationOnUpdateShouldFailTest()
+    void compulsoryDataElementWithEmptyValueAndValidationOnUpdateShouldFailTest()
     {
         validationOnInsertUpdate( programStageA );
-
         // Create event having 3 Data Values
         Event event = addDefaultEvent();
-
         // Single value update -> should pass -> because data values are fetched
         // from DB
         // and merged
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
-
-        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) ); // FIXME
-                                                                                    // this
-                                                                                    // should
-                                                                                    // fail
-                                                                                    // because
-                                                                                    // 'dataValueB'
-                                                                                    // is
-                                                                                    // mandatory
+        // FIXME
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
+        // this
+        // should
+        // fail
+        // because
+        // 'dataValueB'
+        // is
+        // mandatory
         // assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA),
         // checkDataValue( dataValueB ), checkDataValue( dataValueC ) );
-
         // NOT a single value update -> should fail -> because data values are
         // NOT
         // fetched from DB and so NOT merged
         updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
-
         assertInvalidImport( updateEvent( updatedEvent ) );
     }
 
     @Test
-    public void correctCompulsoryDataElementAndValidationOnUpdateShouldPassTest()
+    void correctCompulsoryDataElementAndValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-
         // Create event
         Event event = addDefaultEvent();
-
         // Update Data Value value
         dataValueB.setValue( "new value" );
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
     }
 
     @Test
-    public void correctCompulsoryDataElementButOtherCompulsoryMissingInDBAndValidationOnUpdateShouldFailTest()
+    void correctCompulsoryDataElementButOtherCompulsoryMissingInDBAndValidationOnUpdateShouldFailTest()
     {
         validationOnComplete( programStageA );
-
         Event event = createDefaultEvent( dataValueAMissing, dataValueB, dataValueC );
-
         assertSuccessfulImport( addEvent( event ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueB ), checkDataValue( dataValueC ) );
-
         validationOnInsertUpdate( programStageA );
-
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
-
         assertInvalidImport( updateEventWithSingleValueUpdate( updatedEvent ) );
     }
 
     @Test
-    public void emptyNonCompulsoryDataElementAndValidationOnUpdateShouldPassTest()
+    void emptyNonCompulsoryDataElementAndValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-
         Event event = addDefaultEvent();
-
         // DataValueC is not mandatory - so ok to remove
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
 
     @Test
-    public void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnUpdateShouldFailTest()
+    void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnUpdateShouldFailTest()
     {
         validationOnInsertUpdate( programStageA );
-
         Event event = addDefaultEvent();
-
         // Single value update -> should pass -> because data values are fetched
         // from DB
         // and merged
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
-
         // NOT a single value update -> should fail -> because data values are
         // NOT
         // fetched from DB and so NOT merged
@@ -507,31 +441,25 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
     }
 
     @Test
-    public void correctCompulsoryDataElementWithCompletedEventAndValidationOnUpdateShouldPassTest()
+    void correctCompulsoryDataElementWithCompletedEventAndValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-
         Event event = addDefaultEvent();
-
         dataValueB.setValue( "new value" );
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
         updatedEvent.setStatus( EventStatus.COMPLETED );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
     }
 
     @Test
-    public void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnUpdateShouldPassTest()
+    void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-
         Event event = addDefaultEvent();
-
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
@@ -541,64 +469,50 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
      * ValidationStrategy.ON_COMPLETE
      * #######################################################
      */
-
     @Test
-    public void compulsoryDataElementWithEmptyValueAndValidationOnCompleteShouldPassTest()
+    void compulsoryDataElementWithEmptyValueAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-
         Event event = addDefaultEvent();
-
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
     }
 
     @Test
-    public void correctCompulsoryDataElementAndValidationOnCompleteShouldPassTest()
+    void correctCompulsoryDataElementAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-
         Event event = addDefaultEvent();
-
         dataValueB.setValue( "new value" );
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
     }
 
     @Test
-    public void emptyNonCompulsoryDataElementAndValidationOnCompleteShouldPassTest()
+    void emptyNonCompulsoryDataElementAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-
         Event event = addDefaultEvent();
-
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
 
     @Test
-    public void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnCompleteShouldFailTest()
+    void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnCompleteShouldFailTest()
     {
         validationOnComplete( programStageA );
-
         Event event = addDefaultEvent();
-
         // Single value update -> should pass -> because data values are fetched
         // from DB
         // and merged
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
-
         // NOT a single value update -> should fail -> because data values are
         // NOT
         // fetched from DB and so NOT merged
@@ -606,30 +520,24 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
     }
 
     @Test
-    public void correctCompulsoryDataElementWithCompletedEventAndValidationOnCompleteShouldPassTest()
+    void correctCompulsoryDataElementWithCompletedEventAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-
         Event event = addDefaultEvent();
-
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
         updatedEvent.setStatus( EventStatus.COMPLETED );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
     }
 
     @Test
-    public void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnCompleteShouldPassTest()
+    void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-
         Event event = addDefaultEvent();
-
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
-
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
@@ -642,7 +550,6 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
         event.setOrgUnit( orgUnit );
         event.setTrackedEntityInstance( person );
         event.setEventDate( "2013-01-01" );
-
         return event;
     }
 
@@ -673,13 +580,12 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
     private void assertDataValuesOnPsi( String event, DataValueAsserter... dataValues )
     {
         final ProgramStageInstance psi = getPsi( event );
-        assertEquals( print( psi, dataValues ), dataValues.length, psi.getEventDataValues().size() );
-
+        assertEquals( dataValues.length, psi.getEventDataValues().size(), print( psi, dataValues ) );
         for ( DataValueAsserter dataValue : dataValues )
         {
-            assertThat( psi.getEventDataValues(), hasItem( allOf(
-                Matchers.<EventDataValue> hasProperty( "value", is( dataValue.getValue() ) ),
-                Matchers.<EventDataValue> hasProperty( "dataElement", is( dataValue.getDataElement() ) ) ) ) );
+            assertThat( psi.getEventDataValues(),
+                hasItem( allOf( Matchers.<EventDataValue> hasProperty( "value", is( dataValue.getValue() ) ),
+                    Matchers.<EventDataValue> hasProperty( "dataElement", is( dataValue.getDataElement() ) ) ) ) );
         }
     }
 
@@ -747,11 +653,9 @@ public class ProgramStageValidationStrategyTest extends TransactionalIntegration
     private Event addDefaultEvent()
     {
         Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
-
         assertSuccessfulImport( addEvent( event ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
-
         return event;
     }
 }

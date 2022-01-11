@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,8 +60,8 @@ import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
@@ -70,9 +70,7 @@ import org.springframework.test.web.servlet.ResultActions;
 /**
  * @author Luciano Fiandesio
  */
-public class StaticContentControllerTest
-    extends
-    DhisWebSpringTest
+class StaticContentControllerTest extends DhisWebSpringTest
 {
 
     private final static String URL = "/staticContent/";
@@ -89,8 +87,8 @@ public class StaticContentControllerTest
     @Autowired
     private JCloudsFileResourceContentStore fileResourceContentStore;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         this.session = getSession( "ALL" );
         this.mockMultipartFile = new MockMultipartFile( "file", "testlogo.png", MIME_PNG, "image".getBytes() );
@@ -98,7 +96,7 @@ public class StaticContentControllerTest
     }
 
     @Test
-    public void verifyFetchWithInvalidKey()
+    void verifyFetchWithInvalidKey()
         throws Exception
     {
         mvc.perform( get( URL + "idontexist" ).session( session ).contentType( APPLICATION_JSON_UTF8 ) )
@@ -106,67 +104,50 @@ public class StaticContentControllerTest
     }
 
     @Test
-    public void verifyFetchWithDefaultKey()
+    void verifyFetchWithDefaultKey()
         throws Exception
     {
-        mvc.perform(
-            get( URL + LOGO_BANNER )
-                .accept( TEXT_HTML_VALUE )
-                .session( session ) )
+        mvc.perform( get( URL + LOGO_BANNER ).accept( TEXT_HTML_VALUE ).session( session ) )
             .andExpect( redirectedUrlPattern( "**/dhis-web-commons/css/light_blue/logo_banner.png" ) )
             .andExpect( status().is( SC_MOVED_TEMPORARILY ) );
     }
 
     @Test
-    public void verifyFetchCustom()
+    void verifyFetchCustom()
         throws Exception
     {
         // store a mock file to the content store, before fetching it
-        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
-            mockMultipartFile, DOCUMENT ), "image".getBytes() );
-
+        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER, mockMultipartFile, DOCUMENT ),
+            "image".getBytes() );
         systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, TRUE );
-
-        mvc.perform(
-            get( URL + LOGO_BANNER )
-                .accept( TEXT_HTML_VALUE )
-                .session( session ) )
-            .andExpect( content().contentType( MIME_PNG ) )
-            .andExpect( content().bytes( mockMultipartFile.getBytes() ) )
+        mvc.perform( get( URL + LOGO_BANNER ).accept( TEXT_HTML_VALUE ).session( session ) )
+            .andExpect( content().contentType( MIME_PNG ) ).andExpect( content().bytes( mockMultipartFile.getBytes() ) )
             .andExpect( status().is( SC_OK ) );
     }
 
     @Test
-    public void testGetStaticImagesCustomKey()
+    void testGetStaticImagesCustomKey()
         throws Exception
     {
         // Given
         final String theExpectedType = "png";
         final String theExpectedApiUrl = "/api" + RESOURCE_PATH;
-
         // a mock file in the content store used during the fetch
-        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
-            mockMultipartFile, DOCUMENT ), "image".getBytes() );
-
+        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER, mockMultipartFile, DOCUMENT ),
+            "image".getBytes() );
         // a positive flag indicating the usage of a custom logo
         systemSettingManager.saveSystemSetting( USE_CUSTOM_LOGO_BANNER, TRUE );
-
         // When
-        final ResultActions result = mvc.perform(
-            get( URL + LOGO_BANNER )
-                .accept( APPLICATION_JSON )
-                .session( session ) );
-
+        final ResultActions result = mvc
+            .perform( get( URL + LOGO_BANNER ).accept( APPLICATION_JSON ).session( session ) );
         // Then
-        result
-            .andExpect( content().contentType( APPLICATION_JSON ) )
+        result.andExpect( content().contentType( APPLICATION_JSON ) )
             .andExpect( content().string( containsString( theExpectedType ) ) )
-            .andExpect( content().string( containsString( theExpectedApiUrl ) ) )
-            .andExpect( status().isFound() );
+            .andExpect( content().string( containsString( theExpectedApiUrl ) ) ).andExpect( status().isFound() );
     }
 
     @Test
-    public void testGetStaticImagesUsingNonExistingKey()
+    void testGetStaticImagesUsingNonExistingKey()
         throws Exception
     {
         // Given
@@ -175,20 +156,14 @@ public class StaticContentControllerTest
         final String theExpectedStatus = "ERROR";
         final String theExpectedMessage = "Key does not exist.";
         final String aNonExistingLogoBanner = "nonExistingLogo";
-
         // a mock file in the content store used during the fetch
-        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER,
-            mockMultipartFile, DOCUMENT ), "image".getBytes() );
-
+        fileResourceContentStore.saveFileResourceContent( build( LOGO_BANNER, mockMultipartFile, DOCUMENT ),
+            "image".getBytes() );
         // When
-        final ResultActions result = mvc.perform(
-            get( URL + aNonExistingLogoBanner )
-                .accept( APPLICATION_JSON )
-                .session( session ) );
-
+        final ResultActions result = mvc
+            .perform( get( URL + aNonExistingLogoBanner ).accept( APPLICATION_JSON ).session( session ) );
         // Then
-        result
-            .andExpect( content().contentType( APPLICATION_JSON ) )
+        result.andExpect( content().contentType( APPLICATION_JSON ) )
             .andExpect( content().string( not( containsString( "png" ) ) ) )
             .andExpect( content().string( containsString( theExpectedStatusMessage ) ) )
             .andExpect( content().string( containsString( theExpectedStatus ) ) )
@@ -198,7 +173,7 @@ public class StaticContentControllerTest
     }
 
     @Test
-    public void testGetStaticImagesUsingNonExistingLogo()
+    void testGetStaticImagesUsingNonExistingLogo()
         throws Exception
     {
         // Given
@@ -206,19 +181,13 @@ public class StaticContentControllerTest
         final String theExpectedStatusCode = "404";
         final String theExpectedStatus = "ERROR";
         final String theExpectedMessage = "No custom file found.";
-
         // a non existing logo in the content store used during the fetch
         fileResourceContentStore.deleteFileResourceContent( makeKey( DOCUMENT, Optional.of( LOGO_BANNER ) ) );
-
         // When
-        final ResultActions result = mvc.perform(
-            get( URL + LOGO_BANNER )
-                .accept( APPLICATION_JSON )
-                .session( session ) );
-
+        final ResultActions result = mvc
+            .perform( get( URL + LOGO_BANNER ).accept( APPLICATION_JSON ).session( session ) );
         // Then
-        result
-            .andExpect( content().contentType( APPLICATION_JSON ) )
+        result.andExpect( content().contentType( APPLICATION_JSON ) )
             .andExpect( content().string( not( containsString( "png" ) ) ) )
             .andExpect( content().string( containsString( theExpectedStatusMessage ) ) )
             .andExpect( content().string( containsString( theExpectedStatus ) ) )
@@ -228,32 +197,29 @@ public class StaticContentControllerTest
     }
 
     @Test
-    public void verifyStoreImage()
+    void verifyStoreImage()
         throws Exception
     {
-        mvc.perform(
-            multipart( URL + LOGO_BANNER ).file( mockMultipartFile ).session( session ) )
+        mvc.perform( multipart( URL + LOGO_BANNER ).file( mockMultipartFile ).session( session ) )
             .andExpect( status().is( SC_NO_CONTENT ) );
     }
 
     @Test
-    public void verifyErrorWhenStoringInvalidMimeType()
+    void verifyErrorWhenStoringInvalidMimeType()
         throws Exception
     {
         final String error = buildResponse( "Unsupported Media Type", 415, "WARNING", null );
-
-        mvc.perform( multipart( URL + LOGO_BANNER ).file(
-            new MockMultipartFile( "file", "testlogo.png", IMAGE_JPEG.toString(), "image".getBytes() ) )
+        mvc.perform( multipart( URL + LOGO_BANNER )
+            .file( new MockMultipartFile( "file", "testlogo.png", IMAGE_JPEG.toString(), "image".getBytes() ) )
             .session( session ) ).andExpect( content().json( error ) )
             .andExpect( status().is( SC_UNSUPPORTED_MEDIA_TYPE ) );
     }
 
     @Test
-    public void verifyErrorWhenStoringInvalidKey()
+    void verifyErrorWhenStoringInvalidKey()
         throws Exception
     {
         final String error = buildResponse( "Bad Request", 400, "ERROR", "This key is not supported." );
-
         mvc.perform( multipart( URL + "idontexist" ).file( mockMultipartFile ).session( session ) )
             .andExpect( content().json( error ) ).andExpect( status().is( SC_BAD_REQUEST ) );
     }

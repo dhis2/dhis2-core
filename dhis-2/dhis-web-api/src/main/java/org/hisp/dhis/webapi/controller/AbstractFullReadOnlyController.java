@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,6 +154,15 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     {
     }
 
+    /**
+     * Allows to append new filters to the incoming ones. Recommended only on
+     * very specific cases where forcing a new filter, programmatically, make
+     * sense.
+     */
+    protected void forceFiltering( final List<String> filters )
+    {
+    }
+
     // --------------------------------------------------------------------------
     // GET Full
     // --------------------------------------------------------------------------
@@ -164,9 +173,10 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         HttpServletResponse response, @CurrentUser User currentUser )
         throws QueryParserException
     {
+        List<Order> orders = orderParams.getOrders( getSchema() );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
-        List<Order> orders = orderParams.getOrders( getSchema() );
+        forceFiltering( filters );
 
         if ( fields.isEmpty() )
         {
@@ -248,6 +258,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
+        forceFiltering( filters );
 
         if ( fields.isEmpty() )
         {

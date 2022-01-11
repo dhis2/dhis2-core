@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.csv;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,27 +39,24 @@ import java.util.List;
 
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.domain.Event;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.locationtech.jts.io.ParseException;
 
 import com.google.common.io.Files;
 
-public class TrackerCsvEventServiceTest
+class TrackerCsvEventServiceTest
 {
 
     private TrackerCsvEventService serviceToTest = new TrackerCsvEventService();
 
     @Test
-    public void testReadEventsFromFileWithHeader()
+    void testReadEventsFromFileWithHeader()
         throws IOException,
         ParseException
     {
         File event = new File( "src/test/resources/controller/tracker/csv/event.csv" );
-
         InputStream inputStream = Files.asByteSource( event ).openStream();
-
         List<Event> events = serviceToTest.readEvents( inputStream, true );
-
         assertFalse( events.isEmpty() );
         assertEquals( 1, events.size() );
         assertEquals( "eventId", events.get( 0 ).getEvent() );
@@ -86,16 +83,13 @@ public class TrackerCsvEventServiceTest
     }
 
     @Test
-    public void testReadEventsFromFileWithoutHeader()
+    void testReadEventsFromFileWithoutHeader()
         throws IOException,
         ParseException
     {
         File event = new File( "src/test/resources/controller/tracker/csv/completeEvent.csv" );
-
         InputStream inputStream = Files.asByteSource( event ).openStream();
-
         List<Event> events = serviceToTest.readEvents( inputStream, false );
-
         assertFalse( events.isEmpty() );
         assertEquals( 1, events.size() );
         assertEquals( "eventId", events.get( 0 ).getEvent() );
@@ -119,14 +113,13 @@ public class TrackerCsvEventServiceTest
         assertEquals( 1, events.get( 0 ).getDataValues().size() );
         assertTrue( events.get( 0 ).getRelationships().isEmpty() );
         assertTrue( events.get( 0 ).getNotes().isEmpty() );
-        events.get( 0 ).getDataValues()
-            .forEach( dv -> {
-                assertEquals( "value", dv.getValue() );
-                assertEquals( "2020-02-26T23:09:00Z", dv.getCreatedAt().toString() );
-                assertEquals( "2020-02-26T23:08:00Z", dv.getUpdatedAt().toString() );
-                assertEquals( "dataElement", dv.getDataElement() );
-                assertEquals( "admin", dv.getStoredBy() );
-                assertEquals( false, dv.isProvidedElsewhere() );
-            } );
+        events.get( 0 ).getDataValues().forEach( dv -> {
+            assertEquals( "value", dv.getValue() );
+            assertEquals( "2020-02-26T23:09:00Z", dv.getCreatedAt().toString() );
+            assertEquals( "2020-02-26T23:08:00Z", dv.getUpdatedAt().toString() );
+            assertEquals( "dataElement", dv.getDataElement() );
+            assertEquals( "admin", dv.getStoredBy() );
+            assertEquals( false, dv.isProvidedElsewhere() );
+        } );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,13 @@ import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
+ *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
+ *             NEW FEATURES SHOULD BE ADDED ON TOP OF EventVisualizationService.
+ *
  * @author Lars Helge Overland
  */
+@Deprecated
 public interface EventReportService
     extends AnalyticalObjectService<EventReport>
 {

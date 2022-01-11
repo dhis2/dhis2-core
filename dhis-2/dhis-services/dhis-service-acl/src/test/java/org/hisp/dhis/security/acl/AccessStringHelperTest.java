@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,54 +27,53 @@
  */
 package org.hisp.dhis.security.acl;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AccessStringHelperTest
+class AccessStringHelperTest
 {
+
     @Test
-    public void testCanRead()
+    void testCanRead()
     {
         String access = "r-------";
         String access_will_fail = "--------";
-
         assertTrue( AccessStringHelper.canRead( access ) );
         assertFalse( AccessStringHelper.canRead( access_will_fail ) );
     }
 
     @Test
-    public void testCanWrite()
+    void testCanWrite()
     {
         String access1 = "rw------";
         String access2 = "-w------";
         String access_will_fail = "--------";
-
         assertTrue( AccessStringHelper.canWrite( access1 ) );
         assertTrue( AccessStringHelper.canWrite( access2 ) );
         assertFalse( AccessStringHelper.canWrite( access_will_fail ) );
     }
 
     @Test
-    public void staticRead()
+    void staticRead()
     {
         assertTrue( AccessStringHelper.canRead( AccessStringHelper.READ ) );
         assertFalse( AccessStringHelper.canWrite( AccessStringHelper.READ ) );
     }
 
     @Test
-    public void staticWrite()
+    void staticWrite()
     {
         assertFalse( AccessStringHelper.canRead( AccessStringHelper.WRITE ) );
         assertTrue( AccessStringHelper.canWrite( AccessStringHelper.WRITE ) );
     }
 
     @Test
-    public void staticReadWrite()
+    void staticReadWrite()
     {
         assertTrue( AccessStringHelper.canRead( AccessStringHelper.READ_WRITE ) );
         assertTrue( AccessStringHelper.canWrite( AccessStringHelper.READ_WRITE ) );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,14 +33,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ProgramStageSectionServiceTest
-    extends TransactionalIntegrationTest
+class ProgramStageSectionServiceTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private IdentifiableObjectManager manager;
 
@@ -56,47 +56,40 @@ public class ProgramStageSectionServiceTest
     @Autowired
     private CategoryService _categoryService;
 
-    @Before
-    public void init()
+    @BeforeEach
+    void init()
     {
         userService = _userService;
         categoryService = _categoryService;
     }
 
     @Test
-    public void testUpdateWithAuthority()
+    void testUpdateWithAuthority()
     {
         Program program = createProgram( 'A' );
         manager.save( program );
-
         ProgramStage programStage = createProgramStage( 'A', program );
         manager.save( programStage );
-
         ProgramStageSection programStageSection = createProgramStageSection( 'A', 0 );
         programStageSection.setProgramStage( programStage );
         manager.save( programStageSection );
-
         User userA = createUser( "A", "F_PROGRAMSTAGE_ADD" );
-        Assert.assertTrue( aclService.canUpdate( userA, programStageSection ) );
-
+        Assertions.assertTrue( aclService.canUpdate( userA, programStageSection ) );
         User userB = createUser( "B" );
-        Assert.assertFalse( aclService.canUpdate( userB, programStageSection ) );
+        Assertions.assertFalse( aclService.canUpdate( userB, programStageSection ) );
     }
 
     @Test
-    public void testSaveWithoutAuthority()
+    void testSaveWithoutAuthority()
     {
         Program program = createProgram( 'A' );
         manager.save( program );
-
         ProgramStage programStage = createProgramStage( 'A', program );
         manager.save( programStage );
-
         createUserAndInjectSecurityContext( false );
         ProgramStageSection programStageSection = createProgramStageSection( 'A', 0 );
         programStageSection.setProgramStage( programStage );
         programStageSectionService.saveProgramStageSection( programStageSection );
-
-        Assert.assertNotNull( programStageSectionService.getProgramStageSection( programStageSection.getId() ) );
+        Assertions.assertNotNull( programStageSectionService.getProgramStageSection( programStageSection.getId() ) );
     }
 }

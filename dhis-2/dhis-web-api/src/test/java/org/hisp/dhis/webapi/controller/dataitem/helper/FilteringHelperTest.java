@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractValueFromFilter;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -50,138 +50,119 @@ import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for FilteringHelper.
  *
  * @author maikel arabori
  */
-public class FilteringHelperTest
+class FilteringHelperTest
 {
+
     @Test
-    public void testExtractEntitiesFromInFilter()
+    void testExtractEntitiesFromInFilter()
     {
         // Given
         final String anyFilters = "dimensionItemType:in:[INDICATOR,DATA_SET]";
         final Class<? extends BaseDimensionalItemObject>[] expectedClasses = new Class[] { Indicator.class,
             DataSet.class };
-
         // When
         final Set<Class<? extends BaseIdentifiableObject>> actualClasses = extractEntitiesFromInFilter( anyFilters );
-
         // Then
         assertThat( actualClasses, hasSize( 2 ) );
         assertThat( actualClasses, containsInAnyOrder( expectedClasses ) );
     }
 
     @Test
-    public void testExtractEntitiesFromInFilterWhenTypeIsInvalid()
+    void testExtractEntitiesFromInFilterWhenTypeIsInvalid()
     {
         // Given
         final String filtersWithInvalidType = "dimensionItemType:in:[INVALID_TYPE,DATA_SET]";
-
         // Then
-        assertThrows(
+        assertThrows( IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ),
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ),
-            IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ) );
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ) );
     }
 
     @Test
-    public void testExtractEntitiesFromInFilterWhenFilterContainsOnlyEmpties()
+    void testExtractEntitiesFromInFilterWhenFilterContainsOnlyEmpties()
     {
         // Given
         final String filtersWithInvalidType = "dimensionItemType:in:[,]";
-
         // When
-        assertThrows(
-            "Unable to parse filter `" + filtersWithInvalidType + "`",
-            IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ) );
-
+        assertThrows( IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ),
+            "Unable to parse filter `" + filtersWithInvalidType + "`" );
     }
 
     @Test
-    public void testExtractEntitiesFromInFilterWhenFilterIsNotFullyDefined()
+    void testExtractEntitiesFromInFilterWhenFilterIsNotFullyDefined()
     {
         // Given
         final String filtersNotFullyDefined = "dimensionItemType:in:[,DATA_SET]";
         final Class<? extends BaseIdentifiableObject>[] expectedClasses = new Class[] { DataSet.class };
-
         // When
         final Set<Class<? extends BaseIdentifiableObject>> actualClasses = extractEntitiesFromInFilter(
             filtersNotFullyDefined );
-
         // Then
         assertThat( actualClasses, hasSize( 1 ) );
         assertThat( actualClasses, containsInAnyOrder( expectedClasses ) );
     }
 
     @Test
-    public void testExtractEntityFromEqualFilter()
+    void testExtractEntityFromEqualFilter()
     {
         // Given
         final String anyFilter = "dimensionItemType:eq:DATA_SET";
         final Class<? extends BaseDimensionalItemObject> expectedClass = DataSet.class;
-
         // When
         final Class<? extends BaseIdentifiableObject> actualClass = extractEntityFromEqualFilter( anyFilter );
-
         // Then
         assertThat( actualClass, is( notNullValue() ) );
         assertThat( actualClass, is( equalTo( expectedClass ) ) );
     }
 
     @Test
-    public void testExtractEntityFromEqualFilterWhenTypeIsInvalid()
+    void testExtractEntityFromEqualFilterWhenTypeIsInvalid()
     {
         // Given
         final String filtersWithInvalidType = "dimensionItemType:eq:INVALID_TYPE";
-
         // When
-        assertThrows(
+        assertThrows( IllegalQueryException.class, () -> extractEntityFromEqualFilter( filtersWithInvalidType ),
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ),
-            IllegalQueryException.class, () -> extractEntityFromEqualFilter( filtersWithInvalidType ) );
-
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ) );
     }
 
     @Test
-    public void testExtractEntityFromEqualFilterWhenFilterIsInvalid()
+    void testExtractEntityFromEqualFilterWhenFilterIsInvalid()
     {
         // Given
         final String invalidFilter = "dimensionItemType:eq:";
-
         // When
-        assertThrows(
-            "Unable to parse filter `" + invalidFilter + "`",
-            IllegalQueryException.class, () -> extractEntityFromEqualFilter( invalidFilter ) );
+        assertThrows( IllegalQueryException.class, () -> extractEntityFromEqualFilter( invalidFilter ),
+            "Unable to parse filter `" + invalidFilter + "`" );
     }
 
     @Test
-    public void testExtractValueFromFilterNoTrimmed()
+    void testExtractValueFromFilterNoTrimmed()
     {
         // Given
         final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId " );
         final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
-
         // When
         final String expectedValue = extractValueFromFilter( filters, theCombination );
-
         // Then
         assertThat( expectedValue, is( "anyId " ) );
     }
 
     @Test
-    public void testExtractValueFromFilterTrimmed()
+    void testExtractValueFromFilterTrimmed()
     {
         // Given
         final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId" );
         final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
-
         // When
         final String expectedValue = extractValueFromFilter( filters, theCombination, true );
-
         // Then
         assertThat( expectedValue, is( "anyId" ) );
     }

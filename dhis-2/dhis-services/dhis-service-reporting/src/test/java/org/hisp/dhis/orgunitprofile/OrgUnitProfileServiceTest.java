@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.orgunitprofile;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
 import java.util.Collection;
@@ -56,20 +56,23 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.orgunitprofile.impl.DefaultOrgUnitProfileService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.user.UserService;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 
-public class OrgUnitProfileServiceTest
-    extends DhisSpringTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class OrgUnitProfileServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private OrgUnitProfileService service;
 
@@ -94,9 +97,6 @@ public class OrgUnitProfileServiceTest
     @Autowired
     private ObjectMapper jsonMapper;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private OrgUnitProfileService mockService;
 
     @Override
@@ -110,7 +110,7 @@ public class OrgUnitProfileServiceTest
     }
 
     @Test
-    public void testSave()
+    void testSave()
     {
         OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" ),
             Lists.newArrayList( "GroupSet1", "GroupSet2" ), Lists.newArrayList( "DataItem1", "DataItem2" ) );
@@ -126,7 +126,7 @@ public class OrgUnitProfileServiceTest
     }
 
     @Test
-    public void testUpdateOrgUnitProfile()
+    void testUpdateOrgUnitProfile()
     {
         OrgUnitProfile orgUnitProfile = createOrgUnitProfile( Lists.newArrayList( "Attribute1", "Attribute2" ),
             Lists.newArrayList( "GroupSet1", "GroupSet2" ), Lists.newArrayList( "DataItem1", "DataItem2" ) );
@@ -147,7 +147,7 @@ public class OrgUnitProfileServiceTest
     }
 
     @Test
-    public void testGetProfileDataWithoutOrgUnitProfile()
+    void testGetProfileDataWithoutOrgUnitProfile()
     {
         Attribute attribute = createAttribute( 'A' );
         attribute.setOrganisationUnitAttribute( true );
@@ -187,7 +187,7 @@ public class OrgUnitProfileServiceTest
     }
 
     @Test
-    public void testGetProfileDataWithOrgUnitProfile()
+    void testGetProfileDataWithOrgUnitProfile()
     {
         Attribute attribute = createAttribute( 'A' );
         attribute.setOrganisationUnitAttribute( true );
@@ -231,7 +231,7 @@ public class OrgUnitProfileServiceTest
     }
 
     @Test
-    public void testValidator()
+    void testValidator()
     {
         Attribute attribute = createAttribute( 'A' );
         attribute.setOrganisationUnitAttribute( true );
@@ -259,7 +259,7 @@ public class OrgUnitProfileServiceTest
     }
 
     @Test
-    public void testValidateNonAggregateableDataElement()
+    void testValidateNonAggregateableDataElement()
     {
         DataElement deA = createDataElement( 'A' );
         deA.setValueType( ValueType.NUMBER );
@@ -279,7 +279,7 @@ public class OrgUnitProfileServiceTest
     }
 
     @Test
-    public void testDeletionHandling()
+    void testDeletionHandling()
     {
         OrganisationUnitGroupSet groupSet = createOrganisationUnitGroupSet( 'A' );
 

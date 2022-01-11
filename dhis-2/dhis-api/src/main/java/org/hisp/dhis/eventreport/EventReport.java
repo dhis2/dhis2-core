@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,13 @@
  */
 package org.hisp.dhis.eventreport;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.eventvisualization.Attribute.COLUMN;
+import static org.hisp.dhis.eventvisualization.Attribute.FILTER;
+import static org.hisp.dhis.eventvisualization.Attribute.ROW;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -44,6 +50,10 @@ import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.eventvisualization.EventVisualizationType;
+import org.hisp.dhis.eventvisualization.SimpleDimension;
+import org.hisp.dhis.eventvisualization.SimpleDimensionHandler;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -61,17 +71,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * @author Lars Helge Overland
+ * @deprecated THIS IS BEING DEPRECATED IN FAVOUR OF THE EventVisualization
+ *             MODEL. WE SHOULD AVOID CHANGES ON THIS CLASS AS MUCH AS POSSIBLE.
+ *             NEW FEATURES SHOULD BE ADDED ON TOP OF EventVisualization.
+ *
+ * @author Jan Henrik Overland
  */
+@Deprecated
 @JacksonXmlRootElement( localName = "eventReport", namespace = DxfNamespaces.DXF_2_0 )
 public class EventReport
     extends BaseAnalyticalObject
     implements EventAnalyticalObject, MetadataObject
 {
-    public static final String DATA_TYPE_AGGREGATED_VALUES = "aggregated_values";
-
-    public static final String DATA_TYPE_INDIVIDUAL_CASES = "individual_cases";
-
     /**
      * Program. Required.
      */
@@ -192,6 +203,35 @@ public class EventReport
      */
     private transient DimensionalItemObject value;
 
+    /**
+     * The non-typed dimensions for this event report.
+     */
+    private List<SimpleDimension> simpleDimensions = new ArrayList<>();
+
+    // -------------------------------------------------------------------------
+    // BACKWARD compatible attributes.
+    // They are not exposed and should be always false for EventChart.
+    // Needed to enable backward compatibility with EventVisualization.
+    // Cannot be removed until EventReport if fully deprecated.
+    // -------------------------------------------------------------------------
+
+    private boolean hideLegend;
+
+    private boolean noSpaceBetweenColumns;
+
+    private boolean showData;
+
+    private boolean percentStackedValues;
+
+    private boolean cumulativeValues;
+
+    /**
+     * Default to true, as this entity is always legacy.
+     */
+    private boolean legacy = true;
+
+    private EventVisualizationType type;
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -219,20 +259,9 @@ public class EventReport
     @Override
     public void populateAnalyticalProperties()
     {
-        for ( String column : columnDimensions )
-        {
-            columns.add( getDimensionalObject( column ) );
-        }
-
-        for ( String row : rowDimensions )
-        {
-            rows.add( getDimensionalObject( row ) );
-        }
-
-        for ( String filter : filterDimensions )
-        {
-            filters.add( getDimensionalObject( filter ) );
-        }
+        populateDimensions( columnDimensions, columns, COLUMN, this );
+        populateDimensions( rowDimensions, rows, ROW, this );
+        populateDimensions( filterDimensions, filters, FILTER, this );
 
         value = ObjectUtils.firstNonNull( dataElementValueDimension, attributeValueDimension );
     }
@@ -241,6 +270,11 @@ public class EventReport
     protected void clearTransientStateProperties()
     {
         value = null;
+    }
+
+    public void associateSimpleDimensions()
+    {
+        new SimpleDimensionHandler( this ).associateDimensions();
     }
 
     // -------------------------------------------------------------------------
@@ -339,6 +373,25 @@ public class EventReport
     public void setRowDimensions( List<String> rowDimensions )
     {
         this.rowDimensions = rowDimensions;
+    }
+
+    @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    public List<SimpleDimension> getSimpleDimensions()
+    {
+        return simpleDimensions;
+    }
+
+    @Override
+    public List<EventRepetition> getEventRepetitions()
+    {
+        return Collections.emptyList();
+    }
+
+    public void setSimpleDimensions( final List<SimpleDimension> simpleDimensions )
+    {
+        this.simpleDimensions = simpleDimensions;
     }
 
     @JsonProperty
@@ -539,5 +592,39 @@ public class EventReport
     public void setValue( DimensionalItemObject value )
     {
         this.value = value;
+    }
+
+    // -------------------------------------------------------------------------
+    // BACKWARD compatible attributes.
+    // They are not exposed and should be always be set.
+    // Needed to enable backward compatibility with EventVisualization.
+    // Cannot be removed until EventReport if fully deprecated.
+    // The rule to populate "type" is:
+    // if dataType == EVENTS then "type" = LINE_LIST
+    // if dataType == AGGREGATED_VALUES then "type" = PIVOT_TABLE
+    // -------------------------------------------------------------------------
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public EventVisualizationType getType()
+    {
+        return type;
+    }
+
+    public void setType( EventVisualizationType type )
+    {
+        this.type = type;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isLegacy()
+    {
+        return legacy;
+    }
+
+    public void setLegacy( final boolean legacy )
+    {
+        this.legacy = legacy;
     }
 }

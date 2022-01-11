@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,10 @@
 package org.hisp.dhis.dataapproval;
 
 import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Set;
@@ -40,16 +41,16 @@ import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Jim Grace
  */
-public class DataApprovalWorkflowServiceTest
-    extends DhisSpringTest
+class DataApprovalWorkflowServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private DataApprovalService dataApprovalService;
 
@@ -59,8 +60,8 @@ public class DataApprovalWorkflowServiceTest
     @Autowired
     private UserService _userService;
 
-    @Before
-    public void init()
+    @BeforeEach
+    void init()
     {
         userService = _userService;
     }
@@ -68,7 +69,6 @@ public class DataApprovalWorkflowServiceTest
     // -------------------------------------------------------------------------
     // Supporting data
     // -------------------------------------------------------------------------
-
     private DataApprovalWorkflow workflowA;
 
     private DataApprovalWorkflow workflowB;
@@ -86,7 +86,6 @@ public class DataApprovalWorkflowServiceTest
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
         throws Exception
@@ -94,17 +93,13 @@ public class DataApprovalWorkflowServiceTest
         // ---------------------------------------------------------------------
         // Add supporting data
         // ---------------------------------------------------------------------
-
         level1 = new DataApprovalLevel( "1", 1, null );
         level2 = new DataApprovalLevel( "2", 2, null );
         level3 = new DataApprovalLevel( "3", 3, null );
-
         dataApprovalLevelService.addDataApprovalLevel( level1 );
         dataApprovalLevelService.addDataApprovalLevel( level2 );
         dataApprovalLevelService.addDataApprovalLevel( level3 );
-
         periodType = PeriodType.getPeriodTypeByName( "Monthly" );
-
         workflowA = new DataApprovalWorkflow( "A", periodType, newHashSet( level1, level2 ) );
         workflowB = new DataApprovalWorkflow( "B", periodType, newHashSet( level2, level3 ) );
         workflowC = new DataApprovalWorkflow( "C", periodType, newHashSet( level1, level3 ) );
@@ -113,106 +108,80 @@ public class DataApprovalWorkflowServiceTest
     // -------------------------------------------------------------------------
     // Basic DataApprovalWorkflow
     // -------------------------------------------------------------------------
-
     @Test
-    public void testAddDataApprovalWorkflow()
+    void testAddDataApprovalWorkflow()
         throws Exception
     {
         long id = dataApprovalService.addWorkflow( workflowA );
-
         assertTrue( id != 0 );
-
         DataApprovalWorkflow workflow = dataApprovalService.getWorkflow( id );
-
         assertEquals( "A", workflow.getName() );
-
         Set<DataApprovalLevel> members = workflow.getLevels();
-
         assertEquals( 2, members.size() );
-
         assertTrue( members.contains( level1 ) );
         assertTrue( members.contains( level2 ) );
     }
 
     @Test
-    public void testUpdateDataApprovalWorkflow()
+    void testUpdateDataApprovalWorkflow()
         throws Exception
     {
         long id = dataApprovalService.addWorkflow( workflowA );
-
         DataApprovalWorkflow workflow = dataApprovalService.getWorkflow( id );
-
         workflow.setName( "workflowB" );
         workflow.setPeriodType( periodType );
         workflow.setLevels( newHashSet( level2, level3 ) );
-
         dataApprovalService.updateWorkflow( workflow );
-
         workflow = dataApprovalService.getWorkflow( id );
-
         assertEquals( "workflowB", workflow.getName() );
-
         assertEquals( "Monthly", workflow.getPeriodType().getName() );
-
         Set<DataApprovalLevel> members = workflow.getLevels();
-
         assertEquals( 2, members.size() );
-
         assertTrue( members.contains( level2 ) );
         assertTrue( members.contains( level3 ) );
     }
 
     @Test
-    public void testDeleteDataApprovalWorkflow()
+    void testDeleteDataApprovalWorkflow()
         throws Exception
     {
         long id = dataApprovalService.addWorkflow( workflowA );
-
         dataApprovalService.deleteWorkflow( workflowA );
-
         DataApprovalWorkflow workflow = dataApprovalService.getWorkflow( id );
-
         assertNull( workflow );
-
         List<DataApprovalWorkflow> workflows = dataApprovalService.getAllWorkflows();
-
         assertEquals( 0, workflows.size() );
     }
 
     @Test
-    public void testGetDataApprovalWorkflow()
+    void testGetDataApprovalWorkflow()
         throws Exception
     {
         long idA = dataApprovalService.addWorkflow( workflowA );
         long idB = dataApprovalService.addWorkflow( workflowB );
         long idC = dataApprovalService.addWorkflow( workflowC );
-
         assertEquals( workflowA, dataApprovalService.getWorkflow( idA ) );
         assertEquals( workflowB, dataApprovalService.getWorkflow( idB ) );
         assertEquals( workflowC, dataApprovalService.getWorkflow( idC ) );
-
         assertNull( dataApprovalService.getWorkflow( 0 ) );
         assertNull( dataApprovalService.getWorkflow( idA + idB + idC ) );
     }
 
     @Test
-    public void testGetAllDataApprovalWorkflows()
+    void testGetAllDataApprovalWorkflows()
         throws Exception
     {
         List<DataApprovalWorkflow> workflows = dataApprovalService.getAllWorkflows();
         assertEquals( 0, workflows.size() );
-
         dataApprovalService.addWorkflow( workflowA );
         workflows = dataApprovalService.getAllWorkflows();
         assertEquals( 1, workflows.size() );
         assertTrue( workflows.contains( workflowA ) );
-
         dataApprovalService.addWorkflow( workflowB );
         workflows = dataApprovalService.getAllWorkflows();
         assertEquals( 2, workflows.size() );
         assertTrue( workflows.contains( workflowA ) );
         assertTrue( workflows.contains( workflowB ) );
-
         dataApprovalService.addWorkflow( workflowC );
         workflows = dataApprovalService.getAllWorkflows();
         assertEquals( 3, workflows.size() );
@@ -222,35 +191,35 @@ public class DataApprovalWorkflowServiceTest
     }
 
     @Test
-    public void testSaveWorkFlowWithAuthority()
+    void testSaveWorkFlowWithAuthority()
     {
         createUserAndInjectSecurityContext( false, "F_DATA_APPROVAL_WORKFLOW" );
         long idA = dataApprovalService
             .addWorkflow( new DataApprovalWorkflow( "H", periodType, newHashSet( level1, level2 ) ) );
-
         assertEquals( "H", dataApprovalService.getWorkflow( idA ).getName() );
     }
 
-    @Test( expected = CreateAccessDeniedException.class )
-    public void testSaveWorkFlowWithoutAuthority()
+    @Test
+    void testSaveWorkFlowWithoutAuthority()
     {
         createUserAndInjectSecurityContext( false, null );
-        dataApprovalService.addWorkflow( new DataApprovalWorkflow( "F", periodType, newHashSet( level1, level2 ) ) );
+        assertThrows( CreateAccessDeniedException.class, () -> dataApprovalService
+            .addWorkflow( new DataApprovalWorkflow( "F", periodType, newHashSet( level1, level2 ) ) ) );
     }
 
     @Test
-    public void testSaveLevelWithAuthority()
+    void testSaveLevelWithAuthority()
     {
         createUserAndInjectSecurityContext( false, "F_DATA_APPROVAL_LEVEL" );
         long idA = dataApprovalLevelService.addDataApprovalLevel( new DataApprovalLevel( "4", 1, null ) );
-
         assertEquals( "4", dataApprovalLevelService.getDataApprovalLevel( idA ).getName() );
     }
 
-    @Test( expected = UpdateAccessDeniedException.class )
-    public void testSaveLevelWithoutAuthority()
+    @Test
+    void testSaveLevelWithoutAuthority()
     {
         createUserAndInjectSecurityContext( false, null );
-        dataApprovalLevelService.addDataApprovalLevel( new DataApprovalLevel( "7", 1, null ) );
+        assertThrows( UpdateAccessDeniedException.class,
+            () -> dataApprovalLevelService.addDataApprovalLevel( new DataApprovalLevel( "7", 1, null ) ) );
     }
 }

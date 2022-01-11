@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.preprocess;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
 
@@ -39,49 +39,44 @@ import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-public class EventStatusPreProcessorTest
+class EventStatusPreProcessorTest
 {
+
     private EventStatusPreProcessor preProcessorToTest;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         this.preProcessorToTest = new EventStatusPreProcessor();
     }
 
     @Test
-    public void testVisitedStatusIsConvertedToActive()
+    void testVisitedStatusIsConvertedToActive()
     {
         // Given
         Event event = new Event();
         event.setStatus( EventStatus.VISITED );
         event.setProgramStage( "programStageUid" );
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
-
         ProgramInstance programInstance = new ProgramInstance();
         programInstance.setUid( "programInstanceUid" );
-
         Program program = new Program();
         program.setUid( "programUid" );
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( "programStageUid" );
         programStage.setProgram( program );
-
         TrackerPreheat preheat = new TrackerPreheat();
         preheat.putProgramInstancesWithoutRegistration( "programUid", programInstance );
-
         preheat.put( TrackerIdentifier.UID, programStage );
         bundle.setPreheat( preheat );
-
         // When
         preProcessorToTest.process( bundle );
-
         // Then
         assertEquals( EventStatus.ACTIVE, bundle.getEvents().get( 0 ).getStatus() );
     }

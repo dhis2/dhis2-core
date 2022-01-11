@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.message;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,8 +40,8 @@ import java.util.Set;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -46,10 +49,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Lars Helge Overland
  */
-@Ignore
-public class MessageServiceTest
-    extends DhisSpringTest
+@Disabled
+class MessageServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private MessageService messageService;
 
@@ -67,70 +70,53 @@ public class MessageServiceTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
     {
         userService = _userService;
-
         sender = createUser( 'S' );
         userA = createUser( 'A' );
         userB = createUser( 'B' );
-
         userService.addUser( sender );
         userService.addUserCredentials( sender.getUserCredentials() );
-
         userService.addUser( userA );
         userService.addUserCredentials( userA.getUserCredentials() );
-
         userService.addUser( userB );
         userService.addUserCredentials( userB.getUserCredentials() );
-
         users = new HashSet<>();
         users.add( userA );
         users.add( userB );
     }
 
     @Test
-    public void testSaveMessageConversationA()
+    void testSaveMessageConversationA()
     {
         MessageConversation conversationA = new MessageConversation( "SubjectA", sender, MessageType.PRIVATE );
         MessageConversation conversationB = new MessageConversation( "SubjectB", sender, MessageType.PRIVATE );
-
         long idA = messageService.saveMessageConversation( conversationA );
         long idB = messageService.saveMessageConversation( conversationB );
-
         conversationA = messageService.getMessageConversation( idA );
         conversationB = messageService.getMessageConversation( idB );
-
         assertNotNull( conversationA );
         assertEquals( "SubjectA", conversationA.getSubject() );
-
         assertNotNull( conversationB );
         assertEquals( "SubjectB", conversationB.getSubject() );
     }
 
     @Test
-    public void testSaveMessageB()
+    void testSaveMessageB()
     {
         MessageConversation conversation = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
-
         UserMessage userMessageA = new UserMessage( userA );
         UserMessage userMessageB = new UserMessage( userB );
-
         conversation.addUserMessage( userMessageA );
         conversation.addUserMessage( userMessageB );
-
         Message contentA = new Message( "TextA", "MetaA", sender );
         Message contentB = new Message( "TextB", "MetaB", sender );
-
         conversation.addMessage( contentA );
         conversation.addMessage( contentB );
-
         long id = messageService.saveMessageConversation( conversation );
-
         conversation = messageService.getMessageConversation( id );
-
         assertNotNull( conversation );
         assertEquals( "Subject", conversation.getSubject() );
         assertEquals( 2, conversation.getUserMessages().size() );
@@ -142,40 +128,30 @@ public class MessageServiceTest
     }
 
     @Test
-    public void testDeleteMessage()
+    void testDeleteMessage()
     {
         MessageConversation conversation = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
-
         UserMessage userMessageA = new UserMessage( userA );
         UserMessage userMessageB = new UserMessage( userB );
-
         conversation.addUserMessage( userMessageA );
         conversation.addUserMessage( userMessageB );
-
         Message contentA = new Message( "TextA", "MetaA", sender );
         Message contentB = new Message( "TextB", "MetaB", sender );
-
         conversation.addMessage( contentA );
         conversation.addMessage( contentB );
-
         long id = messageService.saveMessageConversation( conversation );
-
         conversation = messageService.getMessageConversation( id );
-
         assertNotNull( conversation );
-
         messageService.deleteMessages( userA );
         messageService.deleteMessages( userB );
         messageService.deleteMessages( sender );
     }
 
     @Test
-    public void testSendMessage()
+    void testSendMessage()
     {
         long id = messageService.sendPrivateMessage( users, "Subject", "Text", "Meta", null );
-
         MessageConversation conversation = messageService.getMessageConversation( id );
-
         assertNotNull( conversation );
         assertEquals( "Subject", conversation.getSubject() );
         assertEquals( 2, conversation.getUserMessages().size() );
@@ -184,12 +160,10 @@ public class MessageServiceTest
     }
 
     @Test
-    public void testSendFeedback()
+    void testSendFeedback()
     {
         long id = messageService.sendTicketMessage( "Subject", "Text", "Meta" );
-
         MessageConversation conversation = messageService.getMessageConversation( id );
-
         assertNotNull( conversation );
         assertEquals( "Subject", conversation.getSubject() );
         assertEquals( 1, conversation.getMessages().size() );
@@ -197,43 +171,34 @@ public class MessageServiceTest
     }
 
     @Test
-    public void testSendReply()
+    void testSendReply()
     {
         MessageConversation message = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
         message.addMessage( new Message( "TextA", "MetaA", sender ) );
         long id = messageService.saveMessageConversation( message );
-
         messageService.sendReply( message, "TextB", "MetaB", false, null );
-
         message = messageService.getMessageConversation( id );
-
         assertNotNull( message );
         assertEquals( "Subject", message.getSubject() );
         assertEquals( 2, message.getMessages().size() );
     }
 
     @Test
-    public void testGetMessageConversations()
+    void testGetMessageConversations()
     {
         MessageConversation conversationA = new MessageConversation( "SubjectA", sender, MessageType.PRIVATE );
         MessageConversation conversationB = new MessageConversation( "SubjectB", sender, MessageType.PRIVATE );
         MessageConversation conversationC = new MessageConversation( "SubjectC", userA, MessageType.PRIVATE );
-
         messageService.saveMessageConversation( conversationA );
         messageService.saveMessageConversation( conversationB );
         messageService.saveMessageConversation( conversationC );
-
         String uidA = conversationA.getUid();
         String uidB = conversationB.getUid();
-
         messageService.saveMessageConversation( conversationA );
         messageService.saveMessageConversation( conversationB );
         messageService.saveMessageConversation( conversationC );
-
         Collection<String> uids = Sets.newHashSet( uidA, uidB );
-
         List<MessageConversation> conversations = messageService.getMessageConversations( sender, uids );
-
         assertTrue( conversations.contains( conversationA ) );
         assertTrue( conversations.contains( conversationB ) );
         assertFalse( conversations.contains( conversationC ) );

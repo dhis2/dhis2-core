@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,35 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dataintegrity.DataIntegrityCheckType;
+import org.hisp.dhis.dataintegrity.DataIntegrityCheck;
+import org.hisp.dhis.dataintegrity.DataIntegrityDetails;
+import org.hisp.dhis.dataintegrity.DataIntegrityService;
+import org.hisp.dhis.dataintegrity.DataIntegritySummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -56,26 +65,24 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
 @Controller
-@RequestMapping
+@RequestMapping( "/dataIntegrity" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @AllArgsConstructor
 public class DataIntegrityController
 {
     private final SchedulingManager schedulingManager;
 
-    private final Notifier notifier;
-
-    public static final String RESOURCE_PATH = "/dataIntegrity";
+    private final DataIntegrityService dataIntegrityService;
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
-    @PostMapping( DataIntegrityController.RESOURCE_PATH )
+    @PostMapping
     @ResponseBody
     public WebMessage runDataIntegrity(
         @RequestParam( required = false ) List<String> checks,
         @CurrentUser User currentUser )
     {
         DataIntegrityJobParameters params = new DataIntegrityJobParameters();
-        params.setChecks( DataIntegrityCheckType.parse( checks ) );
+        params.setChecks( toUniformCheckNames( checks ) );
         JobConfiguration config = new JobConfiguration( "runDataIntegrity", JobType.DATA_INTEGRITY, null,
             params, true, true );
         config.setUserUid( currentUser.getUid() );
@@ -86,6 +93,59 @@ public class DataIntegrityController
             return conflict( "Data integrity check is already running" );
         }
         return jobConfigurationReport( config );
+    }
+
+    @GetMapping
+    @ResponseBody
+    public Collection<DataIntegrityCheck> getAvailableChecks()
+    {
+        return dataIntegrityService.getDataIntegrityChecks();
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @GetMapping( "/summary" )
+    @ResponseBody
+    public Map<String, DataIntegritySummary> runAndGetSummaries(
+        @RequestParam( required = false ) Set<String> checks )
+    {
+        return dataIntegrityService.getSummaries( toUniformCheckNames( checks ), NoopJobProgress.INSTANCE );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @GetMapping( "/details" )
+    @ResponseBody
+    public Map<String, DataIntegrityDetails> runAndGetDetails(
+        @RequestParam( required = false ) Set<String> checks )
+    {
+        return dataIntegrityService.getDetails( toUniformCheckNames( checks ), NoopJobProgress.INSTANCE );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @GetMapping( "/{check}/summary" )
+    @ResponseBody
+    public DataIntegritySummary runAndGetSummary( @PathVariable String check )
+    {
+        Set<String> checks = toUniformCheckNames( Set.of( check ) );
+        return dataIntegrityService.getSummaries( checks, NoopJobProgress.INSTANCE ).get( checks.iterator().next() );
+    }
+
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @GetMapping( "/{check}/details" )
+    @ResponseBody
+    public DataIntegrityDetails runAndGetDetails( @PathVariable String check )
+    {
+        Set<String> checks = toUniformCheckNames( Set.of( check ) );
+        return dataIntegrityService.getDetails( checks, NoopJobProgress.INSTANCE ).get( checks.iterator().next() );
+    }
+
+    /**
+     * Allow both dash or underscore in the API
+     */
+    private static Set<String> toUniformCheckNames( Collection<String> checks )
+    {
+        return checks == null
+            ? Set.of()
+            : checks.stream().map( check -> check.replace( '-', '_' ) ).collect( toUnmodifiableSet() );
     }
 
 }

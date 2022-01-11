@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,6 +117,11 @@ public class TrackerErrorReport
                     buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ),
                 this.errorCode, this.trackerType, this.uid );
         }
+    }
+
+    public static TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
+    {
+        return builder().errorCode( errorCode );
     }
 
     @Override

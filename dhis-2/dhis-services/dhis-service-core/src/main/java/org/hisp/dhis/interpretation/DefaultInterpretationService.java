@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.i18n.I18n;
@@ -228,6 +229,12 @@ public class DefaultInterpretationService
     }
 
     @Override
+    public List<Interpretation> getInterpretations( EventVisualization eventVisualization )
+    {
+        return interpretationStore.getInterpretations( eventVisualization );
+    }
+
+    @Override
     public List<Interpretation> getInterpretations( Map map )
     {
         return interpretationStore.getInterpretations( map );
@@ -361,6 +368,7 @@ public class DefaultInterpretationService
                 + interpretation.getUid();
             break;
         case EVENT_REPORT:
+        case EVENT_VISUALIZATION:
             path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
                 + "&interpretationid=" + interpretation.getUid();
             break;

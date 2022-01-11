@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,20 @@
  */
 package org.hisp.dhis.system.database;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.mock.env.MockEnvironment;
@@ -49,8 +50,10 @@ import org.springframework.mock.env.MockEnvironment;
  *
  * @author Volker Schmidt
  */
-public class HibernateDatabaseInfoProviderTest
+@ExtendWith( MockitoExtension.class )
+class HibernateDatabaseInfoProviderTest
 {
+
     @Mock
     private DhisConfigurationProvider config;
 
@@ -64,24 +67,34 @@ public class HibernateDatabaseInfoProviderTest
 
     private HibernateDatabaseInfoProvider provider;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         environment.setActiveProfiles( "prod" );
         provider = new HibernateDatabaseInfoProvider( config, jdbcTemplate, environment );
     }
 
-    @Test
     @SuppressWarnings( "unchecked" )
-    public void init()
+    @Test
+    void init()
         throws SQLException
     {
+        Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select 'checking db connection';" ),
+            Mockito.eq( String.class ) ) ).thenReturn( "" );
+
         Mockito.when(
             jdbcTemplate.queryForObject( Mockito.eq( "select postgis_full_version();" ), Mockito.eq( String.class ) ) )
             .thenReturn( "2" );
+
+        Mockito.when(
+            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='pg_trgm';" ),
+                Mockito.eq( String.class ) ) )
+            .thenReturn( "pg_trgm" );
+
+        Mockito.when(
+            jdbcTemplate.queryForObject( Mockito.eq( "SELECT extname from pg_extension where extname='btree_gin';" ),
+                Mockito.eq( String.class ) ) )
+            .thenReturn( "btree_gin" );
 
         Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_URL ) ) )
             .thenReturn( "jdbc:postgresql:dhisx" );
@@ -101,11 +114,11 @@ public class HibernateDatabaseInfoProviderTest
         provider.init();
 
         final DatabaseInfo databaseInfo = provider.getDatabaseInfo();
-        Assert.assertEquals( "jdbc:postgresql:dhisx", databaseInfo.getUrl() );
-        Assert.assertEquals( "dhis2", databaseInfo.getName() );
-        Assert.assertEquals( "dhis", databaseInfo.getUser() );
-        Assert.assertEquals( "dhisz", databaseInfo.getPassword() );
-        Assert.assertEquals( "PostgreSQL 10.5", databaseInfo.getDatabaseVersion() );
-        Assert.assertTrue( databaseInfo.isSpatialSupport() );
+        assertEquals( "jdbc:postgresql:dhisx", databaseInfo.getUrl() );
+        assertEquals( "dhis2", databaseInfo.getName() );
+        assertEquals( "dhis", databaseInfo.getUser() );
+        assertEquals( "dhisz", databaseInfo.getPassword() );
+        assertEquals( "PostgreSQL 10.5", databaseInfo.getDatabaseVersion() );
+        assertTrue( databaseInfo.isSpatialSupport() );
     }
 }

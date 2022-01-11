@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -38,31 +38,32 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class ProgramIndicatorControllerTest extends DhisControllerConvenienceTest
+class ProgramIndicatorControllerTest extends DhisControllerConvenienceTest
 {
+
     @Test
-    public void testGetExpressionDescription()
+    void testGetExpressionDescription()
     {
         assertWebMessage( "OK", 200, "OK", "Valid",
             POST( "/programIndicators/expression/description", "70" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testGetExpressionDescription_MalformedExpression()
+    void testGetExpressionDescription_MalformedExpression()
     {
         assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
             POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidateFilter()
+    void testValidateFilter()
     {
         assertWebMessage( "OK", 200, "OK", "Valid",
             POST( "/programIndicators/filter/description", "1 < 2" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testValidateFilter_MalformedExpression()
+    void testValidateFilter_MalformedExpression()
     {
         assertWebMessage( "OK", 200, "ERROR", "Expression is not valid",
             POST( "/programIndicators/filter/description", "illegal" ).content( HttpStatus.OK ) );

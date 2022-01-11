@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
 package org.hisp.dhis.merge.orgunit.handler;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -37,13 +37,13 @@ import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class UserMetadataOrgUnitMergeHandlerTest
-    extends DhisSpringTest
+class UserMetadataOrgUnitMergeHandlerTest extends DhisSpringTest
 {
+
     @Autowired
     private UserService userService;
 
@@ -59,59 +59,47 @@ public class UserMetadataOrgUnitMergeHandlerTest
 
     private OrganisationUnit ouC;
 
-    @Before
-    public void beforeTest()
+    @BeforeEach
+    void beforeTest()
     {
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
-
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
     }
 
     @Test
-    public void testMergeUsers()
+    void testMergeUsers()
     {
         User userA = createUser( 'A' );
         userA.addOrganisationUnit( ouA );
         userA.getDataViewOrganisationUnits().add( ouA );
         userA.getTeiSearchOrganisationUnits().add( ouA );
-
         User userB = createUser( 'B' );
         userB.addOrganisationUnit( ouB );
         userB.getDataViewOrganisationUnits().add( ouB );
         userB.getTeiSearchOrganisationUnits().add( ouB );
-
         userService.addUserCredentials( userA.getUserCredentials() );
         userService.addUser( userA );
         userService.addUserCredentials( userB.getUserCredentials() );
         userService.addUser( userB );
-
         assertTrue( ouA.getUsers().contains( userA ) );
         assertTrue( userA.getOrganisationUnits().contains( ouA ) );
         assertTrue( ouB.getUsers().contains( userB ) );
         assertTrue( userB.getOrganisationUnits().contains( ouB ) );
-
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder()
-            .addSource( ouA )
-            .addSource( ouB )
-            .withTarget( ouC )
-            .build();
-
+        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
+            .withTarget( ouC ).build();
         handler.mergeUsers( request );
-
         assertTrue( ouA.getUsers().isEmpty() );
         assertFalse( userA.getOrganisationUnits().contains( ouA ) );
         assertFalse( userA.getDataViewOrganisationUnits().contains( ouA ) );
         assertFalse( userA.getTeiSearchOrganisationUnits().contains( ouA ) );
-
         assertTrue( ouB.getUsers().isEmpty() );
         assertFalse( userB.getOrganisationUnits().contains( ouB ) );
         assertFalse( userB.getDataViewOrganisationUnits().contains( ouB ) );
         assertFalse( userB.getTeiSearchOrganisationUnits().contains( ouB ) );
-
         assertTrue( ouC.getUsers().contains( userA ) );
         assertTrue( ouC.getUsers().contains( userB ) );
         assertContainsOnly( userA.getOrganisationUnits(), ouC );

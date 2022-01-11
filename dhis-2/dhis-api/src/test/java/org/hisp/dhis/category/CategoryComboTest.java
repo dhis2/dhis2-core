@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,35 +28,36 @@
 package org.hisp.dhis.category;
 
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link CategoryCombo}.
  *
  * @author Volker Schmidt
  */
-public class CategoryComboTest
+class CategoryComboTest
 {
+
     @Test
-    public void hasDefault()
+    void hasDefault()
     {
-        Assert.assertTrue( SystemDefaultMetadataObject.class.isAssignableFrom( CategoryCombo.class ) );
+        Assertions.assertTrue( SystemDefaultMetadataObject.class.isAssignableFrom( CategoryCombo.class ) );
     }
 
     @Test
-    public void isDefault()
+    void isDefault()
     {
         CategoryCombo category = new CategoryCombo();
         category.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        Assert.assertTrue( category.isDefault() );
+        Assertions.assertTrue( category.isDefault() );
     }
 
     @Test
-    public void isNotDefault()
+    void isNotDefault()
     {
         CategoryCombo category = new CategoryCombo();
         category.setName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME + "x" );
-        Assert.assertFalse( category.isDefault() );
+        Assertions.assertFalse( category.isDefault() );
     }
 }

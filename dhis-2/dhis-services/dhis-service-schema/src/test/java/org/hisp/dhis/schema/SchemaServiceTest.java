@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,35 +27,35 @@
  */
 package org.hisp.dhis.schema;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sqlview.SqlView;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class SchemaServiceTest
-    extends DhisSpringTest
+class SchemaServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private SchemaService schemaService;
 
     @Test
-    public void testHaveSchemas()
+    void testHaveSchemas()
     {
         assertFalse( schemaService.getSchemas().isEmpty() );
     }
 
     @Test
-    public void testOrganisationUnit()
+    void testOrganisationUnit()
     {
         Schema schema = schemaService.getSchema( OrganisationUnit.class );
         assertNotNull( schema );
@@ -63,7 +63,7 @@ public class SchemaServiceTest
     }
 
     @Test
-    public void testProgramTrackedEntityAttribute()
+    void testProgramTrackedEntityAttribute()
     {
         Schema schema = schemaService.getSchema( ProgramTrackedEntityAttribute.class );
         assertNotNull( schema );
@@ -74,7 +74,7 @@ public class SchemaServiceTest
     }
 
     @Test
-    public void testSqlViewSchema()
+    void testSqlViewSchema()
     {
         Schema schema = schemaService.getSchema( SqlView.class );
         assertNotNull( schema );
@@ -82,7 +82,7 @@ public class SchemaServiceTest
     }
 
     @Test
-    public void testProgramSchema()
+    void testProgramSchema()
     {
         Schema schema = schemaService.getSchema( Program.class );
         assertNotNull( schema );

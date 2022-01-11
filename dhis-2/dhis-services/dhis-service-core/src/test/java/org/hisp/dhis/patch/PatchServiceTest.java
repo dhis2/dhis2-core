@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.patch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,7 +45,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -57,9 +57,9 @@ import com.google.common.collect.Sets;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class PatchServiceTest
-    extends DhisSpringTest
+class PatchServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private PatchService patchService;
 
@@ -80,192 +80,142 @@ public class PatchServiceTest
     }
 
     @Test
-    public void testUpdateName()
+    void testUpdateName()
     {
         DataElement dataElement = createDataElement( 'A' );
-
-        Patch patch = new Patch()
-            .addMutation( new Mutation( "name", "Updated Name" ) );
-
+        Patch patch = new Patch().addMutation( new Mutation( "name", "Updated Name" ) );
         patchService.apply( patch, dataElement );
-
         assertEquals( "Updated Name", dataElement.getName() );
     }
 
     @Test
-    public void testAddDataElementToGroup()
+    void testAddDataElementToGroup()
     {
         DataElementGroup dataElementGroup = createDataElementGroup( 'A' );
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
-
         manager.save( deA );
         manager.save( deB );
-
         assertTrue( dataElementGroup.getMembers().isEmpty() );
-
-        Patch patch = new Patch()
-            .addMutation( new Mutation( "name", "Updated Name" ) )
+        Patch patch = new Patch().addMutation( new Mutation( "name", "Updated Name" ) )
             .addMutation( new Mutation( "dataElements", Lists.newArrayList( deA.getUid(), deB.getUid() ) ) );
-
         patchService.apply( patch, dataElementGroup );
-
         assertEquals( "Updated Name", dataElementGroup.getName() );
         assertEquals( 2, dataElementGroup.getMembers().size() );
     }
 
     @Test
-    public void testDeleteDataElementFromGroup()
+    void testDeleteDataElementFromGroup()
     {
         DataElementGroup dataElementGroup = createDataElementGroup( 'A' );
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
-
         manager.save( deA );
         manager.save( deB );
-
         dataElementGroup.addDataElement( deA );
         dataElementGroup.addDataElement( deB );
-
         assertEquals( 2, dataElementGroup.getMembers().size() );
-
-        Patch patch = new Patch()
-            .addMutation( new Mutation( "name", "Updated Name" ) )
-            .addMutation(
-                new Mutation( "dataElements", Lists.newArrayList( deA.getUid() ), Mutation.Operation.DELETION ) );
-
+        Patch patch = new Patch().addMutation( new Mutation( "name", "Updated Name" ) ).addMutation(
+            new Mutation( "dataElements", Lists.newArrayList( deA.getUid() ), Mutation.Operation.DELETION ) );
         patchService.apply( patch, dataElementGroup );
-
         assertEquals( "Updated Name", dataElementGroup.getName() );
         assertEquals( 1, dataElementGroup.getMembers().size() );
-
-        patch = new Patch()
-            .addMutation(
-                new Mutation( "dataElements", Lists.newArrayList( deB.getUid() ), Mutation.Operation.DELETION ) );
-
+        patch = new Patch().addMutation(
+            new Mutation( "dataElements", Lists.newArrayList( deB.getUid() ), Mutation.Operation.DELETION ) );
         patchService.apply( patch, dataElementGroup );
-
         assertTrue( dataElementGroup.getMembers().isEmpty() );
     }
 
     @Test
-    public void testAddAggLevelsToDataElement()
+    void testAddAggLevelsToDataElement()
     {
         DataElement dataElement = createDataElement( 'A' );
         assertTrue( dataElement.getAggregationLevels().isEmpty() );
-
-        Patch patch = new Patch()
-            .addMutation( new Mutation( "name", "Updated Name" ) )
+        Patch patch = new Patch().addMutation( new Mutation( "name", "Updated Name" ) )
             .addMutation( new Mutation( "aggregationLevels", 1 ) )
             .addMutation( new Mutation( "aggregationLevels", 2 ) );
-
         patchService.apply( patch, dataElement );
-
         assertEquals( 2, dataElement.getAggregationLevels().size() );
     }
 
     @Test
-    public void testUpdateValueTypeEnumFromString()
+    void testUpdateValueTypeEnumFromString()
     {
         DataElement dataElement = createDataElement( 'A' );
         assertTrue( dataElement.getAggregationLevels().isEmpty() );
-
-        Patch patch = new Patch()
-            .addMutation( new Mutation( "name", "Updated Name" ) )
+        Patch patch = new Patch().addMutation( new Mutation( "name", "Updated Name" ) )
             .addMutation( new Mutation( "domainType", "TRACKER" ) )
             .addMutation( new Mutation( "valueType", "BOOLEAN" ) );
-
         patchService.apply( patch, dataElement );
-
         assertEquals( DataElementDomain.TRACKER, dataElement.getDomainType() );
         assertEquals( ValueType.BOOLEAN, dataElement.getValueType() );
     }
 
     @Test
-    public void testUpdateUserOnDataElement()
+    void testUpdateUserOnDataElement()
     {
         User user = createUser( 'A' );
         manager.save( user );
-
         createAndInjectAdminUser();
-
         DataElement dataElement = createDataElement( 'A' );
         manager.save( dataElement );
-
-        Patch patch = new Patch()
-            .addMutation( new Mutation( "name", "Updated Name" ) )
+        Patch patch = new Patch().addMutation( new Mutation( "name", "Updated Name" ) )
             .addMutation( new Mutation( "createdBy", user.getUid() ) )
             .addMutation( new Mutation( "domainType", "TRACKER" ) )
             .addMutation( new Mutation( "valueType", "BOOLEAN" ) );
-
         patchService.apply( patch, dataElement );
-
         assertEquals( DataElementDomain.TRACKER, dataElement.getDomainType() );
         assertEquals( ValueType.BOOLEAN, dataElement.getValueType() );
         assertEquals( user.getUid(), dataElement.getCreatedBy().getUid() );
     }
 
     @Test
-    public void testAddStringAggLevelsToDataElement()
+    void testAddStringAggLevelsToDataElement()
     {
         DataElement dataElement = createDataElement( 'A' );
         assertTrue( dataElement.getAggregationLevels().isEmpty() );
-
-        Patch patch = new Patch()
-            .addMutation( new Mutation( "name", "Updated Name" ) )
+        Patch patch = new Patch().addMutation( new Mutation( "name", "Updated Name" ) )
             .addMutation( new Mutation( "aggregationLevels", "1" ) )
             .addMutation( new Mutation( "aggregationLevels", "abc" ) )
             .addMutation( new Mutation( "aggregationLevels", "def" ) );
-
         patchService.apply( patch, dataElement );
         assertTrue( dataElement.getAggregationLevels().isEmpty() );
     }
 
     @Test
-    public void testUpdateUserCredentialsOnUser()
+    void testUpdateUserCredentialsOnUser()
     {
         User user = createAndInjectAdminUser();
         assertEquals( "admin", user.getUserCredentials().getUsername() );
-
-        Patch patch = new Patch()
-            .addMutation( new Mutation( "userCredentials.username", "dhis" ) );
-
+        Patch patch = new Patch().addMutation( new Mutation( "userCredentials.username", "dhis" ) );
         patchService.apply( patch, user );
-
         assertEquals( "dhis", user.getUserCredentials().getUsername() );
     }
 
     @Test
-    public void testSimpleDiff()
+    void testSimpleDiff()
     {
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
-
         Patch patch = patchService.diff( new PatchParams( deA, deB ) );
         patchService.apply( patch, deA );
-
         assertEquals( deA.getName(), deB.getName() );
         assertEquals( deA.getShortName(), deB.getShortName() );
         assertEquals( deA.getDescription(), deB.getDescription() );
     }
 
     @Test
-    public void testSimpleCollectionDiff()
+    void testSimpleCollectionDiff()
     {
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
-
         deA.getAggregationLevels().add( 1 );
         deB.getAggregationLevels().add( 2 );
         deB.getAggregationLevels().add( 3 );
-
         Patch patch = patchService.diff( new PatchParams( deA, deB ) );
-
         checkCount( patch, "aggregationLevels", Mutation.Operation.ADDITION, 2 );
         checkCount( patch, "aggregationLevels", Mutation.Operation.DELETION, 1 );
-
         patchService.apply( patch, deA );
-
         assertEquals( deA.getName(), deB.getName() );
         assertEquals( deA.getShortName(), deB.getShortName() );
         assertEquals( deA.getDescription(), deB.getDescription() );
@@ -273,39 +223,28 @@ public class PatchServiceTest
     }
 
     @Test
-    public void testSimpleIdObjectCollectionDiff()
+    void testSimpleIdObjectCollectionDiff()
     {
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
-
         DataElementGroup degA = createDataElementGroup( 'C' );
         DataElementGroup degB = createDataElementGroup( 'D' );
-
         manager.save( degA );
         manager.save( degB );
-
         deA.getGroups().add( degA );
         manager.update( degA );
-
         deB.getGroups().add( degB );
-
         deA.getAggregationLevels().add( 1 );
         deA.getAggregationLevels().add( 2 );
-
         deB.getAggregationLevels().add( 2 );
         deB.getAggregationLevels().add( 3 );
         deB.getAggregationLevels().add( 4 );
-
         Patch patch = patchService.diff( new PatchParams( deA, deB ) );
-
         checkCount( patch, "dataElementGroups", Mutation.Operation.ADDITION, 1 );
         checkCount( patch, "dataElementGroups", Mutation.Operation.DELETION, 1 );
-
         checkCount( patch, "aggregationLevels", Mutation.Operation.ADDITION, 2 );
         checkCount( patch, "aggregationLevels", Mutation.Operation.DELETION, 1 );
-
         patchService.apply( patch, deA );
-
         assertEquals( deA.getName(), deB.getName() );
         assertEquals( deA.getShortName(), deB.getShortName() );
         assertEquals( deA.getDescription(), deB.getDescription() );
@@ -314,45 +253,36 @@ public class PatchServiceTest
     }
 
     @Test
-    public void testEmbeddedObjectEquality()
+    void testEmbeddedObjectEquality()
     {
         User adminUser = createAndInjectAdminUser();
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( adminUser ) );
         manager.save( userGroup );
-
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
-
         deA.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         deA.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
-
         deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
-
         patchService.diff( new PatchParams( deA, deB ) );
     }
 
     @Test
-    public void testEmbeddedObjectCollectionDiff()
+    void testEmbeddedObjectCollectionDiff()
     {
         User adminUser = createAndInjectAdminUser();
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet( adminUser ) );
         manager.save( userGroup );
-
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
-
         deA.getAggregationLevels().add( 1 );
         deB.getAggregationLevels().add( 1 );
         deB.getAggregationLevels().add( 2 );
         deB.getAggregationLevels().add( 3 );
-
         deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
-
         Patch patch = patchService.diff( new PatchParams( deA, deB ) );
         patchService.apply( patch, deA );
-
         assertEquals( deA.getName(), deB.getName() );
         assertEquals( deA.getShortName(), deB.getShortName() );
         assertEquals( deA.getDescription(), deB.getDescription() );
@@ -362,42 +292,35 @@ public class PatchServiceTest
     }
 
     @Test
-    public void testPatchFromJsonNode1()
+    void testPatchFromJsonNode1()
     {
         JsonNode jsonNode = loadJsonNodeFromFile( "patch/simple.json" );
         DataElement dataElement = createDataElement( 'A' );
-
         Patch patch = patchService.diff( new PatchParams( jsonNode ) );
         assertEquals( 2, patch.getMutations().size() );
-
         patchService.apply( patch, dataElement );
-
         assertEquals( dataElement.getName(), "Updated Name" );
         assertEquals( dataElement.getShortName(), "Updated Short Name" );
     }
 
     @Test
-    public void testPatchFromJsonNode2()
+    void testPatchFromJsonNode2()
     {
         JsonNode jsonNode = loadJsonNodeFromFile( "patch/id-collection.json" );
         DataElement dataElement = createDataElement( 'A' );
-
         DataElementGroup degA = createDataElementGroup( 'C' );
         DataElementGroup degB = createDataElementGroup( 'D' );
-
         manager.save( degA );
         manager.save( degB );
-
         Patch patch = patchService.diff( new PatchParams( jsonNode ) );
         patchService.apply( patch, dataElement );
-
         assertEquals( dataElement.getName(), "Updated Name" );
         assertEquals( dataElement.getShortName(), "Updated Short Name" );
         assertEquals( 2, dataElement.getGroups().size() );
     }
 
     @Test
-    public void testPatchFromJsonNode3()
+    void testPatchFromJsonNode3()
     {
         JsonNode jsonNode = loadJsonNodeFromFile( "patch/complex.json" );
         patchService.diff( new PatchParams( jsonNode ) );
@@ -414,14 +337,12 @@ public class PatchServiceTest
         {
             e.printStackTrace();
         }
-
         return null;
     }
 
     private void checkCount( Patch patch, String name, Mutation.Operation operation, int expected )
     {
         int count = 0;
-
         for ( Mutation mutation : patch.getMutations() )
         {
             if ( mutation.getOperation() == operation && mutation.getPath().equals( name ) )
@@ -436,8 +357,7 @@ public class PatchServiceTest
                 }
             }
         }
-
-        assertEquals( "Did not find " + expected + " mutations of type " + operation + " on property " + name, expected,
-            count );
+        assertEquals( expected, count,
+            "Did not find " + expected + " mutations of type " + operation + " on property " + name );
     }
 }

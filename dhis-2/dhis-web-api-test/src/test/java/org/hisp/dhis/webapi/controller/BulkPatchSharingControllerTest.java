@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 
@@ -39,7 +39,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -49,9 +49,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author viet@dhis2.org
  */
-public class BulkPatchSharingControllerTest
-    extends DhisControllerConvenienceTest
+class BulkPatchSharingControllerTest extends DhisControllerConvenienceTest
 {
+
     @Autowired
     private ObjectMapper jsonMapper;
 
@@ -68,21 +68,17 @@ public class BulkPatchSharingControllerTest
     private String dsIdA = "em8Bg4LCr5k";
 
     @Test
-    public void testApplyPatchOk()
+    void testApplyPatchOk()
         throws IOException
     {
         assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "usera", userAId ) ) );
         assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userb", userBId ) ) );
         userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userc" ) ) );
-
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'A', deAId, userCId ) ) ) );
-
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
-
         assertStatus( HttpStatus.OK, PATCH( "/dataElements/sharing", "patch/bulk_sharing_patch.json" ) );
-
         JsonIdentifiableObject saveDeA = GET( "/dataElements/{uid}", deAId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
         JsonIdentifiableObject saveDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
@@ -97,20 +93,17 @@ public class BulkPatchSharingControllerTest
      * @throws IOException
      */
     @Test
-    public void testApplyPatchWithInvalidUid()
+    void testApplyPatchWithInvalidUid()
         throws IOException
     {
         assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "usera", userAId ) ) );
         assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userb", userBId ) ) );
         userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userc" ) ) );
-
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", toJsonString( createDataElement( 'B', deBId, userCId ) ) ) );
-
         HttpResponse response = PATCH( "/dataElements/sharing", "patch/bulk_sharing_patch.json" );
         assertEquals( HttpStatus.CONFLICT, response.status() );
         assertEquals( "Invalid UID `" + deAId + "` for property `dataElement`", getFirstErrorMessage( response ) );
-
         JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
         assertEquals( 2, savedDeB.getSharing().getUsers().size() );
@@ -125,64 +118,55 @@ public class BulkPatchSharingControllerTest
      * @throws IOException
      */
     @Test
-    public void testApplyPatchWithInvalidUidAtomic()
+    void testApplyPatchWithInvalidUidAtomic()
         throws IOException
     {
         assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "usera", userAId ) ) );
         assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userb", userBId ) ) );
         userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userc" ) ) );
-
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
-
         HttpResponse response = PATCH( "/dataElements/sharing?atomic=true", "patch/bulk_sharing_patch.json" );
         assertEquals( HttpStatus.CONFLICT, response.status() );
         assertEquals( "Invalid UID `" + deAId + "` for property `dataElement`", getFirstErrorMessage( response ) );
-
         JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
         assertEquals( 0, savedDeB.getSharing().getUsers().size() );
     }
 
     @Test
-    public void testApplyPatches()
+    void testApplyPatches()
         throws IOException
     {
         assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "usera", userAId ) ) );
         assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userb", userBId ) ) );
         userCId = assertStatus( HttpStatus.CREATED, POST( "/users", createUser( "userc" ) ) );
-
         assertStatus( HttpStatus.CREATED,
             POST( "/dataSets", jsonMapper.writeValueAsString( createDataSet( 'A', dsIdA, userCId ) ) ) );
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'A', deAId, userCId ) ) ) );
         assertStatus( HttpStatus.CREATED,
             POST( "/dataElements", jsonMapper.writeValueAsString( createDataElement( 'B', deBId, userCId ) ) ) );
-
         assertStatus( HttpStatus.OK, PATCH( "/metadata/sharing", "patch/bulk_sharing_patches.json" ) );
-
         JsonIdentifiableObject savedDeA = GET( "/dataElements/{uid}", deAId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
         JsonIdentifiableObject savedDeB = GET( "/dataElements/{uid}", deBId ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
         JsonIdentifiableObject savedDsA = GET( "/dataSets/{uid}", dsIdA ).content( HttpStatus.OK )
             .as( JsonIdentifiableObject.class );
-
         assertEquals( 2, savedDeA.getSharing().getUsers().size() );
         assertEquals( 2, savedDeB.getSharing().getUsers().size() );
         assertEquals( 2, savedDsA.getSharing().getUsers().size() );
-
         assertNotNull( savedDeA.getSharing().getUsers().get( userAId ) );
         assertNotNull( savedDeB.getSharing().getUsers().get( userAId ) );
         assertNotNull( savedDsA.getSharing().getUsers().get( userAId ) );
-
         assertNotNull( savedDeA.getSharing().getUsers().get( userBId ) );
         assertNotNull( savedDeB.getSharing().getUsers().get( userBId ) );
         assertNotNull( savedDsA.getSharing().getUsers().get( userBId ) );
     }
 
     @Test
-    public void testApplyPatchesInvalidClass()
+    void testApplyPatchesInvalidClass()
         throws IOException
     {
         HttpResponse response = PATCH( "/metadata/sharing", "patch/bulk_sharing_patches_invalid_class.json" );
@@ -229,5 +213,4 @@ public class BulkPatchSharingControllerTest
         return "{'name': '" + name + "', 'firstName':'" + name + "', 'surname': '" + name
             + "', 'userCredentials':{'username':'" + name + "'}}";
     }
-
 }

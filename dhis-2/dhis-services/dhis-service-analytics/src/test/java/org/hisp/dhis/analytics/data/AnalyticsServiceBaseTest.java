@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,17 +54,20 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * @author Luciano Fiandesio
  */
-@RunWith( MockitoJUnitRunner.Silent.class )
-public abstract class AnalyticsServiceBaseTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( { MockitoExtension.class } )
+abstract class AnalyticsServiceBaseTest
 {
 
     @Mock
@@ -117,7 +120,7 @@ public abstract class AnalyticsServiceBaseTest
 
     DataAggregator target;
 
-    @Before
+    @BeforeEach
     public void baseSetUp()
     {
         DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager );

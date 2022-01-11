@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,8 +28,8 @@
 package org.hisp.dhis.dxf2.metadata;
 
 import static java.util.Collections.singleton;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,8 +47,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
@@ -59,8 +59,9 @@ import org.springframework.core.io.ClassPathResource;
  *
  * @author Jan Bernitt
  */
-public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest
+class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private CsvImportService csvImportService;
 
@@ -76,8 +77,8 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
         throws IOException
     {
         userService = _userService;
@@ -87,77 +88,64 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
     }
 
     @Test
-    public void testOrgUnitImport_MoveLacksMoveAuthority()
+    void testOrgUnitImport_MoveLacksMoveAuthority()
         throws Exception
     {
         createAndInjectAdminUser( new String[0] );
-        ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT,
-            null,
+        ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
-
         assertEquals( Status.ERROR, report.getStatus() );
         assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1520 ) );
     }
 
     @Test
-    public void testOrgUnitImport_MoveLacksWriteAuthority()
+    void testOrgUnitImport_MoveLacksWriteAuthority()
         throws Exception
     {
         createAndInjectAdminUser( "F_ORGANISATIONUNIT_MOVE" );
-        ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT,
-            null,
+        ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
-
         assertEquals( Status.ERROR, report.getStatus() );
         assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1521 ) );
     }
 
     @Test
-    public void testOrgUnitImport_MoveFromParentNotInHierarchy()
+    void testOrgUnitImport_MoveFromParentNotInHierarchy()
         throws Exception
     {
         User user = createAndInjectAdminUser( "F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD" );
         user.setOrganisationUnits( singleton( organisationUnitService.getOrganisationUnitByCode( "L2b" ) ) );
         userService.updateUser( user );
-
-        ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT,
-            null,
+        ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
-
         assertEquals( Status.ERROR, report.getStatus() );
         assertEquals( 1, report.getErrorReportsCount() );
         assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1522 ) );
     }
 
     @Test
-    public void testOrgUnitImport_MoveToParentNotInHierarchy()
+    void testOrgUnitImport_MoveToParentNotInHierarchy()
         throws Exception
     {
         User user = createAndInjectAdminUser( "F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD" );
         user.setOrganisationUnits( singleton( organisationUnitService.getOrganisationUnitByCode( "L2a" ) ) );
         userService.updateUser( user );
-
-        ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT,
-            null,
+        ImportReport report = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT, null,
             params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
-
         assertEquals( Status.ERROR, report.getStatus() );
         assertEquals( 1, report.getErrorReportsCount() );
         assertTrue( report.hasErrorReport( error -> error.getErrorCode() == ErrorCode.E1523 ) );
     }
 
     @Test
-    public void testOrgUnitImport_Success()
+    void testOrgUnitImport_Success()
         throws Exception
     {
         User user = createAndInjectAdminUser( "F_ORGANISATIONUNIT_MOVE", "F_ORGANISATIONUNIT_ADD" );
         user.setOrganisationUnits( singleton( organisationUnitService.getOrganisationUnitByCode( "L1" ) ) );
         userService.updateUser( user );
-
         ImportReport importReport = runImport( "metadata/organisationUnits_move.csv", CsvImportClass.ORGANISATION_UNIT,
-            null,
-            params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
-
+            null, params -> params.setImportStrategy( ImportStrategy.UPDATE ) );
         assertEquals( Status.OK, importReport.getStatus() );
         assertEquals( 1, importReport.getStats().getUpdated() );
     }
@@ -173,23 +161,18 @@ public class CsvMetadataImportIntegrationTest extends TransactionalIntegrationTe
         throws IOException
     {
         InputStream input = new ClassPathResource( csvFile ).getInputStream();
-
-        Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
-            .setImportClass( importClass )
-            .setFirstRowIsHeader( true ) );
-
+        Metadata metadata = csvImportService.fromCsv( input,
+            new CsvImportOptions().setImportClass( importClass ).setFirstRowIsHeader( true ) );
         if ( preCondition != null )
         {
             preCondition.accept( metadata );
         }
-
         MetadataImportParams params = new MetadataImportParams();
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
         if ( modifier != null )
         {
             modifier.accept( params );
         }
-
         return importService.importMetadata( params );
     }
 }

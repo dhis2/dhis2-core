@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 import static org.hisp.dhis.render.type.ValueTypeRenderingType.BAR_CODE;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -38,53 +38,52 @@ import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.RenderDevice;
 import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.translation.Translation;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link JsonBinaryType}.
  *
  * @author Volker Schmidt
  */
-public class JsonBinaryTypeTest
+class JsonBinaryTypeTest
 {
+
     private JsonBinaryType jsonBinaryType;
 
     private Translation translation1;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         translation1 = new Translation();
         translation1.setLocale( "en" );
         translation1.setValue( "English Test 1" );
-
         jsonBinaryType = new JsonBinaryType();
         jsonBinaryType.init( Translation.class );
     }
 
     @Test
-    public void deepCopy()
+    void deepCopy()
     {
         final Translation result = (Translation) jsonBinaryType.deepCopy( translation1 );
-        Assert.assertNotSame( translation1, result );
-        Assert.assertEquals( translation1, result );
+        Assertions.assertNotSame( translation1, result );
+        Assertions.assertEquals( translation1, result );
     }
 
     @Test
-    public void deepCopyNull()
+    void deepCopyNull()
     {
-        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
+        Assertions.assertNull( jsonBinaryType.deepCopy( null ) );
     }
 
     @Test
-    public void testEquals()
+    void testEquals()
     {
         DeviceRenderTypeMap<ValueTypeRenderingObject> objOne = getDeviceRenderTypeAs(
             this::getValueTypeRenderingObject );
         DeviceRenderTypeMap<Map<String, Object>> objTwo = getDeviceRenderTypeAs( this::getMap );
-
         assertTrue( jsonBinaryType.equals( objOne, objTwo ) );
     }
 

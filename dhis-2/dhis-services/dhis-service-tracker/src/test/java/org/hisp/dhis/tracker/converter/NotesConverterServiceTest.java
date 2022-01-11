@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,14 +43,15 @@ import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Luciano Fiandesio
  */
-public class NotesConverterServiceTest extends DhisConvenienceTest
+class NotesConverterServiceTest extends DhisConvenienceTest
 {
+
     private static final String CURRENT_USER = "usernamea";
 
     private NotesConverterService notesConverterService;
@@ -59,8 +60,8 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         this.notesConverterService = new NotesConverterService();
         User user = createUser( 'A' );
@@ -69,31 +70,27 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyConvertCommentToNote()
+    void verifyConvertCommentToNote()
     {
         Note note = rnd.nextObject( Note.class );
-
         final TrackedEntityComment comment = notesConverterService.from( preheat, note );
         assertNoteValues( comment, note );
     }
 
     @Test
-    public void verifyConvertCommentToNoteWithNoStoredByDefined()
+    void verifyConvertCommentToNoteWithNoStoredByDefined()
     {
         Note note = rnd.nextObject( Note.class );
         note.setStoredBy( null );
-
         final TrackedEntityComment comment = notesConverterService.from( preheat, note );
         assertNoteValuesWithCurrentUser( comment, note );
     }
 
     @Test
-    public void verifyConvertCommentsToNotes()
+    void verifyConvertCommentsToNotes()
     {
         List<Note> notes = rnd.objects( Note.class, 10 ).collect( Collectors.toList() );
-
         final List<TrackedEntityComment> comments = notesConverterService.from( preheat, notes );
-
         assertThat( comments, hasSize( 10 ) );
         for ( Note note : notes )
         {
@@ -103,23 +100,19 @@ public class NotesConverterServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void verifyConvertNoteToComment()
+    void verifyConvertNoteToComment()
     {
         TrackedEntityComment comment = rnd.nextObject( TrackedEntityComment.class );
-
         final Note note = notesConverterService.to( comment );
-
         assertCommentValues( note, comment );
     }
 
     @Test
-    public void verifyConvertNotesToComments()
+    void verifyConvertNotesToComments()
     {
         List<TrackedEntityComment> comments = rnd.objects( TrackedEntityComment.class, 10 )
             .collect( Collectors.toList() );
-
         final List<Note> notes = notesConverterService.to( comments );
-
         for ( TrackedEntityComment comment : comments )
         {
             assertCommentValues( notes.stream().filter( n -> n.getNote().equals( comment.getUid() ) ).findFirst().get(),

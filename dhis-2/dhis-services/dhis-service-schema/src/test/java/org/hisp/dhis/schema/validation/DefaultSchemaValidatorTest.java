@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ package org.hisp.dhis.schema.validation;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,8 +50,8 @@ import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.PropertyPropertyIntrospector;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -60,11 +60,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Jan Bernitt
  */
-public class DefaultSchemaValidatorTest
+class DefaultSchemaValidatorTest
 {
 
     @Builder
-    @Setter // avoid having to write the setters here
+    // avoid having to write the setters here
+    @Setter
     public static class SimpleFields
     {
 
@@ -168,172 +169,170 @@ public class DefaultSchemaValidatorTest
 
     private final Schema schema = new Schema( SimpleFields.class, "singular", "plural" );
 
-    @Before
-    public void setUpSchema()
+    @BeforeEach
+    void setUpSchema()
     {
         schema.setPropertyMap( introspectorService.getPropertiesMap( SimpleFields.class ) );
         when( schemaService.getDynamicSchema( SimpleFields.class ) ).thenReturn( schema );
     }
 
     @Test
-    public void testRequiredPropertyIsNull()
+    void testRequiredPropertyIsNull()
     {
-        assertError( ErrorCode.E4000, SimpleFields.builder().build(),
-            "Missing required property `string`." );
+        assertError( ErrorCode.E4000, SimpleFields.builder().build(), "Missing required property `string`." );
     }
 
     @Test
-    public void testStringPropertyTooLong()
+    void testStringPropertyTooLong()
     {
         // fake column length limitation
         schema.getProperty( "string" ).setLength( 20 );
-
         assertError( ErrorCode.E4001, SimpleFields.builder().string( "123456789012345678901" ).build(),
             "Maximum length of property `string`is 20, but given length was 21." );
     }
 
     @Test
-    public void testStringPropertyShorterThanMinLength()
+    void testStringPropertyShorterThanMinLength()
     {
         assertError( ErrorCode.E4002, SimpleFields.builder().string( "Hey" ).build(),
             "Allowed length range for property `string` is [5 to 25], but given length was 3." );
     }
 
     @Test
-    public void testStringPropertyLongerThanMaxLength()
+    void testStringPropertyLongerThanMaxLength()
     {
         assertError( ErrorCode.E4002, SimpleFields.builder().string( "12345678901234567890123456" ).build(),
             "Allowed length range for property `string` is [5 to 25], but given length was 26." );
     }
 
     @Test
-    public void testEmailPropertyValid()
+    void testEmailPropertyValid()
     {
         assertNoError( SimpleFields.builder().string( "valid" ).email( "test@exmaple.com" ).build() );
     }
 
     @Test
-    public void testEmailPropertyInvalid()
+    void testEmailPropertyInvalid()
     {
         assertError( ErrorCode.E4003, SimpleFields.builder().string( "valid" ).email( "notAnEmail" ).build(),
             "Property `email` requires a valid email address, was given `notAnEmail`." );
     }
 
     @Test
-    public void testUrlPropertyValid()
+    void testUrlPropertyValid()
     {
         assertNoError( SimpleFields.builder().string( "valid" ).password( "veryGoodS3cret" ).build() );
     }
 
     @Test
-    public void testUrlPropertyInvalid()
+    void testUrlPropertyInvalid()
     {
         assertError( ErrorCode.E4004, SimpleFields.builder().string( "valid" ).url( "notAnURL" ).build(),
             "Property `url` requires a valid URL, was given `notAnURL`." );
     }
 
     @Test
-    public void testPasswordPropertyValid()
+    void testPasswordPropertyValid()
     {
         assertNoError( SimpleFields.builder().string( "valid" ).password( "veryGoodS3cret" ).build() );
     }
 
     @Test
-    public void testPasswordPropertyInvalid()
+    void testPasswordPropertyInvalid()
     {
         assertError( ErrorCode.E4005, SimpleFields.builder().string( "valid" ).password( "tooShort" ).build(),
             "Property `password` requires a valid password, was given `tooShort`." );
     }
 
     @Test
-    public void testColorPropertyValid()
+    void testColorPropertyValid()
     {
         assertNoError( SimpleFields.builder().string( "valid" ).color( "#445566" ).build() );
     }
 
     @Test
-    public void testColorPropertyInvalid()
+    void testColorPropertyInvalid()
     {
         assertError( ErrorCode.E4006, SimpleFields.builder().string( "valid" ).color( "notAColor" ).build(),
             "Property `color` requires a valid HEX color, was given `notAColor`." );
     }
 
     @Test
-    public void testIntegerPropertySmallerThanMinValue()
+    void testIntegerPropertySmallerThanMinValue()
     {
         assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).integer( 7 ).build(),
             "Allowed range for numeric property `integer` is [13 to 42], but number given was 7." );
     }
 
     @Test
-    public void testIntegerPropertyLargerThanMaxValue()
+    void testIntegerPropertyLargerThanMaxValue()
     {
         assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).integer( 78 ).build(),
             "Allowed range for numeric property `integer` is [13 to 42], but number given was 78." );
     }
 
     @Test
-    public void testIntegerPropertyBetweenMinMax()
+    void testIntegerPropertyBetweenMinMax()
     {
         assertNoError( SimpleFields.builder().string( "valid" ).integer( 20 ).build() );
     }
 
     @Test
-    public void testFloatPropertySmallerThanMinValue()
+    void testFloatPropertySmallerThanMinValue()
     {
         assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).aFloat( 7f ).build(),
             "Allowed range for numeric property `aFloat` is [13 to 42], but number given was 7." );
     }
 
     @Test
-    public void testFloatPropertyLargerThanMaxValue()
+    void testFloatPropertyLargerThanMaxValue()
     {
         assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).aFloat( 78f ).build(),
             "Allowed range for numeric property `aFloat` is [13 to 42], but number given was 78." );
     }
 
     @Test
-    public void testFloatPropertyBetweenMinMax()
+    void testFloatPropertyBetweenMinMax()
     {
         assertNoError( SimpleFields.builder().string( "valid" ).aFloat( 20f ).build() );
     }
 
     @Test
-    public void testDoublePropertySmallerThanMinValue()
+    void testDoublePropertySmallerThanMinValue()
     {
         assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).aDouble( 7d ).build(),
             "Allowed range for numeric property `aDouble` is [13 to 42], but number given was 7." );
     }
 
     @Test
-    public void testDoublePropertyLargerThanMaxValue()
+    void testDoublePropertyLargerThanMaxValue()
     {
         assertError( ErrorCode.E4008, SimpleFields.builder().string( "valid" ).aDouble( 78d ).build(),
             "Allowed range for numeric property `aDouble` is [13 to 42], but number given was 78." );
     }
 
     @Test
-    public void testDoublePropertyBetweenMinMax()
+    void testDoublePropertyBetweenMinMax()
     {
         assertNoError( SimpleFields.builder().string( "valid" ).aDouble( 20d ).build() );
     }
 
     @Test
-    public void testCollectionPropertySizeSmallerThanMinSize()
+    void testCollectionPropertySizeSmallerThanMinSize()
     {
         assertError( ErrorCode.E4007, SimpleFields.builder().string( "valid" ).list( emptyList() ).build(),
             "Allowed size range for collection property `list` is [2 to 4], but size given was 0." );
     }
 
     @Test
-    public void testCollectionPropertySizeLargerThanMaxSize()
+    void testCollectionPropertySizeLargerThanMaxSize()
     {
         assertError( ErrorCode.E4007, SimpleFields.builder().string( "valid" ).list( asList( 1, 2, 3, 4, 5 ) ).build(),
             "Allowed size range for collection property `list` is [2 to 4], but size given was 5." );
     }
 
     @Test
-    public void testCollectionPropertySizeBetweenMinMaxSize()
+    void testCollectionPropertySizeBetweenMinMaxSize()
     {
         assertNoError( SimpleFields.builder().string( "valid" ).list( asList( 1, 2, 3 ) ).build() );
     }
@@ -341,7 +340,7 @@ public class DefaultSchemaValidatorTest
     private void assertError( ErrorCode expected, SimpleFields actual, String expectedMessage )
     {
         List<ErrorReport> reports = validator.validate( actual, false );
-        assertEquals( "expected 1 report", 1, reports.size() );
+        assertEquals( 1, reports.size(), "expected 1 report" );
         ErrorReport report = reports.get( 0 );
         assertEquals( expected, report.getErrorCode() );
         assertEquals( expectedMessage, report.getMessage() );

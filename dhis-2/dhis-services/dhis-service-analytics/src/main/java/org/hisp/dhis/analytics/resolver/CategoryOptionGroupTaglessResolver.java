@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,9 +62,10 @@ public class CategoryOptionGroupTaglessResolver
 
     private final CategoryOptionComboStore categoryOptionComboStore;
 
-    private Set<String> resolveCoCFromCog( String categoryOptionGroupUid )
+    private Set<String> resolveCoCFromCog( String categoryOptionGroupUid, String dataElementUid )
     {
-        return categoryOptionComboStore.getCategoryOptionCombosByGroupUid( categoryOptionGroupUid ).stream()
+        return categoryOptionComboStore.getCategoryOptionCombosByGroupUid( categoryOptionGroupUid, dataElementUid )
+            .stream()
             .map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
     }
 
@@ -140,7 +141,7 @@ public class CategoryOptionGroupTaglessResolver
         Optional<String> cogUid = getCategoryOptionGroupUid( uid );
         if ( cogUid.isPresent() )
         {
-            Set<String> cocs = resolveCoCFromCog( cogUid.get() );
+            Set<String> cocs = resolveCoCFromCog( cogUid.get(), dataElementUid );
             resolvedExpression = Arrays.asList( resolve( cocs, dataElementUid, uid2 ).split( "\\+" ) );
         }
         return resolvedExpression;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,8 +50,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -59,9 +59,9 @@ import com.google.common.collect.Lists;
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class TrackedEntityDataValueAuditStoreTest
-    extends DhisSpringTest
+class TrackedEntityDataValueAuditStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private TrackedEntityDataValueAuditStore auditStore;
 
@@ -99,51 +99,41 @@ public class TrackedEntityDataValueAuditStoreTest
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-
         Program program = createProgram( 'A', new HashSet<>(), organisationUnit );
         programService.addProgram( program );
-
         ProgramStage stageA = new ProgramStage( "StageA", program );
         stageA.setSortOrder( 1 );
         programStageService.saveProgramStage( stageA );
-
         ProgramStage stageB = new ProgramStage( "StageB", program );
         stageB.setSortOrder( 2 );
         programStageService.saveProgramStage( stageB );
-
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( stageA );
         programStages.add( stageB );
         program.setProgramStages( programStages );
         programService.updateProgram( program );
-
         dataElementA = createDataElement( 'A' );
         dataElementB = createDataElement( 'B' );
-
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
-
         TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
-
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
             new Date(), new Date(), organisationUnit );
-        stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
-            stageA, new Date(), new Date(), organisationUnit );
-
+        stageInstance = programStageInstanceService.createProgramStageInstance( programInstance, stageA, new Date(),
+            new Date(), organisationUnit );
         dataValueA = new EventDataValue( dataElementA.getUid(), "1", UserInfoTestHelper.testUserInfo( "test-user" ) );
     }
 
     @Test
-    public void testGetTrackedEntityDataValueAudits()
+    void testGetTrackedEntityDataValueAudits()
     {
         TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElementA, stageInstance,
             dataValueA.getAuditValue(), "userA", dataValueA.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dataValueAudit );
-
-        Assert.assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( Lists.newArrayList( dataElementA ),
+        Assertions.assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( Lists.newArrayList( dataElementA ),
             Lists.newArrayList( stageInstance ), AuditType.UPDATE ).size() );
-        Assert.assertEquals( 1, auditStore.countTrackedEntityDataValueAudits(
+        Assertions.assertEquals( 1, auditStore.countTrackedEntityDataValueAudits(
             Lists.newArrayList( dataElementA, dataElementB ), Lists.newArrayList( stageInstance ), AuditType.UPDATE ) );
     }
 }

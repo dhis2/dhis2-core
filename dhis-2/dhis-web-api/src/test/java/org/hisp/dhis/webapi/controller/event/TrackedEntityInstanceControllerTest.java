@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,12 +48,11 @@ import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceStrategyImpl;
 import org.hisp.dhis.webapi.strategy.old.tracker.imports.impl.TrackedEntityInstanceSyncStrategyImpl;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -61,13 +60,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public class TrackedEntityInstanceControllerTest
+@ExtendWith( MockitoExtension.class )
+class TrackedEntityInstanceControllerTest
 {
 
     private MockMvc mockMvc;
-
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
 
     @Mock
     private CurrentUserService currentUserService;
@@ -94,7 +91,7 @@ public class TrackedEntityInstanceControllerTest
 
     private final static String PD_ENDPOINT = "/potentialDuplicate";
 
-    @Before
+    @BeforeEach
     public void setUp()
         throws BadRequestException,
         IOException
@@ -111,7 +108,7 @@ public class TrackedEntityInstanceControllerTest
     }
 
     @Test
-    public void shouldCallSyncStrategy()
+    void shouldCallSyncStrategy()
         throws Exception
     {
 
@@ -129,7 +126,7 @@ public class TrackedEntityInstanceControllerTest
     }
 
     @Test
-    public void shouldCallAsyncStrategy()
+    void shouldCallAsyncStrategy()
         throws Exception
     {
         mockMvc.perform( post( ENDPOINT )

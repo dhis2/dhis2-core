@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.expression;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -46,9 +46,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * @author Lars Helge Overland
  * @version $Id$
  */
-public class ExpressionStoreTest
-    extends DhisSpringTest
+class ExpressionStoreTest extends DhisSpringTest
 {
+
     @Autowired
     @Qualifier( "org.hisp.dhis.expression.ExpressionStore" )
     private GenericStore<Expression> expressionStore;
@@ -75,7 +75,6 @@ public class ExpressionStoreTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
     @Override
     public void setUpTest()
         throws Exception
@@ -84,15 +83,12 @@ public class ExpressionStoreTest
         DataElement dataElementB = createDataElement( 'B' );
         DataElement dataElementC = createDataElement( 'C' );
         DataElement dataElementD = createDataElement( 'D' );
-
         dataElementIdA = dataElementService.addDataElement( dataElementA );
         dataElementIdB = dataElementService.addDataElement( dataElementB );
         dataElementIdC = dataElementService.addDataElement( dataElementC );
         dataElementIdD = dataElementService.addDataElement( dataElementD );
-
         expressionA = "[" + dataElementIdA + "] + [" + dataElementIdB + "]";
         expressionB = "[" + dataElementIdC + "] - [" + dataElementIdD + "]";
-
         descriptionA = "Expression A";
         descriptionB = "Expression B";
     }
@@ -100,81 +96,61 @@ public class ExpressionStoreTest
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
-
     @Test
-    public void testAddGetExpression()
+    void testAddGetExpression()
     {
         Expression expr = new Expression( expressionA, descriptionA );
-
         expressionStore.save( expr );
         long id = expr.getId();
-
         expr = expressionStore.get( id );
-
         assertEquals( expr.getExpression(), expressionA );
         assertEquals( expr.getDescription(), descriptionA );
     }
 
     @Test
-    public void testUpdateExpression()
+    void testUpdateExpression()
     {
         Expression expr = new Expression( expressionA, descriptionA );
-
         expressionStore.save( expr );
         long id = expr.getId();
-
         expr = expressionStore.get( id );
-
         assertEquals( expr.getExpression(), expressionA );
         assertEquals( expr.getDescription(), descriptionA );
-
         expr.setExpression( expressionB );
         expr.setDescription( descriptionB );
-
         expressionStore.update( expr );
-
         expr = expressionStore.get( id );
-
         assertEquals( expr.getExpression(), expressionB );
         assertEquals( expr.getDescription(), descriptionB );
     }
 
     @Test
-    public void testDeleteExpression()
+    void testDeleteExpression()
     {
         Expression exprA = new Expression( expressionA, descriptionA );
         Expression exprB = new Expression( expressionB, descriptionB );
-
         expressionStore.save( exprA );
         long idA = exprA.getId();
         expressionStore.save( exprB );
         long idB = exprB.getId();
-
         assertNotNull( expressionStore.get( idA ) );
         assertNotNull( expressionStore.get( idB ) );
-
         expressionStore.delete( exprA );
-
         assertNull( expressionStore.get( idA ) );
         assertNotNull( expressionStore.get( idB ) );
-
         expressionStore.delete( exprB );
-
         assertNull( expressionStore.get( idA ) );
         assertNull( expressionStore.get( idB ) );
     }
 
     @Test
-    public void testGetAllExpressions()
+    void testGetAllExpressions()
     {
         Expression exprA = new Expression( expressionA, descriptionA );
         Expression exprB = new Expression( expressionB, descriptionB );
-
         expressionStore.save( exprA );
         expressionStore.save( exprB );
-
         List<Expression> expressions = expressionStore.getAll();
-
         assertTrue( expressions.size() == 2 );
         assertTrue( expressions.contains( exprA ) );
         assertTrue( expressions.contains( exprB ) );

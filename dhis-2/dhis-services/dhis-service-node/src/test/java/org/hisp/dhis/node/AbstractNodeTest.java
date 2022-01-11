@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@ package org.hisp.dhis.node;
 
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link AbstractNode}.
@@ -39,21 +39,23 @@ import org.junit.Test;
  */
 public class AbstractNodeTest
 {
+
     @Test
-    public void createSingleChild()
+    void createSingleChild()
     {
         final SimpleNode simpleNode = new SimpleNode( "id", "My Test" );
         final TestNode testNode = new TestNode( "tests", NodeType.COMPLEX, new Property( TestClass.class ),
             simpleNode );
-        Assert.assertEquals( "tests", testNode.getName() );
-        Assert.assertEquals( NodeType.COMPLEX, testNode.nodeType );
-        Assert.assertEquals( TestClass.class, testNode.getProperty().getKlass() );
-        Assert.assertEquals( 1, testNode.getUnorderedChildren().size() );
-        Assert.assertSame( simpleNode, testNode.getUnorderedChildren().get( 0 ) );
+        Assertions.assertEquals( "tests", testNode.getName() );
+        Assertions.assertEquals( NodeType.COMPLEX, testNode.nodeType );
+        Assertions.assertEquals( TestClass.class, testNode.getProperty().getKlass() );
+        Assertions.assertEquals( 1, testNode.getUnorderedChildren().size() );
+        Assertions.assertSame( simpleNode, testNode.getUnorderedChildren().get( 0 ) );
     }
 
     public static class TestNode extends AbstractNode
     {
+
         public TestNode( String name, NodeType nodeType )
         {
             super( name, nodeType );

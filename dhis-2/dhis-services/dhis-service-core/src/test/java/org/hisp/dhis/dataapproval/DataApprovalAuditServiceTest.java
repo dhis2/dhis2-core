@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,8 +32,8 @@ import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
 import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
@@ -67,7 +67,7 @@ import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -76,8 +76,9 @@ import com.google.common.collect.Sets;
  * @author Jim Grace
  */
 // FIXME refactor this test to use mocks
-public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
+class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
 {
+
     private static final String ACCESS_NONE = "--------";
 
     private static final String ACCESS_READ = "r-------";
@@ -121,7 +122,6 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Supporting data
     // -------------------------------------------------------------------------
-
     private DataApprovalLevel level1;
 
     private DataApprovalLevel level2;
@@ -197,33 +197,25 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Set up/tear down helper methods
     // -------------------------------------------------------------------------
-
     private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag,
         OrganisationUnit orgUnit, String... auths )
     {
         CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag,
             Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
-
         User user = mockCurrentUserService.getCurrentUser();
-
         user.setFirstName( "Test" );
         user.setSurname( userName );
-
         UserCredentials credentials = user.getUserCredentials();
-
         credentials.setUsername( userName );
-
         for ( UserAuthorityGroup role : credentials.getUserAuthorityGroups() )
         {
-            role.setName( CodeGenerator.generateUid() ); // Give the role an
-                                                         // arbitrary name
-
+            // Give the role an
+            role.setName( CodeGenerator.generateUid() );
+            // arbitrary name
             userService.addUserAuthorityGroup( role );
         }
-
         userService.addUserCredentials( credentials );
         userService.addUser( user );
-
         return mockCurrentUserService;
     }
 
@@ -231,33 +223,28 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     {
         UserGroup userGroup = new UserGroup();
         userGroup.setAutoFields();
-
         userGroup.setName( userGroupName );
         userGroup.setMembers( users );
-
         userGroupService.addUserGroup( userGroup );
-
         return userGroup;
     }
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
         object.getSharing().setPublicAccess( ACCESS_NONE );
-        object.setOwner( userZ.getUid() ); // Needed for sharing to work
+        // Needed for sharing to work
+        object.setOwner( userZ.getUid() );
         object.getSharing().setOwner( userZ );
-
         for ( UserGroup group : userGroups )
         {
             object.getSharing().addUserGroupAccess( new UserGroupAccess( group, ACCESS_READ ) );
         }
-
         identifiableObjectManager.updateNoAcl( object );
     }
 
     // -------------------------------------------------------------------------
     // Set up/tear down
     // -------------------------------------------------------------------------
-
     @Override
     public boolean emptyDatabaseAfterTest()
     {
@@ -272,92 +259,70 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         // Add supporting data
         // ---------------------------------------------------------------------
         PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
-
         periodA = createPeriod( new MonthlyPeriodType(), getDate( 2017, 1, 1 ), getDate( 2017, 1, 31 ) );
         periodB = createPeriod( new MonthlyPeriodType(), getDate( 2018, 1, 1 ), getDate( 2018, 1, 31 ) );
         periodService.addPeriod( periodA );
         periodService.addPeriod( periodB );
-
         sourceA = createOrganisationUnit( 'A' );
         sourceB = createOrganisationUnit( 'B', sourceA );
         organisationUnitService.addOrganisationUnit( sourceA );
         organisationUnitService.addOrganisationUnit( sourceB );
-
         superUserService = getMockCurrentUserService( "SuperUser", true, sourceA, UserAuthorityGroup.AUTHORITY_ALL );
         userAService = getMockCurrentUserService( "UserA", false, sourceA );
         userBService = getMockCurrentUserService( "UserB", false, sourceB );
         userCService = getMockCurrentUserService( "UserC", false, sourceB );
         userDService = getMockCurrentUserService( "UserD", false, sourceB );
-
         userZ = createUser( 'Z' );
         userService.addUser( userZ );
-
         UserGroup userGroupC = getUserGroup( "UserGroupA", Sets.newHashSet( userCService.getCurrentUser() ) );
         UserGroup userGroupD = getUserGroup( "UserGroupB", Sets.newHashSet( userDService.getCurrentUser() ) );
-
         userCService.getCurrentUser().getGroups().add( userGroupC );
         userDService.getCurrentUser().getGroups().add( userGroupD );
-
         optionA = new CategoryOption( "CategoryOptionA" );
         optionB = new CategoryOption( "CategoryOptionB" );
         categoryService.addCategoryOption( optionA );
         categoryService.addCategoryOption( optionB );
-
         categoryA = createCategory( 'A', optionA, optionB );
         categoryService.addCategory( categoryA );
-
         categoryComboA = createCategoryCombo( 'A', categoryA );
         categoryService.addCategoryCombo( categoryComboA );
-
         optionComboA = createCategoryOptionCombo( categoryComboA, optionA );
         optionComboB = createCategoryOptionCombo( categoryComboA, optionB );
         optionComboC = createCategoryOptionCombo( categoryComboA, optionA, optionB );
         categoryService.addCategoryOptionCombo( optionComboA );
         categoryService.addCategoryOptionCombo( optionComboB );
         categoryService.addCategoryOptionCombo( optionComboC );
-
         optionGroupA = createCategoryOptionGroup( 'A', optionA );
         optionGroupB = createCategoryOptionGroup( 'B', optionB );
         categoryService.saveCategoryOptionGroup( optionGroupA );
         categoryService.saveCategoryOptionGroup( optionGroupB );
-
         optionGroupSetB = new CategoryOptionGroupSet( "OptionGroupSetB" );
         categoryService.saveCategoryOptionGroupSet( optionGroupSetB );
-
         optionGroupSetB.addCategoryOptionGroup( optionGroupA );
         optionGroupSetB.addCategoryOptionGroup( optionGroupB );
-
         optionGroupA.getGroupSets().add( optionGroupSetB );
         optionGroupB.getGroupSets().add( optionGroupSetB );
-
         setPrivateAccess( optionA, userGroupC );
         setPrivateAccess( optionB );
         setPrivateAccess( optionGroupA );
         setPrivateAccess( optionGroupB, userGroupD );
-
         categoryService.updateCategoryOptionGroupSet( optionGroupSetB );
-
         categoryService.updateCategoryOptionGroup( optionGroupA );
         categoryService.updateCategoryOptionGroup( optionGroupB );
-
         userCService.getCurrentUser().getUserCredentials().getCatDimensionConstraints().add( categoryA );
         userDService.getCurrentUser().getUserCredentials().getCogsDimensionConstraints().add( optionGroupSetB );
-
         dateA = getDate( 2017, 1, 1 );
         dateB = getDate( 2018, 1, 1 );
-
         level1 = new DataApprovalLevel( "01", 1, null );
         level2 = new DataApprovalLevel( "02", 2, null );
         level3 = new DataApprovalLevel( "03", 2, optionGroupSetB );
         dataApprovalLevelService.addDataApprovalLevel( level1 );
         dataApprovalLevelService.addDataApprovalLevel( level2 );
         dataApprovalLevelService.addDataApprovalLevel( level3 );
-
         workflowA = new DataApprovalWorkflow( "workflowA", periodType, newHashSet( level1 ) );
         workflowB = new DataApprovalWorkflow( "workflowB", periodType, newHashSet( level1, level2, level3 ) );
         dataApprovalService.addWorkflow( workflowA );
         dataApprovalService.addWorkflow( workflowB );
-
         DataApproval approvalAA1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboA, false, dateA,
             userZ );
         DataApproval approvalAB1 = new DataApproval( level1, workflowA, periodA, sourceA, optionComboB, false, dateA,
@@ -406,27 +371,22 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     // -------------------------------------------------------------------------
     // Test helper methods
     // -------------------------------------------------------------------------
-
     private void setMockUserService( CurrentUserService mockUserService )
     {
-        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService,
-            mockUserService, dataApprovalLevelService, dataApprovalAuditService, dataApprovalAuditStore );
+        setDependency( CurrentUserServiceTarget.class, CurrentUserServiceTarget::setCurrentUserService, mockUserService,
+            dataApprovalLevelService, dataApprovalAuditService, dataApprovalAuditStore );
     }
 
     // -------------------------------------------------------------------------
     // DataApprovalAudit
     // -------------------------------------------------------------------------
-
     @Test
-    public void testDeleteDataApprovalAudits()
+    void testDeleteDataApprovalAudits()
     {
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;
-
         setMockUserService( userAService );
-
         dataApprovalAuditService.deleteDataApprovalAudits( sourceB );
-
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 3, audits.size() );
         assertTrue( audits.contains( auditAA1 ) );
@@ -435,11 +395,10 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    public void TestGetDataApprovalAudits()
+    void TestGetDataApprovalAudits()
     {
         DataApprovalAuditQueryParams params = new DataApprovalAuditQueryParams();
         List<DataApprovalAudit> audits;
-
         // Superuser can see all audits.
         setMockUserService( superUserService );
         audits = dataApprovalAuditStore.getDataApprovalAudits( params );
@@ -453,7 +412,6 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         assertTrue( audits.contains( auditBA3 ) );
         assertTrue( audits.contains( auditBB3 ) );
         assertTrue( audits.contains( auditBC3 ) );
-
         // User A can see all options from sourceA or its children.
         setMockUserService( userAService );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
@@ -467,7 +425,6 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         assertTrue( audits.contains( auditBA3 ) );
         assertTrue( audits.contains( auditBB3 ) );
         assertTrue( audits.contains( auditBC3 ) );
-
         // User B can see all options from sourceB.
         setMockUserService( userBService );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
@@ -478,13 +435,11 @@ public class DataApprovalAuditServiceTest extends TransactionalIntegrationTest
         assertTrue( audits.contains( auditBA3 ) );
         assertTrue( audits.contains( auditBB3 ) );
         assertTrue( audits.contains( auditBC3 ) );
-
         // User C can see only level 3, optionA from sourceB.
         setMockUserService( userCService );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );
         assertEquals( 1, audits.size() );
         assertTrue( audits.contains( auditBA3 ) );
-
         // User D can see only level 3, optionB from sourceB.
         setMockUserService( userDService );
         audits = dataApprovalAuditService.getDataApprovalAudits( params );

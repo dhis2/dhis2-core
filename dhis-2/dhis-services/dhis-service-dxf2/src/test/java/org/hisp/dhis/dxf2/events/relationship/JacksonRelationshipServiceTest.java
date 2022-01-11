@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,20 +57,20 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Luciano Fiandesio
  */
-public class JacksonRelationshipServiceTest
+@ExtendWith( MockitoExtension.class )
+class JacksonRelationshipServiceTest
 {
     @Mock
     protected DbmsManager dbmsManager;
@@ -114,14 +114,11 @@ public class JacksonRelationshipServiceTest
     @InjectMocks
     private JacksonRelationshipService subject;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     private Relationship relationship;
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    @Before
+    @BeforeEach
     public void setUp()
         throws IllegalAccessException
     {
@@ -132,7 +129,7 @@ public class JacksonRelationshipServiceTest
     }
 
     @Test
-    public void verifyRelationshipIsImportedIfDoesNotExist()
+    void verifyRelationshipIsImportedIfDoesNotExist()
     {
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
@@ -145,7 +142,7 @@ public class JacksonRelationshipServiceTest
     }
 
     @Test
-    public void verifyRelationshipIsNotImportedWhenDoesExist()
+    void verifyRelationshipIsNotImportedWhenDoesExist()
     {
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
         daoRelationship.setUid( "12345" );

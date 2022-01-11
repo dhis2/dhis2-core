@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,11 +30,11 @@ package org.hisp.dhis.trackedentity;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -58,7 +58,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -66,10 +66,9 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-public class TrackedEntityInstanceStoreTest
-    extends
-    DhisSpringTest
+class TrackedEntityInstanceStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private TrackedEntityInstanceStore teiStore;
 
@@ -125,27 +124,20 @@ public class TrackedEntityInstanceStoreTest
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
         atC = createTrackedEntityAttribute( 'C', ValueType.ORGANISATION_UNIT );
-
         atB.setUnique( true );
-
         idObjectManager.save( atA );
         idObjectManager.save( atB );
         idObjectManager.save( atC );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C', ouB );
-
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
         organisationUnitService.addOrganisationUnit( ouC );
-
         prA = createProgram( 'A', null, null );
         prB = createProgram( 'B', null, null );
-
         idObjectManager.save( prA );
         idObjectManager.save( prB );
-
         teiA = createTrackedEntityInstance( ouA );
         teiB = createTrackedEntityInstance( ouB );
         teiC = createTrackedEntityInstance( ouB );
@@ -155,13 +147,11 @@ public class TrackedEntityInstanceStoreTest
     }
 
     @Test
-    public void testTrackedEntityInstanceExists()
+    void testTrackedEntityInstanceExists()
     {
         teiStore.save( teiA );
         teiStore.save( teiB );
-
         dbmsManager.flushSession();
-
         assertTrue( teiStore.exists( teiA.getUid() ) );
         assertTrue( teiStore.exists( teiB.getUid() ) );
         assertFalse( teiStore.exists( "aaaabbbbccc" ) );
@@ -169,62 +159,54 @@ public class TrackedEntityInstanceStoreTest
     }
 
     @Test
-    public void testAddGet()
+    void testAddGet()
     {
         teiStore.save( teiA );
         long idA = teiA.getId();
         teiStore.save( teiB );
         long idB = teiB.getId();
-
         assertNotNull( teiStore.get( idA ) );
         assertNotNull( teiStore.get( idB ) );
     }
 
     @Test
-    public void testAddGetbyOu()
+    void testAddGetbyOu()
     {
         teiStore.save( teiA );
         long idA = teiA.getId();
         teiStore.save( teiB );
         long idB = teiB.getId();
-
         assertEquals( teiA.getName(), teiStore.get( idA ).getName() );
         assertEquals( teiB.getName(), teiStore.get( idB ).getName() );
     }
 
     @Test
-    public void testDelete()
+    void testDelete()
     {
         teiStore.save( teiA );
         long idA = teiA.getId();
         teiStore.save( teiB );
         long idB = teiB.getId();
-
         assertNotNull( teiStore.get( idA ) );
         assertNotNull( teiStore.get( idB ) );
-
         teiStore.delete( teiA );
-
         assertNull( teiStore.get( idA ) );
         assertNotNull( teiStore.get( idB ) );
-
         teiStore.delete( teiB );
-
         assertNull( teiStore.get( idA ) );
         assertNull( teiStore.get( idB ) );
     }
 
     @Test
-    public void testGetAll()
+    void testGetAll()
     {
         teiStore.save( teiA );
         teiStore.save( teiB );
-
         assertTrue( equals( teiStore.getAll(), teiA, teiB ) );
     }
 
     @Test
-    public void testQuery()
+    void testQuery()
     {
         teiStore.save( teiA );
         teiStore.save( teiB );
@@ -232,84 +214,55 @@ public class TrackedEntityInstanceStoreTest
         teiStore.save( teiD );
         teiStore.save( teiE );
         teiStore.save( teiF );
-
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiD, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiE, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiF, "Female" ) );
-
         programInstanceService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
         programInstanceService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
-
         // Get all
-
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
-
         assertEquals( 6, teis.size() );
-
         // Filter by attribute
-
         params = new TrackedEntityInstanceQueryParams()
             .addFilter( new QueryItem( atA, QueryOperator.EQ, "Male", ValueType.TEXT, AggregationType.NONE, null ) );
-
         teis = teiStore.getTrackedEntityInstances( params );
-
         assertEquals( 2, teis.size() );
         assertTrue( teis.contains( teiD ) );
         assertTrue( teis.contains( teiE ) );
-
         // Filter by attribute
-
         params = new TrackedEntityInstanceQueryParams()
             .addFilter( new QueryItem( atA, QueryOperator.EQ, "Female", ValueType.TEXT, AggregationType.NONE, null ) );
-
         teis = teiStore.getTrackedEntityInstances( params );
-
         assertEquals( 1, teis.size() );
         assertTrue( teis.contains( teiF ) );
-
         // Filter by selected org units
-
-        params = new TrackedEntityInstanceQueryParams()
-            .addOrganisationUnit( ouB )
+        params = new TrackedEntityInstanceQueryParams().addOrganisationUnit( ouB )
             .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED );
-
         teis = teiStore.getTrackedEntityInstances( params );
-
         assertEquals( 2, teis.size() );
         assertTrue( teis.contains( teiB ) );
         assertTrue( teis.contains( teiC ) );
-
         // Filter by descendants org units
-
-        params = new TrackedEntityInstanceQueryParams()
-            .addOrganisationUnit( ouB )
+        params = new TrackedEntityInstanceQueryParams().addOrganisationUnit( ouB )
             .setOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS );
-
         teis = teiStore.getTrackedEntityInstances( params );
-
         assertEquals( 5, teis.size() );
         assertTrue( teis.contains( teiB ) );
         assertTrue( teis.contains( teiC ) );
         assertTrue( teis.contains( teiD ) );
         assertTrue( teis.contains( teiE ) );
         assertTrue( teis.contains( teiF ) );
-
         // Filter by program enrollment
-
-        params = new TrackedEntityInstanceQueryParams()
-            .setProgram( prA );
-
+        params = new TrackedEntityInstanceQueryParams().setProgram( prA );
         teis = teiStore.getTrackedEntityInstances( params );
-
         assertEquals( 2, teis.size() );
         assertTrue( teis.contains( teiB ) );
         assertTrue( teis.contains( teiE ) );
     }
 
     @Test
-    public void testQueryOrderByIdInsteadOfCreatedDate()
+    void testQueryOrderByIdInsteadOfCreatedDate()
     {
         LocalDate now = LocalDate.now();
         Date today = Date.from( now.atStartOfDay().toInstant( ZoneOffset.UTC ) );
@@ -318,56 +271,38 @@ public class TrackedEntityInstanceStoreTest
         teiB.setCreated( today );
         teiStore.save( teiA );
         teiStore.save( teiB );
-
         programInstanceService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
-
         // Get all
-
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        OrderParam orderParam = OrderParam.builder()
-            .field( TrackedEntityInstanceQueryParams.CREATED_ID )
-            .direction( OrderParam.SortDirection.ASC )
-            .build();
+        OrderParam orderParam = OrderParam.builder().field( TrackedEntityInstanceQueryParams.CREATED_ID )
+            .direction( OrderParam.SortDirection.ASC ).build();
         params.setOrders( Lists.newArrayList( orderParam ) );
-
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
-
         assertEquals( 2, teis.size() );
-
         assertEquals( teiA.getUid(), teis.get( 0 ).getUid() );
         assertEquals( teiB.getUid(), teis.get( 1 ).getUid() );
     }
 
     @Test
-    public void testPotentialDuplicateInGridQuery()
+    void testPotentialDuplicateInGridQuery()
     {
         TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
-
         trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
-
         teiA.setTrackedEntityType( trackedEntityTypeA );
         teiA.setPotentialDuplicate( true );
         teiStore.save( teiA );
-
         teiB.setTrackedEntityType( trackedEntityTypeA );
         teiB.setPotentialDuplicate( true );
         teiStore.save( teiB );
-
         teiC.setTrackedEntityType( trackedEntityTypeA );
         teiStore.save( teiC );
-
         teiD.setTrackedEntityType( trackedEntityTypeA );
         teiStore.save( teiD );
-
         dbmsManager.flushSession();
-
         // Get all
-
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setTrackedEntityType( trackedEntityTypeA );
-
         List<Map<String, String>> teis = teiStore.getTrackedEntityInstancesGrid( params );
-
         assertEquals( 4, teis.size() );
         teis.forEach( teiMap -> {
             if ( teiMap.get( TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID ).equals( teiA.getUid() )
@@ -385,33 +320,25 @@ public class TrackedEntityInstanceStoreTest
     }
 
     @Test
-    public void testProgramAttributeOfTypeOrgUnitIsResolvedToOrgUnitName()
+    void testProgramAttributeOfTypeOrgUnitIsResolvedToOrgUnitName()
     {
         TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
-
         trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
         teiA.setTrackedEntityType( trackedEntityTypeA );
         teiStore.save( teiA );
         attributeValueService
             .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
         programInstanceService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
-
         dbmsManager.flushSession();
-
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-
         QueryItem queryItem = new QueryItem( atC );
         queryItem.setValueType( atC.getValueType() );
-
         params.setAttributes( Collections.singletonList( queryItem ) );
-
         List<Map<String, String>> grid = teiStore.getTrackedEntityInstancesGrid( params );
-
         assertThat( grid, hasSize( 1 ) );
         assertThat( grid.get( 0 ).keySet(), hasSize( 9 ) );
         assertThat( grid.get( 0 ).get( atC.getUid() ), is( "OrganisationUnitC" ) );
-
     }
 }

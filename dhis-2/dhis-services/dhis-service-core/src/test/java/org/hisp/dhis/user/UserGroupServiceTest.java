@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.user;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
@@ -47,9 +47,9 @@ import com.google.common.collect.Sets;
  * @author Dang Duy Hieu
  * @version $Id$
  */
-public class UserGroupServiceTest
-    extends DhisSpringTest
+class UserGroupServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private UserGroupService userGroupService;
 
@@ -69,7 +69,6 @@ public class UserGroupServiceTest
         user1 = createUser( 'A' );
         user2 = createUser( 'B' );
         user3 = createUser( 'C' );
-
         userService.addUser( user1 );
         userService.addUser( user2 );
         userService.addUser( user3 );
@@ -78,7 +77,6 @@ public class UserGroupServiceTest
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
     private void assertEq( char uniqueCharacter, UserGroup userGroup )
     {
         assertEquals( "UserGroup" + uniqueCharacter, userGroup.getName() );
@@ -87,157 +85,110 @@ public class UserGroupServiceTest
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
-
     @Test
-    public void testAddUserGroup()
+    void testAddUserGroup()
     {
         Set<User> members = new HashSet<>();
-
         members.add( user1 );
         members.add( user2 );
         members.add( user3 );
-
         UserGroup userGroup = createUserGroup( 'A', members );
-
         userGroupService.addUserGroup( userGroup );
-
         assertEq( 'A', userGroup );
         assertNotNull( userGroup.getMembers() );
         assertEquals( members, userGroup.getMembers() );
     }
 
     @Test
-    public void testDeleteUserGroup()
+    void testDeleteUserGroup()
     {
         Set<User> members = new HashSet<>();
-
         members.add( user1 );
         members.add( user2 );
-
         UserGroup userGroup = createUserGroup( 'A', members );
-
         userGroupService.addUserGroup( userGroup );
-
         userGroup = userGroupService.getUserGroupByName( "UserGroupA" ).get( 0 );
-
         long id = userGroup.getId();
-
         assertEq( 'A', userGroup );
         assertTrue( members.size() == userGroup.getMembers().size() );
-
         userGroupService.deleteUserGroup( userGroup );
-
         assertNull( userGroupService.getUserGroup( id ) );
     }
 
     @Test
-    public void testUpdateUserGroup()
+    void testUpdateUserGroup()
     {
         Set<User> members = new HashSet<>();
-
         members.add( user1 );
         members.add( user3 );
-
         UserGroup userGroup = createUserGroup( 'A', members );
-
         userGroupService.addUserGroup( userGroup );
-
         userGroup = userGroupService.getUserGroupByName( "UserGroupA" ).get( 0 );
-
         long id = userGroup.getId();
-
         assertEq( 'A', userGroup );
         assertEquals( members, userGroup.getMembers() );
-
         userGroup.setName( "UserGroupB" );
         userGroup.getMembers().add( user2 );
-
         userGroupService.updateUserGroup( userGroup );
-
         userGroup = userGroupService.getUserGroup( id );
-
         assertEq( 'B', userGroup );
-
         assertEquals( 3, userGroup.getMembers().size() );
-
         assertTrue( userGroup.getMembers().contains( user1 ) );
         assertTrue( userGroup.getMembers().contains( user2 ) );
         assertTrue( userGroup.getMembers().contains( user3 ) );
     }
 
     @Test
-    public void testGetAllUserGroups()
+    void testGetAllUserGroups()
     {
         List<UserGroup> userGroups = new ArrayList<>();
-
         Set<User> members = new HashSet<>();
-
         members.add( user1 );
         members.add( user3 );
-
         UserGroup userGroupA = createUserGroup( 'A', members );
         userGroups.add( userGroupA );
-
         userGroupService.addUserGroup( userGroupA );
-
         members = new HashSet<>();
-
         members.add( user1 );
         members.add( user2 );
-
         UserGroup userGroupB = createUserGroup( 'B', members );
         userGroups.add( userGroupB );
-
         userGroupService.addUserGroup( userGroupB );
-
         assertEquals( userGroupService.getAllUserGroups(), userGroups );
     }
 
     @Test
-    public void testGetUserGroupById()
+    void testGetUserGroupById()
     {
         Set<User> members = new HashSet<>();
-
         members.add( user1 );
         members.add( user2 );
         members.add( user3 );
-
         UserGroup userGroup = createUserGroup( 'A', members );
-
         userGroupService.addUserGroup( userGroup );
-
         long id = userGroupService.getUserGroupByName( "UserGroupA" ).get( 0 ).getId();
-
         userGroup = userGroupService.getUserGroup( id );
-
         assertEq( 'A', userGroup );
         assertNotNull( userGroup.getMembers() );
     }
 
     @Test
-    public void testGetUserGroupByName()
+    void testGetUserGroupByName()
     {
         Set<User> members = new HashSet<>();
-
         members.add( user1 );
-
         UserGroup userGroup = createUserGroup( 'B', members );
-
         userGroupService.addUserGroup( userGroup );
-
         userGroup = userGroupService.getUserGroupByName( "UserGroupB" ).get( 0 );
-
         assertEq( 'B', userGroup );
         assertNotNull( userGroup.getMembers() );
     }
 
     @Test
-    public void testGetDisplayName()
+    void testGetDisplayName()
     {
         UserGroup userGroup = createUserGroup( 'A', Sets.newHashSet() );
-
         userGroupService.addUserGroup( userGroup );
-
         assertEquals( "UserGroupA", userGroupService.getDisplayName( userGroup.getUid() ) );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,7 +49,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.SchemaService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
@@ -58,9 +58,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author bobj
  */
-public class DefaultExportServiceTest
-    extends DhisSpringTest
+class DefaultExportServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private DataElementService dataElementService;
 
@@ -112,21 +112,18 @@ public class DefaultExportServiceTest
             DhisConvenienceTest.getDate( 2012, 1, 31 ) );
         peB = DhisConvenienceTest.createPeriod( DhisConvenienceTest.getDate( 2012, 2, 1 ),
             DhisConvenienceTest.getDate( 2012, 2, 29 ) );
-
         deA.setUid( "f7n9E0hX8qk" );
         deB.setUid( "Ix2HsbDMLea" );
         deC.setUid( "eY5ehpbEsB7" );
         dsA.setUid( "pBOMPrpg1QX" );
         ouA.setUid( "DiszpKrYNg8" );
         ouB.setUid( "BdfsJfj87js" );
-
         deA.setCode( "DE_A" );
         deB.setCode( "DE_B" );
         deC.setCode( "DE_C" );
         dsA.setCode( "DS_A" );
         ouA.setCode( "OU_A" );
         ouB.setCode( "OU_B" );
-
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
         dataElementService.addDataElement( deC );
@@ -139,23 +136,19 @@ public class DefaultExportServiceTest
 
     @Test
     @SuppressWarnings( "unchecked" )
-    public void exportMetaDataTest()
+    void exportMetaDataTest()
         throws IOException,
         XPathExpressionException
     {
         MetadataExportParams params = new MetadataExportParams();
         params.addQuery( Query.from( schemaService.getSchema( DataElement.class ) ) );
         params.addQuery( Query.from( schemaService.getSchema( OrganisationUnit.class ) ) );
-
         Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadataMap = exportService
             .getMetadata( params );
-
         Metadata metadata = new Metadata();
         metadata.setDataElements( (List<DataElement>) metadataMap.get( DataElement.class ) );
         metadata.setOrganisationUnits( (List<OrganisationUnit>) metadataMap.get( OrganisationUnit.class ) );
-
         String metaDataXml = xmlMapper.writeValueAsString( metadata );
-
         assertEquals( "1", xpathTest( "count(//d:organisationUnits)", metaDataXml ) );
         assertEquals( "2", xpathTest( "count(//d:organisationUnit)", metaDataXml ) );
         assertEquals( "3", xpathTest( "count(//d:dataElement)", metaDataXml ) );

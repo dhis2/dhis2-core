@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,10 @@ import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_DIGI
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_SPECIAL;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_UPPER;
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_TOO_LONG_TOO_SHORT;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -47,8 +47,8 @@ import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -56,26 +56,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
  *
  * @author Jan Bernitt
  */
-public class PasswordValidationServiceTest
+class PasswordValidationServiceTest
 {
 
     private PasswordValidationService validation;
 
     private PasswordEncoder encoder;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         encoder = mock( PasswordEncoder.class );
-
         UserService userService = mock( UserService.class );
         UserCredentials credentials = new UserCredentials();
         credentials.setPreviousPasswords( asList( "$kyWalker1", "$kyWalker2", "$kyWalker3" ) );
         when( userService.getUserCredentialsByUsername( anyString() ) ).thenReturn( credentials );
-
         CurrentUserService currentUserService = mock( CurrentUserService.class );
         when( currentUserService.getCurrentUsername() ).thenReturn( "Luke" );
-
         SystemSettingManager systemSettings = mock( SystemSettingManager.class );
         when( systemSettings.getIntSetting( SettingKey.MIN_PASSWORD_LENGTH ) ).thenReturn( 8 );
         when( systemSettings.getIntSetting( SettingKey.MAX_PASSWORD_LENGTH ) ).thenReturn( 16 );
@@ -83,59 +80,58 @@ public class PasswordValidationServiceTest
     }
 
     @Test
-    public void tooShortPasswords()
+    void tooShortPasswords()
     {
         assertInvalid( "Luke", "Sev€n77", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16 );
         assertInvalid( "Lucky", "Sky", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16 );
     }
 
     @Test
-    public void tooLongPasswords()
+    void tooLongPasswords()
     {
         assertInvalid( "Luke", "17teen17teen17teen", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16 );
         assertInvalid( "Lucky", "JediKnightSkywalker", PASSWORD_TOO_LONG_TOO_SHORT, 8, 16 );
     }
 
     @Test
-    public void passwordIsMandatory()
+    void passwordIsMandatory()
     {
         assertInvalid( "Luke", "", PASSWORD_IS_MANDATORY );
         assertInvalid( "Lucky", null, PASSWORD_IS_MANDATORY );
     }
 
     @Test
-    public void usernameIsMandatory()
+    void usernameIsMandatory()
     {
         assertInvalid( "", "$kyWalker7", PASSWORD_IS_MANDATORY );
         assertInvalid( null, "$kyWalker7", PASSWORD_IS_MANDATORY );
     }
 
     @Test
-    public void passwordMustHaveDigits()
+    void passwordMustHaveDigits()
     {
         assertInvalid( "Luke", "$kyWalker", PASSWORD_MUST_HAVE_DIGIT );
         assertInvalid( "Lucky", "$kyWalker", PASSWORD_MUST_HAVE_DIGIT );
     }
 
     @Test
-    public void passwordMustHaveUpperCaseLetters()
+    void passwordMustHaveUpperCaseLetters()
     {
         assertInvalid( "Luke", "$kywalker7", PASSWORD_MUST_HAVE_UPPER );
         assertInvalid( "Lucky", "$kywalker7", PASSWORD_MUST_HAVE_UPPER );
     }
 
     @Test
-    public void passwordMustHaveSpecialCharacters()
+    void passwordMustHaveSpecialCharacters()
     {
         assertInvalid( "Luke", "SkyWalker7", PASSWORD_MUST_HAVE_SPECIAL );
         assertInvalid( "Lucky", "SkyWalker7", PASSWORD_MUST_HAVE_SPECIAL );
     }
 
     @Test
-    public void passwordMustNotContainReservedWords()
+    void passwordMustNotContainReservedWords()
     {
-        for ( String reserved : new String[] { "user", "admin", "system",
-            "username", "password", "login", "manager" } )
+        for ( String reserved : new String[] { "user", "admin", "system", "username", "password", "login", "manager" } )
         {
             assertInvalid( "Luke", "$kY7" + reserved, PASSWORD_CONTAINS_RESERVED_WORD );
             assertInvalid( "Lucky", reserved + "$kY7", PASSWORD_CONTAINS_RESERVED_WORD );
@@ -143,14 +139,14 @@ public class PasswordValidationServiceTest
     }
 
     @Test
-    public void passwordMustNotContainUsername()
+    void passwordMustNotContainUsername()
     {
         assertInvalid( "Luke", "$kyLuke7", PASSWORD_CONTAINS_NAME_OR_EMAIL );
         assertInvalid( "Lucky", "LuckyW@lker7", PASSWORD_CONTAINS_NAME_OR_EMAIL );
     }
 
     @Test
-    public void passwordMustNotContainEmail()
+    void passwordMustNotContainEmail()
     {
         assertInvalid( new CredentialsInfo( "Luke", "Sky@walker.nu7", "Sky@walker.nu", true ),
             PASSWORD_CONTAINS_NAME_OR_EMAIL );
@@ -159,7 +155,7 @@ public class PasswordValidationServiceTest
     }
 
     @Test
-    public void passwordMustNotHaveBeenUsedBefore()
+    void passwordMustNotHaveBeenUsedBefore()
     {
         when( encoder.matches( any(), any() ) ).thenReturn( true );
         assertInvalid( "Luke", "$kyWalker1", PASSWORD_ALREADY_USED_BEFORE, 24 );
@@ -167,7 +163,7 @@ public class PasswordValidationServiceTest
     }
 
     @Test
-    public void validPasswords()
+    void validPasswords()
     {
         assertValid( "Luke", "$kyWalker42" );
         assertValid( "Lucky", "m@yThe4thBeWithU" );
@@ -194,7 +190,7 @@ public class PasswordValidationServiceTest
     {
         PasswordValidationResult actual = validation.validate( credentials );
         assertFalse( actual.isValid() );
-        assertEquals( actual.getErrorMessage(), expected.getI18nKey(), actual.getI18ErrorMessage() );
+        assertEquals( expected.getI18nKey(), actual.getI18ErrorMessage(), actual.getErrorMessage() );
         assertEquals( String.format( expected.getMessage(), args ), actual.getErrorMessage() );
     }
 

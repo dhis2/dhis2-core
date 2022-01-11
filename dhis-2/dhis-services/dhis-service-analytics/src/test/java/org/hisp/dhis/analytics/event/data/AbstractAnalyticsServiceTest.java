@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,12 +55,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.opengis.geometry.primitive.Point;
 
 import com.google.common.collect.Lists;
@@ -71,8 +70,10 @@ import com.google.common.collect.Lists;
  *
  * @author Luciano Fiandesio
  */
-public class AbstractAnalyticsServiceTest
+@ExtendWith( MockitoExtension.class )
+class AbstractAnalyticsServiceTest
 {
+
     private Period peA;
 
     private OrganisationUnit ouA;
@@ -91,10 +92,7 @@ public class AbstractAnalyticsServiceTest
     @Mock
     private EventQueryValidator eventQueryValidator;
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Before
+    @BeforeEach
     public void setUp()
     {
         dummyAnalyticsService = new DummyAnalyticsService( securityManager, eventQueryValidator );
@@ -108,7 +106,7 @@ public class AbstractAnalyticsServiceTest
     }
 
     @Test
-    public void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
+    void verifyHeaderCreationBasedOnQueryItemsAndDimensions()
     {
         // Given
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,

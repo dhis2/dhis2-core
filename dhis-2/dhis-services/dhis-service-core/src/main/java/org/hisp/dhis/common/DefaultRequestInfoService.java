@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@ import javax.annotation.PreDestroy;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 /**
@@ -40,6 +41,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class DefaultRequestInfoService implements RequestInfoService
 {
+    /**
+     * Key used for slf4j logging of the X-Request header.
+     */
+    private static final String X_REQUEST_ID = "xRequestID";
+
     private final ThreadLocal<RequestInfo> currentInfo = new ThreadLocal<>();
 
     /**
@@ -51,7 +57,36 @@ public class DefaultRequestInfoService implements RequestInfoService
      */
     public void setCurrentInfo( RequestInfo info )
     {
+        info = sanitised( info );
         currentInfo.set( info );
+        if ( info == null )
+        {
+            MDC.remove( X_REQUEST_ID );
+            return;
+        }
+        String xRequestID = info.getHeaderXRequestID();
+        if ( xRequestID == null )
+        {
+            MDC.remove( X_REQUEST_ID );
+        }
+        else
+        {
+            MDC.put( X_REQUEST_ID, xRequestID );
+        }
+    }
+
+    private RequestInfo sanitised( RequestInfo info )
+    {
+        if ( info == null )
+        {
+            return null;
+        }
+        String xRequestID = info.getHeaderXRequestID();
+        if ( !RequestInfo.isValidXRequestID( xRequestID ) )
+        {
+            return info.toBuilder().headerXRequestID( "(illegal)" ).build();
+        }
+        return info;
     }
 
     @Override

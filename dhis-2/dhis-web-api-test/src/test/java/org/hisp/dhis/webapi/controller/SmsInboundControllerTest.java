@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -40,73 +40,72 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class SmsInboundControllerTest extends DhisControllerConvenienceTest
+class SmsInboundControllerTest extends DhisControllerConvenienceTest
 {
+
     @Autowired
     private IncomingSmsService incomingSMSService;
 
     @Test
-    public void testReceiveSMSMessage()
+    void testReceiveSMSMessage()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Originator's number does not match user's Phone number",
             POST( "/sms/inbound?originator=me&message=text" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testReceiveSMSMessage_NoOriginator()
+    void testReceiveSMSMessage_NoOriginator()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Originator must be specified",
             POST( "/sms/inbound?originator=&message=text" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testReceiveSMSMessage_NoMessage()
+    void testReceiveSMSMessage_NoMessage()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Message must be specified",
             POST( "/sms/inbound?originator=me&message=" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testReceiveSMSMessageWithBody()
+    void testReceiveSMSMessageWithBody()
     {
         assertWebMessage( "Conflict", 409, "ERROR", "Originator's number does not match user's Phone number",
             POST( "/sms/inbound", "{'originator':'me','text':'text'}" ).content( HttpStatus.CONFLICT ) );
     }
 
     @Test
-    public void testImportUnparsedSMSMessages()
+    void testImportUnparsedSMSMessages()
     {
         assertWebMessage( "OK", 200, "OK", "Import successful",
             POST( "/sms/inbound/import" ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testDeleteInboundMessage()
+    void testDeleteInboundMessage()
     {
         IncomingSms sms = new IncomingSms();
         sms.setOriginator( "me" );
         sms.setText( "text" );
         incomingSMSService.save( sms );
-
         assertWebMessage( "OK", 200, "OK", "IncomingSms with " + sms.getUid() + " deleted",
             DELETE( "/sms/inbound/" + sms.getUid() ).content( HttpStatus.OK ) );
     }
 
     @Test
-    public void testDeleteInboundMessage_NoSuchObject()
+    void testDeleteInboundMessage_NoSuchObject()
     {
         assertWebMessage( "Not Found", 404, "ERROR", "No IncomingSms with id 'xyz' was found.",
             DELETE( "/sms/inbound/xyz" ).content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
-    public void testDeleteInboundMessages()
+    void testDeleteInboundMessages()
     {
         IncomingSms sms = new IncomingSms();
         sms.setOriginator( "me" );
         sms.setText( "text" );
         incomingSMSService.save( sms );
-
         assertWebMessage( "OK", 200, "OK", "Objects deleted",
             DELETE( "/sms/inbound?ids=" + sms.getUid() ).content( HttpStatus.OK ) );
     }

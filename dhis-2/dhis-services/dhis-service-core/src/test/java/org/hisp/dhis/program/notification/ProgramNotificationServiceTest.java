@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program.notification;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.anyLong;
@@ -72,12 +72,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Sets;
 
@@ -85,8 +84,10 @@ import com.google.common.collect.Sets;
  * @author Zubair Asghar.
  */
 @SuppressWarnings( "unchecked" )
-public class ProgramNotificationServiceTest extends DhisConvenienceTest
+@ExtendWith( MockitoExtension.class )
+class ProgramNotificationServiceTest extends DhisConvenienceTest
 {
+
     private static final String SUBJECT = "subject";
 
     private static final String MESSAGE = "message";
@@ -104,9 +105,6 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private static final String ATT_EMAIL = "attr@test.org";
 
     private String notificationTemplate = CodeGenerator.generateUid();
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ProgramMessageService programMessageService;
@@ -200,7 +198,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private ProgramNotificationInstance programNotificationInstaceForToday;
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         programNotificationService = new DefaultProgramNotificationService( this.programMessageService,
@@ -216,8 +214,10 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     // Tests
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+
     @Test
-    public void testIfProgramInstanceIsNull()
+    void testIfProgramInstanceIsNull()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( null );
 
@@ -227,7 +227,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testIfProgramStageInstanceIsNull()
+    void testIfProgramStageInstanceIsNull()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( null );
 
@@ -237,7 +237,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendCompletionNotification()
+    void testSendCompletionNotification()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -262,7 +262,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendEnrollmentNotification()
+    void testSendEnrollmentNotification()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -288,7 +288,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testUserGroupRecipient()
+    void testUserGroupRecipient()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -314,7 +314,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testOuContactRecipient()
+    void testOuContactRecipient()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -340,7 +340,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testProgramAttributeRecipientWithSMS()
+    void testProgramAttributeRecipientWithSMS()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -368,7 +368,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testProgramAttributeRecipientWithEMAIL()
+    void testProgramAttributeRecipientWithEMAIL()
     {
         when( programInstanceStore.get( anyLong() ) ).thenReturn( programInstances.iterator().next() );
 
@@ -396,7 +396,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElementRecipientWithSMS()
+    void testDataElementRecipientWithSMS()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -429,7 +429,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElementRecipientWithEmail()
+    void testDataElementRecipientWithEmail()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -461,7 +461,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testDataElementRecipientWithInternalRecipients()
+    void testDataElementRecipientWithInternalRecipients()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -495,7 +495,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendToParent()
+    void testSendToParent()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -526,7 +526,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendToHierarchy()
+    void testSendToHierarchy()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -563,7 +563,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testSendToUsersAtOu()
+    void testSendToUsersAtOu()
     {
         when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
 
@@ -595,7 +595,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testScheduledNotifications()
+    void testScheduledNotifications()
     {
         sentProgramMessages.clear();
 
@@ -616,7 +616,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testScheduledNotificationsWithDateInPast()
+    void testScheduledNotificationsWithDateInPast()
     {
         sentInternalMessages.clear();
 

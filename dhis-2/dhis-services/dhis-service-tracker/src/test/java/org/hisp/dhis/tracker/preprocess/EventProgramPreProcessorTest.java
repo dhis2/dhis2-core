@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@ package org.hisp.dhis.tracker.preprocess;
 
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,19 +44,22 @@ import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Enrico Colasante
  */
-@RunWith( MockitoJUnitRunner.class )
-public class EventProgramPreProcessorTest
+@MockitoSettings( strictness = Strictness.LENIENT )
+@ExtendWith( MockitoExtension.class )
+class EventProgramPreProcessorTest
 {
 
     private final static String PROGRAM_STAGE_WITH_REGISTRATION = "PROGRAM_STAGE_WITH_REGISTRATION";
@@ -72,8 +75,8 @@ public class EventProgramPreProcessorTest
 
     private EventProgramPreProcessor preProcessorToTest;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         when( preheat.get( Program.class, PROGRAM_WITHOUT_REGISTRATION ) )
             .thenReturn( programWithoutRegistrationWithProgramStages() );
@@ -83,57 +86,44 @@ public class EventProgramPreProcessorTest
             .thenReturn( programStageWithoutRegistration() );
         when( preheat.get( ProgramStage.class, PROGRAM_STAGE_WITH_REGISTRATION ) )
             .thenReturn( programStageWithRegistration() );
-
         this.preProcessorToTest = new EventProgramPreProcessor();
     }
 
     @Test
-    public void testTrackerEventIsEnhancedWithProgram()
+    void testTrackerEventIsEnhancedWithProgram()
     {
         // Given
         TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( trackerEventWithProgramStage() ) )
-            .preheat( preheat )
-            .build();
-
+            .events( Collections.singletonList( trackerEventWithProgramStage() ) ).preheat( preheat ).build();
         // When
         preProcessorToTest.process( bundle );
-
         // Then
         verify( preheat ).put( TrackerIdentifier.UID, programWithRegistration() );
         assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
     }
 
     @Test
-    public void testProgramEventIsEnhancedWithProgram()
+    void testProgramEventIsEnhancedWithProgram()
     {
         // Given
         TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( programEventWithProgramStage() ) )
-            .preheat( preheat )
-            .build();
-
+            .events( Collections.singletonList( programEventWithProgramStage() ) ).preheat( preheat ).build();
         // When
         preProcessorToTest.process( bundle );
-
         // Then
         verify( preheat ).put( TrackerIdentifier.UID, programWithoutRegistration() );
         assertEquals( PROGRAM_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
     }
 
     @Test
-    public void testTrackerEventWithProgramAndProgramStageIsNotProcessed()
+    void testTrackerEventWithProgramAndProgramStageIsNotProcessed()
     {
         // Given
         Event event = completeTrackerEvent();
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
+        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
             .build();
-
         // When
         preProcessorToTest.process( bundle );
-
         // Then
         verify( preheat, never() ).get( Program.class, PROGRAM_WITH_REGISTRATION );
         verify( preheat, never() ).get( ProgramStage.class, PROGRAM_STAGE_WITH_REGISTRATION );
@@ -142,76 +132,58 @@ public class EventProgramPreProcessorTest
     }
 
     @Test
-    public void testProgramStageHasNoReferenceToProgram()
+    void testProgramStageHasNoReferenceToProgram()
     {
         // Given
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( "LGSWs20XFvy" );
-        when( preheat.get( ProgramStage.class, "LGSWs20XFvy" ) )
-            .thenReturn( programStage );
+        when( preheat.get( ProgramStage.class, "LGSWs20XFvy" ) ).thenReturn( programStage );
         Event event = new Event();
         event.setProgramStage( programStage.getUid() );
-
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
+        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
             .build();
-
         // When
         preProcessorToTest.process( bundle );
-
         verify( preheat, never() ).put( TrackerIdentifier.UID, programStage.getProgram() );
     }
 
     @Test
-    public void testProgramEventIsEnhancedWithProgramStage()
+    void testProgramEventIsEnhancedWithProgramStage()
     {
         // Given
         Event event = programEventWithProgram();
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
+        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
             .build();
-
         // When
         preProcessorToTest.process( bundle );
-
         // Then
         verify( preheat ).put( TrackerIdentifier.UID, programStageWithoutRegistration() );
         assertEquals( PROGRAM_STAGE_WITHOUT_REGISTRATION, bundle.getEvents().get( 0 ).getProgramStage() );
     }
 
     @Test
-    public void testTrackerEventIsNotEnhancedWithProgramStage()
+    void testTrackerEventIsNotEnhancedWithProgramStage()
     {
         // Given
         Event event = trackerEventWithProgram();
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
+        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
             .build();
-
         // When
         preProcessorToTest.process( bundle );
-
         // Then
         assertEquals( PROGRAM_WITH_REGISTRATION, bundle.getEvents().get( 0 ).getProgram() );
         assertNull( bundle.getEvents().get( 0 ).getProgramStage() );
     }
 
     @Test
-    public void testProgramEventWithProgramAndProgramStageIsNotProcessed()
+    void testProgramEventWithProgramAndProgramStageIsNotProcessed()
     {
         // Given
         Event event = completeProgramEvent();
-        TrackerBundle bundle = TrackerBundle.builder()
-            .events( Collections.singletonList( event ) )
-            .preheat( preheat )
+        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).preheat( preheat )
             .build();
-
         // When
         preProcessorToTest.process( bundle );
-
         // Then
         // Then
         verify( preheat, never() ).get( Program.class, PROGRAM_WITHOUT_REGISTRATION );

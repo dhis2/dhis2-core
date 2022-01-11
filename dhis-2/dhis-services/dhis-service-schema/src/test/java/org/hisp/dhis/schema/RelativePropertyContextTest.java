@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,11 @@
 package org.hisp.dhis.schema;
 
 import static java.util.stream.Collectors.joining;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -41,7 +41,7 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -50,42 +50,39 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author Jan Bernitt
  */
-public class RelativePropertyContextTest extends DhisSpringTest
+class RelativePropertyContextTest extends DhisSpringTest
 {
 
     @Autowired
     private SchemaService schemaService;
 
     @Test
-    public void testResolve_DirectProperty()
+    void testResolve_DirectProperty()
     {
         assertPropertyDoesExist( UserGroup.class, "users", User.class );
         assertPropertyDoesExist( UserGroup.class, "managedGroups", UserGroup.class );
         assertPropertyDoesExist( OrganisationUnit.class, "ancestors", OrganisationUnit.class );
         assertPropertyDoesExist( OrganisationUnit.class, "level", Integer.class );
-
         assertPropertyDoesNotExist( UserGroup.class, "members" );
         assertPropertyDoesNotExist( User.class, "password" );
     }
 
     @Test
-    public void testResolve_ChildProperty()
+    void testResolve_ChildProperty()
     {
         assertPropertyDoesExist( UserGroup.class, "users.userGroups", UserGroup.class );
         assertPropertyDoesExist( UserGroup.class, "users.organisationUnits", OrganisationUnit.class );
         assertPropertyDoesExist( UserGroup.class, "users.whatsApp", String.class );
-
         assertPropertyDoesNotExist( OrganisationUnit.class, "ancestors.pony" );
         assertPropertyDoesNotExist( OrganisationUnit.class, "pony.ancestors" );
     }
 
     @Test
-    public void testResolve_GrantChildProperty()
+    void testResolve_GrantChildProperty()
     {
         assertPropertyDoesExist( UserGroup.class, "users.userGroups.users", User.class );
         assertPropertyDoesExist( UserGroup.class, "users.organisationUnits.level", Integer.class );
         assertPropertyDoesExist( UserGroup.class, "users.dataViewOrganisationUnits.ancestors", OrganisationUnit.class );
-
         assertPropertyDoesNotExist( OrganisationUnit.class, "ancestors.ancestors.pony" );
         assertPropertyDoesNotExist( OrganisationUnit.class, "pony.ancestors.ancestors" );
     }
@@ -93,17 +90,14 @@ public class RelativePropertyContextTest extends DhisSpringTest
     private void assertPropertyDoesExist( Class<?> type, String path, Class<?> expectedType )
     {
         RelativePropertyContext context = new RelativePropertyContext( type, schemaService::getDynamicSchema );
-
         // test "resolve"
         Property property = context.resolve( path );
-        assertNotNull( path + " not found", property );
+        assertNotNull( property, path + " not found" );
         assertSame( expectedType, property.isCollection() ? property.getItemKlass() : property.getKlass() );
-
         // test "resolveMandatory"
         Property mandatory = context.resolveMandatory( path );
         assertNotNull( mandatory );
         assertSame( property, mandatory );
-
         // test "resolvePath"
         List<Property> elements = context.resolvePath( path );
         assertEquals( path.split( "\\." ).length, elements.size() );

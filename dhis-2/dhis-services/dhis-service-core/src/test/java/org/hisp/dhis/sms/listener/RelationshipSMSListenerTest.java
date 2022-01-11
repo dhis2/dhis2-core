@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.sms.listener;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -61,21 +61,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class RelationshipSMSListenerTest
-    extends
+@ExtendWith( MockitoExtension.class )
+class RelationshipSMSListenerTest extends
     CompressionSMSListenerTest
 {
-    @Rule
-    public MockitoRule rule = MockitoJUnit.rule();
-
-    // Needed for parent
 
     @Mock
     private UserService userService;
@@ -140,7 +135,7 @@ public class RelationshipSMSListenerTest
 
     private RelationshipType relationshipType;
 
-    @Before
+    @BeforeEach
     public void initTest()
         throws SmsCompressionException
     {
@@ -168,7 +163,7 @@ public class RelationshipSMSListenerTest
     }
 
     @Test
-    public void testRelationship()
+    void testRelationship()
     {
         subject.receive( incomingSmsRelationship );
 

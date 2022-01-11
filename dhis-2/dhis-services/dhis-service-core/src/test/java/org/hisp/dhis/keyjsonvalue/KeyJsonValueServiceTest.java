@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.keyjsonvalue;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.UncheckedIOException;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -42,9 +42,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Lars Helge Overland
  */
-public class KeyJsonValueServiceTest
-    extends DhisSpringTest
+class KeyJsonValueServiceTest extends DhisSpringTest
 {
+
     private final String namespace = "DOGS";
 
     @Autowired
@@ -54,17 +54,14 @@ public class KeyJsonValueServiceTest
     private ObjectMapper jsonMapper;
 
     @Test
-    public void testAddGetObject()
+    void testAddGetObject()
     {
         Dog dogA = new Dog( "1", "Fido", "Brown" );
         Dog dogB = new Dog( "2", "Aldo", "Black" );
-
         addValue( namespace, dogA.getId(), dogA );
         addValue( namespace, dogB.getId(), dogB );
-
         dogA = getValue( namespace, dogA.getId(), Dog.class );
         dogB = getValue( namespace, dogB.getId(), Dog.class );
-
         assertNotNull( dogA );
         assertEquals( "1", dogA.getId() );
         assertEquals( "Fido", dogA.getName() );
@@ -74,29 +71,22 @@ public class KeyJsonValueServiceTest
     }
 
     @Test
-    public void testAddUpdateObject()
+    void testAddUpdateObject()
     {
         Dog dogA = new Dog( "1", "Fido", "Brown" );
         Dog dogB = new Dog( "2", "Aldo", "Black" );
-
         addValue( namespace, dogA.getId(), dogA );
         addValue( namespace, dogB.getId(), dogB );
-
         dogA = getValue( namespace, dogA.getId(), Dog.class );
         dogB = getValue( namespace, dogB.getId(), Dog.class );
-
         assertEquals( "Fido", dogA.getName() );
         assertEquals( "Aldo", dogB.getName() );
-
         dogA.setName( "Lilly" );
         dogB.setName( "Teddy" );
-
         updateValue( namespace, dogA.getId(), dogA );
         updateValue( namespace, dogB.getId(), dogB );
-
         dogA = getValue( namespace, dogA.getId(), Dog.class );
         dogB = getValue( namespace, dogB.getId(), Dog.class );
-
         assertEquals( "Lilly", dogA.getName() );
         assertEquals( "Teddy", dogB.getName() );
     }
@@ -118,8 +108,8 @@ public class KeyJsonValueServiceTest
         KeyJsonValue entry = service.getKeyJsonValue( namespace, key );
         if ( entry == null )
         {
-            throw new IllegalStateException( String.format(
-                "No object found for namespace '%s' and key '%s'", namespace, key ) );
+            throw new IllegalStateException(
+                String.format( "No object found for namespace '%s' and key '%s'", namespace, key ) );
         }
         entry.setValue( mapValueToJson( object ) );
         service.updateKeyJsonValue( entry );
@@ -131,7 +121,6 @@ public class KeyJsonValueServiceTest
         {
             return null;
         }
-
         try
         {
             return jsonMapper.readValue( keyJsonValue.getJbPlainValue(), type );

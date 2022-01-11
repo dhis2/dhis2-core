@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.commons.jackson.serialization;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -43,21 +43,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Morten Olav Hansen
  */
-public class DataSetPeriodTypeSerializationTest
+class DataSetPeriodTypeSerializationTest
 {
+
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
-    public void testPeriodTypeAsString()
+    void testPeriodTypeAsString()
     {
         DataSet dataSet = new DataSet( "DataSetUnderTest", PeriodType.getPeriodTypeByName( "Daily" ) );
         dataSet.setDataSetElements( new HashSet<>() );
-
         JsonNode dataSetNodes = jsonMapper.valueToTree( dataSet );
-
         assertTrue( dataSetNodes.has( "periodType" ) );
         assertTrue( dataSetNodes.get( "periodType" ).isTextual() );
-        assertEquals( "PeriodType serialization does not match expectation", "Daily",
-            dataSetNodes.get( "periodType" ).asText() );
+        assertEquals( "Daily", dataSetNodes.get( "periodType" ).asText(),
+            "PeriodType serialization does not match expectation" );
     }
 }

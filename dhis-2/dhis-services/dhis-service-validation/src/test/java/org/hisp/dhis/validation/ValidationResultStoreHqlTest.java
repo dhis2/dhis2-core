@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,9 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -61,8 +61,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.hisp.dhis.validation.hibernate.HibernateValidationResultStore;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -77,7 +77,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  *
  * @author Jan Bernitt
  */
-public class ValidationResultStoreHqlTest
+class ValidationResultStoreHqlTest
 {
 
     private final List<String> hqlQueries = new ArrayList<>();
@@ -88,8 +88,8 @@ public class ValidationResultStoreHqlTest
 
     private CurrentUserService currentUserService;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         SessionFactory sessionFactory = mock( SessionFactory.class );
         JdbcTemplate jdbcTemplate = new JdbcTemplate();
@@ -127,39 +127,37 @@ public class ValidationResultStoreHqlTest
         user.setDataViewOrganisationUnits( singleton( unit ) );
         UserCredentials credentials = new UserCredentials();
         user.setUserCredentials( credentials );
-
         // categories
         Set<Category> categories = category == null ? emptySet() : singleton( category );
         credentials.setCatDimensionConstraints( categories );
-
         // option groups
         Set<CategoryOptionGroupSet> options = groupSet == null ? emptySet() : singleton( groupSet );
         credentials.setCogsDimensionConstraints( options );
     }
 
     @Test
-    public void getById()
+    void getById()
     {
         store.getById( 13L );
         assertHQLMatches( "from ValidationResult vr where vr.id = :id" );
     }
 
     @Test
-    public void getAllUnreportedValidationResults()
+    void getAllUnreportedValidationResults()
     {
         store.getAllUnreportedValidationResults();
         assertHQLMatches( "from ValidationResult vr where vr.notificationSent = false" );
     }
 
     @Test
-    public void queryDefaultQuery()
+    void queryDefaultQuery()
     {
         store.query( new ValidationResultQuery() );
         assertHQLMatches( "from ValidationResult vr" );
     }
 
     @Test
-    public void queryWithUser()
+    void queryWithUser()
     {
         setUpUser( "uid", null, null );
         store.query( new ValidationResultQuery() );
@@ -167,7 +165,7 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithUserWithCategory()
+    void queryWithUserWithCategory()
     {
         Category category = new Category();
         category.setId( 42L );
@@ -178,7 +176,7 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithUserWithCategoryOptionGroupSet()
+    void queryWithUserWithCategoryOptionGroupSet()
     {
         CategoryOptionGroupSet groupSet = new CategoryOptionGroupSet();
         groupSet.setId( 42L );
@@ -189,7 +187,7 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithUserWithCategoryAndCategoryOptionGroupSet()
+    void queryWithUserWithCategoryAndCategoryOptionGroupSet()
     {
         Category category = new Category();
         category.setId( 42L );
@@ -202,7 +200,7 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithOrgUnitFilter()
+    void queryWithOrgUnitFilter()
     {
         ValidationResultQuery query = new ValidationResultQuery();
         query.setOu( asList( "uid1", "uid2" ) );
@@ -213,7 +211,7 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithValidationRuleFilter()
+    void queryWithValidationRuleFilter()
     {
         ValidationResultQuery query = new ValidationResultQuery();
         query.setVr( asList( "uid1", "uid2" ) );
@@ -224,7 +222,7 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithOrgUnitAndValidationRuleFilter()
+    void queryWithOrgUnitAndValidationRuleFilter()
     {
         ValidationResultQuery query = new ValidationResultQuery();
         query.setOu( asList( "uid1", "uid2" ) );
@@ -238,7 +236,7 @@ public class ValidationResultStoreHqlTest
     }
 
     @Test
-    public void queryWithIsoPeriodFilter()
+    void queryWithIsoPeriodFilter()
     {
         ValidationResultQuery query = new ValidationResultQuery();
         query.setPe( singletonList( "2017Q1" ) );
@@ -287,9 +285,8 @@ public class ValidationResultStoreHqlTest
     {
         String hql = hqlQueries.get( hqlQueries.size() - 1 );
         Map<String, Object> parameters = parametersByQueryAndName.get( hql );
-        assertNotNull( "No parameters were set", parameters );
-        assertTrue( "No parameter of name " + parameterName + " was set", parameters.containsKey( parameterName ) );
-        assertEquals( "Unexpected parameter value: ", expectedValue, parameters.get( parameterName ) );
+        assertNotNull( parameters, "No parameters were set" );
+        assertTrue( parameters.containsKey( parameterName ), "No parameter of name " + parameterName + " was set" );
+        assertEquals( expectedValue, parameters.get( parameterName ), "Unexpected parameter value: " );
     }
-
 }

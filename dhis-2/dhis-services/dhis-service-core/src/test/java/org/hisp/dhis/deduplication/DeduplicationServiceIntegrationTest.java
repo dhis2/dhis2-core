@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.deduplication;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,12 +41,11 @@ import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.util.ReflectionTestUtils;
 
-public class DeduplicationServiceIntegrationTest
-    extends IntegrationTestBase
+class DeduplicationServiceIntegrationTest extends IntegrationTestBase
 {
 
     @Autowired
@@ -76,200 +76,159 @@ public class DeduplicationServiceIntegrationTest
     }
 
     @Test
-    public void testGetAllPotentialDuplicateByDifferentStatus()
+    void testGetAllPotentialDuplicateByDifferentStatus()
     {
         assertEquals( 0, deduplicationService.getAllPotentialDuplicates().size() );
-
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
         deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
-
         PotentialDuplicateQuery potentialDuplicateQuery = new PotentialDuplicateQuery();
         potentialDuplicateQuery.setTeis( Arrays.asList( teiA, teiC ) );
-
         assertEquals( 2, deduplicationService.getAllPotentialDuplicatesBy( potentialDuplicateQuery ).size() );
-
         // set one potential duplicate to invalid
         potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
-
         assertEquals( 2, deduplicationService.getAllPotentialDuplicates().size() );
-
         potentialDuplicateQuery.setStatus( DeduplicationStatus.OPEN );
         assertEquals( 1, deduplicationService.getAllPotentialDuplicatesBy( potentialDuplicateQuery ).size() );
-
         potentialDuplicateQuery.setStatus( DeduplicationStatus.INVALID );
         assertEquals( 1, deduplicationService.getAllPotentialDuplicatesBy( potentialDuplicateQuery ).size() );
-
         potentialDuplicateQuery.setStatus( DeduplicationStatus.ALL );
         assertEquals( 2, deduplicationService.getAllPotentialDuplicatesBy( potentialDuplicateQuery ).size() );
     }
 
     @Test
-    public void testAddPotentialDuplicate()
+    void testAddPotentialDuplicate()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
         assertNotEquals( 0, potentialDuplicate.getId() );
-
         assertEquals( potentialDuplicate,
             deduplicationService.getPotentialDuplicateById( potentialDuplicate.getId() ) );
     }
 
     @Test
-    public void testGetPotentialDuplicateByUid()
+    void testGetPotentialDuplicateByUid()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
         assertNotEquals( 0, potentialDuplicate.getId() );
-
         assertEquals( potentialDuplicate,
             deduplicationService.getPotentialDuplicateByUid( potentialDuplicate.getUid() ) );
     }
 
     @Test
-    public void testGetPotentialDuplicateDifferentStatus()
+    void testGetPotentialDuplicateDifferentStatus()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiB );
         potentialDuplicate1.setStatus( DeduplicationStatus.MERGED );
         deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
-
         PotentialDuplicateQuery potentialDuplicateQuery = new PotentialDuplicateQuery();
         potentialDuplicateQuery.setTeis( Collections.singletonList( teiB ) );
         potentialDuplicateQuery.setStatus( DeduplicationStatus.INVALID );
-
         assertEquals( Collections.singletonList( potentialDuplicate ),
             deduplicationService.getAllPotentialDuplicatesBy( potentialDuplicateQuery ) );
     }
 
     @Test
-    public void testGetAllPotentialDuplicates()
+    void testGetAllPotentialDuplicates()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
-
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
         deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
-
         List<PotentialDuplicate> list = deduplicationService.getAllPotentialDuplicates();
-
         assertEquals( 2, list.size() );
         assertTrue( list.containsAll( Arrays.asList( potentialDuplicate, potentialDuplicate1 ) ) );
     }
 
     @Test
-    public void testExistsDuplicate()
+    void testExistsDuplicate()
         throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
         assertTrue( deduplicationService.exists( potentialDuplicate ) );
     }
 
-    @Test( expected = PotentialDuplicateConflictException.class )
-    public void testShouldThrowWhenMissingTeiBProperty()
-        throws PotentialDuplicateConflictException
+    @Test
+    void testShouldThrowWhenMissingTeiBProperty()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
-        assertTrue( deduplicationService.exists( new PotentialDuplicate( teiA, null ) ) );
-    }
-
-    @Test( expected = PotentialDuplicateConflictException.class )
-    public void testShouldThrowWhenMissingTeiAProperty()
-        throws PotentialDuplicateConflictException
-    {
-        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
-        deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
-        assertTrue( deduplicationService.exists( new PotentialDuplicate( null, teiB ) ) );
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationService.exists( new PotentialDuplicate( teiA, null ) ) );
     }
 
     @Test
-    public void testExistsTwoTeisReverse()
+    void testShouldThrowWhenMissingTeiAProperty()
+        throws PotentialDuplicateConflictException
+    {
+        PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
+        deduplicationService.addPotentialDuplicate( potentialDuplicate );
+        assertThrows( PotentialDuplicateConflictException.class,
+            () -> deduplicationService.exists( new PotentialDuplicate( null, teiB ) ) );
+    }
+
+    @Test
+    void testExistsTwoTeisReverse()
         throws PotentialDuplicateConflictException
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicateReverse = new PotentialDuplicate( teiB, teiA );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
         assertTrue( deduplicationService.exists( potentialDuplicateReverse ) );
     }
 
     @Test
-    public void testGetAllPotentialDuplicatedByQuery()
+    void testGetAllPotentialDuplicatedByQuery()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
         PotentialDuplicate potentialDuplicate2 = new PotentialDuplicate( teiA, teiD );
-
         PotentialDuplicateQuery query = new PotentialDuplicateQuery();
-
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
         deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
         deduplicationService.addPotentialDuplicate( potentialDuplicate2 );
-
         query.setTeis( Collections.singletonList( teiA ) );
-
         List<PotentialDuplicate> list = deduplicationService.getAllPotentialDuplicatesBy( query );
-
         assertEquals( 2, list.size() );
         assertTrue( list.contains( potentialDuplicate ) );
         assertFalse( list.contains( potentialDuplicate1 ) );
     }
 
     @Test
-    public void testCountPotentialDuplicates()
+    void testCountPotentialDuplicates()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         PotentialDuplicate potentialDuplicate1 = new PotentialDuplicate( teiC, teiD );
-
         PotentialDuplicateQuery query = new PotentialDuplicateQuery();
-
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
         deduplicationService.addPotentialDuplicate( potentialDuplicate1 );
-
         query.setStatus( DeduplicationStatus.ALL );
-
         assertEquals( 2, deduplicationService.countPotentialDuplicates( query ) );
-
         query.setStatus( DeduplicationStatus.OPEN );
-
         query.setTeis( Arrays.asList( teiA, teiC ) );
-
         assertEquals( 2, deduplicationService.countPotentialDuplicates( query ) );
-
         query.setTeis( Collections.singletonList( teiC ) );
-
         assertEquals( 1, deduplicationService.countPotentialDuplicates( query ) );
-
         query.setStatus( DeduplicationStatus.INVALID );
-
         assertEquals( 0, deduplicationService.countPotentialDuplicates( query ) );
     }
 
     @Test
-    public void testUpdatePotentialDuplicate()
+    void testUpdatePotentialDuplicate()
     {
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
-
         assertEquals( DeduplicationStatus.OPEN,
             deduplicationService.getPotentialDuplicateById( potentialDuplicate.getId() ).getStatus() );
-
         potentialDuplicate.setStatus( DeduplicationStatus.INVALID );
         deduplicationService.updatePotentialDuplicate( potentialDuplicate );
-
         assertEquals( DeduplicationStatus.INVALID,
             deduplicationService.getPotentialDuplicateById( potentialDuplicate.getId() ).getStatus() );
     }

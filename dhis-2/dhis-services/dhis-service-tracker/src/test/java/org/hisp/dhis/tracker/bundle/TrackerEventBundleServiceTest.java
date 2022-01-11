@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.bundle;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,15 +48,16 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class TrackerEventBundleServiceTest extends TrackerTest
+class TrackerEventBundleServiceTest extends TrackerTest
 {
+
     @Autowired
     private ObjectBundleService objectBundleService;
 
@@ -73,57 +74,42 @@ public class TrackerEventBundleServiceTest extends TrackerTest
     protected void initTest()
         throws IOException
     {
-
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
             .fromMetadata( new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
-
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
         params.setImportStrategy( ImportStrategy.CREATE );
         params.setObjects( metadata );
-
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         assertFalse( validationReport.hasErrorReports() );
-
         objectBundleService.commit( bundle );
     }
 
     @Test
-    public void testCreateSingleEventData()
+    void testCreateSingleEventData()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
-
         assertEquals( 8, trackerImportParams.getEvents().size() );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-
         trackerBundleService.commit( trackerBundle );
-
         List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
         assertEquals( 8, programStageInstances.size() );
     }
 
     @Test
-    public void testUpdateSingleEventData()
+    void testUpdateSingleEventData()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
-
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-
         trackerBundleService.commit( trackerBundle );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
-
-        trackerBundle = trackerBundleService.create( TrackerImportParams.builder()
-            .events( trackerBundle.getEvents() )
-            .enrollments( trackerBundle.getEnrollments() )
-            .trackedEntities( trackerBundle.getTrackedEntities() )
-            .user( currentUserService.getCurrentUser() )
-            .build() );
-
+        trackerBundle = trackerBundleService.create( TrackerImportParams.builder().events( trackerBundle.getEvents() )
+            .enrollments( trackerBundle.getEnrollments() ).trackedEntities( trackerBundle.getTrackedEntities() )
+            .user( currentUserService.getCurrentUser() ).build() );
         trackerBundleService.commit( trackerBundle );
         assertEquals( 8, programStageInstanceStore.getAll().size() );
     }

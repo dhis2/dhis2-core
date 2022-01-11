@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,7 +28,7 @@
 package org.hisp.dhis.maintenance;
 
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -44,18 +44,18 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 
 import com.google.common.collect.Sets;
 
 @ActiveProfiles( profiles = { "test-audit" } )
-@Ignore // ignored until we can inject dhis.conf property overrides
-public class HardDeleteAuditTest
-    extends IntegrationTestBase
+@Disabled( "until we can inject dhis.conf property overrides" )
+class HardDeleteAuditTest extends IntegrationTestBase
 {
+
     private static final int TIMEOUT = 5;
 
     @Autowired
@@ -71,47 +71,32 @@ public class HardDeleteAuditTest
     private JdbcMaintenanceStore jdbcMaintenanceStore;
 
     @Test
-    public void testHardDeleteTei()
+    void testHardDeleteTei()
     {
         OrganisationUnit ou = createOrganisationUnit( 'A' );
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         TrackedEntityInstance tei = createTrackedEntityInstance( 'A', ou, attribute );
-
         transactionTemplate.execute( status -> {
             manager.save( ou );
             manager.save( attribute );
-
             trackedEntityInstanceService.addTrackedEntityInstance( tei );
             trackedEntityInstanceService.deleteTrackedEntityInstance( tei );
-
             dbmsManager.clearSession();
             return null;
         } );
-
-        final AuditQuery query = AuditQuery.builder()
-            .uid( Sets.newHashSet( tei.getUid() ) )
-            .build();
-
+        final AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( tei.getUid() ) ).build();
         await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) > 0 );
-
         List<Audit> audits = auditService.getAudits( query );
         assertEquals( 2, audits.size() );
-
         transactionTemplate.execute( status -> {
             jdbcMaintenanceStore.deleteSoftDeletedTrackedEntityInstances();
-
             dbmsManager.clearSession();
             return null;
         } );
-
-        final AuditQuery deleteQuery = AuditQuery.builder()
-            .uid( Sets.newHashSet( tei.getUid() ) )
-            .auditType( Sets.newHashSet( AuditType.DELETE ) )
-            .build();
-
+        final AuditQuery deleteQuery = AuditQuery.builder().uid( Sets.newHashSet( tei.getUid() ) )
+            .auditType( Sets.newHashSet( AuditType.DELETE ) ).build();
         audits = auditService.getAudits( deleteQuery );
         await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( deleteQuery ) > 0 );
-
         assertEquals( 1, audits.size() );
         Audit audit = audits.get( 0 );
         assertEquals( AuditType.DELETE, audit.getAuditType() );

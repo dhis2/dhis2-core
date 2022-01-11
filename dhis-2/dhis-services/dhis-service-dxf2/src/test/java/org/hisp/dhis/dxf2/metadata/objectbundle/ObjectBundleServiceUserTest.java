@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.List;
@@ -51,7 +51,7 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -59,9 +59,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectBundleServiceUserTest
-    extends TransactionalIntegrationTest
+class ObjectBundleServiceUserTest extends TransactionalIntegrationTest
 {
+
     @Autowired
     private ObjectBundleService objectBundleService;
 
@@ -92,31 +92,25 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testCreateUsers()
+    void testCreateUsers()
         throws IOException
     {
         createUserAndInjectSecurityContext( true );
-
         ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.NONE,
             "dxf2/users.json" );
-
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
         objectBundleService.commit( bundle );
-
         List<User> users = manager.getAll( User.class );
         assertEquals( 4, users.size() );
-
         User userA = userService.getUser( "sPWjoHSY03y" );
         User userB = userService.getUser( "MwhEJUnTHkn" );
-
         assertUsernameEquals( userA, UserCredentials::getUserInfo, "usera" );
         assertUsernameEquals( userA, UserCredentials::getCreatedBy, "admin" );
         assertEquals( "user@a.org", userA.getEmail() );
         assertEquals( Integer.valueOf( 3 ), userA.getDataViewMaxOrganisationUnitLevel() );
         assertEquals( 1, userA.getOrganisationUnits().size() );
-
         assertUsernameEquals( userB, UserCredentials::getUserInfo, "userb" );
         assertUsernameEquals( userB, UserCredentials::getCreatedBy, "admin" );
         assertEquals( "user@b.org", userB.getEmail() );
@@ -125,140 +119,114 @@ public class ObjectBundleServiceUserTest
     }
 
     @Test
-    public void testUpdateUsers()
+    void testUpdateUsers()
         throws IOException
     {
         createUserAndInjectSecurityContext( true );
-
         ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.NONE,
             "dxf2/users.json" );
-
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
         objectBundleService.commit( bundle );
-
         params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.NONE,
             "dxf2/users_update.json" );
-
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
         assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5001 ) );
         objectBundleService.commit( bundle );
-
         List<User> users = manager.getAll( User.class );
         assertEquals( 4, users.size() );
-
         User userA = manager.get( User.class, "sPWjoHSY03y" );
         User userB = manager.get( User.class, "MwhEJUnTHkn" );
-
         assertUsernameEquals( userA, UserCredentials::getUserInfo, "UserAA" );
         assertUsernameEquals( userA, UserCredentials::getCreatedBy, "admin" );
-
         assertUsernameEquals( userB, UserCredentials::getUserInfo, "UserBB" );
         assertUsernameEquals( userB, UserCredentials::getCreatedBy, "admin" );
     }
 
     @Test
-    public void testUpdateUsersRunsSchemaValidation()
+    void testUpdateUsersRunsSchemaValidation()
         throws IOException
     {
         createUserAndInjectSecurityContext( true );
-
         ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.NONE,
             "dxf2/users.json" );
-
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertEquals( 1, validate.getErrorReportsCountByCode( UserAuthorityGroup.class, ErrorCode.E5003 ) );
         objectBundleService.commit( bundle );
-
         params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.NONE,
             "dxf2/users_illegal_update.json" );
-
         bundle = objectBundleService.create( params );
         ObjectBundleValidationReport report = objectBundleValidationService.validate( bundle );
         assertEquals( 1, report.getErrorReportsCountByCode( User.class, ErrorCode.E4003 ) );
-        assertTrue( report.hasErrorReport( error -> "email".equals( error.getErrorProperty() ) &&
-            "Property `email` requires a valid email address, was given `notAnEmail`.".equals( error.getMessage() ) ) );
+        assertTrue( report.hasErrorReport( error -> "email".equals( error.getErrorProperty() )
+            && "Property `email` requires a valid email address, was given `notAnEmail`."
+                .equals( error.getMessage() ) ) );
     }
 
     @Test
-    public void testCreateMetadataWithDuplicateUsername()
+    void testCreateMetadataWithDuplicateUsername()
         throws IOException
     {
         ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE_AND_UPDATE,
             AtomicMode.NONE, "dxf2/user_duplicate_username.json" );
-
         ObjectBundle bundle = objectBundleService.create( params );
         objectBundleValidationService.validate( bundle );
         objectBundleService.commit( bundle );
-
         assertEquals( 1, manager.getAll( User.class ).size() );
     }
 
     @Test
-    public void testCreateMetadataWithDuplicateUsernameAndInjectedUser()
+    void testCreateMetadataWithDuplicateUsernameAndInjectedUser()
         throws IOException
     {
         createUserAndInjectSecurityContext( true );
-
         ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE_AND_UPDATE,
             AtomicMode.NONE, "dxf2/user_duplicate_username.json" );
-
         ObjectBundle bundle = objectBundleService.create( params );
         objectBundleValidationService.validate( bundle );
-
         objectBundleService.commit( bundle );
         assertEquals( 2, manager.getAll( User.class ).size() );
     }
 
     @Test
-    public void testUpdateAdminUser()
+    void testUpdateAdminUser()
         throws IOException
     {
         createAndInjectAdminUser();
-
         ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.ALL,
             "dxf2/user_admin.json" );
-
         ObjectBundle bundle = objectBundleService.create( params );
         assertEquals( 0, objectBundleValidationService.validate( bundle ).getErrorReportsCount() );
     }
 
     @Test
-    public void testCreateUsersWithInvalidPasswords()
+    void testCreateUsersWithInvalidPasswords()
         throws IOException
     {
         createUserAndInjectSecurityContext( true );
-
         ObjectBundleParams params = createBundleParams( ObjectBundleMode.VALIDATE, ImportStrategy.CREATE,
             AtomicMode.ALL, "dxf2/users_passwords.json" );
-
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertEquals( 1, validate.getErrorReportsCountByCode( User.class, ErrorCode.E4005 ) );
     }
 
     @Test
-    public void testUpdateUserWithNoAccessUserRole()
+    void testUpdateUserWithNoAccessUserRole()
         throws IOException
     {
         createUserAndInjectSecurityContext( true );
-
         ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE_AND_UPDATE,
             AtomicMode.ALL, "dxf2/user_userrole.json" );
-
         ObjectBundle bundle = objectBundleService.create( params );
-
         objectBundleService.commit( bundle );
-
         User userB = manager.get( User.class, "MwhEJUnTHkn" );
         User userA = manager.get( User.class, "sPWjoHSY03y" );
-
         assertEquals( 2, userA.getUserCredentials().getUserAuthorityGroups().size() );
         assertEquals( 2, userB.getUserCredentials().getUserAuthorityGroups().size() );
-
         UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
         assertNotNull( userManagerRole );
         userManagerRole.getSharing().resetUserAccesses();
@@ -266,43 +234,32 @@ public class ObjectBundleServiceUserTest
         userManagerRole.setPublicAccess( "--------" );
         userManagerRole.setCreatedBy( userB );
         manager.update( userManagerRole );
-
         SecurityContextHolder.clearContext();
         userA.getUserCredentials().setPassword( "passwordUserA" );
         manager.update( userA );
         injectSecurityContext( userA );
-
         params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE_AND_UPDATE, AtomicMode.ALL,
             "dxf2/user_userrole_update.json" );
-
         bundle = objectBundleService.create( params );
         objectBundleService.commit( bundle );
-
         assertEquals( 2, userA.getUserCredentials().getUserAuthorityGroups().size() );
         assertEquals( 2, userB.getUserCredentials().getUserAuthorityGroups().size() );
-
     }
 
     @Test
-    public void testCreateUserRoleWithCode()
+    void testCreateUserRoleWithCode()
         throws IOException
     {
         createUserAndInjectSecurityContext( true );
-
         ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.ALL,
             "dxf2/user_userrole_code.json" );
         params.setPreheatIdentifier( PreheatIdentifier.CODE );
-
         ObjectBundle bundle = objectBundleService.create( params );
-
         objectBundleService.commit( bundle );
-
         User userA = manager.get( User.class, "sPWjoHSY03y" );
         assertNotNull( userA );
-
         assertEquals( 1, userA.getUserCredentials().getUserAuthorityGroups().size() );
         assertEquals( 1, userA.getDataViewOrganisationUnits().size() );
-
         UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
         assertNotNull( userManagerRole );
     }

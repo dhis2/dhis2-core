@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.feedback;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -41,80 +41,68 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class ObjectBundleReportTest
+class ObjectBundleReportTest
 {
+
     @Test
-    public void testObjectBundleValidationReport()
+    void testObjectBundleValidationReport()
     {
         TypeReport typeReport0 = createTypeReport( DataElement.class, DataElementGroup.class );
         TypeReport typeReport1 = createTypeReport( Indicator.class, IndicatorGroup.class );
-
         ObjectBundleValidationReport validationReport = new ObjectBundleValidationReport();
         validationReport.addTypeReport( typeReport0 );
         validationReport.addTypeReport( typeReport1 );
-
         assertEquals( 6, validationReport.getErrorReportsCount() );
         assertEquals( 3, validationReport.getErrorReportsCountByCode( DataElement.class, ErrorCode.E3000 ) );
         assertEquals( 3, validationReport.getErrorReportsCountByCode( Indicator.class, ErrorCode.E3000 ) );
     }
 
     @Test
-    public void testObjectBundleCommitReport()
+    void testObjectBundleCommitReport()
     {
         TypeReport typeReport0 = createTypeReport( DataElement.class, DataElementGroup.class );
         TypeReport typeReport1 = createTypeReport( Indicator.class, IndicatorGroup.class );
-
         ObjectBundleCommitReport validationReport = new ObjectBundleCommitReport();
         validationReport.addTypeReport( typeReport0 );
         validationReport.addTypeReport( typeReport1 );
-
         assertEquals( 6, validationReport.getErrorReportsCount() );
         assertEquals( 3, validationReport.getErrorReportsCountByCode( DataElement.class, ErrorCode.E3000 ) );
         assertEquals( 3, validationReport.getErrorReportsCountByCode( Indicator.class, ErrorCode.E3000 ) );
     }
 
     @Test
-    public void testImportReportMerge()
+    void testImportReportMerge()
     {
         TypeReport typeReport0 = createTypeReport( DataElement.class, DataElementGroup.class );
         TypeReport typeReport1 = createTypeReport( Indicator.class, IndicatorGroup.class );
         TypeReport typeReport2 = createTypeReport( Indicator.class, IndicatorGroup.class );
         TypeReport typeReport3 = createTypeReport( OrganisationUnit.class, OrganisationUnitGroup.class );
-
         ObjectBundleValidationReport objectBundleValidationReport = new ObjectBundleValidationReport();
         objectBundleValidationReport.addTypeReport( typeReport0 );
         objectBundleValidationReport.addTypeReport( typeReport1 );
-
         assertEquals( 6, objectBundleValidationReport.getErrorReportsCount() );
         assertEquals( 3,
             objectBundleValidationReport.getErrorReportsCountByCode( DataElement.class, ErrorCode.E3000 ) );
-        assertEquals( 3,
-            objectBundleValidationReport.getErrorReportsCountByCode( Indicator.class, ErrorCode.E3000 ) );
-
+        assertEquals( 3, objectBundleValidationReport.getErrorReportsCountByCode( Indicator.class, ErrorCode.E3000 ) );
         ObjectBundleCommitReport objectBundleCommitReport = new ObjectBundleCommitReport();
         objectBundleCommitReport.addTypeReport( typeReport2 );
         objectBundleCommitReport.addTypeReport( typeReport3 );
-
         assertEquals( 6, objectBundleCommitReport.getErrorReportsCount() );
         assertEquals( 3, objectBundleCommitReport.getErrorReportsCountByCode( Indicator.class, ErrorCode.E3000 ) );
         assertEquals( 3,
             objectBundleCommitReport.getErrorReportsCountByCode( OrganisationUnit.class, ErrorCode.E3000 ) );
-
         ImportReport importReport = new ImportReport();
         importReport.addTypeReports( objectBundleValidationReport );
         importReport.addTypeReports( objectBundleCommitReport );
-
         assertEquals( 3, importReport.getTypeReportKeys().size() );
-
         assertEquals( 3, importReport.getTypeReport( DataElement.class ).getErrorReportsCount() );
         assertEquals( 3, importReport.getTypeReport( OrganisationUnit.class ).getErrorReportsCount() );
         assertEquals( 6, importReport.getTypeReport( Indicator.class ).getErrorReportsCount() );
-
         assertEquals( 3, importReport.getTypeReport( DataElement.class ).getObjectReportsCount() );
         assertEquals( 3, importReport.getTypeReport( Indicator.class ).getObjectReportsCount() );
         assertEquals( 3, importReport.getTypeReport( OrganisationUnit.class ).getObjectReportsCount() );
@@ -125,19 +113,16 @@ public class ObjectBundleReportTest
         ObjectReport objectReport0 = new ObjectReport( mainKlass, 0 );
         ObjectReport objectReport1 = new ObjectReport( mainKlass, 1 );
         ObjectReport objectReport2 = new ObjectReport( mainKlass, 2 );
-
         objectReport0
             .addErrorReport( new ErrorReport( errorKlass, ErrorCode.E3000, "admin", errorKlass.getSimpleName() ) );
         objectReport1
             .addErrorReport( new ErrorReport( errorKlass, ErrorCode.E3000, "admin", errorKlass.getSimpleName() ) );
         objectReport2
             .addErrorReport( new ErrorReport( errorKlass, ErrorCode.E3000, "admin", errorKlass.getSimpleName() ) );
-
         TypeReport typeReport = new TypeReport( mainKlass );
         typeReport.addObjectReport( objectReport0 );
         typeReport.addObjectReport( objectReport1 );
         typeReport.addObjectReport( objectReport2 );
-
         return typeReport;
     }
 }

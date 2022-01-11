@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.analytics.orgunit;
 
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
@@ -40,19 +40,17 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-public class OrgUnitAnalyticsServiceTest
-    extends DhisSpringTest
+class OrgUnitAnalyticsServiceTest extends DhisSpringTest
 {
+
     @Autowired
     private OrgUnitAnalyticsService subject;
 
     @Test
-    public void testValidateNoOrgUnits()
+    void testValidateNoOrgUnits()
     {
         OrgUnitQueryParams params = new OrgUnitQueryParams.Builder()
-            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) )
-            .build();
-
+            .withOrgUnitGroupSets( Lists.newArrayList( createOrganisationUnitGroupSet( 'A' ) ) ).build();
         assertIllegalQueryEx( assertThrows( IllegalQueryException.class, () -> subject.validate( params ) ),
             ErrorCode.E7300 );
     }

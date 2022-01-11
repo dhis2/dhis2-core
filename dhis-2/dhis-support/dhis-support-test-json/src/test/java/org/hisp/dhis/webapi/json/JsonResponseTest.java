@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +28,15 @@
 package org.hisp.dhis.webapi.json;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.NoSuchElementException;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the basic correctness of {@link JsonResponse} which is the
@@ -44,10 +44,11 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class JsonResponseTest
+class JsonResponseTest
 {
+
     @Test
-    public void testCustomObjectTypeMultiMap()
+    void testCustomObjectTypeMultiMap()
     {
         JsonMultiMap<JsonNumber> multiMap = createJSON( "{'foo':[1,23], 'bar': [34,56]}" )
             .asMultiMap( JsonNumber.class );
@@ -58,7 +59,7 @@ public class JsonResponseTest
     }
 
     @Test
-    public void testObjectHas()
+    void testObjectHas()
     {
         JsonObject response = createJSON( "{'users': {'foo':{'id':'foo'}, 'bar':[]}}" );
         assertTrue( response.has( "users" ) );
@@ -71,18 +72,17 @@ public class JsonResponseTest
     }
 
     @Test
-    public void testNumber()
+    void testNumber()
     {
         JsonObject response = createJSON( "{'number': 13, 'fraction': 4.2}" );
-
         assertEquals( 13, response.getNumber( "number" ).number() );
-        assertEquals( 4.2f, response.getNumber( "fraction" ).number().floatValue(), 0.001f );
+        assertEquals( response.getNumber( "fraction" ).number().floatValue(), 0.001f, 4.2f );
         assertTrue( response.getNumber( "number" ).exists() );
         assertNull( response.getNumber( "missing" ).number() );
     }
 
     @Test
-    public void testIntValue()
+    void testIntValue()
     {
         JsonObject response = createJSON( "{'number':13}" );
         assertEquals( 13, response.getNumber( "number" ).intValue() );
@@ -91,30 +91,27 @@ public class JsonResponseTest
     }
 
     @Test
-    public void testString()
+    void testString()
     {
         JsonObject response = createJSON( "{'text': 'plain'}" );
-
         assertEquals( "plain", response.getString( "text" ).string() );
         assertTrue( response.getString( "text" ).exists() );
         assertNull( response.getString( "missing" ).string() );
     }
 
     @Test
-    public void testBool()
+    void testBool()
     {
         JsonObject response = createJSON( "{'flag': true}" );
-
         assertTrue( response.getBoolean( "flag" ).bool() );
         assertTrue( response.getBoolean( "flag" ).exists() );
         assertNull( response.getBoolean( "missing" ).bool() );
     }
 
     @Test
-    public void testNull()
+    void testNull()
     {
         JsonObject response = createJSON( "{'value': null}" );
-
         assertNull( response.getBoolean( "value" ).bool() );
         assertNull( response.getString( "value" ).string() );
         assertNull( response.getNumber( "value" ).number() );
@@ -126,69 +123,61 @@ public class JsonResponseTest
     }
 
     @Test
-    public void testBooleanValue()
+    void testBooleanValue()
     {
         JsonObject response = createJSON( "{'flag': true}" );
-
         assertTrue( response.getBoolean( "flag" ).booleanValue() );
         JsonBoolean missing = response.getBoolean( "missing" );
         assertThrows( NoSuchElementException.class, missing::booleanValue );
     }
 
     @Test
-    public void testNotExists()
+    void testNotExists()
     {
         JsonObject response = createJSON( "{'flag': true}" );
-
         assertFalse( response.getString( "no" ).exists() );
     }
 
     @Test
-    public void testSizeArray()
+    void testSizeArray()
     {
         JsonObject response = createJSON( "{'numbers': [1,2,3,4]}" );
-
         assertEquals( 4, response.getArray( "numbers" ).size() );
         assertFalse( response.getArray( "numbers" ).isNull() );
     }
 
     @Test
-    public void testStringValues()
+    void testStringValues()
     {
         JsonObject response = createJSON( "{'letters': ['a','b','c']}" );
-
         assertEquals( asList( "a", "b", "c" ), response.getArray( "letters" ).stringValues() );
     }
 
     @Test
-    public void testNumberValues()
+    void testNumberValues()
     {
         JsonObject response = createJSON( "{'digits': [1,2,3]}" );
-
         assertEquals( asList( 1, 2, 3 ), response.getArray( "digits" ).numberValues() );
     }
 
     @Test
-    public void testBoolValues()
+    void testBoolValues()
     {
         JsonObject response = createJSON( "{'flags': [true, false, true]}" );
-
         assertEquals( asList( true, false, true ), response.getArray( "flags" ).boolValues() );
     }
 
     @Test
-    public void testIsNull()
+    void testIsNull()
     {
         JsonObject response = createJSON( "{'optional': null }" );
-
         assertTrue( response.getArray( "optional" ).isNull() );
     }
 
     @Test
-    public void testIsArray()
+    void testIsArray()
     {
         JsonObject response = createJSON( "{'array': [], 'notAnArray': 42 }" );
-
         assertTrue( createJSON( "[]" ).isArray() );
         assertTrue( response.getArray( "array" ).isArray() );
         assertFalse( response.getArray( "notAnArray" ).isArray() );
@@ -197,10 +186,9 @@ public class JsonResponseTest
     }
 
     @Test
-    public void testIsObject()
+    void testIsObject()
     {
         JsonObject response = createJSON( "{'object': {}, 'notAnObject': 42 }" );
-
         assertTrue( response.isObject() );
         assertTrue( response.getArray( "object" ).isObject() );
         assertFalse( response.getArray( "notAnObject" ).isObject() );
@@ -209,42 +197,42 @@ public class JsonResponseTest
     }
 
     @Test
-    public void testBooleanNode()
+    void testBooleanNode()
     {
         JsonObject response = createJSON( "{'a': true }" );
         assertEquals( "true", response.getBoolean( "a" ).node().getDeclaration() );
     }
 
     @Test
-    public void testNumberNode()
+    void testNumberNode()
     {
         JsonObject response = createJSON( "{'a': 42 }" );
         assertEquals( "42", response.getNumber( "a" ).node().getDeclaration() );
     }
 
     @Test
-    public void testStringNode()
+    void testStringNode()
     {
         JsonObject response = createJSON( "{'a': 'hello, again' }" );
         assertEquals( "\"hello, again\"", response.getString( "a" ).node().getDeclaration() );
     }
 
     @Test
-    public void testArrayNode()
+    void testArrayNode()
     {
         JsonObject response = createJSON( "{'a': ['hello, again', 12] }" );
         assertEquals( "[\"hello, again\", 12]", response.getArray( "a" ).node().getDeclaration() );
     }
 
     @Test
-    public void testObjectNode()
+    void testObjectNode()
     {
         JsonObject response = createJSON( "{'a': ['hello, again', 12] }" );
         assertEquals( "{\"a\": [\"hello, again\", 12] }", response.node().getDeclaration() );
     }
 
     @Test
-    public void testToString()
+    void testToString()
     {
         JsonList<JsonNumber> list = createJSON( "[12,42]" ).asList( JsonNumber.class );
         assertEquals( "[12,42]", list.toString() );
@@ -253,7 +241,7 @@ public class JsonResponseTest
     }
 
     @Test
-    public void testToString_NonExistingPath()
+    void testToString_NonExistingPath()
     {
         JsonList<JsonNumber> list = createJSON( "[12,42]" ).getObject( "non-existing" ).asList( JsonNumber.class );
         assertEquals( "Path `.non-existing` does not exist, parent `` is not an OBJECT but a ARRAY node.",
@@ -261,7 +249,7 @@ public class JsonResponseTest
     }
 
     @Test
-    public void testToString_MalformedJson()
+    void testToString_MalformedJson()
     {
         JsonMap<JsonNumber> map = createJSON( "{'a:12}" ).asMap( JsonNumber.class );
         assertEquals( "Expected \" but reach EOI: {\"a:12}", map.toString() );

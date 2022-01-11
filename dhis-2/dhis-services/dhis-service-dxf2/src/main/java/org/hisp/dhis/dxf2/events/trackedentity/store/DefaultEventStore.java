@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,11 +71,11 @@ public class DefaultEventStore
         "join programinstance pi on psic.programstageinstanceid = pi.programinstanceid " +
         "where psic.programstageinstanceid in (:ids)";
 
-    private final static String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITHOUT_REGISTRATION' THEN " +
-        "psi.programstageid in (:programStageIds) and p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
-        "AND pi.programid IN (:programIds)";
+    private final static String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
+        "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
+        "AND psi.programstageid in (:programStageIds) AND pi.programid IN (:programIds)";
 
-    private final static String ACL_FILTER_SQL_NO_PROGRAM_STAGE = "CASE WHEN p.type = 'WITHOUT_REGISTRATION' THEN " +
+    private final static String ACL_FILTER_SQL_NO_PROGRAM_STAGE = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
         "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
         "AND pi.programid IN (:programIds)";
 

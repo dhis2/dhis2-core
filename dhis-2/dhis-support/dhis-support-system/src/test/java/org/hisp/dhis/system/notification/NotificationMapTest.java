@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,15 +33,16 @@ import static org.hisp.dhis.system.notification.NotificationMap.MAX_POOL_TYPE_SI
 import java.util.Optional;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public class NotificationMapTest
+class NotificationMapTest
 {
+
     private final NotificationMap mapToTest = new NotificationMap();
 
     @Test
-    public void testFirstSummaryToBeCreatedIsTheFirstOneToBeRemoved()
+    void testFirstSummaryToBeCreatedIsTheFirstOneToBeRemoved()
     {
         // Fill the map with jobs
         JobConfiguration jobConfiguration = new JobConfiguration( null, DATAVALUE_IMPORT, "userId", false );
@@ -50,30 +51,19 @@ public class NotificationMapTest
             jobConfiguration.setUid( String.valueOf( i ) );
             mapToTest.addSummary( jobConfiguration, i );
         }
-
         // Add one more
         jobConfiguration.setUid( String.valueOf( MAX_POOL_TYPE_SIZE ) );
         mapToTest.addSummary( jobConfiguration, MAX_POOL_TYPE_SIZE );
-
         // Check that oldest job is not in the map anymore
-        Optional<String> notPresentSummary = mapToTest.getJobSummariesForJobType( DATAVALUE_IMPORT ).keySet()
-            .stream()
-            .filter( object -> object.equals( "0" ) )
-            .findAny();
-
-        Assert.assertFalse( notPresentSummary.isPresent() );
-
+        Optional<String> notPresentSummary = mapToTest.getJobSummariesForJobType( DATAVALUE_IMPORT ).keySet().stream()
+            .filter( object -> object.equals( "0" ) ).findAny();
+        Assertions.assertFalse( notPresentSummary.isPresent() );
         // Add one more
         jobConfiguration.setUid( String.valueOf( MAX_POOL_TYPE_SIZE + 1 ) );
         mapToTest.addSummary( jobConfiguration, MAX_POOL_TYPE_SIZE + 1 );
-
         // Check that oldest job is not in the map anymore
-        notPresentSummary = mapToTest.getJobSummariesForJobType( DATAVALUE_IMPORT ).keySet()
-            .stream()
-            .filter( object -> object.equals( "1" ) )
-            .findAny();
-
-        Assert.assertFalse( notPresentSummary.isPresent() );
-
+        notPresentSummary = mapToTest.getJobSummariesForJobType( DATAVALUE_IMPORT ).keySet().stream()
+            .filter( object -> object.equals( "1" ) ).findAny();
+        Assertions.assertFalse( notPresentSummary.isPresent() );
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,40 @@
  */
 package org.hisp.dhis.keyjsonvalue;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.base.MoreObjects;
 
 /**
  * @author Stian Sandvold
  */
-public class KeyJsonValue
-    extends BaseIdentifiableObject
+@Getter
+@Setter
+@ToString( onlyExplicitlyIncluded = true )
+@EqualsAndHashCode( onlyExplicitlyIncluded = true, callSuper = true )
+@NoArgsConstructor
+public class KeyJsonValue extends BaseIdentifiableObject
 {
     /**
      * A namespace represents a collection of keys
      */
+    @JsonProperty
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private String namespace;
 
     /**
      * A key belongs to a namespace, and represent a value
      */
+    @JsonProperty
+    @ToString.Include
+    @EqualsAndHashCode.Include
     private String key;
 
     /**
@@ -55,7 +70,7 @@ public class KeyJsonValue
     private String jbPlainValue;
 
     /**
-     * Whether or not this KeyJsonValue is encrypted or not. Default is false.
+     * Whether this KeyJsonValue is encrypted or not. Default is false.
      */
     private boolean encrypted = false;
 
@@ -71,14 +86,6 @@ public class KeyJsonValue
      */
     private String value;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public KeyJsonValue()
-    {
-    }
-
     public KeyJsonValue( String namespace, String key )
     {
         this( namespace, key, null, false );
@@ -92,64 +99,12 @@ public class KeyJsonValue
         this.encrypted = encrypted;
     }
 
-    // -------------------------------------------------------------------------
-    // toString
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "namespace", namespace )
-            .add( "key", key )
-            .add( "value", value ).toString();
-    }
-
-    // -------------------------------------------------------------------------
-    // Get and set methods
-    // -------------------------------------------------------------------------
-
     @JsonProperty
-    public String getNamespace()
-    {
-        return namespace;
-    }
-
-    public void setNamespace( String namespace )
-    {
-        this.namespace = namespace;
-    }
-
-    @JsonProperty
-    public String getKey()
-    {
-        return key;
-    }
-
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
-
-    @JsonProperty
+    @ToString.Include
+    @EqualsAndHashCode.Include
     public String getValue()
     {
         return encrypted ? getEncryptedValue() : getJbPlainValue();
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
-
-    public boolean isEncrypted()
-    {
-        return encrypted;
-    }
-
-    public void setEncrypted( boolean encrypted )
-    {
-        this.encrypted = encrypted;
     }
 
     public String getJbPlainValue()
@@ -157,18 +112,9 @@ public class KeyJsonValue
         return !encrypted && value != null ? value : jbPlainValue;
     }
 
-    public void setJbPlainValue( String jbPlainValue )
-    {
-        this.jbPlainValue = jbPlainValue;
-    }
-
     public String getEncryptedValue()
     {
         return encrypted && value != null ? value : encryptedValue;
     }
 
-    public void setEncryptedValue( String encryptedValue )
-    {
-        this.encryptedValue = encryptedValue;
-    }
 }

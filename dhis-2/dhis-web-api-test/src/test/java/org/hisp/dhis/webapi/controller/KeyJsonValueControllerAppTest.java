@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 
@@ -37,8 +37,8 @@ import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
@@ -64,14 +64,14 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
+class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
 {
 
     @Autowired
     private AppManager appManager;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
         throws IOException
     {
         assertEquals( AppStatus.OK,
@@ -81,127 +81,103 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetKeysInNamespace()
+    void testGetKeysInNamespace()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         assertEquals( singletonList( "key1" ), GET( "/dataStore/test-app-ns" ).content().stringValues() );
-
         switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
         assertEquals( singletonList( "key1" ), GET( "/dataStore/test-app-ns" ).content().stringValues() );
-
         switchToNewUser( "has-no-app-authority" );
-        assertEquals(
-            "Namespace 'test-app-ns' is protected, access denied",
+        assertEquals( "Namespace 'test-app-ns' is protected, access denied",
             GET( "/dataStore/test-app-ns" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
-    public void testDeleteNamespace()
+    void testDeleteNamespace()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
-
         switchToNewUser( "has-no-app-authority" );
-        assertEquals(
-            "Namespace 'test-app-ns' is protected, access denied",
+        assertEquals( "Namespace 'test-app-ns' is protected, access denied",
             DELETE( "/dataStore/test-app-ns" ).error( HttpStatus.FORBIDDEN ).getMessage() );
-
         switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/test-app-ns" ) );
     }
 
     @Test
-    public void testGetKeyJsonValue()
+    void testGetKeyJsonValue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         assertStatus( HttpStatus.OK, GET( "/dataStore/test-app-ns/key1" ) );
-
         switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
         assertStatus( HttpStatus.OK, GET( "/dataStore/test-app-ns/key1" ) );
-
         switchToNewUser( "has-no-app-authority" );
-        assertEquals(
-            "Namespace 'test-app-ns' is protected, access denied",
+        assertEquals( "Namespace 'test-app-ns' is protected, access denied",
             GET( "/dataStore/test-app-ns/key1" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
-    public void testGetKeyJsonValueMetaData()
+    void testGetKeyJsonValueMetaData()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         assertStatus( HttpStatus.OK, GET( "/dataStore/test-app-ns/key1/metaData" ) );
-
         switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
         assertStatus( HttpStatus.OK, GET( "/dataStore/test-app-ns/key1/metaData" ) );
-
         switchToNewUser( "has-no-app-authority" );
-        assertEquals(
-            "Namespace 'test-app-ns' is protected, access denied",
+        assertEquals( "Namespace 'test-app-ns' is protected, access denied",
             GET( "/dataStore/test-app-ns/key1/metaData" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
-    public void testAddKeyJsonValue()
+    void testAddKeyJsonValue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
-
         switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key2", "{}" ) );
-
         switchToNewUser( "has-no-app-authority" );
-        assertEquals(
-            "Namespace 'test-app-ns' is protected, access denied",
+        assertEquals( "Namespace 'test-app-ns' is protected, access denied",
             POST( "/dataStore/test-app-ns/key3", "{}" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
-    public void testUpdateKeyJsonValue()
+    void testUpdateKeyJsonValue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         assertStatus( HttpStatus.OK, PUT( "/dataStore/test-app-ns/key1", "{}" ) );
-
         switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
         assertStatus( HttpStatus.OK, PUT( "/dataStore/test-app-ns/key1", "{}" ) );
-
         switchToNewUser( "has-no-app-authority" );
-        assertEquals(
-            "Namespace 'test-app-ns' is protected, access denied",
+        assertEquals( "Namespace 'test-app-ns' is protected, access denied",
             PUT( "/dataStore/test-app-ns/key1", "{}" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
-    public void testDeleteKeyJsonValue()
+    void testDeleteKeyJsonValue()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/test-app-ns/key1" ) );
-
         switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/test-app-ns/key1" ) );
-
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         switchToNewUser( "has-no-app-authority" );
-        assertEquals(
-            "Namespace 'test-app-ns' is protected, access denied",
+        assertEquals( "Namespace 'test-app-ns' is protected, access denied",
             DELETE( "/dataStore/test-app-ns/key1" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 
     @Test
-    public void testStoreIsUnprotectedAfterAppIsDeleted()
+    void testStoreIsUnprotectedAfterAppIsDeleted()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         appManager.deleteApp( appManager.getApp( "test" ), false );
-
         switchToNewUser( "has-no-app-authority" );
         assertEquals( singletonList( "key1" ), GET( "/dataStore/test-app-ns" ).content().stringValues() );
     }
 
     @Test
-    public void testNamespaceIsDeletedWhenAppIsDeletedWithData()
+    void testNamespaceIsDeletedWhenAppIsDeletedWithData()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         appManager.deleteApp( appManager.getApp( "test" ), true );
-
         assertStatus( HttpStatus.NOT_FOUND, GET( "/dataStore/test-app-ns" ) );
     }
-
 }

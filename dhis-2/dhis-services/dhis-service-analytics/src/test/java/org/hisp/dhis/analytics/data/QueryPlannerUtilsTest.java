@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.analytics.data;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -38,13 +40,14 @@ import org.hisp.dhis.period.FinancialOctoberPeriodType;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Lars Helge Overland
  */
-public class QueryPlannerUtilsTest
+class QueryPlannerUtilsTest
 {
+
     private final AnalyticsAggregationType SUM_SUM = new AnalyticsAggregationType( AggregationType.SUM,
         AggregationType.SUM );
 
@@ -52,18 +55,16 @@ public class QueryPlannerUtilsTest
         AggregationType.AVERAGE );
 
     @Test
-    public void testGetAggregationType()
+    void testGetAggregationType()
     {
         AnalyticsAggregationType typeA = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE,
             DataType.NUMERIC, true );
         AnalyticsAggregationType typeB = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE,
             DataType.NUMERIC, true );
-
         assertEquals( typeA,
             QueryPlannerUtils.getAggregationType(
                 new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE ), ValueType.INTEGER,
                 new QuarterlyPeriodType(), new YearlyPeriodType() ) );
-
         assertEquals( typeB,
             QueryPlannerUtils.getAggregationType(
                 new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE ), ValueType.INTEGER,
@@ -71,7 +72,7 @@ public class QueryPlannerUtilsTest
     }
 
     @Test
-    public void testIsDisaggregation()
+    void testIsDisaggregation()
     {
         assertTrue( QueryPlannerUtils.isDisaggregation( SUM_AVG, new QuarterlyPeriodType(), new YearlyPeriodType() ) );
         assertTrue( QueryPlannerUtils.isDisaggregation( SUM_AVG, new MonthlyPeriodType(), new YearlyPeriodType() ) );
@@ -79,21 +80,19 @@ public class QueryPlannerUtilsTest
             QueryPlannerUtils.isDisaggregation( SUM_AVG, new FinancialAprilPeriodType(), new YearlyPeriodType() ) );
         assertTrue(
             QueryPlannerUtils.isDisaggregation( SUM_AVG, new FinancialOctoberPeriodType(), new YearlyPeriodType() ) );
-
         assertFalse( QueryPlannerUtils.isDisaggregation( SUM_SUM, new QuarterlyPeriodType(), new YearlyPeriodType() ) );
         assertFalse( QueryPlannerUtils.isDisaggregation( SUM_SUM, new MonthlyPeriodType(), new YearlyPeriodType() ) );
         assertFalse(
             QueryPlannerUtils.isDisaggregation( SUM_SUM, new FinancialAprilPeriodType(), new YearlyPeriodType() ) );
         assertFalse(
             QueryPlannerUtils.isDisaggregation( SUM_SUM, new FinancialOctoberPeriodType(), new YearlyPeriodType() ) );
-
         assertFalse( QueryPlannerUtils.isDisaggregation( SUM_AVG, new YearlyPeriodType(), new QuarterlyPeriodType() ) );
         assertFalse( QueryPlannerUtils.isDisaggregation( SUM_AVG, new YearlyPeriodType(), new YearlyPeriodType() ) );
         assertFalse( QueryPlannerUtils.isDisaggregation( SUM_SUM, new YearlyPeriodType(), new YearlyPeriodType() ) );
     }
 
     @Test
-    public void testFromAggregationType()
+    void testFromAggregationType()
     {
         assertEquals( new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM ),
             AnalyticsAggregationType.fromAggregationType( AggregationType.SUM ) );

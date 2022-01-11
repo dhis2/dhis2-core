@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,24 +28,25 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.translation.Translation;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Unit tests for {@link JsonListBinaryType}.
  *
  * @author Volker Schmidt
  */
-public class JsonListBinaryTypeTest
+class JsonListBinaryTypeTest
 {
+
     private JsonListBinaryType jsonBinaryType;
 
     private List<Translation> translations;
@@ -54,28 +55,25 @@ public class JsonListBinaryTypeTest
 
     private Translation translation2;
 
-    @Before
-    public void setUp()
+    @BeforeEach
+    void setUp()
     {
         translation1 = new Translation();
         translation1.setLocale( "en" );
         translation1.setValue( "English Test 1" );
-
         translation2 = new Translation();
         translation2.setLocale( "no" );
         translation2.setValue( "Norwegian Test 1" );
-
         translations = new ArrayList<>();
         translations.add( translation1 );
         translations.add( translation2 );
-
         jsonBinaryType = new JsonListBinaryType();
         jsonBinaryType.init( Translation.class );
     }
 
     @SuppressWarnings( "unchecked" )
     @Test
-    public void deepCopy()
+    void deepCopy()
     {
         final List<Translation> result = (List<Translation>) jsonBinaryType.deepCopy( translations );
         assertNotSame( translations, result );
@@ -83,8 +81,8 @@ public class JsonListBinaryTypeTest
     }
 
     @Test
-    public void deepCopyNull()
+    void deepCopyNull()
     {
-        Assert.assertNull( jsonBinaryType.deepCopy( null ) );
+        Assertions.assertNull( jsonBinaryType.deepCopy( null ) );
     }
 }

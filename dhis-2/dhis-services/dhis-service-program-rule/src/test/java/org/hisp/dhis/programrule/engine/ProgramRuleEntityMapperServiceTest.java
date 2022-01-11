@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
@@ -76,11 +76,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.util.ObjectUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import com.google.api.client.util.Lists;
 import com.google.common.collect.Sets;
@@ -88,8 +87,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Zubair Asghar.
  */
-public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
+@ExtendWith( org.mockito.junit.jupiter.MockitoExtension.class )
+class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 {
+
     private static final String SAMPLE_VALUE_A = "textValueA";
 
     private static final String SAMPLE_VALUE_B = "textValueB";
@@ -146,9 +147,6 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private ProgramStageInstance programStageInstanceC;
 
-    @org.junit.Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private ProgramRuleService programRuleService;
 
@@ -169,7 +167,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private DefaultProgramRuleEntityMapperService subject;
 
-    @Before
+    @BeforeEach
     public void initTest()
     {
         subject = new DefaultProgramRuleEntityMapperService( programRuleService, programRuleVariableService,
@@ -179,7 +177,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedProgramRules()
+    void testMappedProgramRules()
     {
         when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
 
@@ -189,7 +187,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWhenProgramRuleConditionIsNull()
+    void testWhenProgramRuleConditionIsNull()
     {
         when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
 
@@ -203,7 +201,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testWhenProgramRuleActionIsNull()
+    void testWhenProgramRuleActionIsNull()
     {
         when( programRuleService.getAllProgramRule() ).thenReturn( programRules );
 
@@ -217,7 +215,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedRuleVariableValues()
+    void testMappedRuleVariableValues()
     {
         when( programRuleVariableService.getAllProgramRuleVariable() ).thenReturn( programRuleVariables );
         RuleVariableAttribute ruleVariableAttribute;
@@ -246,23 +244,23 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testExceptionWhenMandatoryFieldIsMissingInRuleEvent()
+    void testExceptionWhenMandatoryFieldIsMissingInRuleEvent()
     {
         assertThrows( IllegalStateException.class, () -> subject.toMappedRuleEvent( programStageInstanceC ) );
     }
 
     @Test
-    public void testExceptionIfDataElementIsNull()
+    void testExceptionIfDataElementIsNull()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( null );
 
-        assertThrows( "Required DataElement(" + dataElement.getUid() + ") was not found.", RuntimeException.class,
-            () -> subject.toMappedRuleEvent( programStageInstanceA ) );
+        assertThrows( RuntimeException.class, () -> subject.toMappedRuleEvent( programStageInstanceA ),
+            "Required DataElement(" + dataElement.getUid() + ") was not found." );
 
     }
 
     @Test
-    public void testMappedRuleEvent()
+    void testMappedRuleEvent()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
@@ -284,7 +282,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedRuleEventsWithFilter()
+    void testMappedRuleEventsWithFilter()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
@@ -310,7 +308,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedRuleEvents()
+    void testMappedRuleEvents()
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
@@ -321,7 +319,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testExceptionWhenMandatoryValueMissingMappedEnrollment()
+    void testExceptionWhenMandatoryValueMissingMappedEnrollment()
     {
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues = Lists.newArrayList();
         assertThrows( IllegalStateException.class,
@@ -329,7 +327,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testMappedEnrollment()
+    void testMappedEnrollment()
     {
         RuleEnrollment ruleEnrollment = subject.toMappedRuleEnrollment( programInstance, Lists.newArrayList() );
 
@@ -340,7 +338,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    public void testGetItemStore()
+    void testGetItemStore()
     {
         String env_variable = "Completed date";
         Constant constant = new Constant();

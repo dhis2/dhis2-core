@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.webapi.json.JsonObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the field {@link org.hisp.dhis.schema.annotation.Gist.Transform}
@@ -40,94 +40,84 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class GistTransformControllerTest extends AbstractGistControllerTest
+class GistTransformControllerTest extends AbstractGistControllerTest
 {
 
     @Test
-    public void testTransform_Rename()
+    void testTransform_Rename()
     {
         JsonObject user = GET(
             "/users/{uid}/gist?fields=surname~rename(name),userCredentials[username~rename(alias)]~rename(account)",
             getSuperuserUid() ).content();
-
         assertEquals( "admin", user.getString( "name" ).string() );
         assertEquals( "admin", user.getObject( "account" ).getString( "alias" ).string() );
         assertEquals( 2, user.size() );
     }
 
     @Test
-    public void testTransform_Ids()
+    void testTransform_Ids()
     {
         JsonObject gist = GET( "/dataSets/{id}/organisationUnits/gist?fields=*,dataSets::ids", dataSetId ).content();
-
         assertHasPager( gist, 1, 50 );
         JsonObject orgUnit = gist.getArray( "organisationUnits" ).getObject( 0 );
         assertEquals( dataSetId, orgUnit.getArray( "dataSets" ).getString( 0 ).string() );
     }
 
     @Test
-    public void testTransform_Pluck()
+    void testTransform_Pluck()
     {
         JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users::pluck(surname)", getSuperuserUid() )
             .content();
-
         assertHasPager( gist, 1, 50 );
         assertEquals( "admin",
             gist.getArray( "userGroups" ).getObject( 0 ).getArray( "users" ).getString( 0 ).string() );
     }
 
     @Test
-    public void testTransform_Pluck_NoArgument()
+    void testTransform_Pluck_NoArgument()
     {
         JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users::pluck", getSuperuserUid() ).content();
-
         assertHasPager( gist, 1, 50 );
         assertEquals( getSuperuserUid(),
             gist.getArray( "userGroups" ).getObject( 0 ).getArray( "users" ).getString( 0 ).string() );
     }
 
     @Test
-    public void testTransform_Member()
+    void testTransform_Member()
     {
         String url = "/users/{uid}/userGroups/gist?fields=name,users::member({uid})";
-
         // member(id) with a user that is a member
         JsonObject gist = GET( url, getSuperuserUid(), getSuperuserUid() ).content();
         assertTrue( gist.getArray( "userGroups" ).getObject( 0 ).getBoolean( "users" ).booleanValue() );
-
         // member(id) with a user that is not a member
         gist = GET( url, getSuperuserUid(), "non-existing-user-uid" ).content();
         assertFalse( gist.getArray( "userGroups" ).getObject( 0 ).getBoolean( "users" ).booleanValue() );
     }
 
     @Test
-    public void testTransform_NotMember()
+    void testTransform_NotMember()
     {
         String url = "/users/{uid}/userGroups/gist?fields=name,users::not-member({uid})";
-
         // not-member(id) with a user that is a member
         JsonObject gist = GET( url, getSuperuserUid(), getSuperuserUid() ).content();
         assertFalse( gist.getArray( "userGroups" ).getObject( 0 ).getBoolean( "users" ).booleanValue() );
-
         // not-member(id) with a user that is not a member
         gist = GET( url, getSuperuserUid(), "non-existing-user-uid" ).content();
         assertTrue( gist.getArray( "userGroups" ).getObject( 0 ).getBoolean( "users" ).booleanValue() );
     }
 
     @Test
-    public void testTransform_Auto_MediumUsesSize()
+    void testTransform_Auto_MediumUsesSize()
     {
         JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users&auto=M", getSuperuserUid() ).content();
-
         assertHasPager( gist, 1, 50 );
         assertEquals( 1, gist.getArray( "userGroups" ).getObject( 0 ).getNumber( "users" ).intValue() );
     }
 
     @Test
-    public void testTransform_Auto_LargeUsesIds()
+    void testTransform_Auto_LargeUsesIds()
     {
         JsonObject gist = GET( "/users/{uid}/userGroups/gist?fields=name,users&auto=L", getSuperuserUid() ).content();
-
         assertHasPager( gist, 1, 50 );
         assertEquals( getSuperuserUid(),
             gist.getArray( "userGroups" ).getObject( 0 ).getArray( "users" ).getString( 0 ).string() );

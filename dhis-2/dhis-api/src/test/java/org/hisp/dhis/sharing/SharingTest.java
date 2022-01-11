@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,8 @@ package org.hisp.dhis.sharing;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.function.UnaryOperator;
@@ -40,7 +40,7 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link Sharing} class, in particular the
@@ -48,24 +48,22 @@ import org.junit.Test;
  *
  * @author Jan Bernitt
  */
-public class SharingTest
+class SharingTest
 {
 
     @Test
-    public void withAccessAppliesToPublic()
+    void withAccessAppliesToPublic()
     {
         Sharing original = new Sharing();
         original.setPublicAccess( "abcd1234" );
-
         assertEquals( "abab1234", original.withAccess( Sharing::copyMetadataToData ).getPublicAccess() );
     }
 
     @Test
-    public void withAccessAppliesToUsers()
+    void withAccessAppliesToUsers()
     {
         Sharing original = new Sharing();
         original.setUsers( singletonMap( "key", new UserAccess( "abcd1234", "uid" ) ) );
-
         Sharing actual = original.withAccess( Sharing::copyMetadataToData );
         Map<String, UserAccess> users = actual.getUsers();
         assertEquals( 1, users.size() );
@@ -75,11 +73,10 @@ public class SharingTest
     }
 
     @Test
-    public void withAccessAppliesToUserGroups()
+    void withAccessAppliesToUserGroups()
     {
         Sharing original = new Sharing();
         original.setUserGroups( singletonMap( "key", new UserGroupAccess( "abcd1234", "uid" ) ) );
-
         Sharing actual = original.withAccess( Sharing::copyMetadataToData );
         Map<String, UserGroupAccess> groups = actual.getUserGroups();
         assertEquals( 1, groups.size() );
@@ -89,31 +86,27 @@ public class SharingTest
     }
 
     @Test
-    public void withAccessKeepsOwner()
+    void withAccessKeepsOwner()
     {
         Sharing original = new Sharing();
         original.setOwner( "userid" );
-
         assertEquals( "userid", original.withAccess( Sharing::copyMetadataToData ).getOwner() );
     }
 
     @Test
-    public void withAccessKeepsExternal()
+    void withAccessKeepsExternal()
     {
         Sharing original = new Sharing();
         original.setExternal( true );
-
         assertTrue( original.withAccess( Sharing::copyMetadataToData ).isExternal() );
     }
 
     @Test
-    public void setUserAccessesClearsExisting()
+    void setUserAccessesClearsExisting()
     {
         Sharing actual = new Sharing();
         actual.setUserAccesses( singleton( new UserAccess( "rw------", "id" ) ) );
-
         actual.setUserAccesses( singleton( new UserAccess( "r-------", "uid" ) ) );
-
         assertEquals( 1, actual.getUsers().size() );
         UserAccess userAccess = actual.getUsers().values().iterator().next();
         assertEquals( "r-------", userAccess.getAccess() );
@@ -121,17 +114,15 @@ public class SharingTest
     }
 
     @Test
-    public void setDtoUserAccessesClearsExisting()
+    void setDtoUserAccessesClearsExisting()
     {
         Sharing actual = new Sharing();
         User user1 = new User();
         user1.setUid( "id" );
         actual.setDtoUserAccesses( singleton( new org.hisp.dhis.user.UserAccess( user1, "rw------" ) ) );
-
         User user2 = new User();
         user2.setUid( "uid" );
         actual.setDtoUserAccesses( singleton( new org.hisp.dhis.user.UserAccess( user2, "r-------" ) ) );
-
         assertEquals( 1, actual.getUsers().size() );
         UserAccess userAccess = actual.getUsers().values().iterator().next();
         assertEquals( "r-------", userAccess.getAccess() );
@@ -139,13 +130,11 @@ public class SharingTest
     }
 
     @Test
-    public void setUserGroupAccessClearsExisting()
+    void setUserGroupAccessClearsExisting()
     {
         Sharing actual = new Sharing();
         actual.setUserGroupAccess( singleton( new UserGroupAccess( "rw------", "id" ) ) );
-
         actual.setUserGroupAccess( singleton( new UserGroupAccess( "r-------", "uid" ) ) );
-
         assertEquals( 1, actual.getUserGroups().size() );
         UserGroupAccess userAccess = actual.getUserGroups().values().iterator().next();
         assertEquals( "r-------", userAccess.getAccess() );
@@ -153,17 +142,15 @@ public class SharingTest
     }
 
     @Test
-    public void setDtoUserGroupAccessClearsExisting()
+    void setDtoUserGroupAccessClearsExisting()
     {
         Sharing actual = new Sharing();
         UserGroup group1 = new UserGroup();
         group1.setUid( "id" );
         actual.setDtoUserGroupAccesses( singleton( new org.hisp.dhis.user.UserGroupAccess( group1, "rw------" ) ) );
-
         UserGroup group2 = new UserGroup();
         group2.setUid( "uid" );
         actual.setDtoUserGroupAccesses( singleton( new org.hisp.dhis.user.UserGroupAccess( group2, "r-------" ) ) );
-
         assertEquals( 1, actual.getUserGroups().size() );
         UserGroupAccess userAccess = actual.getUserGroups().values().iterator().next();
         assertEquals( "r-------", userAccess.getAccess() );
@@ -171,23 +158,19 @@ public class SharingTest
     }
 
     @Test
-    public void addUserAccessIgnoresNull()
+    void addUserAccessIgnoresNull()
     {
         Sharing actual = new Sharing();
         actual.setUserAccesses( singleton( new UserAccess( "rw------", "uid" ) ) );
-
         actual.addUserAccess( null );
-
         assertEquals( 1, actual.getUsers().size() );
     }
 
     @Test
-    public void addUserGroupAccessCreatesMapWhenNeeded()
+    void addUserGroupAccessCreatesMapWhenNeeded()
     {
         Sharing actual = new Sharing();
-
         actual.addUserGroupAccess( new UserGroupAccess( "rw------", "uid" ) );
-
         assertEquals( 1, actual.getUserGroups().size() );
     }
 }

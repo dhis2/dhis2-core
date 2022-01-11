@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,9 +30,9 @@ package org.hisp.dhis.outlierdetection.service;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.getDate;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -43,20 +43,21 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outlierdetection.OutlierDetectionRequest;
 import org.hisp.dhis.outlierdetection.OutlierDetectionService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-public class OutlierDetectionServiceValidationTest
+@ExtendWith( MockitoExtension.class )
+class OutlierDetectionServiceValidationTest
 {
+
     @Mock
     private IdentifiableObjectManager idObjectManager;
 
@@ -65,9 +66,6 @@ public class OutlierDetectionServiceValidationTest
 
     @Mock
     private MinMaxOutlierDetectionManager minMaxOutlierManager;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     private OutlierDetectionService subject;
 
@@ -85,7 +83,7 @@ public class OutlierDetectionServiceValidationTest
 
     private OrganisationUnit ouB;
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         subject = new DefaultOutlierDetectionService( idObjectManager, zScoreOutlierManager, minMaxOutlierManager );
@@ -99,7 +97,7 @@ public class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testSuccessfulValidation()
+    void testSuccessfulValidation()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -111,7 +109,7 @@ public class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorValidation()
+    void testErrorValidation()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -123,7 +121,7 @@ public class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorNoDataElements()
+    void testErrorNoDataElements()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withStartEndDate( getDate( 2020, 1, 1 ), getDate( 2020, 7, 1 ) )
@@ -134,7 +132,7 @@ public class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorStartAfterEndDates()
+    void testErrorStartAfterEndDates()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -146,7 +144,7 @@ public class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorNegativeThreshold()
+    void testErrorNegativeThreshold()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -159,7 +157,7 @@ public class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorNegativeMaxResults()
+    void testErrorNegativeMaxResults()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )
@@ -172,7 +170,7 @@ public class OutlierDetectionServiceValidationTest
     }
 
     @Test
-    public void testErrorDataStartDateAfterDataEndDate()
+    void testErrorDataStartDateAfterDataEndDate()
     {
         OutlierDetectionRequest request = new OutlierDetectionRequest.Builder()
             .withDataElements( Lists.newArrayList( deA, deB, deC ) )

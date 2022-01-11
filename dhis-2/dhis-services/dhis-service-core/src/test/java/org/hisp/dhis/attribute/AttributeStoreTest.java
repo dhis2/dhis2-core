@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.attribute;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
@@ -36,15 +36,15 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AttributeStoreTest
-    extends DhisSpringTest
+class AttributeStoreTest extends DhisSpringTest
 {
+
     @Autowired
     private AttributeStore attributeStore;
 
@@ -60,75 +60,65 @@ public class AttributeStoreTest
         atA.setValueType( ValueType.TEXT );
         atA.setIndicatorAttribute( true );
         atA.setDataElementAttribute( true );
-
         atB = new Attribute();
         atB.setName( "attribute_with_options" );
         atB.setValueType( ValueType.TEXT );
         atB.setOrganisationUnitAttribute( true );
         atB.setDataElementAttribute( true );
-
         attributeStore.save( atA );
         attributeStore.save( atB );
     }
 
     @Test
-    public void testGetDataElementAttributes()
+    void testGetDataElementAttributes()
     {
         assertEquals( 2, attributeStore.getAttributes( DataElement.class ).size() );
     }
 
     @Test
-    public void testGetIndicatorAttributes()
+    void testGetIndicatorAttributes()
     {
         assertEquals( 1, attributeStore.getAttributes( Indicator.class ).size() );
     }
 
     @Test
-    public void testGetOrganisationUnitAttributes()
+    void testGetOrganisationUnitAttributes()
     {
         assertEquals( 1, attributeStore.getAttributes( OrganisationUnit.class ).size() );
     }
 
     @Test
-    public void testGetSupportedClasses()
+    void testGetSupportedClasses()
     {
         Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
         attribute.setDataElementAttribute( true );
-
         assertEquals( 1, attribute.getSupportedClasses().size() );
         assertTrue( attribute.getSupportedClasses().contains( DataElement.class ) );
-
         attribute.setDataElementAttribute( false );
         attribute.setIndicatorAttribute( true );
         attribute.setIndicatorGroupAttribute( true );
-
         assertEquals( 2, attribute.getSupportedClasses().size() );
         assertTrue( attribute.getSupportedClasses().contains( Indicator.class ) );
         assertTrue( attribute.getSupportedClasses().contains( IndicatorGroup.class ) );
     }
 
     @Test
-    public void testGetMandatoryAttributes()
+    void testGetMandatoryAttributes()
     {
         Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
         attribute.setDataElementAttribute( true );
         attribute.setMandatory( true );
-
         attributeStore.save( attribute );
-
         assertEquals( 1, attributeStore.getMandatoryAttributes( DataElement.class ).size() );
     }
 
     @Test
-    public void testGetUniqueAttributes()
+    void testGetUniqueAttributes()
     {
         Attribute attribute = new Attribute( "AttributeName", ValueType.TEXT );
         attribute.setDataElementAttribute( true );
         attribute.setUnique( true );
-
         attributeStore.save( attribute );
-
         assertEquals( 1, attributeStore.getUniqueAttributes( DataElement.class ).size() );
-
     }
 }
