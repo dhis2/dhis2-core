@@ -397,6 +397,7 @@ public class JdbcEnrollmentAnalyticsManager
         }
         else
         {
+            // Add default
             final List<String> selectAllCols = distinctUnion( new ArrayList<>( DEFAULT_COLUMNS.values() ),
                 new ArrayList<>( dynamicColumnsMap.values() ) );
 

@@ -218,7 +218,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private Map<String, String> getSelectColumns( EventQueryParams params, boolean isGroupByClause )
     {
-        Map<String, String> columns = new LinkedHashMap();
+        Map<String, String> columns = new LinkedHashMap<>();
 
         for ( DimensionalObject dimension : params.getDimensions() )
         {
@@ -311,7 +311,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         String countClause = getAggregateClause( params );
 
         String sql = TextUtils.removeLastComma( "select " + countClause + " as value," +
-            StringUtils.join( getSelectColumns( params ), "," ) + " " );
+            StringUtils.join( getSelectColumns( params ).values(), "," ) + " " );
 
         // ---------------------------------------------------------------------
         // Criteria

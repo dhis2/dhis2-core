@@ -55,8 +55,6 @@ public class GridHeader
      */
     private String column;
 
-    private String rawColumn;
-
     private ValueType valueType;
 
     private String type;

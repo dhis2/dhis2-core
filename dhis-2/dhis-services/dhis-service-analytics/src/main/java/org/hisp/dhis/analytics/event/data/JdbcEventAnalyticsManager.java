@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.join;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.data.EventGridHeaderHandler.ITEM_ENROLLMENT_DATE;
@@ -148,7 +149,7 @@ public class JdbcEventAnalyticsManager
         PROGRAM_REGISTRATION_COLUMNS.put( ITEM_TRACKED_ENTITY_INSTANCE, "tei");
         PROGRAM_REGISTRATION_COLUMNS.put( ITEM_PROGRAM_INSTANCE, "pi");
 
-        LOCATION_COLUMNS.put( ITEM_GEOMETRY, "ST_AsGeoJSON(psigeometry, 6)" );
+        LOCATION_COLUMNS.put( ITEM_GEOMETRY, "ST_AsGeoJSON(psigeometry, 6) as geometry" );
         LOCATION_COLUMNS.put( ITEM_LONGITUDE, "longitude" );
         LOCATION_COLUMNS.put( ITEM_LATITUDE, "latitude" );
         LOCATION_COLUMNS.put( ITEM_ORG_UNIT_NAME, "ouname" );
@@ -376,13 +377,24 @@ public class JdbcEventAnalyticsManager
         }
         else
         {
+            // Add default
             final List<String> selectCols = distinctUnion( new ArrayList<>( DEFAULT_COLUMNS.values() ),
-                new ArrayList<>( PROGRAM_REGISTRATION_COLUMNS.values() ),
+                getProgramColumnsOrEmpty( params ),
                 new ArrayList<>( LOCATION_COLUMNS.values() ),
                 new ArrayList<>( dynamicColumnsMap.values() ) );
 
             return "select " + join( selectCols, "," ) + " ";
         }
+    }
+
+    private List<String> getProgramColumnsOrEmpty( final EventQueryParams params )
+    {
+        if ( params.getProgram().isRegistration() )
+        {
+            return new ArrayList<>( PROGRAM_REGISTRATION_COLUMNS.values() );
+        }
+
+        return emptyList();
     }
 
     /**

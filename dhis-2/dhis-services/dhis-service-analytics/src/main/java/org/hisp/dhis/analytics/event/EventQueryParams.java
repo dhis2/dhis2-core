@@ -404,7 +404,7 @@ public class EventQueryParams
 
         items.forEach( e -> key.add( "item", "[" + e.getKey() + "]" ) );
         itemFilters.forEach( e -> key.add( "itemFilter", "[" + e.getKey() + "]" ) );
-        headers.forEach( value -> key.add( "headers", "[" + value + "]" ) );
+        headers.forEach( header -> key.add( "headers", "[" + header + "]" ) );
         itemProgramIndicators.forEach( e -> key.add( "itemProgramIndicator", e.getUid() ) );
         asc.forEach( e -> e.getUid() );
         desc.forEach( e -> e.getUid() );
