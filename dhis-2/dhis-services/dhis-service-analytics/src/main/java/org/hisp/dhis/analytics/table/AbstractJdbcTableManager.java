@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,8 @@ package org.hisp.dhis.analytics.table;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.TEXT;
+import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.createIndexStatement;
+import static org.hisp.dhis.analytics.util.AnalyticsIndexHelper.getIndexName;
 import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
 import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
@@ -96,9 +98,11 @@ public abstract class AbstractJdbcTableManager
      * <li>1999-12-12T10:10:10</li>
      * <li>1999-10-10 10:10:10</li>
      * <li>1999-10-10 10:10</li>
+     * <li>2021-12-14T11:45:00.000Z</li>
+     * <li>2021-12-14T11:45:00.000</li>
      * </ul>
      */
-    protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?$";
+    protected static final String DATE_REGEXP = "^\\d{4}-\\d{2}-\\d{2}(\\s|T)?((\\d{2}:)(\\d{2}:)?(\\d{2}))?(|.(\\d{3})|.(\\d{3})Z)?$";
 
     protected static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
 
@@ -190,14 +194,10 @@ public abstract class AbstractJdbcTableManager
     }
 
     @Override
-    public void createIndex( AnalyticsIndex index )
+    public void createIndex( final AnalyticsIndex index )
     {
-        final String indexName = index.getIndexName( getAnalyticsTableType() );
-        final String indexColumns = StringUtils.join( index.getColumns(), "," );
-
-        final String sql = "create index " + indexName + " " +
-            "on " + index.getTable() + " " +
-            "using " + index.getType().keyword() + " (" + indexColumns + ");";
+        final String indexName = getIndexName( index, getAnalyticsTableType() );
+        final String sql = createIndexStatement( index, getAnalyticsTableType() );
 
         log.debug( "Create index: '{}' with SQL: '{}'", indexName, sql );
 

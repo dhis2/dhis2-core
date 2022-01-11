@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,16 +84,17 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
                     .replace( CATEGORY_OPTION_GROUP_PREFIX, EMPTY_STRING )
                     .split( LOGICAL_AND ) ).collect( Collectors.toList() );
 
-                expression = getExpression( expression, id, cogUidList );
+                expression = getExpression( expression, id, cogUidList, id.getId0() );
             }
         }
 
         return expression;
     }
 
-    private String getExpression( String expression, DimensionalItemId id, List<String> cogUidList )
+    private String getExpression( String expression, DimensionalItemId id, List<String> cogUidList,
+        String dataElementId )
     {
-        List<String> cocUidIntersection = getCategoryOptionCombosIntersection( cogUidList );
+        List<String> cocUidIntersection = getCategoryOptionCombosIntersection( cogUidList, dataElementId );
 
         if ( cocUidIntersection == null || cocUidIntersection.isEmpty() )
         {
@@ -111,7 +112,7 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
         return expression;
     }
 
-    private List<String> getCategoryOptionCombosIntersection( List<String> cogUidList )
+    private List<String> getCategoryOptionCombosIntersection( List<String> cogUidList, String dataElementId )
     {
         List<String> cocUidIntersection = null;
 
@@ -120,7 +121,8 @@ public class CategoryOptionGroupResolver implements ExpressionResolver
             CategoryOptionGroup cog = categoryOptionGroupStore
                 .getByUid( cogUid );
 
-            List<String> cocUids = categoryOptionComboStore.getCategoryOptionCombosByGroupUid( cog.getUid() )
+            List<String> cocUids = categoryOptionComboStore
+                .getCategoryOptionCombosByGroupUid( cog.getUid(), dataElementId )
                 .stream()
                 .map( BaseIdentifiableObject::getUid )
                 .collect( Collectors.toList() );

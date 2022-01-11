@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -194,7 +194,7 @@ public class DefaultSynchronizationManager
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
 
             dataValueSetService
-                .writeDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
+                .exportDataValueSetJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
         final int maxSyncAttempts = systemSettingManager.getIntSetting( SettingKey.MAX_SYNC_ATTEMPTS );

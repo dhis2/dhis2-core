@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,12 +29,6 @@ package org.hisp.dhis.category.hibernate;
 
 import java.util.List;
 import java.util.Set;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
-import javax.persistence.criteria.Root;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -115,15 +109,20 @@ public class HibernateCategoryOptionComboStore
     }
 
     @Override
-    public List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupUid )
+    public List<CategoryOptionCombo> getCategoryOptionCombosByGroupUid( String groupUid, String dataElementUid )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
-        CriteriaQuery<CategoryOptionCombo> query = builder.createQuery( CategoryOptionCombo.class );
-        Root<CategoryOptionCombo> root = query.from( CategoryOptionCombo.class );
-        Join<Object, Object> joinCatOption = root.join( "categoryOptions", JoinType.INNER );
-        Join<Object, Object> joinCatOptionGroup = joinCatOption.join( "groups", JoinType.INNER );
-        query.where( builder.equal( joinCatOptionGroup.get( "uid" ), groupUid ) );
-        return getSession().createQuery( query ).list();
+        final String hql = "select coc from DataElement de "
+            + "join de.categoryCombo cc "
+            + "join cc.optionCombos coc "
+            + "join coc.categoryOptions co "
+            + "join co.groups cog "
+            + "where cog.uid = :groupUid "
+            + "and de.uid = :dataElementUid";
+
+        return getQuery( hql )
+            .setParameter( "groupUid", groupUid )
+            .setParameter( "dataElementUid", dataElementUid )
+            .list();
     }
 
     @Override

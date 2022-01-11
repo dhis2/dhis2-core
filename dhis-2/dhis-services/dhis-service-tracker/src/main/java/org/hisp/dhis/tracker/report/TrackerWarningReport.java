@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,6 +114,11 @@ public class TrackerWarningReport
             return new TrackerWarningReport( MessageFormat.format( warningCode.getMessage(),
                 buildArgumentList( bundle, arguments ).toArray( new Object[0] ) ), this.warningCode, trackerType, uid );
         }
+    }
+
+    public static TrackerWarningReportBuilder newWarningReport( TrackerErrorCode errorCode )
+    {
+        return builder().warningCode( errorCode );
     }
 
     @Override

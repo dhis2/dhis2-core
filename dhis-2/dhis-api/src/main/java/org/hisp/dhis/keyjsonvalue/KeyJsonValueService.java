@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,8 @@ package org.hisp.dhis.keyjsonvalue;
 
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
 import org.springframework.security.access.AccessDeniedException;
@@ -43,7 +45,7 @@ public interface KeyJsonValueService
      * Applies the configuration for the provided protection so it is considered
      * by this service in future requests.
      *
-     * @param protection configuration for protection protection
+     * @param protection configuration for protection
      */
     void addProtection( KeyJsonNamespaceProtection protection );
 
@@ -83,6 +85,21 @@ public interface KeyJsonValueService
      * @throws AccessDeniedException when user lacks authority for namespace
      */
     List<String> getKeysInNamespace( String namespace, Date lastUpdated );
+
+    /**
+     * Stream the matching entries to a transformer or consumer function.
+     *
+     * Note that this API cannot return the {@link Stream} since it has to be
+     * processed within the transaction bounds of the function call. For the
+     * same reason a transformer function has to process the stream in a way
+     * that actually will evaluate the stream.
+     *
+     * @param query query parameters
+     * @param transform transformer or consumer for the stream of matches
+     * @param <T> type of the transformed stream
+     * @return the transformed stream
+     */
+    <T> T getEntries( KeyJsonValueQuery query, Function<Stream<KeyJsonValueEntry>, T> transform );
 
     /**
      * Retrieves a KeyJsonValue based on a namespace and key.

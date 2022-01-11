@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -160,7 +160,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
         // Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
-        TrackerImportReport toSerializeReport = TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.ERROR,
+        TrackerImportReport toSerializeReport = TrackerImportReport.withImportCompleted( TrackerStatus.ERROR,
             bundleReport, tvr, timingsStats, bundleSize );
         // Serialize TrackerImportReport into String
         String jsonString = jsonMapper.writeValueAsString( toSerializeReport );
@@ -246,7 +246,7 @@ class TrackerBundleImportReportTest extends DhisSpringTest
     {
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
-        return TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.OK, createBundleReport(),
+        return TrackerImportReport.withImportCompleted( TrackerStatus.OK, createBundleReport(),
             createValidationReport(), createTimingStats(), bundleSize );
     }
 

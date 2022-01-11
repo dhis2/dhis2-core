@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,15 +87,15 @@ public class ImportDataValueTask
     {
         if ( FORMAT_JSON.equals( format ) )
         {
-            dataValueSetService.saveDataValueSetJson( inputStream, importOptions, jobId );
+            dataValueSetService.importDataValueSetJson( inputStream, importOptions, jobId );
         }
         else if ( FORMAT_CSV.equals( format ) )
         {
-            dataValueSetService.saveDataValueSetCsv( inputStream, importOptions, jobId );
+            dataValueSetService.importDataValueSetCsv( inputStream, importOptions, jobId );
         }
         else if ( FORMAT_PDF.equals( format ) )
         {
-            dataValueSetService.saveDataValueSetPdf( inputStream, importOptions, jobId );
+            dataValueSetService.importDataValueSetPdf( inputStream, importOptions, jobId );
         }
         else if ( FORMAT_ADX.equals( format ) )
         {
@@ -103,7 +103,7 @@ public class ImportDataValueTask
         }
         else // FORMAT_XML
         {
-            dataValueSetService.saveDataValueSet( inputStream, importOptions, jobId );
+            dataValueSetService.importDataValueSetXml( inputStream, importOptions, jobId );
         }
     }
 

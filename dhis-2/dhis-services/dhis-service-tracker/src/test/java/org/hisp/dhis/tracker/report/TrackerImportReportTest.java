@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ class TrackerImportReportTest
         originalPayload.put( TrackerType.TRACKED_ENTITY, 10 );
         originalPayload.put( TrackerType.ENROLLMENT, 8 );
         // Method under test
-        TrackerImportReport rep = TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.OK, bundleReport,
+        TrackerImportReport rep = TrackerImportReport.withImportCompleted( TrackerStatus.OK, bundleReport,
             validationReport, timingsStats, originalPayload );
         assertThat( rep.getStats().getCreated(), is( 8 ) );
         assertThat( rep.getStats().getUpdated(), is( 6 ) );

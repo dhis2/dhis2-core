@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,7 +75,6 @@ public class PredictionWriter
      *
      * @param existingOutputPeriods existing output periods before transation.
      * @param summary prediction summary into which to write statistics.
-     * @param storedBy string to identify the user storing the predicted values.
      */
     public void init( Set<Period> existingOutputPeriods, PredictionSummary summary )
     {

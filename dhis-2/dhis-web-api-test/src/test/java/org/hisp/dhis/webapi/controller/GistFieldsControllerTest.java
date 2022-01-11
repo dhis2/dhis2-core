@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,15 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
         assertEquals( singletonList( "groupX" ),
             GET( "/users/{uid}/userGroups/gist?fields=name&headless=true", getSuperuserUid() ).content()
                 .stringValues() );
+    }
+
+    @Test
+    void testField_Collection_DefaultIsSize()
+    {
+        JsonArray matches = GET( "/userGroups/gist?fields=name,users&headless=true" ).content();
+        assertEquals( 1, matches.size() );
+        assertEquals( 1, matches.getObject( 0 ).getNumber( "users" ).intValue() );
+        assertTrue( matches.getObject( 0 ).getObject( "apiEndpoints" ).getString( "users" ).exists() );
     }
 
     @Test
