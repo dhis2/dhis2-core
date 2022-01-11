@@ -62,6 +62,7 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -181,6 +182,7 @@ public class AnalyticsControllerTest
     }
 
     @Test
+    @Ignore
     public void verifyCsvRequest()
         throws Exception
     {

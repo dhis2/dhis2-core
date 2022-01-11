@@ -401,6 +401,8 @@
             </build>
         </profile>
 
+
+
         <profile>
             <id>sonarqube</id>
             <build>
@@ -410,9 +412,9 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <version>${maven-surefire-plugin.version}</version>
                         <configuration>
-                            <skipTests>true</skipTests>
+                            <skipTests>false</skipTests>
                             <trimStackTrace>false</trimStackTrace>
-                            <argLine>${argLine}${surefireArgLine}</argLine>
+                            <argLine>${argLine} ${surefireArgLine}</argLine>
                             <excludedGroups>org.hisp.dhis.IntegrationTest</excludedGroups>
                         </configuration>
                         <dependencies>
@@ -444,6 +446,7 @@
                             </execution>
                         </executions>
                     </plugin>
+
                 </plugins>
             </build>
         </profile>
