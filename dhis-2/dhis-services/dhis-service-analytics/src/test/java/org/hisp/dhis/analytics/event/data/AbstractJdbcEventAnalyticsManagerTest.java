@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,9 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -120,10 +122,25 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
         QueryItem item = new QueryItem( programIndicator );
 
-        subject.getSelectSql( item, from, to );
+        subject.getSelectSql( new QueryFilter(), item, from, to );
 
         verify( programIndicatorService ).getAnalyticsSql( programIndicator.getExpression(), programIndicator, from,
             to );
+    }
+
+    @Test
+    void verifyGetSelectSqlWithTextDataElementIgnoringCase()
+    {
+        DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
+
+        QueryItem item = new QueryItem( dio );
+        item.setValueType( ValueType.TEXT );
+
+        QueryFilter queryFilter = new QueryFilter( QueryOperator.IEQ, "IEQ" );
+
+        String column = subject.getSelectSql( queryFilter, item, from, to );
+
+        assertThat( column, is( "lower(ax.\"" + dataElementA.getUid() + "\")" ) );
     }
 
     @Test
@@ -134,9 +151,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.TEXT );
 
-        String column = subject.getSelectSql( item, from, to );
+        QueryFilter queryFilter = new QueryFilter( QueryOperator.EQ, "EQ" );
 
-        assertThat( column, is( "lower(ax.\"" + dataElementA.getUid() + "\")" ) );
+        String column = subject.getSelectSql( queryFilter, item, from, to );
+
+        assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
     }
 
     @Test
@@ -147,7 +166,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends
         QueryItem item = new QueryItem( dio );
         item.setValueType( ValueType.NUMBER );
 
-        String column = subject.getSelectSql( item, from, to );
+        String column = subject.getSelectSql( new QueryFilter(), item, from, to );
 
         assertThat( column, is( "ax.\"" + dataElementA.getUid() + "\"" ) );
     }
