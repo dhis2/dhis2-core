@@ -101,9 +101,9 @@ public interface Grid
      */
     Map<String, Object> getInternalMetaData();
 
-    List<ExecutionPlan> getExecutionPlanData();
+    PerformanceMetrics getPerformanceMetrics();
 
-    Grid setExecutionPlanData( List<ExecutionPlan> executionPlanData );
+    Grid setPerformanceMetrics( PerformanceMetrics performanceMetrics );
 
     /**
      * Sets a map of internal meta-data.

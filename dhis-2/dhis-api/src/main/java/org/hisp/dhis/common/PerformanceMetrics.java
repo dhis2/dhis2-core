@@ -27,33 +27,20 @@
  */
 package org.hisp.dhis.common;
 
-import java.io.Serializable;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 
-/**
- * @author Dusan Bernat
- */
 @Getter
 @Setter
-public class ExecutionPlan implements Serializable
+public class PerformanceMetrics
 {
     @JsonProperty
-    private Double timeEstimation;
+    private double totalTimeEstimation;
 
     @JsonProperty
-    private Double planningTime;
-
-    @JsonProperty
-    private Double executionTime;
-
-    @JsonProperty
-    private String query;
-
-    @JsonProperty
-    private JsonNode plan;
+    private List<ExecutionPlan> executionPlans;
 }

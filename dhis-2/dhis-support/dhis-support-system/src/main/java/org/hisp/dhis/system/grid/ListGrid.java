@@ -48,9 +48,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
 import org.hisp.dhis.system.util.MathUtils;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -96,7 +96,7 @@ public class ListGrid
      */
     private Map<String, Object> metaData;
 
-    private List<ExecutionPlan> executionPlanData;
+    private PerformanceMetrics performanceMetrics;
 
     /**
      * A Map which can hold internal arbitrary meta data. Will not be
@@ -134,7 +134,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
-        this.executionPlanData = new ArrayList<>();
+        this.performanceMetrics = new PerformanceMetrics();
         this.grid = new ArrayList<>();
     }
 
@@ -147,7 +147,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
-        this.executionPlanData = new ArrayList<>();
+        this.performanceMetrics = new PerformanceMetrics();
         this.grid = new ArrayList<>();
     }
 
@@ -355,16 +355,16 @@ public class ListGrid
     }
 
     @Override
-    @JsonProperty( "executionPlans" )
-    public List<ExecutionPlan> getExecutionPlanData()
+    @JsonProperty
+    public PerformanceMetrics getPerformanceMetrics()
     {
-        return executionPlanData;
+        return performanceMetrics;
     }
 
     @Override
-    public Grid setExecutionPlanData( List<ExecutionPlan> executionPlanData )
+    public Grid setPerformanceMetrics( PerformanceMetrics performanceMetrics )
     {
-        this.executionPlanData = executionPlanData;
+        this.performanceMetrics = performanceMetrics;
         return this;
     }
 

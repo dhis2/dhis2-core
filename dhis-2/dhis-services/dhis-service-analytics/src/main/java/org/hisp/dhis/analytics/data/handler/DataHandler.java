@@ -118,6 +118,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
+import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AnalyticsManager;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.DataQueryGroups;
@@ -139,6 +140,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.ReportingRateMetric;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
@@ -224,7 +226,7 @@ public class DataHandler
         this.executionPlanCache = executionPlanCache;
     }
 
-    void addExecutionPlanData( DataQueryParams params, Grid grid )
+    void addPerformanceMetrics( DataQueryParams params, Grid grid )
     {
         if ( params.analyzeOnly() )
         {
@@ -232,7 +234,15 @@ public class DataHandler
 
             List<ExecutionPlan> plans = executionPlanCache.getExecutionPlans( key );
 
-            grid.setExecutionPlanData( plans );
+            PerformanceMetrics performanceMetrics = new PerformanceMetrics();
+
+            double total = plans.stream().map( ExecutionPlan::getTimeEstimation ).reduce( 0.0, Double::sum );
+
+            performanceMetrics.setTotalTimeEstimation( Precision.round( total, 3 ) );
+
+            performanceMetrics.setExecutionPlans( plans );
+
+            grid.setPerformanceMetrics( performanceMetrics );
 
             executionPlanCache.removeExecutionPlans( key );
         }
