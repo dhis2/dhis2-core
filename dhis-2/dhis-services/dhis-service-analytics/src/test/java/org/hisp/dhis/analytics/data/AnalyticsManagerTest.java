@@ -72,7 +72,7 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     private JdbcTemplate jdbcTemplate;
 
     @Mock
-    private ExecutionPlanCache sqlStatementStack;
+    private ExecutionPlanCache executionPlanCache;
 
     private AnalyticsManager analyticsManager;
 
@@ -87,7 +87,7 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     @MethodSource( "data" )
     public void testWeightedAverage( String financialYear, Double weightedAverage )
     {
-        analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, sqlStatementStack );
+        analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanCache );
         AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(
             AggregationType.SUM, AggregationType.AVERAGE, DataType.NUMERIC, true );
 
@@ -120,7 +120,7 @@ class AnalyticsManagerTest extends DhisConvenienceTest
     @Test
     void testReplaceDataPeriodsWithAggregationPeriods()
     {
-        AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, sqlStatementStack );
+        AnalyticsManager analyticsManager = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanCache );
         Period y2012 = createPeriod( "2012" );
 
         AnalyticsAggregationType aggregationType = new AnalyticsAggregationType(

@@ -47,7 +47,6 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.analytics.analyze.ExecutionPlanCache;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.Grid;
@@ -95,9 +94,6 @@ class AnalyticsControllerTest
     @Mock
     private DimensionService dimensionService;
 
-    @Mock
-    private ExecutionPlanCache sqlStatementStack;
-
     @BeforeEach
     public void setUp()
     {
@@ -110,7 +106,7 @@ class AnalyticsControllerTest
 
         // Controller under test
         final AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,
-            contextUtils, sqlStatementStack );
+            contextUtils );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
 

@@ -91,7 +91,7 @@ class JdbcAnalyticsManagerTest
     private JdbcAnalyticsManager subject;
 
     @Mock
-    private ExecutionPlanCache sqlStatementStack;
+    private ExecutionPlanCache executionPlanCache;
 
     @BeforeEach
     public void setUp()
@@ -104,7 +104,7 @@ class JdbcAnalyticsManagerTest
 
         when( jdbcTemplate.queryForRowSet( sql.capture() ) ).thenReturn( rowSet );
 
-        subject = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, sqlStatementStack );
+        subject = new JdbcAnalyticsManager( queryPlanner, jdbcTemplate, executionPlanCache );
     }
 
     @Test
